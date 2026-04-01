@@ -1,0 +1,50 @@
+<div class="admin-layout" [class.sidebar-collapsed]="sidebarCollapsed">
+  <!-- Mobile overlay -->
+  @if (mobileMenuOpen) {
+    <div class="mobile-overlay" (click)="closeMobileMenu()"></div>
+  }
+
+  <aside class="admin-sidebar" [class.mobile-open]="mobileMenuOpen" role="navigation" aria-label="Admin navigation">
+    <div class="sidebar-header">
+      <span class="sidebar-logo">🛡️</span>
+      <span class="sidebar-title" *ngIf="!sidebarCollapsed">Admin Panel</span>
+      <button
+        class="sidebar-toggle hide-mobile-toggle"
+        (click)="toggleSidebar()"
+        [attr.aria-label]="sidebarCollapsed ? 'Expand sidebar' : 'Collapse sidebar'"
+      >
+        {{ sidebarCollapsed ? '→' : '←' }}
+      </button>
+      <button
+        class="sidebar-toggle show-mobile-close"
+        (click)="closeMobileMenu()"
+        aria-label="Close menu"
+      >
+        ✕
+      </button>
+    </div>
+
+    <nav class="sidebar-nav">
+      <a
+        *ngFor="let item of navItems"
+        class="nav-item"
+        [routerLink]="item.path"
+        routerLinkActive="active"
+        [routerLinkActiveOptions]="{ exact: item.path === '/admin' }"
+        [attr.aria-label]="item.label"
+        (click)="closeMobileMenu()"
+      >
+        <span class="nav-icon">{{ item.icon }}</span>
+        <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
+      </a>
+    </nav>
+  </aside>
+
+  <main class="admin-content">
+    <div class="mobile-topbar">
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Open admin menu">☰</button>
+      <span class="mobile-topbar-title">🛡️ Admin Panel</span>
+    </div>
+    <router-outlet></router-outlet>
+  </main>
+</div>

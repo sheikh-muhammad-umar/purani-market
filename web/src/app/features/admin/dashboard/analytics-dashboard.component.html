@@ -1,0 +1,138 @@
+<div class="analytics-dashboard">
+  <div class="dashboard-header">
+    <h1>Analytics Dashboard</h1>
+    <div class="header-actions">
+      <div class="date-range">
+        <label for="startDate">From</label>
+        <input id="startDate" type="date" [(ngModel)]="startDate" />
+        <label for="endDate">To</label>
+        <input id="endDate" type="date" [(ngModel)]="endDate" />
+        <button class="btn-apply" (click)="applyDateRange()">Apply</button>
+      </div>
+      <button
+        class="btn-export"
+        (click)="exportReport()"
+        [disabled]="exporting() || !startDate || !endDate"
+      >
+        {{ exporting() ? 'Exporting...' : '📥 Export Report' }}
+      </button>
+    </div>
+  </div>
+
+  <div *ngIf="loading()" class="loading-state">
+    <div class="spinner"></div>
+    <p>Loading analytics...</p>
+  </div>
+
+  <div *ngIf="error()" class="error-state">
+    <p>{{ error() }}</p>
+    <button class="btn-retry" (click)="loadAnalytics()">Retry</button>
+  </div>
+
+  <ng-container *ngIf="!loading() && !error()">
+    <!-- Key Metrics Cards -->
+    <section class="metrics-section">
+      <div class="metrics-grid">
+        <div *ngFor="let card of metricCards()" class="metric-card">
+          <span class="metric-icon">{{ card.icon }}</span>
+          <div class="metric-info">
+            <span class="metric-value">{{ formatValue(card.value, card.format) }}</span>
+            <span class="metric-label">{{ card.label }}</span>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Time Series Charts -->
+    <section class="charts-section" *ngIf="timeSeries() as ts">
+      <h2>Trends</h2>
+      <div class="charts-grid">
+        <div class="chart-card">
+          <h3>Registrations</h3>
+          <div class="bar-chart" *ngIf="ts.registrations.length > 0">
+            <div
+              *ngFor="let point of ts.registrations"
+              class="bar-column"
+              [title]="point.date + ': ' + point.value"
+            >
+              <div
+                class="bar"
+                [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.registrations))"
+              ></div>
+              <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+            </div>
+          </div>
+          <p *ngIf="ts.registrations.length === 0" class="no-data">No data available</p>
+        </div>
+
+        <div class="chart-card">
+          <h3>Listings</h3>
+          <div class="bar-chart" *ngIf="ts.listings.length > 0">
+            <div
+              *ngFor="let point of ts.listings"
+              class="bar-column"
+              [title]="point.date + ': ' + point.value"
+            >
+              <div
+                class="bar bar-listings"
+                [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.listings))"
+              ></div>
+              <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+            </div>
+          </div>
+          <p *ngIf="ts.listings.length === 0" class="no-data">No data available</p>
+        </div>
+
+        <div class="chart-card">
+          <h3>Conversations</h3>
+          <div class="bar-chart" *ngIf="ts.conversations.length > 0">
+            <div
+              *ngFor="let point of ts.conversations"
+              class="bar-column"
+              [title]="point.date + ': ' + point.value"
+            >
+              <div
+                class="bar bar-conversations"
+                [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.conversations))"
+              ></div>
+              <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+            </div>
+          </div>
+          <p *ngIf="ts.conversations.length === 0" class="no-data">No data available</p>
+        </div>
+
+        <div class="chart-card">
+          <h3>Purchases</h3>
+          <div class="bar-chart" *ngIf="ts.purchases.length > 0">
+            <div
+              *ngFor="let point of ts.purchases"
+              class="bar-column"
+              [title]="point.date + ': ' + point.value"
+            >
+              <div
+                class="bar bar-purchases"
+                [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.purchases))"
+              ></div>
+              <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+            </div>
+          </div>
+          <p *ngIf="ts.purchases.length === 0" class="no-data">No data available</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- Category Analytics -->
+    <section class="category-section" *ngIf="categoryAnalytics().length > 0">
+      <h2>Listings by Category</h2>
+      <div class="category-list">
+        <div *ngFor="let cat of categoryAnalytics()" class="category-row">
+          <span class="category-name">{{ cat.categoryName }}</span>
+          <div class="category-bar-wrapper">
+            <div class="category-bar" [style.width.%]="getBarWidth(cat.listingCount)"></div>
+          </div>
+          <span class="category-count">{{ cat.listingCount }}</span>
+        </div>
+      </div>
+    </section>
+  </ng-container>
+</div>

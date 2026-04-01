@@ -1,0 +1,145 @@
+.reviews-page {
+  min-height: calc(100vh - var(--header-height));
+  padding: var(--space-4) var(--space-2);
+  background: var(--background);
+}
+
+.page-header {
+  margin-bottom: var(--space-3);
+  h1 { font-size: var(--text-2xl); }
+}
+
+.rating-summary {
+  margin-top: var(--space-1);
+}
+
+.average-rating {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.rating-number {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--accent);
+  font-family: var(--font-mono);
+}
+
+.stars-row {
+  display: flex;
+  gap: 2px;
+}
+
+.review-count {
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}
+
+.star {
+  font-size: 1.125rem;
+  color: var(--border);
+  line-height: 1;
+
+  &.filled {
+    color: var(--accent);
+  }
+
+  &.half {
+    color: var(--accent-light);
+  }
+}
+
+/* Empty & Error States */
+.empty-state,
+.error-state {
+  text-align: center;
+  padding: var(--space-8) var(--space-2);
+}
+
+.empty-icon,
+.error-icon {
+  font-size: 3rem;
+  display: block;
+  margin-bottom: var(--space-1);
+}
+
+.empty-state h3 {
+  margin-bottom: var(--space-1);
+}
+
+.empty-state p,
+.error-state p {
+  color: var(--text-secondary);
+  margin-bottom: var(--space-3);
+}
+
+/* Reviews List */
+.reviews-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.review-card {
+  padding: var(--space-2) var(--space-3);
+
+  &:hover {
+    transform: none;
+  }
+}
+
+.review-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--space-1);
+}
+
+.reviewer-info {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.reviewer-avatar {
+  font-size: 1.25rem;
+}
+
+.reviewer-id {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.review-date {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.review-rating {
+  display: flex;
+  gap: 2px;
+  margin-bottom: var(--space-1);
+}
+
+.review-text {
+  font-size: var(--text-base);
+  color: var(--text-secondary);
+  line-height: var(--leading-relaxed);
+  word-break: break-word;
+}
+
+@media (max-width: 768px) {
+  .reviews-page {
+    padding: var(--space-2) var(--space-1);
+  }
+  .review-card {
+    padding: var(--space-2);
+  }
+  .review-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-half);
+  }
+}

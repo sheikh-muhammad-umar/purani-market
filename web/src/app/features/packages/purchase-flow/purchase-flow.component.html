@@ -1,0 +1,159 @@
+<div class="purchase-page">
+  <div class="container">
+    <a routerLink="/packages" class="back-link">← Back to Packages</a>
+
+    @if (loading()) {
+      <div class="loading-center"><div class="spinner spinner-lg"></div></div>
+    } @else if (error()) {
+      <div class="error-state">
+        <span class="error-icon">⚠️</span>
+        <p>{{ error() }}</p>
+        <button class="btn btn-primary" (click)="loadPackage()">Retry</button>
+      </div>
+    } @else if (pkg(); as package) {
+      <div class="purchase-layout">
+        <div class="steps-indicator">
+          <div class="step-item" [class.active]="getStepNumber() >= 1" [class.completed]="getStepNumber() > 1">
+            <span class="step-number">1</span>
+            <span class="step-label">Package Details</span>
+          </div>
+          <div class="step-connector" [class.active]="getStepNumber() > 1"></div>
+          <div class="step-item" [class.active]="getStepNumber() >= 2" [class.completed]="getStepNumber() > 2">
+            <span class="step-number">2</span>
+            <span class="step-label">Payment Method</span>
+          </div>
+          <div class="step-connector" [class.active]="getStepNumber() > 2"></div>
+          <div class="step-item" [class.active]="getStepNumber() >= 3">
+            <span class="step-number">3</span>
+            <span class="step-label">Confirm</span>
+          </div>
+        </div>
+
+        <!-- Step 1: Package Details -->
+        @if (step() === 'details') {
+          <div class="step-content">
+            <div class="package-summary card">
+              <span class="badge" [class.badge-featured]="package.type === 'featured_ads'" [class.badge-success]="package.type === 'ad_slots'">
+                {{ getTypeLabel(package.type) }}
+              </span>
+              <h2>{{ package.name }}</h2>
+              <div class="summary-details">
+                <div class="summary-row">
+                  <span>Type</span>
+                  <span>{{ getTypeLabel(package.type) }}</span>
+                </div>
+                <div class="summary-row">
+                  <span>Quantity</span>
+                  <span>{{ package.quantity }}</span>
+                </div>
+                <div class="summary-row">
+                  <span>Duration</span>
+                  <span>{{ package.duration }} days</span>
+                </div>
+                <div class="summary-row total">
+                  <span>Price</span>
+                  <span class="price">{{ formatPrice(package.defaultPrice) }}</span>
+                </div>
+              </div>
+              @if (package.categoryPricing.length > 0) {
+                <div class="category-pricing">
+                  <h4>Category-Specific Pricing</h4>
+                  @for (cp of package.categoryPricing; track cp.categoryId) {
+                    <div class="summary-row">
+                      <span>Category {{ cp.categoryId }}</span>
+                      <span class="price">{{ formatPrice(cp.price) }}</span>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+            <button class="btn btn-primary btn-full" (click)="goToPayment()">
+              Continue to Payment
+            </button>
+          </div>
+        }
+
+        <!-- Step 2: Payment Method -->
+        @if (step() === 'payment') {
+          <div class="step-content">
+            <h2>Select Payment Method</h2>
+            <div class="payment-methods">
+              @for (method of ['jazzcash', 'easypaisa', 'card']; track method) {
+                <button
+                  class="payment-option card"
+                  [class.selected]="selectedPaymentMethod() === method"
+                  (click)="selectPaymentMethod($any(method))">
+                  <span class="payment-icon">{{ getPaymentMethodIcon($any(method)) }}</span>
+                  <span class="payment-label">{{ getPaymentMethodLabel($any(method)) }}</span>
+                  @if (selectedPaymentMethod() === method) {
+                    <span class="check-mark">✓</span>
+                  }
+                </button>
+              }
+            </div>
+            <div class="step-actions">
+              <button class="btn btn-outline" (click)="goBack()">Back</button>
+              <button
+                class="btn btn-primary"
+                [disabled]="!selectedPaymentMethod()"
+                (click)="goToConfirm()">
+                Continue
+              </button>
+            </div>
+          </div>
+        }
+
+        <!-- Step 3: Confirm -->
+        @if (step() === 'confirm') {
+          <div class="step-content">
+            <h2>Confirm Purchase</h2>
+            <div class="confirm-summary card">
+              <div class="summary-row">
+                <span>Package</span>
+                <span>{{ package.name }}</span>
+              </div>
+              <div class="summary-row">
+                <span>Type</span>
+                <span>{{ getTypeLabel(package.type) }}</span>
+              </div>
+              <div class="summary-row">
+                <span>Quantity</span>
+                <span>{{ package.quantity }}</span>
+              </div>
+              <div class="summary-row">
+                <span>Duration</span>
+                <span>{{ package.duration }} days</span>
+              </div>
+              <div class="summary-row">
+                <span>Payment Method</span>
+                <span>{{ getPaymentMethodLabel(selectedPaymentMethod()!) }}</span>
+              </div>
+              <div class="summary-row total">
+                <span>Total</span>
+                <span class="price">{{ formatPrice(package.defaultPrice) }}</span>
+              </div>
+            </div>
+
+            @if (purchaseError()) {
+              <div class="alert alert-error">{{ purchaseError() }}</div>
+            }
+
+            <div class="step-actions">
+              <button class="btn btn-outline" [disabled]="purchasing()" (click)="goBack()">Back</button>
+              <button
+                class="btn btn-primary"
+                [disabled]="purchasing()"
+                (click)="confirmPurchase()">
+                @if (purchasing()) {
+                  <span class="spinner"></span> Processing...
+                } @else {
+                  Pay {{ formatPrice(package.defaultPrice) }}
+                }
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,243 @@
+<div class="settings-page">
+  <div class="settings-container">
+    <div class="settings-header">
+      <h1 class="settings-title">Settings</h1>
+      <div class="profile-nav">
+        <a routerLink="/profile" class="nav-link">Profile</a>
+        <a routerLink="/profile/settings" class="nav-link active">Settings</a>
+        <a routerLink="/profile/notifications" class="nav-link">Notifications</a>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-center">
+        <span class="spinner spinner-lg" aria-label="Loading settings"></span>
+      </div>
+    } @else {
+      @if (successMessage()) {
+        <div class="alert alert-success" role="status">{{ successMessage() }}</div>
+      }
+      @if (errorMessage()) {
+        <div class="alert alert-error" role="alert">{{ errorMessage() }}</div>
+      }
+
+      <!-- Email Change Section -->
+      <div class="settings-card card">
+        <div class="settings-card-header">
+          <div>
+            <h3 class="section-title">Email Address</h3>
+            <p class="section-desc">
+              {{ user()?.email || 'No email set' }}
+              @if (user()?.emailVerified) {
+                <span class="badge badge-success">Verified</span>
+              }
+            </p>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" (click)="toggleEmailChange()">
+            {{ showEmailChange() ? 'Cancel' : 'Change' }}
+          </button>
+        </div>
+
+        @if (showEmailChange()) {
+          <div class="change-form-section">
+            @if (emailChangeSuccess()) {
+              <div class="alert alert-success" role="status">{{ emailChangeSuccess() }}</div>
+            }
+            @if (emailChangeError()) {
+              <div class="alert alert-error" role="alert">{{ emailChangeError() }}</div>
+            }
+
+            @if (!emailVerificationSent()) {
+              <form [formGroup]="emailForm" (ngSubmit)="onEmailChangeSubmit()" novalidate>
+                <div class="form-group">
+                  <label for="newEmail" class="form-label">New Email Address</label>
+                  <input
+                    id="newEmail"
+                    type="email"
+                    formControlName="newEmail"
+                    class="form-input"
+                    placeholder="new@example.com"
+                    autocomplete="email"
+                  />
+                  @if (emailForm.get('newEmail')?.touched && emailForm.get('newEmail')?.errors) {
+                    <span class="form-error">
+                      @if (emailForm.get('newEmail')?.errors?.['required']) {
+                        Email is required
+                      } @else if (emailForm.get('newEmail')?.errors?.['email']) {
+                        Please enter a valid email
+                      }
+                    </span>
+                  }
+                </div>
+                <p class="info-text-left">A verification link will be sent to the new email. Your current email stays active until verified.</p>
+                <button type="submit" class="btn btn-primary btn-sm" [disabled]="emailChanging()">
+                  @if (emailChanging()) {
+                    <span class="spinner" aria-hidden="true"></span>
+                    Sending...
+                  } @else {
+                    Send Verification
+                  }
+                </button>
+              </form>
+            } @else {
+              <p class="info-text-left">Check your new email for the verification link. The link is valid for 24 hours.</p>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Phone Change Section -->
+      <div class="settings-card card">
+        <div class="settings-card-header">
+          <div>
+            <h3 class="section-title">Phone Number</h3>
+            <p class="section-desc">
+              {{ user()?.phone || 'No phone set' }}
+              @if (user()?.phoneVerified) {
+                <span class="badge badge-success">Verified</span>
+              }
+            </p>
+          </div>
+          <button type="button" class="btn btn-outline btn-sm" (click)="togglePhoneChange()">
+            {{ showPhoneChange() ? 'Cancel' : 'Change' }}
+          </button>
+        </div>
+
+        @if (showPhoneChange()) {
+          <div class="change-form-section">
+            @if (phoneChangeSuccess()) {
+              <div class="alert alert-success" role="status">{{ phoneChangeSuccess() }}</div>
+            }
+            @if (phoneChangeError()) {
+              <div class="alert alert-error" role="alert">{{ phoneChangeError() }}</div>
+            }
+
+            @if (!phoneOtpSent()) {
+              <form [formGroup]="phoneForm" (ngSubmit)="onPhoneChangeSubmit()" novalidate>
+                <div class="form-group">
+                  <label for="newPhone" class="form-label">New Phone Number</label>
+                  <input
+                    id="newPhone"
+                    type="tel"
+                    formControlName="newPhone"
+                    class="form-input"
+                    placeholder="+923001234567"
+                    autocomplete="tel"
+                  />
+                  @if (phoneForm.get('newPhone')?.touched && phoneForm.get('newPhone')?.errors) {
+                    <span class="form-error">
+                      @if (phoneForm.get('newPhone')?.errors?.['required']) {
+                        Phone number is required
+                      } @else if (phoneForm.get('newPhone')?.errors?.['pattern']) {
+                        Please enter a valid phone number
+                      }
+                    </span>
+                  }
+                </div>
+                <p class="info-text-left">A 6-digit OTP will be sent to the new number. Your current number stays active until verified.</p>
+                <button type="submit" class="btn btn-primary btn-sm" [disabled]="phoneChanging()">
+                  @if (phoneChanging()) {
+                    <span class="spinner" aria-hidden="true"></span>
+                    Sending...
+                  } @else {
+                    Send OTP
+                  }
+                </button>
+              </form>
+            } @else {
+              <form [formGroup]="otpForm" (ngSubmit)="onOtpVerifySubmit()" novalidate>
+                <div class="form-group">
+                  <label for="otp" class="form-label">Enter 6-digit OTP</label>
+                  <input
+                    id="otp"
+                    type="text"
+                    formControlName="otp"
+                    class="form-input otp-input"
+                    placeholder="000000"
+                    maxlength="6"
+                    autocomplete="one-time-code"
+                  />
+                  @if (otpForm.get('otp')?.touched && otpForm.get('otp')?.errors) {
+                    <span class="form-error">
+                      @if (otpForm.get('otp')?.errors?.['required']) {
+                        OTP is required
+                      } @else if (otpForm.get('otp')?.errors?.['pattern']) {
+                        OTP must be 6 digits
+                      }
+                    </span>
+                  }
+                </div>
+                <button type="submit" class="btn btn-primary btn-sm" [disabled]="otpVerifying()">
+                  @if (otpVerifying()) {
+                    <span class="spinner" aria-hidden="true"></span>
+                    Verifying...
+                  } @else {
+                    Verify OTP
+                  }
+                </button>
+              </form>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- MFA Section -->
+      <div class="settings-card card">
+        <div class="settings-card-header">
+          <div>
+            <h3 class="section-title">Two-Factor Authentication</h3>
+            <p class="section-desc">
+              @if (user()?.mfa?.enabled) {
+                MFA is currently enabled for your account.
+              } @else {
+                Add an extra layer of security with TOTP-based MFA.
+              }
+            </p>
+          </div>
+          <button
+            type="button"
+            class="btn btn-sm"
+            [class.btn-outline]="!user()?.mfa?.enabled"
+            [class.btn-secondary]="user()?.mfa?.enabled"
+            [disabled]="mfaLoading()"
+            (click)="toggleMfa()"
+          >
+            @if (mfaLoading()) {
+              <span class="spinner" aria-hidden="true"></span>
+            }
+            {{ user()?.mfa?.enabled ? 'Manage' : 'Enable' }}
+          </button>
+        </div>
+      </div>
+
+      <!-- Account Info -->
+      <div class="settings-card card">
+        <h3 class="section-title">Account Information</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Role</span>
+            <span class="detail-value">{{ user()?.role | titlecase }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Status</span>
+            <span class="detail-value">
+              @if (user()?.status === 'active') {
+                <span class="badge badge-success">Active</span>
+              } @else {
+                <span class="badge badge-error">Suspended</span>
+              }
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Ad Limit</span>
+            <span class="detail-value">{{ user()?.activeAdCount }} / {{ user()?.adLimit }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Last Login</span>
+            <span class="detail-value">{{ user()?.lastLoginAt | date:'medium' }}</span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

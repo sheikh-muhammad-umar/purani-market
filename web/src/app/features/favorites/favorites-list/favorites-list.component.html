@@ -1,0 +1,76 @@
+<div class="favorites-page">
+  <div class="container">
+    <div class="page-header">
+      <h1>My Favorites</h1>
+    </div>
+
+    @if (loading()) {
+      <div class="favorites-grid">
+        @for (i of [1, 2, 3, 4]; track i) {
+          <div class="card" style="padding: 0; overflow: hidden;">
+            <div class="skeleton-image"></div>
+            <div style="padding: 12px;">
+              <div class="skeleton-text" style="width: 80%;"></div>
+              <div class="skeleton-text short" style="height: 1.2em; margin-top: 8px;"></div>
+              <div class="skeleton-text medium" style="margin-top: 8px;"></div>
+            </div>
+          </div>
+        }
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <span class="error-icon">⚠️</span>
+        <p>{{ error() }}</p>
+        <button class="btn btn-primary" (click)="loadFavorites()">Retry</button>
+      </div>
+    } @else if (favorites().length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">💜</span>
+        <h3>No favorites yet</h3>
+        <p>Browse listings and tap the heart icon to save your favorites here</p>
+        <a routerLink="/search" class="btn btn-primary">Browse Listings</a>
+      </div>
+    } @else {
+      <div class="favorites-grid grid">
+        @for (favorite of favorites(); track favorite._id) {
+          @if (getListing(favorite); as listing) {
+            <div class="favorite-card card">
+              <div class="card-image-wrapper">
+                <a [routerLink]="['/listings', listing._id]">
+                  <img [src]="getImage(favorite)" [alt]="listing.title" class="card-image" />
+                </a>
+                <span class="badge status-badge" [ngClass]="getStatusBadgeClass(listing.status)">
+                  {{ listing.status }}
+                </span>
+                <button
+                  class="remove-btn"
+                  [disabled]="removingId() === favorite._id"
+                  (click)="removeFavorite(favorite)"
+                  title="Remove from favorites"
+                  aria-label="Remove from favorites">
+                  @if (removingId() === favorite._id) {
+                    <span class="spinner"></span>
+                  } @else {
+                    ❤️
+                  }
+                </button>
+              </div>
+              <div class="card-body">
+                <a [routerLink]="['/listings', listing._id]" class="card-title">
+                  {{ listing.title }}
+                </a>
+                <span class="card-price price">{{ formatPrice(listing) }}</span>
+                <div class="card-meta">
+                  @if (listing.location?.city) {
+                    <span class="card-location">📍 {{ listing.location.city }}</span>
+                  }
+                  <span class="card-condition">{{ listing.condition }}</span>
+                </div>
+              </div>
+            </div>
+          }
+        }
+      </div>
+    }
+  </div>
+</div>

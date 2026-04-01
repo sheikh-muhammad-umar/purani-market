@@ -1,0 +1,80 @@
+<!-- Floating toggle button -->
+<button
+  class="chatbot-toggle"
+  (click)="toggleChat()"
+  [attr.aria-label]="isOpen() ? 'Close chat' : 'Open chat'"
+  aria-haspopup="dialog"
+>
+  <span class="chatbot-toggle__icon" *ngIf="!isOpen()">💬</span>
+  <span class="chatbot-toggle__icon" *ngIf="isOpen()">✕</span>
+</button>
+
+<!-- Chat panel -->
+<div class="chatbot-panel" *ngIf="isOpen()" role="dialog" aria-label="AI Chatbot">
+  <!-- Header -->
+  <div class="chatbot-panel__header">
+    <span class="chatbot-panel__title">AI Assistant</span>
+    <button class="chatbot-panel__reset" (click)="resetChat()" aria-label="Reset conversation">
+      ↻
+    </button>
+  </div>
+
+  <!-- Messages -->
+  <div class="chatbot-panel__messages" #messagesContainer>
+    <!-- Welcome message when empty -->
+    <div class="chatbot-welcome" *ngIf="messages().length === 0">
+      <p class="chatbot-welcome__text">Hi! How can I help you today?</p>
+      <div class="chatbot-welcome__actions">
+        <button
+          *ngFor="let action of quickActions"
+          class="quick-action-btn"
+          (click)="sendQuickAction(action)"
+        >
+          {{ action.label }}
+        </button>
+      </div>
+    </div>
+
+    <!-- Message bubbles -->
+    <div
+      *ngFor="let msg of messages()"
+      class="chat-bubble"
+      [class.chat-bubble--user]="msg.role === 'user'"
+      [class.chat-bubble--assistant]="msg.role === 'assistant'"
+    >
+      {{ msg.content }}
+    </div>
+
+    <!-- Typing indicator -->
+    <div class="chat-bubble chat-bubble--assistant chat-bubble--typing" *ngIf="sending()">
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+      <span class="typing-dot"></span>
+    </div>
+
+    <!-- Escalation notice -->
+    <div class="escalation-notice" *ngIf="escalated()">
+      A support agent will follow up with you shortly.
+    </div>
+  </div>
+
+  <!-- Input area -->
+  <div class="chatbot-panel__input">
+    <input
+      type="text"
+      [(ngModel)]="messageText"
+      (keydown.enter)="sendMessage()"
+      placeholder="Type a message..."
+      [disabled]="sending() || escalated()"
+      aria-label="Chat message input"
+    />
+    <button
+      class="send-btn"
+      (click)="sendMessage()"
+      [disabled]="sending() || escalated() || !messageText.trim()"
+      aria-label="Send message"
+    >
+      ➤
+    </button>
+  </div>
+</div>

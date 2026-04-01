@@ -1,0 +1,61 @@
+<div class="category-browse-page">
+  <header class="page-header">
+    <h1 class="page-title">Browse Categories</h1>
+    <p class="page-subtitle">Find what you're looking for by category</p>
+  </header>
+
+  @if (loading()) {
+    <div class="categories-grid" aria-label="Loading categories">
+      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        <div class="category-card-skeleton">
+          <div class="skeleton card-img-skeleton"></div>
+          <div class="skeleton card-title-skeleton"></div>
+          <div class="skeleton card-sub-skeleton"></div>
+        </div>
+      }
+    </div>
+  } @else {
+    <div class="categories-grid" role="list" aria-label="Product categories">
+      @for (category of topLevelCategories(); track category._id) {
+        <div
+          class="category-card"
+          role="listitem"
+          (click)="openCategoryModal(category)"
+          [attr.aria-label]="category.name + ' - ' + getSubcategoryCount(category._id) + ' subcategories'"
+          tabindex="0"
+          (keydown.enter)="openCategoryModal(category)"
+        >
+          <div class="card-image-wrap">
+            <img
+              [src]="getCategoryImage(category.slug, category.name)"
+              [alt]="category.name"
+              loading="lazy"
+            />
+            <div class="card-overlay"></div>
+            <span class="card-icon" aria-hidden="true">{{ getCategoryIcon(category.slug, category.name) }}</span>
+          </div>
+          <div class="card-content">
+            <h3 class="card-title">{{ category.name }}</h3>
+            @if (getSubcategoryCount(category._id) > 0) {
+              <p class="card-subtitle">{{ getSubcategoryCount(category._id) }} subcategories</p>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (topLevelCategories().length === 0) {
+      <div class="empty-state">
+        <p>No categories available at the moment.</p>
+      </div>
+    }
+  }
+</div>
+
+@if (selectedCategory()) {
+  <app-category-modal
+    [allCategories]="allCategories()"
+    [rootCategory]="selectedCategory()"
+    (closed)="closeCategoryModal()"
+  />
+}

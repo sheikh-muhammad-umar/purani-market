@@ -1,0 +1,365 @@
+<div class="search-page">
+  <!-- Search Bar -->
+  <section class="search-bar-section">
+    <form class="search-form" (ngSubmit)="onSearchSubmit()" role="search">
+      <div class="search-input-wrap">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input
+          type="text"
+          class="search-input"
+          placeholder="Search for products..."
+          [value]="searchInput()"
+          (input)="onSearchInputChange($any($event.target).value)"
+          (focus)="showSuggestions.set(suggestions().length > 0)"
+          (blur)="hideSuggestions()"
+          aria-label="Search products"
+          autocomplete="off"
+        />
+        @if (searchInput()) {
+          <button
+            type="button"
+            class="search-clear"
+            (click)="searchInput.set(''); onSearchInputChange('')"
+            aria-label="Clear search"
+          >✕</button>
+        }
+        <button type="submit" class="btn btn-primary search-btn">Search</button>
+      </div>
+
+      <!-- Suggestions Dropdown -->
+      @if (showSuggestions() && suggestions().length > 0) {
+        <ul class="suggestions-dropdown" role="listbox" aria-label="Search suggestions">
+          @for (suggestion of suggestions(); track suggestion.term) {
+            <li
+              class="suggestion-item"
+              role="option"
+              (mousedown)="selectSuggestion(suggestion.term)"
+            >
+              <span class="suggestion-icon" aria-hidden="true">
+                @switch (suggestion.type) {
+                  @case ('recent') { 🕐 }
+                  @case ('trending') { 🔥 }
+                  @case ('ai') { ✨ }
+                }
+              </span>
+              <span class="suggestion-text">{{ suggestion.term }}</span>
+              <span class="suggestion-type">{{ suggestion.type }}</span>
+            </li>
+          }
+        </ul>
+      }
+    </form>
+  </section>
+
+  <!-- Active Filters Chips -->
+  @if (activeFilters().length > 0) {
+    <section class="active-filters-section" aria-label="Active filters">
+      <div class="active-filters">
+        @for (filter of activeFilters(); track filter.key) {
+          <span class="filter-chip">
+            {{ filter.displayValue }}
+            <button
+              class="chip-remove"
+              (click)="removeFilter(filter)"
+              [attr.aria-label]="'Remove filter: ' + filter.displayValue"
+            >✕</button>
+          </span>
+        }
+        <button class="clear-all-btn" (click)="clearAllFilters()">Clear all</button>
+      </div>
+    </section>
+  }
+
+  <div class="search-layout">
+    <!-- Filter Sidebar (Desktop) -->
+    <aside class="filter-sidebar" [class.collapsed]="!filtersOpen()" aria-label="Search filters">
+      <div class="filter-header">
+        <h3 class="filter-title">Filters</h3>
+        <button class="filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()">
+          {{ filtersOpen() ? '◀' : '▶' }}
+        </button>
+      </div>
+
+      @if (filtersOpen()) {
+        <div class="filter-body">
+          <!-- Category Filter -->
+          <div class="filter-group">
+            <label class="filter-label" for="category-filter">Category</label>
+            <select
+              id="category-filter"
+              class="form-input filter-select"
+              [ngModel]="selectedCategoryId()"
+              (ngModelChange)="onCategoryChange($event)"
+            >
+              <option value="">All Categories</option>
+              @for (cat of categories(); track cat._id) {
+                @if (cat.isActive && cat.level === 1) {
+                  <option [value]="cat._id">{{ cat.name }}</option>
+                }
+              }
+            </select>
+          </div>
+
+          <!-- Condition Filter -->
+          <div class="filter-group">
+            <label class="filter-label" for="condition-filter">Condition</label>
+            <select
+              id="condition-filter"
+              class="form-input filter-select"
+              [ngModel]="selectedCondition()"
+              (ngModelChange)="onConditionChange($event)"
+            >
+              <option value="">Any Condition</option>
+              <option value="new">New</option>
+              <option value="used">Used</option>
+              <option value="refurbished">Refurbished</option>
+            </select>
+          </div>
+
+          <!-- Price Range -->
+          <div class="filter-group">
+            <label class="filter-label">Price Range</label>
+            <div class="price-range-inputs">
+              <input
+                type="number"
+                class="form-input price-input"
+                placeholder="Min"
+                [ngModel]="minPrice()"
+                (ngModelChange)="minPrice.set($event)"
+                aria-label="Minimum price"
+                min="0"
+              />
+              <span class="price-separator">–</span>
+              <input
+                type="number"
+                class="form-input price-input"
+                placeholder="Max"
+                [ngModel]="maxPrice()"
+                (ngModelChange)="maxPrice.set($event)"
+                aria-label="Maximum price"
+                min="0"
+              />
+            </div>
+            <button class="btn btn-outline btn-sm apply-price-btn" (click)="onPriceFilterApply()">Apply</button>
+          </div>
+
+          <!-- Dynamic Category-Specific Filters -->
+          @for (filter of categoryFilters(); track filter.key) {
+            <div class="filter-group">
+              <label class="filter-label" [for]="'filter-' + filter.key">{{ filter.name }}</label>
+              @switch (filter.type) {
+                @case ('select') {
+                  <select
+                    [id]="'filter-' + filter.key"
+                    class="form-input filter-select"
+                    [ngModel]="filterValues()[filter.key] || ''"
+                    (ngModelChange)="onDynamicFilterChange(filter.key, $event)"
+                  >
+                    <option value="">Any</option>
+                    @for (opt of filter.options || []; track opt) {
+                      <option [value]="opt">{{ opt }}</option>
+                    }
+                  </select>
+                }
+                @case ('multiselect') {
+                  <select
+                    [id]="'filter-' + filter.key"
+                    class="form-input filter-select"
+                    [ngModel]="filterValues()[filter.key] || ''"
+                    (ngModelChange)="onDynamicFilterChange(filter.key, $event)"
+                  >
+                    <option value="">Any</option>
+                    @for (opt of filter.options || []; track opt) {
+                      <option [value]="opt">{{ opt }}</option>
+                    }
+                  </select>
+                }
+                @case ('range') {
+                  <div class="price-range-inputs">
+                    <input
+                      type="number"
+                      class="form-input price-input"
+                      [placeholder]="'Min' + (filter.rangeMin !== undefined ? ' (' + filter.rangeMin + ')' : '')"
+                      [ngModel]="filterValues()[filter.key + '_min'] || ''"
+                      (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $event)"
+                      [attr.aria-label]="filter.name + ' minimum'"
+                    />
+                    <span class="price-separator">–</span>
+                    <input
+                      type="number"
+                      class="form-input price-input"
+                      [placeholder]="'Max' + (filter.rangeMax !== undefined ? ' (' + filter.rangeMax + ')' : '')"
+                      [ngModel]="filterValues()[filter.key + '_max'] || ''"
+                      (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)"
+                      [attr.aria-label]="filter.name + ' maximum'"
+                    />
+                  </div>
+                }
+                @case ('boolean') {
+                  <label class="checkbox-label">
+                    <input
+                      type="checkbox"
+                      [ngModel]="filterValues()[filter.key] === 'true'"
+                      (ngModelChange)="onDynamicFilterChange(filter.key, $event ? 'true' : '')"
+                    />
+                    {{ filter.name }}
+                  </label>
+                }
+              }
+            </div>
+          }
+        </div>
+      }
+    </aside>
+
+    <!-- Results Area -->
+    <main class="results-area">
+      <!-- Sort Bar -->
+      <div class="results-header">
+        <p class="results-count">
+          @if (loading()) {
+            Searching...
+          } @else {
+            {{ totalResults() }} result{{ totalResults() !== 1 ? 's' : '' }}
+            @if (query()) {
+              for "<strong>{{ query() }}</strong>"
+            }
+          }
+        </p>
+        <div class="sort-controls">
+          <label for="sort-select" class="sort-label">Sort by:</label>
+          <select
+            id="sort-select"
+            class="form-input sort-select"
+            [ngModel]="sortBy()"
+            (ngModelChange)="onSortChange($event)"
+          >
+            @for (opt of sortOptions; track opt.value) {
+              <option [value]="opt.value">{{ opt.label }}</option>
+            }
+          </select>
+          <button
+            class="btn btn-outline filter-toggle-mobile"
+            (click)="toggleFilters()"
+            aria-label="Toggle filters"
+          >
+            ☰ Filters
+          </button>
+        </div>
+      </div>
+
+      @if (loading()) {
+        <!-- Loading Skeleton -->
+        <div class="results-grid">
+          @for (i of [1,2,3,4,5,6,7,8]; track i) {
+            <div class="listing-card-skeleton">
+              <div class="skeleton img-skeleton"></div>
+              <div class="skeleton text-skeleton title-sk"></div>
+              <div class="skeleton text-skeleton price-sk"></div>
+              <div class="skeleton text-skeleton loc-sk"></div>
+            </div>
+          }
+        </div>
+      } @else if (hasResults()) {
+        <!-- Featured Ads -->
+        @if (featuredAds().length > 0) {
+          <section class="featured-section" aria-label="Featured ads">
+            <h3 class="featured-title">
+              <span aria-hidden="true">✨</span> Featured
+            </h3>
+            <div class="featured-grid" role="list">
+              @for (ad of featuredAds(); track ad._id) {
+                <a class="listing-card featured-card" [routerLink]="['/listings', ad._id]" role="listitem">
+                  <div class="listing-img-wrap">
+                    <img [src]="getListingImage(ad)" [alt]="ad.title" loading="lazy" />
+                    <span class="badge badge-featured">Featured</span>
+                  </div>
+                  <div class="listing-info">
+                    <h4 class="listing-title">{{ ad.title | truncateText:50 }}</h4>
+                    <p class="listing-price price">{{ ad.price.amount | priceFormat:ad.price.currency }}</p>
+                    <p class="listing-location">📍 {{ ad.location?.city || 'Unknown' }}</p>
+                  </div>
+                </a>
+              }
+            </div>
+          </section>
+        }
+
+        <!-- Regular Results -->
+        <div class="results-grid" role="list">
+          @for (listing of results(); track listing._id) {
+            <a class="listing-card" [routerLink]="['/listings', listing._id]" role="listitem">
+              <div class="listing-img-wrap">
+                <img [src]="getListingImage(listing)" [alt]="listing.title" loading="lazy" />
+                @if (listing.isFeatured) {
+                  <span class="badge badge-featured">Featured</span>
+                }
+              </div>
+              <div class="listing-info">
+                <h4 class="listing-title">{{ listing.title | truncateText:50 }}</h4>
+                <p class="listing-price price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
+                <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
+              </div>
+            </a>
+          }
+        </div>
+
+        <!-- Pagination -->
+        @if (totalPages() > 1) {
+          <nav class="pagination" aria-label="Search results pagination">
+            <button
+              class="btn btn-outline pagination-btn"
+              [disabled]="currentPage() <= 1"
+              (click)="loadPage(currentPage() - 1)"
+              aria-label="Previous page"
+            >← Previous</button>
+            <span class="pagination-info">Page {{ currentPage() }} of {{ totalPages() }}</span>
+            <button
+              class="btn btn-outline pagination-btn"
+              [disabled]="currentPage() >= totalPages()"
+              (click)="loadPage(currentPage() + 1)"
+              aria-label="Next page"
+            >Next →</button>
+          </nav>
+        }
+      } @else {
+        <!-- No Results State -->
+        <div class="no-results">
+          <div class="no-results-icon" aria-hidden="true">🔍</div>
+          <h2 class="no-results-title">No results found</h2>
+          <p class="no-results-text">
+            @if (query()) {
+              We couldn't find anything matching "<strong>{{ query() }}</strong>".
+            } @else {
+              Try adjusting your filters or search for something else.
+            }
+          </p>
+
+          @if (suggestedTerms().length > 0) {
+            <div class="suggestions-section">
+              <p class="suggestions-label">Try searching for:</p>
+              <div class="suggestion-chips">
+                @for (term of suggestedTerms(); track term) {
+                  <button class="suggestion-chip" (click)="selectSuggestion(term)">{{ term }}</button>
+                }
+              </div>
+            </div>
+          }
+
+          @if (relatedCategories().length > 0) {
+            <div class="related-categories-section">
+              <p class="suggestions-label">Browse related categories:</p>
+              <div class="suggestion-chips">
+                @for (cat of relatedCategories(); track cat._id) {
+                  <a class="suggestion-chip" [routerLink]="['/categories', cat.slug]">{{ cat.name }}</a>
+                }
+              </div>
+            </div>
+          }
+
+          <a routerLink="/" class="btn btn-primary no-results-btn">Back to Home</a>
+        </div>
+      }
+    </main>
+  </div>
+</div>

@@ -1,0 +1,235 @@
+.payment-transactions {
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Inter', sans-serif;
+}
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 24px;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #2D3436;
+    margin: 0;
+  }
+}
+
+.btn-primary {
+  padding: 8px 16px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+
+  &:hover:not(:disabled) { background: #0a5f62; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.btn-secondary {
+  padding: 8px 16px;
+  background: #f8f9fa;
+  color: #2D3436;
+  border: 1px solid #dfe6e9;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: 'Inter', sans-serif;
+
+  &:hover:not(:disabled) { background: #eef1f2; }
+  &:disabled { opacity: 0.5; cursor: not-allowed; }
+}
+
+.loading-state, .error-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #636e72;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #dfe6e9;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.btn-retry {
+  margin-top: 12px;
+  padding: 8px 20px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.filters-bar {
+  display: flex;
+  gap: 12px;
+  align-items: flex-end;
+  flex-wrap: wrap;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  padding: 16px 20px;
+  margin-bottom: 16px;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+  align-self: flex-end;
+  padding-bottom: 2px;
+}
+
+.form-group {
+  margin-bottom: 16px;
+
+  label {
+    display: block;
+    font-size: 12px;
+    font-weight: 600;
+    color: #636e72;
+    margin-bottom: 4px;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+  }
+
+  input[type='text'],
+  input[type='number'],
+  input[type='date'],
+  select {
+    width: 100%;
+    padding: 8px 12px;
+    border: 1px solid #dfe6e9;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+    box-sizing: border-box;
+
+    &:focus { outline: none; border-color: var(--primary); }
+  }
+
+  &.compact {
+    margin-bottom: 0;
+    flex: 1;
+    min-width: 120px;
+
+    label { font-size: 11px; margin-bottom: 2px; }
+    input, select { padding: 6px 8px; font-size: 13px; }
+  }
+}
+
+.empty-list {
+  padding: 32px 16px;
+  text-align: center;
+  color: #b2bec3;
+  font-size: 14px;
+}
+
+.data-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 13px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow: hidden;
+
+  th {
+    text-align: left;
+    padding: 10px 12px;
+    font-weight: 600;
+    color: #636e72;
+    text-transform: uppercase;
+    font-size: 11px;
+    letter-spacing: 0.3px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  td {
+    padding: 10px 12px;
+    color: #2D3436;
+    border-bottom: 1px solid #f8f9fa;
+  }
+
+  tbody tr:hover { background: #f8f9fa; }
+}
+
+.mono {
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 12px;
+}
+
+.price-cell {
+  font-family: 'JetBrains Mono', monospace;
+  font-weight: 600;
+}
+
+.method-cell {
+  text-transform: capitalize;
+}
+
+.payment-status {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: capitalize;
+
+  &[data-status='completed'] { background: #e6f9f0; color: #00B894; }
+  &[data-status='pending'] { background: #fff3e0; color: #F5A623; }
+  &[data-status='failed'] { background: #fde8e8; color: #E74C3C; }
+  &[data-status='refunded'] { background: #e8eaf6; color: #5c6bc0; }
+}
+
+.pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  padding: 16px;
+}
+
+.page-info {
+  font-size: 13px;
+  color: #636e72;
+  font-weight: 500;
+}
+
+@media (max-width: 768px) {
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 12px;
+  }
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .data-table {
+    font-size: 12px;
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    th, td {
+      padding: 8px 6px;
+      white-space: nowrap;
+    }
+  }
+}

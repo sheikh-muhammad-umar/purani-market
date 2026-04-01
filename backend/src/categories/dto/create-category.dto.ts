@@ -1,0 +1,34 @@
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsBoolean,
+  MaxLength,
+  Min,
+  Max,
+  IsMongoId,
+} from 'class-validator';
+
+export class CreateCategoryDto {
+  @IsString()
+  @MaxLength(100)
+  name!: string;
+
+  @IsOptional()
+  @IsString()
+  @MaxLength(120)
+  slug?: string;
+
+  @IsOptional()
+  @IsMongoId()
+  parentId?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  isActive?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  sortOrder?: number;
+}

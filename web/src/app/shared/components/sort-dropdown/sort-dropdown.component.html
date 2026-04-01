@@ -1,0 +1,25 @@
+<div class="sort-dropdown" (clickOutside)="open.set(false)">
+  <button class="sort-trigger" (click)="toggle()" type="button">
+    <span class="sort-label">Sort by:</span>
+    <span class="sort-value">{{ currentLabel }}</span>
+    <span class="sort-arrow">{{ open() ? '▲' : '▼' }}</span>
+  </button>
+
+  @if (open()) {
+    <div class="sort-menu">
+      @for (option of options(); track option.label) {
+        <button
+          class="sort-option"
+          [class.active]="isSelected(option)"
+          (click)="select(option)"
+          type="button"
+        >
+          @if (isSelected(option)) {
+            <span class="check-icon">✓</span>
+          }
+          {{ option.label }}
+        </button>
+      }
+    </div>
+  }
+</div>

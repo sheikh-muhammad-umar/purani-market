@@ -1,0 +1,197 @@
+<div class="home-page">
+  <!-- Category Chips -->
+  <section class="category-chips-section" aria-label="Browse categories">
+    @if (loadingCategories()) {
+      <div class="chips-scroll">
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="chip-skeleton skeleton"></div>
+        }
+      </div>
+    } @else {
+      <div class="chips-scroll" role="list">
+        @for (chip of categoryChips(); track chip.id) {
+          <button
+            class="category-chip"
+            (click)="openCategoryModal(chip)"
+            role="listitem"
+          >
+            <span class="chip-icon" aria-hidden="true">{{ chip.icon }}</span>
+            <span class="chip-label">{{ chip.name }}</span>
+          </button>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Featured Ads -->
+  <section class="home-section" aria-label="Featured ads">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span aria-hidden="true"><span class="mat-icon" style="font-size:20px;vertical-align:middle;color:var(--accent);">auto_awesome</span></span> Featured Ads
+      </h2>
+      <a routerLink="/search" [queryParams]="{ featured: true }" class="see-all-link">
+        See all →
+      </a>
+    </div>
+    @if (loadingFeatured()) {
+      <div class="carousel-scroll">
+        @for (i of [1,2,3,4]; track i) {
+          <div class="listing-card-skeleton">
+            <div class="skeleton img-skeleton"></div>
+            <div class="skeleton text-skeleton title-sk"></div>
+            <div class="skeleton text-skeleton price-sk"></div>
+            <div class="skeleton text-skeleton loc-sk"></div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="carousel-scroll" role="list">
+        @for (listing of featuredListings(); track listing._id) {
+          <a
+            class="listing-card"
+            [routerLink]="['/listings', listing._id]"
+            role="listitem"
+          >
+            <div class="listing-img-wrap">
+              <img
+                [src]="getListingImage(listing)"
+                [alt]="listing.title"
+                loading="lazy"
+              />
+              @if (listing.isFeatured) {
+                <span class="badge badge-featured">Featured</span>
+              }
+            </div>
+            <div class="listing-info">
+              <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
+              <p class="listing-price price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
+              <p class="listing-location"><span class="mat-icon" style="font-size:14px;vertical-align:middle;">location_on</span> {{ listing.location?.city || 'Unknown' }}</p>
+            </div>
+          </a>
+        }
+        @if (featuredListings().length === 0) {
+          <p class="empty-state">No featured ads available right now.</p>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Recommended for You -->
+  <section class="home-section" aria-label="Recommended for you">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span aria-hidden="true"><span class="mat-icon" style="font-size:20px;vertical-align:middle;">recommend</span></span> Recommended for You
+      </h2>
+      <a routerLink="/search" class="see-all-link">See all →</a>
+    </div>
+    @if (loadingRecommendations()) {
+      <div class="masonry-grid">
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="listing-card-skeleton">
+            <div class="skeleton img-skeleton" [style.height.px]="150 + (i % 3) * 40"></div>
+            <div class="skeleton text-skeleton title-sk"></div>
+            <div class="skeleton text-skeleton price-sk"></div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="masonry-grid" role="list">
+        @for (listing of recommendations(); track listing._id) {
+          <a
+            class="listing-card masonry-item"
+            [routerLink]="['/listings', listing._id]"
+            role="listitem"
+          >
+            <div class="listing-img-wrap">
+              <img
+                [src]="getListingImage(listing)"
+                [alt]="listing.title"
+                loading="lazy"
+              />
+              @if (listing.isFeatured) {
+                <span class="badge badge-featured">Featured</span>
+              }
+            </div>
+            <div class="listing-info">
+              <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
+              <p class="listing-price price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
+              <p class="listing-location"><span class="mat-icon" style="font-size:14px;vertical-align:middle;">location_on</span> {{ listing.location?.city || 'Unknown' }}</p>
+            </div>
+          </a>
+        }
+        @if (recommendations().length === 0) {
+          <p class="empty-state">No recommendations yet. Start browsing to get personalized suggestions!</p>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Near You -->
+  <section class="home-section" aria-label="Listings near you">
+    <div class="section-header">
+      <h2 class="section-title">
+        <span aria-hidden="true"><span class="mat-icon" style="font-size:14px;vertical-align:middle;">location_on</span></span> Near You
+        @if (userCity()) {
+          <span class="city-label">({{ userCity() }})</span>
+        }
+      </h2>
+      <a routerLink="/search" [queryParams]="{ nearby: true }" class="see-all-link">
+        See all →
+      </a>
+    </div>
+    @if (loadingNearby()) {
+      <div class="masonry-grid">
+        @for (i of [1,2,3,4,5,6]; track i) {
+          <div class="listing-card-skeleton">
+            <div class="skeleton img-skeleton"></div>
+            <div class="skeleton text-skeleton title-sk"></div>
+            <div class="skeleton text-skeleton price-sk"></div>
+            <div class="skeleton text-skeleton loc-sk"></div>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="masonry-grid" role="list">
+        @for (listing of nearbyListings(); track listing._id) {
+          <a
+            class="listing-card masonry-item"
+            [routerLink]="['/listings', listing._id]"
+            role="listitem"
+          >
+            <div class="listing-img-wrap">
+              <img
+                [src]="getListingImage(listing)"
+                [alt]="listing.title"
+                loading="lazy"
+              />
+            </div>
+            <div class="listing-info">
+              <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
+              <p class="listing-price price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
+              <p class="listing-location"><span class="mat-icon" style="font-size:14px;vertical-align:middle;">location_on</span> {{ listing.location?.city || 'Unknown' }}, {{ listing.location?.area || '' }}</p>
+            </div>
+          </a>
+        }
+        @if (nearbyListings().length === 0 && !loadingNearby()) {
+          <p class="empty-state">Enable location access to see listings near you, or browse by category above.</p>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Floating Post Ad Button -->
+  @if (authService.isAuthenticated()) {
+    <a routerLink="/listings/create" class="fab-post-ad" aria-label="Post a new ad">
+      <span aria-hidden="true">+</span>
+    </a>
+  }
+</div>
+
+<!-- Category Subcategory Modal -->
+@if (selectedCategory()) {
+  <app-category-modal
+    [allCategories]="categories()"
+    [rootCategory]="selectedCategory()"
+    (closed)="closeCategoryModal()"
+  />
+}

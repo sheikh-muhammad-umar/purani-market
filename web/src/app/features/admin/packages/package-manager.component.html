@@ -1,0 +1,231 @@
+<div class="package-manager">
+  <div class="page-header">
+    <h1>Package & Purchase Management</h1>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'packages'"
+      (click)="switchTab('packages')"
+    >📦 Packages</button>
+    <button
+      class="tab-btn"
+      [class.active]="activeTab === 'purchases'"
+      (click)="switchTab('purchases')"
+    >🧾 Purchases</button>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="error()">
+    <p>{{ error() }}</p>
+    <button class="btn-retry" (click)="activeTab === 'packages' ? loadPackages() : loadPurchases()">Retry</button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading() && !error()">
+    <div class="spinner" aria-label="Loading"></div>
+    <p>Loading...</p>
+  </div>
+
+  <!-- PACKAGES TAB -->
+  <ng-container *ngIf="activeTab === 'packages' && !loading()">
+    <div class="content-layout">
+      <!-- Package List -->
+      <div class="list-panel">
+        <div class="list-header">
+          <h2>Ad Packages</h2>
+          <button class="btn-primary" (click)="openCreateForm()" [disabled]="saving()">+ New Package</button>
+        </div>
+
+        <div class="empty-list" *ngIf="packages().length === 0">
+          No packages found. Create one to get started.
+        </div>
+
+        <table class="data-table" *ngIf="packages().length > 0" aria-label="Ad packages">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Type</th>
+              <th>Duration</th>
+              <th>Qty</th>
+              <th>Price</th>
+              <th>Status</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            <tr *ngFor="let pkg of packages()">
+              <td>{{ pkg.name }}</td>
+              <td><span class="type-badge" [class.featured]="pkg.type === 'featured_ads'">{{ pkg.type === 'featured_ads' ? 'Featured' : 'Ad Slots' }}</span></td>
+              <td>{{ pkg.duration }} days</td>
+              <td>{{ pkg.quantity }}</td>
+              <td class="price-cell">Rs {{ pkg.defaultPrice | number }}</td>
+              <td><span class="status-badge" [class.active]="pkg.isActive" [class.inactive]="!pkg.isActive">{{ pkg.isActive ? 'Active' : 'Inactive' }}</span></td>
+              <td>
+                <button class="btn-action" (click)="openEditForm(pkg)" [disabled]="saving()">Edit</button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Create/Edit Panel -->
+      <div class="form-panel" *ngIf="activePanel !== 'none'">
+        <div class="config-card">
+          <h3>{{ activePanel === 'create' ? 'Create Package' : 'Edit Package' }}</h3>
+
+          <div class="form-group">
+            <label for="pkg-name">Package Name</label>
+            <input id="pkg-name" type="text" [(ngModel)]="formName" placeholder="e.g. Premium Featured 10">
+          </div>
+
+          <div class="form-group">
+            <label for="pkg-type">Type</label>
+            <select id="pkg-type" [(ngModel)]="formType">
+              <option value="featured_ads">Featured Ads</option>
+              <option value="ad_slots">Ad Slots</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="pkg-duration">Duration</label>
+            <select id="pkg-duration" [(ngModel)]="formDuration">
+              <option [ngValue]="7">7 days</option>
+              <option [ngValue]="15">15 days</option>
+              <option [ngValue]="30">30 days</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="pkg-qty">Quantity</label>
+            <input id="pkg-qty" type="number" [(ngModel)]="formQuantity" min="1">
+          </div>
+
+          <div class="form-group">
+            <label for="pkg-price">Default Price (Rs)</label>
+            <input id="pkg-price" type="number" [(ngModel)]="formDefaultPrice" min="0">
+          </div>
+
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" [(ngModel)]="formIsActive"> Active
+            </label>
+          </div>
+
+          <!-- Category-Specific Pricing -->
+          <div class="pricing-section">
+            <h4>Category-Specific Pricing</h4>
+            <p class="panel-hint">Override the default price for specific categories.</p>
+
+            <div class="pricing-item" *ngFor="let cp of formCategoryPricing; let i = index; trackBy: trackByIndex">
+              <div class="pricing-row">
+                <div class="form-group compact">
+                  <label>Category</label>
+                  <select [(ngModel)]="cp.categoryId">
+                    <option value="">Select category</option>
+                    <option *ngFor="let cat of categories()" [value]="cat._id">{{ cat.name }}</option>
+                  </select>
+                </div>
+                <div class="form-group compact">
+                  <label>Price (Rs)</label>
+                  <input type="number" [(ngModel)]="cp.price" min="0">
+                </div>
+                <button class="btn-remove" (click)="removeCategoryPrice(i)" aria-label="Remove pricing">✕</button>
+              </div>
+            </div>
+
+            <button class="btn-add-item" (click)="addCategoryPrice()">+ Add Category Price</button>
+          </div>
+
+          <div class="form-actions">
+            <button
+              class="btn-primary"
+              (click)="activePanel === 'create' ? submitCreate() : submitEdit()"
+              [disabled]="saving() || !formName.trim()"
+            >{{ saving() ? 'Saving...' : (activePanel === 'create' ? 'Create' : 'Save Changes') }}</button>
+            <button class="btn-secondary" (click)="cancelForm()" [disabled]="saving()">Cancel</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </ng-container>
+
+  <!-- PURCHASES TAB -->
+  <ng-container *ngIf="activeTab === 'purchases' && !loading()">
+    <div class="filters-bar">
+      <div class="form-group compact">
+        <label>Start Date</label>
+        <input type="date" [(ngModel)]="purchaseFilterStartDate">
+      </div>
+      <div class="form-group compact">
+        <label>End Date</label>
+        <input type="date" [(ngModel)]="purchaseFilterEndDate">
+      </div>
+      <div class="form-group compact">
+        <label>Seller ID</label>
+        <input type="text" [(ngModel)]="purchaseFilterSellerId" placeholder="Seller ID">
+      </div>
+      <div class="form-group compact">
+        <label>Type</label>
+        <select [(ngModel)]="purchaseFilterType">
+          <option value="">All</option>
+          <option value="featured_ads">Featured Ads</option>
+          <option value="ad_slots">Ad Slots</option>
+        </select>
+      </div>
+      <div class="form-group compact">
+        <label>Status</label>
+        <select [(ngModel)]="purchaseFilterStatus">
+          <option value="">All</option>
+          <option value="pending">Pending</option>
+          <option value="completed">Completed</option>
+          <option value="failed">Failed</option>
+          <option value="refunded">Refunded</option>
+        </select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn-primary" (click)="applyPurchaseFilters()">Apply</button>
+        <button class="btn-secondary" (click)="resetPurchaseFilters()">Reset</button>
+      </div>
+    </div>
+
+    <div class="empty-list" *ngIf="purchases().length === 0">
+      No purchases found.
+    </div>
+
+    <table class="data-table" *ngIf="purchases().length > 0" aria-label="Package purchases">
+      <thead>
+        <tr>
+          <th>Seller</th>
+          <th>Type</th>
+          <th>Qty</th>
+          <th>Remaining</th>
+          <th>Price</th>
+          <th>Payment</th>
+          <th>Status</th>
+          <th>Date</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr *ngFor="let p of purchases()">
+          <td>{{ p.sellerId }}</td>
+          <td><span class="type-badge" [class.featured]="p.type === 'featured_ads'">{{ p.type === 'featured_ads' ? 'Featured' : 'Ad Slots' }}</span></td>
+          <td>{{ p.quantity }}</td>
+          <td>{{ p.remainingQuantity }}</td>
+          <td class="price-cell">Rs {{ p.price | number }}</td>
+          <td>{{ p.paymentMethod }}</td>
+          <td><span class="payment-status" [attr.data-status]="p.paymentStatus">{{ p.paymentStatus }}</span></td>
+          <td>{{ p.createdAt | date:'mediumDate' }}</td>
+        </tr>
+      </tbody>
+    </table>
+
+    <div class="pagination" *ngIf="purchases().length > 0">
+      <button class="btn-secondary" (click)="prevPurchasePage()" [disabled]="purchasePage <= 1">← Prev</button>
+      <span class="page-info">Page {{ purchasePage }} of {{ totalPurchasePages }}</span>
+      <button class="btn-secondary" (click)="nextPurchasePage()" [disabled]="purchasePage >= totalPurchasePages">Next →</button>
+    </div>
+  </ng-container>
+</div>

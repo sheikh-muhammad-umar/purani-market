@@ -1,0 +1,68 @@
+<div class="auth-page">
+  <div class="auth-card">
+    @if (isSetupMode()) {
+      <h1 class="auth-title">Set Up MFA</h1>
+      <p class="auth-subtitle">Scan the QR code with your authenticator app</p>
+
+      @if (setupLoading()) {
+        <div class="loading-center">
+          <span class="spinner spinner-lg" aria-hidden="true"></span>
+        </div>
+      } @else if (setupData()) {
+        <div class="qr-container">
+          <img [src]="setupData()!.qrCodeUrl" alt="MFA QR Code" />
+          <p class="info-text">Can't scan? Enter this key manually:</p>
+          <div class="secret-key">{{ setupData()!.secret }}</div>
+        </div>
+      }
+    } @else {
+      <h1 class="auth-title">Two-Factor Authentication</h1>
+      <p class="auth-subtitle">Enter the 6-digit code from your authenticator app</p>
+    }
+
+    @if (errorMessage()) {
+      <div class="alert alert-error" role="alert">{{ errorMessage() }}</div>
+    }
+
+    <form [formGroup]="mfaForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
+      <div class="form-group">
+        <label for="code" class="form-label">Verification Code</label>
+        <input
+          id="code"
+          type="text"
+          formControlName="code"
+          class="form-input"
+          placeholder="000000"
+          maxlength="6"
+          autocomplete="one-time-code"
+          inputmode="numeric"
+          style="text-align: center; font-family: var(--font-mono); font-size: var(--text-xl); letter-spacing: 0.5em;"
+        />
+        @if (mfaForm.get('code')?.touched && mfaForm.get('code')?.errors) {
+          <span class="form-error">Please enter a valid 6-digit code</span>
+        }
+      </div>
+
+      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
+        @if (loading()) {
+          <span class="spinner" aria-hidden="true"></span>
+          Verifying...
+        } @else {
+          @if (isSetupMode()) {
+            Verify & Enable MFA
+          } @else {
+            Verify
+          }
+        }
+      </button>
+    </form>
+
+    <p class="auth-footer">
+      @if (!isSetupMode()) {
+        <a routerLink="/auth/login">Back to Sign In</a>
+      } @else {
+        <a routerLink="/profile">Back to Settings</a>
+      }
+    </p>
+  </div>
+</div>

@@ -1,0 +1,59 @@
+<div class="notifications-page">
+  <div class="notifications-container">
+    <div class="notifications-header">
+      <h1 class="notifications-title">Notifications</h1>
+      <div class="profile-nav">
+        <a routerLink="/profile" class="nav-link">Profile</a>
+        <a routerLink="/profile/settings" class="nav-link">Settings</a>
+        <a routerLink="/profile/notifications" class="nav-link active">Notifications</a>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-center">
+        <span class="spinner spinner-lg" aria-label="Loading preferences"></span>
+      </div>
+    } @else {
+      @if (successMessage()) {
+        <div class="alert alert-success" role="status">{{ successMessage() }}</div>
+      }
+      @if (errorMessage()) {
+        <div class="alert alert-error" role="alert">{{ errorMessage() }}</div>
+      }
+
+      <div class="prefs-card card">
+        <h3 class="section-title">Push Notification Preferences</h3>
+        <p class="section-desc">Choose which notifications you'd like to receive.</p>
+
+        <div class="toggle-list">
+          @for (toggle of notificationToggles; track toggle.key) {
+            <div class="toggle-item">
+              <div class="toggle-info">
+                <span class="toggle-label">{{ toggle.label }}</span>
+                <span class="toggle-desc">{{ toggle.description }}</span>
+              </div>
+              <button
+                type="button"
+                class="toggle-switch"
+                [class.active]="isEnabled(toggle.key)"
+                [attr.aria-pressed]="isEnabled(toggle.key)"
+                [attr.aria-label]="toggle.label + ' notifications'"
+                [disabled]="saving() === toggle.key"
+                (click)="onToggle(toggle.key)"
+                role="switch"
+              >
+                <span class="toggle-track">
+                  <span class="toggle-thumb">
+                    @if (saving() === toggle.key) {
+                      <span class="toggle-spinner" aria-hidden="true"></span>
+                    }
+                  </span>
+                </span>
+              </button>
+            </div>
+          }
+        </div>
+      </div>
+    }
+  </div>
+</div>

@@ -1,0 +1,15 @@
+version: "3.8"
+
+# Staging overrides — use with: docker compose -f docker-compose.yml -f docker-compose.staging.yml up
+services:
+  mongodb:
+    environment:
+      MONGO_INITDB_DATABASE: marketplace_staging
+
+  backend:
+    env_file:
+      - ./backend/.env.staging
+    environment:
+      NODE_ENV: staging
+      MONGODB_URI: mongodb://mongodb:27017/marketplace_staging
+      REDIS_DB: 1

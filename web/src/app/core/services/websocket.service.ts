@@ -1,0 +1,64 @@
+import { Injectable, OnDestroy } from '@angular/core';
+import { Subject, Observable } from 'rxjs';
+import { io, Socket } from 'socket.io-client';
+import { environment } from '../../../environments/environment';
+
+@Injectable({ providedIn: 'root' })
+export class WebSocketService implements OnDestroy {
+  private socket: Socket | null = null;
+  private readonly messages$ = new Subject<{ event: string; data: unknown }>();
+  private connectedUserId: string | null = null;
+
+  connect(userId: string): void {
+    if (!userId) return;
+    // Already connected or connecting for this user
+    if (this.socket && this.connectedUserId === userId) return;
+
+    // Different user or no socket — disconnect old one first
+    if (this.socket) {
+      this.socket.disconnect();
+      this.socket = null;
+    }
+
+    this.connectedUserId = userId;
+    const baseUrl = environment.wsUrl.replace(/^ws/, 'http');
+
+    this.socket = io(baseUrl, {
+      query: { userId },
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionAttempts: 10,
+      reconnectionDelay: 1000,
+    });
+
+    this.socket.onAny((event: string, data: unknown) => {
+      this.messages$.next({ event, data });
+    });
+  }
+
+  disconnect(): void {
+    this.socket?.disconnect();
+    this.socket = null;
+    this.connectedUserId = null;
+  }
+
+  send(event: string, data: unknown): void {
+    this.socket?.emit(event, data);
+  }
+
+  on(event: string): Observable<unknown> {
+    return new Observable((subscriber) => {
+      const sub = this.messages$.subscribe((msg) => {
+        if (msg.event === event) {
+          subscriber.next(msg.data);
+        }
+      });
+      return () => sub.unsubscribe();
+    });
+  }
+
+  ngOnDestroy(): void {
+    this.disconnect();
+    this.messages$.complete();
+  }
+}

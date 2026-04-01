@@ -1,0 +1,382 @@
+.user-management {
+  max-width: 1200px;
+  margin: 0 auto;
+  font-family: 'Inter', sans-serif;
+}
+
+.page-header {
+  display: flex;
+  align-items: baseline;
+  gap: 12px;
+  margin-bottom: 24px;
+
+  h1 {
+    font-size: 24px;
+    font-weight: 700;
+    color: #2D3436;
+    margin: 0;
+  }
+
+  .user-count {
+    font-size: 14px;
+    color: #636e72;
+  }
+}
+
+.filters-bar {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 16px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.search-box {
+  display: flex;
+  gap: 8px;
+  flex: 1;
+  max-width: 400px;
+
+  input {
+    flex: 1;
+    padding: 8px 12px;
+    border: 1px solid #dfe6e9;
+    border-radius: 8px;
+    font-size: 14px;
+    font-family: 'Inter', sans-serif;
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+  }
+}
+
+.btn-search {
+  padding: 8px 16px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+
+  &:hover {
+    background: #0a5f62;
+  }
+}
+
+.filter-group {
+  display: flex;
+  gap: 8px;
+
+  select {
+    padding: 8px 12px;
+    border: 1px solid #dfe6e9;
+    border-radius: 8px;
+    font-size: 13px;
+    font-family: 'Inter', sans-serif;
+    background: #fff;
+    cursor: pointer;
+
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+    }
+  }
+}
+
+.loading-state,
+.error-state {
+  text-align: center;
+  padding: 48px 24px;
+  color: #636e72;
+}
+
+.spinner {
+  width: 32px;
+  height: 32px;
+  border: 3px solid #dfe6e9;
+  border-top-color: var(--primary);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+  margin: 0 auto 12px;
+}
+
+@keyframes spin {
+  to { transform: rotate(360deg); }
+}
+
+.btn-retry {
+  margin-top: 12px;
+  padding: 8px 20px;
+  background: var(--primary);
+  color: #fff;
+  border: none;
+  border-radius: 8px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.table-container {
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  overflow-x: auto;
+}
+
+.users-table {
+  width: 100%;
+  border-collapse: collapse;
+
+  th {
+    text-align: left;
+    padding: 12px 16px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #636e72;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    border-bottom: 1px solid #f0f0f0;
+  }
+
+  td {
+    padding: 12px 16px;
+    font-size: 14px;
+    color: #2D3436;
+    border-bottom: 1px solid #f8f9fa;
+  }
+
+  tr.suspended td {
+    opacity: 0.6;
+  }
+
+  tr:last-child td {
+    border-bottom: none;
+  }
+}
+
+.user-cell {
+  min-width: 160px;
+}
+
+.user-info {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.user-name {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.user-joined {
+  font-size: 11px;
+  color: #b2bec3;
+}
+
+.role-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+
+  &[data-role='admin'] {
+    background: #dfe6e9;
+    color: #2D3436;
+  }
+
+  &[data-role='seller'] {
+    background: rgba(13, 165, 195, 0.08);
+    color: var(--primary);
+  }
+
+  &[data-role='buyer'] {
+    background: #fff3e0;
+    color: #F5A623;
+  }
+}
+
+.status-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: capitalize;
+
+  &[data-status='active'] {
+    background: #e6f9f0;
+    color: #00B894;
+  }
+
+  &[data-status='suspended'] {
+    background: #fde8e8;
+    color: #E74C3C;
+  }
+}
+
+.numeric {
+  text-align: center;
+  font-variant-numeric: tabular-nums;
+}
+
+.actions-cell {
+  min-width: 280px;
+}
+
+.action-group {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.btn-action {
+  padding: 4px 12px;
+  border: none;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  white-space: nowrap;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.btn-suspend {
+  background: #fde8e8;
+  color: #E74C3C;
+
+  &:hover:not(:disabled) {
+    background: #f9d0d0;
+  }
+}
+
+.btn-reactivate {
+  background: #e6f9f0;
+  color: #00B894;
+
+  &:hover:not(:disabled) {
+    background: #c8f0de;
+  }
+}
+
+.role-select {
+  padding: 4px 8px;
+  border: 1px solid #dfe6e9;
+  border-radius: 6px;
+  font-size: 12px;
+  font-family: 'Inter', sans-serif;
+  background: #fff;
+  cursor: pointer;
+
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
+}
+
+.ad-limit-input {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+
+  label {
+    font-size: 11px;
+    color: #636e72;
+    white-space: nowrap;
+  }
+
+  input {
+    width: 56px;
+    padding: 4px 6px;
+    border: 1px solid #dfe6e9;
+    border-radius: 6px;
+    font-size: 12px;
+    font-family: 'Inter', sans-serif;
+    text-align: center;
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}
+
+.empty-state {
+  text-align: center;
+  color: #b2bec3;
+  padding: 32px 16px !important;
+}
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 4px;
+  margin-top: 24px;
+}
+
+.btn-page {
+  padding: 6px 12px;
+  border: 1px solid #dfe6e9;
+  border-radius: 8px;
+  background: #fff;
+  font-size: 13px;
+  font-family: 'Inter', sans-serif;
+  cursor: pointer;
+  color: #2D3436;
+
+  &:hover:not(:disabled):not(.active) {
+    background: #f8f9fa;
+  }
+
+  &.active {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+@media (max-width: 768px) {
+  .filters-bar {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .search-box {
+    max-width: 100%;
+  }
+  .filter-group {
+    flex-wrap: wrap;
+  }
+  .table-container {
+    margin: 0 -16px;
+    border-radius: 0;
+  }
+  .users-table th,
+  .users-table td {
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+  .actions-cell {
+    min-width: 200px;
+  }
+  .action-group {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+}

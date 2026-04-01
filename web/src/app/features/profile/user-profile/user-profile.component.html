@@ -1,0 +1,195 @@
+<div class="profile-page">
+  <div class="profile-container">
+    <div class="profile-header">
+      <h1 class="profile-title">My Profile</h1>
+      <div class="profile-nav">
+        <a routerLink="/profile" class="nav-link active">Profile</a>
+        <a routerLink="/profile/settings" class="nav-link">Settings</a>
+        <a routerLink="/profile/notifications" class="nav-link">Notifications</a>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-center">
+        <span class="spinner spinner-lg" aria-label="Loading profile"></span>
+      </div>
+    } @else {
+      @if (successMessage()) {
+        <div class="alert alert-success" role="status">{{ successMessage() }}</div>
+      }
+      @if (errorMessage()) {
+        <div class="alert alert-error" role="alert">{{ errorMessage() }}</div>
+      }
+
+      <div class="profile-card card">
+        <div class="avatar-section">
+          <div class="avatar-wrapper">
+            @if (avatarPreview()) {
+              <img [src]="avatarPreview()" alt="Profile avatar" class="avatar-img" />
+            } @else {
+              <div class="avatar-placeholder">{{ initials }}</div>
+            }
+            @if (editing()) {
+              <label class="avatar-upload-btn" for="avatarInput" aria-label="Change avatar">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+                  <circle cx="12" cy="13" r="4"/>
+                </svg>
+              </label>
+              <input
+                id="avatarInput"
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                class="sr-only"
+                (change)="onAvatarChange($event)"
+              />
+            }
+          </div>
+          <div class="user-info">
+            <h2 class="user-name">{{ user()?.profile?.firstName }} {{ user()?.profile?.lastName }}</h2>
+            <span class="user-role badge" [class.badge-featured]="user()?.role === 'seller'" [class.badge-success]="user()?.role === 'buyer'">
+              {{ user()?.role | titlecase }}
+            </span>
+            @if (user()?.email) {
+              <p class="user-contact">{{ user()?.email }}</p>
+            }
+            @if (user()?.phone) {
+              <p class="user-contact">{{ user()?.phone }}</p>
+            }
+          </div>
+        </div>
+
+        @if (!editing()) {
+          <button type="button" class="btn btn-outline edit-btn" (click)="toggleEdit()">
+            Edit Profile
+          </button>
+        }
+      </div>
+
+      @if (editing()) {
+        <div class="edit-card card">
+          <h3 class="section-title">Edit Profile</h3>
+          <form [formGroup]="profileForm" (ngSubmit)="onSubmit()" class="profile-form" novalidate>
+            <div class="form-row">
+              <div class="form-group">
+                <label for="firstName" class="form-label">First Name</label>
+                <input
+                  id="firstName"
+                  type="text"
+                  formControlName="firstName"
+                  class="form-input"
+                  placeholder="First name"
+                  autocomplete="given-name"
+                />
+                @if (profileForm.get('firstName')?.touched && profileForm.get('firstName')?.errors) {
+                  <span class="form-error">
+                    @if (profileForm.get('firstName')?.errors?.['required']) {
+                      First name is required
+                    } @else if (profileForm.get('firstName')?.errors?.['maxlength']) {
+                      Max 50 characters
+                    }
+                  </span>
+                }
+              </div>
+              <div class="form-group">
+                <label for="lastName" class="form-label">Last Name</label>
+                <input
+                  id="lastName"
+                  type="text"
+                  formControlName="lastName"
+                  class="form-input"
+                  placeholder="Last name"
+                  autocomplete="family-name"
+                />
+                @if (profileForm.get('lastName')?.touched && profileForm.get('lastName')?.errors) {
+                  <span class="form-error">
+                    @if (profileForm.get('lastName')?.errors?.['required']) {
+                      Last name is required
+                    } @else if (profileForm.get('lastName')?.errors?.['maxlength']) {
+                      Max 50 characters
+                    }
+                  </span>
+                }
+              </div>
+            </div>
+
+            <div class="form-row">
+              <div class="form-group">
+                <label for="city" class="form-label">City</label>
+                <input
+                  id="city"
+                  type="text"
+                  formControlName="city"
+                  class="form-input"
+                  placeholder="Your city"
+                  autocomplete="address-level2"
+                />
+              </div>
+              <div class="form-group">
+                <label for="postalCode" class="form-label">Postal Code</label>
+                <input
+                  id="postalCode"
+                  type="text"
+                  formControlName="postalCode"
+                  class="form-input"
+                  placeholder="Postal code"
+                  autocomplete="postal-code"
+                />
+              </div>
+            </div>
+
+            <div class="form-buttons">
+              <button type="button" class="btn btn-outline" (click)="toggleEdit()">Cancel</button>
+              <button type="submit" class="btn btn-primary" [disabled]="saving()">
+                @if (saving()) {
+                  <span class="spinner" aria-hidden="true"></span>
+                  Saving...
+                } @else {
+                  Save Changes
+                }
+              </button>
+            </div>
+          </form>
+        </div>
+      }
+
+      <div class="info-card card">
+        <h3 class="section-title">Account Details</h3>
+        <div class="detail-grid">
+          <div class="detail-item">
+            <span class="detail-label">Email</span>
+            <span class="detail-value">
+              {{ user()?.email || 'Not set' }}
+              @if (user()?.emailVerified) {
+                <span class="badge badge-success">Verified</span>
+              }
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Phone</span>
+            <span class="detail-value">
+              {{ user()?.phone || 'Not set' }}
+              @if (user()?.phoneVerified) {
+                <span class="badge badge-success">Verified</span>
+              }
+            </span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">Member Since</span>
+            <span class="detail-value">{{ user()?.createdAt | date:'mediumDate' }}</span>
+          </div>
+          <div class="detail-item">
+            <span class="detail-label">MFA</span>
+            <span class="detail-value">
+              @if (user()?.mfa?.enabled) {
+                <span class="badge badge-success">Enabled</span>
+              } @else {
+                <span class="badge">Disabled</span>
+              }
+            </span>
+          </div>
+        </div>
+      </div>
+    }
+  </div>
+</div>

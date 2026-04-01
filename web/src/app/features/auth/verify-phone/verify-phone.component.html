@@ -1,0 +1,72 @@
+<div class="auth-page">
+  <div class="auth-card">
+    @if (!success()) {
+      <h1 class="auth-title">Verify Phone</h1>
+      <p class="auth-subtitle">Enter the 6-digit code sent to {{ phone }}</p>
+
+      @if (errorMessage()) {
+        <div class="alert alert-error" role="alert">{{ errorMessage() }}</div>
+      }
+
+      @if (resendSuccess()) {
+        <div class="alert alert-success" role="alert">A new code has been sent.</div>
+      }
+
+      <form [formGroup]="verifyForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="code" class="form-label">Verification Code</label>
+          <input
+            id="code"
+            type="text"
+            formControlName="code"
+            class="form-input"
+            placeholder="000000"
+            maxlength="6"
+            autocomplete="one-time-code"
+            inputmode="numeric"
+            style="text-align: center; font-family: var(--font-mono); font-size: var(--text-xl); letter-spacing: 0.5em;"
+          />
+          @if (verifyForm.get('code')?.touched && verifyForm.get('code')?.errors) {
+            <span class="form-error">Please enter a valid 6-digit code</span>
+          }
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner" aria-hidden="true"></span>
+            Verifying...
+          } @else {
+            Verify Phone
+          }
+        </button>
+      </form>
+
+      <p class="info-text" style="margin-top: var(--space-2);">
+        Didn't receive the code?
+        <button
+          class="resend-link"
+          (click)="resendCode()"
+          [disabled]="resendLoading()"
+        >
+          @if (resendLoading()) {
+            Sending...
+          } @else {
+            Resend code
+          }
+        </button>
+      </p>
+    } @else {
+      <h1 class="auth-title">Phone Verified</h1>
+      <div class="alert alert-success" role="alert">
+        Your phone number has been verified successfully!
+      </div>
+      <a routerLink="/auth/login" class="btn btn-primary btn-full" style="margin-top: var(--space-2); text-align: center; display: block;">
+        Sign In
+      </a>
+    }
+
+    <p class="auth-footer">
+      <a routerLink="/auth/login">Back to Sign In</a>
+    </p>
+  </div>
+</div>

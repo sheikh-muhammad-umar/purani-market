@@ -1,0 +1,126 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
+  Body,
+  Query,
+  UseGuards,
+  UseInterceptors,
+  UploadedFile,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
+import { ListingsService } from './listings.service.js';
+import { MediaService } from './media.service.js';
+import { PackagesService } from '../packages/packages.service.js';
+import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
+import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard.js';
+import { RolesGuard } from '../common/guards/roles.guard.js';
+import { Roles } from '../common/decorators/roles.decorator.js';
+import { CurrentUser } from '../common/decorators/current-user.decorator.js';
+import { CreateListingDto } from './dto/create-listing.dto.js';
+import { UpdateListingDto } from './dto/update-listing.dto.js';
+import { UpdateStatusDto } from './dto/update-status.dto.js';
+import { UploadMediaDto } from './dto/upload-media.dto.js';
+
+@Controller('api/listings')
+export class ListingsController {
+  constructor(
+    private readonly listingsService: ListingsService,
+    private readonly mediaService: MediaService,
+    private readonly packagesService: PackagesService,
+  ) {}
+
+  @Get()
+  @UseGuards(OptionalJwtAuthGuard)
+  async getListings(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sort') sort?: string,
+    @Query('order') order?: string,
+    @Query('mine') mine?: string,
+    @CurrentUser('sub') userId?: string,
+  ) {
+    const sellerId = mine === 'true' && userId ? userId : undefined;
+    return this.listingsService.findAll(
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 20,
+      sort || 'createdAt',
+      (order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
+      sellerId,
+    );
+  }
+
+  @Get(':id')
+  async getListingById(@Param('id') id: string) {
+    return this.listingsService.findByIdAndIncrementViews(id);
+  }
+
+  @Post()
+  @UseGuards(JwtAuthGuard)
+  async createListing(
+    @CurrentUser('sub') sellerId: string,
+    @Body() dto: CreateListingDto,
+  ) {
+    return this.listingsService.create(sellerId, dto);
+  }
+
+  @Patch(':id')
+  @UseGuards(JwtAuthGuard)
+  async updateListing(
+    @Param('id') id: string,
+    @CurrentUser('sub') sellerId: string,
+    @Body() dto: UpdateListingDto,
+  ) {
+    return this.listingsService.update(id, sellerId, dto);
+  }
+
+  @Patch(':id/status')
+  @UseGuards(JwtAuthGuard)
+  async updateListingStatus(
+    @Param('id') id: string,
+    @CurrentUser('sub') sellerId: string,
+    @Body() dto: UpdateStatusDto,
+  ) {
+    return this.listingsService.updateStatus(id, sellerId, dto.status);
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  async deleteListing(
+    @Param('id') id: string,
+    @CurrentUser('sub') userId: string,
+    @CurrentUser('role') userRole: string,
+  ) {
+    return this.listingsService.softDelete(id, userId, userRole);
+  }
+
+  @Post(':id/feature')
+  @UseGuards(JwtAuthGuard)
+  async featureListing(
+    @Param('id') id: string,
+    @CurrentUser('sub') sellerId: string,
+  ) {
+    return this.packagesService.featureListing(id, sellerId);
+  }
+
+  @Post(':id/media')
+  @UseGuards(JwtAuthGuard)
+  @UseInterceptors(FileInterceptor('file'))
+  async uploadMedia(
+    @Param('id') listingId: string,
+    @CurrentUser('sub') sellerId: string,
+    @UploadedFile() file: Express.Multer.File,
+    @Body() dto: UploadMediaDto,
+  ) {
+    return this.mediaService.uploadMedia(
+      listingId,
+      sellerId,
+      file,
+      dto.type,
+      dto.sortOrder,
+    );
+  }
+}

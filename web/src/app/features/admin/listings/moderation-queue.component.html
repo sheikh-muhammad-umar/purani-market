@@ -1,0 +1,107 @@
+<div class="moderation-queue">
+  <div class="page-header">
+    <h1>Moderation Queue</h1>
+    <span class="listing-count" *ngIf="!loading()">{{ totalListings() }} pending</span>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Loading pending listings...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="error()">
+    <p>{{ error() }}</p>
+    <button class="btn-retry" (click)="loadPendingListings()">Retry</button>
+  </div>
+
+  <!-- Listings -->
+  <div class="listings-container" *ngIf="!loading() && !error()">
+    <div class="empty-state" *ngIf="listings().length === 0">
+      <p>No pending listings to review.</p>
+    </div>
+
+    <div class="listing-card" *ngFor="let listing of listings()">
+      <div class="listing-thumbnail">
+        <img
+          *ngIf="getThumbnail(listing)"
+          [src]="getThumbnail(listing)"
+          [alt]="listing.title"
+          class="thumbnail-img"
+        />
+        <div *ngIf="!getThumbnail(listing)" class="thumbnail-placeholder">No Image</div>
+      </div>
+
+      <div class="listing-details">
+        <div class="listing-header">
+          <h3 class="listing-title">{{ listing.title }}</h3>
+          <span class="listing-price">{{ formatPrice(listing) }}</span>
+        </div>
+        <div class="listing-meta">
+          <span class="meta-item">
+            <span class="meta-label">Seller:</span> {{ listing.sellerName }}
+            <span *ngIf="listing.sellerEmail" class="seller-email">({{ listing.sellerEmail }})</span>
+          </span>
+          <span class="meta-item">
+            <span class="meta-label">Category:</span> {{ listing.categoryName }}
+          </span>
+          <span class="meta-item">
+            <span class="meta-label">Condition:</span>
+            <span class="condition-badge">{{ listing.condition }}</span>
+          </span>
+          <span class="meta-item">
+            <span class="meta-label">Submitted:</span> {{ formatDate(listing.createdAt) }}
+          </span>
+        </div>
+      </div>
+
+      <div class="listing-actions">
+        <button
+          class="btn-action btn-approve"
+          [disabled]="actionLoading() === listing._id"
+          (click)="approveListing(listing)"
+        >
+          Approve
+        </button>
+
+        <ng-container *ngIf="rejectingId !== listing._id">
+          <button
+            class="btn-action btn-reject"
+            [disabled]="actionLoading() === listing._id"
+            (click)="startReject(listing)"
+          >
+            Reject
+          </button>
+        </ng-container>
+
+        <div class="reject-form" *ngIf="rejectingId === listing._id">
+          <input
+            type="text"
+            class="reject-reason-input"
+            placeholder="Enter rejection reason..."
+            [(ngModel)]="rejectionReasons[listing._id]"
+            (keyup.enter)="confirmReject(listing)"
+            aria-label="Rejection reason"
+          />
+          <div class="reject-buttons">
+            <button
+              class="btn-action btn-confirm-reject"
+              [disabled]="actionLoading() === listing._id || !(rejectionReasons[listing._id] || '').trim()"
+              (click)="confirmReject(listing)"
+            >
+              Confirm Reject
+            </button>
+            <button
+              class="btn-action btn-cancel"
+              [disabled]="actionLoading() === listing._id"
+              (click)="cancelReject()"
+            >
+              Cancel
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

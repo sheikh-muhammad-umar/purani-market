@@ -1,0 +1,56 @@
+<div class="reviews-page">
+  <div class="container">
+    <div class="page-header">
+      <h1>{{ getPageTitle() }}</h1>
+      @if (!loading() && !error() && totalReviews() > 0) {
+        <div class="rating-summary">
+          <div class="average-rating">
+            <span class="rating-number">{{ averageRating().toFixed(1) }}</span>
+            <div class="stars-row">
+              @for (star of getStars(averageRating()); track star) {
+                <span class="star" [class.filled]="star <= averageRating()" [class.half]="star > averageRating() && star - 1 < averageRating()">★</span>
+              }
+            </div>
+            <span class="review-count">{{ totalReviews() }} {{ totalReviews() === 1 ? 'review' : 'reviews' }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (loading()) {
+      <div class="loading-center"><div class="spinner spinner-lg"></div></div>
+    } @else if (error()) {
+      <div class="error-state">
+        <span class="error-icon">⚠️</span>
+        <p>{{ error() }}</p>
+        <button class="btn btn-primary" (click)="loadReviews()">Retry</button>
+      </div>
+    } @else if (reviews().length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">⭐</span>
+        <h3>No reviews yet</h3>
+        <p>Be the first to leave a review</p>
+      </div>
+    } @else {
+      <div class="reviews-list">
+        @for (review of reviews(); track review._id) {
+          <div class="review-card card">
+            <div class="review-header">
+              <div class="reviewer-info">
+                <span class="reviewer-avatar" aria-hidden="true">👤</span>
+                <span class="reviewer-id">{{ review.reviewerId }}</span>
+              </div>
+              <span class="review-date">{{ formatDate(review.createdAt) }}</span>
+            </div>
+            <div class="review-rating">
+              @for (star of getStars(review.rating); track star) {
+                <span class="star" [class.filled]="star <= review.rating">★</span>
+              }
+            </div>
+            <p class="review-text">{{ review.text }}</p>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

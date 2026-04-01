@@ -1,0 +1,119 @@
+<div class="chat-window">
+  <!-- Back button -->
+  <div class="chat-top-bar">
+    <a routerLink="/messaging" class="back-link">← Messages</a>
+  </div>
+
+  <!-- Product card at top -->
+  @if (listing()) {
+    <div class="product-card">
+      <a [routerLink]="['/listings', listing()!._id]" class="product-card-link">
+        <img
+          [src]="getListingImage()"
+          [alt]="listing()!.title"
+          class="product-thumb"
+        />
+        <div class="product-info">
+          <span class="product-title">{{ listing()!.title }}</span>
+          <span class="product-price">
+            {{ listing()!.price.currency }} {{ listing()!.price.amount | number }}
+          </span>
+          <span class="product-status" [class]="'status-' + listing()!.status">
+            {{ listing()!.status }}
+          </span>
+        </div>
+      </a>
+    </div>
+  }
+
+  <!-- Messages area -->
+  <div class="messages-container" #messagesContainer>
+    @if (loading()) {
+      <div class="messages-skeleton">
+        @for (i of [1, 2, 3, 4, 5]; track i) {
+          <div class="skeleton-bubble" [class.sent]="i % 2 === 0">
+            <div class="skeleton" [style.width]="(120 + i * 30) + 'px'" style="height: 36px; border-radius: 16px;"></div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (!loading()) {
+      @if (hasMore()) {
+        <button
+          class="load-more-btn"
+          (click)="loadOlderMessages()"
+          [disabled]="loadingMore()"
+        >
+          {{ loadingMore() ? 'Loading...' : 'Load older messages' }}
+        </button>
+      }
+
+      @for (message of messages(); track message._id) {
+        <div
+          class="message-bubble"
+          [class.sent]="isSentByMe(message)"
+          [class.received]="!isSentByMe(message)"
+        >
+          <div class="bubble-content">
+            <p class="bubble-text">{{ message.content }}</p>
+            <div class="bubble-meta">
+              <span class="bubble-time">{{ formatTime(message.createdAt) }}</span>
+              @if (isSentByMe(message)) {
+                <span class="read-receipt" [class.read]="message.isRead">
+                  {{ message.isRead ? '✓✓' : '✓' }}
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+      }
+
+      @if (typingIndicator()) {
+        <div class="message-bubble received">
+          <div class="bubble-content typing-bubble">
+            <div class="typing-dots">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+        </div>
+      }
+    }
+  </div>
+
+  <!-- Quick replies -->
+  @if (messages().length === 0 && !loading()) {
+    <div class="quick-replies">
+      @for (reply of quickReplies; track reply) {
+        <button class="quick-reply-btn" (click)="sendQuickReply(reply)">
+          {{ reply }}
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Input area -->
+  <div class="input-area">
+    <input
+      type="text"
+      class="message-input"
+      placeholder="Type a message..."
+      [(ngModel)]="messageText"
+      (keyup.enter)="sendMessage()"
+      (input)="onTyping()"
+      [disabled]="sending()"
+    />
+    <button
+      class="send-btn"
+      (click)="sendMessage()"
+      [disabled]="!messageText.trim() || sending()"
+      [attr.aria-label]="'Send message'"
+    >
+      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+      </svg>
+    </button>
+  </div>
+</div>

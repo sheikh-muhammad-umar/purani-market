@@ -1,0 +1,48 @@
+<div class="auth-page">
+  <div class="auth-card">
+    <h1 class="auth-title">Email Verification</h1>
+
+    @if (loading()) {
+      <p class="info-text">Verifying your email address...</p>
+      <div class="loading-center">
+        <span class="spinner spinner-lg" aria-hidden="true"></span>
+      </div>
+    } @else if (success()) {
+      <div class="alert alert-success" role="alert">
+        Your email has been verified successfully!
+      </div>
+      <p class="info-text">You now have full access to the marketplace.</p>
+      <a routerLink="/auth/login" class="btn btn-primary btn-full" style="margin-top: var(--space-2); text-align: center; display: block;">
+        Sign In
+      </a>
+    } @else {
+      @if (errorMessage()) {
+        <div class="alert alert-error" role="alert">{{ errorMessage() }}</div>
+      }
+      @if (email) {
+        <p class="info-text" style="margin-top: var(--space-2);">
+          @if (resendSuccess()) {
+            A new verification email has been sent.
+          } @else {
+            Need a new verification link?
+            <button
+              class="resend-link"
+              (click)="resendVerification()"
+              [disabled]="resendLoading()"
+            >
+              @if (resendLoading()) {
+                Sending...
+              } @else {
+                Resend verification email
+              }
+            </button>
+          }
+        </p>
+      }
+    }
+
+    <p class="auth-footer">
+      <a routerLink="/auth/login">Back to Sign In</a>
+    </p>
+  </div>
+</div>

@@ -1,0 +1,76 @@
+<div class="write-review-page">
+  <div class="container">
+    <div class="review-form-card auth-card">
+      @if (success()) {
+        <div class="success-state">
+          <span class="success-icon">✅</span>
+          <h2>Review Submitted</h2>
+          <p>Thank you for your feedback!</p>
+        </div>
+      } @else {
+        <h2 class="auth-title">Write a Review</h2>
+        <p class="auth-subtitle">Share your experience with this product and seller</p>
+
+        @if (error()) {
+          <div class="alert alert-error">{{ error() }}</div>
+        }
+
+        @if (!productListingId()) {
+          <div class="alert alert-error">No listing specified. Please navigate from a listing page.</div>
+        } @else {
+          <form class="auth-form" (ngSubmit)="submit()">
+            <div class="form-group">
+              <label class="form-label" id="rating-label">Rating</label>
+              <div class="star-selector" role="radiogroup" aria-labelledby="rating-label">
+                @for (star of stars; track star) {
+                  <button
+                    type="button"
+                    class="star-btn"
+                    [class.filled]="isStarFilled(star)"
+                    [attr.aria-label]="star + ' star' + (star > 1 ? 's' : '')"
+                    [attr.aria-pressed]="star === rating()"
+                    (click)="setRating(star)"
+                    (mouseenter)="setHover(star)"
+                    (mouseleave)="clearHover()">
+                    ★
+                  </button>
+                }
+              </div>
+              @if (rating() === 0) {
+                <span class="form-error">Please select a rating</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="review-text">Your Review</label>
+              <textarea
+                id="review-text"
+                class="form-input review-textarea"
+                placeholder="Tell others about your experience..."
+                [ngModel]="text()"
+                (ngModelChange)="onTextChange($event)"
+                [attr.maxlength]="MAX_TEXT_LENGTH"
+                rows="5"
+                aria-describedby="char-count">
+              </textarea>
+              <div class="char-counter" id="char-count" [class.near-limit]="textLength > MAX_TEXT_LENGTH * 0.9">
+                {{ textLength }} / {{ MAX_TEXT_LENGTH }}
+              </div>
+            </div>
+
+            <button
+              type="submit"
+              class="btn btn-primary btn-full"
+              [disabled]="!isValid || submitting()">
+              @if (submitting()) {
+                <span class="spinner"></span> Submitting...
+              } @else {
+                Submit Review
+              }
+            </button>
+          </form>
+        }
+      }
+    </div>
+  </div>
+</div>

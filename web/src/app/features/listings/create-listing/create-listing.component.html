@@ -1,0 +1,582 @@
+<!-- Phone Verification Gate -->
+@if (phoneCheckLoading()) {
+  <div class="wizard-page">
+    <div class="wizard-container">
+      <div class="loading-center"><div class="spinner spinner-lg"></div></div>
+    </div>
+  </div>
+} @else if (!phoneVerified()) {
+  <div class="wizard-page">
+    <div class="wizard-container">
+      <div class="phone-verify-card">
+        <div class="phone-verify-icon">📱</div>
+        <h2>Verify Your Phone Number</h2>
+        <p class="phone-verify-desc">A verified phone number is required to post ads. Your phone number will be shown to buyers as contact info.</p>
+
+        @if (phoneError()) {
+          <div class="alert alert-error">{{ phoneError() }}</div>
+        }
+        @if (phoneSuccess()) {
+          <div class="alert alert-success">{{ phoneSuccess() }}</div>
+        }
+
+        @if (phoneStep() === 'add') {
+          <form [formGroup]="phoneForm" (ngSubmit)="submitPhone()" class="phone-form">
+            <div class="form-group">
+              <label class="form-label" for="phone">Phone Number</label>
+              <input
+                id="phone"
+                class="form-input"
+                formControlName="phone"
+                placeholder="03001234567"
+                maxlength="11"
+              />
+              @if (phoneForm.get('phone')?.touched && phoneForm.get('phone')?.errors?.['required']) {
+                <span class="form-error">Phone number is required</span>
+              }
+              @if (phoneForm.get('phone')?.touched && phoneForm.get('phone')?.errors?.['pattern']) {
+                <span class="form-error">Enter a valid 11-digit phone number starting with 0</span>
+              }
+            </div>
+            <button
+              class="btn btn-primary"
+              type="submit"
+              [disabled]="phoneForm.invalid || phoneSending()"
+            >
+              @if (phoneSending()) {
+                <span class="spinner"></span> Sending OTP...
+              } @else {
+                Send OTP
+              }
+            </button>
+          </form>
+        }
+
+        @if (phoneStep() === 'verify') {
+          <p class="otp-info">Enter the 6-digit code sent to <strong>{{ pendingPhone() }}</strong></p>
+          <form [formGroup]="otpForm" (ngSubmit)="submitOtp()" class="phone-form">
+            <div class="form-group">
+              <label class="form-label" for="otp">OTP Code</label>
+              <input
+                id="otp"
+                class="form-input otp-input"
+                formControlName="otp"
+                placeholder="000000"
+                maxlength="6"
+                inputmode="numeric"
+                autocomplete="one-time-code"
+              />
+              @if (otpForm.get('otp')?.touched && otpForm.get('otp')?.errors?.['pattern']) {
+                <span class="form-error">OTP must be a 6-digit code</span>
+              }
+            </div>
+            <div class="otp-actions">
+              <button
+                class="btn btn-primary"
+                type="submit"
+                [disabled]="otpForm.invalid || phoneSending()"
+              >
+                @if (phoneSending()) {
+                  <span class="spinner"></span> Verifying...
+                } @else {
+                  Verify
+                }
+              </button>
+              <button
+                class="btn btn-outline"
+                type="button"
+                (click)="resendOtp()"
+                [disabled]="phoneSending()"
+              >
+                Resend OTP
+              </button>
+            </div>
+          </form>
+        }
+      </div>
+    </div>
+  </div>
+} @else {
+<div class="wizard-page">
+  <div class="wizard-container">
+    <!-- Progress Bar -->
+    <div class="wizard-progress">
+      @for (label of stepLabels; track label; let i = $index) {
+        <button
+          class="step-indicator"
+          [class.active]="currentStep() === i + 1"
+          [class.completed]="currentStep() > i + 1"
+          [class.clickable]="i + 1 < currentStep()"
+          (click)="goToStep(i + 1)"
+          [attr.aria-label]="'Step ' + (i + 1) + ': ' + label"
+          type="button"
+        >
+          <span class="step-number">
+            @if (currentStep() > i + 1) {
+              ✓
+            } @else {
+              {{ i + 1 }}
+            }
+          </span>
+          <span class="step-label">{{ label }}</span>
+        </button>
+        @if (i < stepLabels.length - 1) {
+          <div class="step-connector" [class.active]="currentStep() > i + 1"></div>
+        }
+      }
+    </div>
+
+    <!-- Step 1: Category Selection -->
+    @if (currentStep() === 1) {
+      <div class="wizard-step">
+        <h2>Select a Category</h2>
+        <p class="step-description">Choose the most specific category for your listing</p>
+
+        <div class="category-selection">
+          <div class="category-level">
+            <h4>Category</h4>
+            <div class="category-grid">
+              @for (cat of level1Categories(); track cat._id) {
+                <button
+                  class="category-chip"
+                  [class.selected]="selectedLevel1()?._id === cat._id"
+                  (click)="selectLevel1(cat)"
+                  type="button"
+                >
+                  {{ cat.name }}
+                </button>
+              }
+            </div>
+          </div>
+
+          @if (level2Categories().length > 0) {
+            <div class="category-level">
+              <h4>Subcategory</h4>
+              <div class="category-grid">
+                @for (cat of level2Categories(); track cat._id) {
+                  <button
+                    class="category-chip"
+                    [class.selected]="selectedLevel2()?._id === cat._id"
+                    (click)="selectLevel2(cat)"
+                    type="button"
+                  >
+                    {{ cat.name }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+
+          @if (level3Categories().length > 0) {
+            <div class="category-level">
+              <h4>Sub-subcategory</h4>
+              <div class="category-grid">
+                @for (cat of level3Categories(); track cat._id) {
+                  <button
+                    class="category-chip"
+                    [class.selected]="selectedLevel3()?._id === cat._id"
+                    (click)="selectLevel3(cat)"
+                    type="button"
+                  >
+                    {{ cat.name }}
+                  </button>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (selectedCategory()) {
+          <div class="selected-path">
+            Selected: <strong>{{ getCategoryPath() }}</strong>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Step 2: Details -->
+    @if (currentStep() === 2) {
+      <div class="wizard-step">
+        <h2>Listing Details</h2>
+        <p class="step-description">Provide details about your item</p>
+
+        <form [formGroup]="detailsForm" class="details-form">
+          <div class="form-group">
+            <label class="form-label" for="title">Title *</label>
+            <input
+              id="title"
+              class="form-input"
+              formControlName="title"
+              placeholder="e.g. iPhone 15 Pro Max 256GB"
+              maxlength="150"
+            />
+            @if (detailsForm.get('title')?.touched && detailsForm.get('title')?.errors?.['required']) {
+              <span class="form-error">Title is required</span>
+            }
+            <span class="char-count">{{ detailsForm.get('title')?.value?.length || 0 }}/150</span>
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="description">Description *</label>
+            <textarea
+              id="description"
+              class="form-input textarea"
+              formControlName="description"
+              placeholder="Describe your item in detail..."
+              rows="5"
+              maxlength="5000"
+            ></textarea>
+            @if (detailsForm.get('description')?.touched && detailsForm.get('description')?.errors?.['required']) {
+              <span class="form-error">Description is required</span>
+            }
+            <span class="char-count">{{ detailsForm.get('description')?.value?.length || 0 }}/5000</span>
+          </div>
+
+          <div class="form-row">
+            <div class="form-group">
+              <label class="form-label" for="price">Price (PKR) *</label>
+              <input
+                id="price"
+                class="form-input"
+                type="number"
+                formControlName="price"
+                placeholder="Enter price"
+                min="1"
+              />
+              @if (detailsForm.get('price')?.touched && detailsForm.get('price')?.errors?.['required']) {
+                <span class="form-error">Price is required</span>
+              }
+            </div>
+
+            <div class="form-group">
+              <label class="form-label" for="condition">Condition *</label>
+              <select id="condition" class="form-input" formControlName="condition">
+                <option value="new">New</option>
+                <option value="used">Used</option>
+                <option value="refurbished">Refurbished</option>
+              </select>
+            </div>
+          </div>
+
+          <!-- Dynamic Category Attributes -->
+          @if (categoryAttributes().length > 0) {
+            <div class="dynamic-attributes">
+              <h4>Category-Specific Details</h4>
+              @for (attr of categoryAttributes(); track attr.key) {
+                <div class="form-group">
+                  <label class="form-label" [for]="attr.key">
+                    {{ attr.name }}{{ attr.required ? ' *' : '' }}
+                    @if (attr.unit) {
+                      <span class="unit">({{ attr.unit }})</span>
+                    }
+                  </label>
+
+                  @switch (attr.type) {
+                    @case ('text') {
+                      <input
+                        [id]="attr.key"
+                        class="form-input"
+                        [formControl]="getDynamicControl(attr.key)"
+                        [placeholder]="'Enter ' + attr.name"
+                      />
+                    }
+                    @case ('number') {
+                      <input
+                        [id]="attr.key"
+                        class="form-input"
+                        type="number"
+                        [formControl]="getDynamicControl(attr.key)"
+                        [placeholder]="'Enter ' + attr.name"
+                      />
+                    }
+                    @case ('select') {
+                      <select [id]="attr.key" class="form-input" [formControl]="getDynamicControl(attr.key)">
+                        <option value="">Select {{ attr.name }}</option>
+                        @for (opt of attr.options; track opt) {
+                          <option [value]="opt">{{ opt }}</option>
+                        }
+                      </select>
+                    }
+                    @case ('boolean') {
+                      <label class="checkbox-label">
+                        <input type="checkbox" [formControl]="getDynamicControl(attr.key)" />
+                        {{ attr.name }}
+                      </label>
+                    }
+                    @default {
+                      <input
+                        [id]="attr.key"
+                        class="form-input"
+                        [formControl]="getDynamicControl(attr.key)"
+                        [placeholder]="'Enter ' + attr.name"
+                      />
+                    }
+                  }
+                </div>
+              }
+            </div>
+          }
+        </form>
+      </div>
+    }
+
+    <!-- Step 3: Media Upload -->
+    @if (currentStep() === 3) {
+      <div class="wizard-step">
+        <h2>Upload Media</h2>
+        <p class="step-description">Add at least 2 images (max 20) and optionally 1 video</p>
+
+        <div
+          class="drop-zone"
+          [class.drag-over]="dragOver()"
+          (dragover)="onDragOver($event)"
+          (dragleave)="onDragLeave()"
+          (drop)="onDrop($event)"
+          role="button"
+          tabindex="0"
+          aria-label="Drop zone for uploading images and video"
+        >
+          <div class="drop-zone-content">
+            <span class="drop-icon">📷</span>
+            <p>Drag & drop images here, or</p>
+            <label class="btn btn-outline upload-btn" for="fileInput">Browse Files</label>
+            <input
+              id="fileInput"
+              type="file"
+              multiple
+              accept="image/jpeg,image/png,image/webp,video/mp4"
+              (change)="onFileSelect($event)"
+              hidden
+            />
+            <span class="drop-hint">JPEG, PNG, WebP (max 5MB each) · MP4 video (max 50MB)</span>
+          </div>
+        </div>
+
+        <div class="media-count">
+          Images: {{ mediaItems().length }}/20
+          @if (mediaItems().length < 2) {
+            <span class="form-error"> (minimum 2 required)</span>
+          }
+        </div>
+
+        @if (mediaItems().length > 0) {
+          <div class="image-grid">
+            @for (item of mediaItems(); track item.preview; let i = $index) {
+              <div class="image-card">
+                <img [src]="item.preview" [alt]="'Image ' + (i + 1)" />
+                <div class="image-actions">
+                  <button
+                    class="img-btn"
+                    (click)="moveImage(i, i - 1)"
+                    [disabled]="i === 0"
+                    title="Move left"
+                    type="button"
+                    aria-label="Move image left"
+                  >←</button>
+                  <button
+                    class="img-btn"
+                    (click)="moveImage(i, i + 1)"
+                    [disabled]="i === mediaItems().length - 1"
+                    title="Move right"
+                    type="button"
+                    aria-label="Move image right"
+                  >→</button>
+                  <button
+                    class="img-btn remove"
+                    (click)="removeImage(i)"
+                    title="Remove"
+                    type="button"
+                    aria-label="Remove image"
+                  >✕</button>
+                </div>
+                @if (i === 0) {
+                  <span class="cover-badge">Cover</span>
+                }
+              </div>
+            }
+          </div>
+        }
+
+        @if (videoItem()) {
+          <div class="video-section">
+            <h4>Video</h4>
+            <div class="video-card">
+              <video [src]="videoItem()!.preview" controls></video>
+              <button class="img-btn remove" (click)="removeVideo()" type="button" aria-label="Remove video">✕</button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    <!-- Step 4: Location -->
+    @if (currentStep() === 4) {
+      <div class="wizard-step">
+        <h2>Location</h2>
+        <p class="step-description">Where is this item located?</p>
+
+        <form [formGroup]="locationForm" class="location-form">
+          <div class="form-group">
+            <label class="form-label" for="city">City *</label>
+            <input
+              id="city"
+              class="form-input"
+              formControlName="city"
+              placeholder="e.g. Lahore"
+            />
+            @if (locationForm.get('city')?.touched && locationForm.get('city')?.errors?.['required']) {
+              <span class="form-error">City is required</span>
+            }
+          </div>
+
+          <div class="form-group">
+            <label class="form-label" for="area">Area *</label>
+            <input
+              id="area"
+              class="form-input"
+              formControlName="area"
+              placeholder="e.g. Gulberg, DHA Phase 5"
+            />
+            @if (locationForm.get('area')?.touched && locationForm.get('area')?.errors?.['required']) {
+              <span class="form-error">Area is required</span>
+            }
+          </div>
+
+          <div class="map-placeholder">
+            <span>🗺️</span>
+            <p>Map integration available for precise location</p>
+          </div>
+        </form>
+      </div>
+    }
+
+    <!-- Step 5: Review & Post -->
+    @if (currentStep() === 5) {
+      <div class="wizard-step">
+        <h2>Review & Post</h2>
+        <p class="step-description">Review your listing before posting</p>
+
+        @if (error()) {
+          <div class="alert alert-error">{{ error() }}</div>
+        }
+
+        <div class="review-sections">
+          <div class="review-section">
+            <div class="review-header">
+              <h4>Category</h4>
+              <button class="edit-link" (click)="goToStep(1)" type="button">Edit</button>
+            </div>
+            <p>{{ getCategoryPath() }}</p>
+          </div>
+
+          <div class="review-section">
+            <div class="review-header">
+              <h4>Details</h4>
+              <button class="edit-link" (click)="goToStep(2)" type="button">Edit</button>
+            </div>
+            <div class="review-details">
+              <div class="detail-row">
+                <span class="detail-label">Title</span>
+                <span>{{ detailsForm.get('title')?.value }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Price</span>
+                <span class="price">PKR {{ detailsForm.get('price')?.value | number }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Condition</span>
+                <span>{{ detailsForm.get('condition')?.value }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Description</span>
+                <span class="description-preview">{{ detailsForm.get('description')?.value }}</span>
+              </div>
+              @for (attr of categoryAttributes(); track attr.key) {
+                @if (detailsForm.get(attr.key)?.value) {
+                  <div class="detail-row">
+                    <span class="detail-label">{{ attr.name }}</span>
+                    <span>{{ detailsForm.get(attr.key)?.value }}{{ attr.unit ? ' ' + attr.unit : '' }}</span>
+                  </div>
+                }
+              }
+            </div>
+          </div>
+
+          <div class="review-section">
+            <div class="review-header">
+              <h4>Media</h4>
+              <button class="edit-link" (click)="goToStep(3)" type="button">Edit</button>
+            </div>
+            <p>{{ mediaItems().length }} image(s){{ videoItem() ? ', 1 video' : '' }}</p>
+            <div class="review-thumbnails">
+              @for (item of mediaItems(); track item.preview; let i = $index) {
+                @if (i < 5) {
+                  <img [src]="item.preview" [alt]="'Preview ' + (i + 1)" class="review-thumb" />
+                }
+              }
+              @if (mediaItems().length > 5) {
+                <span class="more-count">+{{ mediaItems().length - 5 }}</span>
+              }
+            </div>
+          </div>
+
+          <div class="review-section">
+            <div class="review-header">
+              <h4>Location</h4>
+              <button class="edit-link" (click)="goToStep(4)" type="button">Edit</button>
+            </div>
+            <p>{{ locationForm.get('area')?.value }}, {{ locationForm.get('city')?.value }}</p>
+          </div>
+
+          <div class="review-section feature-section" [class.feature-disabled]="featuredSlotsRemaining() <= 0">
+            <label class="checkbox-label feature-toggle">
+              <input type="checkbox" [checked]="featureAd()" (change)="toggleFeatureAd()" [disabled]="featuredSlotsRemaining() <= 0" />
+              <div>
+                <strong>⭐ Feature this ad</strong>
+                @if (featuredSlotsRemaining() > 0) {
+                  <p class="feature-desc">Featured ads appear at the top of search results and get more visibility ({{ featuredSlotsRemaining() }} slot{{ featuredSlotsRemaining() > 1 ? 's' : '' }} remaining)</p>
+                } @else {
+                  <p class="feature-desc feature-no-slots">You have no featured ad slots. <a routerLink="/packages">Buy a package</a> to feature your ads.</p>
+                }
+              </div>
+            </label>
+          </div>
+        </div>
+      </div>
+    }
+
+    <!-- Navigation Buttons -->
+    <div class="wizard-nav">
+      @if (currentStep() > 1) {
+        <button class="btn btn-outline" (click)="prevStep()" type="button">Back</button>
+      } @else {
+        <div></div>
+      }
+
+      @if (currentStep() < totalSteps) {
+        <button
+          class="btn btn-primary"
+          (click)="nextStep()"
+          [disabled]="!isStepValid(currentStep())"
+          type="button"
+        >
+          Continue
+        </button>
+      } @else {
+        <button
+          class="btn btn-primary"
+          (click)="submit()"
+          [disabled]="submitting()"
+          type="button"
+        >
+          @if (submitting()) {
+            <span class="spinner"></span> Posting...
+          } @else {
+            Post Listing
+          }
+        </button>
+      }
+    </div>
+  </div>
+</div>
+}

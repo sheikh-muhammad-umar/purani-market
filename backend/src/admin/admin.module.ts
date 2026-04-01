@@ -1,0 +1,35 @@
+import { Module } from '@nestjs/common';
+import { MongooseModule } from '@nestjs/mongoose';
+import { AdminController } from './admin.controller.js';
+import { AdminService } from './admin.service.js';
+import { UsersModule } from '../users/users.module.js';
+import { AuthModule } from '../auth/auth.module.js';
+import { ListingsModule } from '../listings/listings.module.js';
+import { MessagingModule } from '../messaging/messaging.module.js';
+import { NotificationsModule } from '../notifications/notifications.module.js';
+import {
+  Review,
+  ReviewSchema,
+} from '../reviews/schemas/review.schema.js';
+import {
+  PackagePurchase,
+  PackagePurchaseSchema,
+} from '../packages/schemas/package-purchase.schema.js';
+
+@Module({
+  imports: [
+    UsersModule,
+    AuthModule,
+    ListingsModule,
+    MessagingModule,
+    NotificationsModule,
+    MongooseModule.forFeature([
+      { name: Review.name, schema: ReviewSchema },
+      { name: PackagePurchase.name, schema: PackagePurchaseSchema },
+    ]),
+  ],
+  controllers: [AdminController],
+  providers: [AdminService],
+  exports: [AdminService],
+})
+export class AdminModule {}

@@ -1,0 +1,289 @@
+.home-page {
+  max-width: var(--max-width);
+  margin: 0 auto;
+  padding: var(--space-3) var(--space-2);
+}
+
+/* ---- Category Chips ---- */
+.category-chips-section {
+  margin-bottom: var(--space-4);
+}
+
+.chips-scroll {
+  display: flex;
+  gap: var(--space-1);
+  overflow-x: auto;
+  padding-bottom: var(--space-1);
+  scrollbar-width: none;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.category-chip {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  text-decoration: none;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+  cursor: pointer;
+  font-family: var(--font-body);
+
+  &:hover {
+    background: var(--primary);
+    color: #fff;
+    border-color: var(--primary);
+  }
+}
+
+.chip-icon {
+  font-size: var(--text-lg);
+}
+
+.chip-skeleton {
+  width: 120px;
+  height: 40px;
+  border-radius: var(--radius-full);
+  flex-shrink: 0;
+}
+
+/* ---- Section Layout ---- */
+.home-section {
+  margin-bottom: var(--space-5);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-2);
+}
+
+.section-title {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  color: var(--text-primary);
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.city-label {
+  font-size: var(--text-base);
+  font-weight: 400;
+  color: var(--text-secondary);
+}
+
+.see-all-link {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--primary);
+  text-decoration: none;
+
+  &:hover {
+    text-decoration: underline;
+  }
+}
+
+/* ---- Carousel (Featured Ads) ---- */
+.carousel-scroll {
+  display: flex;
+  gap: var(--space-2);
+  overflow-x: auto;
+  padding-bottom: var(--space-1);
+  scrollbar-width: none;
+  scroll-snap-type: x mandatory;
+
+  &::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+.carousel-scroll .listing-card,
+.carousel-scroll .listing-card-skeleton {
+  min-width: 220px;
+  max-width: 260px;
+  flex-shrink: 0;
+  scroll-snap-align: start;
+}
+
+/* ---- Listing Card ---- */
+.listing-card {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+  text-decoration: none;
+  color: inherit;
+  display: flex;
+  flex-direction: column;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+
+  &:hover {
+    box-shadow: var(--shadow-hover);
+    transform: scale(1.02);
+  }
+}
+
+.listing-img-wrap {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--background);
+
+  img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+
+  .badge {
+    position: absolute;
+    top: var(--space-1);
+    left: var(--space-1);
+  }
+}
+
+.listing-info {
+  padding: var(--space-1) var(--space-2) var(--space-2);
+}
+
+.listing-title {
+  font-size: var(--text-sm);
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+  line-height: var(--leading-tight);
+}
+
+.listing-price {
+  font-size: var(--text-base);
+  font-weight: 700;
+  margin-bottom: 4px;
+}
+
+.listing-location {
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+
+/* ---- Masonry Grid ---- */
+.masonry-grid {
+  display: grid;
+  gap: var(--space-2);
+  grid-template-columns: repeat(2, 1fr);
+
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  @media (min-width: 1024px) {
+    grid-template-columns: repeat(4, 1fr);
+  }
+
+  @media (min-width: 1440px) {
+    grid-template-columns: repeat(5, 1fr);
+  }
+}
+
+/* ---- Skeleton Loading ---- */
+.listing-card-skeleton {
+  background: var(--card);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  box-shadow: var(--shadow-card);
+}
+
+.img-skeleton {
+  width: 100%;
+  height: 160px;
+  border-radius: 0;
+}
+
+.text-skeleton {
+  margin: var(--space-1) var(--space-2);
+  height: 14px;
+}
+
+.title-sk {
+  width: 80%;
+}
+
+.price-sk {
+  width: 50%;
+  height: 18px;
+}
+
+.loc-sk {
+  width: 60%;
+  margin-bottom: var(--space-2);
+}
+
+/* ---- Empty State ---- */
+.empty-state {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: var(--space-4);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
+/* ---- Mobile Responsive ---- */
+@media (max-width: 425px) {
+  .home-page {
+    padding: var(--space-2) var(--space-1);
+  }
+  .section-title {
+    font-size: var(--text-lg);
+  }
+  .carousel-scroll .listing-card,
+  .carousel-scroll .listing-card-skeleton {
+    min-width: 180px;
+    max-width: 200px;
+  }
+  .masonry-grid {
+    gap: var(--space-1);
+  }
+}
+
+/* ---- Floating Action Button ---- */
+.fab-post-ad {
+  position: fixed;
+  bottom: var(--space-4);
+  right: var(--space-4);
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: var(--primary);
+  color: #fff;
+  font-size: 2rem;
+  font-weight: 300;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s, box-shadow 0.2s;
+  z-index: 100;
+  line-height: 1;
+
+  &:hover {
+    transform: scale(1.1);
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.3);
+  }
+
+  @media (max-width: 767px) {
+    display: none;
+  }
+}

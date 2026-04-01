@@ -1,0 +1,135 @@
+name: Mobile — Build & Deploy
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - "mobile/**"
+  workflow_dispatch:
+    inputs:
+      platform:
+        description: "Platform to build"
+        required: true
+        default: all
+        type: choice
+        options: [all, ios, android, huawei]
+
+jobs:
+  android:
+    name: Android Build & Deploy
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'push' ||
+      inputs.platform == 'all' ||
+      inputs.platform == 'android'
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.0"
+          channel: stable
+          cache: true
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+          working-directory: mobile/android
+
+      - run: flutter pub get
+      - run: flutter test --no-pub
+
+      - name: Build & deploy to Play Store
+        working-directory: mobile/android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ secrets.ANDROID_KEYSTORE_PATH }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          GOOGLE_PLAY_JSON_KEY: ${{ secrets.GOOGLE_PLAY_JSON_KEY }}
+        run: bundle exec fastlane deploy
+
+  huawei:
+    name: Huawei Build & Deploy
+    runs-on: ubuntu-latest
+    if: >
+      github.event_name == 'push' ||
+      inputs.platform == 'all' ||
+      inputs.platform == 'huawei'
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.0"
+          channel: stable
+          cache: true
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+          working-directory: mobile/android
+
+      - run: flutter pub get
+
+      - name: Build & deploy to Huawei AppGallery
+        working-directory: mobile/android
+        env:
+          ANDROID_KEYSTORE_PATH: ${{ secrets.ANDROID_KEYSTORE_PATH }}
+          ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
+          ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
+          HUAWEI_CLIENT_ID: ${{ secrets.HUAWEI_CLIENT_ID }}
+          HUAWEI_CLIENT_SECRET: ${{ secrets.HUAWEI_CLIENT_SECRET }}
+          HUAWEI_APP_ID: ${{ secrets.HUAWEI_APP_ID }}
+        run: bundle exec fastlane huawei
+
+  ios:
+    name: iOS Build & Deploy
+    runs-on: macos-latest
+    if: >
+      github.event_name == 'push' ||
+      inputs.platform == 'all' ||
+      inputs.platform == 'ios'
+    defaults:
+      run:
+        working-directory: mobile
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: "3.24.0"
+          channel: stable
+          cache: true
+
+      - uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: "3.2"
+          bundler-cache: true
+          working-directory: mobile/ios
+
+      - run: flutter pub get
+
+      - name: Build & deploy to TestFlight
+        working-directory: mobile/ios
+        env:
+          MATCH_PASSWORD: ${{ secrets.MATCH_PASSWORD }}
+          MATCH_GIT_URL: ${{ secrets.MATCH_GIT_URL }}
+          IOS_BUNDLE_ID: ${{ secrets.IOS_BUNDLE_ID }}
+          APPLE_APP_ID: ${{ secrets.APPLE_APP_ID }}
+          APP_STORE_CONNECT_API_KEY_ID: ${{ secrets.ASC_KEY_ID }}
+          APP_STORE_CONNECT_API_ISSUER_ID: ${{ secrets.ASC_ISSUER_ID }}
+          APP_STORE_CONNECT_API_KEY: ${{ secrets.ASC_API_KEY }}
+        run: bundle exec fastlane deploy

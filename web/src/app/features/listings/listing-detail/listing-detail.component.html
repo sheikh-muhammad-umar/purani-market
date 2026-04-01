@@ -1,0 +1,263 @@
+@if (loading()) {
+  <div class="detail-page">
+    <div class="detail-skeleton">
+      <div class="skeleton-image"></div>
+      <div class="skeleton-content">
+        <div class="skeleton-text" style="width: 70%; height: 1.5em;"></div>
+        <div class="skeleton-text short" style="height: 1.8em; margin-top: 8px;"></div>
+        <div class="skeleton-text medium" style="margin-top: 12px;"></div>
+        <div class="skeleton-text" style="margin-top: 8px;"></div>
+        <div class="skeleton-text short" style="margin-top: 8px;"></div>
+        <div style="display: flex; gap: 8px; margin-top: 16px;">
+          <div class="skeleton-text" style="width: 100px; height: 2.5em; border-radius: 8px;"></div>
+          <div class="skeleton-text" style="width: 100px; height: 2.5em; border-radius: 8px;"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+} @else if (error()) {
+  <div class="detail-page"><div class="alert alert-error">{{ error() }}</div></div>
+} @else if (listing(); as l) {
+  <div class="detail-page">
+    <!-- Top bar -->
+    <div class="detail-top-bar">
+      <a routerLink="/" class="back-link" aria-label="Go back"><span class="mat-icon" style="font-size:18px;vertical-align:middle;">arrow_back</span> Back</a>
+    </div>
+
+    <div class="detail-container">
+      <!-- Full-bleed Image Gallery -->
+      <div class="gallery full-bleed">
+        <div class="gallery-main" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
+          <img [src]="getCurrentImage()" [alt]="l.title" />
+          @if ((l.images?.length ?? 0) > 1) {
+            <button class="gallery-nav prev" (click)="prevImage()" [disabled]="currentImageIndex() === 0" aria-label="Previous image" type="button">‹</button>
+            <button class="gallery-nav next" (click)="nextImage()" [disabled]="currentImageIndex() === (l.images?.length ?? 1) - 1" aria-label="Next image" type="button">›</button>
+          }
+          <span class="gallery-counter">{{ currentImageIndex() + 1 }} / {{ l.images?.length ?? 0 }}</span>
+        </div>
+        @if ((l.images?.length ?? 0) > 1) {
+          <div class="gallery-dots">
+            @for (img of l.images; track img.url; let i = $index) {
+              <button
+                class="dot"
+                [class.active]="currentImageIndex() === i"
+                (click)="currentImageIndex.set(i)"
+                type="button"
+                [attr.aria-label]="'View image ' + (i + 1)"
+              ></button>
+            }
+          </div>
+          <div class="gallery-thumbs">
+            @for (img of l.images; track img.url; let i = $index) {
+              <button
+                class="thumb"
+                [class.active]="currentImageIndex() === i"
+                (click)="currentImageIndex.set(i)"
+                type="button"
+                [attr.aria-label]="'View image ' + (i + 1)"
+              >
+                <img [src]="img.thumbnailUrl || img.url" [alt]="'Thumbnail ' + (i + 1)" />
+              </button>
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Content area -->
+      <div class="detail-content">
+        <!-- Header -->
+        <div class="detail-header">
+          @if (l.isFeatured) {
+            <span class="badge badge-featured"><span class="mat-icon mat-icon-filled" style="font-size:16px;vertical-align:middle;color:var(--accent);">star</span> Featured</span>
+          }
+          <div class="title-row">
+            <h1>{{ l.title }}</h1>
+            <button
+              class="favorite-btn"
+              [class.favorited]="isFavorited()"
+              [class.animating]="favoriteAnimating()"
+              (click)="toggleFavorite()"
+              [attr.aria-label]="isFavorited() ? 'Remove from favorites' : 'Add to favorites'"
+              type="button"
+            >
+              <span class="heart-icon mat-icon" [class.mat-icon-filled]="isFavorited()">{{ isFavorited() ? 'favorite' : 'favorite_border' }}</span>
+              @if (favoriteAnimating()) {
+                <span class="heart-burst" aria-hidden="true"></span>
+              }
+            </button>
+          </div>
+          <span class="price">PKR {{ l.price.amount | number }}</span>
+          <div class="detail-meta">
+            <span><span class="mat-icon" style="font-size:16px;vertical-align:middle;">location_on</span> {{ l.location.area }}, {{ l.location.city }}</span>
+            <span>{{ l.condition | titlecase }}</span>
+            <span>{{ l.viewCount }} views</span>
+            <span><span class="mat-icon" style="font-size:16px;vertical-align:middle;">favorite_border</span> {{ l.favoriteCount }}</span>
+          </div>
+        </div>
+
+        <!-- Category-specific Attributes -->
+        @if (l.categoryAttributes && (l.categoryAttributes | keyvalue).length > 0) {
+          <div class="detail-section">
+            <h3>Specifications</h3>
+            <div class="specs-grid">
+              @for (attr of l.categoryAttributes | keyvalue; track attr.key) {
+                <div class="spec-item">
+                  <span class="spec-label">{{ attr.key }}</span>
+                  <span class="spec-value">{{ attr.value }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Description -->
+        <div class="detail-section">
+          <h3>Description</h3>
+          <p class="description-text">{{ l.description }}</p>
+        </div>
+
+        <!-- Seller Profile Card -->
+        <div class="detail-section seller-card">
+          <h3>Seller</h3>
+          <div class="seller-info">
+            <div class="seller-avatar">👤</div>
+            <div class="seller-details">
+              <div class="seller-name-row">
+                <span class="seller-name">Seller</span>
+                @if (sellerVerified()) {
+                  <span class="badge badge-success">✓ Verified</span>
+                }
+              </div>
+              <div class="seller-stats">
+                @if (totalReviews() > 0) {
+                  <span class="seller-rating"><span class="mat-icon mat-icon-filled" style="font-size:16px;vertical-align:middle;color:var(--accent);">star</span> {{ averageRating().toFixed(1) }} ({{ totalReviews() }} reviews)</span>
+                }
+                <span class="seller-response"><span class="mat-icon" style="font-size:16px;vertical-align:middle;">schedule</span> {{ sellerResponseTime() }}</span>
+              </div>
+              <span class="seller-member">Member since {{ sellerMemberSince() }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Location Map -->
+        <div class="detail-section">
+          <h3>Location</h3>
+          <div class="map-container">
+            @if (getMapUrl(); as safeUrl) {
+              <iframe
+                [src]="safeUrl"
+                class="map-embed"
+                title="Listing location map"
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                allowfullscreen
+              ></iframe>
+            } @else {
+              <div class="map-placeholder">
+                <span><span class="mat-icon" style="font-size:16px;vertical-align:middle;">location_on</span></span>
+                <p>Map unavailable</p>
+              </div>
+            }
+          </div>
+          <p class="location-label">{{ l.location.area }}, {{ l.location.city }}</p>
+        </div>
+
+        <!-- Reviews Section -->
+        <div class="detail-section">
+          <h3>Reviews</h3>
+          @if (totalReviews() > 0) {
+            <div class="reviews-summary">
+              <div class="rating-big">
+                <span class="rating-number">{{ averageRating().toFixed(1) }}</span>
+                <div class="rating-stars">
+                  @for (star of getStarArray(averageRating()); track $index) {
+                      <span class="mat-icon mat-icon-filled star" [class.full]="star === 'full'" [class.half]="star === 'half'" [class.empty]="star === 'empty'" style="font-size:18px;">
+                        {{ star === 'empty' ? 'star_border' : 'star' }}
+                      </span>
+                  }
+                </div>
+                <span class="rating-count">{{ totalReviews() }} reviews</span>
+              </div>
+            </div>
+            <div class="reviews-list">
+              @for (review of reviews().slice(0, 3); track review._id) {
+                <div class="review-item">
+                  <div class="review-header">
+                    <span class="review-stars">{{ getReviewStars(review.rating) }}</span>
+                  </div>
+                  <p class="review-text">{{ review.text }}</p>
+                </div>
+              }
+            </div>
+            @if (totalReviews() > 3) {
+              <a [routerLink]="['/reviews']" [queryParams]="{ listingId: l._id }" class="see-all-link">
+                See all {{ totalReviews() }} reviews →
+              </a>
+            }
+          } @else {
+            <p class="no-reviews">No reviews yet</p>
+          }
+        </div>
+
+        <!-- Contact -->
+        <div class="detail-section">
+          <h3>Contact</h3>
+          @if (authService.isAuthenticated()) {
+            <p><span class="mat-icon" style="font-size:16px;vertical-align:middle;">call</span> {{ l.contactInfo.phone }}</p>
+          } @else {
+            <p class="login-prompt"><span class="mat-icon" style="font-size:16px;vertical-align:middle;">lock</span> <a routerLink="/auth/login">Sign in</a> to see contact details</p>
+          }
+        </div>
+
+        <!-- Similar Listings Carousel -->
+        @if (similarListings().length > 0) {
+          <div class="detail-section similar-section">
+            <h3>Similar Listings</h3>
+            <div class="similar-carousel">
+              @for (item of similarListings(); track item._id) {
+                <a [routerLink]="['/listings', item._id]" class="similar-card">
+                  <div class="similar-image">
+                    <img [src]="item.images?.[0]?.thumbnailUrl || item.images?.[0]?.url || 'assets/placeholder.png'" [alt]="item.title" />
+                  </div>
+                  <div class="similar-info">
+                    <span class="similar-title">{{ item.title }}</span>
+                    <span class="similar-price">PKR {{ item.price.amount | number }}</span>
+                    <span class="similar-location"><span class="mat-icon" style="font-size:16px;vertical-align:middle;">location_on</span> {{ item.location.city }}</span>
+                  </div>
+                </a>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Sticky Bottom Bar -->
+    <div class="sticky-bottom-bar">
+      <div class="sticky-price">
+        <span class="sticky-price-label">Price</span>
+        <span class="sticky-price-amount">PKR {{ l.price.amount | number }}</span>
+      </div>
+      <div class="sticky-actions">
+        @if (authService.isAuthenticated()) {
+          <a [href]="'tel:' + l.contactInfo.phone" class="btn btn-outline sticky-btn" aria-label="Call seller">
+            <span class="mat-icon" style="font-size:16px;vertical-align:middle;">call</span> Call
+          </a>
+        } @else {
+          <a routerLink="/auth/login" class="btn btn-outline sticky-btn" aria-label="Sign in to call seller">
+            <span class="mat-icon" style="font-size:16px;vertical-align:middle;">lock</span> Sign in to Call
+          </a>
+        }
+        @if (authService.isAuthenticated()) {
+          <a [routerLink]="['/messaging']" [queryParams]="{ listingId: l._id }" class="btn btn-primary sticky-btn" aria-label="Chat with seller">
+            <span class="mat-icon" style="font-size:16px;vertical-align:middle;">chat</span> Chat
+          </a>
+        } @else {
+          <a routerLink="/auth/login" class="btn btn-primary sticky-btn" aria-label="Sign in to chat">
+            <span class="mat-icon" style="font-size:16px;vertical-align:middle;">chat</span> Sign in to Chat
+          </a>
+        }
+      </div>
+    </div>
+  </div>
+}

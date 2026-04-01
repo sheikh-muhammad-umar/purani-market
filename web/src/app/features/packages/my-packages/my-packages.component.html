@@ -1,0 +1,119 @@
+<div class="my-packages-page">
+  <div class="container">
+    <div class="page-header">
+      <div class="header-content">
+        <h1>My Packages</h1>
+        <p class="subtitle">Manage your purchased ad packages</p>
+      </div>
+      <a routerLink="/packages" class="btn btn-primary">Browse Packages</a>
+    </div>
+
+    <div class="tab-bar">
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === 'active'"
+        (click)="setTab('active')">
+        Active ({{ activePurchases().length }})
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === 'history'"
+        (click)="setTab('history')">
+        History ({{ historyPurchases().length }})
+      </button>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-center"><div class="spinner spinner-lg"></div></div>
+    } @else if (error()) {
+      <div class="error-state">
+        <span class="error-icon">⚠️</span>
+        <p>{{ error() }}</p>
+        <button class="btn btn-primary" (click)="loadPurchases()">Retry</button>
+      </div>
+    } @else {
+      @if (activeTab() === 'active') {
+        @if (activePurchases().length === 0) {
+          <div class="empty-state">
+            <span class="empty-icon">📦</span>
+            <h3>No active packages</h3>
+            <p>Purchase a package to boost your listings</p>
+            <a routerLink="/packages" class="btn btn-primary">Browse Packages</a>
+          </div>
+        } @else {
+          <div class="purchases-grid">
+            @for (purchase of activePurchases(); track purchase._id) {
+              <div class="purchase-card card active-card">
+                <div class="card-header">
+                  <span class="badge" [class.badge-featured]="purchase.type === 'featured_ads'" [class.badge-success]="purchase.type === 'ad_slots'">
+                    {{ getTypeLabel(purchase.type) }}
+                  </span>
+                  <span class="remaining-days">{{ getRemainingDays(purchase.expiresAt) }} days left</span>
+                </div>
+                <div class="card-body-content">
+                  <div class="slots-meter">
+                    <div class="meter-label">
+                      <span>Remaining</span>
+                      <span class="meter-value">{{ purchase.remainingQuantity }} / {{ purchase.quantity }}</span>
+                    </div>
+                    <div class="meter-bar">
+                      <div
+                        class="meter-fill"
+                        [style.width.%]="(purchase.remainingQuantity / purchase.quantity) * 100">
+                      </div>
+                    </div>
+                  </div>
+                  <div class="detail-rows">
+                    <div class="detail-row">
+                      <span>Duration</span>
+                      <span>{{ purchase.duration }} days</span>
+                    </div>
+                    <div class="detail-row">
+                      <span>Expires</span>
+                      <span>{{ formatDate(purchase.expiresAt) }}</span>
+                    </div>
+                    <div class="detail-row">
+                      <span>Paid</span>
+                      <span class="price">{{ formatPrice(purchase.price) }}</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      }
+
+      @if (activeTab() === 'history') {
+        @if (historyPurchases().length === 0) {
+          <div class="empty-state">
+            <span class="empty-icon">📋</span>
+            <h3>No purchase history</h3>
+            <p>Your past and expired packages will appear here</p>
+          </div>
+        } @else {
+          <div class="history-list">
+            @for (purchase of historyPurchases(); track purchase._id) {
+              <div class="history-item card">
+                <div class="history-main">
+                  <div class="history-info">
+                    <span class="badge" [ngClass]="getStatusBadgeClass(purchase.paymentStatus)">
+                      {{ purchase.paymentStatus }}
+                    </span>
+                    <span class="history-type">{{ getTypeLabel(purchase.type) }}</span>
+                    <span class="history-qty">× {{ purchase.quantity }}</span>
+                  </div>
+                  <div class="history-meta">
+                    <span>{{ getPaymentMethodLabel(purchase.paymentMethod) }}</span>
+                    <span>{{ formatDate(purchase.createdAt) }}</span>
+                  </div>
+                </div>
+                <span class="history-price price">{{ formatPrice(purchase.price) }}</span>
+              </div>
+            }
+          </div>
+        }
+      }
+    }
+  </div>
+</div>

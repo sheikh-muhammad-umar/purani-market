@@ -1,0 +1,57 @@
+import { GeoPoint } from './user.model';
+
+export type ListingCondition = 'new' | 'used' | 'refurbished';
+export type ListingStatus = 'active' | 'inactive' | 'pending_review' | 'rejected' | 'sold' | 'reserved' | 'deleted';
+
+export interface ListingPrice {
+  amount: number;
+  currency: string;
+}
+
+export interface ListingImage {
+  url: string;
+  thumbnailUrl: string;
+  sortOrder: number;
+}
+
+export interface ListingVideo {
+  url: string;
+  thumbnailUrl: string;
+}
+
+export interface ListingLocation {
+  type: 'Point';
+  coordinates: [number, number];
+  city: string;
+  area: string;
+}
+
+export interface ListingContactInfo {
+  phone: string;
+  email: string;
+}
+
+export interface Listing {
+  _id: string;
+  sellerId: string;
+  title: string;
+  description: string;
+  price: ListingPrice;
+  categoryId: string;
+  categoryPath: string[];
+  condition: ListingCondition;
+  categoryAttributes: Record<string, unknown>;
+  images: ListingImage[];
+  video?: ListingVideo;
+  location: ListingLocation;
+  contactInfo: ListingContactInfo;
+  status: ListingStatus;
+  isFeatured: boolean;
+  featuredUntil?: Date;
+  rejectionReason?: string;
+  viewCount: number;
+  favoriteCount: number;
+  deletedAt?: Date;
+  createdAt: Date;
+  updatedAt: Date;
+}

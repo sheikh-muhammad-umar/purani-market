@@ -1,0 +1,104 @@
+<div class="packages-page">
+  <div class="container">
+    <div class="page-header">
+      <div class="header-content">
+        <h1>Ad Packages</h1>
+        <p class="subtitle">Boost your listings with featured ads or get more ad slots</p>
+      </div>
+      <a routerLink="/packages/my" class="btn btn-outline">My Packages</a>
+    </div>
+
+    <div class="filter-bar">
+      <div class="type-filters">
+        <button
+          class="filter-chip"
+          [class.active]="selectedType() === 'all'"
+          (click)="setType('all')">All</button>
+        <button
+          class="filter-chip"
+          [class.active]="selectedType() === 'featured_ads'"
+          (click)="setType('featured_ads')">⭐ Featured Ads</button>
+        <button
+          class="filter-chip"
+          [class.active]="selectedType() === 'ad_slots'"
+          (click)="setType('ad_slots')">📦 Ad Slots</button>
+      </div>
+      <div class="duration-filters">
+        <button
+          class="filter-chip"
+          [class.active]="selectedDuration() === null"
+          (click)="setDuration(null)">All Durations</button>
+        <button
+          class="filter-chip"
+          [class.active]="selectedDuration() === 7"
+          (click)="setDuration(7)">7 Days</button>
+        <button
+          class="filter-chip"
+          [class.active]="selectedDuration() === 15"
+          (click)="setDuration(15)">15 Days</button>
+        <button
+          class="filter-chip"
+          [class.active]="selectedDuration() === 30"
+          (click)="setDuration(30)">30 Days</button>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="packages-grid">
+        @for (i of [1, 2, 3]; track i) {
+          <div class="package-card-skeleton card">
+            <div class="skeleton-text short" style="height: 1em;"></div>
+            <div class="skeleton-text" style="height: 0.8em; margin-top: 12px;"></div>
+            <div class="skeleton-text medium" style="height: 0.8em; margin-top: 8px;"></div>
+            <div class="skeleton-text short" style="height: 0.8em; margin-top: 8px;"></div>
+            <div class="skeleton-text" style="height: 2em; width: 40%; margin-top: 16px; border-radius: 8px;"></div>
+          </div>
+        }
+      </div>
+    } @else if (error()) {
+      <div class="error-state">
+        <span class="error-icon">⚠️</span>
+        <p>{{ error() }}</p>
+        <button class="btn btn-primary" (click)="loadPackages()">Retry</button>
+      </div>
+    } @else if (filteredPackages().length === 0) {
+      <div class="empty-state">
+        <span class="empty-icon">📦</span>
+        <h3>No packages available</h3>
+        <p>Check back later for new package offerings</p>
+      </div>
+    } @else {
+      <div class="packages-grid">
+        @for (pkg of filteredPackages(); track pkg._id) {
+          <div class="package-card card" [class.featured-type]="pkg.type === 'featured_ads'">
+            <div class="package-badge">
+              <span class="badge" [class.badge-featured]="pkg.type === 'featured_ads'" [class.badge-success]="pkg.type === 'ad_slots'">
+                {{ getTypeIcon(pkg.type) }} {{ getTypeLabel(pkg.type) }}
+              </span>
+            </div>
+            <h3 class="package-name">{{ pkg.name }}</h3>
+            <div class="package-details">
+              <div class="detail-row">
+                <span class="detail-label">Quantity</span>
+                <span class="detail-value">{{ pkg.quantity }} {{ pkg.type === 'featured_ads' ? 'featured ads' : 'ad slots' }}</span>
+              </div>
+              <div class="detail-row">
+                <span class="detail-label">Duration</span>
+                <span class="detail-value">{{ getDurationLabel(pkg.duration) }}</span>
+              </div>
+            </div>
+            <div class="package-price">
+              <span class="price-amount">{{ formatPrice(pkg.defaultPrice) }}</span>
+              @if (pkg.categoryPricing.length > 0) {
+                <span class="price-note">Category-specific pricing available</span>
+              }
+            </div>
+            <a [routerLink]="['/packages/purchase', pkg._id]" class="btn btn-primary btn-full">
+              Purchase Package
+            </a>
+          </div>
+        }
+      </div>
+    }
+  </div>
+</div>

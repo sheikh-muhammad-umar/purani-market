@@ -1,0 +1,247 @@
+<div class="category-manager">
+  <div class="page-header">
+    <h1>Category Manager</h1>
+    <button class="btn-primary" (click)="openAddForm()" [disabled]="saving()">+ Add Root Category</button>
+  </div>
+
+  <!-- Loading -->
+  <div class="loading-state" *ngIf="loading()">
+    <div class="spinner"></div>
+    <p>Loading categories...</p>
+  </div>
+
+  <!-- Error -->
+  <div class="error-state" *ngIf="error()">
+    <p>{{ error() }}</p>
+    <button class="btn-retry" (click)="loadCategories()">Retry</button>
+  </div>
+
+  <div class="content-layout" *ngIf="!loading() && !error()">
+    <!-- Tree Panel -->
+    <div class="tree-panel">
+      <div class="tree-header">
+        <h2>Categories</h2>
+      </div>
+      <div class="tree-body" *ngIf="tree().length > 0">
+        <ng-container *ngFor="let node of tree()">
+          <ng-container *ngTemplateOutlet="treeNodeTpl; context: { $implicit: node, siblings: tree(), depth: 0 }"></ng-container>
+        </ng-container>
+      </div>
+      <div class="empty-tree" *ngIf="tree().length === 0">
+        <p>No categories yet. Add a root category to get started.</p>
+      </div>
+    </div>
+
+    <!-- Detail / Config Panel -->
+    <div class="detail-panel">
+      <!-- Add Form -->
+      <div class="config-card" *ngIf="activePanel === 'add'">
+        <h3>Add Category</h3>
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" [(ngModel)]="formName" (ngModelChange)="generateSlug()" placeholder="Category name" />
+        </div>
+        <div class="form-group">
+          <label>Slug</label>
+          <input type="text" [(ngModel)]="formSlug" placeholder="category-slug" />
+        </div>
+        <div class="form-group">
+          <label>Parent</label>
+          <select [(ngModel)]="formParentId">
+            <option value="">None (Root)</option>
+            <option *ngFor="let p of possibleParents()" [value]="p._id">
+              {{ p.name }} (Level {{ p.level }})
+            </option>
+          </select>
+        </div>
+        <div class="form-group checkbox-group">
+          <label><input type="checkbox" [(ngModel)]="formIsActive" /> Active</label>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" (click)="submitAdd()" [disabled]="saving() || !formName.trim() || !formSlug.trim()">
+            {{ saving() ? 'Saving...' : 'Create' }}
+          </button>
+          <button class="btn-secondary" (click)="activePanel = 'none'" [disabled]="saving()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Edit Form -->
+      <div class="config-card" *ngIf="activePanel === 'edit' && selectedCategory()">
+        <h3>Edit Category</h3>
+        <div class="form-group">
+          <label>Name</label>
+          <input type="text" [(ngModel)]="formName" placeholder="Category name" />
+        </div>
+        <div class="form-group">
+          <label>Slug</label>
+          <input type="text" [(ngModel)]="formSlug" placeholder="category-slug" />
+        </div>
+        <div class="form-group checkbox-group">
+          <label><input type="checkbox" [(ngModel)]="formIsActive" /> Active</label>
+        </div>
+        <div class="form-actions">
+          <button class="btn-primary" (click)="submitEdit()" [disabled]="saving() || !formName.trim() || !formSlug.trim()">
+            {{ saving() ? 'Saving...' : 'Save Changes' }}
+          </button>
+          <button class="btn-secondary" (click)="activePanel = 'none'" [disabled]="saving()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Attributes Panel -->
+      <div class="config-card" *ngIf="activePanel === 'attributes' && selectedCategory()">
+        <h3>Attributes — {{ selectedCategory()!.name }}</h3>
+        <p class="panel-hint">Define category-specific fields sellers fill in when creating a listing.</p>
+
+        <div class="attr-list">
+          <div class="attr-item" *ngFor="let attr of editingAttributes; let i = index; trackBy: trackByIndex">
+            <div class="attr-row">
+              <div class="form-group compact">
+                <label>Name</label>
+                <input type="text" [(ngModel)]="attr.name" (ngModelChange)="generateAttributeKey(attr)" placeholder="e.g. Brand" />
+              </div>
+              <div class="form-group compact">
+                <label>Key</label>
+                <input type="text" [(ngModel)]="attr.key" placeholder="e.g. brand" />
+              </div>
+              <div class="form-group compact">
+                <label>Type</label>
+                <select [(ngModel)]="attr.type">
+                  <option *ngFor="let t of attributeTypes" [value]="t">{{ t }}</option>
+                </select>
+              </div>
+              <div class="form-group compact checkbox-group">
+                <label><input type="checkbox" [(ngModel)]="attr.required" /> Required</label>
+              </div>
+              <div class="form-group compact">
+                <label>Unit</label>
+                <input type="text" [(ngModel)]="attr.unit" placeholder="e.g. km" />
+              </div>
+              <button class="btn-remove" (click)="removeAttribute(i)" title="Remove attribute">✕</button>
+            </div>
+            <!-- Options for select/multiselect -->
+            <div class="options-section" *ngIf="attr.type === 'select' || attr.type === 'multiselect'">
+              <label class="options-label">Options</label>
+              <div class="option-row" *ngFor="let opt of attr.options; let oi = index; trackBy: trackByIndex">
+                <input type="text" [(ngModel)]="attr.options![oi]" placeholder="Option value" />
+                <button class="btn-remove-sm" (click)="removeAttributeOption(attr, oi)">✕</button>
+              </div>
+              <button class="btn-add-option" (click)="addAttributeOption(attr)">+ Add Option</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-add-item" (click)="addAttribute()">+ Add Attribute</button>
+        <div class="form-actions">
+          <button class="btn-primary" (click)="saveAttributes()" [disabled]="saving()">
+            {{ saving() ? 'Saving...' : 'Save Attributes' }}
+          </button>
+          <button class="btn-secondary" (click)="activePanel = 'none'" [disabled]="saving()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Filters Panel -->
+      <div class="config-card" *ngIf="activePanel === 'filters' && selectedCategory()">
+        <h3>Filters — {{ selectedCategory()!.name }}</h3>
+        <p class="panel-hint">Define search filters buyers can use when browsing this category.</p>
+
+        <div class="attr-list">
+          <div class="attr-item" *ngFor="let filter of editingFilters; let i = index; trackBy: trackByIndex">
+            <div class="attr-row">
+              <div class="form-group compact">
+                <label>Name</label>
+                <input type="text" [(ngModel)]="filter.name" (ngModelChange)="generateFilterKey(filter)" placeholder="e.g. Price Range" />
+              </div>
+              <div class="form-group compact">
+                <label>Key</label>
+                <input type="text" [(ngModel)]="filter.key" placeholder="e.g. price_range" />
+              </div>
+              <div class="form-group compact">
+                <label>Type</label>
+                <select [(ngModel)]="filter.type">
+                  <option *ngFor="let t of filterTypes" [value]="t">{{ t }}</option>
+                </select>
+              </div>
+              <button class="btn-remove" (click)="removeFilter(i)" title="Remove filter">✕</button>
+            </div>
+            <!-- Range min/max -->
+            <div class="range-section" *ngIf="filter.type === 'range'">
+              <div class="form-group compact">
+                <label>Min</label>
+                <input type="number" [(ngModel)]="filter.rangeMin" placeholder="0" />
+              </div>
+              <div class="form-group compact">
+                <label>Max</label>
+                <input type="number" [(ngModel)]="filter.rangeMax" placeholder="100000" />
+              </div>
+            </div>
+            <!-- Options for select/multiselect -->
+            <div class="options-section" *ngIf="filter.type === 'select' || filter.type === 'multiselect'">
+              <label class="options-label">Options</label>
+              <div class="option-row" *ngFor="let opt of filter.options; let oi = index; trackBy: trackByIndex">
+                <input type="text" [(ngModel)]="filter.options![oi]" placeholder="Option value" />
+                <button class="btn-remove-sm" (click)="removeFilterOption(filter, oi)">✕</button>
+              </div>
+              <button class="btn-add-option" (click)="addFilterOption(filter)">+ Add Option</button>
+            </div>
+          </div>
+        </div>
+
+        <button class="btn-add-item" (click)="addFilter()">+ Add Filter</button>
+        <div class="form-actions">
+          <button class="btn-primary" (click)="saveFilters()" [disabled]="saving()">
+            {{ saving() ? 'Saving...' : 'Save Filters' }}
+          </button>
+          <button class="btn-secondary" (click)="activePanel = 'none'" [disabled]="saving()">Cancel</button>
+        </div>
+      </div>
+
+      <!-- Selected Category Info -->
+      <div class="config-card" *ngIf="activePanel === 'none' && selectedCategory()">
+        <h3>{{ selectedCategory()!.name }}</h3>
+        <div class="info-row"><span class="info-label">Slug:</span> {{ selectedCategory()!.slug }}</div>
+        <div class="info-row"><span class="info-label">Level:</span> {{ selectedCategory()!.level }}</div>
+        <div class="info-row"><span class="info-label">Active:</span> {{ selectedCategory()!.isActive ? 'Yes' : 'No' }}</div>
+        <div class="info-row"><span class="info-label">Attributes:</span> {{ selectedCategory()!.attributes?.length || 0 }}</div>
+        <div class="info-row"><span class="info-label">Filters:</span> {{ selectedCategory()!.filters?.length || 0 }}</div>
+        <div class="detail-actions">
+          <button class="btn-primary" (click)="openEditForm(selectedCategory()!)">Edit</button>
+          <button class="btn-secondary" (click)="openAttributes(selectedCategory()!)">Attributes</button>
+          <button class="btn-secondary" (click)="openFilters(selectedCategory()!)">Filters</button>
+          <button class="btn-primary" (click)="openAddForm(selectedCategory()!._id)" *ngIf="selectedCategory()!.level < 3">+ Add Child</button>
+          <button class="btn-danger" (click)="deleteCategory(selectedCategory()!)" [disabled]="saving() || hasChildren(selectedCategory()!)">Delete</button>
+        </div>
+      </div>
+
+      <!-- No Selection -->
+      <div class="config-card placeholder-card" *ngIf="activePanel === 'none' && !selectedCategory()">
+        <p>Select a category from the tree to view details, or add a new root category.</p>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Tree Node Template -->
+<ng-template #treeNodeTpl let-node let-siblings="siblings" let-depth="depth">
+  <div class="tree-node" [style.padding-left.px]="depth * 24">
+    <div class="node-row" [class.selected]="selectedCategory()?._id === node.category._id" [class.inactive]="!node.category.isActive">
+      <button class="expand-btn" *ngIf="node.children.length > 0" (click)="toggleExpand(node)" [attr.aria-label]="node.expanded ? 'Collapse' : 'Expand'">
+        {{ node.expanded ? '▾' : '▸' }}
+      </button>
+      <span class="expand-placeholder" *ngIf="node.children.length === 0"></span>
+      <span class="node-name" (click)="selectCategory(node.category)">
+        {{ node.category.name }}
+        <span class="level-badge">L{{ node.category.level }}</span>
+        <span class="inactive-badge" *ngIf="!node.category.isActive">inactive</span>
+      </span>
+      <span class="node-actions">
+        <button class="btn-reorder" (click)="moveUp(node, siblings)" [disabled]="siblings.indexOf(node) === 0 || saving()" title="Move up" aria-label="Move up">↑</button>
+        <button class="btn-reorder" (click)="moveDown(node, siblings)" [disabled]="siblings.indexOf(node) === siblings.length - 1 || saving()" title="Move down" aria-label="Move down">↓</button>
+      </span>
+    </div>
+  </div>
+  <ng-container *ngIf="node.expanded">
+    <ng-container *ngFor="let child of node.children">
+      <ng-container *ngTemplateOutlet="treeNodeTpl; context: { $implicit: child, siblings: node.children, depth: depth + 1 }"></ng-container>
+    </ng-container>
+  </ng-container>
+</ng-template>
