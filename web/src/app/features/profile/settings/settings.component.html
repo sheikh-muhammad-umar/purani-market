@@ -210,6 +210,20 @@
         </div>
       </div>
 
+      <!-- Appearance -->
+      <div class="settings-card card">
+        <div class="settings-card-header">
+          <div>
+            <h3 class="section-title">Appearance</h3>
+            <p class="section-desc">{{ themeService.theme() === 'dark' ? 'Dark mode is on' : 'Light mode is on' }}</p>
+          </div>
+          <button type="button" class="theme-toggle-setting" (click)="themeService.toggle()">
+            <span class="material-symbols-rounded">{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
+            <span>{{ themeService.theme() === 'dark' ? 'Light' : 'Dark' }}</span>
+          </button>
+        </div>
+      </div>
+
       <!-- Account Info -->
       <div class="settings-card card">
         <h3 class="section-title">Account Information</h3>

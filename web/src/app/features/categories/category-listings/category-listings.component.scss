@@ -289,3 +289,53 @@
   font-size: var(--text-sm);
   color: var(--text-secondary);
 }
+
+@media (max-width: 767px) {
+  .category-listings-page {
+    padding: var(--space-2) var(--space-1);
+    padding-bottom: calc(var(--space-2) + 70px);
+  }
+
+  .category-title {
+    font-size: var(--text-xl);
+  }
+
+  .breadcrumb-list {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  .breadcrumb-item {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+  }
+
+  .subcategory-chips {
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    scrollbar-width: none;
+
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  .subcategory-chip {
+    flex-shrink: 0;
+    font-size: var(--text-xs);
+  }
+
+  .listings-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: var(--space-1);
+  }
+
+  .listings-toolbar {
+    flex-direction: column;
+    gap: var(--space-1);
+    align-items: flex-start;
+  }
+}

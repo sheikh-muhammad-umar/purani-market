@@ -1,11 +1,15 @@
-export interface PresignedUrlResult {
-    uploadUrl: string;
+import { ConfigService } from '@nestjs/config';
+export interface UploadResult {
     fileUrl: string;
     key: string;
 }
 export declare class StorageService {
-    private readonly bucketName;
+    private readonly configService;
+    private readonly logger;
+    private readonly uploadDir;
     private readonly baseUrl;
-    generatePresignedUploadUrl(folder: string, filename: string, contentType: string): Promise<PresignedUrlResult>;
+    constructor(configService: ConfigService);
+    saveFile(folder: string, filename: string, buffer: Buffer): Promise<UploadResult>;
     deleteFile(key: string): Promise<void>;
+    private ensureDir;
 }

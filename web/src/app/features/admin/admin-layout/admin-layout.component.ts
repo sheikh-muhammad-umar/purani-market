@@ -17,12 +17,12 @@ export interface NavItem {
 })
 export class AdminLayoutComponent {
   readonly navItems: NavItem[] = [
-    { label: 'Dashboard', icon: '📊', path: '/admin' },
-    { label: 'Users', icon: '👥', path: '/admin/users' },
-    { label: 'Listings', icon: '📋', path: '/admin/listings' },
-    { label: 'Categories', icon: '🏷️', path: '/admin/categories' },
-    { label: 'Packages', icon: '📦', path: '/admin/packages' },
-    { label: 'Payments', icon: '💳', path: '/admin/payments' },
+    { label: 'Dashboard', icon: 'dashboard', path: '/admin' },
+    { label: 'Users', icon: 'group', path: '/admin/users' },
+    { label: 'Listings', icon: 'list_alt', path: '/admin/listings' },
+    { label: 'Categories', icon: 'category', path: '/admin/categories' },
+    { label: 'Packages', icon: 'inventory_2', path: '/admin/packages' },
+    { label: 'Payments', icon: 'payments', path: '/admin/payments' },
   ];
 
   sidebarCollapsed = false;

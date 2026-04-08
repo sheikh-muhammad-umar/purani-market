@@ -1,0 +1,75 @@
+@if (modalService.isOpen()) {
+  <div class="modal-overlay" (click)="onOverlayClick($event)">
+    <div class="modal-card">
+      <button class="modal-close" (click)="close()" type="button">
+        <span class="material-symbols-rounded">close</span>
+      </button>
+
+      <div class="modal-header">
+        <span class="modal-icon material-symbols-rounded">lock</span>
+        <h2>Sign in to continue</h2>
+        <p>You need to be logged in to perform this action</p>
+      </div>
+
+      @if (errorMessage()) {
+        <div class="alert alert-error">{{ errorMessage() }}</div>
+      }
+
+      <form [formGroup]="loginForm" (ngSubmit)="submit()" class="modal-form">
+        <div class="form-group">
+          <label class="form-label" for="modal-email">Email</label>
+          <input
+            id="modal-email"
+            class="form-input"
+            type="email"
+            formControlName="email"
+            placeholder="you@example.com"
+            autocomplete="email"
+          />
+          @if (loginForm.get('email')?.touched && loginForm.get('email')?.errors?.['required']) {
+            <span class="form-error">Email is required</span>
+          }
+          @if (loginForm.get('email')?.touched && loginForm.get('email')?.errors?.['email']) {
+            <span class="form-error">Enter a valid email</span>
+          }
+        </div>
+
+        <div class="form-group">
+          <label class="form-label" for="modal-password">Password</label>
+          <input
+            id="modal-password"
+            class="form-input"
+            type="password"
+            formControlName="password"
+            placeholder="••••••••"
+            autocomplete="current-password"
+          />
+          @if (loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['required']) {
+            <span class="form-error">Password is required</span>
+          }
+        </div>
+
+        <div class="form-row-between">
+          <button type="button" class="link-btn" (click)="goToForgotPassword()">Forgot password?</button>
+        </div>
+
+        <button
+          class="btn btn-primary btn-full"
+          type="submit"
+          [disabled]="loading()"
+        >
+          @if (loading()) {
+            <span class="spinner"></span> Signing in...
+          } @else {
+            Sign In
+          }
+        </button>
+      </form>
+
+      <div class="modal-footer">
+        Don't have an account?
+        <button type="button" class="link-btn" (click)="goToRegister()">Register</button>
+      </div>
+    </div>
+  </div>
+}

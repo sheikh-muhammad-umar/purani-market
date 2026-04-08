@@ -71,16 +71,39 @@ export class ListingsService {
     return listing;
   }
 
-  async findByIdAndIncrementViews(id: string): Promise<ProductListingDocument> {
+  async findByIdAndIncrementViews(id: string, requesterId?: string, requesterRole?: string): Promise<ProductListingDocument> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Listing not found');
     }
-    const listing = await this.listingModel
-      .findByIdAndUpdate(id, { $inc: { viewCount: 1 } }, { new: true })
-      .exec();
+    const listing = await this.listingModel.findById(id).exec();
     if (!listing) {
       throw new NotFoundException('Listing not found');
     }
+
+    // Deleted listings are never visible
+    if (listing.status === ListingStatus.DELETED) {
+      throw new NotFoundException('Listing not found');
+    }
+
+    // Only active/sold listings are publicly visible
+    // Seller can see their own listings in any non-deleted status, admin can see all
+    const isOwner = requesterId && listing.sellerId.toString() === requesterId;
+    const isAdmin = requesterRole === 'admin';
+    if (
+      listing.status !== ListingStatus.ACTIVE &&
+      listing.status !== ListingStatus.SOLD &&
+      !isOwner &&
+      !isAdmin
+    ) {
+      throw new NotFoundException('Listing not found');
+    }
+
+    // Increment views only for active listings
+    if (listing.status === ListingStatus.ACTIVE) {
+      await this.listingModel.updateOne({ _id: listing._id }, { $inc: { viewCount: 1 } }).exec();
+      listing.viewCount += 1;
+    }
+
     return listing;
   }
 
@@ -168,11 +191,6 @@ export class ListingsService {
   }
 
   async create(sellerId: string, dto: CreateListingDto, moderationEnabled = false): Promise<ProductListingDocument> {
-    const imageCount = dto.images?.length ?? 0;
-    const videoCount = dto.video ? 1 : 0;
-    if (imageCount + videoCount < 2) {
-      throw new BadRequestException('At least 2 media items (images or video) are required');
-    }
     if (!Types.ObjectId.isValid(dto.categoryId)) {
       throw new BadRequestException('Invalid category ID');
     }
@@ -206,7 +224,9 @@ export class ListingsService {
         url: img.url, thumbnailUrl: img.thumbnailUrl, sortOrder: img.sortOrder ?? idx,
       })),
       video: dto.video ? { url: dto.video.url, thumbnailUrl: dto.video.thumbnailUrl } : undefined,
-      location: { type: 'Point', coordinates: dto.location.coordinates, city: dto.location.city, area: dto.location.area },
+      location: dto.location.coordinates?.length === 2
+        ? { type: 'Point', coordinates: dto.location.coordinates, city: dto.location.city, area: dto.location.area }
+        : { city: dto.location.city, area: dto.location.area } as any,
       contactInfo: { phone: dto.contactInfo?.phone || seller.phone || '', email: dto.contactInfo?.email || seller.email || '' },
       status,
     });

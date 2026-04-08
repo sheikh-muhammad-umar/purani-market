@@ -43,7 +43,6 @@ export class AuthService {
   readonly user = this.currentUser.asReadonly();
   readonly isAuthenticated = computed(() => !!this.currentUser() || !!this.getAccessToken());
   readonly isAdmin = computed(() => this.currentUser()?.role === 'admin');
-  readonly isSeller = computed(() => this.currentUser()?.role === 'seller');
 
   constructor(
     private readonly http: HttpClient,

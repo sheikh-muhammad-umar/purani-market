@@ -6,6 +6,7 @@ import { ListingsService, ListingsResponse } from '../../../core/services/listin
 import { ReviewsService, ReviewsResponse } from '../../../core/services/reviews.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
 import { AuthService } from '../../../core/auth/auth.service';
+import { LoginModalService } from '../../../shared/components/login-modal/login-modal.service';
 import { Listing, Review } from '../../../core/models';
 
 @Component({
@@ -31,6 +32,9 @@ export class ListingDetailComponent implements OnInit {
   favoriteId = signal<string | null>(null);
   favoriteAnimating = signal(false);
 
+  // Lightbox
+  lightboxOpen = signal(false);
+
   // Similar listings
   similarListings = signal<Listing[]>([]);
 
@@ -55,6 +59,7 @@ export class ListingDetailComponent implements OnInit {
     private readonly favoritesService: FavoritesService,
     public readonly authService: AuthService,
     private readonly sanitizer: DomSanitizer,
+    public readonly loginModal: LoginModalService,
   ) {}
 
   ngOnInit(): void {
@@ -105,6 +110,7 @@ export class ListingDetailComponent implements OnInit {
   }
 
   private checkFavoriteStatus(listingId: string): void {
+    if (!this.authService.isAuthenticated()) return;
     this.favoritesService.getAll().subscribe({
       next: (res) => {
         const favorites = Array.isArray(res) ? res : res.data ?? [];
@@ -123,6 +129,11 @@ export class ListingDetailComponent implements OnInit {
   toggleFavorite(): void {
     const listing = this.listing();
     if (!listing) return;
+
+    if (!this.authService.isAuthenticated()) {
+      this.loginModal.open(`/listings/${listing._id}`);
+      return;
+    }
 
     if (this.isFavorited()) {
       const fId = this.favoriteId();
@@ -168,6 +179,16 @@ export class ListingDetailComponent implements OnInit {
     }
   }
 
+  openLightbox(): void {
+    this.lightboxOpen.set(true);
+    document.body.style.overflow = 'hidden';
+  }
+
+  closeLightbox(): void {
+    this.lightboxOpen.set(false);
+    document.body.style.overflow = '';
+  }
+
   prevImage(): void {
     if (this.currentImageIndex() > 0) {
       this.currentImageIndex.update(i => i - 1);
@@ -177,6 +198,28 @@ export class ListingDetailComponent implements OnInit {
   getCurrentImage(): string {
     const images = this.listing()?.images ?? [];
     return images[this.currentImageIndex()]?.url ?? 'assets/placeholder.png';
+  }
+
+  // Details/Features helpers
+  isArrayValue(value: unknown): boolean {
+    return Array.isArray(value) || value === true || value === false;
+  }
+
+  formatLabel(key: string): string {
+    return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  getFeatureTags(attrs: Record<string, unknown> | undefined): string[] {
+    if (!attrs) return [];
+    const tags: string[] = [];
+    for (const [key, value] of Object.entries(attrs)) {
+      if (Array.isArray(value)) {
+        tags.push(...value.map(v => String(v)));
+      } else if (value === true) {
+        tags.push(this.formatLabel(key));
+      }
+    }
+    return tags;
   }
 
   getStarArray(rating: number): string[] {

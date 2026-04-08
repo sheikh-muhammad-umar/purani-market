@@ -47,12 +47,11 @@
         </div>
         <div class="form-group">
           <label>Parent</label>
-          <select [(ngModel)]="formParentId">
-            <option value="">None (Root)</option>
-            <option *ngFor="let p of possibleParents()" [value]="p._id">
-              {{ p.name }} (Level {{ p.level }})
-            </option>
-          </select>
+          <app-custom-select
+            [options]="parentOptions()"
+            [(ngModel)]="formParentId"
+            placeholder="None (Root)"
+          ></app-custom-select>
         </div>
         <div class="form-group checkbox-group">
           <label><input type="checkbox" [(ngModel)]="formIsActive" /> Active</label>
@@ -90,10 +89,17 @@
       <!-- Attributes Panel -->
       <div class="config-card" *ngIf="activePanel === 'attributes' && selectedCategory()">
         <h3>Attributes — {{ selectedCategory()!.name }}</h3>
-        <p class="panel-hint">Define category-specific fields sellers fill in when creating a listing.</p>
+        <p class="panel-hint">Define fields sellers fill in when posting. These also serve as search filters for buyers.</p>
+        <p class="panel-count">
+          <strong>{{ editingAttributes.length }}</strong> attribute{{ editingAttributes.length !== 1 ? 's' : '' }} configured.
+        </p>
 
         <div class="attr-list">
           <div class="attr-item" *ngFor="let attr of editingAttributes; let i = index; trackBy: trackByIndex">
+            <div class="attr-item-header">
+              <span class="attr-number">#{{ i + 1 }}</span>
+              <span class="attr-badge" *ngIf="attr.key">{{ attr.key }}</span>
+            </div>
             <div class="attr-row">
               <div class="form-group compact">
                 <label>Name</label>
@@ -105,9 +111,11 @@
               </div>
               <div class="form-group compact">
                 <label>Type</label>
-                <select [(ngModel)]="attr.type">
-                  <option *ngFor="let t of attributeTypes" [value]="t">{{ t }}</option>
-                </select>
+                <app-custom-select
+                  [options]="attributeTypeOptions"
+                  [(ngModel)]="attr.type"
+                  placeholder="Select type"
+                ></app-custom-select>
               </div>
               <div class="form-group compact checkbox-group">
                 <label><input type="checkbox" [(ngModel)]="attr.required" /> Required</label>
@@ -117,6 +125,17 @@
                 <input type="text" [(ngModel)]="attr.unit" placeholder="e.g. km" />
               </div>
               <button class="btn-remove" (click)="removeAttribute(i)" title="Remove attribute">✕</button>
+            </div>
+            <!-- Range min/max -->
+            <div class="range-section" *ngIf="attr.type === 'range'">
+              <div class="form-group compact">
+                <label>Min</label>
+                <input type="number" [(ngModel)]="attr.rangeMin" placeholder="0" />
+              </div>
+              <div class="form-group compact">
+                <label>Max</label>
+                <input type="number" [(ngModel)]="attr.rangeMax" placeholder="100000" />
+              </div>
             </div>
             <!-- Options for select/multiselect -->
             <div class="options-section" *ngIf="attr.type === 'select' || attr.type === 'multiselect'">
@@ -139,57 +158,34 @@
         </div>
       </div>
 
-      <!-- Filters Panel -->
-      <div class="config-card" *ngIf="activePanel === 'filters' && selectedCategory()">
-        <h3>Filters — {{ selectedCategory()!.name }}</h3>
-        <p class="panel-hint">Define search filters buyers can use when browsing this category.</p>
+      <!-- Features Panel -->
+      <div class="config-card" *ngIf="activePanel === 'features' && selectedCategory()">
+        <h3>Features — {{ selectedCategory()!.name }}</h3>
+        <p class="panel-hint">Define optional features sellers can select when posting (shown as chips). These are NOT used as search filters.</p>
+        <p class="panel-count">
+          <strong>{{ editingFeatures.length }}</strong> feature{{ editingFeatures.length !== 1 ? 's' : '' }} configured.
+        </p>
 
-        <div class="attr-list">
-          <div class="attr-item" *ngFor="let filter of editingFilters; let i = index; trackBy: trackByIndex">
-            <div class="attr-row">
-              <div class="form-group compact">
-                <label>Name</label>
-                <input type="text" [(ngModel)]="filter.name" (ngModelChange)="generateFilterKey(filter)" placeholder="e.g. Price Range" />
-              </div>
-              <div class="form-group compact">
-                <label>Key</label>
-                <input type="text" [(ngModel)]="filter.key" placeholder="e.g. price_range" />
-              </div>
-              <div class="form-group compact">
-                <label>Type</label>
-                <select [(ngModel)]="filter.type">
-                  <option *ngFor="let t of filterTypes" [value]="t">{{ t }}</option>
-                </select>
-              </div>
-              <button class="btn-remove" (click)="removeFilter(i)" title="Remove filter">✕</button>
-            </div>
-            <!-- Range min/max -->
-            <div class="range-section" *ngIf="filter.type === 'range'">
-              <div class="form-group compact">
-                <label>Min</label>
-                <input type="number" [(ngModel)]="filter.rangeMin" placeholder="0" />
-              </div>
-              <div class="form-group compact">
-                <label>Max</label>
-                <input type="number" [(ngModel)]="filter.rangeMax" placeholder="100000" />
-              </div>
-            </div>
-            <!-- Options for select/multiselect -->
-            <div class="options-section" *ngIf="filter.type === 'select' || filter.type === 'multiselect'">
-              <label class="options-label">Options</label>
-              <div class="option-row" *ngFor="let opt of filter.options; let oi = index; trackBy: trackByIndex">
-                <input type="text" [(ngModel)]="filter.options![oi]" placeholder="Option value" />
-                <button class="btn-remove-sm" (click)="removeFilterOption(filter, oi)">✕</button>
-              </div>
-              <button class="btn-add-option" (click)="addFilterOption(filter)">+ Add Option</button>
-            </div>
-          </div>
+        <div class="features-chips">
+          <span class="feature-chip" *ngFor="let f of editingFeatures; let i = index">
+            {{ f }}
+            <button class="chip-remove" (click)="removeFeature(i)" title="Remove">✕</button>
+          </span>
         </div>
 
-        <button class="btn-add-item" (click)="addFilter()">+ Add Filter</button>
+        <div class="add-feature-row">
+          <input
+            type="text"
+            [(ngModel)]="newFeature"
+            placeholder="e.g. ABS, Air Bags, Charger..."
+            (keyup.enter)="addFeature()"
+          />
+          <button class="btn-add-option" (click)="addFeature()" [disabled]="!newFeature.trim()">+ Add</button>
+        </div>
+
         <div class="form-actions">
-          <button class="btn-primary" (click)="saveFilters()" [disabled]="saving()">
-            {{ saving() ? 'Saving...' : 'Save Filters' }}
+          <button class="btn-primary" (click)="saveFeatures()" [disabled]="saving()">
+            {{ saving() ? 'Saving...' : 'Save Features' }}
           </button>
           <button class="btn-secondary" (click)="activePanel = 'none'" [disabled]="saving()">Cancel</button>
         </div>
@@ -202,11 +198,43 @@
         <div class="info-row"><span class="info-label">Level:</span> {{ selectedCategory()!.level }}</div>
         <div class="info-row"><span class="info-label">Active:</span> {{ selectedCategory()!.isActive ? 'Yes' : 'No' }}</div>
         <div class="info-row"><span class="info-label">Attributes:</span> {{ selectedCategory()!.attributes?.length || 0 }}</div>
-        <div class="info-row"><span class="info-label">Filters:</span> {{ selectedCategory()!.filters?.length || 0 }}</div>
+        <div class="info-row"><span class="info-label">Features:</span> {{ selectedCategory()!.features?.length || 0 }}</div>
+
+        <div class="info-row inherited-info" *ngIf="selectedCategory()!.parentId">
+          <span class="info-label">💡 Tip:</span> This category also inherits attributes and features from its parent categories.
+        </div>
+
+        <!-- Existing Attributes List -->
+        <div class="existing-list" *ngIf="selectedCategory()!.attributes?.length">
+          <h4>Attributes</h4>
+          <table class="mini-table">
+            <thead>
+              <tr><th>Name</th><th>Key</th><th>Type</th><th>Required</th><th>Options</th></tr>
+            </thead>
+            <tbody>
+              <tr *ngFor="let attr of selectedCategory()!.attributes">
+                <td>{{ attr.name }}</td>
+                <td><code>{{ attr.key }}</code></td>
+                <td>{{ attr.type }}</td>
+                <td>{{ attr.required ? '✓' : '—' }}</td>
+                <td>{{ attr.options?.join(', ') || '—' }}</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Existing Features List -->
+        <div class="existing-list" *ngIf="selectedCategory()!.features?.length">
+          <h4>Features</h4>
+          <div class="features-chips preview">
+            <span class="feature-chip" *ngFor="let f of selectedCategory()!.features">{{ f }}</span>
+          </div>
+        </div>
+
         <div class="detail-actions">
           <button class="btn-primary" (click)="openEditForm(selectedCategory()!)">Edit</button>
           <button class="btn-secondary" (click)="openAttributes(selectedCategory()!)">Attributes</button>
-          <button class="btn-secondary" (click)="openFilters(selectedCategory()!)">Filters</button>
+          <button class="btn-secondary" (click)="openFeatures(selectedCategory()!)">Features</button>
           <button class="btn-primary" (click)="openAddForm(selectedCategory()!._id)" *ngIf="selectedCategory()!.level < 3">+ Add Child</button>
           <button class="btn-danger" (click)="deleteCategory(selectedCategory()!)" [disabled]="saving() || hasChildren(selectedCategory()!)">Delete</button>
         </div>

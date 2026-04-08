@@ -2,7 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { CategoryManagerComponent } from './category-manager.component';
 import { CategoriesService } from '../../../core/services/categories.service';
-import { Category, CategoryAttribute, CategoryFilter } from '../../../core/models';
+import { Category, CategoryAttribute } from '../../../core/models';
 
 const mockCategories: Category[] = [
   {
@@ -11,7 +11,7 @@ const mockCategories: Category[] = [
     slug: 'electronics',
     level: 1,
     attributes: [{ name: 'Brand', key: 'brand', type: 'select', options: ['Apple', 'Samsung'], required: true }],
-    filters: [{ name: 'Brand', key: 'brand', type: 'select', options: ['Apple', 'Samsung'] }],
+    features: [],
     isActive: true,
     sortOrder: 0,
     createdAt: new Date(),
@@ -23,7 +23,7 @@ const mockCategories: Category[] = [
     slug: 'vehicles',
     level: 1,
     attributes: [],
-    filters: [],
+    features: [],
     isActive: true,
     sortOrder: 1,
     createdAt: new Date(),
@@ -36,7 +36,7 @@ const mockCategories: Category[] = [
     parentId: 'c1',
     level: 2,
     attributes: [],
-    filters: [],
+    features: [],
     isActive: true,
     sortOrder: 0,
     createdAt: new Date(),
@@ -49,7 +49,7 @@ const mockCategories: Category[] = [
     parentId: 'c3',
     level: 3,
     attributes: [],
-    filters: [],
+    features: [],
     isActive: false,
     sortOrder: 0,
     createdAt: new Date(),
@@ -67,7 +67,7 @@ function createMockService() {
     update: vi.fn().mockReturnValue(of(mockCategories[0])),
     remove: vi.fn().mockReturnValue(of(undefined)),
     updateAttributes: vi.fn().mockReturnValue(of(mockCategories[0])),
-    updateFilters: vi.fn().mockReturnValue(of(mockCategories[0])),
+    updateFeatures: vi.fn().mockReturnValue(of(mockCategories[0])),
     buildBreadcrumb: vi.fn(),
   };
 }
@@ -408,69 +408,60 @@ describe('CategoryManagerComponent', () => {
     expect(component.error()).toBe('Failed to update attributes.');
   });
 
-  // --- FILTERS ---
-  it('should open filters panel with copies of existing filters', () => {
+  // --- FILTERS → FEATURES ---
+  it('should open features panel with copies of existing features', () => {
     component.ngOnInit();
-    component.openFilters(mockCategories[0]);
-    expect(component.activePanel).toBe('filters');
-    expect(component.editingFilters.length).toBe(1);
-    expect(component.editingFilters[0].name).toBe('Brand');
-    expect(component.editingFilters[0]).not.toBe(mockCategories[0].filters[0]);
+    component.openFeatures(mockCategories[0]);
+    expect(component.activePanel).toBe('features');
+    expect(component.editingFeatures.length).toBe(0);
   });
 
-  it('should add a new filter', () => {
+  it('should add a new feature', () => {
     component.ngOnInit();
-    component.openFilters(mockCategories[0]);
-    component.addFilter();
-    expect(component.editingFilters.length).toBe(2);
-    expect(component.editingFilters[1].type).toBe('select');
+    component.openFeatures(mockCategories[0]);
+    component.newFeature = 'ABS';
+    component.addFeature();
+    expect(component.editingFeatures.length).toBe(1);
+    expect(component.editingFeatures[0]).toBe('ABS');
   });
 
-  it('should remove a filter', () => {
+  it('should not add duplicate feature', () => {
     component.ngOnInit();
-    component.openFilters(mockCategories[0]);
-    component.removeFilter(0);
-    expect(component.editingFilters.length).toBe(0);
+    component.openFeatures(mockCategories[0]);
+    component.newFeature = 'ABS';
+    component.addFeature();
+    component.newFeature = 'ABS';
+    component.addFeature();
+    expect(component.editingFeatures.length).toBe(1);
   });
 
-  it('should generate filter key from name', () => {
-    const filter: CategoryFilter = { name: 'Price Range', key: '', type: 'range' };
-    component.generateFilterKey(filter);
-    expect(filter.key).toBe('price_range');
-  });
-
-  it('should add and remove filter options', () => {
-    const filter: CategoryFilter = { name: 'Brand', key: 'brand', type: 'select', options: ['Toyota'] };
-    component.addFilterOption(filter);
-    expect(filter.options!.length).toBe(2);
-    component.removeFilterOption(filter, 0);
-    expect(filter.options!.length).toBe(1);
-  });
-
-  it('should save filters', () => {
+  it('should remove a feature', () => {
     component.ngOnInit();
-    component.openFilters(mockCategories[0]);
-    component.saveFilters();
-    expect(service.updateFilters).toHaveBeenCalledWith('c1', component.editingFilters);
+    component.openFeatures(mockCategories[0]);
+    component.newFeature = 'ABS';
+    component.addFeature();
+    component.removeFeature(0);
+    expect(component.editingFeatures.length).toBe(0);
+  });
+
+  it('should save features', () => {
+    component.ngOnInit();
+    component.openFeatures(mockCategories[0]);
+    component.newFeature = 'ABS';
+    component.addFeature();
+    component.saveFeatures();
+    expect(service.updateFeatures).toHaveBeenCalledWith('c1', ['ABS']);
     expect(component.saving()).toBe(false);
     expect(component.activePanel).toBe('none');
   });
 
-  it('should not save filters with empty name', () => {
+  it('should handle save features error', () => {
+    service.updateFeatures.mockReturnValue(throwError(() => new Error('fail')));
     component.ngOnInit();
-    component.openFilters(mockCategories[0]);
-    component.editingFilters[0].name = '';
-    component.saveFilters();
-    expect(service.updateFilters).not.toHaveBeenCalled();
-  });
-
-  it('should handle save filters error', () => {
-    service.updateFilters.mockReturnValue(throwError(() => new Error('fail')));
-    component.ngOnInit();
-    component.openFilters(mockCategories[0]);
-    component.saveFilters();
+    component.openFeatures(mockCategories[0]);
+    component.saveFeatures();
     expect(component.saving()).toBe(false);
-    expect(component.error()).toBe('Failed to update filters.');
+    expect(component.error()).toBe('Failed to update features.');
   });
 
   // --- HELPERS ---
@@ -480,12 +471,12 @@ describe('CategoryManagerComponent', () => {
     expect(component.hasChildren(mockCategories[1])).toBe(false); // Vehicles has no children
   });
 
-  it('should handle categories with no attributes/filters in open panels', () => {
+  it('should handle categories with no attributes/features in open panels', () => {
     component.ngOnInit();
     component.openAttributes(mockCategories[1]); // Vehicles has empty attributes
     expect(component.editingAttributes.length).toBe(0);
-    component.openFilters(mockCategories[1]);
-    expect(component.editingFilters.length).toBe(0);
+    component.openFeatures(mockCategories[1]);
+    expect(component.editingFeatures.length).toBe(0);
   });
 
   it('trackByIndex should return the index', () => {

@@ -7,11 +7,12 @@ import {
   PaymentTransaction,
 } from '../../../core/services/admin.service';
 import { PaymentMethod, PaymentStatus } from '../../../core/models';
+import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-payment-transactions',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomSelectComponent],
   templateUrl: './payment-transactions.component.html',
   styleUrls: ['./payment-transactions.component.scss'],
 })
@@ -25,6 +26,25 @@ export class PaymentTransactionsComponent implements OnInit {
   filterEndDate = '';
   filterPaymentMethod: PaymentMethod | '' = '';
   filterStatus: PaymentStatus | '' = '';
+
+  // Sorting
+  sortCol = '';
+  sortDir: 'asc' | 'desc' = 'asc';
+
+  readonly paymentMethodOptions: SelectOption[] = [
+    { value: '', label: 'All' },
+    { value: 'jazzcash', label: 'JazzCash' },
+    { value: 'easypaisa', label: 'EasyPaisa' },
+    { value: 'card', label: 'Card' },
+  ];
+
+  readonly paymentStatusOptions: SelectOption[] = [
+    { value: '', label: 'All' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'failed', label: 'Failed' },
+    { value: 'refunded', label: 'Refunded' },
+  ];
   page = 1;
   readonly limit = 15;
 
@@ -47,9 +67,9 @@ export class PaymentTransactionsComponent implements OnInit {
     if (this.filterStatus) params.status = this.filterStatus;
 
     this.adminService.getAdminPayments(params).subscribe({
-      next: (res) => {
-        this.payments.set(res.data);
-        this.total.set(res.total);
+      next: (res: any) => {
+        this.payments.set(res.data ?? res ?? []);
+        this.total.set(res.total ?? 0);
         this.loading.set(false);
       },
       error: () => {
@@ -87,5 +107,25 @@ export class PaymentTransactionsComponent implements OnInit {
 
   get totalPages(): number {
     return Math.ceil(this.total() / this.limit) || 1;
+  }
+
+  sortPayments(col: string): void {
+    if (this.sortCol === col) {
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortCol = col;
+      this.sortDir = 'asc';
+    }
+    const dir = this.sortDir === 'asc' ? 1 : -1;
+    this.payments.update(list => [...list].sort((a: any, b: any) => {
+      const va = a[col]; const vb = b[col];
+      if (typeof va === 'string') return (va || '').localeCompare(vb || '') * dir;
+      return ((va ?? 0) - (vb ?? 0)) * dir;
+    }));
+  }
+
+  sortIcon(col: string): string {
+    if (col !== this.sortCol) return 'unfold_more';
+    return this.sortDir === 'asc' ? 'expand_less' : 'expand_more';
   }
 }

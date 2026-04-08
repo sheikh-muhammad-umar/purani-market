@@ -17,7 +17,7 @@ exports.LISTINGS_INDEX = 'product_listings';
 exports.FEATURED_BOOST_FACTOR = 5;
 exports.listingsIndexMapping = {
     properties: {
-        title: { type: 'text', analyzer: 'standard' },
+        title: { type: 'text', analyzer: 'standard', fields: { keyword: { type: 'keyword', ignore_above: 256 } } },
         description: { type: 'text', analyzer: 'standard' },
         'price.amount': { type: 'float' },
         'price.currency': { type: 'keyword' },

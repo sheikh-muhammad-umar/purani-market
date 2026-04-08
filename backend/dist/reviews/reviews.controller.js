@@ -16,8 +16,6 @@ exports.ReviewsController = void 0;
 const common_1 = require("@nestjs/common");
 const reviews_service_js_1 = require("./reviews.service.js");
 const jwt_auth_guard_js_1 = require("../common/guards/jwt-auth.guard.js");
-const roles_guard_js_1 = require("../common/guards/roles.guard.js");
-const roles_decorator_js_1 = require("../common/decorators/roles.decorator.js");
 const current_user_decorator_js_1 = require("../common/decorators/current-user.decorator.js");
 const create_review_dto_js_1 = require("./dto/create-review.dto.js");
 let ReviewsController = class ReviewsController {
@@ -38,8 +36,7 @@ let ReviewsController = class ReviewsController {
 exports.ReviewsController = ReviewsController;
 __decorate([
     (0, common_1.Post)(),
-    (0, common_1.UseGuards)(jwt_auth_guard_js_1.JwtAuthGuard, roles_guard_js_1.RolesGuard),
-    (0, roles_decorator_js_1.Roles)('buyer'),
+    (0, common_1.UseGuards)(jwt_auth_guard_js_1.JwtAuthGuard),
     __param(0, (0, current_user_decorator_js_1.CurrentUser)('sub')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),

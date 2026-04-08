@@ -18,6 +18,8 @@ class ListPaymentsQueryDto {
     dateFrom;
     dateTo;
     sellerId;
+    paymentMethod;
+    status;
 }
 exports.ListPaymentsQueryDto = ListPaymentsQueryDto;
 __decorate([
@@ -49,4 +51,14 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], ListPaymentsQueryDto.prototype, "sellerId", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ListPaymentsQueryDto.prototype, "paymentMethod", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsString)(),
+    __metadata("design:type", String)
+], ListPaymentsQueryDto.prototype, "status", void 0);
 //# sourceMappingURL=list-payments-query.dto.js.map

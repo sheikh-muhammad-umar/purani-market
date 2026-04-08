@@ -14,7 +14,7 @@
         (click)="exportReport()"
         [disabled]="exporting() || !startDate || !endDate"
       >
-        {{ exporting() ? 'Exporting...' : '📥 Export Report' }}
+        {{ exporting() ? 'Exporting...' : 'Export Report' }}
       </button>
     </div>
   </div>
@@ -34,7 +34,7 @@
     <section class="metrics-section">
       <div class="metrics-grid">
         <div *ngFor="let card of metricCards()" class="metric-card">
-          <span class="metric-icon">{{ card.icon }}</span>
+          <span class="metric-icon material-symbols-rounded">{{ card.icon }}</span>
           <div class="metric-info">
             <span class="metric-value">{{ formatValue(card.value, card.format) }}</span>
             <span class="metric-label">{{ card.label }}</span>
@@ -48,72 +48,112 @@
       <h2>Trends</h2>
       <div class="charts-grid">
         <div class="chart-card">
-          <h3>Registrations</h3>
-          <div class="bar-chart" *ngIf="ts.registrations.length > 0">
-            <div
-              *ngFor="let point of ts.registrations"
-              class="bar-column"
-              [title]="point.date + ': ' + point.value"
-            >
+          <div class="chart-header">
+            <h3>Registrations</h3>
+            <span class="chart-total" *ngIf="ts.registrations.length > 0">Total: {{ getSeriesTotal(ts.registrations) | number }}</span>
+          </div>
+          <div class="bar-chart-wrap" *ngIf="ts.registrations.length > 0">
+            <div class="y-axis">
+              <span class="y-label">{{ getMaxTimeSeriesValue(ts.registrations) }}</span>
+              <span class="y-label">0</span>
+            </div>
+            <div class="bar-chart">
               <div
-                class="bar"
-                [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.registrations))"
-              ></div>
-              <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                *ngFor="let point of ts.registrations"
+                class="bar-column"
+                [title]="point.date + ': ' + point.value"
+              >
+                <span class="bar-value" *ngIf="point.value > 0">{{ point.value }}</span>
+                <div
+                  class="bar"
+                  [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.registrations))"
+                ></div>
+                <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+              </div>
             </div>
           </div>
           <p *ngIf="ts.registrations.length === 0" class="no-data">No data available</p>
         </div>
 
         <div class="chart-card">
-          <h3>Listings</h3>
-          <div class="bar-chart" *ngIf="ts.listings.length > 0">
-            <div
-              *ngFor="let point of ts.listings"
-              class="bar-column"
-              [title]="point.date + ': ' + point.value"
-            >
+          <div class="chart-header">
+            <h3>Listings</h3>
+            <span class="chart-total" *ngIf="ts.listings.length > 0">Total: {{ getSeriesTotal(ts.listings) | number }}</span>
+          </div>
+          <div class="bar-chart-wrap" *ngIf="ts.listings.length > 0">
+            <div class="y-axis">
+              <span class="y-label">{{ getMaxTimeSeriesValue(ts.listings) }}</span>
+              <span class="y-label">0</span>
+            </div>
+            <div class="bar-chart">
               <div
-                class="bar bar-listings"
-                [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.listings))"
-              ></div>
-              <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                *ngFor="let point of ts.listings"
+                class="bar-column"
+                [title]="point.date + ': ' + point.value"
+              >
+                <span class="bar-value" *ngIf="point.value > 0">{{ point.value }}</span>
+                <div
+                  class="bar bar-listings"
+                  [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.listings))"
+                ></div>
+                <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+              </div>
             </div>
           </div>
           <p *ngIf="ts.listings.length === 0" class="no-data">No data available</p>
         </div>
 
         <div class="chart-card">
-          <h3>Conversations</h3>
-          <div class="bar-chart" *ngIf="ts.conversations.length > 0">
-            <div
-              *ngFor="let point of ts.conversations"
-              class="bar-column"
-              [title]="point.date + ': ' + point.value"
-            >
+          <div class="chart-header">
+            <h3>Conversations</h3>
+            <span class="chart-total" *ngIf="ts.conversations.length > 0">Total: {{ getSeriesTotal(ts.conversations) | number }}</span>
+          </div>
+          <div class="bar-chart-wrap" *ngIf="ts.conversations.length > 0">
+            <div class="y-axis">
+              <span class="y-label">{{ getMaxTimeSeriesValue(ts.conversations) }}</span>
+              <span class="y-label">0</span>
+            </div>
+            <div class="bar-chart">
               <div
-                class="bar bar-conversations"
-                [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.conversations))"
-              ></div>
-              <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                *ngFor="let point of ts.conversations"
+                class="bar-column"
+                [title]="point.date + ': ' + point.value"
+              >
+                <span class="bar-value" *ngIf="point.value > 0">{{ point.value }}</span>
+                <div
+                  class="bar bar-conversations"
+                  [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.conversations))"
+                ></div>
+                <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+              </div>
             </div>
           </div>
           <p *ngIf="ts.conversations.length === 0" class="no-data">No data available</p>
         </div>
 
         <div class="chart-card">
-          <h3>Purchases</h3>
-          <div class="bar-chart" *ngIf="ts.purchases.length > 0">
-            <div
-              *ngFor="let point of ts.purchases"
-              class="bar-column"
-              [title]="point.date + ': ' + point.value"
-            >
+          <div class="chart-header">
+            <h3>Purchases</h3>
+            <span class="chart-total" *ngIf="ts.purchases.length > 0">Total: {{ getSeriesTotal(ts.purchases) | number }}</span>
+          </div>
+          <div class="bar-chart-wrap" *ngIf="ts.purchases.length > 0">
+            <div class="y-axis">
+              <span class="y-label">{{ getMaxTimeSeriesValue(ts.purchases) }}</span>
+              <span class="y-label">0</span>
+            </div>
+            <div class="bar-chart">
               <div
-                class="bar bar-purchases"
-                [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.purchases))"
-              ></div>
-              <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                *ngFor="let point of ts.purchases"
+                class="bar-column"
+                [title]="point.date + ': ' + point.value"
+              >
+                <span class="bar-value" *ngIf="point.value > 0">{{ point.value }}</span>
+                <div
+                  class="bar bar-purchases"
+                  [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.purchases))"
+                ></div>
+                <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+              </div>
             </div>
           </div>
           <p *ngIf="ts.purchases.length === 0" class="no-data">No data available</p>
@@ -125,11 +165,18 @@
     <section class="category-section" *ngIf="categoryAnalytics().length > 0">
       <h2>Listings by Category</h2>
       <div class="category-list">
-        <div *ngFor="let cat of categoryAnalytics()" class="category-row">
-          <span class="category-name">{{ cat.categoryName }}</span>
+        <div class="category-row category-row-header">
+          <span class="category-name">Category</span>
+          <div class="category-bar-wrapper"></div>
+          <span class="category-pct">Share</span>
+          <span class="category-count">Count</span>
+        </div>
+        <div *ngFor="let cat of categoryAnalytics(); let i = index" class="category-row">
+          <span class="category-name" [title]="cat.categoryName">{{ cat.categoryName }}</span>
           <div class="category-bar-wrapper">
             <div class="category-bar" [style.width.%]="getBarWidth(cat.listingCount)"></div>
           </div>
+          <span class="category-pct">{{ getCategoryPercent(cat.listingCount) }}%</span>
           <span class="category-count">{{ cat.listingCount }}</span>
         </div>
       </div>

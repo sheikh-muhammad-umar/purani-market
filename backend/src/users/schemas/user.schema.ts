@@ -6,8 +6,6 @@ export type UserDocument = HydratedDocument<User>;
 export enum UserRole {
   ADMIN = 'admin',
   USER = 'user',
-  SELLER = 'seller',  // kept for backward compatibility, treated same as 'user'
-  BUYER = 'buyer',    // kept for backward compatibility, treated same as 'user'
 }
 
 export enum UserStatus {

@@ -1,6 +1,7 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { Category } from '../categories/schemas/category.schema.js';
 import {
   User,
   UserDocument,
@@ -61,7 +62,8 @@ export interface TimeSeriesEntry {
 
 export interface CategoryAnalytics {
   categoryId: string;
-  count: number;
+  categoryName: string;
+  listingCount: number;
 }
 
 export interface AnalyticsData {
@@ -119,6 +121,8 @@ export class AdminService {
     private readonly reviewModel: Model<ReviewDocument>,
     @InjectModel(PackagePurchase.name)
     private readonly packagePurchaseModel: Model<PackagePurchaseDocument>,
+    @InjectModel(Category.name)
+    private readonly categoryModel: Model<any>,
     private readonly authService: AuthService,
     private readonly notificationsService: NotificationsService,
   ) {}
@@ -391,10 +395,15 @@ export class AdminService {
   }
 
   async listPayments(query: ListPaymentsQueryDto): Promise<PaginatedPurchases> {
-    const { page = 1, limit = 20, dateFrom, dateTo, sellerId } = query;
-    const filter: Record<string, any> = {
-      paymentStatus: { $in: [PaymentStatus.COMPLETED, PaymentStatus.FAILED, PaymentStatus.REFUNDED] },
-    };
+    const { page = 1, limit = 20, dateFrom, dateTo, sellerId, paymentMethod, status } = query as any;
+    const filter: Record<string, any> = {};
+
+    // If status filter is provided, use it; otherwise show all non-pending
+    if (status) {
+      filter.paymentStatus = status;
+    } else {
+      filter.paymentStatus = { $in: [PaymentStatus.COMPLETED, PaymentStatus.FAILED, PaymentStatus.REFUNDED, PaymentStatus.PENDING] };
+    }
 
     if (dateFrom || dateTo) {
       filter.createdAt = {};
@@ -404,6 +413,10 @@ export class AdminService {
 
     if (sellerId && Types.ObjectId.isValid(sellerId)) {
       filter.sellerId = new Types.ObjectId(sellerId);
+    }
+
+    if (paymentMethod) {
+      filter.paymentMethod = paymentMethod;
     }
 
     const skip = (page - 1) * limit;
@@ -535,10 +548,24 @@ export class AdminService {
   }
 
   private async getCategoryAnalytics(): Promise<CategoryAnalytics[]> {
-    return this.listingModel.aggregate([
+    const raw = await this.listingModel.aggregate([
+      { $match: { categoryId: { $ne: null } } },
       { $group: { _id: '$categoryId', count: { $sum: 1 } } },
       { $sort: { count: -1 } },
-      { $project: { _id: 0, categoryId: { $toString: '$_id' }, count: 1 } },
+      { $limit: 20 },
     ]).exec();
+
+    // Look up category names
+    const catIds = raw.map((r: any) => r._id).filter(Boolean);
+    const categories = await this.categoryModel.find({ _id: { $in: catIds } }).select('name').lean().exec();
+    const catMap = new Map(categories.map((c: any) => [c._id.toString(), c.name]));
+
+    return raw
+      .filter((r: any) => catMap.has(r._id?.toString()))
+      .map((r: any) => ({
+        categoryId: r._id?.toString() ?? '',
+        categoryName: catMap.get(r._id?.toString()),
+        listingCount: r.count,
+      }));
   }
 }

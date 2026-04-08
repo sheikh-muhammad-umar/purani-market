@@ -6,27 +6,20 @@
 
 .app-main {
   flex: 1;
-  max-width: var(--max-width);
   width: 100%;
-  margin: 0 auto;
   padding: var(--space-3);
 }
 
-@media (max-width: 424px) {
-  .app-main {
-    padding: var(--space-2);
-  }
-}
-
-@media (max-width: 320px) {
-  .app-main {
-    padding: var(--space-1);
-  }
-}
-
-/* Add bottom padding on mobile for the fixed bottom nav */
 @media (max-width: 767px) {
   .app-main {
-    padding-bottom: calc(var(--space-3) + 70px);
+    padding: var(--space-2) var(--space-1);
+    padding-bottom: calc(var(--space-2) + 70px);
+  }
+}
+
+@media (max-width: 380px) {
+  .app-main {
+    padding: var(--space-1) var(--space-half);
+    padding-bottom: calc(var(--space-1) + 70px);
   }
 }

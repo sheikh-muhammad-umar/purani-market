@@ -31,6 +31,8 @@ export class EditListingComponent implements OnInit {
   selectedLevel3 = signal<Category | null>(null);
   selectedCategory = computed(() => this.selectedLevel3() ?? this.selectedLevel2() ?? this.selectedLevel1());
   categoryAttributes = computed<CategoryAttribute[]>(() => this.selectedCategory()?.attributes ?? []);
+  categoryFeatures = computed<string[]>(() => this.selectedCategory()?.features ?? []);
+  selectedFeatures = signal<string[]>([]);
 
   detailsForm!: FormGroup;
   locationForm!: FormGroup;
@@ -107,6 +109,9 @@ export class EditListingComponent implements OnInit {
 
     this.featureAd.set(listing.isFeatured);
 
+    // Restore selected features
+    this.selectedFeatures.set(listing.selectedFeatures || []);
+
     // Restore category selection
     if (listing.categoryPath?.length > 0) {
       const cats = this.allCategories();
@@ -139,17 +144,29 @@ export class EditListingComponent implements OnInit {
     this.selectedLevel2.set(null);
     this.selectedLevel3.set(null);
     this.level3Categories.set([]);
+    this.selectedFeatures.set([]);
     this.level2Categories.set(this.allCategories().filter(c => c.parentId === cat._id && c.isActive));
   }
 
   selectLevel2(cat: Category): void {
     this.selectedLevel2.set(cat);
     this.selectedLevel3.set(null);
+    this.selectedFeatures.set([]);
     this.level3Categories.set(this.allCategories().filter(c => c.parentId === cat._id && c.isActive));
   }
 
   selectLevel3(cat: Category): void {
     this.selectedLevel3.set(cat);
+    this.selectedFeatures.set([]);
+  }
+
+  toggleFeature(feature: string): void {
+    this.selectedFeatures.update(features => {
+      if (features.includes(feature)) {
+        return features.filter(f => f !== feature);
+      }
+      return [...features, feature];
+    });
   }
 
   getDynamicControl(key: string): FormControl {
@@ -243,6 +260,7 @@ export class EditListingComponent implements OnInit {
       categoryPath: this.buildCategoryPathIds(),
       condition: details.condition,
       categoryAttributes: catAttrs,
+      selectedFeatures: this.selectedFeatures(),
       location: { city: loc.city, area: loc.area },
       isFeatured: this.featureAd(),
     };

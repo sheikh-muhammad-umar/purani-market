@@ -51,11 +51,11 @@ export class ListingVideo {
 
 @Schema({ _id: false })
 export class ListingLocation {
-  @Prop({ type: String, default: 'Point' })
-  type!: string;
+  @Prop({ type: String })
+  type?: string;
 
-  @Prop({ type: [Number], required: true })
-  coordinates!: number[];
+  @Prop({ type: [Number] })
+  coordinates?: number[];
 
   @Prop({ type: String })
   city?: string;
@@ -100,6 +100,9 @@ export class ProductListing {
 
   @Prop({ type: MongooseSchema.Types.Map, of: MongooseSchema.Types.Mixed, default: () => new Map() })
   categoryAttributes!: Map<string, any>;
+
+  @Prop({ type: [String], default: [] })
+  selectedFeatures!: string[];
 
   @Prop({
     type: [ListingImage],
@@ -152,7 +155,10 @@ export const ProductListingSchema =
 ProductListingSchema.index({ sellerId: 1 });
 ProductListingSchema.index({ categoryId: 1 });
 ProductListingSchema.index({ status: 1 });
-ProductListingSchema.index({ location: '2dsphere' });
+ProductListingSchema.index(
+  { 'location.coordinates': '2dsphere' },
+  { sparse: true },
+);
 ProductListingSchema.index({ isFeatured: -1, createdAt: -1 });
 ProductListingSchema.index({ createdAt: -1 });
 ProductListingSchema.index({ categoryPath: 1 });

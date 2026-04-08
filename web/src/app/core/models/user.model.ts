@@ -55,7 +55,7 @@ export interface DeviceToken {
   token: string;
 }
 
-export type UserRole = 'admin' | 'seller' | 'buyer';
+export type UserRole = 'admin' | 'user';
 export type UserStatus = 'active' | 'suspended';
 
 export interface User {

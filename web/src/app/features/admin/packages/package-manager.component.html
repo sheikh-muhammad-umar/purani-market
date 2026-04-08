@@ -39,34 +39,62 @@
           <button class="btn-primary" (click)="openCreateForm()" [disabled]="saving()">+ New Package</button>
         </div>
 
-        <div class="empty-list" *ngIf="packages().length === 0">
+        <div class="empty-list" *ngIf="(packages() || []).length === 0">
           No packages found. Create one to get started.
         </div>
 
-        <table class="data-table" *ngIf="packages().length > 0" aria-label="Ad packages">
+        <table class="data-table" *ngIf="(packages() || []).length > 0" aria-label="Ad packages">
           <thead>
             <tr>
-              <th>Name</th>
-              <th>Type</th>
-              <th>Duration</th>
+              <th style="padding-left: 46px;" class="sortable" (click)="sortPackages('name')">Name <span class="material-symbols-rounded sort-icon">{{ sortIcon('name', pkgSortCol, pkgSortDir) }}</span></th>
+              <th class="sortable" (click)="sortPackages('type')">Type <span class="material-symbols-rounded sort-icon">{{ sortIcon('type', pkgSortCol, pkgSortDir) }}</span></th>
+              <th class="sortable" (click)="sortPackages('duration')">Duration <span class="material-symbols-rounded sort-icon">{{ sortIcon('duration', pkgSortCol, pkgSortDir) }}</span></th>
               <th>Qty</th>
-              <th>Price</th>
-              <th>Status</th>
+              <th class="sortable" (click)="sortPackages('defaultPrice')">Price <span class="material-symbols-rounded sort-icon">{{ sortIcon('defaultPrice', pkgSortCol, pkgSortDir) }}</span></th>
+              <th class="sortable" (click)="sortPackages('isActive')">Status <span class="material-symbols-rounded sort-icon">{{ sortIcon('isActive', pkgSortCol, pkgSortDir) }}</span></th>
               <th>Actions</th>
             </tr>
           </thead>
           <tbody>
-            <tr *ngFor="let pkg of packages()">
-              <td>{{ pkg.name }}</td>
-              <td><span class="type-badge" [class.featured]="pkg.type === 'featured_ads'">{{ pkg.type === 'featured_ads' ? 'Featured' : 'Ad Slots' }}</span></td>
-              <td>{{ pkg.duration }} days</td>
-              <td>{{ pkg.quantity }}</td>
-              <td class="price-cell">Rs {{ pkg.defaultPrice | number }}</td>
-              <td><span class="status-badge" [class.active]="pkg.isActive" [class.inactive]="!pkg.isActive">{{ pkg.isActive ? 'Active' : 'Inactive' }}</span></td>
-              <td>
-                <button class="btn-action" (click)="openEditForm(pkg)" [disabled]="saving()">Edit</button>
-              </td>
-            </tr>
+            <ng-container *ngFor="let pkg of packages()">
+              <tr [class.expanded]="isPackageExpanded(pkg._id)">
+                <td>
+                  <span class="pkg-name-cell">
+                    <button
+                      class="expand-toggle"
+                      *ngIf="pkg.categoryPricing?.length"
+                      (click)="togglePackageExpand(pkg._id)"
+                      type="button"
+                    >{{ isPackageExpanded(pkg._id) ? '▾' : '▸' }}</button>
+                    <span class="expand-placeholder" *ngIf="!pkg.categoryPricing?.length"></span>
+                    {{ pkg.name }}
+                  </span>
+                </td>
+                <td><span class="type-badge" [class.featured]="pkg.type === 'featured_ads'">{{ pkg.type === 'featured_ads' ? 'Featured' : 'Ad Slots' }}</span></td>
+                <td>{{ pkg.duration }} days</td>
+                <td>{{ pkg.quantity }}</td>
+                <td class="price-cell">Rs {{ pkg.defaultPrice | number }}</td>
+                <td><span class="status-badge" [class.active]="pkg.isActive" [class.inactive]="!pkg.isActive">{{ pkg.isActive ? 'Active' : 'Inactive' }}</span></td>
+                <td>
+                  <button class="btn-action" (click)="openEditForm(pkg)" [disabled]="saving()">Edit</button>
+                </td>
+              </tr>
+              <tr class="child-row" *ngIf="isPackageExpanded(pkg._id) && pkg.categoryPricing?.length">
+                <td colspan="7">
+                  <div class="child-pricing">
+                    <span class="child-pricing-title">Category-Specific Pricing</span>
+                    <div class="child-pricing-groups">
+                      <div class="child-group" *ngFor="let group of getGroupedPricing(pkg)">
+                        <div class="child-group-price">Rs {{ group.price | number }}</div>
+                        <div class="child-group-cats">
+                          <span class="child-cat-chip" *ngFor="let catId of group.categories">{{ getCategoryName(catId) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </td>
+              </tr>
+            </ng-container>
           </tbody>
         </table>
       </div>
@@ -83,19 +111,12 @@
 
           <div class="form-group">
             <label for="pkg-type">Type</label>
-            <select id="pkg-type" [(ngModel)]="formType">
-              <option value="featured_ads">Featured Ads</option>
-              <option value="ad_slots">Ad Slots</option>
-            </select>
+            <app-custom-select [options]="typeOptions" [(ngModel)]="formType" placeholder="Select type"></app-custom-select>
           </div>
 
           <div class="form-group">
             <label for="pkg-duration">Duration</label>
-            <select id="pkg-duration" [(ngModel)]="formDuration">
-              <option [ngValue]="7">7 days</option>
-              <option [ngValue]="15">15 days</option>
-              <option [ngValue]="30">30 days</option>
-            </select>
+            <app-custom-select [options]="durationOptions" [(ngModel)]="formDuration" placeholder="Select duration"></app-custom-select>
           </div>
 
           <div class="form-group">
@@ -120,19 +141,42 @@
             <p class="panel-hint">Override the default price for specific categories.</p>
 
             <div class="pricing-item" *ngFor="let cp of formCategoryPricing; let i = index; trackBy: trackByIndex">
-              <div class="pricing-row">
-                <div class="form-group compact">
-                  <label>Category</label>
-                  <select [(ngModel)]="cp.categoryId">
-                    <option value="">Select category</option>
-                    <option *ngFor="let cat of categories()" [value]="cat._id">{{ cat.name }}</option>
-                  </select>
+              <div class="pricing-item-header">
+                <span class="pricing-item-label">Price Group #{{ i + 1 }}</span>
+                <button class="btn-remove" (click)="removeCategoryPrice(i)" aria-label="Remove pricing" title="Remove">✕</button>
+              </div>
+
+              <div class="form-group">
+                <label>Price (Rs)</label>
+                <input type="number" [(ngModel)]="cp.price" min="0" placeholder="Enter price">
+              </div>
+
+              <div class="form-group">
+                <label>Categories ({{ cp.categoryIds.length }} selected)</label>
+                <div class="selected-cats" *ngIf="cp.categoryIds.length > 0">
+                  <span class="cat-chip" *ngFor="let cid of cp.categoryIds">
+                    {{ getCategoryName(cid) }}
+                    <button class="cat-chip-remove" (click)="togglePricingCategory(cp, cid)" type="button">✕</button>
+                  </span>
                 </div>
-                <div class="form-group compact">
-                  <label>Price (Rs)</label>
-                  <input type="number" [(ngModel)]="cp.price" min="0">
+                <div class="cat-picker">
+                  <input
+                    type="text"
+                    class="cat-search-input"
+                    placeholder="Search categories..."
+                    [(ngModel)]="pricingCatSearch[i]"
+                  />
+                  <div class="cat-picker-grid">
+                    <button
+                      type="button"
+                      class="cat-pick-btn"
+                      *ngFor="let cat of filteredCategoriesForRow(i)"
+                      [class.picked]="cp.categoryIds.includes(cat._id)"
+                      (click)="togglePricingCategory(cp, cat._id)"
+                    >{{ cat.name }}</button>
+                    <span class="cat-no-results" *ngIf="filteredCategoriesForRow(i).length === 0">No categories found</span>
+                  </div>
                 </div>
-                <button class="btn-remove" (click)="removeCategoryPrice(i)" aria-label="Remove pricing">✕</button>
               </div>
             </div>
 
@@ -169,21 +213,11 @@
       </div>
       <div class="form-group compact">
         <label>Type</label>
-        <select [(ngModel)]="purchaseFilterType">
-          <option value="">All</option>
-          <option value="featured_ads">Featured Ads</option>
-          <option value="ad_slots">Ad Slots</option>
-        </select>
+        <app-custom-select [options]="purchaseTypeOptions" [(ngModel)]="purchaseFilterType" placeholder="All"></app-custom-select>
       </div>
       <div class="form-group compact">
         <label>Status</label>
-        <select [(ngModel)]="purchaseFilterStatus">
-          <option value="">All</option>
-          <option value="pending">Pending</option>
-          <option value="completed">Completed</option>
-          <option value="failed">Failed</option>
-          <option value="refunded">Refunded</option>
-        </select>
+        <app-custom-select [options]="purchaseStatusOptions" [(ngModel)]="purchaseFilterStatus" placeholder="All"></app-custom-select>
       </div>
       <div class="filter-actions">
         <button class="btn-primary" (click)="applyPurchaseFilters()">Apply</button>
@@ -191,11 +225,11 @@
       </div>
     </div>
 
-    <div class="empty-list" *ngIf="purchases().length === 0">
+    <div class="empty-list" *ngIf="(purchases() || []).length === 0">
       No purchases found.
     </div>
 
-    <table class="data-table" *ngIf="purchases().length > 0" aria-label="Package purchases">
+    <table class="data-table" *ngIf="(purchases() || []).length > 0" aria-label="Package purchases">
       <thead>
         <tr>
           <th>Seller</th>
@@ -222,7 +256,7 @@
       </tbody>
     </table>
 
-    <div class="pagination" *ngIf="purchases().length > 0">
+    <div class="pagination" *ngIf="(purchases() || []).length > 0">
       <button class="btn-secondary" (click)="prevPurchasePage()" [disabled]="purchasePage <= 1">← Prev</button>
       <span class="page-info">Page {{ purchasePage }} of {{ totalPurchasePages }}</span>
       <button class="btn-secondary" (click)="nextPurchasePage()" [disabled]="purchasePage >= totalPurchasePages">Next →</button>

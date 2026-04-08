@@ -13,7 +13,6 @@ const http_exception_filter_js_1 = require("./filters/http-exception.filter.js")
 const transform_interceptor_js_1 = require("./interceptors/transform.interceptor.js");
 const logging_interceptor_js_1 = require("./interceptors/logging.interceptor.js");
 const validation_pipe_js_1 = require("./pipes/validation.pipe.js");
-const roles_guard_js_1 = require("./guards/roles.guard.js");
 let CommonModule = class CommonModule {
 };
 exports.CommonModule = CommonModule;
@@ -35,10 +34,6 @@ exports.CommonModule = CommonModule = __decorate([
             {
                 provide: core_1.APP_PIPE,
                 useValue: validation_pipe_js_1.AppValidationPipe,
-            },
-            {
-                provide: core_1.APP_GUARD,
-                useClass: roles_guard_js_1.RolesGuard,
             },
         ],
     })

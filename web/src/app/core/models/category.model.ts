@@ -1,5 +1,4 @@
-export type CategoryAttributeType = 'text' | 'number' | 'select' | 'multiselect' | 'boolean';
-export type CategoryFilterType = 'range' | 'select' | 'multiselect' | 'boolean';
+export type CategoryAttributeType = 'text' | 'number' | 'select' | 'multiselect' | 'boolean' | 'range';
 
 export interface CategoryAttribute {
   name: string;
@@ -8,13 +7,6 @@ export interface CategoryAttribute {
   options?: string[];
   required: boolean;
   unit?: string;
-}
-
-export interface CategoryFilter {
-  name: string;
-  key: string;
-  type: CategoryFilterType;
-  options?: string[];
   rangeMin?: number;
   rangeMax?: number;
 }
@@ -26,7 +18,7 @@ export interface Category {
   parentId?: string;
   level: 1 | 2 | 3;
   attributes: CategoryAttribute[];
-  filters: CategoryFilter[];
+  features: string[];
   isActive: boolean;
   sortOrder: number;
   children?: Category[];

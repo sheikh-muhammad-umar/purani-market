@@ -94,9 +94,10 @@ export class MyListingsComponent implements OnInit {
   loadListings(): void {
     this.loading.set(true);
     this.listingsService.getMyListings(this.page(), 50).subscribe({
-      next: (res) => {
-        this.listings.set(res.data);
-        this.total.set(res.total);
+      next: (res: any) => {
+        const data = Array.isArray(res) ? res : res?.data ?? [];
+        this.listings.set(data);
+        this.total.set(res?.total ?? data.length);
         this.loading.set(false);
       },
       error: () => {
@@ -115,7 +116,7 @@ export class MyListingsComponent implements OnInit {
 
   loadPurchases(): void {
     this.packagesService.getMyPurchases().subscribe({
-      next: (res) => this.purchases.set(res.data),
+      next: (res: any) => this.purchases.set(Array.isArray(res) ? res : res.data ?? []),
       error: () => this.purchases.set([]),
     });
   }

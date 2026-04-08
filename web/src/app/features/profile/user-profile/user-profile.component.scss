@@ -222,3 +222,47 @@
     flex-shrink: 0;
   }
 }
+
+@media (max-width: 767px) {
+  .profile-page {
+    padding: var(--space-2) var(--space-1);
+    padding-bottom: calc(var(--space-2) + 70px);
+  }
+
+  .profile-header {
+    flex-direction: column;
+    text-align: center;
+    gap: var(--space-2);
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+  }
+
+  .profile-name {
+    font-size: var(--text-xl);
+  }
+
+  .profile-nav {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    gap: 0;
+
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  .nav-link {
+    white-space: nowrap;
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-sm);
+  }
+
+  .profile-actions {
+    flex-direction: column;
+    width: 100%;
+
+    .btn { width: 100%; text-align: center; }
+  }
+}

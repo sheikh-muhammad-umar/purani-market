@@ -25,10 +25,14 @@ let RolesGuard = class RolesGuard {
         }
         const request = context.switchToHttp().getRequest();
         const user = request.user;
-        if (!user || !user.role) {
-            throw new common_1.ForbiddenException('Access denied: no role assigned');
+        if (!user) {
+            throw new common_1.ForbiddenException('Access denied: not authenticated');
         }
-        if (!requiredRoles.includes(user.role)) {
+        const role = user.role || user.userRole;
+        if (!role) {
+            throw new common_1.ForbiddenException('Access denied: no role assigned. Please log out and log back in.');
+        }
+        if (!requiredRoles.includes(role)) {
             throw new common_1.ForbiddenException('Access denied: insufficient permissions');
         }
         return true;

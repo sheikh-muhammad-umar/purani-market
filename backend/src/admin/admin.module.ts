@@ -7,6 +7,7 @@ import { AuthModule } from '../auth/auth.module.js';
 import { ListingsModule } from '../listings/listings.module.js';
 import { MessagingModule } from '../messaging/messaging.module.js';
 import { NotificationsModule } from '../notifications/notifications.module.js';
+import { CategoriesModule } from '../categories/categories.module.js';
 import {
   Review,
   ReviewSchema,
@@ -23,6 +24,7 @@ import {
     ListingsModule,
     MessagingModule,
     NotificationsModule,
+    CategoriesModule,
     MongooseModule.forFeature([
       { name: Review.name, schema: ReviewSchema },
       { name: PackagePurchase.name, schema: PackagePurchaseSchema },

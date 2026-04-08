@@ -9,7 +9,7 @@ var __metadata = (this && this.__metadata) || function (k, v) {
     if (typeof Reflect === "object" && typeof Reflect.metadata === "function") return Reflect.metadata(k, v);
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.CategorySchema = exports.Category = exports.CategoryFilter = exports.CategoryAttribute = exports.FilterType = exports.AttributeType = void 0;
+exports.CategorySchema = exports.Category = exports.CategoryAttribute = exports.AttributeType = void 0;
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
 var AttributeType;
@@ -19,14 +19,8 @@ var AttributeType;
     AttributeType["SELECT"] = "select";
     AttributeType["MULTISELECT"] = "multiselect";
     AttributeType["BOOLEAN"] = "boolean";
+    AttributeType["RANGE"] = "range";
 })(AttributeType || (exports.AttributeType = AttributeType = {}));
-var FilterType;
-(function (FilterType) {
-    FilterType["RANGE"] = "range";
-    FilterType["SELECT"] = "select";
-    FilterType["MULTISELECT"] = "multiselect";
-    FilterType["BOOLEAN"] = "boolean";
-})(FilterType || (exports.FilterType = FilterType = {}));
 let CategoryAttribute = class CategoryAttribute {
     name;
     key;
@@ -34,6 +28,8 @@ let CategoryAttribute = class CategoryAttribute {
     options;
     required;
     unit;
+    rangeMin;
+    rangeMax;
 };
 exports.CategoryAttribute = CategoryAttribute;
 __decorate([
@@ -60,45 +56,17 @@ __decorate([
     (0, mongoose_1.Prop)({ type: String }),
     __metadata("design:type", String)
 ], CategoryAttribute.prototype, "unit", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Number }),
+    __metadata("design:type", Number)
+], CategoryAttribute.prototype, "rangeMin", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: Number }),
+    __metadata("design:type", Number)
+], CategoryAttribute.prototype, "rangeMax", void 0);
 exports.CategoryAttribute = CategoryAttribute = __decorate([
     (0, mongoose_1.Schema)({ _id: false })
 ], CategoryAttribute);
-let CategoryFilter = class CategoryFilter {
-    name;
-    key;
-    type;
-    options;
-    rangeMin;
-    rangeMax;
-};
-exports.CategoryFilter = CategoryFilter;
-__decorate([
-    (0, mongoose_1.Prop)({ type: String, required: true }),
-    __metadata("design:type", String)
-], CategoryFilter.prototype, "name", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: String, required: true }),
-    __metadata("design:type", String)
-], CategoryFilter.prototype, "key", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: String, enum: FilterType, required: true }),
-    __metadata("design:type", String)
-], CategoryFilter.prototype, "type", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: [String], default: [] }),
-    __metadata("design:type", Array)
-], CategoryFilter.prototype, "options", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: Number }),
-    __metadata("design:type", Number)
-], CategoryFilter.prototype, "rangeMin", void 0);
-__decorate([
-    (0, mongoose_1.Prop)({ type: Number }),
-    __metadata("design:type", Number)
-], CategoryFilter.prototype, "rangeMax", void 0);
-exports.CategoryFilter = CategoryFilter = __decorate([
-    (0, mongoose_1.Schema)({ _id: false })
-], CategoryFilter);
 let Category = class Category {
     _id;
     name;
@@ -106,7 +74,7 @@ let Category = class Category {
     parentId;
     level;
     attributes;
-    filters;
+    features;
     isActive;
     sortOrder;
     createdAt;
@@ -134,9 +102,9 @@ __decorate([
     __metadata("design:type", Array)
 ], Category.prototype, "attributes", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [CategoryFilter], default: [] }),
+    (0, mongoose_1.Prop)({ type: [String], default: [] }),
     __metadata("design:type", Array)
-], Category.prototype, "filters", void 0);
+], Category.prototype, "features", void 0);
 __decorate([
     (0, mongoose_1.Prop)({ type: Boolean, default: true }),
     __metadata("design:type", Boolean)

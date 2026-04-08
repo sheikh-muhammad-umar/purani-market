@@ -190,6 +190,8 @@
           <div class="selected-path">
             Selected: <strong>{{ getCategoryPath() }}</strong>
           </div>
+        } @else if (showStepErrors()) {
+          <div class="alert alert-error" style="margin-top: var(--space-2);">Please select a category to continue</div>
         }
       </div>
     }
@@ -249,12 +251,24 @@
             </div>
 
             <div class="form-group">
-              <label class="form-label" for="condition">Condition *</label>
-              <select id="condition" class="form-input" formControlName="condition">
-                <option value="new">New</option>
-                <option value="used">Used</option>
-                <option value="refurbished">Refurbished</option>
-              </select>
+              <label class="form-label">Condition *</label>
+              <div class="custom-select-wrap">
+                <button type="button" class="custom-select-trigger" [class.open]="openDropdown() === 'condition'" (click)="toggleDropdown('condition')">
+                  @if (detailsForm.get('condition')?.value) {
+                    <span class="select-text">{{ detailsForm.get('condition')?.value | titlecase }}</span>
+                  } @else {
+                    <span class="select-placeholder">Select Condition</span>
+                  }
+                  <span class="material-symbols-rounded select-arrow">expand_more</span>
+                </button>
+                @if (openDropdown() === 'condition') {
+                  <div class="custom-select-dropdown">
+                    @for (opt of ['new', 'used', 'refurbished']; track opt) {
+                      <button type="button" class="custom-select-option" [class.active]="detailsForm.get('condition')?.value === opt" (click)="selectCondition(opt)">{{ opt | titlecase }}</button>
+                    }
+                  </div>
+                }
+              </div>
             </div>
           </div>
 
@@ -290,12 +304,23 @@
                       />
                     }
                     @case ('select') {
-                      <select [id]="attr.key" class="form-input" [formControl]="getDynamicControl(attr.key)">
-                        <option value="">Select {{ attr.name }}</option>
-                        @for (opt of attr.options; track opt) {
-                          <option [value]="opt">{{ opt }}</option>
+                      <div class="custom-select-wrap">
+                        <button type="button" class="custom-select-trigger" [class.open]="openDropdown() === attr.key" (click)="toggleDropdown(attr.key)">
+                          @if (getDynamicControl(attr.key).value) {
+                            <span class="select-text">{{ getDynamicControl(attr.key).value }}</span>
+                          } @else {
+                            <span class="select-placeholder">Select {{ attr.name }}</span>
+                          }
+                          <span class="material-symbols-rounded select-arrow">expand_more</span>
+                        </button>
+                        @if (openDropdown() === attr.key) {
+                          <div class="custom-select-dropdown">
+                            @for (opt of attr.options; track opt) {
+                              <button type="button" class="custom-select-option" [class.active]="getDynamicControl(attr.key).value === opt" (click)="selectDropdownOption(attr.key, opt)">{{ opt }}</button>
+                            }
+                          </div>
                         }
-                      </select>
+                      </div>
                     }
                     @case ('boolean') {
                       <label class="checkbox-label">
@@ -312,8 +337,31 @@
                       />
                     }
                   }
+                  @if (attr.required && getDynamicControl(attr.key).touched && !getDynamicControl(attr.key).value) {
+                    <span class="form-error">{{ attr.name }} is required</span>
+                  }
                 </div>
               }
+            </div>
+          }
+
+          <!-- Features (optional chips) -->
+          @if (categoryFeatures().length > 0) {
+            <div class="dynamic-attributes">
+              <h4>Features</h4>
+              <p class="features-hint">Select the features that apply to your item</p>
+              <div class="features-chip-grid">
+                @for (feature of categoryFeatures(); track feature) {
+                  <button
+                    type="button"
+                    class="feature-chip-toggle"
+                    [class.selected]="selectedFeatures().includes(feature)"
+                    (click)="toggleFeature(feature)"
+                  >
+                    {{ feature }}
+                  </button>
+                }
+              </div>
             </div>
           }
         </form>
@@ -324,7 +372,7 @@
     @if (currentStep() === 3) {
       <div class="wizard-step">
         <h2>Upload Media</h2>
-        <p class="step-description">Add at least 2 images (max 20) and optionally 1 video</p>
+        <p class="step-description">Add at least 1 image + 1 more media (image or video). Max 20 images.</p>
 
         <div
           class="drop-zone"
@@ -354,8 +402,10 @@
 
         <div class="media-count">
           Images: {{ mediaItems().length }}/20
-          @if (mediaItems().length < 2) {
-            <span class="form-error"> (minimum 2 required)</span>
+          @if (mediaItems().length < 1) {
+            <span class="form-error"> (at least 1 image required)</span>
+          } @else if (mediaItems().length + (videoItem() ? 1 : 0) < 2) {
+            <span class="form-error"> (add 1 more image or a video)</span>
           }
         </div>
 
@@ -499,6 +549,12 @@
                   </div>
                 }
               }
+              @if (selectedFeatures().length > 0) {
+                <div class="detail-row">
+                  <span class="detail-label">Features</span>
+                  <span>{{ selectedFeatures().join(', ') }}</span>
+                </div>
+              }
             </div>
           </div>
 
@@ -557,7 +613,6 @@
         <button
           class="btn btn-primary"
           (click)="nextStep()"
-          [disabled]="!isStepValid(currentStep())"
           type="button"
         >
           Continue

@@ -38,8 +38,8 @@ let ListingsController = class ListingsController {
         const sellerId = mine === 'true' && userId ? userId : undefined;
         return this.listingsService.findAll(page ? parseInt(page, 10) : 1, limit ? parseInt(limit, 10) : 20, sort || 'createdAt', (order === 'asc' ? 'asc' : 'desc'), sellerId);
     }
-    async getListingById(id) {
-        return this.listingsService.findByIdAndIncrementViews(id);
+    async getListingById(id, userId, userRole) {
+        return this.listingsService.findByIdAndIncrementViews(id, userId, userRole);
     }
     async createListing(sellerId, dto) {
         return this.listingsService.create(sellerId, dto);
@@ -76,9 +76,12 @@ __decorate([
 ], ListingsController.prototype, "getListings", null);
 __decorate([
     (0, common_1.Get)(':id'),
+    (0, common_1.UseGuards)(optional_jwt_auth_guard_js_1.OptionalJwtAuthGuard),
     __param(0, (0, common_1.Param)('id')),
+    __param(1, (0, current_user_decorator_js_1.CurrentUser)('sub')),
+    __param(2, (0, current_user_decorator_js_1.CurrentUser)('role')),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String]),
+    __metadata("design:paramtypes", [String, String, String]),
     __metadata("design:returntype", Promise)
 ], ListingsController.prototype, "getListingById", null);
 __decorate([

@@ -3,7 +3,7 @@
   <section class="search-bar-section">
     <form class="search-form" (ngSubmit)="onSearchSubmit()" role="search">
       <div class="search-input-wrap">
-        <span class="search-icon" aria-hidden="true">🔍</span>
+        <span class="search-icon material-symbols-rounded" aria-hidden="true">search</span>
         <input
           type="text"
           class="search-input"
@@ -18,12 +18,15 @@
         @if (searchInput()) {
           <button
             type="button"
-            class="search-clear"
+            class="search-clear material-symbols-rounded"
             (click)="searchInput.set(''); onSearchInputChange('')"
             aria-label="Clear search"
-          >✕</button>
+          >close</button>
         }
-        <button type="submit" class="btn btn-primary search-btn">Search</button>
+        <button type="submit" class="btn btn-primary search-btn">
+          <span class="material-symbols-rounded" style="font-size: 18px;">search</span>
+          <span class="search-btn-text">Search</span>
+        </button>
       </div>
 
       <!-- Suggestions Dropdown -->
@@ -76,138 +79,171 @@
       <div class="filter-header">
         <h3 class="filter-title">Filters</h3>
         <button class="filter-toggle" (click)="toggleFilters()" [attr.aria-expanded]="filtersOpen()">
-          {{ filtersOpen() ? '◀' : '▶' }}
+          {{ filtersOpen() ? '✕' : '☰' }}
         </button>
       </div>
 
       @if (filtersOpen()) {
         <div class="filter-body">
-          <!-- Category Filter -->
-          <div class="filter-group">
-            <label class="filter-label" for="category-filter">Category</label>
-            <select
-              id="category-filter"
-              class="form-input filter-select"
-              [ngModel]="selectedCategoryId()"
-              (ngModelChange)="onCategoryChange($event)"
-            >
-              <option value="">All Categories</option>
+
+          <!-- Categories Card -->
+          <div class="filter-card">
+            <h4 class="filter-card-title">Categories</h4>
+            <div class="category-tree">
+              <button class="cat-link cat-all" [class.active]="!selectedCategoryId()" (click)="onCategoryChange('')">
+                All categories
+              </button>
               @for (cat of categories(); track cat._id) {
                 @if (cat.isActive && cat.level === 1) {
-                  <option [value]="cat._id">{{ cat.name }}</option>
+                  <div class="cat-group">
+                    <div class="cat-row">
+                      <button class="cat-link cat-l1" [class.active]="selectedCategoryId() === cat._id || isCategoryChildSelected(cat._id)" (click)="onCategoryChange(cat._id)">
+                        {{ cat.name }}
+                      </button>
+                      @if (getSubcategories(cat._id).length > 0) {
+                        <button class="cat-expand" (click)="toggleCategoryExpand(cat._id)" [attr.aria-label]="'Expand ' + cat.name">
+                          {{ expandedCategories().has(cat._id) ? '▾' : '▸' }}
+                        </button>
+                      }
+                    </div>
+                    @if (expandedCategories().has(cat._id)) {
+                      <div class="cat-children">
+                        @for (sub of getSubcategories(cat._id); track sub._id) {
+                          <div class="cat-child-group">
+                            <div class="cat-row">
+                              <button class="cat-link cat-l2" [class.active]="selectedCategoryId() === sub._id || isCategoryChildSelected(sub._id)" (click)="onCategoryChange(sub._id)">
+                                {{ sub.name }}
+                              </button>
+                              @if (getSubcategories(sub._id).length > 0) {
+                                <button class="cat-expand" (click)="toggleCategoryExpand(sub._id)">
+                                  {{ expandedCategories().has(sub._id) ? '▾' : '▸' }}
+                                </button>
+                              }
+                            </div>
+                            @if (expandedCategories().has(sub._id)) {
+                              <div class="cat-children">
+                                @for (sub2 of getSubcategories(sub._id); track sub2._id) {
+                                  <button class="cat-link cat-l3" [class.active]="selectedCategoryId() === sub2._id" (click)="onCategoryChange(sub2._id)">
+                                    {{ sub2.name }}
+                                  </button>
+                                }
+                              </div>
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
                 }
               }
-            </select>
+            </div>
           </div>
 
-          <!-- Condition Filter -->
-          <div class="filter-group">
-            <label class="filter-label" for="condition-filter">Condition</label>
-            <select
-              id="condition-filter"
-              class="form-input filter-select"
-              [ngModel]="selectedCondition()"
-              (ngModelChange)="onConditionChange($event)"
-            >
-              <option value="">Any Condition</option>
-              <option value="new">New</option>
-              <option value="used">Used</option>
-              <option value="refurbished">Refurbished</option>
-            </select>
+          <!-- Location Card -->
+          <div class="filter-card">
+            <h4 class="filter-card-title">Location</h4>
+            <div class="location-picker">
+              <button class="location-trigger" (click)="locationOpen.set(!locationOpen())">
+                <span class="loc-icon">📍</span>
+                <span class="loc-text">{{ selectedCity() || 'All Pakistan' }}</span>
+                <span class="loc-arrow">{{ locationOpen() ? '▲' : '▼' }}</span>
+              </button>
+              @if (locationOpen()) {
+                <div class="location-dropdown">
+                  <button class="loc-option" [class.active]="!selectedCity()" (click)="selectCity('')">
+                    See all in Pakistan
+                  </button>
+                  <div class="loc-section-label">Popular</div>
+                  @for (city of popularCities; track city) {
+                    <button class="loc-option" [class.active]="selectedCity() === city" (click)="selectCity(city)">
+                      {{ city }}
+                    </button>
+                  }
+                </div>
+              }
+            </div>
           </div>
 
-          <!-- Price Range -->
-          <div class="filter-group">
-            <label class="filter-label">Price Range</label>
-            <div class="price-range-inputs">
+          <!-- Price Card -->
+          <div class="filter-card">
+            <h4 class="filter-card-title">Price</h4>
+            <div class="price-range-row">
               <input
                 type="number"
-                class="form-input price-input"
+                class="price-field"
                 placeholder="Min"
                 [ngModel]="minPrice()"
                 (ngModelChange)="minPrice.set($event)"
-                aria-label="Minimum price"
                 min="0"
               />
-              <span class="price-separator">–</span>
+              <span class="price-to">to</span>
               <input
                 type="number"
-                class="form-input price-input"
+                class="price-field"
                 placeholder="Max"
                 [ngModel]="maxPrice()"
                 (ngModelChange)="maxPrice.set($event)"
-                aria-label="Maximum price"
                 min="0"
               />
             </div>
-            <button class="btn btn-outline btn-sm apply-price-btn" (click)="onPriceFilterApply()">Apply</button>
+            <button class="btn btn-outline btn-sm price-apply-btn" (click)="onPriceFilterApply()">Apply</button>
+          </div>
+
+          <!-- Condition Card -->
+          <div class="filter-card">
+            <h4 class="filter-card-title">Condition</h4>
+            <div class="condition-options">
+              <button class="cond-option" [class.active]="selectedCondition() === ''" (click)="onConditionChange('')">Any</button>
+              <button class="cond-option" [class.active]="selectedCondition() === 'new'" (click)="onConditionChange('new')">New</button>
+              <button class="cond-option" [class.active]="selectedCondition() === 'used'" (click)="onConditionChange('used')">Used</button>
+              <button class="cond-option" [class.active]="selectedCondition() === 'refurbished'" (click)="onConditionChange('refurbished')">Refurbished</button>
+            </div>
           </div>
 
           <!-- Dynamic Category-Specific Filters -->
           @for (filter of categoryFilters(); track filter.key) {
-            <div class="filter-group">
-              <label class="filter-label" [for]="'filter-' + filter.key">{{ filter.name }}</label>
+            <div class="filter-card">
+              <h4 class="filter-card-title">{{ filter.name }}</h4>
               @switch (filter.type) {
                 @case ('select') {
-                  <select
-                    [id]="'filter-' + filter.key"
-                    class="form-input filter-select"
-                    [ngModel]="filterValues()[filter.key] || ''"
-                    (ngModelChange)="onDynamicFilterChange(filter.key, $event)"
-                  >
-                    <option value="">Any</option>
+                  <div class="filter-options-list">
+                    <button class="filter-opt" [class.active]="!filterValues()[filter.key]" (click)="onDynamicFilterChange(filter.key, '')">Any</button>
                     @for (opt of filter.options || []; track opt) {
-                      <option [value]="opt">{{ opt }}</option>
+                      <button class="filter-opt" [class.active]="filterValues()[filter.key] === opt" (click)="onDynamicFilterChange(filter.key, opt)">{{ opt }}</button>
                     }
-                  </select>
+                  </div>
                 }
                 @case ('multiselect') {
-                  <select
-                    [id]="'filter-' + filter.key"
-                    class="form-input filter-select"
-                    [ngModel]="filterValues()[filter.key] || ''"
-                    (ngModelChange)="onDynamicFilterChange(filter.key, $event)"
-                  >
-                    <option value="">Any</option>
+                  <div class="filter-options-list">
                     @for (opt of filter.options || []; track opt) {
-                      <option [value]="opt">{{ opt }}</option>
+                      <button class="filter-opt" [class.active]="filterValues()[filter.key] === opt" (click)="onDynamicFilterChange(filter.key, opt)">{{ opt }}</button>
                     }
-                  </select>
+                  </div>
                 }
                 @case ('range') {
-                  <div class="price-range-inputs">
-                    <input
-                      type="number"
-                      class="form-input price-input"
-                      [placeholder]="'Min' + (filter.rangeMin !== undefined ? ' (' + filter.rangeMin + ')' : '')"
-                      [ngModel]="filterValues()[filter.key + '_min'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $event)"
-                      [attr.aria-label]="filter.name + ' minimum'"
-                    />
-                    <span class="price-separator">–</span>
-                    <input
-                      type="number"
-                      class="form-input price-input"
-                      [placeholder]="'Max' + (filter.rangeMax !== undefined ? ' (' + filter.rangeMax + ')' : '')"
-                      [ngModel]="filterValues()[filter.key + '_max'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)"
-                      [attr.aria-label]="filter.name + ' maximum'"
-                    />
+                  <div class="price-range-row">
+                    <input type="number" class="price-field" [placeholder]="'Min'" [ngModel]="filterValues()[filter.key + '_min'] || ''" (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $event)" />
+                    <span class="price-to">to</span>
+                    <input type="number" class="price-field" [placeholder]="'Max'" [ngModel]="filterValues()[filter.key + '_max'] || ''" (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)" />
                   </div>
                 }
                 @case ('boolean') {
                   <label class="checkbox-label">
-                    <input
-                      type="checkbox"
-                      [ngModel]="filterValues()[filter.key] === 'true'"
-                      (ngModelChange)="onDynamicFilterChange(filter.key, $event ? 'true' : '')"
-                    />
+                    <input type="checkbox" [ngModel]="filterValues()[filter.key] === 'true'" (ngModelChange)="onDynamicFilterChange(filter.key, $event ? 'true' : '')" />
                     {{ filter.name }}
                   </label>
+                }
+                @case ('number') {
+                  <div class="price-range-row">
+                    <input type="number" class="price-field" [placeholder]="'Min'" [ngModel]="filterValues()[filter.key + '_min'] || ''" (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $event)" />
+                    <span class="price-to">to</span>
+                    <input type="number" class="price-field" [placeholder]="'Max'" [ngModel]="filterValues()[filter.key + '_max'] || ''" (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)" />
+                  </div>
                 }
               }
             </div>
           }
+
         </div>
       }
     </aside>
@@ -298,7 +334,7 @@
               <div class="listing-info">
                 <h4 class="listing-title">{{ listing.title | truncateText:50 }}</h4>
                 <p class="listing-price price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
-                <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
+                <p class="listing-location">📍 {{ listing.location?.city || 'Unknown' }}</p>
               </div>
             </a>
           }

@@ -9,13 +9,7 @@ export enum AttributeType {
   SELECT = 'select',
   MULTISELECT = 'multiselect',
   BOOLEAN = 'boolean',
-}
-
-export enum FilterType {
   RANGE = 'range',
-  SELECT = 'select',
-  MULTISELECT = 'multiselect',
-  BOOLEAN = 'boolean',
 }
 
 @Schema({ _id: false })
@@ -37,21 +31,6 @@ export class CategoryAttribute {
 
   @Prop({ type: String })
   unit?: string;
-}
-
-@Schema({ _id: false })
-export class CategoryFilter {
-  @Prop({ type: String, required: true })
-  name!: string;
-
-  @Prop({ type: String, required: true })
-  key!: string;
-
-  @Prop({ type: String, enum: FilterType, required: true })
-  type!: FilterType;
-
-  @Prop({ type: [String], default: [] })
-  options!: string[];
 
   @Prop({ type: Number })
   rangeMin?: number;
@@ -79,8 +58,8 @@ export class Category {
   @Prop({ type: [CategoryAttribute], default: [] })
   attributes!: CategoryAttribute[];
 
-  @Prop({ type: [CategoryFilter], default: [] })
-  filters!: CategoryFilter[];
+  @Prop({ type: [String], default: [] })
+  features!: string[];
 
   @Prop({ type: Boolean, default: true })
   isActive!: boolean;

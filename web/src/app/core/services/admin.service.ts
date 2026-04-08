@@ -1,6 +1,6 @@
 import { Injectable } from '@angular/core';
 import { HttpClient, HttpParams } from '@angular/common/http';
-import { Observable } from 'rxjs';
+import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { UserRole, UserStatus } from '../models/user.model';
 import { ListingImage, ListingStatus } from '../models/listing.model';
@@ -95,6 +95,10 @@ export interface PendingListing {
   sellerName: string;
   sellerEmail?: string;
   createdAt: string;
+  categoryAttributes?: Record<string, any>;
+  selectedFeatures?: string[];
+  location?: { city?: string; area?: string };
+  contactInfo?: { phone?: string; email?: string };
 }
 
 export interface PendingListingsResponse {
@@ -183,10 +187,12 @@ export class AdminService {
   getAnalytics(dateRange?: DateRange): Observable<AnalyticsData> {
     let params = new HttpParams();
     if (dateRange) {
-      params = params.set('startDate', dateRange.startDate);
-      params = params.set('endDate', dateRange.endDate);
+      params = params.set('dateFrom', dateRange.startDate);
+      params = params.set('dateTo', dateRange.endDate);
     }
-    return this.http.get<AnalyticsData>(`${this.baseUrl}/admin/analytics`, { params });
+    return this.http.get<any>(`${this.baseUrl}/admin/analytics`, { params }).pipe(
+      map(res => (res && res.data && res.statusCode) ? res.data : res),
+    );
   }
 
   exportReport(dateRange: DateRange): Observable<Blob> {
@@ -208,7 +214,9 @@ export class AdminService {
     if (params.status) httpParams = httpParams.set('status', params.status);
     if (params.startDate) httpParams = httpParams.set('startDate', params.startDate);
     if (params.endDate) httpParams = httpParams.set('endDate', params.endDate);
-    return this.http.get<UsersResponse>(`${this.baseUrl}/admin/users`, { params: httpParams });
+    return this.http.get<any>(`${this.baseUrl}/admin/users`, { params: httpParams }).pipe(
+      map(res => (res && res.data && res.statusCode) ? res.data : res),
+    );
   }
 
   updateUserStatus(userId: string, status: UserStatus): Observable<void> {
@@ -265,10 +273,12 @@ export class AdminService {
     let httpParams = new HttpParams();
     if (params.page) httpParams = httpParams.set('page', params.page.toString());
     if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
-    if (params.startDate) httpParams = httpParams.set('startDate', params.startDate);
-    if (params.endDate) httpParams = httpParams.set('endDate', params.endDate);
+    if (params.startDate) httpParams = httpParams.set('dateFrom', params.startDate);
+    if (params.endDate) httpParams = httpParams.set('dateTo', params.endDate);
     if (params.paymentMethod) httpParams = httpParams.set('paymentMethod', params.paymentMethod);
     if (params.status) httpParams = httpParams.set('status', params.status);
-    return this.http.get<AdminPaymentsResponse>(`${this.baseUrl}/admin/payments`, { params: httpParams });
+    return this.http.get<any>(`${this.baseUrl}/admin/payments`, { params: httpParams }).pipe(
+      map(res => (res && res.data && res.statusCode) ? res.data : res),
+    );
   }
 }

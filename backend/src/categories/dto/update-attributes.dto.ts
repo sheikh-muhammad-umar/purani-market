@@ -5,6 +5,7 @@ import {
   IsEnum,
   IsOptional,
   IsBoolean,
+  IsNumber,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AttributeType } from '../schemas/category.schema.js';
@@ -31,6 +32,14 @@ export class CategoryAttributeDto {
   @IsOptional()
   @IsString()
   unit?: string;
+
+  @IsOptional()
+  @IsNumber()
+  rangeMin?: number;
+
+  @IsOptional()
+  @IsNumber()
+  rangeMax?: number;
 }
 
 export class UpdateAttributesDto {

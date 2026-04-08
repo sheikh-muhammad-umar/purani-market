@@ -15,7 +15,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.MediaService = exports.THUMBNAIL_HEIGHT = exports.THUMBNAIL_WIDTH = exports.MAX_VIDEOS_PER_LISTING = exports.MAX_IMAGES_PER_LISTING = exports.MAX_VIDEO_SIZE = exports.MAX_IMAGE_SIZE = exports.ALLOWED_VIDEO_MIMETYPES = exports.ALLOWED_IMAGE_MIMETYPES = void 0;
+exports.MediaService = exports.MAX_VIDEOS_PER_LISTING = exports.MAX_IMAGES_PER_LISTING = exports.MAX_VIDEO_SIZE = exports.MAX_IMAGE_SIZE = exports.ALLOWED_VIDEO_MIMETYPES = exports.ALLOWED_IMAGE_MIMETYPES = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
@@ -33,8 +33,6 @@ exports.MAX_IMAGE_SIZE = 5 * 1024 * 1024;
 exports.MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 exports.MAX_IMAGES_PER_LISTING = 20;
 exports.MAX_VIDEOS_PER_LISTING = 1;
-exports.THUMBNAIL_WIDTH = 300;
-exports.THUMBNAIL_HEIGHT = 300;
 let MediaService = class MediaService {
     listingModel;
     storageService;
@@ -58,44 +56,65 @@ let MediaService = class MediaService {
         }
         if (type === upload_media_dto_js_1.MediaType.IMAGE) {
             if (!exports.ALLOWED_IMAGE_MIMETYPES.includes(file.mimetype)) {
-                throw new common_1.BadRequestException(`Invalid image format. Allowed formats: JPEG, PNG, WebP`);
+                throw new common_1.BadRequestException('Invalid image format. Allowed: JPEG, PNG, WebP');
             }
             if (file.size > exports.MAX_IMAGE_SIZE) {
-                throw new common_1.BadRequestException(`Image size exceeds maximum of 5MB`);
+                throw new common_1.BadRequestException('Image size exceeds 5MB');
             }
         }
         else if (type === upload_media_dto_js_1.MediaType.VIDEO) {
             if (!exports.ALLOWED_VIDEO_MIMETYPES.includes(file.mimetype)) {
-                throw new common_1.BadRequestException(`Invalid video format. Allowed format: MP4`);
+                throw new common_1.BadRequestException('Invalid video format. Allowed: MP4');
             }
             if (file.size > exports.MAX_VIDEO_SIZE) {
-                throw new common_1.BadRequestException(`Video size exceeds maximum of 50MB`);
+                throw new common_1.BadRequestException('Video size exceeds 50MB');
             }
         }
     }
     validateMediaLimits(listing, type) {
-        if (type === upload_media_dto_js_1.MediaType.IMAGE) {
-            if (listing.images.length >= exports.MAX_IMAGES_PER_LISTING) {
-                throw new common_1.BadRequestException(`Maximum of ${exports.MAX_IMAGES_PER_LISTING} images per listing exceeded`);
-            }
+        if (type === upload_media_dto_js_1.MediaType.IMAGE &&
+            listing.images.length >= exports.MAX_IMAGES_PER_LISTING) {
+            throw new common_1.BadRequestException(`Maximum ${exports.MAX_IMAGES_PER_LISTING} images exceeded`);
         }
-        else if (type === upload_media_dto_js_1.MediaType.VIDEO) {
-            if (listing.video) {
-                throw new common_1.BadRequestException(`Maximum of ${exports.MAX_VIDEOS_PER_LISTING} video per listing exceeded`);
-            }
+        if (type === upload_media_dto_js_1.MediaType.VIDEO && listing.video) {
+            throw new common_1.BadRequestException(`Maximum ${exports.MAX_VIDEOS_PER_LISTING} video exceeded`);
         }
     }
-    async compressImage(buffer) {
-        return (0, sharp_1.default)(buffer)
+    async processImageUpload(listing, file, sortOrder) {
+        const compressed = await (0, sharp_1.default)(file.buffer)
             .resize(1920, 1080, { fit: 'inside', withoutEnlargement: true })
             .jpeg({ quality: 80 })
             .toBuffer();
-    }
-    async generateThumbnail(buffer) {
-        return (0, sharp_1.default)(buffer)
-            .resize(exports.THUMBNAIL_WIDTH, exports.THUMBNAIL_HEIGHT, { fit: 'cover' })
+        const thumbnail = await (0, sharp_1.default)(file.buffer)
+            .resize(300, 300, { fit: 'cover' })
             .jpeg({ quality: 70 })
             .toBuffer();
+        const folder = `listings/${listing._id.toString()}`;
+        const safeName = file.originalname.replace(/\.[^.]+$/, '.jpg');
+        const imgResult = await this.storageService.saveFile(`${folder}/images`, safeName, compressed);
+        const thumbResult = await this.storageService.saveFile(`${folder}/thumbs`, `thumb-${safeName}`, thumbnail);
+        const order = sortOrder ?? listing.images.length;
+        await this.listingModel.updateOne({ _id: listing._id }, {
+            $push: {
+                images: {
+                    url: imgResult.fileUrl,
+                    thumbnailUrl: thumbResult.fileUrl,
+                    sortOrder: order,
+                },
+            },
+        });
+        return {
+            url: imgResult.fileUrl,
+            thumbnailUrl: thumbResult.fileUrl,
+            type: upload_media_dto_js_1.MediaType.IMAGE,
+            sortOrder: order,
+        };
+    }
+    async processVideoUpload(listing, file) {
+        const folder = `listings/${listing._id.toString()}`;
+        const result = await this.storageService.saveFile(`${folder}/videos`, file.originalname, file.buffer);
+        await this.listingModel.updateOne({ _id: listing._id }, { $set: { video: { url: result.fileUrl } } });
+        return { url: result.fileUrl, type: upload_media_dto_js_1.MediaType.VIDEO };
     }
     async getListingOrThrow(listingId) {
         if (!mongoose_2.Types.ObjectId.isValid(listingId)) {
@@ -109,44 +128,8 @@ let MediaService = class MediaService {
     }
     verifyOwnership(listing, sellerId) {
         if (listing.sellerId.toString() !== sellerId) {
-            throw new common_1.ForbiddenException('You do not have permission to upload media to this listing');
+            throw new common_1.ForbiddenException('Not authorized to upload to this listing');
         }
-    }
-    async processImageUpload(listing, file, sortOrder) {
-        const compressed = await this.compressImage(file.buffer);
-        const thumbnail = await this.generateThumbnail(file.buffer);
-        const imageUpload = await this.storageService.generatePresignedUploadUrl(`listings/${listing._id}/images`, file.originalname, 'image/jpeg');
-        const thumbUpload = await this.storageService.generatePresignedUploadUrl(`listings/${listing._id}/thumbnails`, `thumb-${file.originalname}`, 'image/jpeg');
-        const order = sortOrder ?? listing.images.length;
-        await this.listingModel.updateOne({ _id: listing._id }, {
-            $push: {
-                images: {
-                    url: imageUpload.fileUrl,
-                    thumbnailUrl: thumbUpload.fileUrl,
-                    sortOrder: order,
-                },
-            },
-        });
-        return {
-            url: imageUpload.fileUrl,
-            thumbnailUrl: thumbUpload.fileUrl,
-            type: upload_media_dto_js_1.MediaType.IMAGE,
-            sortOrder: order,
-        };
-    }
-    async processVideoUpload(listing, file) {
-        const videoUpload = await this.storageService.generatePresignedUploadUrl(`listings/${listing._id}/videos`, file.originalname, 'video/mp4');
-        await this.listingModel.updateOne({ _id: listing._id }, {
-            $set: {
-                video: {
-                    url: videoUpload.fileUrl,
-                },
-            },
-        });
-        return {
-            url: videoUpload.fileUrl,
-            type: upload_media_dto_js_1.MediaType.VIDEO,
-        };
     }
 };
 exports.MediaService = MediaService;

@@ -24,11 +24,18 @@ export class RolesGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
 
-    if (!user || !user.role) {
-      throw new ForbiddenException('Access denied: no role assigned');
+    if (!user) {
+      throw new ForbiddenException('Access denied: not authenticated');
     }
 
-    if (!requiredRoles.includes(user.role)) {
+    // Try multiple ways to get the role (JWT payload or populated user)
+    const role = user.role || user.userRole;
+
+    if (!role) {
+      throw new ForbiddenException('Access denied: no role assigned. Please log out and log back in.');
+    }
+
+    if (!requiredRoles.includes(role)) {
       throw new ForbiddenException(
         'Access denied: insufficient permissions',
       );

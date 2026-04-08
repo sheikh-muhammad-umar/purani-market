@@ -148,3 +148,66 @@
     flex-shrink: 0;
   }
 }
+
+.theme-toggle-setting {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  padding: var(--space-1) var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  cursor: pointer;
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: border-color 0.2s;
+
+  &:hover { border-color: var(--primary); }
+}
+
+.sun-icon {
+  color: #F3B324;
+  filter: drop-shadow(0 0 3px rgba(243, 179, 36, 0.4));
+}
+
+@media (max-width: 767px) {
+  .settings-page {
+    padding: var(--space-2) var(--space-1);
+    padding-bottom: calc(var(--space-2) + 70px);
+  }
+
+  .settings-title {
+    font-size: var(--text-xl);
+  }
+
+  .profile-nav {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  .nav-link {
+    white-space: nowrap;
+    flex-shrink: 0;
+    font-size: var(--text-sm);
+  }
+
+  .settings-card {
+    padding: var(--space-2);
+  }
+
+  .settings-card-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--space-1);
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+  }
+}

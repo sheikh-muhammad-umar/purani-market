@@ -5,7 +5,7 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Model } from 'mongoose';
 import Redis from 'ioredis';
 import { CategoriesService } from '../categories/categories.service.js';
-import { FilterType } from '../categories/schemas/category.schema.js';
+import { AttributeType } from '../categories/schemas/category.schema.js';
 import { ProductListing, ProductListingDocument, ListingStatus } from '../listings/schemas/product-listing.schema.js';
 import { LISTINGS_INDEX } from './search-index.service.js';
 import { SearchSyncService } from './search-sync.service.js';
@@ -191,7 +191,7 @@ export class SearchService {
         aggs: {
           title_suggestions: {
             terms: {
-              field: 'title',
+              field: 'title.keyword',
               size: 10,
             },
           },
@@ -346,7 +346,7 @@ export class SearchService {
 
     try {
       const category = await this.categoriesService.findById(categoryId);
-      const filterDefs = category.filters || [];
+      const filterDefs = category.attributes || [];
 
       for (const filterDef of filterDefs) {
         const value = filters[filterDef.key];
@@ -355,7 +355,7 @@ export class SearchService {
         const attrPath = `categoryAttributes.${filterDef.key}`;
 
         switch (filterDef.type) {
-          case FilterType.RANGE: {
+          case AttributeType.RANGE: {
             const rangeClause: any = {};
             if (typeof value === 'object' && value !== null) {
               if (value.min !== undefined) rangeClause.gte = value.min;
@@ -366,19 +366,36 @@ export class SearchService {
             }
             break;
           }
-          case FilterType.SELECT: {
+          case AttributeType.SELECT: {
             esFilters.push({ term: { [attrPath]: value } });
             break;
           }
-          case FilterType.MULTISELECT: {
-            const values = Array.isArray(value) ? value : [value];
-            esFilters.push({ terms: { [attrPath]: values } });
+          case AttributeType.MULTISELECT: {
+            esFilters.push({ terms: { [attrPath]: Array.isArray(value) ? value : [value] } });
             break;
           }
-          case FilterType.BOOLEAN: {
+          case AttributeType.BOOLEAN: {
             const boolVal =
               value === true || value === 'true' || value === 1;
             esFilters.push({ term: { [attrPath]: boolVal } });
+            break;
+          }
+          case AttributeType.NUMBER: {
+            // Number attributes can be filtered as exact match or range
+            if (typeof value === 'object' && value !== null) {
+              const rangeClause: any = {};
+              if (value.min !== undefined) rangeClause.gte = value.min;
+              if (value.max !== undefined) rangeClause.lte = value.max;
+              if (Object.keys(rangeClause).length > 0) {
+                esFilters.push({ range: { [attrPath]: rangeClause } });
+              }
+            } else {
+              esFilters.push({ term: { [attrPath]: value } });
+            }
+            break;
+          }
+          case AttributeType.TEXT: {
+            esFilters.push({ match: { [attrPath]: value } });
             break;
           }
         }

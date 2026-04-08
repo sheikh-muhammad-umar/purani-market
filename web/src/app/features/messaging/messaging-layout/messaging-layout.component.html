@@ -1,0 +1,68 @@
+<div class="messaging-split">
+  <!-- Left: Conversation List -->
+  <div class="msg-sidebar" [class.hidden-mobile]="selectedConversationId()">
+    <div class="msg-sidebar-header">
+      <h2>Messages</h2>
+    </div>
+    <div class="msg-search">
+      <span class="material-symbols-rounded">search</span>
+      <input type="text" placeholder="Search messages..." />
+    </div>
+
+    <div class="msg-list">
+      @if (loading()) {
+        @for (i of [1,2,3,4,5]; track i) {
+          <div class="msg-item-skeleton">
+            <div class="skeleton" style="width:44px;height:44px;border-radius:50%;flex-shrink:0;"></div>
+            <div style="flex:1;">
+              <div class="skeleton-text" style="width:60%;"></div>
+              <div class="skeleton-text short" style="width:80%;margin-top:6px;"></div>
+            </div>
+          </div>
+        }
+      } @else {
+        @for (conv of conversations(); track conv._id) {
+          <button
+            class="msg-item"
+            [class.active]="selectedConversationId() === conv._id"
+            [class.unread]="getUnreadCount(conv._id) > 0"
+            (click)="selectConversation(conv._id)"
+          >
+            <img [src]="getListingImage(conv)" class="msg-avatar" alt="" />
+            <div class="msg-item-content">
+              <div class="msg-item-top">
+                <span class="msg-item-name">{{ getListingTitle(conv) }}</span>
+                <span class="msg-item-time">{{ getTimeAgo(conv.lastMessageAt) }}</span>
+              </div>
+              <span class="msg-item-price">{{ getListingPrice(conv) }}</span>
+              <p class="msg-item-preview">{{ conv.lastMessagePreview || 'No messages yet' }}</p>
+            </div>
+            @if (getUnreadCount(conv._id) > 0) {
+              <span class="msg-unread-dot"></span>
+            }
+          </button>
+        }
+
+        @if (conversations().length === 0) {
+          <div class="msg-empty">
+            <span class="material-symbols-rounded" style="font-size:48px;color:var(--text-muted);">chat_bubble_outline</span>
+            <p>No conversations yet</p>
+          </div>
+        }
+      }
+    </div>
+  </div>
+
+  <!-- Right: Chat Window -->
+  <div class="msg-chat-area" [class.hidden-mobile]="!selectedConversationId()">
+    @if (selectedConversationId()) {
+      <app-chat-window [conversationIdInput]="selectedConversationId()!" (back)="selectedConversationId.set(null)" />
+    } @else {
+      <div class="msg-no-chat">
+        <span class="material-symbols-rounded" style="font-size:64px;color:var(--text-muted);">forum</span>
+        <h3>Select a conversation</h3>
+        <p>Choose a conversation from the left to start chatting</p>
+      </div>
+    }
+  </div>
+</div>

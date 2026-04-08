@@ -7,6 +7,12 @@ export declare const listingsIndexMapping: {
         title: {
             type: "text";
             analyzer: string;
+            fields: {
+                keyword: {
+                    type: "keyword";
+                    ignore_above: number;
+                };
+            };
         };
         description: {
             type: "text";

@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { MessagingService } from '../../../core/services/messaging.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { LoginModalService } from '../login-modal/login-modal.service';
 
 @Component({
   selector: 'app-header',
@@ -26,9 +27,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private readonly wsService: WebSocketService,
     public readonly themeService: ThemeService,
     private readonly router: Router,
+    public readonly loginModal: LoginModalService,
   ) {}
 
   ngOnInit(): void {
+    if (this.authService.getAccessToken() && !this.authService.user()) {
+      this.authService.fetchCurrentUser().subscribe();
+    }
+
     this.refreshUnreadCount();
 
     this.subs.push(
@@ -63,6 +69,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   get isAuthPage(): boolean {
     return this.router.url.startsWith('/auth/');
+  }
+
+  get isMessagingPage(): boolean {
+    return this.router.url.startsWith('/messaging');
+  }
+
+  get isProfilePage(): boolean {
+    return this.router.url.startsWith('/profile');
   }
 
   toggleMenu(): void {

@@ -1,22 +1,36 @@
 <div class="home-page">
-  <!-- Category Chips -->
-  <section class="category-chips-section" aria-label="Browse categories">
+  <!-- Hero Section -->
+  <section class="hero-section">
+    <div class="hero-content">
+      <h1 class="hero-headline">Buy and sell with <span class="hero-accent">confidence.</span></h1>
+      <p class="hero-desc">The premium local marketplace. Verified users, secure messaging, and a beautifully simple way to discover what you need.</p>
+      <div class="hero-actions">
+        <a routerLink="/search" class="btn btn-primary hero-btn">Browse Listings</a>
+        <a routerLink="/categories" class="btn btn-outline hero-btn-outline">Learn How It Works</a>
+      </div>
+    </div>
+  </section>
+
+  <!-- Browse by Category -->
+  <section class="category-section" aria-label="Browse categories">
+    <h2 class="section-heading">Browse by Category</h2>
     @if (loadingCategories()) {
-      <div class="chips-scroll">
-        @for (i of [1,2,3,4,5,6]; track i) {
-          <div class="chip-skeleton skeleton"></div>
+      <div class="category-grid-browse">
+        @for (i of [1,2,3,4,5,6,7,8]; track i) {
+          <div class="cat-card-skeleton">
+            <div class="skeleton" style="width:48px;height:48px;border-radius:12px;"></div>
+            <div class="skeleton" style="width:60px;height:12px;margin-top:8px;"></div>
+          </div>
         }
       </div>
     } @else {
-      <div class="chips-scroll" role="list">
+      <div class="category-grid-browse">
         @for (chip of categoryChips(); track chip.id) {
-          <button
-            class="category-chip"
-            (click)="openCategoryModal(chip)"
-            role="listitem"
-          >
-            <span class="chip-icon" aria-hidden="true">{{ chip.icon }}</span>
-            <span class="chip-label">{{ chip.name }}</span>
+          <button class="cat-card" (click)="openCategoryModal(chip)">
+            <div class="cat-icon-wrap">
+              <span class="cat-icon-text" aria-hidden="true">{{ chip.icon }}</span>
+            </div>
+            <span class="cat-card-name">{{ chip.name }}</span>
           </button>
         }
       </div>
@@ -63,9 +77,9 @@
               }
             </div>
             <div class="listing-info">
+              <p class="listing-price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
               <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
-              <p class="listing-price price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
-              <p class="listing-location"><span class="mat-icon" style="font-size:14px;vertical-align:middle;">location_on</span> {{ listing.location?.city || 'Unknown' }}</p>
+              <p class="listing-location">📍 {{ listing.location?.city || 'Unknown' }}</p>
             </div>
           </a>
         }
@@ -113,9 +127,9 @@
               }
             </div>
             <div class="listing-info">
+              <p class="listing-price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
               <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
-              <p class="listing-price price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
-              <p class="listing-location"><span class="mat-icon" style="font-size:14px;vertical-align:middle;">location_on</span> {{ listing.location?.city || 'Unknown' }}</p>
+              <p class="listing-location">📍 {{ listing.location?.city || 'Unknown' }}</p>
             </div>
           </a>
         }
@@ -140,7 +154,7 @@
       </a>
     </div>
     @if (loadingNearby()) {
-      <div class="masonry-grid">
+      <div class="carousel-scroll">
         @for (i of [1,2,3,4,5,6]; track i) {
           <div class="listing-card-skeleton">
             <div class="skeleton img-skeleton"></div>
@@ -151,10 +165,10 @@
         }
       </div>
     } @else {
-      <div class="masonry-grid" role="list">
+      <div class="carousel-scroll" role="list">
         @for (listing of nearbyListings(); track listing._id) {
           <a
-            class="listing-card masonry-item"
+            class="listing-card"
             [routerLink]="['/listings', listing._id]"
             role="listitem"
           >
@@ -166,9 +180,9 @@
               />
             </div>
             <div class="listing-info">
+              <p class="listing-price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
               <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
-              <p class="listing-price price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
-              <p class="listing-location"><span class="mat-icon" style="font-size:14px;vertical-align:middle;">location_on</span> {{ listing.location?.city || 'Unknown' }}, {{ listing.location?.area || '' }}</p>
+              <p class="listing-location">📍 {{ listing.location?.city || 'Unknown' }}, {{ listing.location?.area || '' }}</p>
             </div>
           </a>
         }

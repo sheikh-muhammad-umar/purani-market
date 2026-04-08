@@ -2,7 +2,7 @@ import { CategoriesService } from './categories.service.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
 import { UpdateAttributesDto } from './dto/update-attributes.dto.js';
-import { UpdateFiltersDto } from './dto/update-filters.dto.js';
+import { UpdateFeaturesDto } from './dto/update-features.dto.js';
 export declare class CategoriesController {
     private readonly categoriesService;
     constructor(categoriesService: CategoriesService);
@@ -13,6 +13,10 @@ export declare class CategoriesController {
         __v: number;
     } & {
         id: string;
+    }>;
+    getInheritedAttributes(id: string): Promise<{
+        attributes: import("./schemas/category.schema.js").CategoryAttribute[];
+        features: string[];
     }>;
     createCategory(dto: CreateCategoryDto): Promise<import("mongoose").Document<unknown, {}, import("./schemas/category.schema.js").Category, {}, import("mongoose").DefaultSchemaOptions> & import("./schemas/category.schema.js").Category & Required<{
         _id: import("mongoose").Types.ObjectId;
@@ -36,7 +40,7 @@ export declare class CategoriesController {
     } & {
         id: string;
     }>;
-    updateFilters(id: string, dto: UpdateFiltersDto): Promise<import("mongoose").Document<unknown, {}, import("./schemas/category.schema.js").Category, {}, import("mongoose").DefaultSchemaOptions> & import("./schemas/category.schema.js").Category & Required<{
+    updateFeatures(id: string, dto: UpdateFeaturesDto): Promise<import("mongoose").Document<unknown, {}, import("./schemas/category.schema.js").Category, {}, import("mongoose").DefaultSchemaOptions> & import("./schemas/category.schema.js").Category & Required<{
         _id: import("mongoose").Types.ObjectId;
     }> & {
         __v: number;

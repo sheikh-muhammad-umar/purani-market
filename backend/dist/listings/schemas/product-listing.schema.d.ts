@@ -28,8 +28,8 @@ export declare class ListingVideo {
     thumbnailUrl?: string;
 }
 export declare class ListingLocation {
-    type: string;
-    coordinates: number[];
+    type?: string;
+    coordinates?: number[];
     city?: string;
     area?: string;
 }
@@ -47,6 +47,7 @@ export declare class ProductListing {
     categoryPath: Types.ObjectId[];
     condition: ListingCondition;
     categoryAttributes: Map<string, any>;
+    selectedFeatures: string[];
     images: ListingImage[];
     video?: ListingVideo;
     location?: ListingLocation;
@@ -153,6 +154,15 @@ export declare const ProductListingSchema: MongooseSchema<ProductListing, import
         id: string;
     }> | undefined;
     categoryAttributes?: import("mongoose").SchemaDefinitionProperty<Map<string, any>, ProductListing, import("mongoose").Document<unknown, {}, ProductListing, {
+        id: string;
+    }, import("mongoose").DefaultSchemaOptions> & Omit<ProductListing & Required<{
+        _id: Types.ObjectId;
+    }> & {
+        __v: number;
+    }, "id"> & {
+        id: string;
+    }> | undefined;
+    selectedFeatures?: import("mongoose").SchemaDefinitionProperty<string[], ProductListing, import("mongoose").Document<unknown, {}, ProductListing, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<ProductListing & Required<{
         _id: Types.ObjectId;

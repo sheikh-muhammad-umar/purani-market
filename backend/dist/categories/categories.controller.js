@@ -21,7 +21,7 @@ const roles_decorator_js_1 = require("../common/decorators/roles.decorator.js");
 const create_category_dto_js_1 = require("./dto/create-category.dto.js");
 const update_category_dto_js_1 = require("./dto/update-category.dto.js");
 const update_attributes_dto_js_1 = require("./dto/update-attributes.dto.js");
-const update_filters_dto_js_1 = require("./dto/update-filters.dto.js");
+const update_features_dto_js_1 = require("./dto/update-features.dto.js");
 let CategoriesController = class CategoriesController {
     categoriesService;
     constructor(categoriesService) {
@@ -32,6 +32,12 @@ let CategoriesController = class CategoriesController {
     }
     async getCategoryById(id) {
         return this.categoriesService.findById(id);
+    }
+    async getInheritedAttributes(id) {
+        return {
+            attributes: await this.categoriesService.getInheritedAttributes(id),
+            features: await this.categoriesService.getInheritedFeatures(id),
+        };
     }
     async createCategory(dto) {
         return this.categoriesService.create(dto);
@@ -45,8 +51,8 @@ let CategoriesController = class CategoriesController {
     async updateAttributes(id, dto) {
         return this.categoriesService.updateAttributes(id, dto.attributes);
     }
-    async updateFilters(id, dto) {
-        return this.categoriesService.updateFilters(id, dto.filters);
+    async updateFeatures(id, dto) {
+        return this.categoriesService.updateFeatures(id, dto.features);
     }
 };
 exports.CategoriesController = CategoriesController;
@@ -63,6 +69,13 @@ __decorate([
     __metadata("design:paramtypes", [String]),
     __metadata("design:returntype", Promise)
 ], CategoriesController.prototype, "getCategoryById", null);
+__decorate([
+    (0, common_1.Get)(':id/inherited-attributes'),
+    __param(0, (0, common_1.Param)('id')),
+    __metadata("design:type", Function),
+    __metadata("design:paramtypes", [String]),
+    __metadata("design:returntype", Promise)
+], CategoriesController.prototype, "getInheritedAttributes", null);
 __decorate([
     (0, common_1.Post)(),
     (0, common_1.UseGuards)(jwt_auth_guard_js_1.JwtAuthGuard, roles_guard_js_1.RolesGuard),
@@ -103,15 +116,15 @@ __decorate([
     __metadata("design:returntype", Promise)
 ], CategoriesController.prototype, "updateAttributes", null);
 __decorate([
-    (0, common_1.Patch)(':id/filters'),
+    (0, common_1.Patch)(':id/features'),
     (0, common_1.UseGuards)(jwt_auth_guard_js_1.JwtAuthGuard, roles_guard_js_1.RolesGuard),
     (0, roles_decorator_js_1.Roles)('admin'),
     __param(0, (0, common_1.Param)('id')),
     __param(1, (0, common_1.Body)()),
     __metadata("design:type", Function),
-    __metadata("design:paramtypes", [String, update_filters_dto_js_1.UpdateFiltersDto]),
+    __metadata("design:paramtypes", [String, update_features_dto_js_1.UpdateFeaturesDto]),
     __metadata("design:returntype", Promise)
-], CategoriesController.prototype, "updateFilters", null);
+], CategoriesController.prototype, "updateFeatures", null);
 exports.CategoriesController = CategoriesController = __decorate([
     (0, common_1.Controller)('api/categories'),
     __metadata("design:paramtypes", [categories_service_js_1.CategoriesService])

@@ -11,7 +11,7 @@ import {
   ProductListing,
   ProductListingDocument,
 } from './schemas/product-listing.schema.js';
-import { StorageService } from './storage.service.js';
+import { StorageService, UploadResult } from './storage.service.js';
 import { MediaType } from './dto/upload-media.dto.js';
 
 export const ALLOWED_IMAGE_MIMETYPES = [
@@ -20,12 +20,10 @@ export const ALLOWED_IMAGE_MIMETYPES = [
   'image/webp',
 ];
 export const ALLOWED_VIDEO_MIMETYPES = ['video/mp4'];
-export const MAX_IMAGE_SIZE = 5 * 1024 * 1024; // 5MB
-export const MAX_VIDEO_SIZE = 50 * 1024 * 1024; // 50MB
+export const MAX_IMAGE_SIZE = 5 * 1024 * 1024;
+export const MAX_VIDEO_SIZE = 50 * 1024 * 1024;
 export const MAX_IMAGES_PER_LISTING = 20;
 export const MAX_VIDEOS_PER_LISTING = 1;
-export const THUMBNAIL_WIDTH = 300;
-export const THUMBNAIL_HEIGHT = 300;
 
 export interface MediaUploadResult {
   url: string;
@@ -53,7 +51,6 @@ export class MediaService {
     this.verifyOwnership(listing, sellerId);
     this.validateFile(file, type);
     this.validateMediaLimits(listing, type);
-
     if (type === MediaType.IMAGE) {
       return this.processImageUpload(listing, file, sortOrder);
     }
@@ -64,60 +61,113 @@ export class MediaService {
     if (!file) {
       throw new BadRequestException('No file provided');
     }
-
     if (type === MediaType.IMAGE) {
       if (!ALLOWED_IMAGE_MIMETYPES.includes(file.mimetype)) {
         throw new BadRequestException(
-          `Invalid image format. Allowed formats: JPEG, PNG, WebP`,
+          'Invalid image format. Allowed: JPEG, PNG, WebP',
         );
       }
       if (file.size > MAX_IMAGE_SIZE) {
-        throw new BadRequestException(
-          `Image size exceeds maximum of 5MB`,
-        );
+        throw new BadRequestException('Image size exceeds 5MB');
       }
     } else if (type === MediaType.VIDEO) {
       if (!ALLOWED_VIDEO_MIMETYPES.includes(file.mimetype)) {
-        throw new BadRequestException(
-          `Invalid video format. Allowed format: MP4`,
-        );
+        throw new BadRequestException('Invalid video format. Allowed: MP4');
       }
       if (file.size > MAX_VIDEO_SIZE) {
-        throw new BadRequestException(
-          `Video size exceeds maximum of 50MB`,
-        );
+        throw new BadRequestException('Video size exceeds 50MB');
       }
     }
   }
 
-  validateMediaLimits(listing: ProductListingDocument, type: MediaType): void {
-    if (type === MediaType.IMAGE) {
-      if (listing.images.length >= MAX_IMAGES_PER_LISTING) {
-        throw new BadRequestException(
-          `Maximum of ${MAX_IMAGES_PER_LISTING} images per listing exceeded`,
-        );
-      }
-    } else if (type === MediaType.VIDEO) {
-      if (listing.video) {
-        throw new BadRequestException(
-          `Maximum of ${MAX_VIDEOS_PER_LISTING} video per listing exceeded`,
-        );
-      }
+  validateMediaLimits(
+    listing: ProductListingDocument,
+    type: MediaType,
+  ): void {
+    if (
+      type === MediaType.IMAGE &&
+      listing.images.length >= MAX_IMAGES_PER_LISTING
+    ) {
+      throw new BadRequestException(
+        `Maximum ${MAX_IMAGES_PER_LISTING} images exceeded`,
+      );
+    }
+    if (type === MediaType.VIDEO && listing.video) {
+      throw new BadRequestException(
+        `Maximum ${MAX_VIDEOS_PER_LISTING} video exceeded`,
+      );
     }
   }
 
-  async compressImage(buffer: Buffer): Promise<Buffer> {
-    return sharp(buffer)
+  private async processImageUpload(
+    listing: ProductListingDocument,
+    file: Express.Multer.File,
+    sortOrder?: number,
+  ): Promise<MediaUploadResult> {
+    const compressed = await sharp(file.buffer)
       .resize(1920, 1080, { fit: 'inside', withoutEnlargement: true })
       .jpeg({ quality: 80 })
       .toBuffer();
-  }
 
-  async generateThumbnail(buffer: Buffer): Promise<Buffer> {
-    return sharp(buffer)
-      .resize(THUMBNAIL_WIDTH, THUMBNAIL_HEIGHT, { fit: 'cover' })
+    const thumbnail = await sharp(file.buffer)
+      .resize(300, 300, { fit: 'cover' })
       .jpeg({ quality: 70 })
       .toBuffer();
+
+    const folder = `listings/${listing._id.toString()}`;
+    const safeName = file.originalname.replace(/\.[^.]+$/, '.jpg');
+
+    const imgResult = await this.storageService.saveFile(
+      `${folder}/images`,
+      safeName,
+      compressed,
+    );
+    const thumbResult = await this.storageService.saveFile(
+      `${folder}/thumbs`,
+      `thumb-${safeName}`,
+      thumbnail,
+    );
+
+    const order = sortOrder ?? listing.images.length;
+
+    await this.listingModel.updateOne(
+      { _id: listing._id },
+      {
+        $push: {
+          images: {
+            url: imgResult.fileUrl,
+            thumbnailUrl: thumbResult.fileUrl,
+            sortOrder: order,
+          },
+        },
+      },
+    );
+
+    return {
+      url: imgResult.fileUrl,
+      thumbnailUrl: thumbResult.fileUrl,
+      type: MediaType.IMAGE,
+      sortOrder: order,
+    };
+  }
+
+  private async processVideoUpload(
+    listing: ProductListingDocument,
+    file: Express.Multer.File,
+  ): Promise<MediaUploadResult> {
+    const folder = `listings/${listing._id.toString()}`;
+    const result = await this.storageService.saveFile(
+      `${folder}/videos`,
+      file.originalname,
+      file.buffer,
+    );
+
+    await this.listingModel.updateOne(
+      { _id: listing._id },
+      { $set: { video: { url: result.fileUrl } } },
+    );
+
+    return { url: result.fileUrl, type: MediaType.VIDEO };
   }
 
   private async getListingOrThrow(
@@ -139,78 +189,8 @@ export class MediaService {
   ): void {
     if (listing.sellerId.toString() !== sellerId) {
       throw new ForbiddenException(
-        'You do not have permission to upload media to this listing',
+        'Not authorized to upload to this listing',
       );
     }
-  }
-
-  private async processImageUpload(
-    listing: ProductListingDocument,
-    file: Express.Multer.File,
-    sortOrder?: number,
-  ): Promise<MediaUploadResult> {
-    const compressed = await this.compressImage(file.buffer);
-    const thumbnail = await this.generateThumbnail(file.buffer);
-
-    const imageUpload = await this.storageService.generatePresignedUploadUrl(
-      `listings/${listing._id}/images`,
-      file.originalname,
-      'image/jpeg',
-    );
-
-    const thumbUpload = await this.storageService.generatePresignedUploadUrl(
-      `listings/${listing._id}/thumbnails`,
-      `thumb-${file.originalname}`,
-      'image/jpeg',
-    );
-
-    const order = sortOrder ?? listing.images.length;
-
-    await this.listingModel.updateOne(
-      { _id: listing._id },
-      {
-        $push: {
-          images: {
-            url: imageUpload.fileUrl,
-            thumbnailUrl: thumbUpload.fileUrl,
-            sortOrder: order,
-          },
-        },
-      },
-    );
-
-    return {
-      url: imageUpload.fileUrl,
-      thumbnailUrl: thumbUpload.fileUrl,
-      type: MediaType.IMAGE,
-      sortOrder: order,
-    };
-  }
-
-  private async processVideoUpload(
-    listing: ProductListingDocument,
-    file: Express.Multer.File,
-  ): Promise<MediaUploadResult> {
-    const videoUpload = await this.storageService.generatePresignedUploadUrl(
-      `listings/${listing._id}/videos`,
-      file.originalname,
-      'video/mp4',
-    );
-
-    await this.listingModel.updateOne(
-      { _id: listing._id },
-      {
-        $set: {
-          video: {
-            url: videoUpload.fileUrl,
-          },
-        },
-      },
-    );
-
-    return {
-      url: videoUpload.fileUrl,
-      type: MediaType.VIDEO,
-    };
   }
 }

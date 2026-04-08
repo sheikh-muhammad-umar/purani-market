@@ -10,9 +10,8 @@ import {
   Category,
   CategoryAttribute,
   CategoryAttributeType,
-  CategoryFilter,
-  CategoryFilterType,
 } from '../../../core/models';
+import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
 
 interface TreeNode {
   category: Category;
@@ -23,7 +22,7 @@ interface TreeNode {
 @Component({
   selector: 'app-category-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomSelectComponent],
   templateUrl: './category-manager.component.html',
   styleUrls: ['./category-manager.component.scss'],
 })
@@ -36,7 +35,7 @@ export class CategoryManagerComponent implements OnInit {
   readonly selectedCategory = signal<Category | null>(null);
 
   // Panel state
-  activePanel: 'none' | 'add' | 'edit' | 'attributes' | 'filters' = 'none';
+  activePanel: 'none' | 'add' | 'edit' | 'attributes' | 'features' = 'none';
 
   // Add/Edit form
   formName = '';
@@ -46,25 +45,38 @@ export class CategoryManagerComponent implements OnInit {
 
   // Attribute editing
   editingAttributes: CategoryAttribute[] = [];
-  readonly attributeTypes: CategoryAttributeType[] = ['text', 'number', 'select', 'multiselect', 'boolean'];
+  readonly attributeTypes: CategoryAttributeType[] = ['text', 'number', 'select', 'multiselect', 'boolean', 'range'];
+  readonly attributeTypeOptions: SelectOption[] = [
+    { value: 'text', label: 'Text' },
+    { value: 'number', label: 'Number' },
+    { value: 'select', label: 'Select' },
+    { value: 'multiselect', label: 'Multiselect' },
+    { value: 'boolean', label: 'Boolean' },
+    { value: 'range', label: 'Range' },
+  ];
 
-  // Filter editing
-  editingFilters: CategoryFilter[] = [];
-  readonly filterTypes: CategoryFilterType[] = ['range', 'select', 'multiselect', 'boolean'];
+  // Features editing
+  editingFeatures: string[] = [];
+  newFeature = '';
 
   readonly possibleParents = computed(() => {
     const cats = this.flatCategories();
     const sel = this.selectedCategory();
     if (this.activePanel === 'add') {
-      // Can add under root (level 1) or under level 1/2 parents
       return cats.filter(c => c.level < 3);
     }
     if (this.activePanel === 'edit' && sel) {
-      // Can't parent under self or own descendants
       const descendants = this.getDescendantIds(sel._id, cats);
       return cats.filter(c => c._id !== sel._id && !descendants.has(c._id) && c.level < 3);
     }
     return [];
+  });
+
+  readonly parentOptions = computed<SelectOption[]>(() => {
+    return [
+      { value: '', label: 'None (Root)' },
+      ...this.possibleParents().map(p => ({ value: p._id, label: `${p.name} (Level ${p.level})` })),
+    ];
   });
 
   constructor(readonly categoriesService: CategoriesService) {}
@@ -320,52 +332,32 @@ export class CategoryManagerComponent implements OnInit {
     });
   }
 
-  // --- FILTERS ---
-  openFilters(cat: Category): void {
+  // --- FEATURES ---
+  openFeatures(cat: Category): void {
     this.selectedCategory.set(cat);
-    this.editingFilters = cat.filters
-      ? cat.filters.map(f => ({ ...f, options: f.options ? [...f.options] : [] }))
-      : [];
-    this.activePanel = 'filters';
+    this.editingFeatures = cat.features ? [...cat.features] : [];
+    this.newFeature = '';
+    this.activePanel = 'features';
   }
 
-  addFilter(): void {
-    this.editingFilters.push({
-      name: '',
-      key: '',
-      type: 'select',
-      options: [],
-    });
+  addFeature(): void {
+    const f = this.newFeature.trim();
+    if (f && !this.editingFeatures.includes(f)) {
+      this.editingFeatures.push(f);
+      this.newFeature = '';
+    }
   }
 
-  removeFilter(index: number): void {
-    this.editingFilters.splice(index, 1);
+  removeFeature(index: number): void {
+    this.editingFeatures.splice(index, 1);
   }
 
-  generateFilterKey(filter: CategoryFilter): void {
-    filter.key = filter.name
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, '_')
-      .replace(/^_|_$/g, '');
-  }
-
-  addFilterOption(filter: CategoryFilter): void {
-    if (!filter.options) filter.options = [];
-    filter.options.push('');
-  }
-
-  removeFilterOption(filter: CategoryFilter, idx: number): void {
-    filter.options?.splice(idx, 1);
-  }
-
-  saveFilters(): void {
+  saveFeatures(): void {
     const sel = this.selectedCategory();
     if (!sel) return;
-    const valid = this.editingFilters.every(f => f.name.trim() && f.key.trim());
-    if (!valid) return;
 
     this.saving.set(true);
-    this.categoriesService.updateFilters(sel._id, this.editingFilters).subscribe({
+    this.categoriesService.updateFeatures(sel._id, this.editingFeatures).subscribe({
       next: () => {
         this.saving.set(false);
         this.activePanel = 'none';
@@ -373,7 +365,7 @@ export class CategoryManagerComponent implements OnInit {
       },
       error: () => {
         this.saving.set(false);
-        this.error.set('Failed to update filters.');
+        this.error.set('Failed to update features.');
       },
     });
   }

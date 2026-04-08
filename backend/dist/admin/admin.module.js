@@ -16,6 +16,7 @@ const auth_module_js_1 = require("../auth/auth.module.js");
 const listings_module_js_1 = require("../listings/listings.module.js");
 const messaging_module_js_1 = require("../messaging/messaging.module.js");
 const notifications_module_js_1 = require("../notifications/notifications.module.js");
+const categories_module_js_1 = require("../categories/categories.module.js");
 const review_schema_js_1 = require("../reviews/schemas/review.schema.js");
 const package_purchase_schema_js_1 = require("../packages/schemas/package-purchase.schema.js");
 let AdminModule = class AdminModule {
@@ -29,6 +30,7 @@ exports.AdminModule = AdminModule = __decorate([
             listings_module_js_1.ListingsModule,
             messaging_module_js_1.MessagingModule,
             notifications_module_js_1.NotificationsModule,
+            categories_module_js_1.CategoriesModule,
             mongoose_1.MongooseModule.forFeature([
                 { name: review_schema_js_1.Review.name, schema: review_schema_js_1.ReviewSchema },
                 { name: package_purchase_schema_js_1.PackagePurchase.name, schema: package_purchase_schema_js_1.PackagePurchaseSchema },

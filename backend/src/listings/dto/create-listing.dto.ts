@@ -8,8 +8,8 @@ import {
   IsArray,
   ValidateNested,
   IsOptional,
-  ArrayMinSize,
   IsObject,
+  IsBoolean,
   Min,
 } from 'class-validator';
 import { Type } from 'class-transformer';
@@ -52,9 +52,9 @@ export class CreateListingVideoDto {
 
 export class CreateListingLocationDto {
   @IsArray()
-  @ArrayMinSize(2)
   @IsNumber({}, { each: true })
-  coordinates!: number[];
+  @IsOptional()
+  coordinates?: number[];
 
   @IsString()
   @IsOptional()
@@ -94,12 +94,22 @@ export class CreateListingDto {
   @IsNotEmpty()
   categoryId!: string;
 
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  categoryPath?: string[];
+
   @IsEnum(ListingCondition)
   condition!: ListingCondition;
 
   @IsObject()
   @IsOptional()
   categoryAttributes?: Record<string, any>;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  selectedFeatures?: string[];
 
   @IsArray()
   @ValidateNested({ each: true })
@@ -120,4 +130,7 @@ export class CreateListingDto {
   @Type(() => CreateListingContactInfoDto)
   @IsOptional()
   contactInfo?: CreateListingContactInfoDto;
+
+  @IsOptional()
+  isFeatured?: boolean;
 }

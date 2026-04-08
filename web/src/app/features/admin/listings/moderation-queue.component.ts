@@ -22,8 +22,18 @@ export class ModerationQueueComponent implements OnInit {
 
   rejectionReasons: Record<string, string> = {};
   rejectingId: string | null = null;
+  expandedId: string | null = null;
+
+  // Sorting
+  sortCol = '';
+  sortDir: 'asc' | 'desc' = 'asc';
+  searchQuery = '';
 
   constructor(private readonly adminService: AdminService) {}
+
+  toggleExpand(id: string): void {
+    this.expandedId = this.expandedId === id ? null : id;
+  }
 
   ngOnInit(): void {
     this.loadPendingListings();
@@ -33,12 +43,14 @@ export class ModerationQueueComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     this.adminService.getPendingListings().subscribe({
-      next: (res) => {
-        const sorted = [...res.listings].sort(
-          (a, b) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+      next: (res: any) => {
+        const data = (res && res.data && res.statusCode) ? res.data : res;
+        const listings = data.listings ?? data.data ?? [];
+        const sorted = [...listings].sort(
+          (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
         );
         this.listings.set(sorted);
-        this.totalListings.set(res.total);
+        this.totalListings.set(data.total ?? sorted.length);
         this.loading.set(false);
       },
       error: () => {
@@ -103,5 +115,45 @@ export class ModerationQueueComponent implements OnInit {
   formatPrice(listing: PendingListing): string {
     if (!listing.price) return '—';
     return `${listing.price.currency} ${listing.price.amount.toLocaleString()}`;
+  }
+
+  objectKeys(obj: any): string[] {
+    if (!obj || typeof obj !== 'object') return [];
+    return Object.keys(obj).filter(k => obj[k] !== '' && obj[k] !== null && obj[k] !== undefined);
+  }
+
+  formatAttrKey(key: string): string {
+    return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
+  sortListings(col: string): void {
+    if (this.sortCol === col) {
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortCol = col;
+      this.sortDir = 'asc';
+    }
+    const dir = this.sortDir === 'asc' ? 1 : -1;
+    this.listings.update(list => [...list].sort((a: any, b: any) => {
+      let va = col === 'price' ? a.price?.amount : a[col];
+      let vb = col === 'price' ? b.price?.amount : b[col];
+      if (typeof va === 'string') return (va || '').localeCompare(vb || '') * dir;
+      return ((va ?? 0) - (vb ?? 0)) * dir;
+    }));
+  }
+
+  sortIcon(col: string): string {
+    if (col !== this.sortCol) return 'unfold_more';
+    return this.sortDir === 'asc' ? 'expand_less' : 'expand_more';
+  }
+
+  get filteredListings(): PendingListing[] {
+    const q = this.searchQuery.toLowerCase().trim();
+    if (!q) return this.listings();
+    return this.listings().filter(l =>
+      l.title.toLowerCase().includes(q) ||
+      l.sellerEmail?.toLowerCase().includes(q) ||
+      l.sellerName?.toLowerCase().includes(q)
+    );
   }
 }

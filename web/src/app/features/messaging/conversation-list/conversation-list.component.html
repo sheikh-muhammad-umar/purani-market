@@ -3,6 +3,13 @@
     <h1>Messages</h1>
   </div>
 
+  <div class="search-conversations">
+    <div class="search-input-wrap">
+      <span class="material-symbols-rounded">search</span>
+      <input type="text" placeholder="Search messages..." />
+    </div>
+  </div>
+
   @if (loading()) {
     <div class="loading-state">
       @for (i of [1, 2, 3, 4, 5]; track i) {

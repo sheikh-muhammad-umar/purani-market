@@ -1,0 +1,213 @@
+.messaging-split {
+  display: flex;
+  height: calc(100vh - var(--header-height));
+  max-width: 1100px;
+  margin: 0 auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+}
+
+/* Sidebar */
+.msg-sidebar {
+  width: 360px;
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  border-right: 1px solid var(--border);
+  background: var(--surface);
+}
+
+.msg-sidebar-header {
+  padding: var(--space-2) var(--space-2);
+  border-bottom: 1px solid var(--border);
+
+  h2 { font-size: var(--text-lg); font-weight: 700; margin: 0; }
+}
+
+.msg-search {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: var(--space-1) var(--space-2);
+  padding: 8px 12px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 100px;
+
+  .material-symbols-rounded { font-size: 18px; color: var(--text-muted); }
+
+  input {
+    flex: 1;
+    border: none;
+    outline: none;
+    background: transparent;
+    font-size: 13px;
+    font-family: inherit;
+    color: var(--text-primary);
+    &::placeholder { color: var(--text-muted); }
+  }
+}
+
+.msg-list {
+  flex: 1;
+  overflow-y: auto;
+}
+
+.msg-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px var(--space-2);
+  width: 100%;
+  border: none;
+  background: none;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s;
+  border-left: 3px solid transparent;
+  position: relative;
+
+  &:hover { background: var(--background); }
+  &.active { background: rgba(13, 165, 195, 0.06); border-left-color: var(--primary); }
+  &.unread { .msg-item-name { font-weight: 700; } .msg-item-preview { font-weight: 600; color: var(--text-primary); } }
+}
+
+.msg-avatar {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background: var(--background);
+}
+
+.msg-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.msg-item-top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.msg-item-name {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  max-width: 180px;
+}
+
+.msg-item-time {
+  font-size: 11px;
+  color: var(--text-muted);
+  flex-shrink: 0;
+}
+
+.msg-item-price {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--primary);
+}
+
+.msg-item-preview {
+  font-size: 13px;
+  color: var(--text-secondary);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msg-unread-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--primary);
+  flex-shrink: 0;
+}
+
+.msg-item-skeleton {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px var(--space-2);
+}
+
+.msg-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-6);
+  gap: var(--space-1);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+}
+
+/* Chat Area */
+.msg-chat-area {
+  flex: 1;
+  display: flex;
+  min-width: 0;
+}
+
+.msg-no-chat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--space-1);
+  color: var(--text-muted);
+
+  h3 { font-size: var(--text-lg); color: var(--text-secondary); }
+  p { font-size: var(--text-sm); }
+}
+
+/* Make chat window fill the area */
+:host ::ng-deep app-chat-window {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+}
+
+:host ::ng-deep .chat-window {
+  max-width: none;
+  height: 100%;
+  border-left: none;
+  flex: 1;
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .messaging-split {
+    height: calc(100vh - 56px - 60px);
+    border: none;
+    border-radius: 0;
+  }
+
+  .msg-sidebar {
+    width: 100%;
+    border-right: none;
+  }
+
+  .msg-chat-area {
+    width: 100%;
+  }
+
+  .hidden-mobile {
+    display: none !important;
+  }
+
+  :host ::ng-deep .chat-window {
+    height: calc(100vh - 56px - 60px);
+  }
+}

@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
@@ -10,11 +10,12 @@ import {
 import { CategoriesService } from '../../../core/services/categories.service';
 import { AdPackage, PackagePurchase, PackageType, PaymentStatus, CategoryPricing } from '../../../core/models';
 import { Category } from '../../../core/models/category.model';
+import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-package-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomSelectComponent],
   templateUrl: './package-manager.component.html',
   styleUrls: ['./package-manager.component.scss'],
 })
@@ -27,9 +28,19 @@ export class PackageManagerComponent implements OnInit {
   readonly purchasesTotal = signal(0);
   readonly categories = signal<Category[]>([]);
 
+  // Sorting
+  pkgSortCol = '';
+  pkgSortDir: 'asc' | 'desc' = 'asc';
+
+  readonly categoryOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'Select category' },
+    ...this.categories().map(c => ({ value: c._id, label: c.name })),
+  ]);
+
   activeTab: 'packages' | 'purchases' = 'packages';
   activePanel: 'none' | 'create' | 'edit' = 'none';
   editingPackage: AdPackage | null = null;
+  expandedPackageIds = new Set<string>();
 
   // Form fields
   formName = '';
@@ -38,7 +49,8 @@ export class PackageManagerComponent implements OnInit {
   formQuantity = 5;
   formDefaultPrice = 500;
   formIsActive = true;
-  formCategoryPricing: { categoryId: string; price: number }[] = [];
+  formCategoryPricing: { categoryIds: string[]; price: number }[] = [];
+  pricingCatSearch: string[] = [];
 
   // Purchase filters
   purchaseFilterStartDate = '';
@@ -46,6 +58,31 @@ export class PackageManagerComponent implements OnInit {
   purchaseFilterSellerId = '';
   purchaseFilterType: PackageType | '' = '';
   purchaseFilterStatus: PaymentStatus | '' = '';
+
+  readonly typeOptions: SelectOption[] = [
+    { value: 'featured_ads', label: 'Featured Ads' },
+    { value: 'ad_slots', label: 'Ad Slots' },
+  ];
+
+  readonly durationOptions: SelectOption[] = [
+    { value: 7, label: '7 days' },
+    { value: 15, label: '15 days' },
+    { value: 30, label: '30 days' },
+  ];
+
+  readonly purchaseTypeOptions: SelectOption[] = [
+    { value: '', label: 'All' },
+    { value: 'featured_ads', label: 'Featured Ads' },
+    { value: 'ad_slots', label: 'Ad Slots' },
+  ];
+
+  readonly purchaseStatusOptions: SelectOption[] = [
+    { value: '', label: 'All' },
+    { value: 'pending', label: 'Pending' },
+    { value: 'completed', label: 'Completed' },
+    { value: 'failed', label: 'Failed' },
+    { value: 'refunded', label: 'Refunded' },
+  ];
   purchasePage = 1;
   readonly purchaseLimit = 10;
 
@@ -63,8 +100,9 @@ export class PackageManagerComponent implements OnInit {
     this.loading.set(true);
     this.error.set(null);
     this.adminService.getAdminPackages().subscribe({
-      next: (res) => {
-        this.packages.set(res.data);
+      next: (res: any) => {
+        const unwrapped = (res && res.data && res.statusCode) ? res.data : res;
+        this.packages.set(unwrapped.data ?? unwrapped ?? []);
         this.loading.set(false);
       },
       error: () => {
@@ -94,9 +132,10 @@ export class PackageManagerComponent implements OnInit {
     if (this.purchaseFilterStatus) params.status = this.purchaseFilterStatus;
 
     this.adminService.getAdminPurchases(params).subscribe({
-      next: (res) => {
-        this.purchases.set(res.data);
-        this.purchasesTotal.set(res.total);
+      next: (res: any) => {
+        const unwrapped = (res && res.data && res.statusCode) ? res.data : res;
+        this.purchases.set(unwrapped.data ?? unwrapped ?? []);
+        this.purchasesTotal.set(unwrapped.total ?? 0);
         this.loading.set(false);
       },
       error: () => {
@@ -130,8 +169,9 @@ export class PackageManagerComponent implements OnInit {
     this.formDefaultPrice = pkg.defaultPrice;
     this.formIsActive = pkg.isActive;
     this.formCategoryPricing = pkg.categoryPricing
-      ? pkg.categoryPricing.map(cp => ({ ...cp }))
+      ? this.groupCategoryPricing(pkg.categoryPricing)
       : [];
+    this.pricingCatSearch = this.formCategoryPricing.map(() => '');
     this.activePanel = 'edit';
   }
 
@@ -151,7 +191,9 @@ export class PackageManagerComponent implements OnInit {
       isActive: this.formIsActive,
     };
     if (this.formCategoryPricing.length > 0) {
-      payload.categoryPricing = this.formCategoryPricing.filter(cp => cp.categoryId && cp.price > 0);
+      payload.categoryPricing = this.formCategoryPricing
+        .flatMap(cp => cp.categoryIds.filter(id => id).map(id => ({ categoryId: id, price: cp.price })))
+        .filter(cp => cp.price > 0);
     }
     this.saving.set(true);
     this.adminService.createPackage(payload).subscribe({
@@ -176,7 +218,9 @@ export class PackageManagerComponent implements OnInit {
       quantity: this.formQuantity,
       defaultPrice: this.formDefaultPrice,
       isActive: this.formIsActive,
-      categoryPricing: this.formCategoryPricing.filter(cp => cp.categoryId && cp.price > 0),
+      categoryPricing: this.formCategoryPricing
+        .flatMap(cp => cp.categoryIds.filter(id => id).map(id => ({ categoryId: id, price: cp.price })))
+        .filter(cp => cp.price > 0),
     };
     this.saving.set(true);
     this.adminService.updatePackage(this.editingPackage._id, payload).subscribe({
@@ -195,15 +239,74 @@ export class PackageManagerComponent implements OnInit {
 
   // --- Category Pricing ---
   addCategoryPrice(): void {
-    this.formCategoryPricing.push({ categoryId: '', price: 0 });
+    this.formCategoryPricing.push({ categoryIds: [], price: 0 });
+    this.pricingCatSearch.push('');
   }
 
   removeCategoryPrice(index: number): void {
     this.formCategoryPricing.splice(index, 1);
+    this.pricingCatSearch.splice(index, 1);
   }
 
-  getCategoryName(id: string): string {
-    return this.categories().find(c => c._id === id)?.name ?? id;
+  togglePricingCategory(row: { categoryIds: string[]; price: number }, catId: string): void {
+    const idx = row.categoryIds.indexOf(catId);
+    if (idx >= 0) {
+      row.categoryIds.splice(idx, 1);
+    } else {
+      row.categoryIds.push(catId);
+    }
+  }
+
+  getCategoryName(catId: string): string {
+    return this.categories().find(c => c._id === catId)?.name ?? catId;
+  }
+
+  togglePackageExpand(pkgId: string): void {
+    if (this.expandedPackageIds.has(pkgId)) {
+      this.expandedPackageIds.delete(pkgId);
+    } else {
+      this.expandedPackageIds.add(pkgId);
+    }
+  }
+
+  isPackageExpanded(pkgId: string): boolean {
+    return this.expandedPackageIds.has(pkgId);
+  }
+
+  getGroupedPricing(pkg: any): { price: number; categories: string[] }[] {
+    if (!pkg.categoryPricing?.length) return [];
+    const groups = new Map<number, string[]>();
+    for (const cp of pkg.categoryPricing) {
+      const existing = groups.get(cp.price);
+      if (existing) {
+        existing.push(cp.categoryId);
+      } else {
+        groups.set(cp.price, [cp.categoryId]);
+      }
+    }
+    return Array.from(groups.entries()).map(([price, cats]) => ({
+      price,
+      categories: cats,
+    }));
+  }
+
+  private groupCategoryPricing(flat: { categoryId: string; price: number }[]): { categoryIds: string[]; price: number }[] {
+    const groups = new Map<number, string[]>();
+    for (const cp of flat) {
+      const existing = groups.get(cp.price);
+      if (existing) {
+        existing.push(cp.categoryId);
+      } else {
+        groups.set(cp.price, [cp.categoryId]);
+      }
+    }
+    return Array.from(groups.entries()).map(([price, categoryIds]) => ({ categoryIds, price }));
+  }
+
+  filteredCategoriesForRow(index: number): Category[] {
+    const q = (this.pricingCatSearch[index] || '').toLowerCase().trim();
+    if (!q) return this.categories();
+    return this.categories().filter(c => c.name.toLowerCase().includes(q));
   }
 
   // --- Purchase Filters ---
@@ -242,6 +345,26 @@ export class PackageManagerComponent implements OnInit {
     return index;
   }
 
+  sortPackages(col: string): void {
+    if (this.pkgSortCol === col) {
+      this.pkgSortDir = this.pkgSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.pkgSortCol = col;
+      this.pkgSortDir = 'asc';
+    }
+    const dir = this.pkgSortDir === 'asc' ? 1 : -1;
+    this.packages.update(pkgs => [...pkgs].sort((a: any, b: any) => {
+      const va = a[col]; const vb = b[col];
+      if (typeof va === 'string') return va.localeCompare(vb) * dir;
+      return ((va ?? 0) - (vb ?? 0)) * dir;
+    }));
+  }
+
+  sortIcon(col: string, currentCol: string, currentDir: string): string {
+    if (col !== currentCol) return 'unfold_more';
+    return currentDir === 'asc' ? 'expand_less' : 'expand_more';
+  }
+
   private resetForm(): void {
     this.editingPackage = null;
     this.formName = '';
@@ -251,5 +374,6 @@ export class PackageManagerComponent implements OnInit {
     this.formDefaultPrice = 500;
     this.formIsActive = true;
     this.formCategoryPricing = [];
+    this.pricingCatSearch = [];
   }
 }

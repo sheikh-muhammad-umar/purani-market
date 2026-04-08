@@ -176,7 +176,7 @@ let SearchService = SearchService_1 = class SearchService {
                 aggs: {
                     title_suggestions: {
                         terms: {
-                            field: 'title',
+                            field: 'title.keyword',
                             size: 10,
                         },
                     },
@@ -292,14 +292,14 @@ let SearchService = SearchService_1 = class SearchService {
         const esFilters = [];
         try {
             const category = await this.categoriesService.findById(categoryId);
-            const filterDefs = category.filters || [];
+            const filterDefs = category.attributes || [];
             for (const filterDef of filterDefs) {
                 const value = filters[filterDef.key];
                 if (value === undefined || value === null)
                     continue;
                 const attrPath = `categoryAttributes.${filterDef.key}`;
                 switch (filterDef.type) {
-                    case category_schema_js_1.FilterType.RANGE: {
+                    case category_schema_js_1.AttributeType.RANGE: {
                         const rangeClause = {};
                         if (typeof value === 'object' && value !== null) {
                             if (value.min !== undefined)
@@ -312,18 +312,37 @@ let SearchService = SearchService_1 = class SearchService {
                         }
                         break;
                     }
-                    case category_schema_js_1.FilterType.SELECT: {
+                    case category_schema_js_1.AttributeType.SELECT: {
                         esFilters.push({ term: { [attrPath]: value } });
                         break;
                     }
-                    case category_schema_js_1.FilterType.MULTISELECT: {
-                        const values = Array.isArray(value) ? value : [value];
-                        esFilters.push({ terms: { [attrPath]: values } });
+                    case category_schema_js_1.AttributeType.MULTISELECT: {
+                        esFilters.push({ terms: { [attrPath]: Array.isArray(value) ? value : [value] } });
                         break;
                     }
-                    case category_schema_js_1.FilterType.BOOLEAN: {
+                    case category_schema_js_1.AttributeType.BOOLEAN: {
                         const boolVal = value === true || value === 'true' || value === 1;
                         esFilters.push({ term: { [attrPath]: boolVal } });
+                        break;
+                    }
+                    case category_schema_js_1.AttributeType.NUMBER: {
+                        if (typeof value === 'object' && value !== null) {
+                            const rangeClause = {};
+                            if (value.min !== undefined)
+                                rangeClause.gte = value.min;
+                            if (value.max !== undefined)
+                                rangeClause.lte = value.max;
+                            if (Object.keys(rangeClause).length > 0) {
+                                esFilters.push({ range: { [attrPath]: rangeClause } });
+                            }
+                        }
+                        else {
+                            esFilters.push({ term: { [attrPath]: value } });
+                        }
+                        break;
+                    }
+                    case category_schema_js_1.AttributeType.TEXT: {
+                        esFilters.push({ match: { [attrPath]: value } });
                         break;
                     }
                 }

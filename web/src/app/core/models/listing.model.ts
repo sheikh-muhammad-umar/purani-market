@@ -41,6 +41,7 @@ export interface Listing {
   categoryPath: string[];
   condition: ListingCondition;
   categoryAttributes: Record<string, unknown>;
+  selectedFeatures: string[];
   images: ListingImage[];
   video?: ListingVideo;
   location: ListingLocation;

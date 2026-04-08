@@ -32,7 +32,9 @@ export const jwtInterceptor: HttpInterceptorFn = (req, next) => {
             return next(cloned);
           }),
           catchError((refreshError) => {
-            authService.logout();
+            // Don't auto-logout or redirect — just clear the session silently.
+            // User stays on the page and will be prompted to login on next protected action.
+            authService.clearTokens();
             return throwError(() => refreshError);
           })
         );

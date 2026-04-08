@@ -7,11 +7,12 @@ import {
   GetUsersParams,
 } from '../../../core/services/admin.service';
 import { UserRole, UserStatus } from '../../../core/models/user.model';
+import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomSelectComponent],
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.scss'],
 })
@@ -27,6 +28,27 @@ export class UserManagementComponent implements OnInit {
   searchQuery = '';
   roleFilter: UserRole | '' = '';
   statusFilter: UserStatus | '' = '';
+
+  // Sorting
+  sortCol = '';
+  sortDir: 'asc' | 'desc' = 'asc';
+
+  readonly roleOptions: SelectOption[] = [
+    { value: '', label: 'All Roles' },
+    { value: 'admin', label: 'Admin' },
+    { value: 'user', label: 'User' },
+  ];
+
+  readonly statusOptions: SelectOption[] = [
+    { value: '', label: 'All Status' },
+    { value: 'active', label: 'Active' },
+    { value: 'suspended', label: 'Suspended' },
+  ];
+
+  readonly roleChangeOptions: SelectOption[] = [
+    { value: 'admin', label: 'Admin' },
+    { value: 'user', label: 'User' },
+  ];
 
   readonly totalPages = computed(() =>
     Math.max(1, Math.ceil(this.totalUsers() / this.pageSize()))
@@ -62,9 +84,10 @@ export class UserManagementComponent implements OnInit {
     if (this.statusFilter) params.status = this.statusFilter;
 
     this.adminService.getUsers(params).subscribe({
-      next: (res) => {
-        this.users.set(res.users);
-        this.totalUsers.set(res.total);
+      next: (res: any) => {
+        const users = Array.isArray(res) ? res : (res.users ?? res.data ?? []);
+        this.users.set(users);
+        this.totalUsers.set(res.total ?? users.length);
         this.loading.set(false);
       },
       error: () => {
@@ -150,5 +173,25 @@ export class UserManagementComponent implements OnInit {
   formatDate(dateStr?: string): string {
     if (!dateStr) return '—';
     return new Date(dateStr).toLocaleDateString();
+  }
+
+  sortUsers(col: string): void {
+    if (this.sortCol === col) {
+      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.sortCol = col;
+      this.sortDir = 'asc';
+    }
+    const dir = this.sortDir === 'asc' ? 1 : -1;
+    this.users.update(list => [...list].sort((a: any, b: any) => {
+      const va = a[col]; const vb = b[col];
+      if (typeof va === 'string') return (va || '').localeCompare(vb || '') * dir;
+      return ((va ?? 0) - (vb ?? 0)) * dir;
+    }));
+  }
+
+  sortIcon(col: string): string {
+    if (col !== this.sortCol) return 'unfold_more';
+    return this.sortDir === 'asc' ? 'expand_less' : 'expand_more';
   }
 }

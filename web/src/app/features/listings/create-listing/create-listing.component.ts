@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl, FormArray } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
@@ -47,6 +47,8 @@ export class CreateListingComponent implements OnInit {
   selectedLevel3 = signal<Category | null>(null);
   selectedCategory = computed(() => this.selectedLevel3() ?? this.selectedLevel2() ?? this.selectedLevel1());
   categoryAttributes = computed<CategoryAttribute[]>(() => this.selectedCategory()?.attributes ?? []);
+  categoryFeatures = computed<string[]>(() => this.selectedCategory()?.features ?? []);
+  selectedFeatures = signal<string[]>([]);
 
   // Media state
   mediaItems = signal<MediaItem[]>([]);
@@ -58,6 +60,9 @@ export class CreateListingComponent implements OnInit {
   locationForm!: FormGroup;
   featureAd = signal(false);
   featuredSlotsRemaining = signal(0);
+
+  // Custom dropdown state
+  openDropdown = signal<string | null>(null);
 
   // Submission
   submitting = signal(false);
@@ -206,6 +211,7 @@ export class CreateListingComponent implements OnInit {
     this.selectedLevel2.set(null);
     this.selectedLevel3.set(null);
     this.level3Categories.set([]);
+    this.selectedFeatures.set([]);
     const children = this.allCategories().filter(c => c.parentId === cat._id && c.isActive);
     this.level2Categories.set(children);
   }
@@ -213,16 +219,56 @@ export class CreateListingComponent implements OnInit {
   selectLevel2(cat: Category): void {
     this.selectedLevel2.set(cat);
     this.selectedLevel3.set(null);
+    this.selectedFeatures.set([]);
     const children = this.allCategories().filter(c => c.parentId === cat._id && c.isActive);
     this.level3Categories.set(children);
   }
 
   selectLevel3(cat: Category): void {
     this.selectedLevel3.set(cat);
+    this.selectedFeatures.set([]);
   }
 
   isCategoryStepValid(): boolean {
     return this.selectedCategory() !== null;
+  }
+
+  toggleFeature(feature: string): void {
+    this.selectedFeatures.update(features => {
+      if (features.includes(feature)) {
+        return features.filter(f => f !== feature);
+      }
+      return [...features, feature];
+    });
+  }
+
+  // --- Custom Dropdown ---
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.custom-select-wrap')) {
+      this.openDropdown.set(null);
+    }
+  }
+
+  toggleDropdown(key: string): void {
+    this.openDropdown.set(this.openDropdown() === key ? null : key);
+  }
+
+  selectDropdownOption(key: string, value: string): void {
+    this.getDynamicControl(key).setValue(value);
+    this.getDynamicControl(key).markAsTouched();
+    this.openDropdown.set(null);
+  }
+
+  selectCondition(value: string): void {
+    this.detailsForm.get('condition')?.setValue(value);
+    this.openDropdown.set(null);
+  }
+
+  getDropdownLabel(key: string, options: string[] | undefined): string {
+    const val = this.getDynamicControl(key).value;
+    return val || '';
   }
 
   // --- Details Step ---
@@ -312,7 +358,9 @@ export class CreateListingComponent implements OnInit {
   }
 
   isMediaStepValid(): boolean {
-    return this.mediaItems().length >= 2;
+    const images = this.mediaItems().length;
+    const video = this.videoItem() ? 1 : 0;
+    return images >= 1 && (images + video) >= 2;
   }
 
   // --- Location Step ---
@@ -332,10 +380,39 @@ export class CreateListingComponent implements OnInit {
     }
   }
 
+  showStepErrors = signal(false);
+
   nextStep(): void {
-    if (this.currentStep() < this.totalSteps && this.isStepValid(this.currentStep())) {
-      this.currentStep.update(s => s + 1);
+    const step = this.currentStep();
+    if (step >= this.totalSteps) return;
+
+    if (!this.isStepValid(step)) {
+      this.showStepErrors.set(true);
+
+      // Mark form fields as touched to show validation errors
+      if (step === 2) {
+        this.detailsForm.markAllAsTouched();
+        // Also mark dynamic attribute controls
+        for (const attr of this.categoryAttributes()) {
+          this.getDynamicControl(attr.key).markAsTouched();
+        }
+      }
+      if (step === 4) {
+        this.locationForm.markAllAsTouched();
+      }
+
+      // Scroll to first error
+      setTimeout(() => {
+        const errorEl = document.querySelector('.form-error, .ng-invalid.ng-touched');
+        if (errorEl) {
+          errorEl.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }
+      }, 50);
+      return;
     }
+
+    this.showStepErrors.set(false);
+    this.currentStep.update(s => s + 1);
   }
 
   prevStep(): void {
@@ -395,18 +472,66 @@ export class CreateListingComponent implements OnInit {
       categoryPath: this.buildCategoryPathIds(),
       condition: details.condition,
       categoryAttributes: catAttrs,
+      selectedFeatures: this.selectedFeatures(),
       location: { city: loc.city, area: loc.area },
       isFeatured: this.featureAd(),
     };
 
     this.listingsService.create(payload).subscribe({
       next: (listing) => {
-        this.submitting.set(false);
-        this.router.navigate(['/listings', listing._id]);
+        // Upload images sequentially after listing is created
+        this.uploadImages(listing._id, 0);
       },
       error: (err) => {
         this.submitting.set(false);
         this.error.set(err?.error?.message ?? 'Failed to create listing. Please try again.');
+      },
+    });
+  }
+
+  private uploadImages(listingId: string, index: number): void {
+    const items = this.mediaItems();
+    if (index >= items.length) {
+      // All images uploaded, now upload video if any
+      const video = this.videoItem();
+      if (video) {
+        this.uploadVideo(listingId, video);
+      } else {
+        this.submitting.set(false);
+        this.router.navigate(['/listings', listingId]);
+      }
+      return;
+    }
+
+    const item = items[index];
+    const formData = new FormData();
+    formData.append('file', item.file);
+    formData.append('type', 'image');
+    formData.append('sortOrder', String(index));
+
+    this.listingsService.uploadMedia(listingId, formData).subscribe({
+      next: () => this.uploadImages(listingId, index + 1),
+      error: () => {
+        // Continue even if one upload fails
+        this.uploadImages(listingId, index + 1);
+      },
+    });
+  }
+
+  private uploadVideo(listingId: string, video: MediaItem): void {
+    const formData = new FormData();
+    formData.append('file', video.file);
+    formData.append('type', 'video');
+
+    this.listingsService.uploadMedia(listingId, formData).subscribe({
+      next: () => {
+        this.submitting.set(false);
+        this.router.navigate(['/listings', listingId]);
+      },
+      error: () => {
+        // Navigate even if video upload fails
+        this.submitting.set(false);
+        this.router.navigate(['/listings', listingId]);
       },
     });
   }

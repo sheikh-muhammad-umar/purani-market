@@ -28,22 +28,11 @@
       </div>
       <div class="form-group compact">
         <label>Payment Method</label>
-        <select [(ngModel)]="filterPaymentMethod">
-          <option value="">All</option>
-          <option value="jazzcash">JazzCash</option>
-          <option value="easypaisa">EasyPaisa</option>
-          <option value="card">Card</option>
-        </select>
+        <app-custom-select [options]="paymentMethodOptions" [(ngModel)]="filterPaymentMethod" placeholder="All"></app-custom-select>
       </div>
       <div class="form-group compact">
         <label>Status</label>
-        <select [(ngModel)]="filterStatus">
-          <option value="">All</option>
-          <option value="pending">Pending</option>
-          <option value="completed">Completed</option>
-          <option value="failed">Failed</option>
-          <option value="refunded">Refunded</option>
-        </select>
+        <app-custom-select [options]="paymentStatusOptions" [(ngModel)]="filterStatus" placeholder="All"></app-custom-select>
       </div>
       <div class="filter-actions">
         <button class="btn-primary" (click)="applyFilters()">Apply</button>
@@ -59,12 +48,12 @@
       <thead>
         <tr>
           <th>Transaction ID</th>
-          <th>Seller</th>
+          <th class="sortable" (click)="sortPayments('sellerName')">Seller <span class="material-symbols-rounded sort-icon">{{ sortIcon('sellerName') }}</span></th>
           <th>Package</th>
-          <th>Amount</th>
+          <th class="sortable" (click)="sortPayments('amount')">Amount <span class="material-symbols-rounded sort-icon">{{ sortIcon('amount') }}</span></th>
           <th>Method</th>
-          <th>Status</th>
-          <th>Date</th>
+          <th class="sortable" (click)="sortPayments('paymentStatus')">Status <span class="material-symbols-rounded sort-icon">{{ sortIcon('paymentStatus') }}</span></th>
+          <th class="sortable" (click)="sortPayments('createdAt')">Date <span class="material-symbols-rounded sort-icon">{{ sortIcon('createdAt') }}</span></th>
         </tr>
       </thead>
       <tbody>

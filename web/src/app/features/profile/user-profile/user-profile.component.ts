@@ -28,7 +28,7 @@ export class UserProfileComponent implements OnInit {
 
   constructor(
     private readonly fb: FormBuilder,
-    private readonly authService: AuthService,
+    public readonly authService: AuthService,
     private readonly http: HttpClient
   ) {
     this.profileForm = this.fb.group({

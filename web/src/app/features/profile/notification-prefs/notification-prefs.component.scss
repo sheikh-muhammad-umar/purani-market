@@ -176,3 +176,32 @@
     font-size: var(--text-xl);
   }
 }
+
+@media (max-width: 767px) {
+  .notifications-page {
+    padding: var(--space-2) var(--space-1);
+    padding-bottom: calc(var(--space-2) + 70px);
+  }
+
+  .notifications-title {
+    font-size: var(--text-xl);
+  }
+
+  .profile-nav {
+    overflow-x: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    flex-wrap: nowrap;
+
+    &::-webkit-scrollbar { display: none; }
+  }
+
+  .nav-link {
+    white-space: nowrap;
+    flex-shrink: 0;
+  }
+
+  .pref-card {
+    padding: var(--space-2);
+  }
+}

@@ -18,6 +18,7 @@ export interface CreateListingPayload {
   categoryPath: string[];
   condition: string;
   categoryAttributes: Record<string, unknown>;
+  selectedFeatures?: string[];
   location: { city: string; area: string; coordinates?: [number, number] };
   contactInfo?: { phone: string; email: string };
   isFeatured?: boolean;

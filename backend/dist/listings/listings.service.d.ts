@@ -22,7 +22,7 @@ export declare class ListingsService {
     constructor(listingModel: Model<ProductListingDocument>, userModel: Model<UserDocument>, categoryModel: Model<CategoryDocument>, searchSyncService: SearchSyncService);
     findAll(page?: number, limit?: number, sort?: string, order?: 'asc' | 'desc', sellerId?: string): Promise<PaginatedListings>;
     findById(id: string | Types.ObjectId): Promise<ProductListingDocument>;
-    findByIdAndIncrementViews(id: string): Promise<ProductListingDocument>;
+    findByIdAndIncrementViews(id: string, requesterId?: string, requesterRole?: string): Promise<ProductListingDocument>;
     update(id: string, sellerId: string, dto: UpdateListingDto): Promise<ProductListingDocument>;
     updateStatus(id: string, sellerId: string, status: AllowedStatusTransition): Promise<ProductListingDocument>;
     softDelete(id: string, userId: string, userRole: string): Promise<ProductListingDocument>;

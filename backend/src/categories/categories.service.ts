@@ -3,7 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
-import { Category, CategoryDocument, CategoryAttribute, CategoryFilter } from './schemas/category.schema.js';
+import { Category, CategoryDocument, CategoryAttribute } from './schemas/category.schema.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
 
@@ -18,6 +18,8 @@ export interface CategoryTreeNode {
   level: number;
   isActive: boolean;
   sortOrder: number;
+  attributes: any[];
+  features: string[];
   children: CategoryTreeNode[];
 }
 
@@ -30,23 +32,19 @@ export class CategoriesService {
   ) {}
 
   async getCategoryTree(): Promise<CategoryTreeNode[]> {
-    // Try cache first
     const cached = await this.redis.get(CACHE_KEY_TREE);
     if (cached) {
       return JSON.parse(cached) as CategoryTreeNode[];
     }
 
     const categories = await this.categoryModel
-      .find({ isActive: true })
+      .find({})
       .sort({ sortOrder: 1, name: 1 })
       .lean()
       .exec();
 
     const tree = this.buildTree(categories);
-
-    // Cache the tree
     await this.redis.set(CACHE_KEY_TREE, JSON.stringify(tree), 'EX', CACHE_TTL_SECONDS);
-
     return tree;
   }
 
@@ -81,7 +79,7 @@ export class CategoriesService {
       isActive: dto.isActive ?? true,
       sortOrder: dto.sortOrder ?? 0,
       attributes: [],
-      filters: [],
+      features: [],
     });
 
     const saved = await category.save();
@@ -91,12 +89,10 @@ export class CategoriesService {
 
   async update(id: string, dto: UpdateCategoryDto): Promise<CategoryDocument> {
     const category = await this.findById(id);
-
     if (dto.name !== undefined) category.name = dto.name;
     if (dto.slug !== undefined) category.slug = dto.slug;
     if (dto.isActive !== undefined) category.isActive = dto.isActive;
     if (dto.sortOrder !== undefined) category.sortOrder = dto.sortOrder;
-
     const saved = await category.save();
     await this.invalidateCache();
     return saved;
@@ -104,13 +100,10 @@ export class CategoriesService {
 
   async delete(id: string): Promise<void> {
     const category = await this.findById(id);
-
-    // Check for children
     const children = await this.categoryModel.find({ parentId: category._id }).exec();
     if (children.length > 0) {
       throw new BadRequestException('Cannot delete a category that has subcategories');
     }
-
     await this.categoryModel.deleteOne({ _id: category._id }).exec();
     await this.invalidateCache();
   }
@@ -123,9 +116,9 @@ export class CategoriesService {
     return saved;
   }
 
-  async updateFilters(id: string, filters: CategoryFilter[]): Promise<CategoryDocument> {
+  async updateFeatures(id: string, features: string[]): Promise<CategoryDocument> {
     const category = await this.findById(id);
-    category.filters = filters;
+    category.features = features;
     const saved = await category.save();
     await this.invalidateCache();
     return saved;
@@ -133,6 +126,47 @@ export class CategoriesService {
 
   async invalidateCache(): Promise<void> {
     await this.redis.del(CACHE_KEY_TREE);
+  }
+
+  /**
+   * Get all attributes for a category including inherited ones from parent categories.
+   * Child attributes override parent attributes with the same key.
+   */
+  async getInheritedAttributes(categoryId: string): Promise<CategoryAttribute[]> {
+    const chain = await this.getCategoryChain(categoryId);
+    const merged = new Map<string, CategoryAttribute>();
+    for (const cat of chain) {
+      for (const attr of cat.attributes || []) {
+        merged.set(attr.key, attr);
+      }
+    }
+    return Array.from(merged.values());
+  }
+
+  /**
+   * Get all features for a category including inherited ones from parent categories.
+   * Features are merged (union) from root to leaf.
+   */
+  async getInheritedFeatures(categoryId: string): Promise<string[]> {
+    const chain = await this.getCategoryChain(categoryId);
+    const merged = new Set<string>();
+    for (const cat of chain) {
+      for (const feature of cat.features || []) {
+        merged.add(feature);
+      }
+    }
+    return Array.from(merged);
+  }
+
+  private async getCategoryChain(categoryId: string): Promise<CategoryDocument[]> {
+    const chain: CategoryDocument[] = [];
+    let current = await this.findById(categoryId);
+    chain.unshift(current);
+    while (current.parentId) {
+      current = await this.findById(current.parentId.toString());
+      chain.unshift(current);
+    }
+    return chain;
   }
 
   private generateSlug(name: string): string {
@@ -144,13 +178,10 @@ export class CategoriesService {
       .replace(/-+/g, '-');
   }
 
-  private buildTree(
-    categories: Array<Record<string, any>>,
-  ): CategoryTreeNode[] {
+  private buildTree(categories: Array<Record<string, any>>): CategoryTreeNode[] {
     const map = new Map<string, CategoryTreeNode>();
     const roots: CategoryTreeNode[] = [];
 
-    // Create nodes
     for (const cat of categories) {
       const node: CategoryTreeNode = {
         _id: cat._id.toString(),
@@ -160,12 +191,13 @@ export class CategoriesService {
         level: cat.level,
         isActive: cat.isActive,
         sortOrder: cat.sortOrder,
+        attributes: cat.attributes || [],
+        features: cat.features || [],
         children: [],
       };
       map.set(node._id, node);
     }
 
-    // Build hierarchy
     for (const node of map.values()) {
       if (node.parentId && map.has(node.parentId)) {
         map.get(node.parentId)!.children.push(node);

@@ -54,8 +54,13 @@ export class ListingsController {
   }
 
   @Get(':id')
-  async getListingById(@Param('id') id: string) {
-    return this.listingsService.findByIdAndIncrementViews(id);
+  @UseGuards(OptionalJwtAuthGuard)
+  async getListingById(
+    @Param('id') id: string,
+    @CurrentUser('sub') userId?: string,
+    @CurrentUser('role') userRole?: string,
+  ) {
+    return this.listingsService.findByIdAndIncrementViews(id, userId, userRole);
   }
 
   @Post()

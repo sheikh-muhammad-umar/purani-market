@@ -16,6 +16,7 @@ exports.AdminService = void 0;
 const common_1 = require("@nestjs/common");
 const mongoose_1 = require("@nestjs/mongoose");
 const mongoose_2 = require("mongoose");
+const category_schema_js_1 = require("../categories/schemas/category.schema.js");
 const user_schema_js_1 = require("../users/schemas/user.schema.js");
 const product_listing_schema_js_1 = require("../listings/schemas/product-listing.schema.js");
 const conversation_schema_js_1 = require("../messaging/schemas/conversation.schema.js");
@@ -30,14 +31,16 @@ let AdminService = class AdminService {
     conversationModel;
     reviewModel;
     packagePurchaseModel;
+    categoryModel;
     authService;
     notificationsService;
-    constructor(userModel, listingModel, conversationModel, reviewModel, packagePurchaseModel, authService, notificationsService) {
+    constructor(userModel, listingModel, conversationModel, reviewModel, packagePurchaseModel, categoryModel, authService, notificationsService) {
         this.userModel = userModel;
         this.listingModel = listingModel;
         this.conversationModel = conversationModel;
         this.reviewModel = reviewModel;
         this.packagePurchaseModel = packagePurchaseModel;
+        this.categoryModel = categoryModel;
         this.authService = authService;
         this.notificationsService = notificationsService;
     }
@@ -246,10 +249,14 @@ let AdminService = class AdminService {
         };
     }
     async listPayments(query) {
-        const { page = 1, limit = 20, dateFrom, dateTo, sellerId } = query;
-        const filter = {
-            paymentStatus: { $in: [package_purchase_schema_js_1.PaymentStatus.COMPLETED, package_purchase_schema_js_1.PaymentStatus.FAILED, package_purchase_schema_js_1.PaymentStatus.REFUNDED] },
-        };
+        const { page = 1, limit = 20, dateFrom, dateTo, sellerId, paymentMethod, status } = query;
+        const filter = {};
+        if (status) {
+            filter.paymentStatus = status;
+        }
+        else {
+            filter.paymentStatus = { $in: [package_purchase_schema_js_1.PaymentStatus.COMPLETED, package_purchase_schema_js_1.PaymentStatus.FAILED, package_purchase_schema_js_1.PaymentStatus.REFUNDED, package_purchase_schema_js_1.PaymentStatus.PENDING] };
+        }
         if (dateFrom || dateTo) {
             filter.createdAt = {};
             if (dateFrom)
@@ -259,6 +266,9 @@ let AdminService = class AdminService {
         }
         if (sellerId && mongoose_2.Types.ObjectId.isValid(sellerId)) {
             filter.sellerId = new mongoose_2.Types.ObjectId(sellerId);
+        }
+        if (paymentMethod) {
+            filter.paymentMethod = paymentMethod;
         }
         const skip = (page - 1) * limit;
         const [data, total] = await Promise.all([
@@ -373,11 +383,22 @@ let AdminService = class AdminService {
         return { registrations, listings, conversations, purchases };
     }
     async getCategoryAnalytics() {
-        return this.listingModel.aggregate([
+        const raw = await this.listingModel.aggregate([
+            { $match: { categoryId: { $ne: null } } },
             { $group: { _id: '$categoryId', count: { $sum: 1 } } },
             { $sort: { count: -1 } },
-            { $project: { _id: 0, categoryId: { $toString: '$_id' }, count: 1 } },
+            { $limit: 20 },
         ]).exec();
+        const catIds = raw.map((r) => r._id).filter(Boolean);
+        const categories = await this.categoryModel.find({ _id: { $in: catIds } }).select('name').lean().exec();
+        const catMap = new Map(categories.map((c) => [c._id.toString(), c.name]));
+        return raw
+            .filter((r) => catMap.has(r._id?.toString()))
+            .map((r) => ({
+            categoryId: r._id?.toString() ?? '',
+            categoryName: catMap.get(r._id?.toString()),
+            listingCount: r.count,
+        }));
     }
 };
 exports.AdminService = AdminService;
@@ -388,7 +409,9 @@ exports.AdminService = AdminService = __decorate([
     __param(2, (0, mongoose_1.InjectModel)(conversation_schema_js_1.Conversation.name)),
     __param(3, (0, mongoose_1.InjectModel)(review_schema_js_1.Review.name)),
     __param(4, (0, mongoose_1.InjectModel)(package_purchase_schema_js_1.PackagePurchase.name)),
+    __param(5, (0, mongoose_1.InjectModel)(category_schema_js_1.Category.name)),
     __metadata("design:paramtypes", [mongoose_2.Model,
+        mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,
         mongoose_2.Model,

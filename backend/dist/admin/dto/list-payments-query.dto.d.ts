@@ -4,4 +4,6 @@ export declare class ListPaymentsQueryDto {
     dateFrom?: string;
     dateTo?: string;
     sellerId?: string;
+    paymentMethod?: string;
+    status?: string;
 }

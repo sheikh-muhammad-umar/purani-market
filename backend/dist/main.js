@@ -6,11 +6,13 @@ Object.defineProperty(exports, "__esModule", { value: true });
 const core_1 = require("@nestjs/core");
 const config_1 = require("@nestjs/config");
 const cookie_parser_1 = __importDefault(require("cookie-parser"));
+const path_1 = require("path");
 const app_module_js_1 = require("./app.module.js");
 async function bootstrap() {
     const app = await core_1.NestFactory.create(app_module_js_1.AppModule);
     const configService = app.get(config_1.ConfigService);
     app.use((0, cookie_parser_1.default)());
+    app.useStaticAssets((0, path_1.join)(process.cwd(), 'uploads'), { prefix: '/uploads' });
     const allowedOrigins = configService.get('cors.allowedOrigins') || '';
     const origins = allowedOrigins
         .split(',')

@@ -5,11 +5,11 @@ export const MESSAGING_ROUTES: Routes = [
   {
     path: '',
     canActivate: [authGuard],
-    loadComponent: () => import('./conversation-list/conversation-list.component').then(m => m.ConversationListComponent),
+    loadComponent: () => import('./messaging-layout/messaging-layout.component').then(m => m.MessagingLayoutComponent),
   },
   {
     path: ':id',
     canActivate: [authGuard],
-    loadComponent: () => import('./chat-window/chat-window.component').then(m => m.ChatWindowComponent),
+    loadComponent: () => import('./messaging-layout/messaging-layout.component').then(m => m.MessagingLayoutComponent),
   },
 ];

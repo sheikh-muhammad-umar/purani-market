@@ -6,6 +6,11 @@
         <a routerLink="/profile" class="nav-link active">Profile</a>
         <a routerLink="/profile/settings" class="nav-link">Settings</a>
         <a routerLink="/profile/notifications" class="nav-link">Notifications</a>
+        @if (authService.isAdmin()) {
+          <a routerLink="/admin" class="nav-link admin-link">
+            <span class="material-symbols-rounded" style="font-size:16px;vertical-align:middle;">admin_panel_settings</span> Admin
+          </a>
+        }
       </div>
     </div>
 

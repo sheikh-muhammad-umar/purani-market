@@ -73,8 +73,8 @@ class CreateListingLocationDto {
 exports.CreateListingLocationDto = CreateListingLocationDto;
 __decorate([
     (0, class_validator_1.IsArray)(),
-    (0, class_validator_1.ArrayMinSize)(2),
     (0, class_validator_1.IsNumber)({}, { each: true }),
+    (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Array)
 ], CreateListingLocationDto.prototype, "coordinates", void 0);
 __decorate([
@@ -107,12 +107,15 @@ class CreateListingDto {
     description;
     price;
     categoryId;
+    categoryPath;
     condition;
     categoryAttributes;
+    selectedFeatures;
     images;
     video;
     location;
     contactInfo;
+    isFeatured;
 }
 exports.CreateListingDto = CreateListingDto;
 __decorate([
@@ -138,6 +141,12 @@ __decorate([
     __metadata("design:type", String)
 ], CreateListingDto.prototype, "categoryId", void 0);
 __decorate([
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Array)
+], CreateListingDto.prototype, "categoryPath", void 0);
+__decorate([
     (0, class_validator_1.IsEnum)(product_listing_schema_js_1.ListingCondition),
     __metadata("design:type", String)
 ], CreateListingDto.prototype, "condition", void 0);
@@ -146,6 +155,12 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", Object)
 ], CreateListingDto.prototype, "categoryAttributes", void 0);
+__decorate([
+    (0, class_validator_1.IsArray)(),
+    (0, class_validator_1.IsString)({ each: true }),
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Array)
+], CreateListingDto.prototype, "selectedFeatures", void 0);
 __decorate([
     (0, class_validator_1.IsArray)(),
     (0, class_validator_1.ValidateNested)({ each: true }),
@@ -170,4 +185,8 @@ __decorate([
     (0, class_validator_1.IsOptional)(),
     __metadata("design:type", CreateListingContactInfoDto)
 ], CreateListingDto.prototype, "contactInfo", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    __metadata("design:type", Boolean)
+], CreateListingDto.prototype, "isFeatured", void 0);
 //# sourceMappingURL=create-listing.dto.js.map

@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, computed, ViewChild, ElementRef } from '@angular/core';
+import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, signal, computed, input, output, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -16,8 +16,12 @@ import { Message, Listing } from '../../../core/models';
   templateUrl: './chat-window.component.html',
   styleUrls: ['./chat-window.component.scss'],
 })
-export class ChatWindowComponent implements OnInit, OnDestroy {
+export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
+
+  // Input for split-pane mode
+  conversationIdInput = input<string | null>(null);
+  back = output<void>();
 
   readonly messages = signal<Message[]>([]);
   readonly listing = signal<Listing | null>(null);
@@ -52,8 +56,25 @@ export class ChatWindowComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.conversationId = this.route.snapshot.paramMap.get('id') ?? '';
+    // Use input if provided (split-pane mode), otherwise use route param
+    const inputId = this.conversationIdInput();
+    this.conversationId = inputId || this.route.snapshot.paramMap.get('id') || '';
     if (!this.conversationId) return;
+
+    this.initChat();
+  }
+
+  ngOnChanges(changes: SimpleChanges): void {
+    const newId = this.conversationIdInput();
+    if (newId && newId !== this.conversationId) {
+      this.conversationId = newId;
+      this.messages.set([]);
+      this.loading.set(true);
+      this.initChat();
+    }
+  }
+
+  private initChat(): void {
 
     // Ensure user is loaded, then connect socket with userId
     const user = this.authService.user();

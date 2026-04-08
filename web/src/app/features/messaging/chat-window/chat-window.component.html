@@ -1,7 +1,9 @@
 <div class="chat-window">
   <!-- Back button -->
   <div class="chat-top-bar">
-    <a routerLink="/messaging" class="back-link">← Messages</a>
+    <button class="back-link" (click)="back.emit()">
+      <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span> Messages
+    </button>
   </div>
 
   <!-- Product card at top -->

@@ -1,6 +1,6 @@
 import { Model } from 'mongoose';
 import Redis from 'ioredis';
-import { CategoryDocument, CategoryAttribute, CategoryFilter } from './schemas/category.schema.js';
+import { CategoryDocument, CategoryAttribute } from './schemas/category.schema.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
 export interface CategoryTreeNode {
@@ -11,6 +11,8 @@ export interface CategoryTreeNode {
     level: number;
     isActive: boolean;
     sortOrder: number;
+    attributes: any[];
+    features: string[];
     children: CategoryTreeNode[];
 }
 export declare class CategoriesService {
@@ -23,8 +25,11 @@ export declare class CategoriesService {
     update(id: string, dto: UpdateCategoryDto): Promise<CategoryDocument>;
     delete(id: string): Promise<void>;
     updateAttributes(id: string, attributes: CategoryAttribute[]): Promise<CategoryDocument>;
-    updateFilters(id: string, filters: CategoryFilter[]): Promise<CategoryDocument>;
+    updateFeatures(id: string, features: string[]): Promise<CategoryDocument>;
     invalidateCache(): Promise<void>;
+    getInheritedAttributes(categoryId: string): Promise<CategoryAttribute[]>;
+    getInheritedFeatures(categoryId: string): Promise<string[]>;
+    private getCategoryChain;
     private generateSlug;
     private buildTree;
 }

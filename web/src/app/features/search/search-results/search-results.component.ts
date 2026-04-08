@@ -7,7 +7,7 @@ import { SearchService, SearchParams, SearchResponse, SearchSuggestion } from '.
 import { CategoriesService } from '../../../core/services/categories.service';
 import { PriceFormatPipe } from '../../../shared/pipes/price-format.pipe';
 import { TruncateTextPipe } from '../../../shared/pipes/truncate-text.pipe';
-import { Listing, Category, CategoryFilter } from '../../../core/models';
+import { Listing, Category, CategoryAttribute } from '../../../core/models';
 
 export type SortOption = 'relevance' | 'price_asc' | 'price_desc' | 'newest';
 
@@ -40,7 +40,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly categories = signal<Category[]>([]);
   readonly selectedCategoryId = signal<string>('');
   readonly selectedCategory = signal<Category | null>(null);
-  readonly categoryFilters = signal<CategoryFilter[]>([]);
+  readonly categoryFilters = signal<CategoryAttribute[]>([]);
 
   // Dynamic filter values
   readonly filterValues = signal<Record<string, string | number | boolean>>({});
@@ -62,6 +62,12 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
   readonly hasResults = computed(() => this.results().length > 0 || this.featuredAds().length > 0);
   readonly totalPages = computed(() => Math.ceil(this.totalResults() / this.pageSize));
+
+  // Location filter
+  readonly locationOpen = signal(false);
+  readonly selectedCity = signal('');
+  readonly expandedCategories = signal<Set<string>>(new Set());
+  readonly popularCities = ['Lahore', 'Karachi', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta'];
 
   readonly sortOptions: { value: SortOption; label: string }[] = [
     { value: 'relevance', label: 'Relevance' },
@@ -98,6 +104,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
         this.query.set(q);
         this.searchInput.set(q);
         this.selectedCategoryId.set(category);
+        if (category) this.autoExpandCategory(category);
         this.sortBy.set(sort);
         this.currentPage.set(page);
         this.minPrice.set(minPrice);
@@ -211,11 +218,66 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   clearAllFilters(): void {
     this.selectedCategoryId.set('');
     this.selectedCondition.set('');
+    this.selectedCity.set('');
     this.minPrice.set(null);
     this.maxPrice.set(null);
     this.filterValues.set({});
     this.categoryFilters.set([]);
     this.selectedCategory.set(null);
+    this.currentPage.set(1);
+    this.updateUrlAndSearch();
+  }
+
+  // Category tree helpers
+  getSubcategories(parentId: string): Category[] {
+    return this.categories().filter(c => c.parentId === parentId && c.isActive);
+  }
+
+  isCategoryChildSelected(parentId: string): boolean {
+    const selected = this.selectedCategoryId();
+    if (!selected) return false;
+    const children = this.getSubcategories(parentId);
+    for (const child of children) {
+      if (child._id === selected) return true;
+      if (this.isCategoryChildSelected(child._id)) return true;
+    }
+    return false;
+  }
+
+  toggleCategoryExpand(catId: string): void {
+    this.expandedCategories.update(set => {
+      const next = new Set(set);
+      if (next.has(catId)) {
+        next.delete(catId);
+      } else {
+        next.add(catId);
+      }
+      return next;
+    });
+  }
+
+  private autoExpandCategory(catId: string): void {
+    // Find the category and expand all its ancestors
+    const cats = this.categories();
+    const toExpand = new Set<string>();
+    let current = cats.find(c => c._id === catId);
+    while (current?.parentId) {
+      toExpand.add(current.parentId);
+      current = cats.find(c => c._id === current!.parentId);
+    }
+    if (toExpand.size > 0) {
+      this.expandedCategories.update(set => {
+        const next = new Set(set);
+        toExpand.forEach(id => next.add(id));
+        return next;
+      });
+    }
+  }
+
+  // Location helpers
+  selectCity(city: string): void {
+    this.selectedCity.set(city);
+    this.locationOpen.set(false);
     this.currentPage.set(1);
     this.updateUrlAndSearch();
   }
@@ -302,7 +364,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: cat => {
           this.selectedCategory.set(cat);
-          this.categoryFilters.set(cat.filters || []);
+          this.categoryFilters.set(cat.attributes || []);
         },
         error: () => {
           this.categoryFilters.set([]);

@@ -2,9 +2,7 @@ import { HydratedDocument, Types } from 'mongoose';
 export type UserDocument = HydratedDocument<User>;
 export declare enum UserRole {
     ADMIN = "admin",
-    USER = "user",
-    SELLER = "seller",
-    BUYER = "buyer"
+    USER = "user"
 }
 export declare enum UserStatus {
     ACTIVE = "active",

@@ -6,6 +6,8 @@ export declare class CategoryAttributeDto {
     options?: string[];
     required?: boolean;
     unit?: string;
+    rangeMin?: number;
+    rangeMax?: number;
 }
 export declare class UpdateAttributesDto {
     attributes: CategoryAttributeDto[];

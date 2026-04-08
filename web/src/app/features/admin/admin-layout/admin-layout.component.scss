@@ -1,191 +1,187 @@
+/* Admin layout sits inside app-main, so no fixed positioning */
 .admin-layout {
   display: flex;
-  min-height: 100vh;
+  min-height: calc(100vh - var(--header-height, 64px));
+  margin: calc(-1 * var(--space-3)); /* negate app-main padding */
   font-family: 'Inter', sans-serif;
 }
 
+/* Sidebar: stretches full height, nav sticks to viewport */
 .admin-sidebar {
-  width: 240px;
+  width: 220px;
   background: var(--primary);
   color: #fff;
   display: flex;
   flex-direction: column;
-  position: fixed;
-  top: 0;
-  left: 0;
-  height: 100vh;
-  z-index: 100;
-  transition: width 0.2s ease;
-  overflow: hidden;
+  flex-shrink: 0;
+  z-index: 10;
 }
 
-.sidebar-collapsed .admin-sidebar {
-  width: 64px;
+.sidebar-inner {
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .sidebar-header {
   display: flex;
   align-items: center;
   gap: 8px;
-  padding: 16px;
+  padding: 14px 12px;
   border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 }
 
-.sidebar-logo {
-  font-size: 24px;
-  flex-shrink: 0;
-}
-
-.sidebar-title {
-  font-size: 16px;
-  font-weight: 700;
-  white-space: nowrap;
-}
+.sidebar-logo { font-size: 24px; flex-shrink: 0; }
+.sidebar-title { font-size: 15px; font-weight: 700; white-space: nowrap; }
 
 .sidebar-toggle {
   margin-left: auto;
   background: rgba(255, 255, 255, 0.15);
   border: none;
   color: #fff;
-  width: 28px;
-  height: 28px;
+  width: 26px;
+  height: 26px;
   border-radius: 6px;
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 14px;
+  font-size: 13px;
   flex-shrink: 0;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.25);
-  }
+  &:hover { background: rgba(255, 255, 255, 0.25); }
 }
 
 .sidebar-nav {
   display: flex;
   flex-direction: column;
-  padding: 8px;
-  gap: 4px;
+  padding: 6px;
+  gap: 2px;
 }
 
 .nav-item {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 10px 12px;
+  gap: 10px;
+  padding: 9px 10px;
   border-radius: 8px;
   color: rgba(255, 255, 255, 0.8);
   text-decoration: none;
-  font-size: 14px;
+  font-size: 13px;
   font-weight: 500;
-  transition: background 0.15s ease, color 0.15s ease;
+  transition: background 0.15s, color 0.15s;
   white-space: nowrap;
-
-  &:hover {
-    background: rgba(255, 255, 255, 0.12);
-    color: #fff;
-  }
-
-  &.active {
-    background: rgba(255, 255, 255, 0.2);
-    color: #fff;
-    font-weight: 600;
-  }
+  &:hover { background: rgba(255, 255, 255, 0.12); color: #fff; }
+  &.active { background: rgba(255, 255, 255, 0.2); color: #fff; font-weight: 600; }
 }
 
-.nav-icon {
-  font-size: 18px;
-  flex-shrink: 0;
-  width: 24px;
-  text-align: center;
-}
-
-.nav-label {
-  overflow: hidden;
-}
-
-.mobile-menu-btn {
-  display: none;
-}
-
-.mobile-topbar {
-  display: none;
-}
-
-.mobile-topbar-title {
-  display: none;
-}
-
-.show-mobile-close {
-  display: none;
-}
+.nav-icon { font-size: 20px; flex-shrink: 0; width: 22px; text-align: center; }
+.nav-label { overflow: hidden; }
 
 .admin-content {
   flex: 1;
-  margin-left: 240px;
-  padding: 24px;
-  background: #F8F9FA;
-  min-height: 100vh;
-  transition: margin-left 0.2s ease;
+  min-width: 0; /* prevent flex overflow */
+  padding: 20px;
+  background: var(--background);
+  overflow-x: hidden;
+  max-width: 100%;
 }
 
-.sidebar-collapsed .admin-content {
-  margin-left: 64px;
+/* Collapsed sidebar */
+.sidebar-collapsed .admin-sidebar { width: 56px; }
+.sidebar-collapsed .sidebar-title { display: none; }
+.sidebar-collapsed .nav-label { display: none; }
+.sidebar-collapsed .nav-item { justify-content: center; padding: 9px 6px; }
+
+/* Hidden by default on desktop */
+.mobile-topbar { display: none; }
+.mobile-topbar-title { display: none; }
+.show-mobile-close { display: none; }
+.mobile-overlay { display: none; }
+
+/* ===== TABLET ===== */
+@media (max-width: 1023px) {
+  .admin-sidebar { width: 56px; }
+  .sidebar-title { display: none; }
+  .nav-label { display: none; }
+  .nav-item { justify-content: center; padding: 9px 6px; }
+  .hide-mobile-toggle { display: none; }
+  .admin-content { padding: 16px; }
 }
 
-@media (max-width: 768px) {
+/* ===== MOBILE ===== */
+@media (max-width: 767px) {
+  .admin-layout {
+    flex-direction: column;
+    margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-1));
+    margin-bottom: -70px; /* negate bottom nav padding */
+  }
+
   .admin-sidebar {
+    position: fixed;
+    top: 0;
+    left: 0;
     width: 260px;
+    height: 100vh;
     transform: translateX(-100%);
     transition: transform 0.25s ease;
+    z-index: 200;
+    &.mobile-open { transform: translateX(0); }
   }
-  .admin-sidebar.mobile-open {
-    transform: translateX(0);
-  }
+
+  .sidebar-title { display: block; }
+  .nav-label { display: block; }
+  .nav-item { justify-content: flex-start; padding: 9px 10px; }
+
   .admin-content {
-    margin-left: 0;
-    padding: 0 12px 24px;
+    padding: 0 12px 20px;
+    padding-bottom: calc(20px + 60px + env(safe-area-inset-bottom, 0px));
+    min-height: auto;
   }
-  .sidebar-collapsed .admin-content {
-    margin-left: 0;
-  }
+
   .mobile-topbar {
     display: flex;
     align-items: center;
-    gap: 12px;
-    padding: 12px 0;
-    margin-bottom: 8px;
+    gap: 10px;
+    padding: 10px 0;
+    position: sticky;
+    top: 0;
+    background: var(--background);
+    z-index: 50;
   }
+
+  .mobile-topbar-title {
+    display: block;
+    font-size: 15px;
+    font-weight: 700;
+    color: var(--text-primary);
+  }
+
   .mobile-menu-btn {
     display: flex;
     align-items: center;
     justify-content: center;
-    width: 36px;
-    height: 36px;
+    width: 34px;
+    height: 34px;
     border-radius: 8px;
     border: none;
     background: var(--primary);
     color: #fff;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
     flex-shrink: 0;
   }
-  .mobile-topbar-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #2D3436;
-  }
+
   .mobile-overlay {
+    display: block;
     position: fixed;
     inset: 0;
     background: rgba(0, 0, 0, 0.4);
-    z-index: 99;
+    z-index: 199;
   }
-  .hide-mobile-toggle {
-    display: none;
-  }
-  .show-mobile-close {
-    display: flex;
-  }
+
+  .hide-mobile-toggle { display: none; }
+  .show-mobile-close { display: flex; }
 }

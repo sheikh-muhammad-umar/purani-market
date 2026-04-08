@@ -57,15 +57,28 @@ let ListingsService = ListingsService_1 = class ListingsService {
         }
         return listing;
     }
-    async findByIdAndIncrementViews(id) {
+    async findByIdAndIncrementViews(id, requesterId, requesterRole) {
         if (!mongoose_2.Types.ObjectId.isValid(id)) {
             throw new common_1.NotFoundException('Listing not found');
         }
-        const listing = await this.listingModel
-            .findByIdAndUpdate(id, { $inc: { viewCount: 1 } }, { new: true })
-            .exec();
+        const listing = await this.listingModel.findById(id).exec();
         if (!listing) {
             throw new common_1.NotFoundException('Listing not found');
+        }
+        if (listing.status === product_listing_schema_js_1.ListingStatus.DELETED) {
+            throw new common_1.NotFoundException('Listing not found');
+        }
+        const isOwner = requesterId && listing.sellerId.toString() === requesterId;
+        const isAdmin = requesterRole === 'admin';
+        if (listing.status !== product_listing_schema_js_1.ListingStatus.ACTIVE &&
+            listing.status !== product_listing_schema_js_1.ListingStatus.SOLD &&
+            !isOwner &&
+            !isAdmin) {
+            throw new common_1.NotFoundException('Listing not found');
+        }
+        if (listing.status === product_listing_schema_js_1.ListingStatus.ACTIVE) {
+            await this.listingModel.updateOne({ _id: listing._id }, { $inc: { viewCount: 1 } }).exec();
+            listing.viewCount += 1;
         }
         return listing;
     }
@@ -153,11 +166,6 @@ let ListingsService = ListingsService_1 = class ListingsService {
         return updated;
     }
     async create(sellerId, dto, moderationEnabled = false) {
-        const imageCount = dto.images?.length ?? 0;
-        const videoCount = dto.video ? 1 : 0;
-        if (imageCount + videoCount < 2) {
-            throw new common_1.BadRequestException('At least 2 media items (images or video) are required');
-        }
         if (!mongoose_2.Types.ObjectId.isValid(dto.categoryId)) {
             throw new common_1.BadRequestException('Invalid category ID');
         }
@@ -191,7 +199,9 @@ let ListingsService = ListingsService_1 = class ListingsService {
                 url: img.url, thumbnailUrl: img.thumbnailUrl, sortOrder: img.sortOrder ?? idx,
             })),
             video: dto.video ? { url: dto.video.url, thumbnailUrl: dto.video.thumbnailUrl } : undefined,
-            location: { type: 'Point', coordinates: dto.location.coordinates, city: dto.location.city, area: dto.location.area },
+            location: dto.location.coordinates?.length === 2
+                ? { type: 'Point', coordinates: dto.location.coordinates, city: dto.location.city, area: dto.location.area }
+                : { city: dto.location.city, area: dto.location.area },
             contactInfo: { phone: dto.contactInfo?.phone || seller.phone || '', email: dto.contactInfo?.email || seller.email || '' },
             status,
         });

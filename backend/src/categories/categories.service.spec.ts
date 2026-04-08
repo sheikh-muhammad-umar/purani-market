@@ -25,7 +25,7 @@ describe('CategoriesService', () => {
       isActive: true,
       sortOrder: 0,
       attributes: [],
-      filters: [],
+      features: [],
     },
     {
       _id: childId,
@@ -36,7 +36,7 @@ describe('CategoriesService', () => {
       isActive: true,
       sortOrder: 0,
       attributes: [{ name: 'Brand', key: 'brand', type: 'select', options: ['Apple', 'Samsung'], required: true }],
-      filters: [{ name: 'Brand', key: 'brand', type: 'select', options: ['Apple', 'Samsung'] }],
+      features: [],
     },
     {
       _id: grandchildId,
@@ -47,7 +47,7 @@ describe('CategoriesService', () => {
       isActive: true,
       sortOrder: 0,
       attributes: [],
-      filters: [],
+      features: [],
     },
   ];
 
@@ -364,54 +364,27 @@ describe('CategoriesService', () => {
     });
   });
 
-  describe('updateFilters', () => {
-    it('should replace category filters and invalidate cache', async () => {
+  describe('updateFeatures', () => {
+    it('should replace category features and invalidate cache', async () => {
       const saveMock = jest.fn().mockImplementation(function (this: any) {
         return Promise.resolve(this);
       });
       const categoryDoc = {
         _id: childId,
-        filters: [],
+        features: [],
         save: saveMock,
       };
       mockCategoryModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue(categoryDoc),
       });
 
-      const newFilters = [
-        { name: 'Brand', key: 'brand', type: 'select' as const, options: ['Apple', 'Samsung'] },
-      ];
+      const newFeatures = ['ABS', 'Air Bags', 'Power Windows'];
 
-      const result = await service.updateFilters(childId.toString(), newFilters as any);
+      const result = await service.updateFeatures(childId.toString(), newFeatures);
 
-      expect(result.filters).toEqual(newFilters);
+      expect(result.features).toEqual(newFeatures);
       expect(saveMock).toHaveBeenCalled();
       expect(mockRedis.del).toHaveBeenCalledWith('categories:tree');
-    });
-
-    it('should handle multiple filters with different types', async () => {
-      const saveMock = jest.fn().mockImplementation(function (this: any) {
-        return Promise.resolve(this);
-      });
-      const categoryDoc = {
-        _id: childId,
-        filters: [],
-        save: saveMock,
-      };
-      mockCategoryModel.findById.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(categoryDoc),
-      });
-
-      const newFilters = [
-        { name: 'Brand', key: 'brand', type: 'select' as const, options: ['Apple', 'Samsung'] },
-        { name: 'Price', key: 'price', type: 'range' as const, options: [], rangeMin: 0, rangeMax: 500000 },
-        { name: 'Condition', key: 'condition', type: 'multiselect' as const, options: ['New', 'Used', 'Refurbished'] },
-      ];
-
-      const result = await service.updateFilters(childId.toString(), newFilters as any);
-
-      expect(result.filters).toHaveLength(3);
-      expect(result.filters).toEqual(newFilters);
     });
   });
 });

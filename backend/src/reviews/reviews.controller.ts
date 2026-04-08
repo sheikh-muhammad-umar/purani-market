@@ -18,8 +18,7 @@ export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   @Post()
-  @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('buyer')
+  @UseGuards(JwtAuthGuard)
   async createReview(
     @CurrentUser('sub') userId: string,
     @Body() dto: CreateReviewDto,

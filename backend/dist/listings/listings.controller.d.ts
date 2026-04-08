@@ -11,7 +11,7 @@ export declare class ListingsController {
     private readonly packagesService;
     constructor(listingsService: ListingsService, mediaService: MediaService, packagesService: PackagesService);
     getListings(page?: string, limit?: string, sort?: string, order?: string, mine?: string, userId?: string): Promise<import("./listings.service.js").PaginatedListings>;
-    getListingById(id: string): Promise<import("mongoose").Document<unknown, {}, import("./schemas/product-listing.schema.js").ProductListing, {}, import("mongoose").DefaultSchemaOptions> & import("./schemas/product-listing.schema.js").ProductListing & Required<{
+    getListingById(id: string, userId?: string, userRole?: string): Promise<import("mongoose").Document<unknown, {}, import("./schemas/product-listing.schema.js").ProductListing, {}, import("mongoose").DefaultSchemaOptions> & import("./schemas/product-listing.schema.js").ProductListing & Required<{
         _id: import("mongoose").Types.ObjectId;
     }> & {
         __v: number;

@@ -4,7 +4,7 @@ import { convertToParamMap, ParamMap } from '@angular/router';
 import { SearchResultsComponent, SortOption, ActiveFilter } from './search-results.component';
 import { SearchService, SearchResponse, SearchSuggestion } from '../../../core/services/search.service';
 import { CategoriesService } from '../../../core/services/categories.service';
-import { Category, Listing, CategoryFilter } from '../../../core/models';
+import { Category, Listing, CategoryAttribute } from '../../../core/models';
 
 function makeListing(overrides: Partial<Listing> = {}): Listing {
   return {
@@ -17,6 +17,7 @@ function makeListing(overrides: Partial<Listing> = {}): Listing {
     categoryPath: ['cat1'],
     condition: 'used',
     categoryAttributes: {},
+    selectedFeatures: [],
     images: overrides.images ?? [
       { url: 'https://img.test/1.jpg', thumbnailUrl: 'https://img.test/1_thumb.jpg', sortOrder: 0 },
     ],
@@ -38,8 +39,8 @@ function makeCategory(overrides: Partial<Category> = {}): Category {
     name: overrides.name ?? 'Cars',
     slug: overrides.slug ?? 'cars',
     level: overrides.level ?? 1,
-    attributes: [],
-    filters: overrides.filters ?? [],
+    attributes: overrides.attributes ?? [],
+    features: overrides.features ?? [],
     isActive: overrides.isActive ?? true,
     sortOrder: overrides.sortOrder ?? 1,
     createdAt: new Date(),
@@ -90,9 +91,9 @@ describe('SearchResultsComponent', () => {
       getById: vi.fn().mockReturnValue(of(makeCategory({
         _id: 'c1',
         name: 'Cars',
-        filters: [
-          { name: 'Make', key: 'make', type: 'select' as const, options: ['Toyota', 'Honda', 'BMW'] },
-          { name: 'Mileage', key: 'mileage', type: 'range' as const, rangeMin: 0, rangeMax: 500000 },
+        attributes: [
+          { name: 'Make', key: 'make', type: 'select' as const, options: ['Toyota', 'Honda', 'BMW'], required: false },
+          { name: 'Mileage', key: 'mileage', type: 'range' as const, rangeMin: 0, rangeMax: 500000, required: false },
         ],
       }))),
     };
@@ -197,7 +198,7 @@ describe('SearchResultsComponent', () => {
     component.maxPrice.set(50000);
     component.filterValues.set({ make: 'Toyota' });
     component.categoryFilters.set([
-      { name: 'Make', key: 'make', type: 'select', options: ['Toyota', 'Honda'] },
+      { name: 'Make', key: 'make', type: 'select', options: ['Toyota', 'Honda'], required: false },
     ]);
 
     const filters = component.buildActiveFilters();

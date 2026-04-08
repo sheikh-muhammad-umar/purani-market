@@ -39,12 +39,12 @@ export class AnalyticsDashboardComponent implements OnInit {
     const m = this.metrics();
     if (!m) return [];
     return [
-      { label: 'Total Users', value: m.totalUsers, icon: '👥', format: 'number' },
-      { label: 'Active Users (30d)', value: m.activeUsers, icon: '🟢', format: 'number' },
-      { label: 'Total Listings', value: m.totalListings, icon: '📋', format: 'number' },
-      { label: 'Conversations', value: m.totalConversations, icon: '💬', format: 'number' },
-      { label: 'Purchases', value: m.totalPurchases, icon: '🛒', format: 'number' },
-      { label: 'Revenue', value: m.totalRevenue, icon: '💰', format: 'currency' },
+      { label: 'Total Users', value: m.totalUsers, icon: 'group', format: 'number' },
+      { label: 'Active Users (30d)', value: m.activeUsers, icon: 'person_check', format: 'number' },
+      { label: 'Total Listings', value: m.totalListings, icon: 'list_alt', format: 'number' },
+      { label: 'Conversations', value: m.totalConversations, icon: 'chat', format: 'number' },
+      { label: 'Purchases', value: m.totalPurchases, icon: 'shopping_cart', format: 'number' },
+      { label: 'Revenue', value: m.totalRevenue, icon: 'account_balance_wallet', format: 'currency' },
     ];
   });
 
@@ -73,10 +73,25 @@ export class AnalyticsDashboardComponent implements OnInit {
         : undefined;
 
     this.adminService.getAnalytics(dateRange).subscribe({
-      next: (data: AnalyticsData) => {
-        this.metrics.set(data.metrics);
-        this.timeSeries.set(data.timeSeries);
-        this.categoryAnalytics.set(data.categoryAnalytics);
+      next: (data: any) => {
+        const km = data?.metrics ?? data?.keyMetrics ?? {};
+        this.metrics.set({
+          totalUsers: km.totalUsers ?? 0,
+          activeUsers: km.activeUsers ?? 0,
+          totalListings: km.totalListings ?? 0,
+          totalConversations: km.totalConversations ?? 0,
+          totalPurchases: km.totalPurchases ?? km.totalPackagePurchases ?? 0,
+          totalRevenue: km.totalRevenue ?? 0,
+        });
+        const ts = data?.timeSeries;
+        const mapPoints = (arr: any[]) => (arr ?? []).map((p: any) => ({ date: p.date, value: p.value ?? p.count ?? 0 }));
+        this.timeSeries.set({
+          registrations: mapPoints(ts?.registrations),
+          listings: mapPoints(ts?.listings),
+          conversations: mapPoints(ts?.conversations),
+          purchases: mapPoints(ts?.purchases),
+        });
+        this.categoryAnalytics.set(data?.categoryAnalytics ?? []);
         this.loading.set(false);
       },
       error: () => {
@@ -132,6 +147,16 @@ export class AnalyticsDashboardComponent implements OnInit {
   formatShortDate(dateStr: string): string {
     const d = new Date(dateStr);
     return `${d.getMonth() + 1}/${d.getDate()}`;
+  }
+
+  getSeriesTotal(points: TimeSeriesPoint[]): number {
+    if (!points || points.length === 0) return 0;
+    return points.reduce((sum, p) => sum + p.value, 0);
+  }
+
+  getCategoryPercent(count: number): number {
+    const total = this.categoryAnalytics().reduce((s, c) => s + c.listingCount, 0);
+    return total > 0 ? Math.round((count / total) * 100) : 0;
   }
 
   private formatDateInput(date: Date): string {

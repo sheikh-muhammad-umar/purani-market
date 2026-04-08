@@ -13,7 +13,7 @@ export declare class CreateListingVideoDto {
     thumbnailUrl?: string;
 }
 export declare class CreateListingLocationDto {
-    coordinates: number[];
+    coordinates?: number[];
     city?: string;
     area?: string;
 }
@@ -26,10 +26,13 @@ export declare class CreateListingDto {
     description: string;
     price: CreateListingPriceDto;
     categoryId: string;
+    categoryPath?: string[];
     condition: ListingCondition;
     categoryAttributes?: Record<string, any>;
+    selectedFeatures?: string[];
     images?: CreateListingImageDto[];
     video?: CreateListingVideoDto;
     location: CreateListingLocationDto;
     contactInfo?: CreateListingContactInfoDto;
+    isFeatured?: boolean;
 }

@@ -25,4 +25,12 @@ export class ListPaymentsQueryDto {
   @IsOptional()
   @IsString()
   sellerId?: string;
+
+  @IsOptional()
+  @IsString()
+  paymentMethod?: string;
+
+  @IsOptional()
+  @IsString()
+  status?: string;
 }

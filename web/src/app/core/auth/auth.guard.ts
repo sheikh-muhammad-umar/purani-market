@@ -44,3 +44,14 @@ export const sellerGuard: CanActivateFn = () => {
 
   return router.createUrlTree(['/auth/login']);
 };
+
+export const guestGuard: CanActivateFn = () => {
+  const authService = inject(AuthService);
+  const router = inject(Router);
+
+  if (authService.isAuthenticated()) {
+    return router.createUrlTree(['/']);
+  }
+
+  return true;
+};

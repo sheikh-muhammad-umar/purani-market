@@ -17,17 +17,18 @@
       <button class="btn-search" (click)="onSearch()">Search</button>
     </div>
     <div class="filter-group">
-      <select [(ngModel)]="roleFilter" (ngModelChange)="applyFilters()" aria-label="Filter by role">
-        <option value="">All Roles</option>
-        <option value="admin">Admin</option>
-        <option value="seller">Seller</option>
-        <option value="buyer">Buyer</option>
-      </select>
-      <select [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()" aria-label="Filter by status">
-        <option value="">All Status</option>
-        <option value="active">Active</option>
-        <option value="suspended">Suspended</option>
-      </select>
+      <app-custom-select
+        [options]="roleOptions"
+        [(ngModel)]="roleFilter"
+        (ngModelChange)="applyFilters()"
+        placeholder="All Roles"
+      ></app-custom-select>
+      <app-custom-select
+        [options]="statusOptions"
+        [(ngModel)]="statusFilter"
+        (ngModelChange)="applyFilters()"
+        placeholder="All Status"
+      ></app-custom-select>
     </div>
   </div>
 
@@ -48,17 +49,17 @@
     <table class="users-table" aria-label="Users list">
       <thead>
         <tr>
-          <th>User</th>
+          <th class="sortable" (click)="sortUsers('email')">User <span class="material-symbols-rounded sort-icon">{{ sortIcon('email') }}</span></th>
           <th>Email</th>
-          <th>Role</th>
-          <th>Status</th>
-          <th>Listings</th>
+          <th class="sortable" (click)="sortUsers('role')">Role <span class="material-symbols-rounded sort-icon">{{ sortIcon('role') }}</span></th>
+          <th class="sortable" (click)="sortUsers('status')">Status <span class="material-symbols-rounded sort-icon">{{ sortIcon('status') }}</span></th>
+          <th class="sortable" (click)="sortUsers('listingsCount')">Listings <span class="material-symbols-rounded sort-icon">{{ sortIcon('listingsCount') }}</span></th>
           <th>Conversations</th>
           <th>Actions</th>
         </tr>
       </thead>
       <tbody>
-        <tr *ngFor="let user of users()" [class.suspended]="user.status === 'suspended'">
+        <tr *ngFor="let user of users() || []" [class.suspended]="user.status === 'suspended'">
           <td class="user-cell">
             <div class="user-info">
               <span class="user-name">{{ getUserName(user) }}</span>
@@ -85,17 +86,12 @@
               >
                 {{ user.status === 'active' ? 'Suspend' : 'Reactivate' }}
               </button>
-              <select
-                class="role-select"
+              <app-custom-select
+                [options]="roleChangeOptions"
                 [ngModel]="user.role"
                 (ngModelChange)="changeRole(user, $event)"
                 [disabled]="actionLoading() === user._id"
-                aria-label="Change role"
-              >
-                <option value="admin">Admin</option>
-                <option value="seller">Seller</option>
-                <option value="buyer">Buyer</option>
-              </select>
+              ></app-custom-select>
               <div class="ad-limit-input">
                 <label>Ad Limit:</label>
                 <input
@@ -110,7 +106,7 @@
             </div>
           </td>
         </tr>
-        <tr *ngIf="users().length === 0">
+        <tr *ngIf="(users()?.length ?? 0) === 0">
           <td colspan="7" class="empty-state">No users found.</td>
         </tr>
       </tbody>

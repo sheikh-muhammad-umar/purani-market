@@ -34,7 +34,8 @@ export interface TimeSeriesEntry {
 }
 export interface CategoryAnalytics {
     categoryId: string;
-    count: number;
+    categoryName: string;
+    listingCount: number;
 }
 export interface AnalyticsData {
     keyMetrics: {
@@ -83,9 +84,10 @@ export declare class AdminService {
     private readonly conversationModel;
     private readonly reviewModel;
     private readonly packagePurchaseModel;
+    private readonly categoryModel;
     private readonly authService;
     private readonly notificationsService;
-    constructor(userModel: Model<UserDocument>, listingModel: Model<ProductListingDocument>, conversationModel: Model<ConversationDocument>, reviewModel: Model<ReviewDocument>, packagePurchaseModel: Model<PackagePurchaseDocument>, authService: AuthService, notificationsService: NotificationsService);
+    constructor(userModel: Model<UserDocument>, listingModel: Model<ProductListingDocument>, conversationModel: Model<ConversationDocument>, reviewModel: Model<ReviewDocument>, packagePurchaseModel: Model<PackagePurchaseDocument>, categoryModel: Model<any>, authService: AuthService, notificationsService: NotificationsService);
     listUsers(query: ListUsersQueryDto): Promise<PaginatedUsers>;
     getUserActivitySummary(userId: string): Promise<UserActivitySummary>;
     updateUserStatus(userId: string, status: UserStatus): Promise<UserDocument>;

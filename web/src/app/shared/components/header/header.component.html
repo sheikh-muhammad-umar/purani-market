@@ -1,120 +1,149 @@
 <header class="app-header">
   <div class="header-container">
     <!-- Logo -->
-    <a routerLink="/" class="logo">Marketplace</a>
-
-    <!-- Theme toggle (mobile) -->
-    <button class="theme-toggle mobile-theme-toggle" (click)="themeService.toggle()">
-      <span class="mat-icon">{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
-    </button>
+    <a routerLink="/" class="logo">
+      <span class="logo-mark">M</span>
+      <span class="logo-text">Marketplace</span>
+      <span class="logo-text-mobile">Marketplace</span>
+    </a>
 
     <!-- Search bar (desktop) -->
+    @if (!isAuthPage) {
     <div class="header-search">
+      <div class="search-location">
+        <span class="material-symbols-rounded" style="font-size:18px;">location_on</span>
+        Pakistan
+      </div>
+      <div class="search-divider"></div>
       <input
         #desktopSearch
         type="text"
         class="search-input"
-        placeholder="Find Cars, Phones and more..."
+        placeholder="Find cars, phones, furniture..."
         (keyup.enter)="goToSearch(desktopSearch.value)"
       />
-      <button class="search-btn" (click)="goToSearch(desktopSearch.value)">
-        <span class="mat-icon" style="font-size: 18px;">search</span> Search
+      <button class="search-circle" (click)="goToSearch(desktopSearch.value)">
+        <span class="material-symbols-rounded">search</span>
       </button>
     </div>
+    }
 
-    <!-- Desktop nav icons -->
+    <!-- Desktop nav -->
     <nav class="desktop-nav">
-      <!-- Theme toggle -->
-      <button class="theme-toggle" (click)="themeService.toggle()" [title]="themeService.theme() === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'">
-        <span class="mat-icon">{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
-      </button>
-
       @if (authService.isAuthenticated()) {
         <a routerLink="/messaging" class="nav-icon" title="Messages">
-          <span class="mat-icon">chat_bubble_outline</span>
+          <span class="material-symbols-rounded">chat_bubble_outline</span>
           @if (unreadCount() > 0) {
             <span class="icon-badge">{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
           }
         </a>
         <a routerLink="/favorites" class="nav-icon" title="Favorites">
-          <span class="mat-icon">favorite_border</span>
+          <span class="material-symbols-rounded">favorite_border</span>
         </a>
+        <button class="theme-toggle nav-icon" (click)="themeService.toggle()" [title]="themeService.theme() === 'dark' ? 'Light mode' : 'Dark mode'">
+          <span class="material-symbols-rounded">{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
+        </button>
 
         <!-- Account dropdown -->
         <div class="account-dropdown-wrap">
-          <button class="nav-icon account-trigger" (click)="toggleAccountMenu()" title="Account">
-            <span class="mat-icon">account_circle</span>
-            <span class="mat-icon dropdown-arrow" style="font-size: 14px;">{{ accountMenuOpen() ? 'expand_less' : 'expand_more' }}</span>
+          <button class="nav-icon account-trigger" (click)="toggleAccountMenu()">
+            <span class="avatar-circle">
+              <span class="material-symbols-rounded" style="font-size:20px;">person</span>
+            </span>
           </button>
           @if (accountMenuOpen()) {
             <div class="account-dropdown" (click)="closeAccountMenu()">
-              <a routerLink="/profile" class="dropdown-item"><span class="mat-icon">person</span> Profile</a>
-              <a routerLink="/listings/my" class="dropdown-item"><span class="mat-icon">list_alt</span> My Ads</a>
-              <a routerLink="/favorites" class="dropdown-item"><span class="mat-icon">favorite</span> Favourites</a>
-              <a routerLink="/packages" class="dropdown-item"><span class="mat-icon">inventory_2</span> Packages</a>
+              <a routerLink="/profile" class="dropdown-item">
+                <span class="material-symbols-rounded">person</span> Profile
+              </a>
+              <a routerLink="/listings/my" class="dropdown-item">
+                <span class="material-symbols-rounded">list_alt</span> My Ads
+              </a>
+              <a routerLink="/favorites" class="dropdown-item">
+                <span class="material-symbols-rounded">favorite</span> Favourites
+              </a>
+              <a routerLink="/packages" class="dropdown-item">
+                <span class="material-symbols-rounded">inventory_2</span> Packages
+              </a>
+              @if (authService.isAdmin()) {
+                <a routerLink="/admin" class="dropdown-item">
+                  <span class="material-symbols-rounded">admin_panel_settings</span> Admin Panel
+                </a>
+              }
               <div class="dropdown-divider"></div>
-              <a class="dropdown-item logout-item" (click)="logout()"><span class="mat-icon">logout</span> Logout</a>
+              <a class="dropdown-item logout-item" (click)="logout()">
+                <span class="material-symbols-rounded">logout</span> Logout
+              </a>
             </div>
           }
         </div>
 
-        <a routerLink="/listings/create" class="sell-btn"> SELL </a>
+        <a routerLink="/listings/create" class="post-ad-btn">
+          <span class="material-symbols-rounded" style="font-size:18px;">add_circle</span>
+          Post Ad
+        </a>
       } @else if (!isAuthPage) {
+        <button class="theme-toggle nav-icon" (click)="themeService.toggle()">
+          <span class="material-symbols-rounded">{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
+        </button>
         <a routerLink="/auth/login" class="nav-text-link">Login</a>
-        <a routerLink="/auth/register" class="sell-btn">Register</a>
+        <a routerLink="/auth/register" class="post-ad-btn">Register</a>
       }
     </nav>
-
-    <!-- Mobile hamburger -->
-    <button
-      class="hamburger"
-      (click)="toggleMenu()"
-      [attr.aria-expanded]="mobileMenuOpen()"
-      aria-label="Toggle navigation menu"
-    >
-      <span class="mat-icon">{{ mobileMenuOpen() ? 'close' : 'menu' }}</span>
-    </button>
   </div>
 
   <!-- Mobile search bar -->
+  @if (!isAuthPage && !isMessagingPage && !isProfilePage) {
   <div class="mobile-search">
-    <input
-      #mobileSearch
-      type="text"
-      class="search-input"
-      placeholder="Search..."
-      (keyup.enter)="goToSearch(mobileSearch.value)"
-    />
+    <div class="mobile-search-row">
+      <button class="mobile-location-btn">
+        <span class="material-symbols-rounded" style="font-size:18px;">location_on</span>
+        <span class="mobile-location-text">Pakistan</span>
+      </button>
+      <div class="mobile-search-wrap">
+        <input
+          #mobileSearch
+          type="text"
+          class="search-input"
+          placeholder="Search..."
+          (keyup.enter)="goToSearch(mobileSearch.value)"
+        />
+        <button class="mobile-search-btn" (click)="goToSearch(mobileSearch.value)">
+          <span class="material-symbols-rounded" style="font-size:18px;">search</span>
+        </button>
+      </div>
+    </div>
   </div>
+  }
 </header>
 
 <!-- Mobile Bottom Navigation -->
-@if (authService.isAuthenticated()) {
-  <nav class="mobile-bottom-nav">
-    <a routerLink="/" class="bottom-nav-item">
-      <span class="mat-icon bottom-icon">home</span>
-      <span class="bottom-label">Home</span>
-    </a>
-    <a routerLink="/messaging" class="bottom-nav-item">
-      <span class="mat-icon bottom-icon" style="position: relative;">
-        chat_bubble_outline
-        @if (unreadCount() > 0) {
-          <span class="bottom-badge">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
-        }
-      </span>
-      <span class="bottom-label">Chat</span>
-    </a>
-    <a routerLink="/listings/create" class="bottom-nav-item sell-item">
-      <span class="sell-circle"><span class="mat-icon" style="font-size: 28px; color: #fff;">add</span></span>
-      <span class="bottom-label">Sell</span>
-    </a>
-    <a routerLink="/listings/my" class="bottom-nav-item">
-      <span class="mat-icon bottom-icon">list_alt</span>
-      <span class="bottom-label">My Ads</span>
-    </a>
-    <a routerLink="/profile" class="bottom-nav-item">
-      <span class="mat-icon bottom-icon">person_outline</span>
-      <span class="bottom-label">Account</span>
-    </a>
-  </nav>
+@if (!isAuthPage) {
+<nav class="mobile-bottom-nav">
+  <a routerLink="/" class="bottom-nav-item">
+    <span class="material-symbols-rounded bottom-icon">home</span>
+    <span class="bottom-label">Home</span>
+  </a>
+  <a [routerLink]="authService.isAuthenticated() ? '/messaging' : null" (click)="!authService.isAuthenticated() && loginModal.open('/messaging')" class="bottom-nav-item">
+    <span class="material-symbols-rounded bottom-icon" style="position: relative;">
+      chat_bubble_outline
+      @if (unreadCount() > 0) {
+        <span class="bottom-badge">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
+      }
+    </span>
+    <span class="bottom-label">Chat</span>
+  </a>
+  <a [routerLink]="authService.isAuthenticated() ? '/listings/create' : null" (click)="!authService.isAuthenticated() && loginModal.open('/listings/create')" class="bottom-nav-item sell-item">
+    <span class="sell-circle"><span class="material-symbols-rounded" style="font-size: 26px; color: #fff;">add</span></span>
+    <span class="bottom-label">Sell</span>
+  </a>
+  <a [routerLink]="authService.isAuthenticated() ? '/listings/my' : null" (click)="!authService.isAuthenticated() && loginModal.open('/listings/my')" class="bottom-nav-item">
+    <span class="material-symbols-rounded bottom-icon">list_alt</span>
+    <span class="bottom-label">My Ads</span>
+  </a>
+  <a [routerLink]="authService.isAuthenticated() ? '/profile' : null" (click)="!authService.isAuthenticated() && loginModal.open('/profile')" class="bottom-nav-item">
+    <span class="material-symbols-rounded bottom-icon">person_outline</span>
+    <span class="bottom-label">Account</span>
+  </a>
+</nav>
 }

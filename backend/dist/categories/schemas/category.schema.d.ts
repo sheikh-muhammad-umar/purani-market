@@ -5,13 +5,8 @@ export declare enum AttributeType {
     NUMBER = "number",
     SELECT = "select",
     MULTISELECT = "multiselect",
-    BOOLEAN = "boolean"
-}
-export declare enum FilterType {
-    RANGE = "range",
-    SELECT = "select",
-    MULTISELECT = "multiselect",
-    BOOLEAN = "boolean"
+    BOOLEAN = "boolean",
+    RANGE = "range"
 }
 export declare class CategoryAttribute {
     name: string;
@@ -20,12 +15,6 @@ export declare class CategoryAttribute {
     options: string[];
     required: boolean;
     unit?: string;
-}
-export declare class CategoryFilter {
-    name: string;
-    key: string;
-    type: FilterType;
-    options: string[];
     rangeMin?: number;
     rangeMax?: number;
 }
@@ -36,7 +25,7 @@ export declare class Category {
     parentId: Types.ObjectId | null;
     level: number;
     attributes: CategoryAttribute[];
-    filters: CategoryFilter[];
+    features: string[];
     isActive: boolean;
     sortOrder: number;
     createdAt: Date;
@@ -115,7 +104,7 @@ export declare const CategorySchema: import("mongoose").Schema<Category, import(
     }, "id"> & {
         id: string;
     }> | undefined;
-    filters?: import("mongoose").SchemaDefinitionProperty<CategoryFilter[], Category, import("mongoose").Document<unknown, {}, Category, {
+    features?: import("mongoose").SchemaDefinitionProperty<string[], Category, import("mongoose").Document<unknown, {}, Category, {
         id: string;
     }, import("mongoose").DefaultSchemaOptions> & Omit<Category & Required<{
         _id: Types.ObjectId;

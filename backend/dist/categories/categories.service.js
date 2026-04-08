@@ -37,7 +37,7 @@ let CategoriesService = class CategoriesService {
             return JSON.parse(cached);
         }
         const categories = await this.categoryModel
-            .find({ isActive: true })
+            .find({})
             .sort({ sortOrder: 1, name: 1 })
             .lean()
             .exec();
@@ -73,7 +73,7 @@ let CategoriesService = class CategoriesService {
             isActive: dto.isActive ?? true,
             sortOrder: dto.sortOrder ?? 0,
             attributes: [],
-            filters: [],
+            features: [],
         });
         const saved = await category.save();
         await this.invalidateCache();
@@ -109,15 +109,45 @@ let CategoriesService = class CategoriesService {
         await this.invalidateCache();
         return saved;
     }
-    async updateFilters(id, filters) {
+    async updateFeatures(id, features) {
         const category = await this.findById(id);
-        category.filters = filters;
+        category.features = features;
         const saved = await category.save();
         await this.invalidateCache();
         return saved;
     }
     async invalidateCache() {
         await this.redis.del(CACHE_KEY_TREE);
+    }
+    async getInheritedAttributes(categoryId) {
+        const chain = await this.getCategoryChain(categoryId);
+        const merged = new Map();
+        for (const cat of chain) {
+            for (const attr of cat.attributes || []) {
+                merged.set(attr.key, attr);
+            }
+        }
+        return Array.from(merged.values());
+    }
+    async getInheritedFeatures(categoryId) {
+        const chain = await this.getCategoryChain(categoryId);
+        const merged = new Set();
+        for (const cat of chain) {
+            for (const feature of cat.features || []) {
+                merged.add(feature);
+            }
+        }
+        return Array.from(merged);
+    }
+    async getCategoryChain(categoryId) {
+        const chain = [];
+        let current = await this.findById(categoryId);
+        chain.unshift(current);
+        while (current.parentId) {
+            current = await this.findById(current.parentId.toString());
+            chain.unshift(current);
+        }
+        return chain;
     }
     generateSlug(name) {
         return name
@@ -139,6 +169,8 @@ let CategoriesService = class CategoriesService {
                 level: cat.level,
                 isActive: cat.isActive,
                 sortOrder: cat.sortOrder,
+                attributes: cat.attributes || [],
+                features: cat.features || [],
                 children: [],
             };
             map.set(node._id, node);

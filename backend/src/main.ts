@@ -1,16 +1,21 @@
 import { NestFactory } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
+import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
+import { join } from 'path';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
-  const app = await NestFactory.create(AppModule);
+  const app = await NestFactory.create<NestExpressApplication>(AppModule);
   const configService = app.get(ConfigService);
 
-  // Cookie parser — required for CSRF token handling
+  // Cookie parser
   app.use(cookieParser());
 
-  // CORS — allow only registered client domains
+  // Serve uploaded files statically
+  app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
+
+  // CORS
   const allowedOrigins =
     configService.get<string>('cors.allowedOrigins') || '';
   const origins = allowedOrigins

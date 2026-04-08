@@ -7,7 +7,7 @@ export const FEATURED_BOOST_FACTOR = 5;
 
 export const listingsIndexMapping = {
   properties: {
-    title: { type: 'text' as const, analyzer: 'standard' },
+    title: { type: 'text' as const, analyzer: 'standard', fields: { keyword: { type: 'keyword' as const, ignore_above: 256 } } },
     description: { type: 'text' as const, analyzer: 'standard' },
     'price.amount': { type: 'float' as const },
     'price.currency': { type: 'keyword' as const },

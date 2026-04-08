@@ -89,11 +89,11 @@ let ListingLocation = class ListingLocation {
 };
 exports.ListingLocation = ListingLocation;
 __decorate([
-    (0, mongoose_1.Prop)({ type: String, default: 'Point' }),
+    (0, mongoose_1.Prop)({ type: String }),
     __metadata("design:type", String)
 ], ListingLocation.prototype, "type", void 0);
 __decorate([
-    (0, mongoose_1.Prop)({ type: [Number], required: true }),
+    (0, mongoose_1.Prop)({ type: [Number] }),
     __metadata("design:type", Array)
 ], ListingLocation.prototype, "coordinates", void 0);
 __decorate([
@@ -133,6 +133,7 @@ let ProductListing = class ProductListing {
     categoryPath;
     condition;
     categoryAttributes;
+    selectedFeatures;
     images;
     video;
     location;
@@ -180,6 +181,10 @@ __decorate([
     (0, mongoose_1.Prop)({ type: mongoose_2.Schema.Types.Map, of: mongoose_2.Schema.Types.Mixed, default: () => new Map() }),
     __metadata("design:type", Map)
 ], ProductListing.prototype, "categoryAttributes", void 0);
+__decorate([
+    (0, mongoose_1.Prop)({ type: [String], default: [] }),
+    __metadata("design:type", Array)
+], ProductListing.prototype, "selectedFeatures", void 0);
 __decorate([
     (0, mongoose_1.Prop)({
         type: [ListingImage],
@@ -238,7 +243,7 @@ exports.ProductListingSchema = mongoose_1.SchemaFactory.createForClass(ProductLi
 exports.ProductListingSchema.index({ sellerId: 1 });
 exports.ProductListingSchema.index({ categoryId: 1 });
 exports.ProductListingSchema.index({ status: 1 });
-exports.ProductListingSchema.index({ location: '2dsphere' });
+exports.ProductListingSchema.index({ 'location.coordinates': '2dsphere' }, { sparse: true });
 exports.ProductListingSchema.index({ isFeatured: -1, createdAt: -1 });
 exports.ProductListingSchema.index({ createdAt: -1 });
 exports.ProductListingSchema.index({ categoryPath: 1 });

@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { ApiService } from './api.service';
-import { Category, CategoryAttribute, CategoryFilter } from '../models';
+import { Category, CategoryAttribute } from '../models';
 
 export interface CreateCategoryPayload {
   name: string;
@@ -61,12 +61,16 @@ export class CategoriesService {
     return this.api.delete<void>(`/categories/${id}`);
   }
 
+  getInheritedAttributes(categoryId: string): Observable<{ attributes: CategoryAttribute[]; features: string[] }> {
+    return this.api.get<{ attributes: CategoryAttribute[]; features: string[] }>(`/categories/${categoryId}/inherited-attributes`);
+  }
+
   updateAttributes(id: string, attributes: CategoryAttribute[]): Observable<Category> {
     return this.api.patch<Category>(`/categories/${id}/attributes`, { attributes });
   }
 
-  updateFilters(id: string, filters: CategoryFilter[]): Observable<Category> {
-    return this.api.patch<Category>(`/categories/${id}/filters`, { filters });
+  updateFeatures(id: string, features: string[]): Observable<Category> {
+    return this.api.patch<Category>(`/categories/${id}/features`, { features });
   }
 
   buildBreadcrumb(categories: Category[], targetId: string): Category[] {
@@ -79,17 +83,6 @@ export class CategoriesService {
         : undefined;
     }
     return trail;
-  }
-
-  private findBySlug(categories: Category[], slug: string): Category | undefined {
-    for (const cat of categories) {
-      if (cat.slug === slug) return cat;
-      if (cat.children) {
-        const found = this.findBySlug(cat.children, slug);
-        if (found) return found;
-      }
-    }
-    return undefined;
   }
 
   private flattenTree(tree: Category[]): Category[] {

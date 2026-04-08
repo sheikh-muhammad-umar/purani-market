@@ -20,6 +20,8 @@ class CategoryAttributeDto {
     options;
     required;
     unit;
+    rangeMin;
+    rangeMax;
 }
 exports.CategoryAttributeDto = CategoryAttributeDto;
 __decorate([
@@ -50,6 +52,16 @@ __decorate([
     (0, class_validator_1.IsString)(),
     __metadata("design:type", String)
 ], CategoryAttributeDto.prototype, "unit", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CategoryAttributeDto.prototype, "rangeMin", void 0);
+__decorate([
+    (0, class_validator_1.IsOptional)(),
+    (0, class_validator_1.IsNumber)(),
+    __metadata("design:type", Number)
+], CategoryAttributeDto.prototype, "rangeMax", void 0);
 class UpdateAttributesDto {
     attributes;
 }

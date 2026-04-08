@@ -17,7 +17,7 @@ import { Roles } from '../common/decorators/roles.decorator.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
 import { UpdateAttributesDto } from './dto/update-attributes.dto.js';
-import { UpdateFiltersDto } from './dto/update-filters.dto.js';
+import { UpdateFeaturesDto } from './dto/update-features.dto.js';
 
 @Controller('api/categories')
 export class CategoriesController {
@@ -31,6 +31,14 @@ export class CategoriesController {
   @Get(':id')
   async getCategoryById(@Param('id') id: string) {
     return this.categoriesService.findById(id);
+  }
+
+  @Get(':id/inherited-attributes')
+  async getInheritedAttributes(@Param('id') id: string) {
+    return {
+      attributes: await this.categoriesService.getInheritedAttributes(id),
+      features: await this.categoriesService.getInheritedFeatures(id),
+    };
   }
 
   @Post()
@@ -62,10 +70,10 @@ export class CategoriesController {
     return this.categoriesService.updateAttributes(id, dto.attributes as any);
   }
 
-  @Patch(':id/filters')
+  @Patch(':id/features')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async updateFilters(@Param('id') id: string, @Body() dto: UpdateFiltersDto) {
-    return this.categoriesService.updateFilters(id, dto.filters as any);
+  async updateFeatures(@Param('id') id: string, @Body() dto: UpdateFeaturesDto) {
+    return this.categoriesService.updateFeatures(id, dto.features);
   }
 }
