@@ -1,8 +1,8 @@
 # Dependencies
-node_modules/
+/node_modules
 
 # Build output
-dist/
+/dist
 
 # Environment files
 # .env
@@ -11,7 +11,7 @@ dist/
 # .env.local
 
 # Test coverage
-coverage/
+/coverage
 
 # IDE
 .idea/
@@ -30,4 +30,4 @@ npm-debug.log*
 *.tsbuildinfo
 
 # Uploads
-uploads/
+/uploads
