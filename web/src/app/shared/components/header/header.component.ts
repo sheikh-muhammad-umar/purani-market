@@ -7,6 +7,7 @@ import { MessagingService } from '../../../core/services/messaging.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { LocationService } from '../../../core/services/location.service';
+import { RecentSearchesService } from '../../../core/services/recent-searches.service';
 import { LoginModalService } from '../login-modal/login-modal.service';
 import { Province, City, Area } from '../../../core/models';
 
@@ -25,6 +26,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   // Location selector state
   locationDropdownOpen = signal(false);
+  searchDropdownOpen = signal(false);
   provinces = signal<Province[]>([]);
   cities = signal<City[]>([]);
   areas = signal<Area[]>([]);
@@ -41,6 +43,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     public readonly loginModal: LoginModalService,
     private readonly locationService: LocationService,
+    public readonly recentSearches: RecentSearchesService,
   ) {}
 
   ngOnInit(): void {
@@ -112,8 +115,42 @@ export class HeaderComponent implements OnInit, OnDestroy {
   goToSearch(query: string): void {
     const q = query?.trim();
     if (q) {
+      this.recentSearches.add(q);
+      this.searchDropdownOpen.set(false);
       this.router.navigate(['/search'], { queryParams: { q } });
     }
+  }
+
+  onSearchFocus(): void {
+    if (this.recentSearches.searches().length > 0) {
+      this.searchDropdownOpen.set(true);
+    }
+  }
+
+  onSearchBlur(): void {
+    // Delay to allow click on suggestion
+    setTimeout(() => this.searchDropdownOpen.set(false), 200);
+  }
+
+  selectRecentSearch(term: string, inputEl: HTMLInputElement): void {
+    inputEl.value = term;
+    this.goToSearch(term);
+  }
+
+  removeRecentSearch(term: string, event: MouseEvent): void {
+    event.stopPropagation();
+    event.preventDefault();
+    this.recentSearches.remove(term);
+    if (this.recentSearches.searches().length === 0) {
+      this.searchDropdownOpen.set(false);
+    }
+  }
+
+  clearRecentSearches(event: MouseEvent): void {
+    event.stopPropagation();
+    event.preventDefault();
+    this.recentSearches.clear();
+    this.searchDropdownOpen.set(false);
   }
 
   @HostListener('document:click', ['$event'])
@@ -122,6 +159,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (!target.closest('.search-location') && !target.closest('.location-dropdown') &&
         !target.closest('.mobile-location-btn') && !target.closest('.mobile-location-dropdown')) {
       this.locationDropdownOpen.set(false);
+    }
+    if (!target.closest('.header-search') && !target.closest('.mobile-search-wrap')) {
+      this.searchDropdownOpen.set(false);
     }
   }
 

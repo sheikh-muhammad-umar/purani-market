@@ -5,6 +5,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import { SearchService, SearchParams, SearchResponse, SearchSuggestion } from '../../../core/services/search.service';
 import { CategoriesService } from '../../../core/services/categories.service';
+import { RecentSearchesService } from '../../../core/services/recent-searches.service';
 import { SORT_OPTIONS } from '../../../core/constants/select-options';
 import { SearchSortOption } from '../../../core/constants/enums';
 import { PriceFormatPipe } from '../../../shared/pipes/price-format.pipe';
@@ -89,6 +90,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly searchService: SearchService,
     private readonly categoriesService: CategoriesService,
+    private readonly recentSearches: RecentSearchesService,
   ) {}
 
   ngOnInit(): void {
@@ -147,6 +149,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.showSuggestions.set(false);
     this.currentPage.set(1);
     this.query.set(this.searchInput());
+    this.recentSearches.add(this.searchInput());
     this.updateUrlAndSearch();
   }
 
@@ -155,6 +158,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.showSuggestions.set(false);
     this.query.set(term);
     this.currentPage.set(1);
+    this.recentSearches.add(term);
     this.updateUrlAndSearch();
   }
 
@@ -342,7 +346,9 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
         distinctUntilChanged(),
         switchMap(term => {
           if (!term || term.length < 2) {
-            return of([]);
+            // Show recent searches when input is empty or short
+            const recent = this.recentSearches.filter(term).map(t => ({ term: t, type: 'recent' as const }));
+            return of(recent);
           }
           return this.searchService.getSuggestions(term);
         }),

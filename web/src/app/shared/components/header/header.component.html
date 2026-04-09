@@ -108,7 +108,27 @@
         class="search-input"
         placeholder="Find cars, phones, furniture..."
         (keyup.enter)="goToSearch(desktopSearch.value)"
+        (focus)="onSearchFocus()"
+        (blur)="onSearchBlur()"
+        autocomplete="off"
       />
+      @if (searchDropdownOpen() && recentSearches.searches().length > 0) {
+        <div class="recent-searches-dropdown">
+          <div class="recent-searches-header">
+            <span>Recent Searches</span>
+            <button class="recent-clear-btn" (mousedown)="clearRecentSearches($event)">Clear all</button>
+          </div>
+          @for (term of recentSearches.searches(); track term) {
+            <button class="recent-search-item" (mousedown)="selectRecentSearch(term, desktopSearch)">
+              <span class="material-symbols-rounded" style="font-size:16px;color:var(--text-muted);">history</span>
+              <span class="recent-search-text">{{ term }}</span>
+              <span class="recent-remove-btn" (mousedown)="removeRecentSearch(term, $event)">
+                <span class="material-symbols-rounded" style="font-size:14px;">close</span>
+              </span>
+            </button>
+          }
+        </div>
+      }
       <button class="search-circle" (click)="goToSearch(desktopSearch.value)">
         <span class="material-symbols-rounded">search</span>
       </button>
@@ -280,7 +300,27 @@
           class="search-input"
           placeholder="Search..."
           (keyup.enter)="goToSearch(mobileSearch.value)"
+          (focus)="onSearchFocus()"
+          (blur)="onSearchBlur()"
+          autocomplete="off"
         />
+        @if (searchDropdownOpen() && recentSearches.searches().length > 0) {
+          <div class="recent-searches-dropdown mobile-recent">
+            <div class="recent-searches-header">
+              <span>Recent Searches</span>
+              <button class="recent-clear-btn" (mousedown)="clearRecentSearches($event)">Clear all</button>
+            </div>
+            @for (term of recentSearches.searches(); track term) {
+              <button class="recent-search-item" (mousedown)="selectRecentSearch(term, mobileSearch)">
+                <span class="material-symbols-rounded" style="font-size:16px;color:var(--text-muted);">history</span>
+                <span class="recent-search-text">{{ term }}</span>
+                <span class="recent-remove-btn" (mousedown)="removeRecentSearch(term, $event)">
+                  <span class="material-symbols-rounded" style="font-size:14px;">close</span>
+                </span>
+              </button>
+            }
+          </div>
+        }
         <button class="mobile-search-btn" (click)="goToSearch(mobileSearch.value)">
           <span class="material-symbols-rounded" style="font-size:18px;">search</span>
         </button>
