@@ -102,7 +102,7 @@
             </button>
           </div>
           <div class="detail-meta">
-            <span>📍 {{ l.location.area }}, {{ l.location.city }}</span>
+            <span>📍 @if (l.location.area) {{{ l.location.area }}@if (l.location.blockPhase) { — {{ l.location.blockPhase }}}, }{{ l.location.city }}</span>
             <span class="condition-tag">{{ l.condition | titlecase }}</span>
           </div>
         </div>
@@ -155,7 +155,7 @@
         <!-- Location -->
         <div class="detail-section">
           <h3>Location</h3>
-          <p class="location-label">📍 {{ l.location.area }}, {{ l.location.city }}</p>
+          <p class="location-label">📍 @if (l.location.area) {{{ l.location.area }}@if (l.location.blockPhase) { — {{ l.location.blockPhase }}}, }{{ l.location.city }}</p>
           <div class="map-container">
             @if (getMapUrl(); as safeUrl) {
               <iframe [src]="safeUrl" class="map-embed" title="Map" loading="lazy" allowfullscreen></iframe>

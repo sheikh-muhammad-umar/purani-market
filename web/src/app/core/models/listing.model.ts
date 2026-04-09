@@ -24,6 +24,7 @@ export interface ListingLocation {
   coordinates: [number, number];
   city: string;
   area: string;
+  blockPhase?: string;
 }
 
 export interface ListingContactInfo {
