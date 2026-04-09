@@ -7,6 +7,7 @@ import {
   PaymentTransaction,
 } from '../../../core/services/admin.service';
 import { PaymentMethod, PaymentStatus } from '../../../core/models';
+import { PAYMENT_METHOD_OPTIONS, PAYMENT_STATUS_OPTIONS } from '../../../core/constants/select-options';
 import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
 
 @Component({
@@ -31,20 +32,9 @@ export class PaymentTransactionsComponent implements OnInit {
   sortCol = '';
   sortDir: 'asc' | 'desc' = 'asc';
 
-  readonly paymentMethodOptions: SelectOption[] = [
-    { value: '', label: 'All' },
-    { value: 'jazzcash', label: 'JazzCash' },
-    { value: 'easypaisa', label: 'EasyPaisa' },
-    { value: 'card', label: 'Card' },
-  ];
+  readonly paymentMethodOptions: SelectOption[] = PAYMENT_METHOD_OPTIONS;
 
-  readonly paymentStatusOptions: SelectOption[] = [
-    { value: '', label: 'All' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'failed', label: 'Failed' },
-    { value: 'refunded', label: 'Refunded' },
-  ];
+  readonly paymentStatusOptions: SelectOption[] = PAYMENT_STATUS_OPTIONS;
   page = 1;
   readonly limit = 15;
 

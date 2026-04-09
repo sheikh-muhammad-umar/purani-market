@@ -2,6 +2,7 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ListingsService } from '../../../core/services/listings.service';
+import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth';
 import { Listing, PackagePurchase, User } from '../../../core/models';
@@ -21,7 +22,7 @@ interface FeaturedAdInfo {
 @Component({
   selector: 'app-my-listings',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ListingUrlPipe],
   templateUrl: './my-listings.component.html',
   styleUrls: ['./my-listings.component.scss'],
 })

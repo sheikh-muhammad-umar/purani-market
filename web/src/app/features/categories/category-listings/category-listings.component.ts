@@ -6,6 +6,7 @@ import { CategoriesService } from '../../../core/services/categories.service';
 import { ListingsService, ListingsResponse } from '../../../core/services/listings.service';
 import { PriceFormatPipe } from '../../../shared/pipes/price-format.pipe';
 import { TruncateTextPipe } from '../../../shared/pipes/truncate-text.pipe';
+import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { SortDropdownComponent, SortOption } from '../../../shared/components/sort-dropdown/sort-dropdown.component';
 import { Category, Listing } from '../../../core/models';
 
@@ -18,7 +19,7 @@ export interface BreadcrumbItem {
 @Component({
   selector: 'app-category-listings',
   standalone: true,
-  imports: [CommonModule, RouterLink, PriceFormatPipe, TruncateTextPipe, SortDropdownComponent],
+  imports: [CommonModule, RouterLink, PriceFormatPipe, TruncateTextPipe, SortDropdownComponent, ListingUrlPipe],
   templateUrl: './category-listings.component.html',
   styleUrls: ['./category-listings.component.scss'],
 })

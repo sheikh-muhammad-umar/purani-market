@@ -8,11 +8,13 @@ import { FavoritesService } from '../../../core/services/favorites.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LoginModalService } from '../../../shared/components/login-modal/login-modal.service';
 import { Listing, Review } from '../../../core/models';
+import { extractIdFromSlug } from '../../../core/utils/slug';
+import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 
 @Component({
   selector: 'app-listing-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ListingUrlPipe],
   templateUrl: './listing-detail.component.html',
   styleUrls: ['./listing-detail.component.scss'],
 })
@@ -63,12 +65,13 @@ export class ListingDetailComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (!id) {
+    const rawId = this.route.snapshot.paramMap.get('id');
+    if (!rawId) {
       this.error.set('Listing not found');
       this.loading.set(false);
       return;
     }
+    const id = extractIdFromSlug(rawId);
 
     this.listingsService.getById(id).subscribe({
       next: (listing) => {

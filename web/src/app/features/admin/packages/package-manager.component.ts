@@ -10,6 +10,12 @@ import {
 import { CategoriesService } from '../../../core/services/categories.service';
 import { AdPackage, PackagePurchase, PackageType, PaymentStatus, CategoryPricing } from '../../../core/models';
 import { Category } from '../../../core/models/category.model';
+import {
+  PACKAGE_TYPE_OPTIONS,
+  PACKAGE_TYPE_FILTER_OPTIONS,
+  DURATION_OPTIONS,
+  PAYMENT_STATUS_OPTIONS,
+} from '../../../core/constants/select-options';
 import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
 
 @Component({
@@ -59,30 +65,13 @@ export class PackageManagerComponent implements OnInit {
   purchaseFilterType: PackageType | '' = '';
   purchaseFilterStatus: PaymentStatus | '' = '';
 
-  readonly typeOptions: SelectOption[] = [
-    { value: 'featured_ads', label: 'Featured Ads' },
-    { value: 'ad_slots', label: 'Ad Slots' },
-  ];
+  readonly typeOptions: SelectOption[] = PACKAGE_TYPE_OPTIONS;
 
-  readonly durationOptions: SelectOption[] = [
-    { value: 7, label: '7 days' },
-    { value: 15, label: '15 days' },
-    { value: 30, label: '30 days' },
-  ];
+  readonly durationOptions: SelectOption[] = DURATION_OPTIONS;
 
-  readonly purchaseTypeOptions: SelectOption[] = [
-    { value: '', label: 'All' },
-    { value: 'featured_ads', label: 'Featured Ads' },
-    { value: 'ad_slots', label: 'Ad Slots' },
-  ];
+  readonly purchaseTypeOptions: SelectOption[] = PACKAGE_TYPE_FILTER_OPTIONS;
 
-  readonly purchaseStatusOptions: SelectOption[] = [
-    { value: '', label: 'All' },
-    { value: 'pending', label: 'Pending' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'failed', label: 'Failed' },
-    { value: 'refunded', label: 'Refunded' },
-  ];
+  readonly purchaseStatusOptions: SelectOption[] = PAYMENT_STATUS_OPTIONS;
   purchasePage = 1;
   readonly purchaseLimit = 10;
 

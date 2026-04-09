@@ -9,7 +9,7 @@
   <!-- Product card at top -->
   @if (listing()) {
     <div class="product-card">
-      <a [routerLink]="['/listings', listing()!._id]" class="product-card-link">
+      <a [routerLink]="['/listings', listing()! | listingUrl]" class="product-card-link">
         <img
           [src]="getListingImage()"
           [alt]="listing()!.title"

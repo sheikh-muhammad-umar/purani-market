@@ -3,6 +3,11 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PackagesService } from '../../../core/services/packages.service';
 import { PackagePurchase, PaymentStatus } from '../../../core/models';
+import {
+  PaymentStatus as PaymentStatusEnum,
+  PackageType as PackageTypeEnum,
+  PaymentMethod as PaymentMethodEnum,
+} from '../../../core/constants/enums';
 
 @Component({
   selector: 'app-my-packages',
@@ -45,7 +50,7 @@ export class MyPackagesComponent implements OnInit {
   activePurchases(): PackagePurchase[] {
     const now = new Date();
     return this.purchases().filter(p =>
-      p.paymentStatus === 'completed' &&
+      p.paymentStatus === PaymentStatusEnum.COMPLETED &&
       p.expiresAt &&
       new Date(p.expiresAt) > now &&
       p.remainingQuantity > 0
@@ -55,7 +60,7 @@ export class MyPackagesComponent implements OnInit {
   historyPurchases(): PackagePurchase[] {
     const now = new Date();
     return this.purchases().filter(p =>
-      p.paymentStatus !== 'completed' ||
+      p.paymentStatus !== PaymentStatusEnum.COMPLETED ||
       !p.expiresAt ||
       new Date(p.expiresAt) <= now ||
       p.remainingQuantity <= 0
@@ -64,16 +69,16 @@ export class MyPackagesComponent implements OnInit {
 
   getStatusBadgeClass(status: PaymentStatus): string {
     switch (status) {
-      case 'completed': return 'badge-success';
-      case 'pending': return 'badge-pending';
-      case 'failed': return 'badge-error';
-      case 'refunded': return 'badge-warning';
+      case PaymentStatusEnum.COMPLETED: return 'badge-success';
+      case PaymentStatusEnum.PENDING: return 'badge-pending';
+      case PaymentStatusEnum.FAILED: return 'badge-error';
+      case PaymentStatusEnum.REFUNDED: return 'badge-warning';
       default: return '';
     }
   }
 
   getTypeLabel(type: string): string {
-    return type === 'featured_ads' ? 'Featured Ads' : 'Ad Slots';
+    return type === PackageTypeEnum.FEATURED_ADS ? 'Featured Ads' : 'Ad Slots';
   }
 
   formatPrice(price: number): string {
@@ -97,9 +102,9 @@ export class MyPackagesComponent implements OnInit {
 
   getPaymentMethodLabel(method: string): string {
     switch (method) {
-      case 'jazzcash': return 'JazzCash';
-      case 'easypaisa': return 'EasyPaisa';
-      case 'card': return 'Card';
+      case PaymentMethodEnum.JAZZCASH: return 'JazzCash';
+      case PaymentMethodEnum.EASYPAISA: return 'EasyPaisa';
+      case PaymentMethodEnum.CARD: return 'Card';
       default: return method;
     }
   }

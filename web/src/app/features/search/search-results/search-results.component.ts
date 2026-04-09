@@ -5,11 +5,14 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import { SearchService, SearchParams, SearchResponse, SearchSuggestion } from '../../../core/services/search.service';
 import { CategoriesService } from '../../../core/services/categories.service';
+import { SORT_OPTIONS } from '../../../core/constants/select-options';
+import { SearchSortOption } from '../../../core/constants/enums';
 import { PriceFormatPipe } from '../../../shared/pipes/price-format.pipe';
 import { TruncateTextPipe } from '../../../shared/pipes/truncate-text.pipe';
+import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { Listing, Category, CategoryAttribute } from '../../../core/models';
 
-export type SortOption = 'relevance' | 'price_asc' | 'price_desc' | 'newest';
+export type SortOption = SearchSortOption;
 
 export interface ActiveFilter {
   key: string;
@@ -21,7 +24,7 @@ export interface ActiveFilter {
 @Component({
   selector: 'app-search-results',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, PriceFormatPipe, TruncateTextPipe],
+  imports: [CommonModule, RouterLink, FormsModule, PriceFormatPipe, TruncateTextPipe, ListingUrlPipe],
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.scss'],
 })
@@ -33,7 +36,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly currentPage = signal(1);
   readonly pageSize = 20;
   readonly loading = signal(false);
-  readonly sortBy = signal<SortOption>('relevance');
+  readonly sortBy = signal<SortOption>(SearchSortOption.RELEVANCE);
   readonly filtersOpen = signal(true);
 
   // Category filters
@@ -76,12 +79,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     return Array.from({ length: max - min + 1 }, (_, i) => max - i);
   }
 
-  readonly sortOptions: { value: SortOption; label: string }[] = [
-    { value: 'relevance', label: 'Relevance' },
-    { value: 'price_asc', label: 'Price: Low to High' },
-    { value: 'price_desc', label: 'Price: High to Low' },
-    { value: 'newest', label: 'Newest First' },
-  ];
+  readonly sortOptions = SORT_OPTIONS;
 
   private readonly destroy$ = new Subject<void>();
   private readonly searchInput$ = new Subject<string>();
@@ -102,7 +100,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .subscribe(params => {
         const q = params.get('q') || '';
         const category = params.get('category') || '';
-        const sort = (params.get('sort') as SortOption) || 'relevance';
+        const sort = (params.get('sort') as SortOption) || SearchSortOption.RELEVANCE;
         const page = Number(params.get('page')) || 1;
         const minPrice = params.get('minPrice') ? Number(params.get('minPrice')) : null;
         const maxPrice = params.get('maxPrice') ? Number(params.get('maxPrice')) : null;
@@ -388,7 +386,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     const q = this.query();
     if (q) params.q = q;
     const sort = this.sortBy();
-    if (sort !== 'relevance') params.sort = sort;
+    if (sort !== SearchSortOption.RELEVANCE) params.sort = sort;
     const cat = this.selectedCategoryId();
     if (cat) params.category = cat;
     const min = this.minPrice();
@@ -441,7 +439,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     const cat = this.selectedCategoryId();
     if (cat) queryParams['category'] = cat;
     const sort = this.sortBy();
-    if (sort !== 'relevance') queryParams['sort'] = sort;
+    if (sort !== SearchSortOption.RELEVANCE) queryParams['sort'] = sort;
     const page = this.currentPage();
     if (page > 1) queryParams['page'] = page;
     const min = this.minPrice();

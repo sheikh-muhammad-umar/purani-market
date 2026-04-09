@@ -7,6 +7,7 @@ import { RecommendationsService } from '../../core/services/recommendations.serv
 import { AuthService } from '../../core/auth/auth.service';
 import { PriceFormatPipe } from '../../shared/pipes/price-format.pipe';
 import { TruncateTextPipe } from '../../shared/pipes/truncate-text.pipe';
+import { ListingUrlPipe } from '../../shared/pipes/listing-url.pipe';
 import { CategoryModalComponent } from '../../shared/components/category-modal/category-modal.component';
 import { Category, Listing } from '../../core/models';
 
@@ -33,7 +34,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, PriceFormatPipe, TruncateTextPipe, CategoryModalComponent],
+  imports: [CommonModule, RouterLink, PriceFormatPipe, TruncateTextPipe, CategoryModalComponent, ListingUrlPipe],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })

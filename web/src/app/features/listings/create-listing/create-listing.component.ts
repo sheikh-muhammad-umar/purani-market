@@ -8,6 +8,9 @@ import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LocationService } from '../../../core/services/location.service';
 import { Category, CategoryAttribute, User, Province, City, Area } from '../../../core/models';
+import { ListingCondition } from '../../../core/constants/enums';
+import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
+import { listingSlug } from '../../../core/utils/slug';
 
 export interface MediaItem {
   file: File;
@@ -133,7 +136,7 @@ export class CreateListingComponent implements OnInit {
       title: ['', [Validators.required, Validators.maxLength(150)]],
       description: ['', [Validators.required, Validators.maxLength(5000)]],
       price: [null, [Validators.required, Validators.min(1)]],
-      condition: ['used', Validators.required],
+      condition: [ListingCondition.USED, Validators.required],
     });
 
     this.locationForm = this.fb.group({
@@ -581,16 +584,21 @@ export class CreateListingComponent implements OnInit {
     });
   }
 
+  private navigateToListing(listingId: string): void {
+    const title = this.detailsForm.get('title')?.value ?? '';
+    const slug = listingSlug({ _id: listingId, title });
+    this.router.navigate(['/listings', slug]);
+  }
+
   private uploadImages(listingId: string, index: number): void {
     const items = this.mediaItems();
     if (index >= items.length) {
-      // All images uploaded, now upload video if any
       const video = this.videoItem();
       if (video) {
         this.uploadVideo(listingId, video);
       } else {
         this.submitting.set(false);
-        this.router.navigate(['/listings', listingId]);
+        this.navigateToListing(listingId);
       }
       return;
     }
@@ -618,12 +626,11 @@ export class CreateListingComponent implements OnInit {
     this.listingsService.uploadMedia(listingId, formData).subscribe({
       next: () => {
         this.submitting.set(false);
-        this.router.navigate(['/listings', listingId]);
+        this.navigateToListing(listingId);
       },
       error: () => {
-        // Navigate even if video upload fails
         this.submitting.set(false);
-        this.router.navigate(['/listings', listingId]);
+        this.navigateToListing(listingId);
       },
     });
   }

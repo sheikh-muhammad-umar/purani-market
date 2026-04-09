@@ -2,12 +2,13 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { FavoritesService } from '../../../core/services/favorites.service';
+import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { Favorite, FavoriteListingPopulated } from '../../../core/models';
 
 @Component({
   selector: 'app-favorites-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, ListingUrlPipe],
   templateUrl: './favorites-list.component.html',
   styleUrls: ['./favorites-list.component.scss'],
 })

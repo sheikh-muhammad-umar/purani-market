@@ -5,6 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { ListingsService, CreateListingPayload } from '../../../core/services/listings.service';
 import { Category, CategoryAttribute, Listing } from '../../../core/models';
+import { extractIdFromSlug, listingSlug } from '../../../core/utils/slug';
 
 @Component({
   selector: 'app-edit-listing',
@@ -61,7 +62,7 @@ export class EditListingComponent implements OnInit {
       area: ['', Validators.required],
     });
 
-    this.listingId = this.route.snapshot.paramMap.get('id') ?? '';
+    this.listingId = extractIdFromSlug(this.route.snapshot.paramMap.get('id') ?? '');
 
     this.categoriesService.getAll().subscribe({
       next: (cats) => {
@@ -268,7 +269,8 @@ export class EditListingComponent implements OnInit {
     this.listingsService.update(this.listingId, payload).subscribe({
       next: () => {
         this.submitting.set(false);
-        this.router.navigate(['/listings', this.listingId]);
+        const title = this.detailsForm.get('title')?.value ?? '';
+        this.router.navigate(['/listings', listingSlug({ _id: this.listingId, title })]);
       },
       error: (err) => {
         this.submitting.set(false);

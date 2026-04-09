@@ -322,7 +322,7 @@
             </h3>
             <div class="featured-grid" role="list">
               @for (ad of featuredAds(); track ad._id) {
-                <a class="listing-card featured-card" [routerLink]="['/listings', ad._id]" role="listitem">
+                <a class="listing-card featured-card" [routerLink]="['/listings', ad | listingUrl]" role="listitem">
                   <div class="listing-img-wrap">
                     <img [src]="getListingImage(ad)" [alt]="ad.title" loading="lazy" />
                     <span class="badge badge-featured">Featured</span>
@@ -341,7 +341,7 @@
         <!-- Regular Results -->
         <div class="results-grid" role="list">
           @for (listing of results(); track listing._id) {
-            <a class="listing-card" [routerLink]="['/listings', listing._id]" role="listitem">
+            <a class="listing-card" [routerLink]="['/listings', listing | listingUrl]" role="listitem">
               <div class="listing-img-wrap">
                 <img [src]="getListingImage(listing)" [alt]="listing.title" loading="lazy" />
                 @if (listing.isFeatured) {

@@ -123,7 +123,7 @@
                 <td class="listing-cell">
                   <img [src]="getImage(listing)" [alt]="listing.title" class="listing-thumb" />
                   <div class="listing-meta">
-                    <a [routerLink]="['/listings', listing._id]" class="listing-title-link">{{ listing.title }}</a>
+                    <a [routerLink]="['/listings', listing | listingUrl]" class="listing-title-link">{{ listing.title }}</a>
                     <span class="listing-price">PKR {{ listing.price.amount | number }}</span>
                   </div>
                 </td>
@@ -141,7 +141,7 @@
                     <span class="spinner"></span>
                   } @else {
                     <div class="action-buttons">
-                      <a [routerLink]="['/listings', listing._id, 'edit']"
+                      <a [routerLink]="['/listings', listing | listingUrl, 'edit']"
                          class="btn btn-outline btn-sm"
                          title="Edit listing">Edit</a>
 

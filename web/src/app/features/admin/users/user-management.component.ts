@@ -7,6 +7,8 @@ import {
   GetUsersParams,
 } from '../../../core/services/admin.service';
 import { UserRole, UserStatus } from '../../../core/models/user.model';
+import { UserRole as UserRoleEnum, UserStatus as UserStatusEnum } from '../../../core/constants/enums';
+import { ROLE_OPTIONS, ROLE_CHANGE_OPTIONS, STATUS_OPTIONS } from '../../../core/constants/select-options';
 import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
 
 @Component({
@@ -33,22 +35,11 @@ export class UserManagementComponent implements OnInit {
   sortCol = '';
   sortDir: 'asc' | 'desc' = 'asc';
 
-  readonly roleOptions: SelectOption[] = [
-    { value: '', label: 'All Roles' },
-    { value: 'admin', label: 'Admin' },
-    { value: 'user', label: 'User' },
-  ];
+  readonly roleOptions: SelectOption[] = ROLE_OPTIONS;
 
-  readonly statusOptions: SelectOption[] = [
-    { value: '', label: 'All Status' },
-    { value: 'active', label: 'Active' },
-    { value: 'suspended', label: 'Suspended' },
-  ];
+  readonly statusOptions: SelectOption[] = STATUS_OPTIONS;
 
-  readonly roleChangeOptions: SelectOption[] = [
-    { value: 'admin', label: 'Admin' },
-    { value: 'user', label: 'User' },
-  ];
+  readonly roleChangeOptions: SelectOption[] = ROLE_CHANGE_OPTIONS;
 
   readonly totalPages = computed(() =>
     Math.max(1, Math.ceil(this.totalUsers() / this.pageSize()))
@@ -113,7 +104,7 @@ export class UserManagementComponent implements OnInit {
   }
 
   toggleUserStatus(user: AdminUser): void {
-    const newStatus: UserStatus = user.status === 'active' ? 'suspended' : 'active';
+    const newStatus: UserStatus = user.status === UserStatusEnum.ACTIVE ? 'suspended' : 'active';
     this.actionLoading.set(user._id);
     this.adminService.updateUserStatus(user._id, newStatus).subscribe({
       next: () => {

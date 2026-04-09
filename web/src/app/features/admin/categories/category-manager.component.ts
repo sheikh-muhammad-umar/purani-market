@@ -11,6 +11,7 @@ import {
   CategoryAttribute,
   CategoryAttributeType,
 } from '../../../core/models';
+import { ATTRIBUTE_TYPE_OPTIONS } from '../../../core/constants/select-options';
 import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
 
 interface TreeNode {
@@ -46,15 +47,7 @@ export class CategoryManagerComponent implements OnInit {
   // Attribute editing
   editingAttributes: CategoryAttribute[] = [];
   readonly attributeTypes: CategoryAttributeType[] = ['text', 'number', 'select', 'multiselect', 'boolean', 'range', 'year'];
-  readonly attributeTypeOptions: SelectOption[] = [
-    { value: 'text', label: 'Text' },
-    { value: 'number', label: 'Number' },
-    { value: 'select', label: 'Select' },
-    { value: 'multiselect', label: 'Multiselect' },
-    { value: 'boolean', label: 'Boolean' },
-    { value: 'range', label: 'Range' },
-    { value: 'year', label: 'Year' },
-  ];
+  readonly attributeTypeOptions: SelectOption[] = ATTRIBUTE_TYPE_OPTIONS;
 
   // Features editing
   editingFeatures: string[] = [];

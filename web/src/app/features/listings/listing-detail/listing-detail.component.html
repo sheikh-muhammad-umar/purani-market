@@ -171,7 +171,7 @@
             <h3>Similar items you might like</h3>
             <div class="similar-carousel">
               @for (item of similarListings(); track item._id) {
-                <a [routerLink]="['/listings', item._id]" class="similar-card">
+                <a [routerLink]="['/listings', item | listingUrl]" class="similar-card">
                   <div class="similar-image">
                     <img [src]="item.images[0]?.thumbnailUrl || item.images[0]?.url || 'assets/placeholder.png'" [alt]="item.title" />
                   </div>

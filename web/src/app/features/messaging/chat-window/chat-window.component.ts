@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MessagingService, MessagesResponse } from '../../../core/services/messaging.service';
+import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { ListingsService } from '../../../core/services/listings.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/auth';
@@ -12,7 +13,7 @@ import { Message, Listing } from '../../../core/models';
 @Component({
   selector: 'app-chat-window',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, ListingUrlPipe],
   templateUrl: './chat-window.component.html',
   styleUrls: ['./chat-window.component.scss'],
 })

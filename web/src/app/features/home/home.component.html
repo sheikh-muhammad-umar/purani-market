@@ -63,7 +63,7 @@
         @for (listing of featuredListings(); track listing._id) {
           <a
             class="listing-card"
-            [routerLink]="['/listings', listing._id]"
+            [routerLink]="['/listings', listing | listingUrl]"
             role="listitem"
           >
             <div class="listing-img-wrap">
@@ -113,7 +113,7 @@
         @for (listing of recommendations(); track listing._id) {
           <a
             class="listing-card masonry-item"
-            [routerLink]="['/listings', listing._id]"
+            [routerLink]="['/listings', listing | listingUrl]"
             role="listitem"
           >
             <div class="listing-img-wrap">
@@ -169,7 +169,7 @@
         @for (listing of nearbyListings(); track listing._id) {
           <a
             class="listing-card"
-            [routerLink]="['/listings', listing._id]"
+            [routerLink]="['/listings', listing | listingUrl]"
             role="listitem"
           >
             <div class="listing-img-wrap">

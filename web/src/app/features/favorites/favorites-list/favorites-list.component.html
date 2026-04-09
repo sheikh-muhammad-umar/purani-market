@@ -36,7 +36,7 @@
           @if (getListing(favorite); as listing) {
             <div class="favorite-card card">
               <div class="card-image-wrapper">
-                <a [routerLink]="['/listings', listing._id]">
+                <a [routerLink]="['/listings', listing | listingUrl]">
                   <img [src]="getImage(favorite)" [alt]="listing.title" class="card-image" />
                 </a>
                 <span class="badge status-badge" [ngClass]="getStatusBadgeClass(listing.status)">
@@ -56,7 +56,7 @@
                 </button>
               </div>
               <div class="card-body">
-                <a [routerLink]="['/listings', listing._id]" class="card-title">
+                <a [routerLink]="['/listings', listing | listingUrl]" class="card-title">
                   {{ listing.title }}
                 </a>
                 <span class="card-price price">{{ formatPrice(listing) }}</span>

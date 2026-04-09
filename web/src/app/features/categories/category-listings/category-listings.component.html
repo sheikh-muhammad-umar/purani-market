@@ -86,7 +86,7 @@
           @for (listing of listings(); track listing._id) {
             <a
               class="listing-card"
-              [routerLink]="['/listings', listing._id]"
+              [routerLink]="['/listings', listing | listingUrl]"
               role="listitem"
             >
               <div class="listing-img-wrap">
