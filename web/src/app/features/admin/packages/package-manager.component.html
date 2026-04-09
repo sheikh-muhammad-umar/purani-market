@@ -18,19 +18,23 @@
   </div>
 
   <!-- Error -->
-  <div class="error-state" *ngIf="error()">
-    <p>{{ error() }}</p>
-    <button class="btn-retry" (click)="activeTab === 'packages' ? loadPackages() : loadPurchases()">Retry</button>
-  </div>
+  @if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+      <button class="btn-retry" (click)="activeTab === 'packages' ? loadPackages() : loadPurchases()">Retry</button>
+    </div>
+  }
 
   <!-- Loading -->
-  <div class="loading-state" *ngIf="loading() && !error()">
-    <div class="spinner" aria-label="Loading"></div>
-    <p>Loading...</p>
-  </div>
+  @if (loading() && !error()) {
+    <div class="loading-state">
+      <div class="spinner" aria-label="Loading"></div>
+      <p>Loading...</p>
+    </div>
+  }
 
   <!-- PACKAGES TAB -->
-  <ng-container *ngIf="activeTab === 'packages' && !loading()">
+  @if (activeTab === 'packages' && !loading()) {
     <div class="content-layout">
       <!-- Package List -->
       <div class="list-panel">
@@ -39,165 +43,189 @@
           <button class="btn-primary" (click)="openCreateForm()" [disabled]="saving()">+ New Package</button>
         </div>
 
-        <div class="empty-list" *ngIf="(packages() || []).length === 0">
-          No packages found. Create one to get started.
-        </div>
+        @if ((packages() || []).length === 0) {
+          <div class="empty-list">
+            No packages found. Create one to get started.
+          </div>
+        }
 
-        <table class="data-table" *ngIf="(packages() || []).length > 0" aria-label="Ad packages">
-          <thead>
-            <tr>
-              <th style="padding-left: 46px;" class="sortable" (click)="sortPackages('name')">Name <span class="material-symbols-rounded sort-icon">{{ sortIcon('name', pkgSortCol, pkgSortDir) }}</span></th>
-              <th class="sortable" (click)="sortPackages('type')">Type <span class="material-symbols-rounded sort-icon">{{ sortIcon('type', pkgSortCol, pkgSortDir) }}</span></th>
-              <th class="sortable" (click)="sortPackages('duration')">Duration <span class="material-symbols-rounded sort-icon">{{ sortIcon('duration', pkgSortCol, pkgSortDir) }}</span></th>
-              <th>Qty</th>
-              <th class="sortable" (click)="sortPackages('defaultPrice')">Price <span class="material-symbols-rounded sort-icon">{{ sortIcon('defaultPrice', pkgSortCol, pkgSortDir) }}</span></th>
-              <th class="sortable" (click)="sortPackages('isActive')">Status <span class="material-symbols-rounded sort-icon">{{ sortIcon('isActive', pkgSortCol, pkgSortDir) }}</span></th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            <ng-container *ngFor="let pkg of packages()">
-              <tr [class.expanded]="isPackageExpanded(pkg._id)">
-                <td>
-                  <span class="pkg-name-cell">
-                    <button
-                      class="expand-toggle"
-                      *ngIf="pkg.categoryPricing?.length"
-                      (click)="togglePackageExpand(pkg._id)"
-                      type="button"
-                    >{{ isPackageExpanded(pkg._id) ? '▾' : '▸' }}</button>
-                    <span class="expand-placeholder" *ngIf="!pkg.categoryPricing?.length"></span>
-                    {{ pkg.name }}
-                  </span>
-                </td>
-                <td><span class="type-badge" [class.featured]="pkg.type === 'featured_ads'">{{ pkg.type === 'featured_ads' ? 'Featured' : 'Ad Slots' }}</span></td>
-                <td>{{ pkg.duration }} days</td>
-                <td>{{ pkg.quantity }}</td>
-                <td class="price-cell">Rs {{ pkg.defaultPrice | number }}</td>
-                <td><span class="status-badge" [class.active]="pkg.isActive" [class.inactive]="!pkg.isActive">{{ pkg.isActive ? 'Active' : 'Inactive' }}</span></td>
-                <td>
-                  <button class="btn-action" (click)="openEditForm(pkg)" [disabled]="saving()">Edit</button>
-                </td>
+        @if ((packages() || []).length > 0) {
+          <table class="data-table" aria-label="Ad packages">
+            <thead>
+              <tr>
+                <th style="padding-left: 46px;" class="sortable" (click)="sortPackages('name')">Name <span class="material-symbols-rounded sort-icon">{{ sortIcon('name', pkgSortCol, pkgSortDir) }}</span></th>
+                <th class="sortable" (click)="sortPackages('type')">Type <span class="material-symbols-rounded sort-icon">{{ sortIcon('type', pkgSortCol, pkgSortDir) }}</span></th>
+                <th class="sortable" (click)="sortPackages('duration')">Duration <span class="material-symbols-rounded sort-icon">{{ sortIcon('duration', pkgSortCol, pkgSortDir) }}</span></th>
+                <th>Qty</th>
+                <th class="sortable" (click)="sortPackages('defaultPrice')">Price <span class="material-symbols-rounded sort-icon">{{ sortIcon('defaultPrice', pkgSortCol, pkgSortDir) }}</span></th>
+                <th class="sortable" (click)="sortPackages('isActive')">Status <span class="material-symbols-rounded sort-icon">{{ sortIcon('isActive', pkgSortCol, pkgSortDir) }}</span></th>
+                <th>Actions</th>
               </tr>
-              <tr class="child-row" *ngIf="isPackageExpanded(pkg._id) && pkg.categoryPricing?.length">
-                <td colspan="7">
-                  <div class="child-pricing">
-                    <span class="child-pricing-title">Category-Specific Pricing</span>
-                    <div class="child-pricing-groups">
-                      <div class="child-group" *ngFor="let group of getGroupedPricing(pkg)">
-                        <div class="child-group-price">Rs {{ group.price | number }}</div>
-                        <div class="child-group-cats">
-                          <span class="child-cat-chip" *ngFor="let catId of group.categories">{{ getCategoryName(catId) }}</span>
+            </thead>
+            <tbody>
+              @for (pkg of packages(); track pkg._id) {
+                <tr [class.expanded]="isPackageExpanded(pkg._id)">
+                  <td>
+                    <span class="pkg-name-cell">
+                      @if (pkg.categoryPricing.length) {
+                        <button
+                          class="expand-toggle"
+                          (click)="togglePackageExpand(pkg._id)"
+                          type="button"
+                        >{{ isPackageExpanded(pkg._id) ? '▾' : '▸' }}</button>
+                      }
+                      @if (!pkg.categoryPricing.length) {
+                        <span class="expand-placeholder"></span>
+                      }
+                      {{ pkg.name }}
+                    </span>
+                  </td>
+                  <td><span class="type-badge" [class.featured]="pkg.type === 'featured_ads'">{{ pkg.type === 'featured_ads' ? 'Featured' : 'Ad Slots' }}</span></td>
+                  <td>{{ pkg.duration }} days</td>
+                  <td>{{ pkg.quantity }}</td>
+                  <td class="price-cell">Rs {{ pkg.defaultPrice | number }}</td>
+                  <td><span class="status-badge" [class.active]="pkg.isActive" [class.inactive]="!pkg.isActive">{{ pkg.isActive ? 'Active' : 'Inactive' }}</span></td>
+                  <td>
+                    <button class="btn-action" (click)="openEditForm(pkg)" [disabled]="saving()">Edit</button>
+                  </td>
+                </tr>
+                @if (isPackageExpanded(pkg._id) && pkg.categoryPricing.length) {
+                  <tr class="child-row">
+                    <td colspan="7">
+                      <div class="child-pricing">
+                        <span class="child-pricing-title">Category-Specific Pricing</span>
+                        <div class="child-pricing-groups">
+                          @for (group of getGroupedPricing(pkg); track $index) {
+                            <div class="child-group">
+                              <div class="child-group-price">Rs {{ group.price | number }}</div>
+                              <div class="child-group-cats">
+                                @for (catId of group.categories; track catId) {
+                                  <span class="child-cat-chip">{{ getCategoryName(catId) }}</span>
+                                }
+                              </div>
+                            </div>
+                          }
                         </div>
                       </div>
-                    </div>
-                  </div>
-                </td>
-              </tr>
-            </ng-container>
-          </tbody>
-        </table>
+                    </td>
+                  </tr>
+                }
+              }
+            </tbody>
+          </table>
+        }
       </div>
 
       <!-- Create/Edit Panel -->
-      <div class="form-panel" *ngIf="activePanel !== 'none'">
-        <div class="config-card">
-          <h3>{{ activePanel === 'create' ? 'Create Package' : 'Edit Package' }}</h3>
+      @if (activePanel !== 'none') {
+        <div class="form-panel">
+          <div class="config-card">
+            <h3>{{ activePanel === 'create' ? 'Create Package' : 'Edit Package' }}</h3>
 
-          <div class="form-group">
-            <label for="pkg-name">Package Name</label>
-            <input id="pkg-name" type="text" [(ngModel)]="formName" placeholder="e.g. Premium Featured 10">
-          </div>
-
-          <div class="form-group">
-            <label for="pkg-type">Type</label>
-            <app-custom-select [options]="typeOptions" [(ngModel)]="formType" placeholder="Select type"></app-custom-select>
-          </div>
-
-          <div class="form-group">
-            <label for="pkg-duration">Duration</label>
-            <app-custom-select [options]="durationOptions" [(ngModel)]="formDuration" placeholder="Select duration"></app-custom-select>
-          </div>
-
-          <div class="form-group">
-            <label for="pkg-qty">Quantity</label>
-            <input id="pkg-qty" type="number" [(ngModel)]="formQuantity" min="1">
-          </div>
-
-          <div class="form-group">
-            <label for="pkg-price">Default Price (Rs)</label>
-            <input id="pkg-price" type="number" [(ngModel)]="formDefaultPrice" min="0">
-          </div>
-
-          <div class="form-group checkbox-group">
-            <label>
-              <input type="checkbox" [(ngModel)]="formIsActive"> Active
-            </label>
-          </div>
-
-          <!-- Category-Specific Pricing -->
-          <div class="pricing-section">
-            <h4>Category-Specific Pricing</h4>
-            <p class="panel-hint">Override the default price for specific categories.</p>
-
-            <div class="pricing-item" *ngFor="let cp of formCategoryPricing; let i = index; trackBy: trackByIndex">
-              <div class="pricing-item-header">
-                <span class="pricing-item-label">Price Group #{{ i + 1 }}</span>
-                <button class="btn-remove" (click)="removeCategoryPrice(i)" aria-label="Remove pricing" title="Remove">✕</button>
-              </div>
-
-              <div class="form-group">
-                <label>Price (Rs)</label>
-                <input type="number" [(ngModel)]="cp.price" min="0" placeholder="Enter price">
-              </div>
-
-              <div class="form-group">
-                <label>Categories ({{ cp.categoryIds.length }} selected)</label>
-                <div class="selected-cats" *ngIf="cp.categoryIds.length > 0">
-                  <span class="cat-chip" *ngFor="let cid of cp.categoryIds">
-                    {{ getCategoryName(cid) }}
-                    <button class="cat-chip-remove" (click)="togglePricingCategory(cp, cid)" type="button">✕</button>
-                  </span>
-                </div>
-                <div class="cat-picker">
-                  <input
-                    type="text"
-                    class="cat-search-input"
-                    placeholder="Search categories..."
-                    [(ngModel)]="pricingCatSearch[i]"
-                  />
-                  <div class="cat-picker-grid">
-                    <button
-                      type="button"
-                      class="cat-pick-btn"
-                      *ngFor="let cat of filteredCategoriesForRow(i)"
-                      [class.picked]="cp.categoryIds.includes(cat._id)"
-                      (click)="togglePricingCategory(cp, cat._id)"
-                    >{{ cat.name }}</button>
-                    <span class="cat-no-results" *ngIf="filteredCategoriesForRow(i).length === 0">No categories found</span>
-                  </div>
-                </div>
-              </div>
+            <div class="form-group">
+              <label for="pkg-name">Package Name</label>
+              <input id="pkg-name" type="text" [(ngModel)]="formName" placeholder="e.g. Premium Featured 10">
             </div>
 
-            <button class="btn-add-item" (click)="addCategoryPrice()">+ Add Category Price</button>
-          </div>
+            <div class="form-group">
+              <label for="pkg-type">Type</label>
+              <app-custom-select [options]="typeOptions" [(ngModel)]="formType" placeholder="Select type"></app-custom-select>
+            </div>
 
-          <div class="form-actions">
-            <button
-              class="btn-primary"
-              (click)="activePanel === 'create' ? submitCreate() : submitEdit()"
-              [disabled]="saving() || !formName.trim()"
-            >{{ saving() ? 'Saving...' : (activePanel === 'create' ? 'Create' : 'Save Changes') }}</button>
-            <button class="btn-secondary" (click)="cancelForm()" [disabled]="saving()">Cancel</button>
+            <div class="form-group">
+              <label for="pkg-duration">Duration</label>
+              <app-custom-select [options]="durationOptions" [(ngModel)]="formDuration" placeholder="Select duration"></app-custom-select>
+            </div>
+
+            <div class="form-group">
+              <label for="pkg-qty">Quantity</label>
+              <input id="pkg-qty" type="number" [(ngModel)]="formQuantity" min="1">
+            </div>
+
+            <div class="form-group">
+              <label for="pkg-price">Default Price (Rs)</label>
+              <input id="pkg-price" type="number" [(ngModel)]="formDefaultPrice" min="0">
+            </div>
+
+            <div class="form-group checkbox-group">
+              <label>
+                <input type="checkbox" [(ngModel)]="formIsActive"> Active
+              </label>
+            </div>
+
+            <!-- Category-Specific Pricing -->
+            <div class="pricing-section">
+              <h4>Category-Specific Pricing</h4>
+              <p class="panel-hint">Override the default price for specific categories.</p>
+
+              @for (cp of formCategoryPricing; track $index) {
+                <div class="pricing-item">
+                  <div class="pricing-item-header">
+                    <span class="pricing-item-label">Price Group #{{ $index + 1 }}</span>
+                    <button class="btn-remove" (click)="removeCategoryPrice($index)" aria-label="Remove pricing" title="Remove">✕</button>
+                  </div>
+
+                  <div class="form-group">
+                    <label>Price (Rs)</label>
+                    <input type="number" [(ngModel)]="cp.price" min="0" placeholder="Enter price">
+                  </div>
+
+                  <div class="form-group">
+                    <label>Categories ({{ cp.categoryIds.length }} selected)</label>
+                    @if (cp.categoryIds.length > 0) {
+                      <div class="selected-cats">
+                        @for (cid of cp.categoryIds; track cid) {
+                          <span class="cat-chip">
+                            {{ getCategoryName(cid) }}
+                            <button class="cat-chip-remove" (click)="togglePricingCategory(cp, cid)" type="button">✕</button>
+                          </span>
+                        }
+                      </div>
+                    }
+                    <div class="cat-picker">
+                      <input
+                        type="text"
+                        class="cat-search-input"
+                        placeholder="Search categories..."
+                        [(ngModel)]="pricingCatSearch[$index]"
+                      />
+                      <div class="cat-picker-grid">
+                        @for (cat of filteredCategoriesForRow($index); track cat._id) {
+                          <button
+                            type="button"
+                            class="cat-pick-btn"
+                            [class.picked]="cp.categoryIds.includes(cat._id)"
+                            (click)="togglePricingCategory(cp, cat._id)"
+                          >{{ cat.name }}</button>
+                        }
+                        @if (filteredCategoriesForRow($index).length === 0) {
+                          <span class="cat-no-results">No categories found</span>
+                        }
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+
+              <button class="btn-add-item" (click)="addCategoryPrice()">+ Add Category Price</button>
+            </div>
+
+            <div class="form-actions">
+              <button
+                class="btn-primary"
+                (click)="activePanel === 'create' ? submitCreate() : submitEdit()"
+                [disabled]="saving() || !formName.trim()"
+              >{{ saving() ? 'Saving...' : (activePanel === 'create' ? 'Create' : 'Save Changes') }}</button>
+              <button class="btn-secondary" (click)="cancelForm()" [disabled]="saving()">Cancel</button>
+            </div>
           </div>
         </div>
-      </div>
+      }
     </div>
-  </ng-container>
+  }
 
   <!-- PURCHASES TAB -->
-  <ng-container *ngIf="activeTab === 'purchases' && !loading()">
+  @if (activeTab === 'purchases' && !loading()) {
     <div class="filters-bar">
       <div class="form-group compact">
         <label>Start Date</label>
@@ -225,41 +253,49 @@
       </div>
     </div>
 
-    <div class="empty-list" *ngIf="(purchases() || []).length === 0">
-      No purchases found.
-    </div>
+    @if ((purchases() || []).length === 0) {
+      <div class="empty-list">
+        No purchases found.
+      </div>
+    }
 
-    <table class="data-table" *ngIf="(purchases() || []).length > 0" aria-label="Package purchases">
-      <thead>
-        <tr>
-          <th>Seller</th>
-          <th>Type</th>
-          <th>Qty</th>
-          <th>Remaining</th>
-          <th>Price</th>
-          <th>Payment</th>
-          <th>Status</th>
-          <th>Date</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let p of purchases()">
-          <td>{{ p.sellerId }}</td>
-          <td><span class="type-badge" [class.featured]="p.type === 'featured_ads'">{{ p.type === 'featured_ads' ? 'Featured' : 'Ad Slots' }}</span></td>
-          <td>{{ p.quantity }}</td>
-          <td>{{ p.remainingQuantity }}</td>
-          <td class="price-cell">Rs {{ p.price | number }}</td>
-          <td>{{ p.paymentMethod }}</td>
-          <td><span class="payment-status" [attr.data-status]="p.paymentStatus">{{ p.paymentStatus }}</span></td>
-          <td>{{ p.createdAt | date:'mediumDate' }}</td>
-        </tr>
-      </tbody>
-    </table>
+    @if ((purchases() || []).length > 0) {
+      <table class="data-table" aria-label="Package purchases">
+        <thead>
+          <tr>
+            <th>Seller</th>
+            <th>Type</th>
+            <th>Qty</th>
+            <th>Remaining</th>
+            <th>Price</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of purchases(); track $index) {
+            <tr>
+              <td>{{ p.sellerId }}</td>
+              <td><span class="type-badge" [class.featured]="p.type === 'featured_ads'">{{ p.type === 'featured_ads' ? 'Featured' : 'Ad Slots' }}</span></td>
+              <td>{{ p.quantity }}</td>
+              <td>{{ p.remainingQuantity }}</td>
+              <td class="price-cell">Rs {{ p.price | number }}</td>
+              <td>{{ p.paymentMethod }}</td>
+              <td><span class="payment-status" [attr.data-status]="p.paymentStatus">{{ p.paymentStatus }}</span></td>
+              <td>{{ p.createdAt | date:'mediumDate' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
 
-    <div class="pagination" *ngIf="(purchases() || []).length > 0">
-      <button class="btn-secondary" (click)="prevPurchasePage()" [disabled]="purchasePage <= 1">← Prev</button>
-      <span class="page-info">Page {{ purchasePage }} of {{ totalPurchasePages }}</span>
-      <button class="btn-secondary" (click)="nextPurchasePage()" [disabled]="purchasePage >= totalPurchasePages">Next →</button>
-    </div>
-  </ng-container>
+    @if ((purchases() || []).length > 0) {
+      <div class="pagination">
+        <button class="btn-secondary" (click)="prevPurchasePage()" [disabled]="purchasePage <= 1">← Prev</button>
+        <span class="page-info">Page {{ purchasePage }} of {{ totalPurchasePages }}</span>
+        <button class="btn-secondary" (click)="nextPurchasePage()" [disabled]="purchasePage >= totalPurchasePages">Next →</button>
+      </div>
+    }
+  }
 </div>

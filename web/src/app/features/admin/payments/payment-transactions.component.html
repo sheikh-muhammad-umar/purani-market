@@ -4,18 +4,22 @@
   </div>
 
   <!-- Error -->
-  <div class="error-state" *ngIf="error()">
-    <p>{{ error() }}</p>
-    <button class="btn-retry" (click)="loadPayments()">Retry</button>
-  </div>
+  @if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+      <button class="btn-retry" (click)="loadPayments()">Retry</button>
+    </div>
+  }
 
   <!-- Loading -->
-  <div class="loading-state" *ngIf="loading() && !error()">
-    <div class="spinner" aria-label="Loading"></div>
-    <p>Loading...</p>
-  </div>
+  @if (loading() && !error()) {
+    <div class="loading-state">
+      <div class="spinner" aria-label="Loading"></div>
+      <p>Loading...</p>
+    </div>
+  }
 
-  <ng-container *ngIf="!loading() && !error()">
+  @if (!loading() && !error()) {
     <!-- Filters -->
     <div class="filters-bar">
       <div class="form-group compact">
@@ -40,39 +44,47 @@
       </div>
     </div>
 
-    <div class="empty-list" *ngIf="payments().length === 0">
-      No payment transactions found.
-    </div>
+    @if (payments().length === 0) {
+      <div class="empty-list">
+        No payment transactions found.
+      </div>
+    }
 
-    <table class="data-table" *ngIf="payments().length > 0" aria-label="Payment transactions">
-      <thead>
-        <tr>
-          <th>Transaction ID</th>
-          <th class="sortable" (click)="sortPayments('sellerName')">Seller <span class="material-symbols-rounded sort-icon">{{ sortIcon('sellerName') }}</span></th>
-          <th>Package</th>
-          <th class="sortable" (click)="sortPayments('amount')">Amount <span class="material-symbols-rounded sort-icon">{{ sortIcon('amount') }}</span></th>
-          <th>Method</th>
-          <th class="sortable" (click)="sortPayments('paymentStatus')">Status <span class="material-symbols-rounded sort-icon">{{ sortIcon('paymentStatus') }}</span></th>
-          <th class="sortable" (click)="sortPayments('createdAt')">Date <span class="material-symbols-rounded sort-icon">{{ sortIcon('createdAt') }}</span></th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let tx of payments()">
-          <td class="mono">{{ tx.transactionId }}</td>
-          <td>{{ tx.sellerName }}</td>
-          <td>{{ tx.packageName }}</td>
-          <td class="price-cell">{{ tx.currency }} {{ tx.amount | number }}</td>
-          <td class="method-cell">{{ tx.paymentMethod }}</td>
-          <td><span class="payment-status" [attr.data-status]="tx.paymentStatus">{{ tx.paymentStatus }}</span></td>
-          <td>{{ tx.createdAt | date:'medium' }}</td>
-        </tr>
-      </tbody>
-    </table>
+    @if (payments().length > 0) {
+      <table class="data-table" aria-label="Payment transactions">
+        <thead>
+          <tr>
+            <th>Transaction ID</th>
+            <th class="sortable" (click)="sortPayments('sellerName')">Seller <span class="material-symbols-rounded sort-icon">{{ sortIcon('sellerName') }}</span></th>
+            <th>Package</th>
+            <th class="sortable" (click)="sortPayments('amount')">Amount <span class="material-symbols-rounded sort-icon">{{ sortIcon('amount') }}</span></th>
+            <th>Method</th>
+            <th class="sortable" (click)="sortPayments('paymentStatus')">Status <span class="material-symbols-rounded sort-icon">{{ sortIcon('paymentStatus') }}</span></th>
+            <th class="sortable" (click)="sortPayments('createdAt')">Date <span class="material-symbols-rounded sort-icon">{{ sortIcon('createdAt') }}</span></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (tx of payments(); track $index) {
+            <tr>
+              <td class="mono">{{ tx.transactionId }}</td>
+              <td>{{ tx.sellerName }}</td>
+              <td>{{ tx.packageName }}</td>
+              <td class="price-cell">{{ tx.currency }} {{ tx.amount | number }}</td>
+              <td class="method-cell">{{ tx.paymentMethod }}</td>
+              <td><span class="payment-status" [attr.data-status]="tx.paymentStatus">{{ tx.paymentStatus }}</span></td>
+              <td>{{ tx.createdAt | date:'medium' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
 
-    <div class="pagination" *ngIf="payments().length > 0">
-      <button class="btn-secondary" (click)="prevPage()" [disabled]="page <= 1">← Prev</button>
-      <span class="page-info">Page {{ page }} of {{ totalPages }}</span>
-      <button class="btn-secondary" (click)="nextPage()" [disabled]="page >= totalPages">Next →</button>
-    </div>
-  </ng-container>
+    @if (payments().length > 0) {
+      <div class="pagination">
+        <button class="btn-secondary" (click)="prevPage()" [disabled]="page <= 1">← Prev</button>
+        <span class="page-info">Page {{ page }} of {{ totalPages }}</span>
+        <button class="btn-secondary" (click)="nextPage()" [disabled]="page >= totalPages">Next →</button>
+      </div>
+    }
+  }
 </div>

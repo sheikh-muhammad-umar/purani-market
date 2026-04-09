@@ -19,167 +19,215 @@
     </div>
   </div>
 
-  <div *ngIf="loading()" class="loading-state">
-    <div class="spinner"></div>
-    <p>Loading analytics...</p>
-  </div>
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading analytics...</p>
+    </div>
+  }
 
-  <div *ngIf="error()" class="error-state">
-    <p>{{ error() }}</p>
-    <button class="btn-retry" (click)="loadAnalytics()">Retry</button>
-  </div>
+  @if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+      <button class="btn-retry" (click)="loadAnalytics()">Retry</button>
+    </div>
+  }
 
-  <ng-container *ngIf="!loading() && !error()">
+  @if (!loading() && !error()) {
     <!-- Key Metrics Cards -->
     <section class="metrics-section">
       <div class="metrics-grid">
-        <div *ngFor="let card of metricCards()" class="metric-card">
-          <span class="metric-icon material-symbols-rounded">{{ card.icon }}</span>
-          <div class="metric-info">
-            <span class="metric-value">{{ formatValue(card.value, card.format) }}</span>
-            <span class="metric-label">{{ card.label }}</span>
+        @for (card of metricCards(); track $index) {
+          <div class="metric-card">
+            <span class="metric-icon material-symbols-rounded">{{ card.icon }}</span>
+            <div class="metric-info">
+              <span class="metric-value">{{ formatValue(card.value, card.format) }}</span>
+              <span class="metric-label">{{ card.label }}</span>
+            </div>
           </div>
-        </div>
+        }
       </div>
     </section>
 
     <!-- Time Series Charts -->
-    <section class="charts-section" *ngIf="timeSeries() as ts">
-      <h2>Trends</h2>
-      <div class="charts-grid">
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>Registrations</h3>
-            <span class="chart-total" *ngIf="ts.registrations.length > 0">Total: {{ getSeriesTotal(ts.registrations) | number }}</span>
-          </div>
-          <div class="bar-chart-wrap" *ngIf="ts.registrations.length > 0">
-            <div class="y-axis">
-              <span class="y-label">{{ getMaxTimeSeriesValue(ts.registrations) }}</span>
-              <span class="y-label">0</span>
+    @if (timeSeries(); as ts) {
+      <section class="charts-section">
+        <h2>Trends</h2>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Registrations</h3>
+              @if (ts.registrations.length > 0) {
+                <span class="chart-total">Total: {{ getSeriesTotal(ts.registrations) | number }}</span>
+              }
             </div>
-            <div class="bar-chart">
-              <div
-                *ngFor="let point of ts.registrations"
-                class="bar-column"
-                [title]="point.date + ': ' + point.value"
-              >
-                <span class="bar-value" *ngIf="point.value > 0">{{ point.value }}</span>
-                <div
-                  class="bar"
-                  [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.registrations))"
-                ></div>
-                <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+            @if (ts.registrations.length > 0) {
+              <div class="bar-chart-wrap">
+                <div class="y-axis">
+                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.registrations) }}</span>
+                  <span class="y-label">0</span>
+                </div>
+                <div class="bar-chart">
+                  @for (point of ts.registrations; track $index) {
+                    <div
+                      class="bar-column"
+                      [title]="point.date + ': ' + point.value"
+                    >
+                      @if (point.value > 0) {
+                        <span class="bar-value">{{ point.value }}</span>
+                      }
+                      <div
+                        class="bar"
+                        [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.registrations))"
+                      ></div>
+                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                    </div>
+                  }
+                </div>
               </div>
-            </div>
+            }
+            @if (ts.registrations.length === 0) {
+              <p class="no-data">No data available</p>
+            }
           </div>
-          <p *ngIf="ts.registrations.length === 0" class="no-data">No data available</p>
-        </div>
 
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>Listings</h3>
-            <span class="chart-total" *ngIf="ts.listings.length > 0">Total: {{ getSeriesTotal(ts.listings) | number }}</span>
-          </div>
-          <div class="bar-chart-wrap" *ngIf="ts.listings.length > 0">
-            <div class="y-axis">
-              <span class="y-label">{{ getMaxTimeSeriesValue(ts.listings) }}</span>
-              <span class="y-label">0</span>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Listings</h3>
+              @if (ts.listings.length > 0) {
+                <span class="chart-total">Total: {{ getSeriesTotal(ts.listings) | number }}</span>
+              }
             </div>
-            <div class="bar-chart">
-              <div
-                *ngFor="let point of ts.listings"
-                class="bar-column"
-                [title]="point.date + ': ' + point.value"
-              >
-                <span class="bar-value" *ngIf="point.value > 0">{{ point.value }}</span>
-                <div
-                  class="bar bar-listings"
-                  [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.listings))"
-                ></div>
-                <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+            @if (ts.listings.length > 0) {
+              <div class="bar-chart-wrap">
+                <div class="y-axis">
+                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.listings) }}</span>
+                  <span class="y-label">0</span>
+                </div>
+                <div class="bar-chart">
+                  @for (point of ts.listings; track $index) {
+                    <div
+                      class="bar-column"
+                      [title]="point.date + ': ' + point.value"
+                    >
+                      @if (point.value > 0) {
+                        <span class="bar-value">{{ point.value }}</span>
+                      }
+                      <div
+                        class="bar bar-listings"
+                        [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.listings))"
+                      ></div>
+                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                    </div>
+                  }
+                </div>
               </div>
-            </div>
+            }
+            @if (ts.listings.length === 0) {
+              <p class="no-data">No data available</p>
+            }
           </div>
-          <p *ngIf="ts.listings.length === 0" class="no-data">No data available</p>
-        </div>
 
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>Conversations</h3>
-            <span class="chart-total" *ngIf="ts.conversations.length > 0">Total: {{ getSeriesTotal(ts.conversations) | number }}</span>
-          </div>
-          <div class="bar-chart-wrap" *ngIf="ts.conversations.length > 0">
-            <div class="y-axis">
-              <span class="y-label">{{ getMaxTimeSeriesValue(ts.conversations) }}</span>
-              <span class="y-label">0</span>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Conversations</h3>
+              @if (ts.conversations.length > 0) {
+                <span class="chart-total">Total: {{ getSeriesTotal(ts.conversations) | number }}</span>
+              }
             </div>
-            <div class="bar-chart">
-              <div
-                *ngFor="let point of ts.conversations"
-                class="bar-column"
-                [title]="point.date + ': ' + point.value"
-              >
-                <span class="bar-value" *ngIf="point.value > 0">{{ point.value }}</span>
-                <div
-                  class="bar bar-conversations"
-                  [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.conversations))"
-                ></div>
-                <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+            @if (ts.conversations.length > 0) {
+              <div class="bar-chart-wrap">
+                <div class="y-axis">
+                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.conversations) }}</span>
+                  <span class="y-label">0</span>
+                </div>
+                <div class="bar-chart">
+                  @for (point of ts.conversations; track $index) {
+                    <div
+                      class="bar-column"
+                      [title]="point.date + ': ' + point.value"
+                    >
+                      @if (point.value > 0) {
+                        <span class="bar-value">{{ point.value }}</span>
+                      }
+                      <div
+                        class="bar bar-conversations"
+                        [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.conversations))"
+                      ></div>
+                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                    </div>
+                  }
+                </div>
               </div>
-            </div>
+            }
+            @if (ts.conversations.length === 0) {
+              <p class="no-data">No data available</p>
+            }
           </div>
-          <p *ngIf="ts.conversations.length === 0" class="no-data">No data available</p>
-        </div>
 
-        <div class="chart-card">
-          <div class="chart-header">
-            <h3>Purchases</h3>
-            <span class="chart-total" *ngIf="ts.purchases.length > 0">Total: {{ getSeriesTotal(ts.purchases) | number }}</span>
-          </div>
-          <div class="bar-chart-wrap" *ngIf="ts.purchases.length > 0">
-            <div class="y-axis">
-              <span class="y-label">{{ getMaxTimeSeriesValue(ts.purchases) }}</span>
-              <span class="y-label">0</span>
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Purchases</h3>
+              @if (ts.purchases.length > 0) {
+                <span class="chart-total">Total: {{ getSeriesTotal(ts.purchases) | number }}</span>
+              }
             </div>
-            <div class="bar-chart">
-              <div
-                *ngFor="let point of ts.purchases"
-                class="bar-column"
-                [title]="point.date + ': ' + point.value"
-              >
-                <span class="bar-value" *ngIf="point.value > 0">{{ point.value }}</span>
-                <div
-                  class="bar bar-purchases"
-                  [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.purchases))"
-                ></div>
-                <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+            @if (ts.purchases.length > 0) {
+              <div class="bar-chart-wrap">
+                <div class="y-axis">
+                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.purchases) }}</span>
+                  <span class="y-label">0</span>
+                </div>
+                <div class="bar-chart">
+                  @for (point of ts.purchases; track $index) {
+                    <div
+                      class="bar-column"
+                      [title]="point.date + ': ' + point.value"
+                    >
+                      @if (point.value > 0) {
+                        <span class="bar-value">{{ point.value }}</span>
+                      }
+                      <div
+                        class="bar bar-purchases"
+                        [style.height.%]="getBarHeight(point.value, getMaxTimeSeriesValue(ts.purchases))"
+                      ></div>
+                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                    </div>
+                  }
+                </div>
               </div>
-            </div>
+            }
+            @if (ts.purchases.length === 0) {
+              <p class="no-data">No data available</p>
+            }
           </div>
-          <p *ngIf="ts.purchases.length === 0" class="no-data">No data available</p>
         </div>
-      </div>
-    </section>
+      </section>
+    }
 
     <!-- Category Analytics -->
-    <section class="category-section" *ngIf="categoryAnalytics().length > 0">
-      <h2>Listings by Category</h2>
-      <div class="category-list">
-        <div class="category-row category-row-header">
-          <span class="category-name">Category</span>
-          <div class="category-bar-wrapper"></div>
-          <span class="category-pct">Share</span>
-          <span class="category-count">Count</span>
-        </div>
-        <div *ngFor="let cat of categoryAnalytics(); let i = index" class="category-row">
-          <span class="category-name" [title]="cat.categoryName">{{ cat.categoryName }}</span>
-          <div class="category-bar-wrapper">
-            <div class="category-bar" [style.width.%]="getBarWidth(cat.listingCount)"></div>
+    @if (categoryAnalytics().length > 0) {
+      <section class="category-section">
+        <h2>Listings by Category</h2>
+        <div class="category-list">
+          <div class="category-row category-row-header">
+            <span class="category-name">Category</span>
+            <div class="category-bar-wrapper"></div>
+            <span class="category-pct">Share</span>
+            <span class="category-count">Count</span>
           </div>
-          <span class="category-pct">{{ getCategoryPercent(cat.listingCount) }}%</span>
-          <span class="category-count">{{ cat.listingCount }}</span>
+          @for (cat of categoryAnalytics(); track $index) {
+            <div class="category-row">
+              <span class="category-name" [title]="cat.categoryName">{{ cat.categoryName }}</span>
+              <div class="category-bar-wrapper">
+                <div class="category-bar" [style.width.%]="getBarWidth(cat.listingCount)"></div>
+              </div>
+              <span class="category-pct">{{ getCategoryPercent(cat.listingCount) }}%</span>
+              <span class="category-count">{{ cat.listingCount }}</span>
+            </div>
+          }
         </div>
-      </div>
-    </section>
-  </ng-container>
+      </section>
+    }
+  }
 </div>

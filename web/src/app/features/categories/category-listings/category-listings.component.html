@@ -102,7 +102,7 @@
               <div class="listing-info">
                 <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
                 <p class="listing-price price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
-                <p class="listing-location">📍 {{ listing.location?.city || 'Unknown' }}</p>
+                <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
               </div>
             </a>
           }

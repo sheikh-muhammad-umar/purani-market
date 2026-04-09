@@ -1,5 +1,4 @@
 <div class="admin-layout" [class.sidebar-collapsed]="sidebarCollapsed">
-  <!-- Mobile overlay -->
   @if (mobileMenuOpen) {
     <div class="mobile-overlay" (click)="closeMobileMenu()"></div>
   }
@@ -8,7 +7,9 @@
     <div class="sidebar-inner">
       <div class="sidebar-header">
         <span class="sidebar-logo material-symbols-rounded">admin_panel_settings</span>
-        <span class="sidebar-title" *ngIf="!sidebarCollapsed">Admin Panel</span>
+        @if (!sidebarCollapsed) {
+          <span class="sidebar-title">Admin Panel</span>
+        }
         <button
           class="sidebar-toggle hide-mobile-toggle"
           (click)="toggleSidebar()"
@@ -26,18 +27,21 @@
       </div>
 
       <nav class="sidebar-nav">
-        <a
-          *ngFor="let item of navItems"
-          class="nav-item"
-          [routerLink]="item.path"
-          routerLinkActive="active"
-          [routerLinkActiveOptions]="{ exact: item.path === '/admin' }"
-          [attr.aria-label]="item.label"
-          (click)="closeMobileMenu()"
-        >
-          <span class="nav-icon material-symbols-rounded">{{ item.icon }}</span>
-          <span class="nav-label" *ngIf="!sidebarCollapsed">{{ item.label }}</span>
-        </a>
+        @for (item of navItems; track item.path) {
+          <a
+            class="nav-item"
+            [routerLink]="item.path"
+            routerLinkActive="active"
+            [routerLinkActiveOptions]="{ exact: item.path === '/admin' }"
+            [attr.aria-label]="item.label"
+            (click)="closeMobileMenu()"
+          >
+            <span class="nav-icon material-symbols-rounded">{{ item.icon }}</span>
+            @if (!sidebarCollapsed) {
+              <span class="nav-label">{{ item.label }}</span>
+            }
+          </a>
+        }
       </nav>
     </div>
   </aside>

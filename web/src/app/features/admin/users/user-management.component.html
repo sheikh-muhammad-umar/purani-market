@@ -1,7 +1,9 @@
 <div class="user-management">
   <div class="page-header">
     <h1>User Management</h1>
-    <span class="user-count" *ngIf="!loading()">{{ totalUsers() }} users</span>
+    @if (!loading()) {
+      <span class="user-count">{{ totalUsers() }} users</span>
+    }
   </div>
 
   <!-- Search & Filters -->
@@ -33,109 +35,121 @@
   </div>
 
   <!-- Loading -->
-  <div class="loading-state" *ngIf="loading()">
-    <div class="spinner"></div>
-    <p>Loading users...</p>
-  </div>
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading users...</p>
+    </div>
+  }
 
   <!-- Error -->
-  <div class="error-state" *ngIf="error()">
-    <p>{{ error() }}</p>
-    <button class="btn-retry" (click)="loadUsers()">Retry</button>
-  </div>
+  @if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+      <button class="btn-retry" (click)="loadUsers()">Retry</button>
+    </div>
+  }
 
   <!-- Users Table -->
-  <div class="table-container" *ngIf="!loading() && !error()">
-    <table class="users-table" aria-label="Users list">
-      <thead>
-        <tr>
-          <th class="sortable" (click)="sortUsers('email')">User <span class="material-symbols-rounded sort-icon">{{ sortIcon('email') }}</span></th>
-          <th>Email</th>
-          <th class="sortable" (click)="sortUsers('role')">Role <span class="material-symbols-rounded sort-icon">{{ sortIcon('role') }}</span></th>
-          <th class="sortable" (click)="sortUsers('status')">Status <span class="material-symbols-rounded sort-icon">{{ sortIcon('status') }}</span></th>
-          <th class="sortable" (click)="sortUsers('listingsCount')">Listings <span class="material-symbols-rounded sort-icon">{{ sortIcon('listingsCount') }}</span></th>
-          <th>Conversations</th>
-          <th>Actions</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr *ngFor="let user of users() || []" [class.suspended]="user.status === 'suspended'">
-          <td class="user-cell">
-            <div class="user-info">
-              <span class="user-name">{{ getUserName(user) }}</span>
-              <span class="user-joined">Joined {{ formatDate(user.createdAt) }}</span>
-            </div>
-          </td>
-          <td>{{ getUserContact(user) }}</td>
-          <td>
-            <span class="role-badge" [attr.data-role]="user.role">{{ user.role }}</span>
-          </td>
-          <td>
-            <span class="status-badge" [attr.data-status]="user.status">{{ user.status }}</span>
-          </td>
-          <td class="numeric">{{ user.listingsCount }}</td>
-          <td class="numeric">{{ user.conversationsCount }}</td>
-          <td class="actions-cell">
-            <div class="action-group">
-              <button
-                class="btn-action"
-                [class.btn-suspend]="user.status === 'active'"
-                [class.btn-reactivate]="user.status === 'suspended'"
-                [disabled]="actionLoading() === user._id"
-                (click)="toggleUserStatus(user)"
-              >
-                {{ user.status === 'active' ? 'Suspend' : 'Reactivate' }}
-              </button>
-              <app-custom-select
-                [options]="roleChangeOptions"
-                [ngModel]="user.role"
-                (ngModelChange)="changeRole(user, $event)"
-                [disabled]="actionLoading() === user._id"
-              ></app-custom-select>
-              <div class="ad-limit-input">
-                <label>Ad Limit:</label>
-                <input
-                  type="number"
-                  [value]="user.adLimit"
-                  min="0"
-                  (change)="updateAdLimit(user, $any($event.target).value)"
-                  [disabled]="actionLoading() === user._id"
-                  aria-label="Ad limit override"
-                />
-              </div>
-            </div>
-          </td>
-        </tr>
-        <tr *ngIf="(users()?.length ?? 0) === 0">
-          <td colspan="7" class="empty-state">No users found.</td>
-        </tr>
-      </tbody>
-    </table>
-  </div>
+  @if (!loading() && !error()) {
+    <div class="table-container">
+      <table class="users-table" aria-label="Users list">
+        <thead>
+          <tr>
+            <th class="sortable" (click)="sortUsers('email')">User <span class="material-symbols-rounded sort-icon">{{ sortIcon('email') }}</span></th>
+            <th>Email</th>
+            <th class="sortable" (click)="sortUsers('role')">Role <span class="material-symbols-rounded sort-icon">{{ sortIcon('role') }}</span></th>
+            <th class="sortable" (click)="sortUsers('status')">Status <span class="material-symbols-rounded sort-icon">{{ sortIcon('status') }}</span></th>
+            <th class="sortable" (click)="sortUsers('listingsCount')">Listings <span class="material-symbols-rounded sort-icon">{{ sortIcon('listingsCount') }}</span></th>
+            <th>Conversations</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (user of users() || []; track user._id) {
+            <tr [class.suspended]="user.status === 'suspended'">
+              <td class="user-cell">
+                <div class="user-info">
+                  <span class="user-name">{{ getUserName(user) }}</span>
+                  <span class="user-joined">Joined {{ formatDate(user.createdAt) }}</span>
+                </div>
+              </td>
+              <td>{{ getUserContact(user) }}</td>
+              <td>
+                <span class="role-badge" [attr.data-role]="user.role">{{ user.role }}</span>
+              </td>
+              <td>
+                <span class="status-badge" [attr.data-status]="user.status">{{ user.status }}</span>
+              </td>
+              <td class="numeric">{{ user.listingsCount }}</td>
+              <td class="numeric">{{ user.conversationsCount }}</td>
+              <td class="actions-cell">
+                <div class="action-group">
+                  <button
+                    class="btn-action"
+                    [class.btn-suspend]="user.status === 'active'"
+                    [class.btn-reactivate]="user.status === 'suspended'"
+                    [disabled]="actionLoading() === user._id"
+                    (click)="toggleUserStatus(user)"
+                  >
+                    {{ user.status === 'active' ? 'Suspend' : 'Reactivate' }}
+                  </button>
+                  <app-custom-select
+                    [options]="roleChangeOptions"
+                    [ngModel]="user.role"
+                    (ngModelChange)="changeRole(user, $event)"
+                    [disabled]="actionLoading() === user._id"
+                  ></app-custom-select>
+                  <div class="ad-limit-input">
+                    <label>Ad Limit:</label>
+                    <input
+                      type="number"
+                      [value]="user.adLimit"
+                      min="0"
+                      (change)="updateAdLimit(user, $any($event.target).value)"
+                      [disabled]="actionLoading() === user._id"
+                      aria-label="Ad limit override"
+                    />
+                  </div>
+                </div>
+              </td>
+            </tr>
+          } @empty {
+            <tr>
+              <td colspan="7" class="empty-state">No users found.</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
 
-  <!-- Pagination -->
-  <div class="pagination" *ngIf="!loading() && !error() && totalPages() > 1">
-    <button
-      class="btn-page"
-      [disabled]="currentPage() === 1"
-      (click)="goToPage(currentPage() - 1)"
-    >
-      ← Prev
-    </button>
-    <button
-      *ngFor="let page of pages()"
-      class="btn-page"
-      [class.active]="page === currentPage()"
-      (click)="goToPage(page)"
-    >
-      {{ page }}
-    </button>
-    <button
-      class="btn-page"
-      [disabled]="currentPage() === totalPages()"
-      (click)="goToPage(currentPage() + 1)"
-    >
-      Next →
-    </button>
-  </div>
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button
+          class="btn-page"
+          [disabled]="currentPage() === 1"
+          (click)="goToPage(currentPage() - 1)"
+        >
+          ← Prev
+        </button>
+        @for (page of pages(); track page) {
+          <button
+            class="btn-page"
+            [class.active]="page === currentPage()"
+            (click)="goToPage(page)"
+          >
+            {{ page }}
+          </button>
+        }
+        <button
+          class="btn-page"
+          [disabled]="currentPage() === totalPages()"
+          (click)="goToPage(currentPage() + 1)"
+        >
+          Next →
+        </button>
+      </div>
+    }
+  }
 </div>

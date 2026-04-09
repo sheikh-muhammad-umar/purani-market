@@ -1,6 +1,5 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { CategoryModalComponent } from '../../../shared/components/category-modal/category-modal.component';
 import { Category } from '../../../core/models';
@@ -41,7 +40,7 @@ const CATEGORY_ICONS: Record<string, string> = {
 @Component({
   selector: 'app-category-browse',
   standalone: true,
-  imports: [CommonModule, RouterLink, CategoryModalComponent],
+  imports: [CommonModule, CategoryModalComponent],
   templateUrl: './category-browse.component.html',
   styleUrls: ['./category-browse.component.scss'],
 })

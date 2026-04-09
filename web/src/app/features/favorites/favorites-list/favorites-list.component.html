@@ -61,7 +61,7 @@
                 </a>
                 <span class="card-price price">{{ formatPrice(listing) }}</span>
                 <div class="card-meta">
-                  @if (listing.location?.city) {
+                  @if (listing.location.city) {
                     <span class="card-location">📍 {{ listing.location.city }}</span>
                   }
                   <span class="card-condition">{{ listing.condition }}</span>

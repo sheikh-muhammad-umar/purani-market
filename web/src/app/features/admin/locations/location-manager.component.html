@@ -10,10 +10,12 @@
   </div>
 
   <!-- Error toast -->
-  <div class="error-toast" *ngIf="actionError()">
-    <span>{{ actionError() }}</span>
-    <button (click)="actionError.set(null)">&times;</button>
-  </div>
+  @if (actionError()) {
+    <div class="error-toast">
+      <span>{{ actionError() }}</span>
+      <button (click)="actionError.set(null)">&times;</button>
+    </div>
+  }
 
   <!-- Three-panel layout -->
   <div class="panels">
@@ -25,38 +27,45 @@
         <button class="btn-icon add" (click)="showAddProvince = !showAddProvince" title="Add Province">+</button>
       </div>
 
-      <div class="add-form" *ngIf="showAddProvince">
-        <input type="text" [(ngModel)]="newProvinceName" placeholder="Province name" (keyup.enter)="addProvince()" />
-        <button class="btn-sm save" (click)="addProvince()">Add</button>
-        <button class="btn-sm cancel" (click)="showAddProvince = false">Cancel</button>
-      </div>
+      @if (showAddProvince) {
+        <div class="add-form">
+          <input type="text" [(ngModel)]="newProvinceName" placeholder="Province name" (keyup.enter)="addProvince()" />
+          <button class="btn-sm save" (click)="addProvince()">Add</button>
+          <button class="btn-sm cancel" (click)="showAddProvince = false">Cancel</button>
+        </div>
+      }
 
       <input type="text" class="search-input" [(ngModel)]="provinceSearch" placeholder="Search provinces..." />
 
       <div class="list-container">
-        <div class="spinner-sm" *ngIf="loading()"></div>
-        <div
-          *ngFor="let p of filteredProvinces()"
-          class="list-item"
-          [class.active]="selectedProvince()?._id === p._id"
-          (click)="editingId() !== p._id && selectProvince(p)"
-        >
-          <ng-container *ngIf="editingId() !== p._id">
-            <span class="item-name">{{ p.name }}</span>
-            <div class="item-actions">
-              <button class="btn-icon edit" (click)="$event.stopPropagation(); startEdit(p._id, p.name)" title="Rename">✎</button>
-              <button class="btn-icon delete" (click)="$event.stopPropagation(); deleteProvince(p)" title="Delete">✕</button>
-            </div>
-          </ng-container>
-          <ng-container *ngIf="editingId() === p._id">
-            <input type="text" [(ngModel)]="editingName" (keyup.enter)="saveProvinceName(p)" (keyup.escape)="cancelEdit()" class="edit-input" />
-            <div class="item-actions">
-              <button class="btn-icon save" (click)="saveProvinceName(p)">✓</button>
-              <button class="btn-icon cancel" (click)="cancelEdit()">✕</button>
-            </div>
-          </ng-container>
-        </div>
-        <p class="empty" *ngIf="!loading() && filteredProvinces().length === 0">No provinces found</p>
+        @if (loading()) {
+          <div class="spinner-sm"></div>
+        }
+        @for (p of filteredProvinces(); track p._id) {
+          <div
+            class="list-item"
+            [class.active]="selectedProvince()?._id === p._id"
+            (click)="editingId() !== p._id && selectProvince(p)"
+          >
+            @if (editingId() !== p._id) {
+              <span class="item-name">{{ p.name }}</span>
+              <div class="item-actions">
+                <button class="btn-icon edit" (click)="$event.stopPropagation(); startEdit(p._id, p.name)" title="Rename">✎</button>
+                <button class="btn-icon delete" (click)="$event.stopPropagation(); deleteProvince(p)" title="Delete">✕</button>
+              </div>
+            }
+            @if (editingId() === p._id) {
+              <input type="text" [(ngModel)]="editingName" (keyup.enter)="saveProvinceName(p)" (keyup.escape)="cancelEdit()" class="edit-input" />
+              <div class="item-actions">
+                <button class="btn-icon save" (click)="saveProvinceName(p)">✓</button>
+                <button class="btn-icon cancel" (click)="cancelEdit()">✕</button>
+              </div>
+            }
+          </div>
+        }
+        @if (!loading() && filteredProvinces().length === 0) {
+          <p class="empty">No provinces found</p>
+        }
       </div>
     </div>
 
@@ -64,42 +73,55 @@
     <div class="panel" [class.disabled]="!selectedProvince()">
       <div class="panel-header">
         <h2>Cities</h2>
-        <span class="context" *ngIf="selectedProvince()">in {{ selectedProvince()!.name }}</span>
-        <button class="btn-icon add" *ngIf="selectedProvince()" (click)="showAddCity = !showAddCity" title="Add City">+</button>
+        @if (selectedProvince()) {
+          <span class="context">in {{ selectedProvince()!.name }}</span>
+        }
+        @if (selectedProvince()) {
+          <button class="btn-icon add" (click)="showAddCity = !showAddCity" title="Add City">+</button>
+        }
       </div>
 
-      <div class="add-form" *ngIf="showAddCity">
-        <input type="text" [(ngModel)]="newCityName" placeholder="City name" (keyup.enter)="addCity()" />
-        <button class="btn-sm save" (click)="addCity()">Add</button>
-        <button class="btn-sm cancel" (click)="showAddCity = false">Cancel</button>
-      </div>
+      @if (showAddCity) {
+        <div class="add-form">
+          <input type="text" [(ngModel)]="newCityName" placeholder="City name" (keyup.enter)="addCity()" />
+          <button class="btn-sm save" (click)="addCity()">Add</button>
+          <button class="btn-sm cancel" (click)="showAddCity = false">Cancel</button>
+        </div>
+      }
 
-      <input type="text" class="search-input" [(ngModel)]="citySearch" placeholder="Search cities..." *ngIf="selectedProvince()" />
+      @if (selectedProvince()) {
+        <input type="text" class="search-input" [(ngModel)]="citySearch" placeholder="Search cities..." />
+      }
 
       <div class="list-container">
-        <p class="empty" *ngIf="!selectedProvince()">Select a province</p>
-        <div
-          *ngFor="let c of filteredCities()"
-          class="list-item"
-          [class.active]="selectedCity()?._id === c._id"
-          (click)="editingId() !== c._id && selectCity(c)"
-        >
-          <ng-container *ngIf="editingId() !== c._id">
-            <span class="item-name">{{ c.name }}</span>
-            <div class="item-actions">
-              <button class="btn-icon edit" (click)="$event.stopPropagation(); startEdit(c._id, c.name)" title="Rename">✎</button>
-              <button class="btn-icon delete" (click)="$event.stopPropagation(); deleteCity(c)" title="Delete">✕</button>
-            </div>
-          </ng-container>
-          <ng-container *ngIf="editingId() === c._id">
-            <input type="text" [(ngModel)]="editingName" (keyup.enter)="saveCityName(c)" (keyup.escape)="cancelEdit()" class="edit-input" />
-            <div class="item-actions">
-              <button class="btn-icon save" (click)="saveCityName(c)">✓</button>
-              <button class="btn-icon cancel" (click)="cancelEdit()">✕</button>
-            </div>
-          </ng-container>
-        </div>
-        <p class="empty" *ngIf="selectedProvince() && filteredCities().length === 0">No cities found</p>
+        @if (!selectedProvince()) {
+          <p class="empty">Select a province</p>
+        }
+        @for (c of filteredCities(); track c._id) {
+          <div
+            class="list-item"
+            [class.active]="selectedCity()?._id === c._id"
+            (click)="editingId() !== c._id && selectCity(c)"
+          >
+            @if (editingId() !== c._id) {
+              <span class="item-name">{{ c.name }}</span>
+              <div class="item-actions">
+                <button class="btn-icon edit" (click)="$event.stopPropagation(); startEdit(c._id, c.name)" title="Rename">✎</button>
+                <button class="btn-icon delete" (click)="$event.stopPropagation(); deleteCity(c)" title="Delete">✕</button>
+              </div>
+            }
+            @if (editingId() === c._id) {
+              <input type="text" [(ngModel)]="editingName" (keyup.enter)="saveCityName(c)" (keyup.escape)="cancelEdit()" class="edit-input" />
+              <div class="item-actions">
+                <button class="btn-icon save" (click)="saveCityName(c)">✓</button>
+                <button class="btn-icon cancel" (click)="cancelEdit()">✕</button>
+              </div>
+            }
+          </div>
+        }
+        @if (selectedProvince() && filteredCities().length === 0) {
+          <p class="empty">No cities found</p>
+        }
       </div>
     </div>
 
@@ -107,85 +129,112 @@
     <div class="panel" [class.disabled]="!selectedCity()">
       <div class="panel-header">
         <h2>Areas</h2>
-        <span class="context" *ngIf="selectedCity()">in {{ selectedCity()!.name }}</span>
-        <button class="btn-icon add" *ngIf="selectedCity()" (click)="showAddArea = !showAddArea" title="Add Area">+</button>
+        @if (selectedCity()) {
+          <span class="context">in {{ selectedCity()!.name }}</span>
+        }
+        @if (selectedCity()) {
+          <button class="btn-icon add" (click)="showAddArea = !showAddArea" title="Add Area">+</button>
+        }
       </div>
 
-      <div class="add-form" *ngIf="showAddArea">
-        <input type="text" [(ngModel)]="newAreaName" placeholder="Area name" (keyup.enter)="addArea()" />
-        <button class="btn-sm save" (click)="addArea()">Add</button>
-        <button class="btn-sm cancel" (click)="showAddArea = false">Cancel</button>
-      </div>
+      @if (showAddArea) {
+        <div class="add-form">
+          <input type="text" [(ngModel)]="newAreaName" placeholder="Area name" (keyup.enter)="addArea()" />
+          <button class="btn-sm save" (click)="addArea()">Add</button>
+          <button class="btn-sm cancel" (click)="showAddArea = false">Cancel</button>
+        </div>
+      }
 
-      <input type="text" class="search-input" [(ngModel)]="areaSearch" placeholder="Search areas..." *ngIf="selectedCity()" />
+      @if (selectedCity()) {
+        <input type="text" class="search-input" [(ngModel)]="areaSearch" placeholder="Search areas..." />
+      }
 
       <div class="list-container">
-        <p class="empty" *ngIf="!selectedCity()">Select a city</p>
-        <div
-          *ngFor="let a of filteredAreas()"
-          class="list-item"
-          [class.active]="selectedArea()?._id === a._id"
-          (click)="editingId() !== a._id && selectArea(a)"
-        >
-          <ng-container *ngIf="editingId() !== a._id">
-            <span class="item-name">
-              {{ a.name }}
-              <span class="tag-count" *ngIf="a.subareas.length">({{ a.subareas.length }} sub)</span>
-              <span class="tag-count" *ngIf="a.blockPhases.length">({{ a.blockPhases.length }} blocks)</span>
-            </span>
-            <div class="item-actions">
-              <button class="btn-icon edit" (click)="$event.stopPropagation(); startEdit(a._id, a.name)" title="Rename">✎</button>
-              <button class="btn-icon delete" (click)="$event.stopPropagation(); deleteArea(a)" title="Delete">✕</button>
-            </div>
-          </ng-container>
-          <ng-container *ngIf="editingId() === a._id">
-            <input type="text" [(ngModel)]="editingName" (keyup.enter)="saveAreaName(a)" (keyup.escape)="cancelEdit()" class="edit-input" />
-            <div class="item-actions">
-              <button class="btn-icon save" (click)="saveAreaName(a)">✓</button>
-              <button class="btn-icon cancel" (click)="cancelEdit()">✕</button>
-            </div>
-          </ng-container>
-        </div>
-        <p class="empty" *ngIf="selectedCity() && filteredAreas().length === 0">No areas found</p>
+        @if (!selectedCity()) {
+          <p class="empty">Select a city</p>
+        }
+        @for (a of filteredAreas(); track a._id) {
+          <div
+            class="list-item"
+            [class.active]="selectedArea()?._id === a._id"
+            (click)="editingId() !== a._id && selectArea(a)"
+          >
+            @if (editingId() !== a._id) {
+              <span class="item-name">
+                {{ a.name }}
+                @if (a.subareas.length) {
+                  <span class="tag-count">({{ a.subareas.length }} sub)</span>
+                }
+                @if (a.blockPhases.length) {
+                  <span class="tag-count">({{ a.blockPhases.length }} blocks)</span>
+                }
+              </span>
+              <div class="item-actions">
+                <button class="btn-icon edit" (click)="$event.stopPropagation(); startEdit(a._id, a.name)" title="Rename">✎</button>
+                <button class="btn-icon delete" (click)="$event.stopPropagation(); deleteArea(a)" title="Delete">✕</button>
+              </div>
+            }
+            @if (editingId() === a._id) {
+              <input type="text" [(ngModel)]="editingName" (keyup.enter)="saveAreaName(a)" (keyup.escape)="cancelEdit()" class="edit-input" />
+              <div class="item-actions">
+                <button class="btn-icon save" (click)="saveAreaName(a)">✓</button>
+                <button class="btn-icon cancel" (click)="cancelEdit()">✕</button>
+              </div>
+            }
+          </div>
+        }
+        @if (selectedCity() && filteredAreas().length === 0) {
+          <p class="empty">No areas found</p>
+        }
       </div>
     </div>
   </div>
 
   <!-- Area Detail Panel -->
-  <div class="area-detail" *ngIf="selectedArea()">
-    <h3>{{ selectedArea()!.name }} — Details</h3>
-    <div class="detail-grid">
-      <!-- Subareas -->
-      <div class="detail-section">
-        <h4>Subareas ({{ selectedArea()!.subareas.length }})</h4>
-        <div class="tag-list">
-          <span class="tag" *ngFor="let s of selectedArea()!.subareas; let i = index">
-            {{ s }}
-            <button class="tag-remove" (click)="removeSubarea(i)" title="Remove">&times;</button>
-          </span>
-          <span class="empty-tag" *ngIf="selectedArea()!.subareas.length === 0">None</span>
+  @if (selectedArea()) {
+    <div class="area-detail">
+      <h3>{{ selectedArea()!.name }} — Details</h3>
+      <div class="detail-grid">
+        <!-- Subareas -->
+        <div class="detail-section">
+          <h4>Subareas ({{ selectedArea()!.subareas.length }})</h4>
+          <div class="tag-list">
+            @for (s of selectedArea()!.subareas; track $index) {
+              <span class="tag">
+                {{ s }}
+                <button class="tag-remove" (click)="removeSubarea($index)" title="Remove">&times;</button>
+              </span>
+            }
+            @if (selectedArea()!.subareas.length === 0) {
+              <span class="empty-tag">None</span>
+            }
+          </div>
+          <div class="add-inline">
+            <input type="text" [(ngModel)]="newSubarea" placeholder="Add subarea..." (keyup.enter)="addSubarea()" />
+            <button class="btn-sm save" (click)="addSubarea()" [disabled]="savingArea()">Add</button>
+          </div>
         </div>
-        <div class="add-inline">
-          <input type="text" [(ngModel)]="newSubarea" placeholder="Add subarea..." (keyup.enter)="addSubarea()" />
-          <button class="btn-sm save" (click)="addSubarea()" [disabled]="savingArea()">Add</button>
-        </div>
-      </div>
 
-      <!-- Block/Phases -->
-      <div class="detail-section">
-        <h4>Blocks / Phases ({{ selectedArea()!.blockPhases.length }})</h4>
-        <div class="tag-list">
-          <span class="tag" *ngFor="let b of selectedArea()!.blockPhases; let i = index">
-            {{ b }}
-            <button class="tag-remove" (click)="removeBlockPhase(i)" title="Remove">&times;</button>
-          </span>
-          <span class="empty-tag" *ngIf="selectedArea()!.blockPhases.length === 0">None</span>
-        </div>
-        <div class="add-inline">
-          <input type="text" [(ngModel)]="newBlockPhase" placeholder="Add block/phase..." (keyup.enter)="addBlockPhase()" />
-          <button class="btn-sm save" (click)="addBlockPhase()" [disabled]="savingArea()">Add</button>
+        <!-- Block/Phases -->
+        <div class="detail-section">
+          <h4>Blocks / Phases ({{ selectedArea()!.blockPhases.length }})</h4>
+          <div class="tag-list">
+            @for (b of selectedArea()!.blockPhases; track $index) {
+              <span class="tag">
+                {{ b }}
+                <button class="tag-remove" (click)="removeBlockPhase($index)" title="Remove">&times;</button>
+              </span>
+            }
+            @if (selectedArea()!.blockPhases.length === 0) {
+              <span class="empty-tag">None</span>
+            }
+          </div>
+          <div class="add-inline">
+            <input type="text" [(ngModel)]="newBlockPhase" placeholder="Add block/phase..." (keyup.enter)="addBlockPhase()" />
+            <button class="btn-sm save" (click)="addBlockPhase()" [disabled]="savingArea()">Add</button>
+          </div>
         </div>
       </div>
     </div>
-  </div>
+  }
 </div>

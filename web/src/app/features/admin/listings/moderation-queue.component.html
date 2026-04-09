@@ -1,141 +1,183 @@
 <div class="moderation-queue">
   <div class="page-header">
     <h1>Moderation Queue</h1>
-    <span class="listing-count" *ngIf="!loading()">{{ totalListings() }} pending</span>
+    @if (!loading()) {
+      <span class="listing-count">{{ totalListings() }} pending</span>
+    }
   </div>
 
-  <div class="loading-state" *ngIf="loading()">
-    <div class="spinner"></div>
-    <p>Loading pending listings...</p>
-  </div>
-
-  <div class="error-state" *ngIf="error()">
-    <p>{{ error() }}</p>
-    <button class="btn-retry" (click)="loadPendingListings()">Retry</button>
-  </div>
-
-  <div class="listings-container" *ngIf="!loading() && !error()">
-    <div class="filters-bar" *ngIf="listings().length > 0">
-      <input type="text" class="search-input" placeholder="Search by title, seller..." [(ngModel)]="searchQuery" />
-      <div class="sort-btns">
-        <button class="sort-btn" [class.active]="sortCol === 'createdAt'" (click)="sortListings('createdAt')">
-          Date <span class="material-symbols-rounded sort-icon">{{ sortIcon('createdAt') }}</span>
-        </button>
-        <button class="sort-btn" [class.active]="sortCol === 'price'" (click)="sortListings('price')">
-          Price <span class="material-symbols-rounded sort-icon">{{ sortIcon('price') }}</span>
-        </button>
-        <button class="sort-btn" [class.active]="sortCol === 'title'" (click)="sortListings('title')">
-          Title <span class="material-symbols-rounded sort-icon">{{ sortIcon('title') }}</span>
-        </button>
-      </div>
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading pending listings...</p>
     </div>
+  }
 
-    <div class="empty-state" *ngIf="filteredListings.length === 0">
-      <p>{{ searchQuery ? 'No listings match your search.' : 'No pending listings to review.' }}</p>
+  @if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+      <button class="btn-retry" (click)="loadPendingListings()">Retry</button>
     </div>
+  }
 
-    <div class="listing-card" *ngFor="let listing of filteredListings" [class.expanded]="expandedId === listing._id">
-      <!-- Summary Row -->
-      <div class="listing-summary" (click)="toggleExpand(listing._id)">
-        <div class="listing-thumbnail">
-          <img *ngIf="getThumbnail(listing)" [src]="getThumbnail(listing)" [alt]="listing.title" class="thumbnail-img" />
-          <div *ngIf="!getThumbnail(listing)" class="thumbnail-placeholder">No Image</div>
-        </div>
-        <div class="listing-details">
-          <div class="listing-header">
-            <h3 class="listing-title">{{ listing.title }}</h3>
-            <span class="listing-price">{{ formatPrice(listing) }}</span>
-          </div>
-          <div class="listing-meta">
-            <span class="meta-item"><span class="meta-label">Seller:</span> {{ listing.sellerName }}</span>
-            <span class="meta-item"><span class="meta-label">Category:</span> {{ listing.categoryName }}</span>
-            <span class="meta-item"><span class="condition-badge">{{ listing.condition }}</span></span>
-            <span class="meta-item"><span class="meta-label">Submitted:</span> {{ formatDate(listing.createdAt) }}</span>
-          </div>
-        </div>
-        <button class="expand-btn" (click)="$event.stopPropagation(); toggleExpand(listing._id)">
-          <span class="material-symbols-rounded">{{ expandedId === listing._id ? 'expand_less' : 'expand_more' }}</span>
-        </button>
-        <div class="summary-actions" *ngIf="expandedId !== listing._id" (click)="$event.stopPropagation()">
-          <button class="btn-action btn-approve" [disabled]="actionLoading() === listing._id" (click)="approveListing(listing)" title="Approve">
-            <span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> Approve
-          </button>
-          <button class="btn-action btn-reject" *ngIf="rejectingId !== listing._id" [disabled]="actionLoading() === listing._id" (click)="startReject(listing)" title="Reject">
-            <span class="material-symbols-rounded" style="font-size:16px;">cancel</span> Reject
-          </button>
-        </div>
-      </div>
-
-      <!-- Expanded Detail Panel -->
-      <div class="listing-detail-panel" *ngIf="expandedId === listing._id">
-        <!-- Images Gallery -->
-        <div class="detail-section" *ngIf="listing.images?.length">
-          <h4>Images ({{ listing.images.length }})</h4>
-          <div class="detail-images">
-            <img *ngFor="let img of listing.images" [src]="img.thumbnailUrl || img.url" [alt]="listing.title" class="detail-img" />
-          </div>
-        </div>
-
-        <!-- Description -->
-        <div class="detail-section">
-          <h4>Description</h4>
-          <p class="detail-description">{{ listing.description }}</p>
-        </div>
-
-        <!-- Category Attributes -->
-        <div class="detail-section" *ngIf="listing.categoryAttributes && objectKeys(listing.categoryAttributes).length > 0">
-          <h4>Attributes</h4>
-          <div class="detail-attrs">
-            <div class="detail-attr" *ngFor="let key of objectKeys(listing.categoryAttributes)">
-              <span class="attr-label">{{ formatAttrKey(key) }}</span>
-              <span class="attr-value">{{ listing.categoryAttributes[key] || '—' }}</span>
-            </div>
-          </div>
-        </div>
-
-        <!-- Features -->
-        <div class="detail-section" *ngIf="listing.selectedFeatures?.length">
-          <h4>Features</h4>
-          <div class="detail-features">
-            <span class="feature-chip" *ngFor="let f of listing.selectedFeatures">{{ f }}</span>
-          </div>
-        </div>
-
-        <!-- Location & Seller -->
-        <div class="detail-section detail-row-grid">
-          <div>
-            <h4>Location</h4>
-            <p>{{ listing.location?.area ? (listing.location?.area + ', ') : '' }}{{ listing.location?.city || '—' }}</p>
-          </div>
-          <div>
-            <h4>Seller Contact</h4>
-            <p>{{ listing.sellerName }}</p>
-            <p *ngIf="listing.sellerEmail">{{ listing.sellerEmail }}</p>
-            <p *ngIf="listing.contactInfo?.phone">{{ listing.contactInfo?.phone }}</p>
-          </div>
-        </div>
-
-        <!-- Actions -->
-        <div class="detail-actions">
-          <button class="btn-action btn-approve" [disabled]="actionLoading() === listing._id" (click)="approveListing(listing)">
-            <span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> Approve
-          </button>
-
-          <ng-container *ngIf="rejectingId !== listing._id">
-            <button class="btn-action btn-reject" [disabled]="actionLoading() === listing._id" (click)="startReject(listing)">
-              <span class="material-symbols-rounded" style="font-size:16px;">cancel</span> Reject
+  @if (!loading() && !error()) {
+    <div class="listings-container">
+      @if (listings().length > 0) {
+        <div class="filters-bar">
+          <input type="text" class="search-input" placeholder="Search by title, seller..." [(ngModel)]="searchQuery" />
+          <div class="sort-btns">
+            <button class="sort-btn" [class.active]="sortCol === 'createdAt'" (click)="sortListings('createdAt')">
+              Date <span class="material-symbols-rounded sort-icon">{{ sortIcon('createdAt') }}</span>
             </button>
-          </ng-container>
-
-          <div class="reject-form" *ngIf="rejectingId === listing._id">
-            <input type="text" class="reject-reason-input" placeholder="Enter rejection reason..." [(ngModel)]="rejectionReasons[listing._id]" (keyup.enter)="confirmReject(listing)" />
-            <div class="reject-buttons">
-              <button class="btn-action btn-confirm-reject" [disabled]="actionLoading() === listing._id || !(rejectionReasons[listing._id] || '').trim()" (click)="confirmReject(listing)">Confirm</button>
-              <button class="btn-action btn-cancel" [disabled]="actionLoading() === listing._id" (click)="cancelReject()">Cancel</button>
-            </div>
+            <button class="sort-btn" [class.active]="sortCol === 'price'" (click)="sortListings('price')">
+              Price <span class="material-symbols-rounded sort-icon">{{ sortIcon('price') }}</span>
+            </button>
+            <button class="sort-btn" [class.active]="sortCol === 'title'" (click)="sortListings('title')">
+              Title <span class="material-symbols-rounded sort-icon">{{ sortIcon('title') }}</span>
+            </button>
           </div>
         </div>
-      </div>
+      }
+
+      @if (filteredListings.length === 0) {
+        <div class="empty-state">
+          <p>{{ searchQuery ? 'No listings match your search.' : 'No pending listings to review.' }}</p>
+        </div>
+      }
+
+      @for (listing of filteredListings; track listing._id) {
+        <div class="listing-card" [class.expanded]="expandedId === listing._id">
+          <!-- Summary Row -->
+          <div class="listing-summary" (click)="toggleExpand(listing._id)">
+            <div class="listing-thumbnail">
+              @if (getThumbnail(listing)) {
+                <img [src]="getThumbnail(listing)" [alt]="listing.title" class="thumbnail-img" />
+              }
+              @if (!getThumbnail(listing)) {
+                <div class="thumbnail-placeholder">No Image</div>
+              }
+            </div>
+            <div class="listing-details">
+              <div class="listing-header">
+                <h3 class="listing-title">{{ listing.title }}</h3>
+                <span class="listing-price">{{ formatPrice(listing) }}</span>
+              </div>
+              <div class="listing-meta">
+                <span class="meta-item"><span class="meta-label">Seller:</span> {{ listing.sellerName }}</span>
+                <span class="meta-item"><span class="meta-label">Category:</span> {{ listing.categoryName }}</span>
+                <span class="meta-item"><span class="condition-badge">{{ listing.condition }}</span></span>
+                <span class="meta-item"><span class="meta-label">Submitted:</span> {{ formatDate(listing.createdAt) }}</span>
+              </div>
+            </div>
+            <button class="expand-btn" (click)="$event.stopPropagation(); toggleExpand(listing._id)">
+              <span class="material-symbols-rounded">{{ expandedId === listing._id ? 'expand_less' : 'expand_more' }}</span>
+            </button>
+            @if (expandedId !== listing._id) {
+              <div class="summary-actions" (click)="$event.stopPropagation()">
+                <button class="btn-action btn-approve" [disabled]="actionLoading() === listing._id" (click)="approveListing(listing)" title="Approve">
+                  <span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> Approve
+                </button>
+                @if (rejectingId !== listing._id) {
+                  <button class="btn-action btn-reject" [disabled]="actionLoading() === listing._id" (click)="startReject(listing)" title="Reject">
+                    <span class="material-symbols-rounded" style="font-size:16px;">cancel</span> Reject
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- Expanded Detail Panel -->
+          @if (expandedId === listing._id) {
+            <div class="listing-detail-panel">
+              <!-- Images Gallery -->
+              @if (listing.images.length) {
+                <div class="detail-section">
+                  <h4>Images ({{ listing.images.length }})</h4>
+                  <div class="detail-images">
+                    @for (img of listing.images; track $index) {
+                      <img [src]="img.thumbnailUrl || img.url" [alt]="listing.title" class="detail-img" />
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Description -->
+              <div class="detail-section">
+                <h4>Description</h4>
+                <p class="detail-description">{{ listing.description }}</p>
+              </div>
+
+              <!-- Category Attributes -->
+              @if (listing.categoryAttributes && objectKeys(listing.categoryAttributes).length > 0) {
+                <div class="detail-section">
+                  <h4>Attributes</h4>
+                  <div class="detail-attrs">
+                    @for (key of objectKeys(listing.categoryAttributes); track key) {
+                      <div class="detail-attr">
+                        <span class="attr-label">{{ formatAttrKey(key) }}</span>
+                        <span class="attr-value">{{ listing.categoryAttributes[key] || '—' }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Features -->
+              @if (listing.selectedFeatures?.length) {
+                <div class="detail-section">
+                  <h4>Features</h4>
+                  <div class="detail-features">
+                    @for (f of listing.selectedFeatures; track f) {
+                      <span class="feature-chip">{{ f }}</span>
+                    }
+                  </div>
+                </div>
+              }
+
+              <!-- Location & Seller -->
+              <div class="detail-section detail-row-grid">
+                <div>
+                  <h4>Location</h4>
+                  <p>{{ listing.location?.area ? (listing.location?.area + ', ') : '' }}{{ listing.location?.city || '—' }}</p>
+                </div>
+                <div>
+                  <h4>Seller Contact</h4>
+                  <p>{{ listing.sellerName }}</p>
+                  @if (listing.sellerEmail) {
+                    <p>{{ listing.sellerEmail }}</p>
+                  }
+                  @if (listing.contactInfo?.phone) {
+                    <p>{{ listing.contactInfo?.phone }}</p>
+                  }
+                </div>
+              </div>
+
+              <!-- Actions -->
+              <div class="detail-actions">
+                <button class="btn-action btn-approve" [disabled]="actionLoading() === listing._id" (click)="approveListing(listing)">
+                  <span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> Approve
+                </button>
+
+                @if (rejectingId !== listing._id) {
+                  <button class="btn-action btn-reject" [disabled]="actionLoading() === listing._id" (click)="startReject(listing)">
+                    <span class="material-symbols-rounded" style="font-size:16px;">cancel</span> Reject
+                  </button>
+                }
+
+                @if (rejectingId === listing._id) {
+                  <div class="reject-form">
+                    <input type="text" class="reject-reason-input" placeholder="Enter rejection reason..." [(ngModel)]="rejectionReasons[listing._id]" (keyup.enter)="confirmReject(listing)" />
+                    <div class="reject-buttons">
+                      <button class="btn-action btn-confirm-reject" [disabled]="actionLoading() === listing._id || !(rejectionReasons[listing._id] || '').trim()" (click)="confirmReject(listing)">Confirm</button>
+                      <button class="btn-action btn-cancel" [disabled]="actionLoading() === listing._id" (click)="cancelReject()">Cancel</button>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+      }
     </div>
-  </div>
+  }
 </div>
