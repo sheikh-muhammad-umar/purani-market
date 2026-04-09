@@ -197,15 +197,15 @@
         <div class="info-row"><span class="info-label">Slug:</span> {{ selectedCategory()!.slug }}</div>
         <div class="info-row"><span class="info-label">Level:</span> {{ selectedCategory()!.level }}</div>
         <div class="info-row"><span class="info-label">Active:</span> {{ selectedCategory()!.isActive ? 'Yes' : 'No' }}</div>
-        <div class="info-row"><span class="info-label">Attributes:</span> {{ selectedCategory()!.attributes?.length || 0 }}</div>
-        <div class="info-row"><span class="info-label">Features:</span> {{ selectedCategory()!.features?.length || 0 }}</div>
+        <div class="info-row"><span class="info-label">Attributes:</span> {{ selectedCategory()!.attributes.length || 0 }}</div>
+        <div class="info-row"><span class="info-label">Features:</span> {{ selectedCategory()!.features.length || 0 }}</div>
 
         <div class="info-row inherited-info" *ngIf="selectedCategory()!.parentId">
           <span class="info-label">💡 Tip:</span> This category also inherits attributes and features from its parent categories.
         </div>
 
         <!-- Existing Attributes List -->
-        <div class="existing-list" *ngIf="selectedCategory()!.attributes?.length">
+        <div class="existing-list" *ngIf="selectedCategory()!.attributes.length">
           <h4>Attributes</h4>
           <table class="mini-table">
             <thead>

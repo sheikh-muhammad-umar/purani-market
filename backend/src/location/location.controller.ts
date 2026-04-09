@@ -1,38 +1,138 @@
 import {
   Controller,
   Get,
+  Post,
+  Patch,
+  Delete,
+  Param,
   Query,
+  Body,
   UseGuards,
 } from '@nestjs/common';
 import { LocationService } from './location.service.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
+import { RolesGuard } from '../common/guards/roles.guard.js';
+import { Roles } from '../common/decorators/roles.decorator.js';
+import { UserRole } from '../users/schemas/user.schema.js';
 import { NearbyQueryDto } from './dto/nearby-query.dto.js';
 import { GeocodeQueryDto } from './dto/geocode-query.dto.js';
+import { CreateProvinceDto } from './dto/create-province.dto.js';
+import { CreateCityDto } from './dto/create-city.dto.js';
+import { CreateAreaDto } from './dto/create-area.dto.js';
+import { UpdateAreaDto } from './dto/update-area.dto.js';
 
 @Controller('api/location')
-@UseGuards(JwtAuthGuard)
 export class LocationController {
   constructor(private readonly locationService: LocationService) {}
 
+  // ── Public read endpoints ─────────────────────────────────────────
+
+  @Get('provinces')
+  async getProvinces() {
+    return this.locationService.getProvinces();
+  }
+
+  @Get('provinces/:provinceId/cities')
+  async getCities(@Param('provinceId') provinceId: string) {
+    return this.locationService.getCitiesByProvince(provinceId);
+  }
+
+  @Get('cities/:cityId/areas')
+  async getAreas(@Param('cityId') cityId: string) {
+    return this.locationService.getAreasByCity(cityId);
+  }
+
   @Get('nearby')
+  @UseGuards(JwtAuthGuard)
   async getNearbyListings(@Query() query: NearbyQueryDto) {
     this.locationService.validateCoordinates(query.lat, query.lng);
-
     return this.locationService.findNearby(
-      query.lat,
-      query.lng,
-      query.radius,
-      query.limit,
-      query.page,
+      query.lat, query.lng, query.radius, query.limit, query.page,
     );
   }
 
-  /**
-   * Geocode a city name or postal code to coordinates.
-   * Used as fallback when geolocation is unavailable (Requirement 15.4).
-   */
   @Get('geocode')
+  @UseGuards(JwtAuthGuard)
   async geocodeLocation(@Query() query: GeocodeQueryDto) {
     return this.locationService.geocode(query.query);
+  }
+
+  @Get('stats')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getStats() {
+    return this.locationService.getLocationStats();
+  }
+
+  // ── Admin CRUD: Provinces ─────────────────────────────────────────
+
+  @Post('provinces')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async createProvince(@Body() dto: CreateProvinceDto) {
+    return this.locationService.createProvince(dto.name);
+  }
+
+  @Patch('provinces/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async updateProvince(@Param('id') id: string, @Body() dto: CreateProvinceDto) {
+    return this.locationService.updateProvince(id, dto.name);
+  }
+
+  @Delete('provinces/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async deleteProvince(@Param('id') id: string) {
+    await this.locationService.deleteProvince(id);
+    return { deleted: true };
+  }
+
+  // ── Admin CRUD: Cities ────────────────────────────────────────────
+
+  @Post('cities')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async createCity(@Body() dto: CreateCityDto) {
+    return this.locationService.createCity(dto.name, dto.provinceId);
+  }
+
+  @Patch('cities/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async updateCity(@Param('id') id: string, @Body() dto: CreateProvinceDto) {
+    return this.locationService.updateCity(id, dto.name);
+  }
+
+  @Delete('cities/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async deleteCity(@Param('id') id: string) {
+    await this.locationService.deleteCity(id);
+    return { deleted: true };
+  }
+
+  // ── Admin CRUD: Areas ─────────────────────────────────────────────
+
+  @Post('areas')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async createArea(@Body() dto: CreateAreaDto) {
+    return this.locationService.createArea(dto.name, dto.cityId, dto.subareas, dto.blockPhases);
+  }
+
+  @Patch('areas/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async updateArea(@Param('id') id: string, @Body() dto: UpdateAreaDto) {
+    return this.locationService.updateArea(id, dto);
+  }
+
+  @Delete('areas/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async deleteArea(@Param('id') id: string) {
+    await this.locationService.deleteArea(id);
+    return { deleted: true };
   }
 }

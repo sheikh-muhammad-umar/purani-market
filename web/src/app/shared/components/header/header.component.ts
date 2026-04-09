@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, HostListener } from '@angular/core';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -6,7 +6,9 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { MessagingService } from '../../../core/services/messaging.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { ThemeService } from '../../../core/services/theme.service';
+import { LocationService } from '../../../core/services/location.service';
 import { LoginModalService } from '../login-modal/login-modal.service';
+import { Province, City, Area } from '../../../core/models';
 
 @Component({
   selector: 'app-header',
@@ -21,6 +23,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   unreadCount = signal(0);
   private subs: Subscription[] = [];
 
+  // Location selector state
+  locationDropdownOpen = signal(false);
+  provinces = signal<Province[]>([]);
+  cities = signal<City[]>([]);
+  areas = signal<Area[]>([]);
+  selectedProvince = signal<Province | null>(null);
+  selectedCity = signal<City | null>(null);
+  selectedArea = signal<Area | null>(null);
+  locationLabel = signal('Pakistan');
+
   constructor(
     public readonly authService: AuthService,
     private readonly messagingService: MessagingService,
@@ -28,6 +40,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     public readonly themeService: ThemeService,
     private readonly router: Router,
     public readonly loginModal: LoginModalService,
+    private readonly locationService: LocationService,
   ) {}
 
   ngOnInit(): void {
@@ -36,6 +49,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
 
     this.refreshUnreadCount();
+    this.loadProvinces();
 
     this.subs.push(
       this.router.events.pipe(
@@ -100,6 +114,146 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (q) {
       this.router.navigate(['/search'], { queryParams: { q } });
     }
+  }
+
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: MouseEvent): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.search-location') && !target.closest('.location-dropdown') &&
+        !target.closest('.mobile-location-btn') && !target.closest('.mobile-location-dropdown')) {
+      this.locationDropdownOpen.set(false);
+    }
+  }
+
+  toggleLocationDropdown(): void {
+    this.locationDropdownOpen.update(open => !open);
+  }
+
+  private loadProvinces(): void {
+    this.locationService.getProvinces().subscribe({
+      next: (provinces) => this.provinces.set(provinces),
+      error: () => {},
+    });
+  }
+
+  selectProvince(province: Province): void {
+    this.selectedProvince.set(province);
+    this.selectedCity.set(null);
+    this.selectedArea.set(null);
+    this.cities.set([]);
+    this.areas.set([]);
+    this.locationService.getCities(province._id).subscribe({
+      next: (cities) => {
+        if (cities.length === 0) {
+          // No cities — select province and reset drill-down so reopening shows provinces
+          this.locationLabel.set(province.name);
+          this.locationDropdownOpen.set(false);
+          this.selectedProvince.set(null);
+        } else {
+          this.cities.set(cities);
+        }
+      },
+      error: () => {},
+    });
+  }
+
+  selectCity(city: City): void {
+    this.selectedCity.set(city);
+    this.selectedArea.set(null);
+    this.areas.set([]);
+    this.locationService.getAreas(city._id).subscribe({
+      next: (areas) => {
+        if (areas.length === 0) {
+          // No areas — select city and reset to cities level so reopening shows cities
+          this.locationLabel.set(this.buildLabel(this.selectedProvince()?.name, city.name));
+          this.locationDropdownOpen.set(false);
+          this.selectedCity.set(null);
+        } else {
+          this.areas.set(areas);
+        }
+      },
+      error: () => {},
+    });
+  }
+
+  selectArea(area: Area): void {
+    if (area.subareas.length === 0 && area.blockPhases.length === 0) {
+      // No deeper level — select area and reset to areas level so reopening shows areas
+      this.locationLabel.set(this.buildLabel(this.selectedCity()?.name, area.name));
+      this.locationDropdownOpen.set(false);
+      this.selectedArea.set(null);
+    } else {
+      this.selectedArea.set(area);
+    }
+  }
+
+  selectSubItem(name: string): void {
+    this.applyLocation(name, this.buildLabel(this.selectedArea()?.name, name));
+  }
+
+  /** "All Pakistan" */
+  seeAllPakistan(): void {
+    this.applyLocation('Pakistan', 'Pakistan');
+    this.selectedProvince.set(null);
+    this.selectedCity.set(null);
+    this.selectedArea.set(null);
+    this.cities.set([]);
+    this.areas.set([]);
+  }
+
+  /** "All <Province>" */
+  seeAllInProvince(): void {
+    const p = this.selectedProvince();
+    if (!p) return;
+    this.applyLocation(p.name, p.name);
+  }
+
+  /** "All <City>" */
+  seeAllInCity(): void {
+    const c = this.selectedCity();
+    if (!c) return;
+    this.applyLocation(c.name, this.buildLabel(this.selectedProvince()?.name, c.name));
+  }
+
+  /** "All <Area>" */
+  seeAllInArea(): void {
+    const a = this.selectedArea();
+    if (!a) return;
+    this.applyLocation(a.name, this.buildLabel(this.selectedCity()?.name, a.name));
+  }
+
+  private applyLocation(label: string, fullLabel: string): void {
+    this.locationLabel.set(fullLabel);
+    this.locationDropdownOpen.set(false);
+  }
+
+  clearLocation(): void {
+    this.seeAllPakistan();
+  }
+
+  goBackToProvinces(): void {
+    this.selectedProvince.set(null);
+    this.selectedCity.set(null);
+    this.selectedArea.set(null);
+    this.cities.set([]);
+    this.areas.set([]);
+    this.locationLabel.set('Pakistan');
+  }
+
+  goBackToCities(): void {
+    this.selectedCity.set(null);
+    this.selectedArea.set(null);
+    this.areas.set([]);
+    this.locationLabel.set(this.selectedProvince()?.name ?? 'Pakistan');
+  }
+
+  goBackToAreas(): void {
+    this.selectedArea.set(null);
+    this.locationLabel.set(this.selectedCity()?.name ?? 'Pakistan');
+  }
+
+  private buildLabel(parent: string | undefined, child: string): string {
+    return parent ? `${parent}, ${child}` : child;
   }
 
   logout(): void {

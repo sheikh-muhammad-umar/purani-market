@@ -52,7 +52,7 @@
           </div>
           <div class="user-info">
             <h2 class="user-name">{{ user()?.profile?.firstName }} {{ user()?.profile?.lastName }}</h2>
-            <span class="user-role badge" [class.badge-featured]="user()?.role === 'seller'" [class.badge-success]="user()?.role === 'buyer'">
+            <span class="user-role badge" [class.badge-featured]="user()?.role === 'admin'" [class.badge-success]="user()?.role === 'user'">
               {{ user()?.role | titlecase }}
             </span>
             @if (user()?.email) {

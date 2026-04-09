@@ -23,6 +23,7 @@ export class AdminLayoutComponent {
     { label: 'Categories', icon: 'category', path: '/admin/categories' },
     { label: 'Packages', icon: 'inventory_2', path: '/admin/packages' },
     { label: 'Payments', icon: 'payments', path: '/admin/payments' },
+    { label: 'Locations', icon: 'location_on', path: '/admin/locations' },
   ];
 
   sidebarCollapsed = false;

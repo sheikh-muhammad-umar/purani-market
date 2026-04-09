@@ -66,13 +66,13 @@
         <div class="gallery" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
           <div class="gallery-main">
             <img [src]="getCurrentImage()" [alt]="l.title" (click)="openLightbox()" style="cursor: zoom-in;" />
-            @if ((l.images?.length ?? 0) > 1) {
+            @if ((l.images.length || 0) > 1) {
               <button class="gallery-nav prev" (click)="prevImage()" [disabled]="currentImageIndex() === 0" type="button">‹</button>
-              <button class="gallery-nav next" (click)="nextImage()" [disabled]="currentImageIndex() === (l.images?.length ?? 1) - 1" type="button">›</button>
-              <span class="gallery-counter">{{ currentImageIndex() + 1 }} / {{ l.images?.length ?? 0 }}</span>
+              <button class="gallery-nav next" (click)="nextImage()" [disabled]="currentImageIndex() === (l.images.length || 1) - 1" type="button">›</button>
+              <span class="gallery-counter">{{ currentImageIndex() + 1 }} / {{ l.images.length || 0 }}</span>
             }
           </div>
-          @if ((l.images?.length ?? 0) > 1) {
+          @if ((l.images.length || 0) > 1) {
             <div class="gallery-dots">
               @for (img of l.images; track img.url; let i = $index) {
                 <button
@@ -102,7 +102,7 @@
             </button>
           </div>
           <div class="detail-meta">
-            <span>📍 {{ l.location?.area }}, {{ l.location?.city }}</span>
+            <span>📍 {{ l.location.area }}, {{ l.location.city }}</span>
             <span class="condition-tag">{{ l.condition | titlecase }}</span>
           </div>
         </div>
@@ -125,7 +125,7 @@
             }
             <div class="details-row">
               <span class="details-label">Location</span>
-              <span class="details-value">{{ l.location?.city }}</span>
+              <span class="details-value">{{ l.location.city }}</span>
             </div>
             <div class="details-row">
               <span class="details-label">Posted</span>
@@ -135,7 +135,7 @@
         </div>
 
         <!-- Features (selected by seller) -->
-        @if ((l.selectedFeatures?.length ?? 0) > 0) {
+        @if ((l.selectedFeatures.length || 0) > 0) {
           <div class="detail-section">
             <h3>Features</h3>
             <div class="features-tags">
@@ -155,7 +155,7 @@
         <!-- Location -->
         <div class="detail-section">
           <h3>Location</h3>
-          <p class="location-label">📍 {{ l.location?.area }}, {{ l.location?.city }}</p>
+          <p class="location-label">📍 {{ l.location.area }}, {{ l.location.city }}</p>
           <div class="map-container">
             @if (getMapUrl(); as safeUrl) {
               <iframe [src]="safeUrl" class="map-embed" title="Map" loading="lazy" allowfullscreen></iframe>
@@ -173,12 +173,12 @@
               @for (item of similarListings(); track item._id) {
                 <a [routerLink]="['/listings', item._id]" class="similar-card">
                   <div class="similar-image">
-                    <img [src]="item.images?.[0]?.thumbnailUrl || item.images?.[0]?.url || 'assets/placeholder.png'" [alt]="item.title" />
+                    <img [src]="item.images[0]?.thumbnailUrl || item.images[0]?.url || 'assets/placeholder.png'" [alt]="item.title" />
                   </div>
                   <div class="similar-info">
                     <span class="similar-price">PKR {{ item.price.amount | number }}</span>
                     <span class="similar-title">{{ item.title }}</span>
-                    <span class="similar-location">📍 {{ item.location?.city }}</span>
+                    <span class="similar-location">📍 {{ item.location.city }}</span>
                   </div>
                 </a>
               }
@@ -240,10 +240,10 @@
         </button>
         <div class="lightbox-content" (click)="$event.stopPropagation()">
           <img [src]="getCurrentImage()" [alt]="l.title" />
-          @if ((l.images?.length ?? 0) > 1) {
+          @if ((l.images.length || 0) > 1) {
             <button class="lightbox-nav prev" (click)="prevImage()" [disabled]="currentImageIndex() === 0" type="button">‹</button>
-            <button class="lightbox-nav next" (click)="nextImage()" [disabled]="currentImageIndex() === (l.images?.length ?? 1) - 1" type="button">›</button>
-            <span class="lightbox-counter">{{ currentImageIndex() + 1 }} / {{ l.images?.length ?? 0 }}</span>
+            <button class="lightbox-nav next" (click)="nextImage()" [disabled]="currentImageIndex() === (l.images.length || 1) - 1" type="button">›</button>
+            <span class="lightbox-counter">{{ currentImageIndex() + 1 }} / {{ l.images.length || 0 }}</span>
           }
         </div>
       </div>

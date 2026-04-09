@@ -151,7 +151,7 @@
               @if (locationOpen()) {
                 <div class="location-dropdown">
                   <button class="loc-option" [class.active]="!selectedCity()" (click)="selectCity('')">
-                    See all in Pakistan
+                    All Pakistan
                   </button>
                   <div class="loc-section-label">Popular</div>
                   @for (city of popularCities; track city) {
@@ -313,7 +313,7 @@
                   <div class="listing-info">
                     <h4 class="listing-title">{{ ad.title | truncateText:50 }}</h4>
                     <p class="listing-price price">{{ ad.price.amount | priceFormat:ad.price.currency }}</p>
-                    <p class="listing-location">📍 {{ ad.location?.city || 'Unknown' }}</p>
+                    <p class="listing-location">📍 {{ ad.location.city || 'Unknown' }}</p>
                   </div>
                 </a>
               }
@@ -334,7 +334,7 @@
               <div class="listing-info">
                 <h4 class="listing-title">{{ listing.title | truncateText:50 }}</h4>
                 <p class="listing-price price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
-                <p class="listing-location">📍 {{ listing.location?.city || 'Unknown' }}</p>
+                <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
               </div>
             </a>
           }

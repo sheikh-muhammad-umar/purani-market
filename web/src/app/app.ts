@@ -3,11 +3,12 @@ import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { LoginModalComponent } from './shared/components/login-modal/login-modal.component';
+import { ConfirmModalComponent } from './shared/components/confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, FooterComponent, LoginModalComponent],
+  imports: [RouterOutlet, HeaderComponent, FooterComponent, LoginModalComponent, ConfirmModalComponent],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })

@@ -79,7 +79,7 @@
             <div class="listing-info">
               <p class="listing-price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
               <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
-              <p class="listing-location">📍 {{ listing.location?.city || 'Unknown' }}</p>
+              <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
             </div>
           </a>
         }
@@ -129,7 +129,7 @@
             <div class="listing-info">
               <p class="listing-price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
               <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
-              <p class="listing-location">📍 {{ listing.location?.city || 'Unknown' }}</p>
+              <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
             </div>
           </a>
         }
@@ -182,7 +182,7 @@
             <div class="listing-info">
               <p class="listing-price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
               <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
-              <p class="listing-location">📍 {{ listing.location?.city || 'Unknown' }}, {{ listing.location?.area || '' }}</p>
+              <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}, {{ listing.location.area || '' }}</p>
             </div>
           </a>
         }

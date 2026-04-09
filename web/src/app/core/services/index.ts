@@ -9,3 +9,4 @@ export { FavoritesService, type FavoritesResponse } from './favorites.service';
 export { PackagesService, type MyPurchasesResponse } from './packages.service';
 export { ChatbotService, type ChatMessage, type ChatbotRequest, type ChatbotResponse } from './chatbot.service';
 export { AdminService, type AnalyticsData, type MetricsSummary, type TimeSeriesData, type TimeSeriesPoint, type CategoryAnalytics, type DateRange } from './admin.service';
+export { LocationService } from './location.service';

@@ -10,10 +10,97 @@
     <!-- Search bar (desktop) -->
     @if (!isAuthPage) {
     <div class="header-search">
-      <div class="search-location">
+      <div class="search-location" (click)="toggleLocationDropdown()">
         <span class="material-symbols-rounded" style="font-size:18px;">location_on</span>
-        Pakistan
+        {{ locationLabel() }}
+        <span class="material-symbols-rounded location-chevron" style="font-size:16px;">expand_more</span>
       </div>
+      @if (locationDropdownOpen()) {
+        <div class="location-dropdown">
+          <div class="location-dropdown-header">
+            @if (selectedArea()) {
+              <button class="location-back-btn" (click)="goBackToAreas()">
+                <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
+                {{ selectedArea()!.name }}
+              </button>
+            } @else if (selectedCity()) {
+              <button class="location-back-btn" (click)="goBackToCities()">
+                <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
+                {{ selectedCity()!.name }}
+              </button>
+            } @else if (selectedProvince()) {
+              <button class="location-back-btn" (click)="goBackToProvinces()">
+                <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
+                {{ selectedProvince()!.name }}
+              </button>
+            } @else {
+              <span class="location-dropdown-title">Select Location</span>
+            }
+            @if (!selectedProvince()) {
+              <button class="location-clear-btn" (click)="seeAllPakistan()">All Pakistan</button>
+            } @else if (selectedProvince() && !selectedCity()) {
+              <button class="location-clear-btn" (click)="seeAllInProvince()">All {{ selectedProvince()!.name }}</button>
+            } @else if (selectedCity() && !selectedArea()) {
+              <button class="location-clear-btn" (click)="seeAllInCity()">All {{ selectedCity()!.name }}</button>
+            } @else if (selectedArea()) {
+              <button class="location-clear-btn" (click)="seeAllInArea()">All {{ selectedArea()!.name }}</button>
+            }
+          </div>
+          <div class="location-dropdown-list">
+            @if (!selectedProvince()) {
+              @for (province of provinces(); track province._id) {
+                <button class="location-option" (click)="selectProvince(province)">
+                  {{ province.name }}
+                  @if (province.cityCount) {
+                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+                  }
+                </button>
+              }
+            } @else if (!selectedCity()) {
+              @for (city of cities(); track city._id) {
+                <button class="location-option" (click)="selectCity(city)">
+                  {{ city.name }}
+                  @if (city.areaCount) {
+                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+                  }
+                </button>
+              }
+              @if (cities().length === 0) {
+                <div class="location-empty">No cities found</div>
+              }
+            } @else if (!selectedArea()) {
+              @for (area of areas(); track area._id) {
+                <button class="location-option" (click)="selectArea(area)">
+                  {{ area.name }}
+                  @if (area.subareas.length > 0 || area.blockPhases.length > 0) {
+                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+                  }
+                </button>
+              }
+              @if (areas().length === 0) {
+                <div class="location-empty">No areas found</div>
+              }
+            } @else {
+              @if (selectedArea()!.subareas.length > 0) {
+                <div class="location-section-label">Subareas</div>
+                @for (sub of selectedArea()!.subareas; track sub) {
+                  <button class="location-option" (click)="selectSubItem(sub)">
+                    {{ sub }}
+                  </button>
+                }
+              }
+              @if (selectedArea()!.blockPhases.length > 0) {
+                <div class="location-section-label">Blocks / Phases</div>
+                @for (block of selectedArea()!.blockPhases; track block) {
+                  <button class="location-option" (click)="selectSubItem(block)">
+                    {{ block }}
+                  </button>
+                }
+              }
+            }
+          </div>
+        </div>
+      }
       <div class="search-divider"></div>
       <input
         #desktopSearch
@@ -96,10 +183,96 @@
   @if (!isAuthPage && !isMessagingPage && !isProfilePage) {
   <div class="mobile-search">
     <div class="mobile-search-row">
-      <button class="mobile-location-btn">
+      <button class="mobile-location-btn" (click)="toggleLocationDropdown()">
         <span class="material-symbols-rounded" style="font-size:18px;">location_on</span>
-        <span class="mobile-location-text">Pakistan</span>
+        <span class="mobile-location-text">{{ locationLabel() }}</span>
       </button>
+      @if (locationDropdownOpen()) {
+        <div class="mobile-location-dropdown">
+          <div class="location-dropdown-header">
+            @if (selectedArea()) {
+              <button class="location-back-btn" (click)="goBackToAreas()">
+                <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
+                {{ selectedArea()!.name }}
+              </button>
+            } @else if (selectedCity()) {
+              <button class="location-back-btn" (click)="goBackToCities()">
+                <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
+                {{ selectedCity()!.name }}
+              </button>
+            } @else if (selectedProvince()) {
+              <button class="location-back-btn" (click)="goBackToProvinces()">
+                <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
+                {{ selectedProvince()!.name }}
+              </button>
+            } @else {
+              <span class="location-dropdown-title">Select Location</span>
+            }
+            @if (!selectedProvince()) {
+              <button class="location-clear-btn" (click)="seeAllPakistan()">All Pakistan</button>
+            } @else if (selectedProvince() && !selectedCity()) {
+              <button class="location-clear-btn" (click)="seeAllInProvince()">All {{ selectedProvince()!.name }}</button>
+            } @else if (selectedCity() && !selectedArea()) {
+              <button class="location-clear-btn" (click)="seeAllInCity()">All {{ selectedCity()!.name }}</button>
+            } @else if (selectedArea()) {
+              <button class="location-clear-btn" (click)="seeAllInArea()">All {{ selectedArea()!.name }}</button>
+            }
+          </div>
+          <div class="location-dropdown-list">
+            @if (!selectedProvince()) {
+              @for (province of provinces(); track province._id) {
+                <button class="location-option" (click)="selectProvince(province)">
+                  {{ province.name }}
+                  @if (province.cityCount) {
+                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+                  }
+                </button>
+              }
+            } @else if (!selectedCity()) {
+              @for (city of cities(); track city._id) {
+                <button class="location-option" (click)="selectCity(city)">
+                  {{ city.name }}
+                  @if (city.areaCount) {
+                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+                  }
+                </button>
+              }
+              @if (cities().length === 0) {
+                <div class="location-empty">No cities found</div>
+              }
+            } @else if (!selectedArea()) {
+              @for (area of areas(); track area._id) {
+                <button class="location-option" (click)="selectArea(area)">
+                  {{ area.name }}
+                  @if (area.subareas.length > 0 || area.blockPhases.length > 0) {
+                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+                  }
+                </button>
+              }
+              @if (areas().length === 0) {
+                <div class="location-empty">No areas found</div>
+              }
+            } @else {
+              @if (selectedArea()!.subareas.length > 0) {
+                <div class="location-section-label">Subareas</div>
+                @for (sub of selectedArea()!.subareas; track sub) {
+                  <button class="location-option" (click)="selectSubItem(sub)">
+                    {{ sub }}
+                  </button>
+                }
+              }
+              @if (selectedArea()!.blockPhases.length > 0) {
+                <div class="location-section-label">Blocks / Phases</div>
+                @for (block of selectedArea()!.blockPhases; track block) {
+                  <button class="location-option" (click)="selectSubItem(block)">
+                    {{ block }}
+                  </button>
+                }
+              }
+            }
+          </div>
+        </div>
+      }
       <div class="mobile-search-wrap">
         <input
           #mobileSearch

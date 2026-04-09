@@ -31,6 +31,10 @@ export const ADMIN_ROUTES: Routes = [
         path: 'payments',
         loadComponent: () => import('./payments/payment-transactions.component').then(m => m.PaymentTransactionsComponent),
       },
+      {
+        path: 'locations',
+        loadComponent: () => import('./locations/location-manager.component').then(m => m.LocationManagerComponent),
+      },
     ],
   },
 ];
