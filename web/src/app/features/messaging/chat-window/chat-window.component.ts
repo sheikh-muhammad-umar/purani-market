@@ -32,6 +32,10 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
   readonly currentPage = signal(1);
   readonly hasMore = signal(true);
   readonly loadingMore = signal(false);
+  readonly chatDisabled = computed(() => {
+    const l = this.listing();
+    return l != null && l.status !== 'active';
+  });
 
   messageText = '';
   conversationId = '';

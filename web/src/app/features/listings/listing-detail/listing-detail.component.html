@@ -194,7 +194,12 @@
           <span class="price-label">Listed Price</span>
           <span class="price-big">PKR {{ l.price.amount | number }}</span>
           <div class="price-card-buttons">
-            @if (authService.isAuthenticated()) {
+            @if (l.status !== 'active') {
+              <div class="chat-disabled-notice">
+                <span class="material-symbols-rounded" style="font-size:18px;">block</span>
+                This ad is no longer active. Messaging and calls are disabled.
+              </div>
+            } @else if (authService.isAuthenticated()) {
               <a [routerLink]="['/messaging']" [queryParams]="{ listingId: l._id }" class="btn btn-primary btn-full sidebar-btn">
                 <span class="material-symbols-rounded" style="font-size:18px;">chat</span> Message
               </a>

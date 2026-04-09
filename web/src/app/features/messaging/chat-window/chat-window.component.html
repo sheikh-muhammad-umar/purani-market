@@ -97,25 +97,32 @@
   }
 
   <!-- Input area -->
-  <div class="input-area">
-    <input
-      type="text"
-      class="message-input"
-      placeholder="Type a message..."
-      [(ngModel)]="messageText"
-      (keyup.enter)="sendMessage()"
-      (input)="onTyping()"
-      [disabled]="sending()"
-    />
-    <button
-      class="send-btn"
-      (click)="sendMessage()"
-      [disabled]="!messageText.trim() || sending()"
-      [attr.aria-label]="'Send message'"
-    >
-      <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-        <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
-      </svg>
-    </button>
-  </div>
+  @if (chatDisabled()) {
+    <div class="input-area chat-disabled-bar">
+      <span class="material-symbols-rounded" style="font-size:18px;">block</span>
+      This ad is no longer active. You can't send new messages.
+    </div>
+  } @else {
+    <div class="input-area">
+      <input
+        type="text"
+        class="message-input"
+        placeholder="Type a message..."
+        [(ngModel)]="messageText"
+        (keyup.enter)="sendMessage()"
+        (input)="onTyping()"
+        [disabled]="sending()"
+      />
+      <button
+        class="send-btn"
+        (click)="sendMessage()"
+        [disabled]="!messageText.trim() || sending()"
+        [attr.aria-label]="'Send message'"
+      >
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+        </svg>
+      </button>
+    </div>
+  }
 </div>
