@@ -11,6 +11,7 @@ import { Category, CategoryAttribute, User, Province, City, Area } from '../../.
 import { ListingCondition } from '../../../core/constants/enums';
 import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
 import { listingSlug } from '../../../core/utils/slug';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 
 export interface MediaItem {
   file: File;
@@ -121,6 +122,7 @@ export class CreateListingComponent implements OnInit {
     private readonly packagesService: PackagesService,
     private readonly authService: AuthService,
     private readonly locationService: LocationService,
+    private readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
@@ -575,6 +577,11 @@ export class CreateListingComponent implements OnInit {
     this.listingsService.create(payload).subscribe({
       next: (listing) => {
         // Upload images sequentially after listing is created
+        this.tracker.track('listing_create', {
+          productListingId: listing._id,
+          categoryId: cat._id,
+          metadata: { title: details.title, price: details.price, city: loc.city },
+        });
         this.uploadImages(listing._id, 0);
       },
       error: (err) => {

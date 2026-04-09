@@ -1,0 +1,175 @@
+.activity-page { padding: var(--space-3); }
+
+.page-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-3);
+  h1 { font-size: var(--text-xl); font-weight: 700; }
+}
+
+.header-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.filters-toggle-btn {
+  display: none;
+  align-items: center;
+  gap: 4px;
+  padding: 6px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--text-secondary);
+  cursor: pointer;
+  font-family: inherit;
+  &:hover { background: var(--background); }
+}
+
+.filters-bar {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+  align-items: flex-end;
+  margin-bottom: var(--space-3);
+  padding: var(--space-2);
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+}
+
+@media (max-width: 767px) {
+  .filters-toggle-btn { display: flex; }
+  .filters-bar {
+    display: none;
+    &.filters-open { display: flex; }
+  }
+}
+
+.form-group.compact {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 160px;
+  flex: 1 1 160px;
+  max-width: 220px;
+  label { font-size: 12px; font-weight: 600; color: var(--text-muted); }
+}
+
+.filter-input {
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  background: var(--surface);
+  color: var(--text-primary);
+  width: 100%;
+  box-sizing: border-box;
+}
+
+.filter-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn-primary, .btn-secondary {
+  padding: 8px 16px;
+  border: none;
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.btn-primary { background: var(--primary); color: #fff; &:disabled { opacity: 0.5; } }
+.btn-secondary { background: var(--background); color: var(--text-secondary); border: 1px solid var(--border); }
+
+.loading-state, .empty-state {
+  text-align: center;
+  padding: var(--space-4);
+  color: var(--text-muted);
+}
+
+.spinner {
+  width: 32px; height: 32px; margin: 0 auto 12px;
+  border: 3px solid var(--border); border-top-color: var(--primary);
+  border-radius: 50%; animation: spin 0.8s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+
+.activity-stats {
+  font-size: 13px;
+  color: var(--text-muted);
+  margin-bottom: var(--space-2);
+}
+
+.activity-timeline {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.activity-card {
+  display: flex;
+  gap: 12px;
+  padding: 12px 16px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  transition: background 0.15s;
+  &:hover { background: var(--background); }
+}
+
+.activity-icon {
+  width: 36px; height: 36px; border-radius: 50%;
+  background: var(--background); display: flex;
+  align-items: center; justify-content: center; flex-shrink: 0;
+  .material-symbols-rounded { font-size: 18px; color: var(--primary); }
+}
+
+.activity-body { flex: 1; min-width: 0; }
+
+.activity-header {
+  display: flex; justify-content: space-between; align-items: center;
+  margin-bottom: 4px;
+}
+
+.activity-action {
+  font-size: 13px; font-weight: 600; color: var(--text-primary);
+  text-transform: capitalize;
+}
+
+.activity-time { font-size: 11px; color: var(--text-muted); }
+
+.activity-details {
+  display: flex; flex-wrap: wrap; gap: 6px; align-items: center;
+}
+
+.detail-chip {
+  font-size: 12px; color: var(--text-secondary);
+  background: var(--background); padding: 2px 8px;
+  border-radius: var(--radius-full); border: 1px solid var(--border);
+}
+
+.metadata-row {
+  display: flex; flex-wrap: wrap; gap: 4px; width: 100%; margin-top: 4px;
+}
+
+.meta-tag {
+  font-size: 11px; color: var(--text-muted);
+  background: var(--background); padding: 2px 6px;
+  border-radius: 4px;
+}
+
+.pagination {
+  display: flex; align-items: center; justify-content: center;
+  gap: var(--space-2); margin-top: var(--space-3);
+}
+
+.page-info { font-size: 13px; color: var(--text-muted); }

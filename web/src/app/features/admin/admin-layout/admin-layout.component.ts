@@ -24,6 +24,7 @@ export class AdminLayoutComponent {
     { label: 'Packages', icon: 'inventory_2', path: '/admin/packages' },
     { label: 'Payments', icon: 'payments', path: '/admin/payments' },
     { label: 'Locations', icon: 'location_on', path: '/admin/locations' },
+    { label: 'Activity', icon: 'timeline', path: '/admin/activity' },
   ];
 
   sidebarCollapsed = false;

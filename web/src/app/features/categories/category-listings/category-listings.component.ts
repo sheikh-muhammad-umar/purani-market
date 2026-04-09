@@ -9,6 +9,7 @@ import { TruncateTextPipe } from '../../../shared/pipes/truncate-text.pipe';
 import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { SortDropdownComponent, SortOption } from '../../../shared/components/sort-dropdown/sort-dropdown.component';
 import { Category, Listing } from '../../../core/models';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 
 export interface BreadcrumbItem {
   label: string;
@@ -48,6 +49,7 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly categoriesService: CategoriesService,
     private readonly listingsService: ListingsService,
+    private readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
@@ -111,6 +113,10 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
 
           this.currentCategory.set(category);
           this.breadcrumbs.set(this.buildBreadcrumbs(categories, category));
+          this.tracker.track('category_browse', {
+            categoryId: category._id,
+            metadata: { name: category.name, level: category.level },
+          });
           this.subcategories.set(
             categories
               .filter(c => c.parentId === category._id && c.isActive)

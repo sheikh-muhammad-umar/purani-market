@@ -35,6 +35,10 @@ export const ADMIN_ROUTES: Routes = [
         path: 'locations',
         loadComponent: () => import('./locations/location-manager.component').then(m => m.LocationManagerComponent),
       },
+      {
+        path: 'activity',
+        loadComponent: () => import('./activity/user-activity.component').then(m => m.UserActivityComponent),
+      },
     ],
   },
 ];

@@ -6,6 +6,7 @@ import { CategoriesService } from '../../../core/services/categories.service';
 import { ListingsService, CreateListingPayload } from '../../../core/services/listings.service';
 import { Category, CategoryAttribute, Listing } from '../../../core/models';
 import { extractIdFromSlug, listingSlug } from '../../../core/utils/slug';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 
 @Component({
   selector: 'app-edit-listing',
@@ -47,6 +48,7 @@ export class EditListingComponent implements OnInit {
     private readonly router: Router,
     private readonly categoriesService: CategoriesService,
     private readonly listingsService: ListingsService,
+    private readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
@@ -269,6 +271,16 @@ export class EditListingComponent implements OnInit {
     this.listingsService.update(this.listingId, payload).subscribe({
       next: () => {
         this.submitting.set(false);
+        const original = this.listing();
+        const changes: Record<string, { from: any; to: any }> = {};
+        if (original?.title !== details.title) changes['title'] = { from: original?.title, to: details.title };
+        if (original?.price?.amount !== details.price) changes['price'] = { from: original?.price?.amount, to: details.price };
+        if (original?.condition !== details.condition) changes['condition'] = { from: original?.condition, to: details.condition };
+        if (original?.location?.city !== loc.city) changes['city'] = { from: original?.location?.city, to: loc.city };
+        this.tracker.track('listing_edit', {
+          productListingId: this.listingId,
+          metadata: { title: details.title, changes },
+        });
         const title = this.detailsForm.get('title')?.value ?? '';
         this.router.navigate(['/listings', listingSlug({ _id: this.listingId, title })]);
       },

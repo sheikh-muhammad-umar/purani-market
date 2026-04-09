@@ -8,6 +8,7 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { LocationService } from '../../../core/services/location.service';
 import { RecentSearchesService } from '../../../core/services/recent-searches.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { LoginModalService } from '../login-modal/login-modal.service';
 import { Province, City, Area } from '../../../core/models';
 
@@ -44,6 +45,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     public readonly loginModal: LoginModalService,
     private readonly locationService: LocationService,
     public readonly recentSearches: RecentSearchesService,
+    private readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
@@ -263,8 +265,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   private applyLocation(label: string, fullLabel: string): void {
+    const previousLocation = this.locationLabel();
     this.locationLabel.set(fullLabel);
     this.locationDropdownOpen.set(false);
+    this.tracker.track('location_change', {
+      metadata: { previousLocation, newLocation: fullLabel },
+    });
   }
 
   clearLocation(): void {
@@ -299,6 +305,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   logout(): void {
     this.closeMenu();
     this.closeAccountMenu();
+    this.recentSearches.searches(); // keep reference before logout clears auth
+    this.tracker.track('logout');
     this.authService.logout();
   }
 }

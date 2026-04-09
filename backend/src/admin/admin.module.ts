@@ -16,6 +16,10 @@ import {
   PackagePurchase,
   PackagePurchaseSchema,
 } from '../packages/schemas/package-purchase.schema.js';
+import {
+  UserActivity,
+  UserActivitySchema,
+} from '../ai/schemas/user-activity.schema.js';
 
 @Module({
   imports: [
@@ -28,6 +32,7 @@ import {
     MongooseModule.forFeature([
       { name: Review.name, schema: ReviewSchema },
       { name: PackagePurchase.name, schema: PackagePurchaseSchema },
+      { name: UserActivity.name, schema: UserActivitySchema },
     ]),
   ],
   controllers: [AdminController],

@@ -1,0 +1,113 @@
+<div class="activity-page">
+  <div class="page-header">
+    <h1>Activity Log</h1>
+    <div class="header-actions">
+      <span class="total-badge">{{ total() }} events</span>
+      <button class="filters-toggle-btn" (click)="filtersOpen = !filtersOpen">
+        <span class="material-symbols-rounded" style="font-size:18px;">filter_list</span>
+        Filters
+      </button>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar" [class.filters-open]="filtersOpen">
+    <div class="form-group compact">
+      <label>User ID</label>
+      <input type="text" [(ngModel)]="filterUserId" placeholder="All users" class="filter-input" />
+    </div>
+    <div class="form-group compact">
+      <label>Action</label>
+      <app-custom-select
+        [options]="actionOptions"
+        [(ngModel)]="filterAction"
+        placeholder="All Actions"
+      ></app-custom-select>
+    </div>
+    <div class="form-group compact">
+      <label>From</label>
+      <input type="date" [(ngModel)]="filterDateFrom" class="filter-input" />
+    </div>
+    <div class="form-group compact">
+      <label>To</label>
+      <input type="date" [(ngModel)]="filterDateTo" class="filter-input" />
+    </div>
+    <div class="form-group compact">
+      <label>Sort By</label>
+      <app-custom-select
+        [options]="sortOptions"
+        [(ngModel)]="sortBy"
+        placeholder="Newest First"
+      ></app-custom-select>
+    </div>
+    <div class="filter-actions">
+      <button class="btn-primary" (click)="applyFilters()">Apply</button>
+      <button class="btn-secondary" (click)="resetFilters()">Reset</button>
+    </div>
+  </div>
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading activity...</p>
+    </div>
+  }
+
+  <!-- Empty -->
+  @if (!loading() && activities().length === 0) {
+    <div class="empty-state">
+      <p>No activity found matching your filters.</p>
+    </div>
+  }
+
+  <!-- Results -->
+  @if (!loading() && activities().length > 0) {
+    <div class="activity-timeline">
+      @for (entry of activities(); track entry._id) {
+        <div class="activity-card">
+          <div class="activity-icon">
+            <span class="material-symbols-rounded">{{ getActionIcon(entry.action) }}</span>
+          </div>
+          <div class="activity-body">
+            <div class="activity-header">
+              <span class="activity-action">{{ formatAction(entry.action) }}</span>
+              <span class="activity-time">{{ formatDate(entry.createdAt) }}</span>
+            </div>
+            <div class="activity-user-id">User: {{ entry.userId }}</div>
+            <div class="activity-details">
+              @if (entry.searchQuery) {
+                <span class="detail-chip">🔍 "{{ entry.searchQuery }}"</span>
+              }
+              @if (entry.productListingId) {
+                <span class="detail-chip">📦 {{ entry.productListingId }}</span>
+              }
+              @if (entry.categoryId) {
+                <span class="detail-chip">📂 {{ entry.categoryId }}</span>
+              }
+              @if (entry.ip) {
+                <span class="detail-chip">🌐 {{ entry.ip }}</span>
+              }
+              @if (entry.metadata && getMetadataKeys(entry.metadata).length > 0) {
+                <div class="metadata-row">
+                  @for (key of getMetadataKeys(entry.metadata); track key) {
+                    <span class="meta-tag">{{ key }}: {{ entry.metadata![key] }}</span>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="btn-secondary" (click)="goToPage(page - 1)" [disabled]="page <= 1">← Prev</button>
+        <span class="page-info">Page {{ page }} of {{ totalPages() }}</span>
+        <button class="btn-secondary" (click)="goToPage(page + 1)" [disabled]="page >= totalPages()">Next →</button>
+      </div>
+    }
+  }
+</div>

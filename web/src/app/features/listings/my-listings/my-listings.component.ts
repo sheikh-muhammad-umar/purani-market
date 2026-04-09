@@ -6,6 +6,7 @@ import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth';
 import { Listing, PackagePurchase, User } from '../../../core/models';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 
 interface AnalyticsCard {
   label: string;
@@ -80,6 +81,7 @@ export class MyListingsComponent implements OnInit {
     private readonly listingsService: ListingsService,
     private readonly packagesService: PackagesService,
     private readonly authService: AuthService,
+    private readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
@@ -152,6 +154,10 @@ export class MyListingsComponent implements OnInit {
     this.listingsService.updateStatus(listing._id, status).subscribe({
       next: () => {
         this.actionLoading.set(null);
+        this.tracker.track('listing_status_change', {
+          productListingId: listing._id,
+          metadata: { previousStatus: listing.status, newStatus: status, title: listing.title },
+        });
         this.loadListings();
       },
       error: () => this.actionLoading.set(null),
@@ -163,6 +169,10 @@ export class MyListingsComponent implements OnInit {
     this.listingsService.featureListing(listing._id).subscribe({
       next: () => {
         this.actionLoading.set(null);
+        this.tracker.track('listing_feature', {
+          productListingId: listing._id,
+          metadata: { title: listing.title, previousFeatured: false, newFeatured: true },
+        });
         this.loadAll();
       },
       error: () => this.actionLoading.set(null),
@@ -183,6 +193,10 @@ export class MyListingsComponent implements OnInit {
     this.listingsService.deleteListing(listingId).subscribe({
       next: () => {
         this.actionLoading.set(null);
+        this.tracker.track('listing_delete', {
+          productListingId: listingId,
+          metadata: { previousStatus: this.listings().find(l => l._id === listingId)?.status },
+        });
         this.loadAll();
       },
       error: () => this.actionLoading.set(null),

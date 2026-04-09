@@ -10,6 +10,7 @@ import { LoginModalService } from '../../../shared/components/login-modal/login-
 import { Listing, Review } from '../../../core/models';
 import { extractIdFromSlug } from '../../../core/utils/slug';
 import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 
 @Component({
   selector: 'app-listing-detail',
@@ -33,6 +34,10 @@ export class ListingDetailComponent implements OnInit {
   isFavorited = signal(false);
   favoriteId = signal<string | null>(null);
   favoriteAnimating = signal(false);
+
+  // Share
+  shareToastVisible = signal(false);
+  sharePopupOpen = signal(false);
 
   // Lightbox
   lightboxOpen = signal(false);
@@ -62,6 +67,7 @@ export class ListingDetailComponent implements OnInit {
     public readonly authService: AuthService,
     private readonly sanitizer: DomSanitizer,
     public readonly loginModal: LoginModalService,
+    public readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
@@ -81,6 +87,11 @@ export class ListingDetailComponent implements OnInit {
         this.loadReviews(listing._id);
         this.loadSimilarListings(listing.categoryId);
         this.checkFavoriteStatus(listing._id);
+        this.tracker.track('view', {
+          productListingId: listing._id,
+          categoryId: listing.categoryId,
+          metadata: { title: listing.title, city: listing.location?.city },
+        });
       },
       error: () => {
         this.error.set('Failed to load listing');
@@ -145,6 +156,10 @@ export class ListingDetailComponent implements OnInit {
           next: () => {
             this.isFavorited.set(false);
             this.favoriteId.set(null);
+            this.tracker.track('unfavorite', {
+              productListingId: listing._id,
+              metadata: { previousState: 'favorited', newState: 'unfavorited' },
+            });
           },
           error: () => {
             // If remove fails, re-sync state
@@ -161,6 +176,10 @@ export class ListingDetailComponent implements OnInit {
         next: (fav) => {
           this.isFavorited.set(true);
           this.favoriteId.set(fav._id);
+          this.tracker.track('favorite', {
+            productListingId: listing._id,
+            metadata: { title: listing.title, previousState: 'unfavorited', newState: 'favorited' },
+          });
           setTimeout(() => this.favoriteAnimating.set(false), 600);
         },
         error: (err) => {
@@ -254,6 +273,62 @@ export class ListingDetailComponent implements OnInit {
     const [lng, lat] = loc.coordinates;
     const url = `https://maps.google.com/maps?q=${lat},${lng}&z=14&output=embed`;
     this.mapUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+  }
+
+  async shareListing(): Promise<void> {
+    const l = this.listing();
+    if (!l) return;
+
+    this.tracker.track('share', { productListingId: l._id, metadata: { title: l.title } });
+
+    // On mobile with native share API, use it directly
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: l.title, text: `Check out: ${l.title}`, url: window.location.href });
+      } catch { /* user cancelled */ }
+    } else {
+      // Desktop: show share popup
+      this.sharePopupOpen.set(true);
+    }
+  }
+
+  closeSharePopup(): void {
+    this.sharePopupOpen.set(false);
+  }
+
+  shareVia(platform: string): void {
+    const url = encodeURIComponent(window.location.href);
+    const title = encodeURIComponent(this.listing()?.title ?? '');
+    let shareUrl = '';
+
+    switch (platform) {
+      case 'whatsapp':
+        shareUrl = `https://wa.me/?text=${title}%20${url}`;
+        break;
+      case 'facebook':
+        shareUrl = `https://www.facebook.com/sharer/sharer.php?u=${url}`;
+        break;
+      case 'twitter':
+        shareUrl = `https://twitter.com/intent/tweet?text=${title}&url=${url}`;
+        break;
+      case 'linkedin':
+        shareUrl = `https://www.linkedin.com/sharing/share-offsite/?url=${url}`;
+        break;
+      case 'email':
+        shareUrl = `mailto:?subject=${title}&body=Check%20this%20out:%20${url}`;
+        break;
+      case 'copy':
+        navigator.clipboard.writeText(window.location.href);
+        this.sharePopupOpen.set(false);
+        this.shareToastVisible.set(true);
+        setTimeout(() => this.shareToastVisible.set(false), 2000);
+        return;
+    }
+
+    if (shareUrl) {
+      window.open(shareUrl, '_blank', 'noopener,noreferrer,width=600,height=400');
+    }
+    this.sharePopupOpen.set(false);
   }
 
   onTouchStart(event: TouchEvent): void {

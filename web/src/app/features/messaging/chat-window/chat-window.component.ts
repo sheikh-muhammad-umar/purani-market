@@ -9,6 +9,7 @@ import { ListingsService } from '../../../core/services/listings.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/auth';
 import { Message, Listing } from '../../../core/models';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 
 @Component({
   selector: 'app-chat-window',
@@ -58,6 +59,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
     private readonly listingsService: ListingsService,
     private readonly wsService: WebSocketService,
     readonly authService: AuthService,
+    private readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
@@ -128,11 +130,14 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
 
     this.messagingService.sendMessage(this.conversationId, text).subscribe({
       next: (saved) => {
-        // Replace optimistic message with the real one
         this.messages.update((msgs) =>
           msgs.map((m) => m._id === optimisticMsg._id ? { ...saved } as any : m)
         );
         this.sending.set(false);
+        this.tracker.track('message_sent', {
+          productListingId: this.listing()?._id,
+          metadata: { conversationId: this.conversationId },
+        });
       },
       error: () => {
         // Remove optimistic message on failure

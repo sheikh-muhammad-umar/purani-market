@@ -6,6 +6,7 @@ import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, of }
 import { SearchService, SearchParams, SearchResponse, SearchSuggestion } from '../../../core/services/search.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { RecentSearchesService } from '../../../core/services/recent-searches.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { SORT_OPTIONS } from '../../../core/constants/select-options';
 import { SearchSortOption } from '../../../core/constants/enums';
 import { PriceFormatPipe } from '../../../shared/pipes/price-format.pipe';
@@ -91,6 +92,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     private readonly searchService: SearchService,
     private readonly categoriesService: CategoriesService,
     private readonly recentSearches: RecentSearchesService,
+    private readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
@@ -418,6 +420,15 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.activeFilters.set(this.buildActiveFilters());
 
     const params = this.buildSearchParams();
+
+    if (params.q) {
+      this.tracker.track('search', {
+        searchQuery: params.q,
+        categoryId: params.category as string | undefined,
+        metadata: { sort: params.sort, page: params.page },
+      });
+    }
+
     this.searchService.search(params)
       .pipe(takeUntil(this.destroy$))
       .subscribe({

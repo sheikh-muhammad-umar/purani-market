@@ -281,4 +281,32 @@ export class AdminService {
       map(res => (res && res.data && res.statusCode) ? res.data : res),
     );
   }
+
+  getUserActivity(userId: string, page = 1, limit = 50, action?: string): Observable<any> {
+    let httpParams = new HttpParams()
+      .set('page', page.toString())
+      .set('limit', limit.toString());
+    if (action) httpParams = httpParams.set('action', action);
+    return this.http.get<any>(`${this.baseUrl}/admin/users/${userId}/activity`, { params: httpParams }).pipe(
+      map(res => (res && res.data && res.statusCode) ? res.data : res),
+    );
+  }
+
+  getAllActivity(params: {
+    page?: number; limit?: number; action?: string; userId?: string;
+    dateFrom?: string; dateTo?: string; sort?: string; order?: 'asc' | 'desc';
+  } = {}): Observable<any> {
+    let httpParams = new HttpParams();
+    if (params.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
+    if (params.action) httpParams = httpParams.set('action', params.action);
+    if (params.userId) httpParams = httpParams.set('userId', params.userId);
+    if (params.dateFrom) httpParams = httpParams.set('dateFrom', params.dateFrom);
+    if (params.dateTo) httpParams = httpParams.set('dateTo', params.dateTo);
+    if (params.sort) httpParams = httpParams.set('sort', params.sort);
+    if (params.order) httpParams = httpParams.set('order', params.order);
+    return this.http.get<any>(`${this.baseUrl}/admin/activity`, { params: httpParams }).pipe(
+      map(res => (res && res.data && res.statusCode) ? res.data : res),
+    );
+  }
 }

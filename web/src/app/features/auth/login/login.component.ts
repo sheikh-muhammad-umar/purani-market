@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService, AuthTokens } from '../../../core/auth/auth.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 
 @Component({
   selector: 'app-login',
@@ -20,7 +21,8 @@ export class LoginComponent {
   constructor(
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
-    private readonly router: Router
+    private readonly router: Router,
+    private readonly tracker: ActivityTrackerService,
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -67,6 +69,7 @@ export class LoginComponent {
         } else {
           this.authService.storeTokens(response as AuthTokens);
           this.authService.fetchCurrentUser().subscribe(() => {
+            this.tracker.track('login', { metadata: { method: this.usePhone() ? 'phone' : 'email' } });
             this.router.navigate(['/']);
           });
         }

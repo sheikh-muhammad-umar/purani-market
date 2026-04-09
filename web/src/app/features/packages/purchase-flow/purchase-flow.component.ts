@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PackagesService } from '../../../core/services/packages.service';
 import { AdPackage, PaymentMethod } from '../../../core/models';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 
 export type PurchaseStep = 'details' | 'payment' | 'confirm';
 
@@ -27,6 +28,7 @@ export class PurchaseFlowComponent implements OnInit {
   constructor(
     private readonly route: ActivatedRoute,
     private readonly packagesService: PackagesService,
+    private readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
@@ -87,6 +89,14 @@ export class PurchaseFlowComponent implements OnInit {
     }).subscribe({
       next: (res) => {
         this.purchasing.set(false);
+        this.tracker.track('package_purchase', {
+          metadata: {
+            packageId: this.packageId,
+            packageName: this.pkg()?.name,
+            amount: this.pkg()?.defaultPrice,
+            paymentMethod: method,
+          },
+        });
         if (res.redirectUrl) {
           window.location.href = res.redirectUrl;
         }

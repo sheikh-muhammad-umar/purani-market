@@ -32,6 +32,7 @@ import { ListUsersQueryDto } from './dto/list-users-query.dto.js';
 import { ListPurchasesQueryDto } from './dto/list-purchases-query.dto.js';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto.js';
 import { AdPackageType } from '../packages/schemas/ad-package.schema.js';
+import { UserActivity, UserActivityDocument } from '../ai/schemas/user-activity.schema.js';
 
 export interface PaginatedUsers {
   data: Record<string, unknown>[];
@@ -123,6 +124,8 @@ export class AdminService {
     private readonly packagePurchaseModel: Model<PackagePurchaseDocument>,
     @InjectModel(Category.name)
     private readonly categoryModel: Model<any>,
+    @InjectModel(UserActivity.name)
+    private readonly activityModel: Model<UserActivityDocument>,
     private readonly authService: AuthService,
     private readonly notificationsService: NotificationsService,
   ) {}
@@ -201,6 +204,56 @@ export class AdminService {
       ]);
 
     return { listingsCount, conversationsCount, violationsCount };
+  }
+
+  async getUserActivityLog(
+    userId: string,
+    page = 1,
+    limit = 50,
+    action?: string,
+  ): Promise<{ data: UserActivityDocument[]; total: number; page: number; limit: number; totalPages: number }> {
+    const filter: Record<string, any> = { userId: new Types.ObjectId(userId) };
+    if (action) filter.action = action;
+
+    const skip = (page - 1) * limit;
+    const [data, total] = await Promise.all([
+      this.activityModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean().exec(),
+      this.activityModel.countDocuments(filter).exec(),
+    ]);
+
+    return { data: data as any, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async getAllActivityLog(params: {
+    page?: number;
+    limit?: number;
+    action?: string;
+    userId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    sort?: string;
+    order?: 'asc' | 'desc';
+  }): Promise<{ data: any[]; total: number; page: number; limit: number; totalPages: number }> {
+    const { page = 1, limit = 50, action, userId, dateFrom, dateTo, sort = 'createdAt', order = 'desc' } = params;
+    const filter: Record<string, any> = {};
+
+    if (userId) filter.userId = new Types.ObjectId(userId);
+    if (action) filter.action = action;
+    if (dateFrom || dateTo) {
+      filter.createdAt = {};
+      if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) filter.createdAt.$lte = new Date(dateTo + 'T23:59:59.999Z');
+    }
+
+    const sortObj: Record<string, 1 | -1> = { [sort]: order === 'asc' ? 1 : -1 };
+    const skip = (page - 1) * limit;
+
+    const [data, total] = await Promise.all([
+      this.activityModel.find(filter).sort(sortObj).skip(skip).limit(limit).lean().exec(),
+      this.activityModel.countDocuments(filter).exec(),
+    ]);
+
+    return { data: data as any, total, page, limit, totalPages: Math.ceil(total / limit) };
   }
 
   async updateUserStatus(

@@ -44,6 +44,39 @@ export class AdminController {
     return { ...result, data: enrichedData };
   }
 
+  @Get('users/:id/activity')
+  async getUserActivity(
+    @Param('id') id: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('action') action?: string,
+  ) {
+    return this.adminService.getUserActivityLog(
+      id,
+      page ? parseInt(page, 10) : 1,
+      limit ? parseInt(limit, 10) : 50,
+      action,
+    );
+  }
+
+  @Get('activity')
+  async getAllActivity(
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('action') action?: string,
+    @Query('userId') userId?: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+    @Query('sort') sort?: string,
+    @Query('order') order?: 'asc' | 'desc',
+  ) {
+    return this.adminService.getAllActivityLog({
+      page: page ? parseInt(page, 10) : 1,
+      limit: limit ? parseInt(limit, 10) : 50,
+      action, userId, dateFrom, dateTo, sort, order,
+    });
+  }
+
   @Patch('users/:id/status')
   async updateUserStatus(
     @Param('id') id: string,
