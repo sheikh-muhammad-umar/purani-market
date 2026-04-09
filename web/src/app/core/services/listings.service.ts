@@ -19,7 +19,7 @@ export interface CreateListingPayload {
   condition: string;
   categoryAttributes: Record<string, unknown>;
   selectedFeatures?: string[];
-  location: { city: string; area: string; coordinates?: [number, number] };
+  location: { city: string; area?: string; blockPhase?: string; coordinates?: [number, number] };
   contactInfo?: { phone: string; email: string };
   isFeatured?: boolean;
 }

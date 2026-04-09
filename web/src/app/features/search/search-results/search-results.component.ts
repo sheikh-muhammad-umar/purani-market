@@ -68,6 +68,13 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly selectedCity = signal('');
   readonly expandedCategories = signal<Set<string>>(new Set());
   readonly popularCities = ['Lahore', 'Karachi', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta'];
+  readonly yearRange: number[] = Array.from({ length: new Date().getFullYear() - 1969 }, (_, i) => new Date().getFullYear() - i);
+
+  getYearRange(filter: { rangeMin?: number; rangeMax?: number }): number[] {
+    const max = filter.rangeMax ?? new Date().getFullYear();
+    const min = filter.rangeMin ?? 1970;
+    return Array.from({ length: max - min + 1 }, (_, i) => max - i);
+  }
 
   readonly sortOptions: { value: SortOption; label: string }[] = [
     { value: 'relevance', label: 'Relevance' },
@@ -385,9 +392,9 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     const cat = this.selectedCategoryId();
     if (cat) params.category = cat;
     const min = this.minPrice();
-    if (min !== null) params.minPrice = min;
+    if (min !== null) params['priceMin'] = min;
     const max = this.maxPrice();
-    if (max !== null) params.maxPrice = max;
+    if (max !== null) params['priceMax'] = max;
     const condition = this.selectedCondition();
     if (condition) params.condition = condition;
 

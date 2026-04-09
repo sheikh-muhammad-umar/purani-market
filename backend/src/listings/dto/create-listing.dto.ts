@@ -63,6 +63,10 @@ export class CreateListingLocationDto {
   @IsString()
   @IsOptional()
   area?: string;
+
+  @IsString()
+  @IsOptional()
+  blockPhase?: string;
 }
 
 export class CreateListingContactInfoDto {

@@ -45,7 +45,7 @@ export class CategoryManagerComponent implements OnInit {
 
   // Attribute editing
   editingAttributes: CategoryAttribute[] = [];
-  readonly attributeTypes: CategoryAttributeType[] = ['text', 'number', 'select', 'multiselect', 'boolean', 'range'];
+  readonly attributeTypes: CategoryAttributeType[] = ['text', 'number', 'select', 'multiselect', 'boolean', 'range', 'year'];
   readonly attributeTypeOptions: SelectOption[] = [
     { value: 'text', label: 'Text' },
     { value: 'number', label: 'Number' },
@@ -53,6 +53,7 @@ export class CategoryManagerComponent implements OnInit {
     { value: 'multiselect', label: 'Multiselect' },
     { value: 'boolean', label: 'Boolean' },
     { value: 'range', label: 'Range' },
+    { value: 'year', label: 'Year' },
   ];
 
   // Features editing

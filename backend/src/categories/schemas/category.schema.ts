@@ -10,6 +10,7 @@ export enum AttributeType {
   MULTISELECT = 'multiselect',
   BOOLEAN = 'boolean',
   RANGE = 'range',
+  YEAR = 'year',
 }
 
 @Schema({ _id: false })

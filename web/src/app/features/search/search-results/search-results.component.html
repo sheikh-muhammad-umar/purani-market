@@ -240,6 +240,23 @@
                     <input type="number" class="price-field" [placeholder]="'Max'" [ngModel]="filterValues()[filter.key + '_max'] || ''" (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)" />
                   </div>
                 }
+                @case ('year') {
+                  <div class="price-range-row">
+                    <select class="price-field" [ngModel]="filterValues()[filter.key + '_min'] || ''" (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $event)">
+                      <option value="">From</option>
+                      @for (yr of getYearRange(filter); track yr) {
+                        <option [value]="yr">{{ yr }}</option>
+                      }
+                    </select>
+                    <span class="price-to">to</span>
+                    <select class="price-field" [ngModel]="filterValues()[filter.key + '_max'] || ''" (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)">
+                      <option value="">To</option>
+                      @for (yr of getYearRange(filter); track yr) {
+                        <option [value]="yr">{{ yr }}</option>
+                      }
+                    </select>
+                  </div>
+                }
               }
             </div>
           }

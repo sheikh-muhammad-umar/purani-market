@@ -6,7 +6,8 @@ import { CategoriesService } from '../../../core/services/categories.service';
 import { ListingsService, CreateListingPayload } from '../../../core/services/listings.service';
 import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth/auth.service';
-import { Category, CategoryAttribute, User } from '../../../core/models';
+import { LocationService } from '../../../core/services/location.service';
+import { Category, CategoryAttribute, User, Province, City, Area } from '../../../core/models';
 
 export interface MediaItem {
   file: File;
@@ -64,6 +65,47 @@ export class CreateListingComponent implements OnInit {
   // Custom dropdown state
   openDropdown = signal<string | null>(null);
 
+  // Year options for year-type attributes (current year down to 1970)
+  readonly yearOptions: number[] = Array.from({ length: new Date().getFullYear() - 1969 }, (_, i) => new Date().getFullYear() - i);
+
+  getYearOptions(attr: { rangeMin?: number; rangeMax?: number }): number[] {
+    const max = attr.rangeMax ?? new Date().getFullYear();
+    const min = attr.rangeMin ?? 1970;
+    return Array.from({ length: max - min + 1 }, (_, i) => max - i);
+  }
+
+  // Location state
+  provinces = signal<Province[]>([]);
+  citiesForListing = signal<City[]>([]);
+  areasForListing = signal<Area[]>([]);
+  selectedProvince = signal<Province | null>(null);
+  selectedCityObj = signal<City | null>(null);
+  selectedAreaObj = signal<Area | null>(null);
+  selectedBlockPhase = signal<string | null>(null);
+  citySearch = signal('');
+  areaSearch = signal('');
+  blockPhaseSearch = signal('');
+  filteredCities = computed(() => {
+    const q = this.citySearch().toLowerCase().trim();
+    const all = this.citiesForListing();
+    return q ? all.filter(c => c.name.toLowerCase().includes(q)) : all;
+  });
+  filteredAreas = computed(() => {
+    const q = this.areaSearch().toLowerCase().trim();
+    const all = this.areasForListing();
+    return q ? all.filter(a => a.name.toLowerCase().includes(q)) : all;
+  });
+  blockPhaseOptions = computed<string[]>(() => {
+    const area = this.selectedAreaObj();
+    if (!area) return [];
+    return [...(area.subareas || []), ...(area.blockPhases || [])];
+  });
+  filteredBlockPhases = computed(() => {
+    const q = this.blockPhaseSearch().toLowerCase().trim();
+    const all = this.blockPhaseOptions();
+    return q ? all.filter(b => b.toLowerCase().includes(q)) : all;
+  });
+
   // Submission
   submitting = signal(false);
   error = signal('');
@@ -75,6 +117,7 @@ export class CreateListingComponent implements OnInit {
     private readonly listingsService: ListingsService,
     private readonly packagesService: PackagesService,
     private readonly authService: AuthService,
+    private readonly locationService: LocationService,
   ) {}
 
   ngOnInit(): void {
@@ -95,7 +138,8 @@ export class CreateListingComponent implements OnInit {
 
     this.locationForm = this.fb.group({
       city: ['', Validators.required],
-      area: ['', Validators.required],
+      area: [''],
+      blockPhase: [''],
     });
 
     // Check if user has a verified phone
@@ -117,6 +161,11 @@ export class CreateListingComponent implements OnInit {
     this.categoriesService.getAll().subscribe({
       next: (cats) => this.allCategories.set(cats),
       error: () => this.allCategories.set([]),
+    });
+
+    this.locationService.getProvinces().subscribe({
+      next: (provinces) => this.provinces.set(provinces),
+      error: () => {},
     });
   }
 
@@ -364,6 +413,49 @@ export class CreateListingComponent implements OnInit {
   }
 
   // --- Location Step ---
+  selectLocationProvince(province: Province): void {
+    this.selectedProvince.set(province);
+    this.selectedCityObj.set(null);
+    this.selectedAreaObj.set(null);
+    this.selectedBlockPhase.set(null);
+    this.citiesForListing.set([]);
+    this.areasForListing.set([]);
+    this.citySearch.set('');
+    this.areaSearch.set('');
+    this.blockPhaseSearch.set('');
+    this.locationForm.patchValue({ city: '', area: '', blockPhase: '' });
+    this.locationService.getCities(province._id).subscribe({
+      next: (cities) => this.citiesForListing.set(cities),
+      error: () => {},
+    });
+  }
+
+  selectLocationCity(city: City): void {
+    this.selectedCityObj.set(city);
+    this.selectedAreaObj.set(null);
+    this.selectedBlockPhase.set(null);
+    this.areasForListing.set([]);
+    this.areaSearch.set('');
+    this.blockPhaseSearch.set('');
+    this.locationForm.patchValue({ city: city.name, area: '', blockPhase: '' });
+    this.locationService.getAreas(city._id).subscribe({
+      next: (areas) => this.areasForListing.set(areas),
+      error: () => {},
+    });
+  }
+
+  selectLocationArea(area: Area): void {
+    this.selectedAreaObj.set(area);
+    this.selectedBlockPhase.set(null);
+    this.blockPhaseSearch.set('');
+    this.locationForm.patchValue({ area: area.name, blockPhase: '' });
+  }
+
+  selectBlockPhase(value: string): void {
+    this.selectedBlockPhase.set(value);
+    this.locationForm.patchValue({ blockPhase: value });
+  }
+
   isLocationStepValid(): boolean {
     return this.locationForm.valid;
   }
@@ -473,7 +565,7 @@ export class CreateListingComponent implements OnInit {
       condition: details.condition,
       categoryAttributes: catAttrs,
       selectedFeatures: this.selectedFeatures(),
-      location: { city: loc.city, area: loc.area },
+      location: { city: loc.city, area: loc.area || undefined, blockPhase: loc.blockPhase || undefined },
       isFeatured: this.featureAd(),
     };
 

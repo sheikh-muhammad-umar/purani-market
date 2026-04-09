@@ -1,4 +1,4 @@
-export type CategoryAttributeType = 'text' | 'number' | 'select' | 'multiselect' | 'boolean' | 'range';
+export type CategoryAttributeType = 'text' | 'number' | 'select' | 'multiselect' | 'boolean' | 'range' | 'year';
 
 export interface CategoryAttribute {
   name: string;
