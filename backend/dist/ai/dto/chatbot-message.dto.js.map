@@ -1,1 +1,0 @@
-{"version":3,"file":"chatbot-message.dto.js","sourceRoot":"","sources":["../../../src/ai/dto/chatbot-message.dto.ts"],"names":[],"mappings":";;;;;;;;;;;;AAAA,qDAA8E;AAE9E,MAAa,iBAAiB;IAI5B,OAAO,CAAU;IAIjB,SAAS,CAAU;CACpB;AATD,8CASC;AALC;IAHC,IAAA,0BAAQ,GAAE;IACV,IAAA,4BAAU,GAAE;IACZ,IAAA,2BAAS,EAAC,IAAI,CAAC;;kDACC;AAIjB;IAFC,IAAA,0BAAQ,GAAE;IACV,IAAA,4BAAU,GAAE;;oDACM"}
