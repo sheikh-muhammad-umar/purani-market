@@ -55,6 +55,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     this.refreshUnreadCount();
     this.loadProvinces();
+    this.restoreLocationFromStorage();
 
     this.subs.push(
       this.router.events.pipe(
@@ -187,10 +188,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.locationService.getCities(province._id).subscribe({
       next: (cities) => {
         if (cities.length === 0) {
-          // No cities — select province and reset drill-down so reopening shows provinces
           this.locationLabel.set(province.name);
           this.locationDropdownOpen.set(false);
-          this.selectedProvince.set(null);
+          this.saveLocationToStorage();
         } else {
           this.cities.set(cities);
         }
@@ -206,10 +206,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.locationService.getAreas(city._id).subscribe({
       next: (areas) => {
         if (areas.length === 0) {
-          // No areas — select city and reset to cities level so reopening shows cities
           this.locationLabel.set(this.buildLabel(this.selectedProvince()?.name, city.name));
           this.locationDropdownOpen.set(false);
-          this.selectedCity.set(null);
+          this.saveLocationToStorage();
         } else {
           this.areas.set(areas);
         }
@@ -220,10 +219,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   selectArea(area: Area): void {
     if (area.subareas.length === 0 && area.blockPhases.length === 0) {
-      // No deeper level — select area and reset to areas level so reopening shows areas
       this.locationLabel.set(this.buildLabel(this.selectedCity()?.name, area.name));
       this.locationDropdownOpen.set(false);
-      this.selectedArea.set(null);
+      this.selectedArea.set(area);
+      this.saveLocationToStorage();
     } else {
       this.selectedArea.set(area);
     }
@@ -235,12 +234,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   /** "All Pakistan" */
   seeAllPakistan(): void {
-    this.applyLocation('Pakistan', 'Pakistan');
     this.selectedProvince.set(null);
     this.selectedCity.set(null);
     this.selectedArea.set(null);
     this.cities.set([]);
     this.areas.set([]);
+    this.applyLocation('Pakistan', 'Pakistan');
   }
 
   /** "All <Province>" */
@@ -268,6 +267,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     const previousLocation = this.locationLabel();
     this.locationLabel.set(fullLabel);
     this.locationDropdownOpen.set(false);
+    this.saveLocationToStorage();
     this.tracker.track('location_change', {
       metadata: { previousLocation, newLocation: fullLabel },
     });
@@ -300,6 +300,44 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private buildLabel(parent: string | undefined, child: string): string {
     return parent ? `${parent}, ${child}` : child;
+  }
+
+  private saveLocationToStorage(): void {
+    const state = {
+      label: this.locationLabel(),
+      province: this.selectedProvince(),
+      city: this.selectedCity(),
+      area: this.selectedArea(),
+    };
+    localStorage.setItem('selected_location', JSON.stringify(state));
+  }
+
+  private restoreLocationFromStorage(): void {
+    try {
+      const raw = localStorage.getItem('selected_location');
+      if (!raw) return;
+      const state = JSON.parse(raw);
+      if (state.label) this.locationLabel.set(state.label);
+      if (state.province) this.selectedProvince.set(state.province);
+      if (state.city) this.selectedCity.set(state.city);
+      if (state.area) this.selectedArea.set(state.area);
+
+      // Reload child data so dropdowns work if reopened
+      if (state.province?._id) {
+        this.locationService.getCities(state.province._id).subscribe({
+          next: (cities) => this.cities.set(cities),
+          error: () => {},
+        });
+      }
+      if (state.city?._id) {
+        this.locationService.getAreas(state.city._id).subscribe({
+          next: (areas) => this.areas.set(areas),
+          error: () => {},
+        });
+      }
+    } catch {
+      // corrupted data — ignore
+    }
   }
 
   logout(): void {

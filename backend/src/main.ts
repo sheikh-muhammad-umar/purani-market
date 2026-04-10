@@ -1,9 +1,10 @@
-import { NestFactory } from '@nestjs/core';
+import { NestFactory, Reflector } from '@nestjs/core';
 import { ConfigService } from '@nestjs/config';
 import { NestExpressApplication } from '@nestjs/platform-express';
 import cookieParser from 'cookie-parser';
 import { join } from 'path';
 import { AppModule } from './app.module.js';
+import { ApiKeyGuard } from './common/guards/api-key.guard.js';
 
 async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule);
@@ -11,6 +12,9 @@ async function bootstrap() {
 
   // Cookie parser
   app.use(cookieParser());
+
+  // Global API key guard — all endpoints require X-API-Key header
+  app.useGlobalGuards(new ApiKeyGuard(configService));
 
   // Serve uploaded files statically
   app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
@@ -26,7 +30,7 @@ async function bootstrap() {
   app.enableCors({
     origin: origins,
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
-    allowedHeaders: 'Content-Type,Authorization,X-CSRF-Token',
+    allowedHeaders: 'Content-Type,Authorization,X-CSRF-Token,X-API-Key',
     credentials: true,
   });
 

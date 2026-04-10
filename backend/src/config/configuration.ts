@@ -45,4 +45,6 @@ export default () => ({
     appId: process.env.FACEBOOK_APP_ID || '',
     appSecret: process.env.FACEBOOK_APP_SECRET || '',
   },
+
+  apiKey: process.env.API_KEY || '',
 });
