@@ -67,7 +67,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.authService.fetchCurrentUser().subscribe();
     }
 
-    this.refreshUnreadCount();
     this.loadProvinces();
     this.restoreLocationFromStorage();
 
@@ -209,6 +208,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
           this.locationLabel.set(province.name);
           this.locationDropdownOpen.set(false);
           this.saveLocationToStorage();
+          this.reloadCurrentPage();
         } else {
           this.cities.set(cities);
         }
@@ -228,6 +228,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
           this.locationLabel.set(this.buildLabel(this.selectedProvince()?.name, city.name));
           this.locationDropdownOpen.set(false);
           this.saveLocationToStorage();
+          this.reloadCurrentPage();
         } else {
           this.areas.set(areas);
         }
@@ -242,6 +243,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       this.locationDropdownOpen.set(false);
       this.selectedArea.set(area);
       this.saveLocationToStorage();
+      this.reloadCurrentPage();
     } else {
       this.selectedArea.set(area);
     }
@@ -290,6 +292,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.tracker.track('location_change', {
       metadata: { previousLocation, newLocation: fullLabel },
     });
+    this.reloadCurrentPage();
   }
 
   clearLocation(): void {
@@ -332,6 +335,14 @@ export class HeaderComponent implements OnInit, OnDestroy {
       area: this.selectedArea(),
     };
     localStorage.setItem('selected_location', JSON.stringify(state));
+  }
+
+  private reloadCurrentPage(): void {
+    // Use Angular router to re-navigate to the same URL, forcing components to re-init
+    const url = this.router.url;
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigateByUrl(url);
+    });
   }
 
   private restoreLocationFromStorage(): void {
