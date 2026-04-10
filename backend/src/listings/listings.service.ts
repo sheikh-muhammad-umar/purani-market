@@ -90,6 +90,9 @@ export class ListingsService {
 
   async getFeaturedAds(options: {
     categoryId?: string;
+    provinceId?: string;
+    cityId?: string;
+    areaId?: string;
     city?: string;
     limit?: number;
   } = {}): Promise<ProductListingDocument[]> {
@@ -102,13 +105,21 @@ export class ListingsService {
     };
 
     if (options.categoryId) {
-      filter.categoryPath = options.categoryId;
+      filter.categoryPath = Types.ObjectId.isValid(options.categoryId)
+        ? new Types.ObjectId(options.categoryId) : options.categoryId;
     }
-    if (options.city) {
+    if (options.provinceId) {
+      filter['location.provinceId'] = new Types.ObjectId(options.provinceId);
+    }
+    if (options.cityId) {
+      filter['location.cityId'] = new Types.ObjectId(options.cityId);
+    } else if (options.city) {
       filter['location.city'] = { $regex: new RegExp(`^${options.city}$`, 'i') };
     }
+    if (options.areaId) {
+      filter['location.areaId'] = new Types.ObjectId(options.areaId);
+    }
 
-    // Use $sample aggregation for random selection
     const pipeline: any[] = [
       { $match: filter },
       { $sample: { size: limit } },

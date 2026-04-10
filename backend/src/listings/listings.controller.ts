@@ -64,11 +64,17 @@ export class ListingsController {
   @Get('featured')
   async getFeaturedAds(
     @Query('category') categoryId?: string,
+    @Query('provinceId') provinceId?: string,
+    @Query('cityId') cityId?: string,
+    @Query('areaId') areaId?: string,
     @Query('city') city?: string,
     @Query('limit') limit?: string,
   ) {
     const data = await this.listingsService.getFeaturedAds({
       categoryId,
+      provinceId,
+      cityId,
+      areaId,
       city,
       limit: limit ? parseInt(limit, 10) : 20,
     });

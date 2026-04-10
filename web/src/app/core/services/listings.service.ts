@@ -44,8 +44,24 @@ export class ListingsService {
   getFeaturedFiltered(params: { category?: string; city?: string; limit?: number } = {}): Observable<ListingsResponse> {
     const clean: Record<string, string | number> = {};
     if (params.category) clean['category'] = params.category;
-    if (params.city) clean['city'] = params.city;
     if (params.limit) clean['limit'] = params.limit;
+
+    // Add location from header selection
+    try {
+      const locRaw = localStorage.getItem('selected_location');
+      if (locRaw) {
+        const loc = JSON.parse(locRaw);
+        if (loc.label && loc.label !== 'Pakistan') {
+          if (loc.province?._id) clean['provinceId'] = loc.province._id;
+          if (loc.city?._id) clean['cityId'] = loc.city._id;
+          if (loc.area?._id) clean['areaId'] = loc.area._id;
+        }
+      }
+    } catch {}
+
+    // Fallback to city name if passed directly
+    if (!clean['cityId'] && params.city) clean['city'] = params.city;
+
     return this.api.get<ListingsResponse>('/listings/featured', clean);
   }
 
