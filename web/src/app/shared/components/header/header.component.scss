@@ -118,6 +118,22 @@
   color: var(--text-primary);
 }
 
+.location-search-input {
+  width: 100%;
+  padding: 8px 12px;
+  border: none;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  font-family: inherit;
+  outline: none;
+  background: var(--surface);
+  color: var(--text-primary);
+  box-sizing: border-box;
+
+  &::placeholder { color: var(--text-muted); }
+  &:focus { background: var(--background); }
+}
+
 .location-back-btn {
   display: flex;
   align-items: center;

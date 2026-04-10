@@ -1,4 +1,4 @@
-import { Component, OnInit, OnDestroy, signal, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, HostListener } from '@angular/core';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -35,6 +35,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
   selectedCity = signal<City | null>(null);
   selectedArea = signal<Area | null>(null);
   locationLabel = signal('Pakistan');
+  locationSearch = signal('');
+
+  filteredProvinces = computed(() => {
+    const q = this.locationSearch().toLowerCase().trim();
+    return q ? this.provinces().filter(p => p.name.toLowerCase().includes(q)) : this.provinces();
+  });
+  filteredCities = computed(() => {
+    const q = this.locationSearch().toLowerCase().trim();
+    return q ? this.cities().filter(c => c.name.toLowerCase().includes(q)) : this.cities();
+  });
+  filteredAreas = computed(() => {
+    const q = this.locationSearch().toLowerCase().trim();
+    return q ? this.areas().filter(a => a.name.toLowerCase().includes(q)) : this.areas();
+  });
 
   constructor(
     public readonly authService: AuthService,
@@ -170,6 +184,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   toggleLocationDropdown(): void {
     this.locationDropdownOpen.update(open => !open);
+    if (!this.locationDropdownOpen()) {
+      this.locationSearch.set('');
+    }
   }
 
   private loadProvinces(): void {
@@ -185,6 +202,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.selectedArea.set(null);
     this.cities.set([]);
     this.areas.set([]);
+    this.locationSearch.set('');
     this.locationService.getCities(province._id).subscribe({
       next: (cities) => {
         if (cities.length === 0) {
@@ -203,6 +221,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.selectedCity.set(city);
     this.selectedArea.set(null);
     this.areas.set([]);
+    this.locationSearch.set('');
     this.locationService.getAreas(city._id).subscribe({
       next: (areas) => {
         if (areas.length === 0) {
@@ -284,6 +303,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.cities.set([]);
     this.areas.set([]);
     this.locationLabel.set('Pakistan');
+    this.locationSearch.set('');
   }
 
   goBackToCities(): void {
@@ -291,11 +311,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.selectedArea.set(null);
     this.areas.set([]);
     this.locationLabel.set(this.selectedProvince()?.name ?? 'Pakistan');
+    this.locationSearch.set('');
   }
 
   goBackToAreas(): void {
     this.selectedArea.set(null);
     this.locationLabel.set(this.selectedCity()?.name ?? 'Pakistan');
+    this.locationSearch.set('');
   }
 
   private buildLabel(parent: string | undefined, child: string): string {

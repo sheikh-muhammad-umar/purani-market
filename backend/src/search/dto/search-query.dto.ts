@@ -34,6 +34,35 @@ export class SearchQueryDto {
   condition?: string;
 
   @IsOptional()
+  @IsString()
+  provinceId?: string;
+
+  @IsOptional()
+  @IsString()
+  cityId?: string;
+
+  @IsOptional()
+  @IsString()
+  areaId?: string;
+
+  // Legacy name fields (still accepted)
+  @IsOptional()
+  @IsString()
+  province?: string;
+
+  @IsOptional()
+  @IsString()
+  city?: string;
+
+  @IsOptional()
+  @IsString()
+  area?: string;
+
+  @IsOptional()
+  @IsString()
+  blockPhase?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   lat?: number;

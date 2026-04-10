@@ -2,7 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { InjectModel } from '@nestjs/mongoose';
 import { InjectRedis } from '@nestjs-modules/ioredis';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import Redis from 'ioredis';
 import { CategoriesService } from '../categories/categories.service.js';
 import { AttributeType } from '../categories/schemas/category.schema.js';
@@ -130,11 +130,33 @@ export class SearchService {
     }
 
     if (query.category) {
-      filter.categoryPath = query.category;
+      filter.categoryPath = Types.ObjectId.isValid(query.category)
+        ? new Types.ObjectId(query.category)
+        : query.category;
     }
 
     if (query.condition) {
       filter.condition = query.condition;
+    }
+
+    // Location filters (prefer IDs, fallback to names)
+    if (query.provinceId) {
+      filter['location.provinceId'] = new Types.ObjectId(query.provinceId);
+    } else if (query.province) {
+      filter['location.province'] = { $regex: new RegExp(`^${query.province}$`, 'i') };
+    }
+    if (query.cityId) {
+      filter['location.cityId'] = new Types.ObjectId(query.cityId);
+    } else if (query.city) {
+      filter['location.city'] = { $regex: new RegExp(`^${query.city}$`, 'i') };
+    }
+    if (query.areaId) {
+      filter['location.areaId'] = new Types.ObjectId(query.areaId);
+    } else if (query.area) {
+      filter['location.area'] = { $regex: new RegExp(`^${query.area}$`, 'i') };
+    }
+    if (query.blockPhase) {
+      filter['location.blockPhase'] = { $regex: new RegExp(`^${query.blockPhase}$`, 'i') };
     }
 
     if (query.priceMin || query.priceMax) {
@@ -303,6 +325,26 @@ export class SearchService {
     // Condition filter
     if (query.condition) {
       filter.push({ term: { condition: query.condition } });
+    }
+
+    // Location text filters
+    if (query.provinceId) {
+      filter.push({ term: { 'location.provinceId': query.provinceId } });
+    } else if (query.province) {
+      filter.push({ match_phrase: { 'location.province': query.province } });
+    }
+    if (query.cityId) {
+      filter.push({ term: { 'location.cityId': query.cityId } });
+    } else if (query.city) {
+      filter.push({ match_phrase: { 'location.city': query.city } });
+    }
+    if (query.areaId) {
+      filter.push({ term: { 'location.areaId': query.areaId } });
+    } else if (query.area) {
+      filter.push({ match_phrase: { 'location.area': query.area } });
+    }
+    if (query.blockPhase) {
+      filter.push({ match_phrase: { 'location.blockPhase': query.blockPhase } });
     }
 
     // Location filter (geo_distance)

@@ -112,8 +112,20 @@ export class HomeComponent implements OnInit {
   }
 
   private loadFeatured(): void {
-    this.listingsService.getFeatured(10).subscribe({
-      next: (res: ListingsResponse) => {
+    // Get city from selected location for filtering
+    let city: string | undefined;
+    try {
+      const locRaw = localStorage.getItem('selected_location');
+      if (locRaw) {
+        const loc = JSON.parse(locRaw);
+        if (loc.label && loc.label !== 'Pakistan') {
+          city = loc.city?.name;
+        }
+      }
+    } catch {}
+
+    this.listingsService.getFeaturedFiltered({ city, limit: 10 }).subscribe({
+      next: (res: any) => {
         const data = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res as any : [];
         this.featuredListings.set(data);
         this.loadingFeatured.set(false);

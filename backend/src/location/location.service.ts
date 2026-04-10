@@ -210,6 +210,11 @@ export class LocationService {
   async updateProvince(id: string, name: string): Promise<ProvinceDocument> {
     const doc = await this.provinceModel.findByIdAndUpdate(id, { name }, { new: true }).exec();
     if (!doc) throw new NotFoundException('Province not found');
+    // Cascade: update denormalized name on all listings in this province
+    await this.listingModel.updateMany(
+      { 'location.provinceId': new Types.ObjectId(id) },
+      { $set: { 'location.province': name } },
+    ).exec();
     return doc;
   }
 
@@ -233,6 +238,11 @@ export class LocationService {
   async updateCity(id: string, name: string): Promise<CityDocument> {
     const doc = await this.cityModel.findByIdAndUpdate(id, { name }, { new: true }).exec();
     if (!doc) throw new NotFoundException('City not found');
+    // Cascade: update denormalized name on all listings in this city
+    await this.listingModel.updateMany(
+      { 'location.cityId': new Types.ObjectId(id) },
+      { $set: { 'location.city': name } },
+    ).exec();
     return doc;
   }
 
@@ -256,6 +266,14 @@ export class LocationService {
   async updateArea(id: string, updates: { name?: string; subareas?: string[]; blockPhases?: string[] }): Promise<AreaDocument> {
     const doc = await this.areaModel.findByIdAndUpdate(id, updates, { new: true }).exec();
     if (!doc) throw new NotFoundException('Area not found');
+    // Cascade: update denormalized name on all listings in this area
+    if (updates.name) {
+      await this.listingModel.updateMany(
+        { 'location.areaId': new Types.ObjectId(id) },
+        { $set: { 'location.area': updates.name } },
+      ).exec();
+    }
+    return doc;
     return doc;
   }
 

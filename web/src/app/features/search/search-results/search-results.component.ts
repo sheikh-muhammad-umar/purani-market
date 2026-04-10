@@ -39,7 +39,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly pageSize = 20;
   readonly loading = signal(false);
   readonly sortBy = signal<SortOption>(SearchSortOption.RELEVANCE);
-  readonly filtersOpen = signal(true);
+  readonly filtersOpen = signal(false);
 
   // Category filters
   readonly categories = signal<Category[]>([]);
@@ -403,6 +403,19 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     if (max !== null) params['priceMax'] = max;
     const condition = this.selectedCondition();
     if (condition) params.condition = condition;
+
+    // Location from header selection (persisted in localStorage)
+    try {
+      const locRaw = localStorage.getItem('selected_location');
+      if (locRaw) {
+        const loc = JSON.parse(locRaw);
+        if (loc.label && loc.label !== 'Pakistan') {
+          if (loc.province?._id) params['provinceId'] = loc.province._id;
+          if (loc.city?._id) params['cityId'] = loc.city._id;
+          if (loc.area?._id) params['areaId'] = loc.area._id;
+        }
+      }
+    } catch {}
 
     // Dynamic category filters
     const dynamic = this.filterValues();

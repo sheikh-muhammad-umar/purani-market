@@ -46,30 +46,38 @@
               <button class="location-clear-btn" (click)="seeAllInArea()">All {{ selectedArea()!.name }}</button>
             }
           </div>
+          <input
+            type="text"
+            class="location-search-input"
+            placeholder="Search location..."
+            [value]="locationSearch()"
+            (input)="locationSearch.set($any($event.target).value)"
+            (click)="$event.stopPropagation()"
+            autocomplete="off"
+          />
           <div class="location-dropdown-list">
             @if (!selectedProvince()) {
-              @for (province of provinces(); track province._id) {
+              @for (province of filteredProvinces(); track province._id) {
                 <button class="location-option" (click)="selectProvince(province)">
                   {{ province.name }}
-                  @if (province.cityCount) {
-                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
-                  }
+                  <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
                 </button>
+              }
+              @if (filteredProvinces().length === 0) {
+                <div class="location-empty">No match</div>
               }
             } @else if (!selectedCity()) {
-              @for (city of cities(); track city._id) {
+              @for (city of filteredCities(); track city._id) {
                 <button class="location-option" (click)="selectCity(city)">
                   {{ city.name }}
-                  @if (city.areaCount) {
-                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
-                  }
+                  <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
                 </button>
               }
-              @if (cities().length === 0) {
-                <div class="location-empty">No cities found</div>
+              @if (filteredCities().length === 0) {
+                <div class="location-empty">No match</div>
               }
             } @else if (!selectedArea()) {
-              @for (area of areas(); track area._id) {
+              @for (area of filteredAreas(); track area._id) {
                 <button class="location-option" (click)="selectArea(area)">
                   {{ area.name }}
                   @if (area.subareas.length > 0 || area.blockPhases.length > 0) {
@@ -77,8 +85,8 @@
                   }
                 </button>
               }
-              @if (areas().length === 0) {
-                <div class="location-empty">No areas found</div>
+              @if (filteredAreas().length === 0) {
+                <div class="location-empty">No match</div>
               }
             } @else {
               @if (selectedArea()!.subareas.length > 0) {
@@ -238,30 +246,38 @@
               <button class="location-clear-btn" (click)="seeAllInArea()">All {{ selectedArea()!.name }}</button>
             }
           </div>
+          <input
+            type="text"
+            class="location-search-input"
+            placeholder="Search location..."
+            [value]="locationSearch()"
+            (input)="locationSearch.set($any($event.target).value)"
+            (click)="$event.stopPropagation()"
+            autocomplete="off"
+          />
           <div class="location-dropdown-list">
             @if (!selectedProvince()) {
-              @for (province of provinces(); track province._id) {
+              @for (province of filteredProvinces(); track province._id) {
                 <button class="location-option" (click)="selectProvince(province)">
                   {{ province.name }}
-                  @if (province.cityCount) {
-                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
-                  }
+                  <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
                 </button>
+              }
+              @if (filteredProvinces().length === 0) {
+                <div class="location-empty">No match</div>
               }
             } @else if (!selectedCity()) {
-              @for (city of cities(); track city._id) {
+              @for (city of filteredCities(); track city._id) {
                 <button class="location-option" (click)="selectCity(city)">
                   {{ city.name }}
-                  @if (city.areaCount) {
-                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
-                  }
+                  <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
                 </button>
               }
-              @if (cities().length === 0) {
-                <div class="location-empty">No cities found</div>
+              @if (filteredCities().length === 0) {
+                <div class="location-empty">No match</div>
               }
             } @else if (!selectedArea()) {
-              @for (area of areas(); track area._id) {
+              @for (area of filteredAreas(); track area._id) {
                 <button class="location-option" (click)="selectArea(area)">
                   {{ area.name }}
                   @if (area.subareas.length > 0 || area.blockPhases.length > 0) {
@@ -269,8 +285,8 @@
                   }
                 </button>
               }
-              @if (areas().length === 0) {
-                <div class="location-empty">No areas found</div>
+              @if (filteredAreas().length === 0) {
+                <div class="location-empty">No match</div>
               }
             } @else {
               @if (selectedArea()!.subareas.length > 0) {

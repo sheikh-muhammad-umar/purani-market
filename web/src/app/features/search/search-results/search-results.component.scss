@@ -589,6 +589,10 @@
 
 .listing-info {
   padding: var(--space-1) var(--space-2) var(--space-2);
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-height: 80px;
 }
 
 .listing-title {
@@ -597,6 +601,10 @@
   color: var(--text-primary);
   margin-bottom: 4px;
   line-height: var(--leading-tight);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 
 .listing-price {

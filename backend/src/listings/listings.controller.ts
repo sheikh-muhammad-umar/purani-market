@@ -41,6 +41,13 @@ export class ListingsController {
     @Query('sort') sort?: string,
     @Query('order') order?: string,
     @Query('mine') mine?: string,
+    @Query('categoryId') categoryId?: string,
+    @Query('provinceId') provinceId?: string,
+    @Query('cityId') cityId?: string,
+    @Query('areaId') areaId?: string,
+    @Query('province') province?: string,
+    @Query('city') city?: string,
+    @Query('area') area?: string,
     @CurrentUser('sub') userId?: string,
   ) {
     const sellerId = mine === 'true' && userId ? userId : undefined;
@@ -50,6 +57,7 @@ export class ListingsController {
       sort || 'createdAt',
       (order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
       sellerId,
+      { categoryId, provinceId, cityId, areaId, province, city, area },
     );
   }
 

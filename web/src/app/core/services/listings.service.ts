@@ -19,7 +19,11 @@ export interface CreateListingPayload {
   condition: string;
   categoryAttributes: Record<string, unknown>;
   selectedFeatures?: string[];
-  location: { city: string; area?: string; blockPhase?: string; coordinates?: [number, number] };
+  location: {
+    provinceId?: string; cityId?: string; areaId?: string;
+    city?: string; province?: string; area?: string;
+    blockPhase?: string; coordinates?: [number, number];
+  };
   contactInfo?: { phone: string; email: string };
   isFeatured?: boolean;
 }
@@ -56,13 +60,28 @@ export class ListingsService {
   }
 
   getByCategory(categoryId: string, page: number = 1, limit: number = 20, sort?: string, order?: 'asc' | 'desc'): Observable<ListingsResponse> {
-    return this.api.get<ListingsResponse>('/listings', {
+    const params: Record<string, string | number> = {
       categoryId,
       page,
       limit,
       sort: sort || 'createdAt',
       order: order || 'desc',
-    });
+    };
+
+    // Add location from header selection (only if user selected something specific)
+    try {
+      const locRaw = localStorage.getItem('selected_location');
+      if (locRaw) {
+        const loc = JSON.parse(locRaw);
+        if (loc.label && loc.label !== 'Pakistan') {
+          if (loc.province?._id) params['provinceId'] = loc.province._id;
+          if (loc.city?._id) params['cityId'] = loc.city._id;
+          if (loc.area?._id) params['areaId'] = loc.area._id;
+        }
+      }
+    } catch {}
+
+    return this.api.get<ListingsResponse>('/listings', params);
   }
 
   getById(id: string): Observable<Listing> {

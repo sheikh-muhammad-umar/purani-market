@@ -570,7 +570,15 @@ export class CreateListingComponent implements OnInit {
       condition: details.condition,
       categoryAttributes: catAttrs,
       selectedFeatures: this.selectedFeatures(),
-      location: { city: loc.city, area: loc.area || undefined, blockPhase: loc.blockPhase || undefined },
+      location: {
+        provinceId: this.selectedProvince()?._id || undefined,
+        cityId: this.selectedCityObj()?._id || undefined,
+        areaId: this.selectedAreaObj()?._id || undefined,
+        province: this.selectedProvince()?.name || undefined,
+        city: loc.city,
+        area: loc.area || undefined,
+        blockPhase: loc.blockPhase || undefined,
+      },
       isFeatured: this.featureAd(),
     };
 

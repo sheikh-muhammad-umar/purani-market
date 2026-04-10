@@ -57,6 +57,22 @@ export class ListingLocation {
   @Prop({ type: [Number] })
   coordinates?: number[];
 
+  @Prop({ type: Types.ObjectId, ref: 'Province' })
+  provinceId?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'City' })
+  cityId?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'Area' })
+  areaId?: Types.ObjectId;
+
+  @Prop({ type: String })
+  blockPhase?: string;
+
+  // Denormalized names for display (populated on read, not used for filtering)
+  @Prop({ type: String })
+  province?: string;
+
   @Prop({ type: String })
   city?: string;
 
@@ -162,3 +178,6 @@ ProductListingSchema.index(
 ProductListingSchema.index({ isFeatured: -1, createdAt: -1 });
 ProductListingSchema.index({ createdAt: -1 });
 ProductListingSchema.index({ categoryPath: 1 });
+ProductListingSchema.index({ 'location.cityId': 1 });
+ProductListingSchema.index({ 'location.provinceId': 1 });
+ProductListingSchema.index({ 'location.cityId': 1, 'location.areaId': 1 });

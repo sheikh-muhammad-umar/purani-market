@@ -22,6 +22,10 @@ export interface ListingVideo {
 export interface ListingLocation {
   type: 'Point';
   coordinates: [number, number];
+  provinceId?: string;
+  cityId?: string;
+  areaId?: string;
+  province?: string;
   city: string;
   area: string;
   blockPhase?: string;

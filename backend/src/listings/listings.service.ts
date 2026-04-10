@@ -45,13 +45,41 @@ export class ListingsService {
     private readonly searchSyncService: SearchSyncService,
   ) {}
 
-  async findAll(page = 1, limit = 20, sort: string = 'createdAt', order: 'asc' | 'desc' = 'desc', sellerId?: string): Promise<PaginatedListings> {
+  async findAll(
+    page = 1, limit = 20, sort: string = 'createdAt', order: 'asc' | 'desc' = 'desc',
+    sellerId?: string,
+    filters?: { categoryId?: string; provinceId?: string; cityId?: string; areaId?: string; province?: string; city?: string; area?: string },
+  ): Promise<PaginatedListings> {
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(Math.max(1, limit), 100);
     const skip = (safePage - 1) * safeLimit;
     const filter: Record<string, any> = sellerId
       ? { sellerId: new Types.ObjectId(sellerId), deletedAt: { $exists: false } }
       : { status: ListingStatus.ACTIVE, deletedAt: { $exists: false } };
+
+    if (filters?.categoryId) {
+      if (Types.ObjectId.isValid(filters.categoryId)) {
+        filter.categoryPath = new Types.ObjectId(filters.categoryId);
+      } else {
+        filter.categoryPath = filters.categoryId;
+      }
+    }
+    if (filters?.provinceId) {
+      filter['location.provinceId'] = new Types.ObjectId(filters.provinceId);
+    } else if (filters?.province) {
+      filter['location.province'] = { $regex: new RegExp(`^${filters.province}$`, 'i') };
+    }
+    if (filters?.cityId) {
+      filter['location.cityId'] = new Types.ObjectId(filters.cityId);
+    } else if (filters?.city) {
+      filter['location.city'] = { $regex: new RegExp(`^${filters.city}$`, 'i') };
+    }
+    if (filters?.areaId) {
+      filter['location.areaId'] = new Types.ObjectId(filters.areaId);
+    } else if (filters?.area) {
+      filter['location.area'] = { $regex: new RegExp(`^${filters.area}$`, 'i') };
+    }
+
     const sortObj: Record<string, 1 | -1> = { isFeatured: -1, [sort]: order === 'asc' ? 1 : -1 };
     const [data, total] = await Promise.all([
       this.listingModel.find(filter).sort(sortObj).skip(skip).limit(safeLimit).exec(),

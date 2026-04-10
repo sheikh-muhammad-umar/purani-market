@@ -58,15 +58,32 @@ export class CreateListingLocationDto {
 
   @IsString()
   @IsOptional()
-  city?: string;
+  provinceId?: string;
 
   @IsString()
   @IsOptional()
-  area?: string;
+  cityId?: string;
+
+  @IsString()
+  @IsOptional()
+  areaId?: string;
 
   @IsString()
   @IsOptional()
   blockPhase?: string;
+
+  // Legacy name fields (still accepted for backward compat)
+  @IsString()
+  @IsOptional()
+  city?: string;
+
+  @IsString()
+  @IsOptional()
+  province?: string;
+
+  @IsString()
+  @IsOptional()
+  area?: string;
 }
 
 export class CreateListingContactInfoDto {
