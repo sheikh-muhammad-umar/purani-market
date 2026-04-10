@@ -52,12 +52,41 @@ export class ListingsService {
     const filter: Record<string, any> = sellerId
       ? { sellerId: new Types.ObjectId(sellerId), deletedAt: { $exists: false } }
       : { status: ListingStatus.ACTIVE, deletedAt: { $exists: false } };
-    const sortObj: Record<string, 1 | -1> = { [sort]: order === 'asc' ? 1 : -1 };
+    const sortObj: Record<string, 1 | -1> = { isFeatured: -1, [sort]: order === 'asc' ? 1 : -1 };
     const [data, total] = await Promise.all([
       this.listingModel.find(filter).sort(sortObj).skip(skip).limit(safeLimit).exec(),
       this.listingModel.countDocuments(filter).exec(),
     ]);
     return { data, total, page: safePage, limit: safeLimit, totalPages: Math.ceil(total / safeLimit) };
+  }
+
+  async getFeaturedAds(options: {
+    categoryId?: string;
+    city?: string;
+    limit?: number;
+  } = {}): Promise<ProductListingDocument[]> {
+    const limit = Math.min(options.limit ?? 20, 20);
+    const filter: Record<string, any> = {
+      status: ListingStatus.ACTIVE,
+      isFeatured: true,
+      featuredUntil: { $gt: new Date() },
+      deletedAt: { $exists: false },
+    };
+
+    if (options.categoryId) {
+      filter.categoryPath = options.categoryId;
+    }
+    if (options.city) {
+      filter['location.city'] = { $regex: new RegExp(`^${options.city}$`, 'i') };
+    }
+
+    // Use $sample aggregation for random selection
+    const pipeline: any[] = [
+      { $match: filter },
+      { $sample: { size: limit } },
+    ];
+
+    return this.listingModel.aggregate(pipeline).exec();
   }
 
   async findById(id: string | Types.ObjectId): Promise<ProductListingDocument> {

@@ -61,6 +61,31 @@
 
     <!-- Listings Grid -->
     <section class="listings-section" aria-label="Category listings">
+      <!-- Featured Ads -->
+      @if (featuredAds().length > 0) {
+        <div class="featured-section">
+          <h3 class="featured-heading">
+            <span class="material-symbols-rounded" style="font-size:18px;color:var(--accent);vertical-align:middle;">auto_awesome</span>
+            Featured
+          </h3>
+          <div class="featured-scroll" role="list">
+            @for (ad of featuredAds(); track ad._id) {
+              <a class="listing-card featured-card" [routerLink]="['/listings', ad | listingUrl]" role="listitem">
+                <div class="listing-img-wrap">
+                  <img [src]="getListingImage(ad)" [alt]="ad.title" loading="lazy" />
+                  <span class="badge badge-featured">Featured</span>
+                </div>
+                <div class="listing-info">
+                  <h3 class="listing-title">{{ ad.title | truncateText:50 }}</h3>
+                  <p class="listing-price price">{{ ad.price.amount | priceFormat:ad.price.currency }}</p>
+                  <p class="listing-location">📍 {{ ad.location?.city || 'Unknown' }}</p>
+                </div>
+              </a>
+            }
+          </div>
+        </div>
+      }
+
       <!-- Sort bar -->
       <div class="listings-toolbar">
         <span class="results-count">{{ totalListings() }} result{{ totalListings() !== 1 ? 's' : '' }}</span>

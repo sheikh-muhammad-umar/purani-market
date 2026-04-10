@@ -53,6 +53,20 @@ export class ListingsController {
     );
   }
 
+  @Get('featured')
+  async getFeaturedAds(
+    @Query('category') categoryId?: string,
+    @Query('city') city?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const data = await this.listingsService.getFeaturedAds({
+      categoryId,
+      city,
+      limit: limit ? parseInt(limit, 10) : 20,
+    });
+    return { data };
+  }
+
   @Get(':id')
   @UseGuards(OptionalJwtAuthGuard)
   async getListingById(

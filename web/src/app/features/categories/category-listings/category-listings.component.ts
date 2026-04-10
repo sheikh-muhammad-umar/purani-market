@@ -29,6 +29,7 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
   readonly currentCategory = signal<Category | null>(null);
   readonly subcategories = signal<Category[]>([]);
   readonly listings = signal<Listing[]>([]);
+  readonly featuredAds = signal<Listing[]>([]);
   readonly breadcrumbs = signal<BreadcrumbItem[]>([]);
 
   readonly loadingCategory = signal(true);
@@ -125,6 +126,7 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
           this.loadingCategory.set(false);
           const sort = this.currentSort();
           this.loadListings(category._id, 1, sort?.sort, sort?.order);
+          this.loadFeaturedAds(category._id);
         },
         error: () => {
           this.loadingCategory.set(false);
@@ -147,6 +149,18 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
           this.listings.set([]);
           this.loadingListings.set(false);
         },
+      });
+  }
+
+  private loadFeaturedAds(categoryId: string): void {
+    this.listingsService.getFeaturedFiltered({ category: categoryId, limit: 10 })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res: any) => {
+          const data = Array.isArray(res) ? res : res.data ?? [];
+          this.featuredAds.set(data);
+        },
+        error: () => this.featuredAds.set([]),
       });
   }
 

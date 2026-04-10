@@ -34,12 +34,15 @@ export class ListingsService {
   constructor(private readonly api: ApiService) {}
 
   getFeatured(limit: number = 10): Observable<ListingsResponse> {
-    return this.api.get<ListingsResponse>('/listings', {
-      isFeatured: true,
-      limit,
-      sort: 'createdAt',
-      order: 'desc',
-    });
+    return this.api.get<ListingsResponse>('/listings/featured', { limit });
+  }
+
+  getFeaturedFiltered(params: { category?: string; city?: string; limit?: number } = {}): Observable<ListingsResponse> {
+    const clean: Record<string, string | number> = {};
+    if (params.category) clean['category'] = params.category;
+    if (params.city) clean['city'] = params.city;
+    if (params.limit) clean['limit'] = params.limit;
+    return this.api.get<ListingsResponse>('/listings/featured', clean);
   }
 
   getNearby(lat: number, lng: number, radius: number = 25, limit: number = 12): Observable<ListingsResponse> {

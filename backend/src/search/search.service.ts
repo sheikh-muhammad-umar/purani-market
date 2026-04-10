@@ -143,10 +143,10 @@ export class SearchService {
       if (query.priceMax) filter['price.amount'].$lte = query.priceMax;
     }
 
-    let sortObj: Record<string, 1 | -1> = { createdAt: -1 };
-    if (query.sort === 'price_asc') sortObj = { 'price.amount': 1 };
-    else if (query.sort === 'price_desc') sortObj = { 'price.amount': -1 };
-    else if (query.sort === 'newest') sortObj = { createdAt: -1 };
+    let sortObj: Record<string, 1 | -1> = { isFeatured: -1, createdAt: -1 };
+    if (query.sort === 'price_asc') sortObj = { isFeatured: -1, 'price.amount': 1 };
+    else if (query.sort === 'price_desc') sortObj = { isFeatured: -1, 'price.amount': -1 };
+    else if (query.sort === 'newest') sortObj = { isFeatured: -1, createdAt: -1 };
 
     const skip = (page - 1) * limit;
     const [items, total] = await Promise.all([
