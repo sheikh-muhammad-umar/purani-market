@@ -19,7 +19,7 @@
           <button
             type="button"
             class="search-clear material-symbols-rounded"
-            (click)="searchInput.set(''); onSearchInputChange('')"
+            (click)="clearSearchInput()"
             aria-label="Clear search"
           >close</button>
         }
@@ -135,31 +135,6 @@
                     }
                   </div>
                 }
-              }
-            </div>
-          </div>
-
-          <!-- Location Card -->
-          <div class="filter-card">
-            <h4 class="filter-card-title">Location</h4>
-            <div class="location-picker">
-              <button class="location-trigger" (click)="locationOpen.set(!locationOpen())">
-                <span class="loc-icon">📍</span>
-                <span class="loc-text">{{ selectedCity() || 'All Pakistan' }}</span>
-                <span class="loc-arrow">{{ locationOpen() ? '▲' : '▼' }}</span>
-              </button>
-              @if (locationOpen()) {
-                <div class="location-dropdown">
-                  <button class="loc-option" [class.active]="!selectedCity()" (click)="selectCity('')">
-                    All Pakistan
-                  </button>
-                  <div class="loc-section-label">Popular</div>
-                  @for (city of popularCities; track city) {
-                    <button class="loc-option" [class.active]="selectedCity() === city" (click)="selectCity(city)">
-                      {{ city }}
-                    </button>
-                  }
-                </div>
               }
             </div>
           </div>

@@ -86,6 +86,20 @@ export class SearchService {
         return { _id: hit._id, _score: hit._score, ...source };
       });
 
+      // If ES results are missing location names, fall back to MongoDB
+      const missingLocation = items.some((item: any) => !item.location?.city);
+      if (missingLocation && items.length > 0) {
+        const ids = items.map((item: any) => new Types.ObjectId(item._id));
+        const dbListings = await this.listingModel.find({ _id: { $in: ids } }).lean().exec();
+        const dbMap = new Map(dbListings.map((l: any) => [l._id.toString(), l]));
+        for (const item of items) {
+          const dbItem = dbMap.get(item._id);
+          if (dbItem?.location) {
+            item.location = { ...item.location, ...dbItem.location };
+          }
+        }
+      }
+
       if (query.q) {
         this.trackSearchTerm(query.q).catch((err) =>
           this.logger.warn(`Failed to track search term: ${err.message}`),

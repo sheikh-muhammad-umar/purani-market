@@ -89,7 +89,20 @@ export class ListingContactInfo {
   email?: string;
 }
 
-@Schema({ timestamps: true, collection: 'product_listings' })
+@Schema({ timestamps: true, collection: 'product_listings',
+  toJSON: {
+    transform: (_doc: any, ret: any) => {
+      delete ret.__v;
+      delete ret.deletedAt;
+      if (ret.location) {
+        delete ret.location.provinceId;
+        delete ret.location.cityId;
+        delete ret.location.areaId;
+      }
+      return ret;
+    },
+  },
+})
 export class ProductListing {
   _id!: Types.ObjectId;
 

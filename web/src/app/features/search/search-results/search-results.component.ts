@@ -85,6 +85,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
   private readonly destroy$ = new Subject<void>();
   private readonly searchInput$ = new Subject<string>();
+  private lastSearchHash = '';
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -147,11 +148,24 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.searchInput$.next(value);
   }
 
-  onSearchSubmit(): void {
+  clearSearchInput(): void {
+    this.searchInput.set('');
+    this.query.set('');
     this.showSuggestions.set(false);
     this.currentPage.set(1);
-    this.query.set(this.searchInput());
-    this.recentSearches.add(this.searchInput());
+    this.lastSearchHash = ''; // Reset hash to allow re-search
+    this.updateUrlAndSearch();
+  }
+
+  onSearchSubmit(): void {
+    const newQuery = this.searchInput().trim();
+    if (!newQuery && !this.query()) return;
+    // Skip if same query and no filter changes
+    if (newQuery === this.query() && this.currentPage() === 1) return;
+    this.showSuggestions.set(false);
+    this.currentPage.set(1);
+    this.query.set(newQuery);
+    this.recentSearches.add(newQuery);
     this.updateUrlAndSearch();
   }
 
@@ -429,10 +443,13 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   }
 
   private executeSearch(): void {
+    const params = this.buildSearchParams();
+    const hash = JSON.stringify(params);
+    if (hash === this.lastSearchHash) return;
+    this.lastSearchHash = hash;
+
     this.loading.set(true);
     this.activeFilters.set(this.buildActiveFilters());
-
-    const params = this.buildSearchParams();
 
     if (params.q) {
       this.tracker.track('search', {
