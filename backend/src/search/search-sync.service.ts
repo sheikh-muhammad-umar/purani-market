@@ -171,6 +171,17 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
       };
     }
 
+    // Location text fields for display and filtering
+    esDoc.location_text = {
+      province: doc.location?.province,
+      city: doc.location?.city,
+      area: doc.location?.area,
+      blockPhase: doc.location?.blockPhase,
+      provinceId: doc.location?.provinceId?.toString(),
+      cityId: doc.location?.cityId?.toString(),
+      areaId: doc.location?.areaId?.toString(),
+    };
+
     return esDoc;
   }
 

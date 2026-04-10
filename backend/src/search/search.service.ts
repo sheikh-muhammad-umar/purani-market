@@ -73,11 +73,18 @@ export class SearchService {
         if (mongoResult.total > 0) return mongoResult;
       }
 
-      const items = hits.map((hit: any) => ({
-        _id: hit._id,
-        _score: hit._score,
-        ...hit._source,
-      }));
+      const items = hits.map((hit: any) => {
+        const source = hit._source;
+        // Merge location_text back into location for frontend compatibility
+        if (source.location_text) {
+          source.location = {
+            ...(source.location || {}),
+            ...source.location_text,
+          };
+          delete source.location_text;
+        }
+        return { _id: hit._id, _score: hit._score, ...source };
+      });
 
       if (query.q) {
         this.trackSearchTerm(query.q).catch((err) =>
@@ -329,22 +336,22 @@ export class SearchService {
 
     // Location text filters
     if (query.provinceId) {
-      filter.push({ term: { 'location.provinceId': query.provinceId } });
+      filter.push({ term: { 'location_text.provinceId': query.provinceId } });
     } else if (query.province) {
-      filter.push({ match_phrase: { 'location.province': query.province } });
+      filter.push({ term: { 'location_text.province': query.province } });
     }
     if (query.cityId) {
-      filter.push({ term: { 'location.cityId': query.cityId } });
+      filter.push({ term: { 'location_text.cityId': query.cityId } });
     } else if (query.city) {
-      filter.push({ match_phrase: { 'location.city': query.city } });
+      filter.push({ term: { 'location_text.city': query.city } });
     }
     if (query.areaId) {
-      filter.push({ term: { 'location.areaId': query.areaId } });
+      filter.push({ term: { 'location_text.areaId': query.areaId } });
     } else if (query.area) {
-      filter.push({ match_phrase: { 'location.area': query.area } });
+      filter.push({ term: { 'location_text.area': query.area } });
     }
     if (query.blockPhase) {
-      filter.push({ match_phrase: { 'location.blockPhase': query.blockPhase } });
+      filter.push({ term: { 'location_text.blockPhase': query.blockPhase } });
     }
 
     // Location filter (geo_distance)

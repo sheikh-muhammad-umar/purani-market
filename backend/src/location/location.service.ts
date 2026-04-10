@@ -274,7 +274,6 @@ export class LocationService {
       ).exec();
     }
     return doc;
-    return doc;
   }
 
   async deleteArea(id: string): Promise<void> {

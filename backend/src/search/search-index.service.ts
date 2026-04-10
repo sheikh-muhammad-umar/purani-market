@@ -16,6 +16,18 @@ export const listingsIndexMapping = {
     condition: { type: 'keyword' as const },
     categoryAttributes: { type: 'object' as const, enabled: true },
     location: { type: 'geo_point' as const },
+    'location_text': {
+      type: 'object' as const,
+      properties: {
+        province: { type: 'keyword' as const },
+        city: { type: 'keyword' as const },
+        area: { type: 'keyword' as const },
+        blockPhase: { type: 'keyword' as const },
+        provinceId: { type: 'keyword' as const },
+        cityId: { type: 'keyword' as const },
+        areaId: { type: 'keyword' as const },
+      },
+    },
     isFeatured: { type: 'boolean' as const },
     status: { type: 'keyword' as const },
     sellerId: { type: 'keyword' as const },

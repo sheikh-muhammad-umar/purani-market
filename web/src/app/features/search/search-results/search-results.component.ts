@@ -39,7 +39,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly pageSize = 20;
   readonly loading = signal(false);
   readonly sortBy = signal<SortOption>(SearchSortOption.RELEVANCE);
-  readonly filtersOpen = signal(false);
+  readonly filtersOpen = signal(window.innerWidth >= 768);
 
   // Category filters
   readonly categories = signal<Category[]>([]);
