@@ -122,12 +122,29 @@ export class RecommendationService {
       filter.categoryId = { $in: categoryIds };
     }
 
-    // Prioritize featured, then by view count and recency
-    return this.listingModel
-      .find(filter)
-      .sort({ isFeatured: -1, viewCount: -1, createdAt: -1 })
-      .limit(limit)
-      .exec();
+    // Mix of featured and non-featured, sorted by relevance then randomized
+    const [featured, regular] = await Promise.all([
+      this.listingModel.find({ ...filter, isFeatured: true }).sort({ viewCount: -1 }).limit(Math.ceil(limit / 3)).exec(),
+      this.listingModel.aggregate([
+        { $match: { ...filter, $or: [{ isFeatured: false }, { isFeatured: { $exists: false } }] } },
+        { $sample: { size: limit } },
+      ]).exec(),
+    ]);
+
+    // Merge: featured sprinkled in, then fill with regular
+    const featuredIds = new Set(featured.map(f => f._id.toString()));
+    const mixed: any[] = [];
+    const regularFiltered = regular.filter((r: any) => !featuredIds.has(r._id.toString()));
+    let fi = 0, ri = 0;
+    while (mixed.length < limit && (fi < featured.length || ri < regularFiltered.length)) {
+      // Insert a featured ad every 3rd position
+      if (fi < featured.length && (mixed.length % 3 === 0 || ri >= regularFiltered.length)) {
+        mixed.push(featured[fi++]);
+      } else if (ri < regularFiltered.length) {
+        mixed.push(regularFiltered[ri++]);
+      } else break;
+    }
+    return mixed as ProductListingDocument[];
   }
 
   private async getColdStartRecommendations(
@@ -148,13 +165,35 @@ export class RecommendationService {
           $maxDistance: 25000, // 25km
         },
       };
+
+      return this.listingModel
+        .find(filter)
+        .sort({ viewCount: -1, createdAt: -1 })
+        .limit(limit)
+        .exec();
     }
 
-    return this.listingModel
-      .find(filter)
-      .sort({ isFeatured: -1, viewCount: -1, createdAt: -1 })
-      .limit(limit)
-      .exec();
+    // No location — random mix
+    const [featured, regular] = await Promise.all([
+      this.listingModel.find({ ...filter, isFeatured: true }).sort({ viewCount: -1 }).limit(Math.ceil(limit / 3)).exec(),
+      this.listingModel.aggregate([
+        { $match: { ...filter, $or: [{ isFeatured: false }, { isFeatured: { $exists: false } }] } },
+        { $sample: { size: limit } },
+      ]).exec(),
+    ]);
+
+    const featuredIds = new Set(featured.map(f => f._id.toString()));
+    const mixed: any[] = [];
+    const regularFiltered = regular.filter((r: any) => !featuredIds.has(r._id.toString()));
+    let fi = 0, ri = 0;
+    while (mixed.length < limit && (fi < featured.length || ri < regularFiltered.length)) {
+      if (fi < featured.length && (mixed.length % 3 === 0 || ri >= regularFiltered.length)) {
+        mixed.push(featured[fi++]);
+      } else if (ri < regularFiltered.length) {
+        mixed.push(regularFiltered[ri++]);
+      } else break;
+    }
+    return mixed as ProductListingDocument[];
   }
 
   async dismissRecommendation(

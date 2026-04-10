@@ -127,8 +127,19 @@ export class HomeComponent implements OnInit {
     this.listingsService.getFeaturedFiltered({ city, limit: 10 }).subscribe({
       next: (res: any) => {
         const data = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res as any : [];
-        this.featuredListings.set(data);
-        this.loadingFeatured.set(false);
+        if (data.length > 0) {
+          this.featuredListings.set(data);
+          this.loadingFeatured.set(false);
+        } else {
+          // Fallback: show latest listings as "featured"
+          this.listingsService.getByCategory('', 1, 10).subscribe({
+            next: (fallback: any) => {
+              this.featuredListings.set(Array.isArray(fallback?.data) ? fallback.data : []);
+              this.loadingFeatured.set(false);
+            },
+            error: () => this.loadingFeatured.set(false),
+          });
+        }
       },
       error: () => this.loadingFeatured.set(false),
     });
@@ -137,7 +148,23 @@ export class HomeComponent implements OnInit {
   private loadRecommendations(): void {
     this.recommendationsService.getRecommendations(20).subscribe({
       next: (listings) => {
-        this.recommendations.set(Array.isArray(listings) ? listings : []);
+        const data = Array.isArray(listings) ? listings : [];
+        if (data.length > 0) {
+          this.recommendations.set(data);
+          this.loadingRecommendations.set(false);
+        } else {
+          this.loadRandomListings();
+        }
+      },
+      error: () => this.loadRandomListings(),
+    });
+  }
+
+  private loadRandomListings(): void {
+    // No activity history — show latest listings as recommendations
+    this.listingsService.getByCategory('', 1, 20).subscribe({
+      next: (res: any) => {
+        this.recommendations.set(Array.isArray(res?.data) ? res.data : []);
         this.loadingRecommendations.set(false);
       },
       error: () => this.loadingRecommendations.set(false),
@@ -145,28 +172,66 @@ export class HomeComponent implements OnInit {
   }
 
   private loadNearby(): void {
+    // Priority 1: Browser geolocation
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           this.listingsService.getNearby(pos.coords.latitude, pos.coords.longitude).subscribe({
             next: (res: ListingsResponse) => {
-              const data = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res as any : [];
-              this.nearbyListings.set(data);
-              if (data.length > 0 && data[0].location?.city) {
-                this.userCity.set(data[0].location.city);
+              const data = Array.isArray(res?.data) ? res.data : [];
+              if (data.length > 0) {
+                this.nearbyListings.set(data);
+                if (data[0].location?.city) this.userCity.set(data[0].location.city);
+                this.loadingNearby.set(false);
+              } else {
+                this.loadNearbyFromStorage();
               }
-              this.loadingNearby.set(false);
             },
-            error: () => this.loadingNearby.set(false),
+            error: () => this.loadNearbyFromStorage(),
           });
         },
-        () => {
-          // Geolocation denied or unavailable — load without coords
-          this.loadingNearby.set(false);
-        },
+        () => this.loadNearbyFromStorage(), // geolocation denied
+        { timeout: 5000 },
       );
     } else {
-      this.loadingNearby.set(false);
+      this.loadNearbyFromStorage();
     }
+  }
+
+  private loadNearbyFromStorage(): void {
+    // Priority 2: User's selected location from header
+    try {
+      const locRaw = localStorage.getItem('selected_location');
+      if (locRaw) {
+        const loc = JSON.parse(locRaw);
+        if (loc.label && loc.label !== 'Pakistan' && loc.city?.name) {
+          this.userCity.set(loc.city.name);
+          // getByCategory with empty category will use stored location from localStorage
+          this.listingsService.getByCategory('', 1, 12).subscribe({
+            next: (res: any) => {
+              const data = Array.isArray(res?.data) ? res.data : [];
+              this.nearbyListings.set(data);
+              this.loadingNearby.set(false);
+            },
+            error: () => this.loadLatestListings(),
+          });
+          return;
+        }
+      }
+    } catch {}
+
+    // Priority 3: Show latest listings
+    this.loadLatestListings();
+  }
+
+  private loadLatestListings(): void {
+    this.listingsService.getByCategory('', 1, 12).subscribe({
+      next: (res: any) => {
+        this.nearbyListings.set(Array.isArray(res?.data) ? res.data : []);
+        this.loadingNearby.set(false);
+      },
+      error: () => this.loadingNearby.set(false),
+    });
+  }
   }
 }
