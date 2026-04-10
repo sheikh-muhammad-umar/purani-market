@@ -593,6 +593,7 @@
   flex-direction: column;
   gap: 2px;
   min-height: 80px;
+  flex: 1;
 }
 
 .listing-title {
@@ -605,6 +606,7 @@
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  min-height: 2.6em;
 }
 
 .listing-price {
@@ -616,6 +618,7 @@
 .listing-location {
   font-size: var(--text-xs);
   color: var(--text-secondary);
+  margin-top: auto;
 }
 
 /* ---- Pagination ---- */
