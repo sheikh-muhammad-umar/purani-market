@@ -341,6 +341,19 @@ export class CreateListingComponent implements OnInit {
 
     if (!baseValid) return false;
 
+    // Check for phone numbers in title and description
+    const title = this.detailsForm.get('title')?.value || '';
+    const description = this.detailsForm.get('description')?.value || '';
+    if (this.containsPhoneNumber(title)) {
+      this.phoneInAdError.set('Phone numbers are not allowed in the title. Buyers will contact you through the app.');
+      return false;
+    }
+    if (this.containsPhoneNumber(description)) {
+      this.phoneInAdError.set('Phone numbers are not allowed in the description. Buyers will contact you through the app.');
+      return false;
+    }
+    this.phoneInAdError.set('');
+
     for (const attr of this.categoryAttributes()) {
       if (attr.required) {
         const ctrl = this.detailsForm.get(attr.key);
@@ -478,6 +491,31 @@ export class CreateListingComponent implements OnInit {
   }
 
   showStepErrors = signal(false);
+  phoneInAdError = signal('');
+
+  private containsPhoneNumber(text: string): boolean {
+    if (!text) return false;
+    // Strategy 1: Normalize spaces/dashes between digits and check
+    const normalized = text.replace(/(\d)[\s\-\.]+(\d)/g, '$1$2');
+    const patterns = [
+      /\b0[3][0-9]{9}\b/,
+      /\b0[2-9][0-9]{8,9}\b/,
+      /\+92[\s\-]?[0-9]{10}\b/,
+      /0092[\s\-]?[0-9]{10}\b/,
+    ];
+    if (patterns.some(p => p.test(normalized))) return true;
+
+    // Strategy 2: Strip ALL non-digits, then scan for Pakistani patterns in the digit stream
+    const digits = text.replace(/\D/g, '');
+    const digitPatterns = [
+      /0[3][0-9]{9}/,       // 03xxxxxxxxx
+      /920[3][0-9]{9}/,     // 9203xxxxxxxxx (+92 without +)
+      /00920[3][0-9]{9}/,   // 009203xxxxxxxxx
+    ];
+    if (digitPatterns.some(p => p.test(digits))) return true;
+
+    return false;
+  }
 
   nextStep(): void {
     const step = this.currentStep();

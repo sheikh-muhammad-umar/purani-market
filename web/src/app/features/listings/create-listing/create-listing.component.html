@@ -387,6 +387,10 @@
             </div>
           }
         </form>
+
+        @if (phoneInAdError()) {
+          <div class="alert alert-error" style="margin-top: var(--space-2);">{{ phoneInAdError() }}</div>
+        }
       </div>
     }
 

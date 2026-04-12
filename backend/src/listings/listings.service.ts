@@ -176,6 +176,7 @@ export class ListingsService {
   }
 
   async update(id: string, sellerId: string, dto: UpdateListingDto): Promise<ProductListingDocument> {
+    this.validateNoPhoneNumbers(dto.title ?? '', dto.description ?? '');
     const listing = await this.findById(id);
     this.assertOwnership(listing, sellerId);
     if (listing.status === ListingStatus.DELETED) {
@@ -259,6 +260,7 @@ export class ListingsService {
   }
 
   async create(sellerId: string, dto: CreateListingDto, moderationEnabled = false): Promise<ProductListingDocument> {
+    this.validateNoPhoneNumbers(dto.title, dto.description);
     if (!Types.ObjectId.isValid(dto.categoryId)) {
       throw new BadRequestException('Invalid category ID');
     }
@@ -375,5 +377,39 @@ export class ListingsService {
       }
     }
     return path;
+  }
+
+  private validateNoPhoneNumbers(title: string, description: string): void {
+    const check = (text: string, field: string) => {
+      if (!text) return;
+      // Strategy 1: Normalize spaces/dashes between digits
+      const normalized = text.replace(/(\d)[\s\-\.]+(\d)/g, '$1$2');
+      const patterns = [
+        /\b0[3][0-9]{9}\b/,
+        /\b0[2-9][0-9]{8,9}\b/,
+        /\+92[\s\-]?[0-9]{10}\b/,
+        /0092[\s\-]?[0-9]{10}\b/,
+      ];
+      if (patterns.some(p => p.test(normalized))) {
+        throw new BadRequestException(
+          `Phone numbers are not allowed in the ${field}. Buyers will contact you through the app.`,
+        );
+      }
+
+      // Strategy 2: Strip ALL non-digits, scan for Pakistani mobile patterns
+      const digits = text.replace(/\D/g, '');
+      const digitPatterns = [
+        /0[3][0-9]{9}/,       // 03xxxxxxxxx
+        /920[3][0-9]{9}/,     // 9203xxxxxxxxx
+        /00920[3][0-9]{9}/,   // 009203xxxxxxxxx
+      ];
+      if (digitPatterns.some(p => p.test(digits))) {
+        throw new BadRequestException(
+          `Phone numbers are not allowed in the ${field}. Buyers will contact you through the app.`,
+        );
+      }
+    };
+    check(title, 'title');
+    check(description, 'description');
   }
 }
