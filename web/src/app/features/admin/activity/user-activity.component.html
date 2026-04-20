@@ -1,50 +1,72 @@
 <div class="activity-page">
   <div class="page-header">
     <h1>Activity Log</h1>
-    <div class="header-actions">
+    @if (!loading()) {
       <span class="total-badge">{{ total() }} events</span>
-      <button class="filters-toggle-btn" (click)="filtersOpen = !filtersOpen">
-        <span class="material-symbols-rounded" style="font-size:18px;">filter_list</span>
-        Filters
-      </button>
-    </div>
+    }
   </div>
 
-  <!-- Filters -->
-  <div class="filters-bar" [class.filters-open]="filtersOpen">
-    <div class="form-group compact">
-      <label>User ID</label>
-      <input type="text" [(ngModel)]="filterUserId" placeholder="All users" class="filter-input" />
+  <!-- Search + Filter Toggle + Sort -->
+  <div class="toolbar">
+    <div class="search-box">
+      <input
+        type="text"
+        [(ngModel)]="filterUserId"
+        placeholder="Search by User ID..."
+        class="filter-input"
+        (keyup.enter)="applyFilters()"
+      />
+      <button class="btn-search" (click)="applyFilters()">
+        <span class="material-symbols-rounded" style="font-size:18px;">search</span>
+      </button>
     </div>
-    <div class="form-group compact">
-      <label>Action</label>
-      <app-custom-select
-        [options]="actionOptions"
-        [(ngModel)]="filterAction"
-        placeholder="All Actions"
-      ></app-custom-select>
-    </div>
-    <div class="form-group compact">
-      <label>From</label>
-      <input type="date" [(ngModel)]="filterDateFrom" class="filter-input" />
-    </div>
-    <div class="form-group compact">
-      <label>To</label>
-      <input type="date" [(ngModel)]="filterDateTo" class="filter-input" />
-    </div>
-    <div class="form-group compact">
-      <label>Sort By</label>
+    <button class="filter-toggle-btn" [class.active]="filtersOpen || hasActiveFilters" (click)="filtersOpen = !filtersOpen">
+      <span class="material-symbols-rounded" style="font-size:18px;">filter_list</span>
+      Filters
+      @if (activeFilterCount > 0) {
+        <span class="filter-badge">{{ activeFilterCount }}</span>
+      }
+    </button>
+    <div class="sort-wrap">
       <app-custom-select
         [options]="sortOptions"
         [(ngModel)]="sortBy"
+        (ngModelChange)="applyFilters()"
         placeholder="Newest First"
       ></app-custom-select>
     </div>
-    <div class="filter-actions">
-      <button class="btn-primary" (click)="applyFilters()">Apply</button>
-      <button class="btn-secondary" (click)="resetFilters()">Reset</button>
-    </div>
   </div>
+
+  <!-- Expandable Filters Panel -->
+  @if (filtersOpen) {
+    <div class="filters-panel">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label class="filter-label">Action</label>
+          <app-custom-select
+            [options]="actionOptions"
+            [(ngModel)]="filterAction"
+            (ngModelChange)="applyFilters()"
+            placeholder="All Actions"
+            [searchable]="true"
+          ></app-custom-select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">From</label>
+          <app-date-picker [(ngModel)]="filterDateFrom" (ngModelChange)="applyFilters()"></app-date-picker>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">To</label>
+          <app-date-picker [(ngModel)]="filterDateTo" (ngModelChange)="applyFilters()"></app-date-picker>
+        </div>
+      </div>
+      @if (hasActiveFilters) {
+        <button class="clear-filters-btn" (click)="resetFilters()">
+          <span class="material-symbols-rounded" style="font-size:16px;">close</span> Clear all filters
+        </button>
+      }
+    </div>
+  }
 
   <!-- Loading -->
   @if (loading()) {
@@ -65,38 +87,81 @@
   @if (!loading() && activities().length > 0) {
     <div class="activity-timeline">
       @for (entry of activities(); track entry._id) {
-        <div class="activity-card">
-          <div class="activity-icon">
-            <span class="material-symbols-rounded">{{ getActionIcon(entry.action) }}</span>
-          </div>
-          <div class="activity-body">
-            <div class="activity-header">
-              <span class="activity-action">{{ formatAction(entry.action) }}</span>
-              <span class="activity-time">{{ formatDate(entry.createdAt) }}</span>
+        <div class="activity-card" [class.expanded]="expandedId === entry._id">
+          <div class="activity-row" (click)="hasDetails(entry) && toggleExpand(entry._id)">
+            <div class="activity-icon" [style.background]="getActionColor(entry.action) + '14'" [style.color]="getActionColor(entry.action)">
+              <span class="material-symbols-rounded">{{ getActionIcon(entry.action) }}</span>
             </div>
-            <div class="activity-user-id">User: {{ entry.userId }}</div>
-            <div class="activity-details">
-              @if (entry.searchQuery) {
-                <span class="detail-chip">🔍 "{{ entry.searchQuery }}"</span>
+            <div class="activity-main">
+              <div class="activity-top">
+                <span class="activity-action">{{ formatAction(entry.action) }}</span>
+                @if (getSummary(entry)) {
+                  <span class="activity-summary">{{ getSummary(entry) }}</span>
+                }
+              </div>
+              <div class="activity-sub">
+                <span class="sub-item">
+                  <span class="material-symbols-rounded sub-icon">person</span>
+                  {{ entry.userId }}
+                </span>
+                @if (entry.ip) {
+                  <span class="sub-item">
+                    <span class="material-symbols-rounded sub-icon">language</span>
+                    {{ entry.ip }}
+                  </span>
+                }
+                @if (entry.metadata?.['browser']) {
+                  <span class="sub-item">
+                    <span class="material-symbols-rounded sub-icon">web</span>
+                    {{ entry.metadata?.['browser'] }}
+                  </span>
+                }
+                @if (entry.metadata?.['os']) {
+                  <span class="sub-item">
+                    <span class="material-symbols-rounded sub-icon">computer</span>
+                    {{ entry.metadata?.['os'] }}
+                  </span>
+                }
+              </div>
+            </div>
+            <div class="activity-end">
+              <span class="activity-time">{{ formatDate(entry.createdAt) }}</span>
+              @if (hasDetails(entry)) {
+                <span class="material-symbols-rounded expand-icon">{{ expandedId === entry._id ? 'expand_less' : 'expand_more' }}</span>
               }
-              @if (entry.productListingId) {
-                <span class="detail-chip">📦 {{ entry.productListingId }}</span>
+            </div>
+          </div>
+
+          <!-- Expanded Details -->
+          @if (expandedId === entry._id) {
+            <div class="activity-details-panel">
+              @for (section of getDetailSections(entry); track section.label) {
+                <div class="detail-section">
+                  <div class="section-header">
+                    <span class="material-symbols-rounded section-icon">{{ section.icon }}</span>
+                    <span class="section-label">{{ section.label }}</span>
+                  </div>
+                  <div class="section-grid">
+                    @for (item of section.items; track item.key) {
+                      <div class="detail-item">
+                        <span class="detail-key">{{ item.key }}</span>
+                        <span class="detail-value">{{ item.value }}</span>
+                      </div>
+                    }
+                  </div>
+                </div>
               }
-              @if (entry.categoryId) {
-                <span class="detail-chip">📂 {{ entry.categoryId }}</span>
-              }
-              @if (entry.ip) {
-                <span class="detail-chip">🌐 {{ entry.ip }}</span>
-              }
-              @if (entry.metadata && getMetadataKeys(entry.metadata).length > 0) {
-                <div class="metadata-row">
-                  @for (key of getMetadataKeys(entry.metadata); track key) {
-                    <span class="meta-tag">{{ key }}: {{ entry.metadata![key] }}</span>
-                  }
+              @if (entry.userAgent) {
+                <div class="detail-section ua-section">
+                  <div class="section-header">
+                    <span class="material-symbols-rounded section-icon">code</span>
+                    <span class="section-label">User Agent</span>
+                  </div>
+                  <code class="ua-string">{{ entry.userAgent }}</code>
                 </div>
               }
             </div>
-          </div>
+          }
         </div>
       }
     </div>

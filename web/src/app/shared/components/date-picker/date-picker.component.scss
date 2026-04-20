@@ -1,0 +1,128 @@
+.dp-wrap {
+  position: relative;
+  display: inline-block;
+  width: 100%;
+}
+
+.dp-trigger {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  width: 100%;
+  padding: 8px 12px;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  font-family: inherit;
+  color: var(--text-primary);
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &:hover { border-color: var(--primary); }
+}
+
+.dp-icon { font-size: 18px; color: var(--text-muted); }
+.dp-placeholder { color: var(--text-muted); }
+.dp-value { flex: 1; }
+.dp-clear {
+  font-size: 16px;
+  color: var(--text-muted);
+  cursor: pointer;
+  &:hover { color: var(--error); }
+}
+
+.dp-dropdown {
+  position: absolute;
+  top: calc(100% + 4px);
+  left: 0;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  z-index: 300;
+  width: 280px;
+  padding: 12px;
+}
+
+.dp-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 8px;
+}
+
+.dp-month-year {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.dp-nav {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 4px;
+  border-radius: 50%;
+  color: var(--text-secondary);
+  display: flex;
+  &:hover { background: var(--background); color: var(--primary); }
+  .material-symbols-rounded { font-size: 20px; }
+}
+
+.dp-days-header {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+  margin-bottom: 4px;
+}
+
+.dp-day-name {
+  text-align: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  padding: 4px 0;
+}
+
+.dp-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 2px;
+}
+
+.dp-cell {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  background: none;
+  border-radius: 50%;
+  font-size: 13px;
+  cursor: pointer;
+  color: var(--text-primary);
+  font-family: inherit;
+  transition: background 0.15s;
+
+  &:hover { background: var(--background); }
+
+  &.today {
+    font-weight: 700;
+    color: var(--primary);
+    border: 1px solid var(--primary);
+  }
+
+  &.selected {
+    background: var(--primary);
+    color: #fff;
+    font-weight: 600;
+    &:hover { background: var(--primary-dark); }
+  }
+
+  &.other-month {
+    color: var(--text-muted);
+    opacity: 0.4;
+  }
+}

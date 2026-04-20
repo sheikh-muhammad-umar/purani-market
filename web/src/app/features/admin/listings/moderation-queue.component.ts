@@ -5,11 +5,15 @@ import {
   AdminService,
   PendingListing,
 } from '../../../core/services/admin.service';
+import { CategoriesService } from '../../../core/services/categories.service';
+import { Category } from '../../../core/models/category.model';
+import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
+import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 
 @Component({
   selector: 'app-moderation-queue',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomSelectComponent, DatePickerComponent],
   templateUrl: './moderation-queue.component.html',
   styleUrls: ['./moderation-queue.component.scss'],
 })
@@ -29,7 +33,26 @@ export class ModerationQueueComponent implements OnInit {
   sortDir: 'asc' | 'desc' = 'asc';
   searchQuery = '';
 
-  constructor(private readonly adminService: AdminService) {}
+  // Filters
+  filterCondition = '';
+  filterCategory = '';
+  filterDateFrom = '';
+  filterDateTo = '';
+  filtersOpen = false;
+
+  conditionOptions: SelectOption[] = [
+    { value: '', label: 'All Conditions' },
+    { value: 'new', label: 'New' },
+    { value: 'used', label: 'Used' },
+    { value: 'refurbished', label: 'Refurbished' },
+  ];
+
+  categoryOptions: SelectOption[] = [{ value: '', label: 'All Categories' }];
+
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly categoriesService: CategoriesService,
+  ) {}
 
   toggleExpand(id: string): void {
     this.expandedId = this.expandedId === id ? null : id;
@@ -37,6 +60,18 @@ export class ModerationQueueComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadPendingListings();
+    this.loadCategories();
+  }
+
+  loadCategories(): void {
+    this.categoriesService.getAll().subscribe({
+      next: (cats: Category[]) => {
+        this.categoryOptions = [
+          { value: '', label: 'All Categories' },
+          ...cats.map(c => ({ value: c._id, label: c.name })),
+        ];
+      },
+    });
   }
 
   loadPendingListings(): void {
@@ -147,13 +182,60 @@ export class ModerationQueueComponent implements OnInit {
     return this.sortDir === 'asc' ? 'expand_less' : 'expand_more';
   }
 
+  clearFilters(): void {
+    this.filterCondition = '';
+    this.filterCategory = '';
+    this.filterDateFrom = '';
+    this.filterDateTo = '';
+    this.searchQuery = '';
+  }
+
+  get hasActiveFilters(): boolean {
+    return !!(this.filterCondition || this.filterCategory || this.filterDateFrom || this.filterDateTo || this.searchQuery);
+  }
+
+  get activeFilterCount(): number {
+    let count = 0;
+    if (this.filterCondition) count++;
+    if (this.filterCategory) count++;
+    if (this.filterDateFrom || this.filterDateTo) count++;
+    if (this.searchQuery) count++;
+    return count;
+  }
+
   get filteredListings(): PendingListing[] {
+    let result = this.listings();
+
+    // Text search
     const q = this.searchQuery.toLowerCase().trim();
-    if (!q) return this.listings();
-    return this.listings().filter(l =>
-      l.title.toLowerCase().includes(q) ||
-      l.sellerEmail?.toLowerCase().includes(q) ||
-      l.sellerName?.toLowerCase().includes(q)
-    );
+    if (q) {
+      result = result.filter(l =>
+        l.title.toLowerCase().includes(q) ||
+        l.sellerEmail?.toLowerCase().includes(q) ||
+        l.sellerName?.toLowerCase().includes(q)
+      );
+    }
+
+    // Condition filter
+    if (this.filterCondition) {
+      result = result.filter(l => l.condition === this.filterCondition);
+    }
+
+    // Category filter
+    if (this.filterCategory) {
+      result = result.filter(l => l.categoryId === this.filterCategory);
+    }
+
+    // Date range filter
+    if (this.filterDateFrom) {
+      const from = new Date(this.filterDateFrom + 'T00:00:00').getTime();
+      result = result.filter(l => new Date(l.createdAt).getTime() >= from);
+    }
+    if (this.filterDateTo) {
+      const to = new Date(this.filterDateTo + 'T23:59:59').getTime();
+      result = result.filter(l => new Date(l.createdAt).getTime() <= to);
+    }
+
+    return result;
   }
 }

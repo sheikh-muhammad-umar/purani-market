@@ -1,4 +1,4 @@
-import { Component } from '@angular/core';
+import { Component, signal, HostListener } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
@@ -14,4 +14,19 @@ import { ConfirmModalComponent } from './shared/components/confirm-modal/confirm
 })
 export class App {
   title = 'marketplace-web';
+  showScrollTop = signal(false);
+  private scrolling = false;
+
+  @HostListener('window:scroll')
+  onScroll(): void {
+    if (!this.scrolling) {
+      this.showScrollTop.set(window.scrollY > 400);
+    }
+  }
+
+  scrollToTop(): void {
+    this.scrolling = true;
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+    setTimeout(() => { this.scrolling = false; this.showScrollTop.set(false); }, 600);
+  }
 }

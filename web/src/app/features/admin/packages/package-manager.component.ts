@@ -16,12 +16,13 @@ import {
   DURATION_OPTIONS,
   PAYMENT_STATUS_OPTIONS,
 } from '../../../core/constants/select-options';
+import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-package-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent],
+  imports: [CommonModule, FormsModule, CustomSelectComponent, DatePickerComponent],
   templateUrl: './package-manager.component.html',
   styleUrls: ['./package-manager.component.scss'],
 })

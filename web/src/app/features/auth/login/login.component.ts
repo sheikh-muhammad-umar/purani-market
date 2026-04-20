@@ -69,7 +69,10 @@ export class LoginComponent {
         } else {
           this.authService.storeTokens(response as AuthTokens);
           this.authService.fetchCurrentUser().subscribe(() => {
-            this.tracker.track('login', { metadata: { method: this.usePhone() ? 'phone' : 'email' } });
+            this.tracker.trackLoginWithLocation({
+              method: this.usePhone() ? 'phone' : 'email',
+              ...this.tracker.getDeviceInfo(),
+            });
             this.router.navigate(['/']);
           });
         }

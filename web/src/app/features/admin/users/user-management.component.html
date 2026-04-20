@@ -6,150 +6,229 @@
     }
   </div>
 
-  <!-- Search & Filters -->
+  <!-- Search & Filter Toggle -->
   <div class="filters-bar">
     <div class="search-box">
-      <input
-        type="text"
-        placeholder="Search by name or email..."
-        [(ngModel)]="searchQuery"
-        (keyup.enter)="onSearch()"
-        aria-label="Search users"
-      />
-      <button class="btn-search" (click)="onSearch()">Search</button>
+      <input type="text" placeholder="Search by name, email or phone..." [(ngModel)]="searchQuery" (keyup.enter)="onSearch()" aria-label="Search users" />
+      <button class="btn-search" (click)="onSearch()">
+        <span class="material-symbols-rounded" style="font-size:18px;">search</span>
+      </button>
     </div>
-    <div class="filter-group">
-      <app-custom-select
-        [options]="roleOptions"
-        [(ngModel)]="roleFilter"
-        (ngModelChange)="applyFilters()"
-        placeholder="All Roles"
-      ></app-custom-select>
-      <app-custom-select
-        [options]="statusOptions"
-        [(ngModel)]="statusFilter"
-        (ngModelChange)="applyFilters()"
-        placeholder="All Status"
-      ></app-custom-select>
-    </div>
+    <button class="filter-toggle-btn" [class.active]="filtersOpen || hasActiveFilters" (click)="filtersOpen = !filtersOpen">
+      <span class="material-symbols-rounded" style="font-size:18px;">filter_list</span>
+      Filters
+      @if (activeFilterCount > 0) {
+        <span class="filter-badge">{{ activeFilterCount }}</span>
+      }
+    </button>
   </div>
 
-  <!-- Loading -->
+  @if (filtersOpen) {
+    <div class="filters-panel">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label class="filter-label">Role</label>
+          <app-custom-select [options]="roleOptions" [(ngModel)]="roleFilter" (ngModelChange)="applyFilters()" placeholder="All Roles"></app-custom-select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Status</label>
+          <app-custom-select [options]="statusOptions" [(ngModel)]="statusFilter" (ngModelChange)="applyFilters()" placeholder="All Status"></app-custom-select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Registered From</label>
+          <app-date-picker [(ngModel)]="filterDateFrom" (ngModelChange)="applyFilters()"></app-date-picker>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Registered To</label>
+          <app-date-picker [(ngModel)]="filterDateTo" (ngModelChange)="applyFilters()"></app-date-picker>
+        </div>
+      </div>
+      @if (hasActiveFilters) {
+        <button class="clear-filters-btn" (click)="clearFilters()">
+          <span class="material-symbols-rounded" style="font-size:16px;">close</span> Clear all filters
+        </button>
+      }
+    </div>
+  }
+
   @if (loading()) {
-    <div class="loading-state">
-      <div class="spinner"></div>
-      <p>Loading users...</p>
-    </div>
+    <div class="loading-state"><div class="spinner"></div><p>Loading users...</p></div>
   }
-
-  <!-- Error -->
   @if (error()) {
-    <div class="error-state">
-      <p>{{ error() }}</p>
-      <button class="btn-retry" (click)="loadUsers()">Retry</button>
-    </div>
+    <div class="error-state"><p>{{ error() }}</p><button class="btn-retry" (click)="loadUsers()">Retry</button></div>
   }
 
-  <!-- Users Table -->
   @if (!loading() && !error()) {
-    <div class="table-container">
-      <table class="users-table" aria-label="Users list">
-        <thead>
-          <tr>
-            <th class="sortable" (click)="sortUsers('email')">User <span class="material-symbols-rounded sort-icon">{{ sortIcon('email') }}</span></th>
-            <th>Email</th>
-            <th class="sortable" (click)="sortUsers('role')">Role <span class="material-symbols-rounded sort-icon">{{ sortIcon('role') }}</span></th>
-            <th class="sortable" (click)="sortUsers('status')">Status <span class="material-symbols-rounded sort-icon">{{ sortIcon('status') }}</span></th>
-            <th class="sortable" (click)="sortUsers('listingsCount')">Listings <span class="material-symbols-rounded sort-icon">{{ sortIcon('listingsCount') }}</span></th>
-            <th>Conversations</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (user of users() || []; track user._id) {
-            <tr [class.suspended]="user.status === 'suspended'">
-              <td class="user-cell">
-                <div class="user-info">
-                  <span class="user-name">{{ getUserName(user) }}</span>
-                  <span class="user-joined">Joined {{ formatDate(user.createdAt) }}</span>
-                </div>
-              </td>
-              <td>{{ getUserContact(user) }}</td>
-              <td>
-                <span class="role-badge" [attr.data-role]="user.role">{{ user.role }}</span>
-              </td>
-              <td>
-                <span class="status-badge" [attr.data-status]="user.status">{{ user.status }}</span>
-              </td>
-              <td class="numeric">{{ user.listingsCount }}</td>
-              <td class="numeric">{{ user.conversationsCount }}</td>
-              <td class="actions-cell">
-                <div class="action-group">
-                  <button
-                    class="btn-action"
-                    [class.btn-suspend]="user.status === 'active'"
-                    [class.btn-reactivate]="user.status === 'suspended'"
-                    [disabled]="actionLoading() === user._id"
-                    (click)="toggleUserStatus(user)"
-                  >
-                    {{ user.status === 'active' ? 'Suspend' : 'Reactivate' }}
-                  </button>
-                  <app-custom-select
-                    [options]="roleChangeOptions"
-                    [ngModel]="user.role"
-                    (ngModelChange)="changeRole(user, $event)"
-                    [disabled]="actionLoading() === user._id"
-                  ></app-custom-select>
-                  <div class="ad-limit-input">
-                    <label>Ad Limit:</label>
-                    <input
-                      type="number"
-                      [value]="user.adLimit"
-                      min="0"
-                      (change)="updateAdLimit(user, $any($event.target).value)"
-                      [disabled]="actionLoading() === user._id"
-                      aria-label="Ad limit override"
-                    />
-                  </div>
-                </div>
-              </td>
-            </tr>
-          } @empty {
-            <tr>
-              <td colspan="7" class="empty-state">No users found.</td>
-            </tr>
+    @if ((users() || []).length === 0) {
+      <div class="empty-state">
+        @if (hasActiveFilters || searchQuery) {
+          No users match your filters.
+          <button class="btn-retry" style="margin-left:8px;" (click)="clearFilters()">Clear Filters</button>
+        } @else {
+          No users found.
+        }
+      </div>
+    }
+
+    <div class="user-cards">
+      @for (user of users() || []; track user._id) {
+        <div class="user-card" [class.suspended]="user.status === 'suspended'">
+          <!-- Top: User info -->
+          <div class="uc-top">
+            <div class="uc-info">
+              <span class="uc-name">{{ getUserName(user) }}</span>
+              <span class="uc-contact">{{ getUserContact(user) }}</span>
+              <span class="uc-id">ID: {{ user._id }}</span>
+            </div>
+            <div class="uc-badges">
+              <span class="role-badge" [attr.data-role]="user.role">{{ user.role === 'super_admin' ? 'Super Admin' : user.role }}</span>
+              <span class="status-badge" [attr.data-status]="user.status">{{ user.status }}</span>
+            </div>
+          </div>
+
+          <!-- Verification & Last seen -->
+          <div class="uc-meta">
+            <span class="uc-meta-item">
+              <span class="material-symbols-rounded uc-meta-icon" [class.verified]="user.emailVerified" [class.unverified]="!user.emailVerified">
+                {{ user.emailVerified ? 'verified' : 'cancel' }}
+              </span>
+              Email {{ user.emailVerified ? 'verified' : 'not verified' }}
+            </span>
+            <span class="uc-meta-item">
+              <span class="material-symbols-rounded uc-meta-icon" [class.verified]="user.phoneVerified" [class.unverified]="!user.phoneVerified">
+                {{ user.phoneVerified ? 'verified' : 'cancel' }}
+              </span>
+              Phone {{ user.phoneVerified ? 'verified' : 'not verified' }}
+            </span>
+            <span class="uc-meta-item">
+              <span class="material-symbols-rounded uc-meta-icon">schedule</span>
+              {{ user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Never logged in' }}
+            </span>
+          </div>
+
+          <!-- Stats -->
+          <div class="uc-stats">
+            <div class="uc-stat">
+              <span class="uc-stat-val">{{ user.activitySummary?.listingsCount ?? 0 }}</span>
+              <span class="uc-stat-label">Listings</span>
+            </div>
+            <div class="uc-stat">
+              <span class="uc-stat-val">{{ user.activitySummary?.conversationsCount ?? 0 }}</span>
+              <span class="uc-stat-label">Chats</span>
+            </div>
+            <div class="uc-stat">
+              <span class="uc-stat-val">{{ user.activitySummary?.activeListingsCount ?? 0 }}/{{ user.adLimit }}</span>
+              <span class="uc-stat-label">Ads Used</span>
+            </div>
+            <div class="uc-stat">
+              <span class="uc-stat-val">{{ user.activePackages?.count || 0 }}</span>
+              <span class="uc-stat-label">Packages</span>
+            </div>
+          </div>
+
+          <!-- Active packages -->
+          @if (user.activePackages?.packages?.length) {
+            <div class="uc-packages">
+              @for (pkg of user.activePackages!.packages; track pkg.name) {
+                <span class="uc-pkg-chip">{{ pkg.name }}</span>
+              }
+            </div>
           }
-        </tbody>
-      </table>
+
+          <!-- Bottom: Actions -->
+          <div class="uc-actions">
+            <button
+              class="uc-btn"
+              [class.uc-btn-danger]="user.status === 'active'"
+              [class.uc-btn-success]="user.status === 'suspended'"
+              [disabled]="actionLoading() === user._id"
+              (click)="toggleUserStatus(user)"
+            >
+              <span class="material-symbols-rounded uc-btn-icon">{{ user.status === 'active' ? 'block' : 'check_circle' }}</span>
+              {{ user.status === 'active' ? 'Suspend' : 'Reactivate' }}
+            </button>
+
+            <div class="uc-action-row">
+              <div class="uc-action-item">
+                <span class="uc-action-label">Role</span>
+                <app-custom-select
+                  [options]="roleChangeOptions"
+                  [ngModel]="user.role"
+                  (ngModelChange)="changeRole(user, $event)"
+                  [disabled]="actionLoading() === user._id"
+                ></app-custom-select>
+              </div>
+              <div class="uc-action-item">
+                <span class="uc-action-label">Ad Limit</span>
+                <input
+                  type="number"
+                  class="uc-limit-input"
+                  [value]="user.adLimit"
+                  min="0"
+                  (change)="updateAdLimit(user, $any($event.target).value)"
+                  [disabled]="actionLoading() === user._id"
+                  aria-label="Ad limit"
+                />
+              </div>
+            </div>
+
+            @if (authService.isSuperAdmin() && user.role === 'admin') {
+              <button class="uc-btn uc-btn-permissions" (click)="openPermissions(user)">
+                <span class="material-symbols-rounded uc-btn-icon">shield</span>
+                Manage Permissions
+              </button>
+            }
+          </div>
+        </div>
+      }
     </div>
 
-    <!-- Pagination -->
     @if (totalPages() > 1) {
       <div class="pagination">
-        <button
-          class="btn-page"
-          [disabled]="currentPage() === 1"
-          (click)="goToPage(currentPage() - 1)"
-        >
-          ← Prev
-        </button>
+        <button class="btn-page" [disabled]="currentPage() === 1" (click)="goToPage(currentPage() - 1)">← Prev</button>
         @for (page of pages(); track page) {
-          <button
-            class="btn-page"
-            [class.active]="page === currentPage()"
-            (click)="goToPage(page)"
-          >
-            {{ page }}
-          </button>
+          <button class="btn-page" [class.active]="page === currentPage()" (click)="goToPage(page)">{{ page }}</button>
         }
-        <button
-          class="btn-page"
-          [disabled]="currentPage() === totalPages()"
-          (click)="goToPage(currentPage() + 1)"
-        >
-          Next →
-        </button>
+        <button class="btn-page" [disabled]="currentPage() === totalPages()" (click)="goToPage(currentPage() + 1)">Next →</button>
       </div>
     }
   }
 </div>
+
+<!-- Permissions Modal -->
+@if (permissionsUserId) {
+  <div class="modal-overlay" (click)="closePermissions()">
+    <div class="modal-content" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <h2>Permissions — {{ permissionsUserName }}</h2>
+        <button class="modal-close" (click)="closePermissions()">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+      <div class="modal-body">
+        @for (group of permissionGroups; track group.group) {
+          <div class="perm-group">
+            <label class="perm-group-header">
+              <input type="checkbox" [checked]="isGroupAllSelected(group.group)" (change)="toggleGroupAll(group.group)" />
+              <span class="perm-group-name">{{ formatGroupName(group.group) }}</span>
+            </label>
+            <div class="perm-items">
+              @for (perm of group.permissions; track perm.value) {
+                <label class="perm-item" [class.checked]="selectedPermissions.has(perm.value)">
+                  <input type="checkbox" [checked]="selectedPermissions.has(perm.value)" (change)="togglePermission(perm.value)" />
+                  <span>{{ formatActionName(perm.action) }}</span>
+                </label>
+              }
+            </div>
+          </div>
+        }
+      </div>
+      <div class="modal-footer">
+        <button class="btn-secondary" (click)="closePermissions()">Cancel</button>
+        <button class="btn-primary" [disabled]="savingPermissions" (click)="savePermissions()">
+          {{ savingPermissions ? 'Saving...' : 'Save Permissions' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

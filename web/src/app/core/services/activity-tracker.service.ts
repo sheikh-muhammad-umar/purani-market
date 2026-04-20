@@ -32,4 +32,69 @@ export class ActivityTrackerService {
       error: () => {}, // silently fail — tracking should never block UX
     });
   }
+
+  /** Collect client-side device/environment info for login events */
+  getDeviceInfo(): Record<string, any> {
+    const nav = navigator as any;
+    const screen = window.screen;
+    const info: Record<string, any> = {
+      screenResolution: `${screen.width}x${screen.height}`,
+      viewportSize: `${window.innerWidth}x${window.innerHeight}`,
+      colorDepth: screen.colorDepth,
+      pixelRatio: window.devicePixelRatio,
+      language: navigator.language,
+      languages: navigator.languages?.join(', '),
+      timezone: Intl.DateTimeFormat().resolvedOptions().timeZone,
+      timezoneOffset: new Date().getTimezoneOffset(),
+      platform: nav.userAgentData?.platform || navigator.platform || '',
+      mobile: nav.userAgentData?.mobile ?? /Mobi|Android/i.test(navigator.userAgent),
+      cookiesEnabled: navigator.cookieEnabled,
+      online: navigator.onLine,
+      touchSupport: 'ontouchstart' in window || navigator.maxTouchPoints > 0,
+      hardwareConcurrency: navigator.hardwareConcurrency || null,
+      deviceMemory: nav.deviceMemory || null,
+      connectionType: nav.connection?.effectiveType || null,
+    };
+
+    // Selected location from localStorage (flattened to avoid [object Object])
+    try {
+      const stored = localStorage.getItem('selected_location');
+      if (stored) {
+        const parsed = JSON.parse(stored);
+        if (parsed.province?.name) info['locationProvince'] = parsed.province.name;
+        if (parsed.city?.name) info['locationCity'] = parsed.city.name;
+        if (parsed.area?.name) info['locationArea'] = parsed.area.name;
+      }
+    } catch { /* ignore */ }
+
+    return info;
+  }
+
+  /** Get browser geolocation and fire a tracking call with it (async, best-effort) */
+  trackLoginWithLocation(metadata: Record<string, any>): void {
+    if (!this.auth.isAuthenticated()) return;
+
+    if ('geolocation' in navigator) {
+      navigator.geolocation.getCurrentPosition(
+        (pos) => {
+          this.api.post('/track', {
+            action: 'login' as UserAction,
+            metadata: {
+              ...metadata,
+              geoLat: pos.coords.latitude,
+              geoLng: pos.coords.longitude,
+              geoAccuracy: pos.coords.accuracy,
+            },
+          }).subscribe({ error: () => {} });
+        },
+        () => {
+          // Permission denied or error — track without geo
+          this.api.post('/track', { action: 'login' as UserAction, metadata }).subscribe({ error: () => {} });
+        },
+        { timeout: 5000, maximumAge: 300000 },
+      );
+    } else {
+      this.api.post('/track', { action: 'login' as UserAction, metadata }).subscribe({ error: () => {} });
+    }
+  }
 }

@@ -8,12 +8,13 @@ import {
 } from '../../../core/services/admin.service';
 import { PaymentMethod, PaymentStatus } from '../../../core/models';
 import { PAYMENT_METHOD_OPTIONS, PAYMENT_STATUS_OPTIONS } from '../../../core/constants/select-options';
+import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-payment-transactions',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent],
+  imports: [CommonModule, FormsModule, CustomSelectComponent, DatePickerComponent],
   templateUrl: './payment-transactions.component.html',
   styleUrls: ['./payment-transactions.component.scss'],
 })
@@ -27,14 +28,26 @@ export class PaymentTransactionsComponent implements OnInit {
   filterEndDate = '';
   filterPaymentMethod: PaymentMethod | '' = '';
   filterStatus: PaymentStatus | '' = '';
+  filtersOpen = false;
 
   // Sorting
   sortCol = '';
   sortDir: 'asc' | 'desc' = 'asc';
 
   readonly paymentMethodOptions: SelectOption[] = PAYMENT_METHOD_OPTIONS;
-
   readonly paymentStatusOptions: SelectOption[] = PAYMENT_STATUS_OPTIONS;
+
+  get hasActiveFilters(): boolean {
+    return !!(this.filterStartDate || this.filterEndDate || this.filterPaymentMethod || this.filterStatus);
+  }
+
+  get activeFilterCount(): number {
+    let c = 0;
+    if (this.filterPaymentMethod) c++;
+    if (this.filterStatus) c++;
+    if (this.filterStartDate || this.filterEndDate) c++;
+    return c;
+  }
   page = 1;
   readonly limit = 15;
 

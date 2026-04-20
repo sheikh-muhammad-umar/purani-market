@@ -1,13 +1,15 @@
 /* ---- Header ---- */
-:host { display: block; }
+:host {
+  display: block;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
 
 .app-header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
   padding: 10px var(--space-3);
-  position: sticky;
-  top: 0;
-  z-index: 100;
 }
 
 .header-container {
@@ -487,7 +489,7 @@
   /* Mobile search */
   .mobile-search {
     display: block;
-    padding: 0 var(--space-2) 8px;
+    padding: 0 var(--space-2) 12px;
   }
 
   .mobile-search-row {

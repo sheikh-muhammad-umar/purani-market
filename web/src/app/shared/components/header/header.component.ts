@@ -28,6 +28,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // Location selector state
   locationDropdownOpen = signal(false);
   searchDropdownOpen = signal(false);
+  searchPlaceholder = signal(window.innerWidth < 1024 ? 'Search...' : 'Find cars, phones, furniture...');
   provinces = signal<Province[]>([]);
   cities = signal<City[]>([]);
   areas = signal<Area[]>([]);
@@ -112,6 +113,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return this.router.url.startsWith('/profile');
   }
 
+  get isAdminPage(): boolean {
+    return this.router.url.startsWith('/admin');
+  }
+
   toggleMenu(): void {
     this.mobileMenuOpen.update(open => !open);
   }
@@ -167,6 +172,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     event.preventDefault();
     this.recentSearches.clear();
     this.searchDropdownOpen.set(false);
+  }
+
+  @HostListener('window:resize')
+  onResize(): void {
+    this.searchPlaceholder.set(window.innerWidth < 1024 ? 'Search...' : 'Find cars, phones, furniture...');
   }
 
   @HostListener('document:click', ['$event'])
@@ -373,11 +383,19 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
+  private loggingOut = false;
+
   logout(): void {
+    if (this.loggingOut) return;
+    this.loggingOut = true;
     this.closeMenu();
     this.closeAccountMenu();
-    this.recentSearches.searches(); // keep reference before logout clears auth
-    this.tracker.track('logout');
-    this.authService.logout();
+    this.recentSearches.searches();
+    this.tracker.track('logout', { metadata: this.tracker.getDeviceInfo() });
+    // Small delay to let the track request fire before tokens are cleared
+    setTimeout(() => {
+      this.authService.logout();
+      this.loggingOut = false;
+    }, 150);
   }
 }

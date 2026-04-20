@@ -17,11 +17,13 @@ export interface SelectOption {
 // ─── User ────────────────────────────────────────────────
 export const ROLE_OPTIONS: SelectOption[] = [
   { value: '', label: 'All Roles' },
+  { value: UserRole.SUPER_ADMIN, label: 'Super Admin' },
   { value: UserRole.ADMIN, label: 'Admin' },
   { value: UserRole.USER, label: 'User' },
 ];
 
 export const ROLE_CHANGE_OPTIONS: SelectOption[] = [
+  { value: UserRole.SUPER_ADMIN, label: 'Super Admin' },
   { value: UserRole.ADMIN, label: 'Admin' },
   { value: UserRole.USER, label: 'User' },
 ];

@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 import {
   AdminService,
   AnalyticsData,
@@ -20,7 +21,7 @@ export interface MetricCard {
 @Component({
   selector: 'app-analytics-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, DatePickerComponent],
   templateUrl: './analytics-dashboard.component.html',
   styleUrls: ['./analytics-dashboard.component.scss'],
 })

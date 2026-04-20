@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { ConfigService } from '@nestjs/config';
@@ -23,7 +23,7 @@ import { SearchController } from './search.controller.js';
         };
       },
     }),
-    CategoriesModule,
+    forwardRef(() => CategoriesModule),
   ],
   controllers: [SearchController],
   providers: [SearchIndexService, SearchSyncService, SearchService],

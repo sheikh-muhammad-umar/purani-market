@@ -11,6 +11,7 @@ import { PackagesController } from './packages.controller.js';
 import { PaymentsModule } from '../payments/payments.module.js';
 import { UsersModule } from '../users/users.module.js';
 import { ListingsModule } from '../listings/listings.module.js';
+import { AiModule } from '../ai/ai.module.js';
 
 @Module({
   imports: [
@@ -22,6 +23,7 @@ import { ListingsModule } from '../listings/listings.module.js';
     PaymentsModule,
     UsersModule,
     forwardRef(() => ListingsModule),
+    forwardRef(() => AiModule),
   ],
   controllers: [PackagesController],
   providers: [PackagesService],

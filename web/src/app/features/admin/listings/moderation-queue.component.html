@@ -23,8 +23,16 @@
   @if (!loading() && !error()) {
     <div class="listings-container">
       @if (listings().length > 0) {
+        <!-- Search + Filter Toggle -->
         <div class="filters-bar">
           <input type="text" class="search-input" placeholder="Search by title, seller..." [(ngModel)]="searchQuery" />
+          <button class="filter-toggle-btn" [class.active]="filtersOpen || hasActiveFilters" (click)="filtersOpen = !filtersOpen">
+            <span class="material-symbols-rounded" style="font-size:18px;">filter_list</span>
+            Filters
+            @if (activeFilterCount > 0) {
+              <span class="filter-badge">{{ activeFilterCount }}</span>
+            }
+          </button>
           <div class="sort-btns">
             <button class="sort-btn" [class.active]="sortCol === 'createdAt'" (click)="sortListings('createdAt')">
               Date <span class="material-symbols-rounded sort-icon">{{ sortIcon('createdAt') }}</span>
@@ -37,11 +45,52 @@
             </button>
           </div>
         </div>
+
+        <!-- Expandable Filters Panel -->
+        @if (filtersOpen) {
+          <div class="filters-panel">
+            <div class="filters-grid">
+              <div class="filter-group">
+                <label class="filter-label">Condition</label>
+                <app-custom-select
+                  [options]="conditionOptions"
+                  [(ngModel)]="filterCondition"
+                  placeholder="All Conditions"
+                ></app-custom-select>
+              </div>
+              <div class="filter-group">
+                <label class="filter-label">Category</label>
+                <app-custom-select
+                  [options]="categoryOptions"
+                  [(ngModel)]="filterCategory"
+                  placeholder="All Categories"
+                  [searchable]="true"
+                ></app-custom-select>
+              </div>
+              <div class="filter-group">
+                <label class="filter-label">From</label>
+                <app-date-picker [(ngModel)]="filterDateFrom"></app-date-picker>
+              </div>
+              <div class="filter-group">
+                <label class="filter-label">To</label>
+                <app-date-picker [(ngModel)]="filterDateTo"></app-date-picker>
+              </div>
+            </div>
+            @if (hasActiveFilters) {
+              <button class="clear-filters-btn" (click)="clearFilters()">
+                <span class="material-symbols-rounded" style="font-size:16px;">close</span> Clear all filters
+              </button>
+            }
+          </div>
+        }
       }
 
       @if (filteredListings.length === 0) {
         <div class="empty-state">
-          <p>{{ searchQuery ? 'No listings match your search.' : 'No pending listings to review.' }}</p>
+          <p>{{ searchQuery || hasActiveFilters ? 'No listings match your filters.' : 'No pending listings to review.' }}</p>
+          @if (hasActiveFilters) {
+            <button class="btn-retry" (click)="clearFilters()">Clear Filters</button>
+          }
         </div>
       }
 
@@ -89,7 +138,6 @@
           <!-- Expanded Detail Panel -->
           @if (expandedId === listing._id) {
             <div class="listing-detail-panel">
-              <!-- Images Gallery -->
               @if (listing.images.length) {
                 <div class="detail-section">
                   <h4>Images ({{ listing.images.length }})</h4>
@@ -101,13 +149,11 @@
                 </div>
               }
 
-              <!-- Description -->
               <div class="detail-section">
                 <h4>Description</h4>
                 <p class="detail-description">{{ listing.description }}</p>
               </div>
 
-              <!-- Category Attributes -->
               @if (listing.categoryAttributes && objectKeys(listing.categoryAttributes).length > 0) {
                 <div class="detail-section">
                   <h4>Attributes</h4>
@@ -122,7 +168,6 @@
                 </div>
               }
 
-              <!-- Features -->
               @if (listing.selectedFeatures?.length) {
                 <div class="detail-section">
                   <h4>Features</h4>
@@ -134,7 +179,6 @@
                 </div>
               }
 
-              <!-- Location & Seller -->
               <div class="detail-section detail-row-grid">
                 <div>
                   <h4>Location</h4>
@@ -152,7 +196,6 @@
                 </div>
               </div>
 
-              <!-- Actions -->
               <div class="detail-actions">
                 <button class="btn-action btn-approve" [disabled]="actionLoading() === listing._id" (click)="approveListing(listing)">
                   <span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> Approve

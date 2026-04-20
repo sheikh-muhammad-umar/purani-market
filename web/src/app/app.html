@@ -5,3 +5,9 @@
 <app-footer />
 <app-login-modal />
 <app-confirm-modal />
+
+@if (showScrollTop()) {
+  <button class="scroll-top-btn" (click)="scrollToTop()" aria-label="Scroll to top">
+    <span class="material-symbols-rounded">arrow_upward</span>
+  </button>
+}

@@ -1,12 +1,12 @@
 import {
   Component,
   Input,
-  Output,
-  EventEmitter,
   signal,
+  computed,
   HostListener,
   ElementRef,
   forwardRef,
+  ViewChild,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
@@ -32,13 +32,29 @@ export interface SelectOption {
       </button>
       @if (isOpen()) {
         <div class="cs-dropdown">
-          @for (opt of options; track opt.value) {
+          @if (searchable && options.length > 6) {
+            <div class="cs-search-wrap">
+              <input
+                #searchInput
+                type="text"
+                class="cs-search"
+                placeholder="Search..."
+                [value]="searchQuery()"
+                (input)="searchQuery.set($any($event.target).value)"
+                (click)="$event.stopPropagation()"
+              />
+            </div>
+          }
+          @for (opt of filteredOptions(); track opt.value) {
             <button
               type="button"
               class="cs-option"
               [class.cs-active]="opt.value === value"
               (click)="select(opt)"
             >{{ opt.label }}</button>
+          }
+          @if (filteredOptions().length === 0) {
+            <div class="cs-no-results">No results</div>
           }
         </div>
       }
@@ -57,9 +73,13 @@ export class CustomSelectComponent implements ControlValueAccessor {
   @Input() options: SelectOption[] = [];
   @Input() placeholder = 'Select...';
   @Input() disabled = false;
+  @Input() searchable = false;
+
+  @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
   isOpen = signal(false);
   value: string | number = '';
+  searchQuery = signal('');
 
   private onChange: (val: any) => void = () => {};
   private onTouched: () => void = () => {};
@@ -68,9 +88,19 @@ export class CustomSelectComponent implements ControlValueAccessor {
 
   selectedLabel = signal('');
 
+  filteredOptions = computed(() => {
+    const q = this.searchQuery().toLowerCase().trim();
+    if (!q) return this.options;
+    return this.options.filter(o => o.label.toLowerCase().includes(q));
+  });
+
   toggle(): void {
     if (this.disabled) return;
     this.isOpen.update(v => !v);
+    if (this.isOpen()) {
+      this.searchQuery.set('');
+      setTimeout(() => this.searchInput?.nativeElement?.focus(), 0);
+    }
   }
 
   select(opt: SelectOption): void {
@@ -79,6 +109,7 @@ export class CustomSelectComponent implements ControlValueAccessor {
     this.onChange(opt.value);
     this.onTouched();
     this.isOpen.set(false);
+    this.searchQuery.set('');
   }
 
   @HostListener('document:click', ['$event'])

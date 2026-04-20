@@ -42,7 +42,8 @@ export class AuthService {
   private readonly currentUser = signal<User | null>(null);
   readonly user = this.currentUser.asReadonly();
   readonly isAuthenticated = computed(() => !!this.currentUser() || !!this.getAccessToken());
-  readonly isAdmin = computed(() => this.currentUser()?.role === 'admin');
+  readonly isAdmin = computed(() => this.currentUser()?.role === 'admin' || this.currentUser()?.role === 'super_admin');
+  readonly isSuperAdmin = computed(() => this.currentUser()?.role === 'super_admin');
 
   constructor(
     private readonly http: HttpClient,

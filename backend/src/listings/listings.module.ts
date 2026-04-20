@@ -19,7 +19,7 @@ import { SearchModule } from '../search/search.module.js';
       { name: ProductListing.name, schema: ProductListingSchema },
     ]),
     UsersModule,
-    CategoriesModule,
+    forwardRef(() => CategoriesModule),
     forwardRef(() => PackagesModule),
     SearchModule,
   ],

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Category } from '../categories/schemas/category.schema.js';
@@ -52,6 +52,7 @@ export interface PaginatedListings {
 
 export interface UserActivitySummary {
   listingsCount: number;
+  activeListingsCount: number;
   conversationsCount: number;
   violationsCount: number;
 }
@@ -187,9 +188,10 @@ export class AdminService {
   async getUserActivitySummary(userId: string): Promise<UserActivitySummary> {
     const userObjectId = new Types.ObjectId(userId);
 
-    const [listingsCount, conversationsCount, violationsCount] =
+    const [listingsCount, activeListingsCount, conversationsCount, violationsCount] =
       await Promise.all([
-        this.listingModel.countDocuments({ sellerId: userObjectId }).exec(),
+        this.listingModel.countDocuments({ sellerId: userObjectId, status: { $ne: ListingStatus.DELETED } }).exec(),
+        this.listingModel.countDocuments({ sellerId: userObjectId, status: ListingStatus.ACTIVE }).exec(),
         this.conversationModel
           .countDocuments({
             $or: [{ buyerId: userObjectId }, { sellerId: userObjectId }],
@@ -203,7 +205,29 @@ export class AdminService {
           .exec(),
       ]);
 
-    return { listingsCount, conversationsCount, violationsCount };
+    return { listingsCount, activeListingsCount, conversationsCount, violationsCount };
+  }
+
+  async getUserActivePackages(userId: string): Promise<{ count: number; packages: { name: string; type: string; expiresAt: string }[] }> {
+    const now = new Date();
+    const purchases = await this.packagePurchaseModel
+      .find({
+        sellerId: new Types.ObjectId(userId),
+        paymentStatus: PaymentStatus.COMPLETED,
+        expiresAt: { $gt: now },
+      })
+      .populate('packageId', 'name type')
+      .lean()
+      .exec();
+
+    return {
+      count: purchases.length,
+      packages: purchases.map((p: any) => ({
+        name: p.packageId?.name || 'Unknown',
+        type: p.packageId?.type || '',
+        expiresAt: p.expiresAt?.toISOString() || '',
+      })),
+    };
   }
 
   async getUserActivityLog(
@@ -308,6 +332,25 @@ export class AdminService {
     return user;
   }
 
+  async updatePermissions(
+    userId: string,
+    permissions: string[],
+  ): Promise<UserDocument> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    if (user.role === UserRole.USER) {
+      throw new ForbiddenException('Cannot assign permissions to regular users. Change role to admin first.');
+    }
+    if (user.role === UserRole.SUPER_ADMIN) {
+      throw new ForbiddenException('Super admin already has all permissions.');
+    }
+    user.permissions = permissions;
+    await user.save();
+    return user;
+  }
+
   async getPendingListings(
     page = 1,
     limit = 20,
@@ -318,15 +361,29 @@ export class AdminService {
     const [listings, total] = await Promise.all([
       this.listingModel
         .find(filter)
+        .populate('sellerId', 'email profile')
+        .populate('categoryId', 'name')
         .sort({ createdAt: 1 })
         .skip(skip)
         .limit(limit)
+        .lean()
         .exec(),
       this.listingModel.countDocuments(filter).exec(),
     ]);
 
+    const enriched = listings.map((l: any) => ({
+      ...l,
+      sellerName: l.sellerId
+        ? `${l.sellerId.profile?.firstName || ''} ${l.sellerId.profile?.lastName || ''}`.trim() || l.sellerId.email
+        : 'Unknown',
+      sellerEmail: l.sellerId?.email || '',
+      categoryName: l.categoryId?.name || 'Unknown',
+      sellerId: l.sellerId?._id || l.sellerId,
+      categoryId: l.categoryId?._id || l.categoryId,
+    }));
+
     return {
-      data: listings,
+      data: enriched,
       total,
       page,
       limit,

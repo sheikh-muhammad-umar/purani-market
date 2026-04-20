@@ -32,6 +32,8 @@ export class RecommendationService {
       searchQuery?: string;
       categoryId?: string;
       metadata?: Record<string, any>;
+      ip?: string;
+      userAgent?: string;
     },
   ): Promise<UserActivityDocument> {
     const activity = new this.activityModel({
@@ -45,6 +47,8 @@ export class RecommendationService {
         ? new Types.ObjectId(data.categoryId)
         : undefined,
       metadata: data.metadata ? new Map(Object.entries(data.metadata)) : new Map(),
+      ip: data.ip,
+      userAgent: data.userAgent,
     });
     return activity.save();
   }

@@ -11,7 +11,10 @@ export interface AdminUser {
   email?: string;
   phone?: string;
   role: UserRole;
+  permissions?: string[];
   status: UserStatus;
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
   profile: {
     firstName: string;
     lastName: string;
@@ -24,6 +27,16 @@ export interface AdminUser {
   listingsCount: number;
   conversationsCount: number;
   violationsCount: number;
+  activitySummary?: {
+    listingsCount: number;
+    activeListingsCount: number;
+    conversationsCount: number;
+    violationsCount: number;
+  };
+  activePackages?: {
+    count: number;
+    packages: { name: string; type: string; expiresAt: string }[];
+  };
 }
 
 export interface UsersResponse {
@@ -212,8 +225,8 @@ export class AdminService {
     if (params.search) httpParams = httpParams.set('search', params.search);
     if (params.role) httpParams = httpParams.set('role', params.role);
     if (params.status) httpParams = httpParams.set('status', params.status);
-    if (params.startDate) httpParams = httpParams.set('startDate', params.startDate);
-    if (params.endDate) httpParams = httpParams.set('endDate', params.endDate);
+    if (params.startDate) httpParams = httpParams.set('registeredFrom', params.startDate);
+    if (params.endDate) httpParams = httpParams.set('registeredTo', params.endDate);
     return this.http.get<any>(`${this.baseUrl}/admin/users`, { params: httpParams }).pipe(
       map(res => (res && res.data && res.statusCode) ? res.data : res),
     );
@@ -229,6 +242,16 @@ export class AdminService {
 
   updateAdLimit(userId: string, limit: number): Observable<void> {
     return this.http.patch<void>(`${this.baseUrl}/admin/users/${userId}/ad-limit`, { adLimit: limit });
+  }
+
+  getPermissionsList(): Observable<{ permissions: { key: string; value: string; group: string; action: string }[] }> {
+    return this.http.get<any>(`${this.baseUrl}/admin/permissions`).pipe(
+      map(res => (res && res.data && res.statusCode) ? res.data : res),
+    );
+  }
+
+  updatePermissions(userId: string, permissions: string[]): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}/admin/users/${userId}/permissions`, { permissions });
   }
 
   getPendingListings(): Observable<PendingListingsResponse> {

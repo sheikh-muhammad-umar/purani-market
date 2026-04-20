@@ -1,0 +1,44 @@
+<div class="dp-wrap">
+  <button type="button" class="dp-trigger" (click)="toggle()">
+    <span class="material-symbols-rounded dp-icon">calendar_today</span>
+    @if (displayValue()) {
+      <span class="dp-value">{{ displayValue() }}</span>
+      <span class="dp-clear material-symbols-rounded" (click)="clear(); $event.stopPropagation()">close</span>
+    } @else {
+      <span class="dp-placeholder">Select date</span>
+    }
+  </button>
+
+  @if (open()) {
+    <div class="dp-dropdown">
+      <div class="dp-header">
+        <button type="button" class="dp-nav" (click)="prevMonth()">
+          <span class="material-symbols-rounded">chevron_left</span>
+        </button>
+        <span class="dp-month-year">{{ currentMonth() }} {{ currentYear() }}</span>
+        <button type="button" class="dp-nav" (click)="nextMonth()">
+          <span class="material-symbols-rounded">chevron_right</span>
+        </button>
+      </div>
+      <div class="dp-days-header">
+        @for (d of dayNames; track d) {
+          <span class="dp-day-name">{{ d }}</span>
+        }
+      </div>
+      <div class="dp-grid">
+        @for (cell of days(); track cell.date) {
+          <button
+            type="button"
+            class="dp-cell"
+            [class.today]="cell.isToday"
+            [class.selected]="cell.isSelected"
+            [class.other-month]="!cell.isCurrentMonth"
+            (click)="selectDate(cell.date)"
+          >
+            {{ cell.day }}
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>

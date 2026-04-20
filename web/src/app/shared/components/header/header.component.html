@@ -114,7 +114,7 @@
         #desktopSearch
         type="text"
         class="search-input"
-        placeholder="Find cars, phones, furniture..."
+        placeholder="{{ searchPlaceholder() }}"
         (keyup.enter)="goToSearch(desktopSearch.value)"
         (focus)="onSearchFocus()"
         (blur)="onSearchBlur()"
@@ -208,7 +208,7 @@
   </div>
 
   <!-- Mobile search bar -->
-  @if (!isAuthPage && !isMessagingPage && !isProfilePage) {
+  @if (!isAuthPage && !isMessagingPage && !isProfilePage && !isAdminPage) {
   <div class="mobile-search">
     <div class="mobile-search-row">
       <button class="mobile-location-btn" (click)="toggleLocationDropdown()">

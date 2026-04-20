@@ -3,10 +3,10 @@
     <h1>Analytics Dashboard</h1>
     <div class="header-actions">
       <div class="date-range">
-        <label for="startDate">From</label>
-        <input id="startDate" type="date" [(ngModel)]="startDate" />
-        <label for="endDate">To</label>
-        <input id="endDate" type="date" [(ngModel)]="endDate" />
+        <label>From</label>
+        <app-date-picker [(ngModel)]="startDate"></app-date-picker>
+        <label>To</label>
+        <app-date-picker [(ngModel)]="endDate"></app-date-picker>
         <button class="btn-apply" (click)="applyDateRange()">Apply</button>
       </div>
       <button

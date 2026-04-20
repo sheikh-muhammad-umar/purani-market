@@ -15,6 +15,7 @@ import { DismissRecommendationDto } from './dto/dismiss-recommendation.dto.js';
 import { ChatbotMessageDto } from './dto/chatbot-message.dto.js';
 import { TrackActivityDto } from './dto/track-activity.dto.js';
 import { randomUUID } from 'crypto';
+import { UAParser } from 'ua-parser-js';
 
 @Controller('api')
 export class AiController {
@@ -80,15 +81,36 @@ export class AiController {
     @Body() dto: TrackActivityDto,
     @Req() req: any,
   ) {
+    const ua = req.headers['user-agent'] || '';
+    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
+    const parser = new UAParser(ua);
+    const browser = parser.getBrowser();
+    const os = parser.getOS();
+    const device = parser.getDevice();
+    const engine = parser.getEngine();
+
+    const enrichedMetadata: Record<string, any> = {
+      ...dto.metadata,
+      browser: browser.name ? `${browser.name} ${browser.version || ''}`.trim() : undefined,
+      os: os.name ? `${os.name} ${os.version || ''}`.trim() : undefined,
+      deviceType: device.type || 'desktop',
+      deviceVendor: device.vendor || undefined,
+      deviceModel: device.model || undefined,
+      engine: engine.name ? `${engine.name} ${engine.version || ''}`.trim() : undefined,
+    };
+
+    // Remove undefined values
+    Object.keys(enrichedMetadata).forEach(k => {
+      if (enrichedMetadata[k] === undefined) delete enrichedMetadata[k];
+    });
+
     await this.recommendationService.trackActivity(userId, dto.action, {
       productListingId: dto.productListingId,
       searchQuery: dto.searchQuery,
       categoryId: dto.categoryId,
-      metadata: {
-        ...dto.metadata,
-        ip: req.ip,
-        userAgent: req.headers['user-agent'],
-      },
+      metadata: enrichedMetadata,
+      ip,
+      userAgent: ua,
     });
     return { tracked: true };
   }

@@ -55,7 +55,7 @@ export interface DeviceToken {
   token: string;
 }
 
-export type UserRole = 'admin' | 'user';
+export type UserRole = 'super_admin' | 'admin' | 'user';
 export type UserStatus = 'active' | 'suspended';
 
 export interface User {
@@ -63,6 +63,7 @@ export interface User {
   email?: string;
   phone?: string;
   role: UserRole;
+  permissions?: string[];
   profile: UserProfile;
   emailVerified: boolean;
   phoneVerified: boolean;
