@@ -36,6 +36,26 @@ export const listingsIndexMapping = {
     status: { type: 'keyword' as const },
     sellerId: { type: 'keyword' as const },
     createdAt: { type: 'date' as const },
+    brandId: { type: 'keyword' as const },
+    brandName: {
+      type: 'text' as const,
+      fields: { keyword: { type: 'keyword' as const, ignore_above: 100 } },
+    },
+    vehicleBrandId: { type: 'keyword' as const },
+    vehicleBrandName: {
+      type: 'text' as const,
+      fields: { keyword: { type: 'keyword' as const, ignore_above: 100 } },
+    },
+    modelId: { type: 'keyword' as const },
+    modelName: {
+      type: 'text' as const,
+      fields: { keyword: { type: 'keyword' as const, ignore_above: 100 } },
+    },
+    variantId: { type: 'keyword' as const },
+    variantName: {
+      type: 'text' as const,
+      fields: { keyword: { type: 'keyword' as const, ignore_above: 150 } },
+    },
   },
 };
 

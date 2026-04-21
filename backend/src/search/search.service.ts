@@ -162,7 +162,9 @@ export class SearchService {
         { title: { $regex: query.q, $options: 'i' } },
         { description: { $regex: query.q, $options: 'i' } },
         { brandName: { $regex: query.q, $options: 'i' } },
+        { vehicleBrandName: { $regex: query.q, $options: 'i' } },
         { modelName: { $regex: query.q, $options: 'i' } },
+        { variantName: { $regex: query.q, $options: 'i' } },
       ];
     }
 
@@ -209,8 +211,17 @@ export class SearchService {
     if (query.brandId) {
       filter.brandId = new Types.ObjectId(query.brandId);
     }
+    if (query.vehicleBrandId) {
+      filter.vehicleBrandId = new Types.ObjectId(query.vehicleBrandId);
+    }
+    if (query.modelId) {
+      filter.modelId = new Types.ObjectId(query.modelId);
+    }
     if (query.modelName) {
       filter.modelName = { $regex: new RegExp(`^${query.modelName}$`, 'i') };
+    }
+    if (query.variantId) {
+      filter.variantId = new Types.ObjectId(query.variantId);
     }
 
     // Dynamic category attribute filters
@@ -356,7 +367,14 @@ export class SearchService {
       must.push({
         multi_match: {
           query: query.q,
-          fields: ['title^3', 'description'],
+          fields: [
+            'title^3',
+            'description',
+            'brandName^2',
+            'vehicleBrandName^2',
+            'modelName^2',
+            'variantName',
+          ],
           type: 'best_fields',
           fuzziness: 'AUTO',
         },
@@ -445,6 +463,25 @@ export class SearchService {
           },
         },
       });
+    }
+
+    // Brand / Model / Variant filters
+    if (query.brandId) {
+      filter.push({ term: { brandId: query.brandId } });
+    }
+    if (query.vehicleBrandId) {
+      filter.push({ term: { vehicleBrandId: query.vehicleBrandId } });
+    }
+    if (query.modelId) {
+      filter.push({ term: { modelId: query.modelId } });
+    }
+    if (query.modelName) {
+      filter.push({
+        match_phrase_prefix: { modelName: query.modelName },
+      });
+    }
+    if (query.variantId) {
+      filter.push({ term: { variantId: query.variantId } });
     }
 
     return {

@@ -23,6 +23,7 @@ export class AdminLayoutComponent {
     { label: 'Moderation', icon: 'gavel', path: '/admin/moderation' },
     { label: 'Categories', icon: 'category', path: '/admin/categories' },
     { label: 'Brands', icon: 'branding_watermark', path: '/admin/brands' },
+    { label: 'Vehicles', icon: 'directions_car', path: '/admin/vehicles' },
     { label: 'Packages', icon: 'inventory_2', path: '/admin/packages' },
     { label: 'Payments', icon: 'payments', path: '/admin/payments' },
     { label: 'Locations', icon: 'location_on', path: '/admin/locations' },

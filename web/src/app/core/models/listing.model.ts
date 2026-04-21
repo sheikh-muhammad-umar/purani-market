@@ -50,7 +50,12 @@ export interface Listing {
   condition: ListingCondition;
   brandId?: string;
   brandName?: string;
+  vehicleBrandId?: string;
+  vehicleBrandName?: string;
+  modelId?: string;
   modelName?: string;
+  variantId?: string;
+  variantName?: string;
   categoryAttributes: Record<string, unknown>;
   selectedFeatures: string[];
   images: ListingImage[];

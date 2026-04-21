@@ -250,7 +250,23 @@ export class ListingsService {
         ? new Types.ObjectId(dto.brandId)
         : undefined;
     if (dto.brandName !== undefined) updateFields.brandName = dto.brandName;
+    if (dto.vehicleBrandId !== undefined)
+      updateFields.vehicleBrandId = dto.vehicleBrandId
+        ? new Types.ObjectId(dto.vehicleBrandId)
+        : undefined;
+    if (dto.vehicleBrandName !== undefined)
+      updateFields.vehicleBrandName = dto.vehicleBrandName;
+    if (dto.modelId !== undefined)
+      updateFields.modelId = dto.modelId
+        ? new Types.ObjectId(dto.modelId)
+        : undefined;
     if (dto.modelName !== undefined) updateFields.modelName = dto.modelName;
+    if (dto.variantId !== undefined)
+      updateFields.variantId = dto.variantId
+        ? new Types.ObjectId(dto.variantId)
+        : undefined;
+    if (dto.variantName !== undefined)
+      updateFields.variantName = dto.variantName;
     if (dto.categoryAttributes !== undefined) {
       updateFields.categoryAttributes = new Map(
         Object.entries(dto.categoryAttributes),
@@ -472,7 +488,14 @@ export class ListingsService {
       condition: dto.condition,
       brandId: dto.brandId ? new Types.ObjectId(dto.brandId) : undefined,
       brandName: dto.brandName,
+      vehicleBrandId: dto.vehicleBrandId
+        ? new Types.ObjectId(dto.vehicleBrandId)
+        : undefined,
+      vehicleBrandName: dto.vehicleBrandName,
+      modelId: dto.modelId ? new Types.ObjectId(dto.modelId) : undefined,
       modelName: dto.modelName,
+      variantId: dto.variantId ? new Types.ObjectId(dto.variantId) : undefined,
+      variantName: dto.variantName,
       categoryAttributes: dto.categoryAttributes
         ? new Map(Object.entries(dto.categoryAttributes))
         : new Map(),

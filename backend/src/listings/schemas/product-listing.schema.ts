@@ -129,8 +129,23 @@ export class ProductListing {
   @Prop({ type: String })
   brandName?: string;
 
+  @Prop({ type: Types.ObjectId, ref: 'VehicleBrand' })
+  vehicleBrandId?: Types.ObjectId;
+
+  @Prop({ type: String })
+  vehicleBrandName?: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'VehicleModel' })
+  modelId?: Types.ObjectId;
+
   @Prop({ type: String })
   modelName?: string;
+
+  @Prop({ type: Types.ObjectId, ref: 'VehicleVariant' })
+  variantId?: Types.ObjectId;
+
+  @Prop({ type: String })
+  variantName?: string;
 
   @Prop({
     type: MongooseSchema.Types.Map,
@@ -215,3 +230,6 @@ ProductListingSchema.index({ 'location.cityId': 1 });
 ProductListingSchema.index({ 'location.provinceId': 1 });
 ProductListingSchema.index({ 'location.cityId': 1, 'location.areaId': 1 });
 ProductListingSchema.index({ brandId: 1 });
+ProductListingSchema.index({ vehicleBrandId: 1 });
+ProductListingSchema.index({ modelId: 1 });
+ProductListingSchema.index({ vehicleBrandId: 1, modelId: 1 });

@@ -31,6 +31,14 @@ export interface ListingDocument {
   status: string;
   sellerId: string;
   createdAt: Date;
+  brandId?: string;
+  brandName?: string;
+  vehicleBrandId?: string;
+  vehicleBrandName?: string;
+  modelId?: string;
+  modelName?: string;
+  variantId?: string;
+  variantName?: string;
 }
 
 @Injectable()
@@ -184,6 +192,14 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
       status: doc.status,
       sellerId: doc.sellerId?.toString(),
       createdAt: doc.createdAt,
+      brandId: doc.brandId?.toString(),
+      brandName: doc.brandName,
+      vehicleBrandId: doc.vehicleBrandId?.toString(),
+      vehicleBrandName: doc.vehicleBrandName,
+      modelId: doc.modelId?.toString(),
+      modelName: doc.modelName,
+      variantId: doc.variantId?.toString(),
+      variantName: doc.variantName,
     };
 
     if (doc.location?.coordinates?.length === 2) {

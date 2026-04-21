@@ -1,0 +1,417 @@
+<div class="vm-page">
+  <div class="page-header">
+    <h1>Vehicle Management</h1>
+    <p class="page-subtitle">Manage brands, models, and variants for cars and bikes</p>
+  </div>
+
+  <!-- Vehicle Type Toggle -->
+  <div class="vm-type-toggle">
+    <button
+      class="vm-type-btn"
+      [class.active]="vehicleType === 'car'"
+      (click)="switchVehicleType('car')"
+    >
+      <span class="material-symbols-rounded">directions_car</span> Cars
+    </button>
+    <button
+      class="vm-type-btn"
+      [class.active]="vehicleType === 'bike'"
+      (click)="switchVehicleType('bike')"
+    >
+      <span class="material-symbols-rounded">two_wheeler</span> Bikes
+    </button>
+  </div>
+
+  <!-- Tabs -->
+  <div class="vm-tabs">
+    <button class="vm-tab" [class.active]="activeTab === 'brands'" (click)="activeTab = 'brands'">
+      Brands <span class="vm-tab-count">{{ brands().length }}</span>
+    </button>
+    <button class="vm-tab" [class.active]="activeTab === 'models'" (click)="activeTab = 'models'">
+      Models
+    </button>
+    <button
+      class="vm-tab"
+      [class.active]="activeTab === 'variants'"
+      (click)="activeTab = 'variants'"
+    >
+      Variants
+    </button>
+  </div>
+
+  <!-- ═══ Brands Tab ═══ -->
+  @if (activeTab === 'brands') {
+    <div class="bm-toolbar">
+      <div class="bm-search">
+        <input type="text" placeholder="Search brands..." [(ngModel)]="brandSearch" />
+      </div>
+      <span class="bm-count">{{ brands().length }} brands</span>
+      <button class="btn-add" (click)="startAddBrand()">
+        <span class="material-symbols-rounded" style="font-size: 16px">add</span> Add Brand
+      </button>
+    </div>
+
+    @if (showAddBrand) {
+      <div class="bm-form">
+        <input
+          type="text"
+          class="bm-input"
+          placeholder="Brand name..."
+          [(ngModel)]="newBrandName"
+          (keyup.enter)="saveNewBrand()"
+          autofocus
+        />
+        <div class="bm-form-actions">
+          <button
+            class="btn-save"
+            [disabled]="saving() || !newBrandName.trim()"
+            (click)="saveNewBrand()"
+          >
+            Save
+          </button>
+          <button class="btn-cancel" (click)="cancelAddBrand()">Cancel</button>
+        </div>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="loading-state"><div class="spinner"></div></div>
+    }
+
+    @if (!loading()) {
+      <div class="bm-grid">
+        @for (brand of filteredBrands; track brand._id) {
+          <div class="bm-row" [class.inactive]="!brand.isActive">
+            @if (editingBrandId === brand._id) {
+              <input
+                type="text"
+                class="bm-edit-input"
+                [(ngModel)]="editBrandName"
+                (keyup.enter)="saveEditBrand()"
+                (keyup.escape)="cancelEditBrand()"
+                autofocus
+              />
+              <button class="bm-icon-btn save" (click)="saveEditBrand()" [disabled]="saving()">
+                <span class="material-symbols-rounded">check</span>
+              </button>
+              <button class="bm-icon-btn" (click)="cancelEditBrand()">
+                <span class="material-symbols-rounded">close</span>
+              </button>
+            } @else {
+              <span class="bm-row-name">{{ brand.name }}</span>
+              <div class="bm-row-actions">
+                <button
+                  class="bm-icon-btn"
+                  (click)="toggleBrandActive(brand)"
+                  [title]="brand.isActive ? 'Deactivate' : 'Activate'"
+                >
+                  <span class="material-symbols-rounded">{{
+                    brand.isActive ? 'toggle_on' : 'toggle_off'
+                  }}</span>
+                </button>
+                <button class="bm-icon-btn" (click)="startEditBrand(brand)" title="Edit">
+                  <span class="material-symbols-rounded">edit</span>
+                </button>
+                <button class="bm-icon-btn delete" (click)="deleteBrand(brand)" title="Delete">
+                  <span class="material-symbols-rounded">delete</span>
+                </button>
+              </div>
+            }
+          </div>
+        } @empty {
+          <div class="empty-state">
+            @if (brandSearch) {
+              No brands match "{{ brandSearch }}".
+            } @else {
+              No {{ vehicleType }} brands yet.
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- ═══ Models Tab ═══ -->
+  @if (activeTab === 'models') {
+    <div class="vm-select-group" style="max-width: 300px; margin-bottom: 16px">
+      <label>Brand</label>
+      <app-custom-select
+        [options]="brandOptions"
+        [(ngModel)]="selectedBrandId"
+        (ngModelChange)="selectBrand($event)"
+        placeholder="Select Brand"
+        [searchable]="true"
+      ></app-custom-select>
+    </div>
+
+    @if (!selectedBrandId) {
+      <div class="empty-state">Select a brand to manage its models.</div>
+    }
+
+    @if (selectedBrandId) {
+      <div class="bm-toolbar">
+        <div class="bm-search">
+          <input type="text" placeholder="Search models..." [(ngModel)]="modelSearch" />
+        </div>
+        <span class="bm-count">{{ models().length }} models</span>
+        <button class="btn-add" (click)="startAddModel()">
+          <span class="material-symbols-rounded" style="font-size: 16px">add</span> Add Model
+        </button>
+      </div>
+
+      @if (showAddModel) {
+        <div class="bm-form">
+          <input
+            type="text"
+            class="bm-input"
+            placeholder="Model name..."
+            [(ngModel)]="newModelName"
+            (keyup.enter)="saveNewModel()"
+            autofocus
+          />
+          <div class="bm-form-actions">
+            <button
+              class="btn-save"
+              [disabled]="saving() || !newModelName.trim()"
+              (click)="saveNewModel()"
+            >
+              Save
+            </button>
+            <button class="btn-cancel" (click)="cancelAddModel()">Cancel</button>
+          </div>
+        </div>
+      }
+
+      @if (loading()) {
+        <div class="loading-state"><div class="spinner"></div></div>
+      }
+
+      @if (!loading()) {
+        <div class="bm-grid">
+          @for (model of filteredModels; track model._id) {
+            <div class="bm-row" [class.inactive]="!model.isActive">
+              @if (editingModelId === model._id) {
+                <input
+                  type="text"
+                  class="bm-edit-input"
+                  [(ngModel)]="editModelName"
+                  (keyup.enter)="saveEditModel()"
+                  (keyup.escape)="cancelEditModel()"
+                  autofocus
+                />
+                <button class="bm-icon-btn save" (click)="saveEditModel()" [disabled]="saving()">
+                  <span class="material-symbols-rounded">check</span>
+                </button>
+                <button class="bm-icon-btn" (click)="cancelEditModel()">
+                  <span class="material-symbols-rounded">close</span>
+                </button>
+              } @else {
+                <span class="bm-row-name">{{ model.name }}</span>
+                <div class="bm-row-actions">
+                  <button
+                    class="bm-icon-btn"
+                    (click)="toggleModelActive(model)"
+                    [title]="model.isActive ? 'Deactivate' : 'Activate'"
+                  >
+                    <span class="material-symbols-rounded">{{
+                      model.isActive ? 'toggle_on' : 'toggle_off'
+                    }}</span>
+                  </button>
+                  <button class="bm-icon-btn" (click)="startEditModel(model)" title="Edit">
+                    <span class="material-symbols-rounded">edit</span>
+                  </button>
+                  <button class="bm-icon-btn delete" (click)="deleteModel(model)" title="Delete">
+                    <span class="material-symbols-rounded">delete</span>
+                  </button>
+                </div>
+              }
+            </div>
+          } @empty {
+            <div class="empty-state">
+              @if (modelSearch) {
+                No models match "{{ modelSearch }}".
+              } @else {
+                No models for {{ selectedBrandName }} yet.
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+  }
+
+  <!-- ═══ Variants Tab ═══ -->
+  @if (activeTab === 'variants') {
+    <div class="vm-selectors">
+      <div class="vm-select-group">
+        <label>Brand</label>
+        <app-custom-select
+          [options]="brandOptions"
+          [(ngModel)]="selectedBrandId"
+          (ngModelChange)="selectBrand($event)"
+          placeholder="Select Brand"
+          [searchable]="true"
+        ></app-custom-select>
+      </div>
+      @if (selectedBrandId) {
+        <div class="vm-select-group">
+          <label>Model</label>
+          <app-custom-select
+            [options]="modelOptions"
+            [(ngModel)]="selectedModelId"
+            (ngModelChange)="selectModel($event)"
+            placeholder="Select Model"
+            [searchable]="true"
+          ></app-custom-select>
+        </div>
+      }
+    </div>
+
+    @if (!selectedBrandId) {
+      <div class="empty-state">Select a brand and model to manage variants.</div>
+    }
+    @if (selectedBrandId && !selectedModelId) {
+      <div class="empty-state">Select a model to manage its variants.</div>
+    }
+
+    @if (selectedModelId) {
+      <div class="bm-toolbar">
+        <div class="bm-search">
+          <input type="text" placeholder="Search variants..." [(ngModel)]="variantSearch" />
+        </div>
+        <span class="bm-count">{{ variants().length }} variants</span>
+        <button class="btn-add" (click)="startAddVariant()">
+          <span class="material-symbols-rounded" style="font-size: 16px">add</span> Add Variant
+        </button>
+      </div>
+
+      @if (showAddVariant) {
+        <div class="bm-form">
+          <input
+            type="text"
+            class="bm-input"
+            placeholder="Variant name..."
+            [(ngModel)]="newVariantName"
+            (keyup.enter)="saveNewVariant()"
+            autofocus
+          />
+          <div class="bm-form-actions">
+            <button
+              class="btn-save"
+              [disabled]="saving() || !newVariantName.trim()"
+              (click)="saveNewVariant()"
+            >
+              Save
+            </button>
+            <button class="btn-cancel" (click)="cancelAddVariant()">Cancel</button>
+          </div>
+        </div>
+      }
+
+      @if (loading()) {
+        <div class="loading-state"><div class="spinner"></div></div>
+      }
+
+      @if (!loading()) {
+        <div class="bm-grid">
+          @for (variant of filteredVariants; track variant._id) {
+            <div class="bm-row" [class.inactive]="!variant.isActive">
+              @if (editingVariantId === variant._id) {
+                <input
+                  type="text"
+                  class="bm-edit-input"
+                  [(ngModel)]="editVariantName"
+                  (keyup.enter)="saveEditVariant()"
+                  (keyup.escape)="cancelEditVariant()"
+                  autofocus
+                />
+                <button class="bm-icon-btn save" (click)="saveEditVariant()" [disabled]="saving()">
+                  <span class="material-symbols-rounded">check</span>
+                </button>
+                <button class="bm-icon-btn" (click)="cancelEditVariant()">
+                  <span class="material-symbols-rounded">close</span>
+                </button>
+              } @else {
+                <span class="bm-row-name">{{ variant.name }}</span>
+                <div class="bm-row-actions">
+                  <button
+                    class="bm-icon-btn"
+                    (click)="toggleVariantActive(variant)"
+                    [title]="variant.isActive ? 'Deactivate' : 'Activate'"
+                  >
+                    <span class="material-symbols-rounded">{{
+                      variant.isActive ? 'toggle_on' : 'toggle_off'
+                    }}</span>
+                  </button>
+                  <button class="bm-icon-btn" (click)="startEditVariant(variant)" title="Edit">
+                    <span class="material-symbols-rounded">edit</span>
+                  </button>
+                  <button
+                    class="bm-icon-btn delete"
+                    (click)="deleteVariant(variant)"
+                    title="Delete"
+                  >
+                    <span class="material-symbols-rounded">delete</span>
+                  </button>
+                </div>
+              }
+            </div>
+          } @empty {
+            <div class="empty-state">
+              @if (variantSearch) {
+                No variants match "{{ variantSearch }}".
+              } @else {
+                No variants for {{ selectedModelName }} yet.
+              }
+            </div>
+          }
+        </div>
+      }
+    }
+  }
+</div>
+
+<!-- Delete Brand Modal -->
+@if (deletingBrandId) {
+  <div class="modal-overlay" (click)="cancelDeleteBrand()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-icon"><span class="material-symbols-rounded">warning</span></div>
+      <h3>Delete this brand?</h3>
+      <p>All models under this brand must be deleted first. This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cancelDeleteBrand()">Cancel</button>
+        <button class="btn-delete" (click)="confirmDeleteBrand()">Delete</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Model Modal -->
+@if (deletingModelId) {
+  <div class="modal-overlay" (click)="cancelDeleteModel()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-icon"><span class="material-symbols-rounded">warning</span></div>
+      <h3>Delete this model?</h3>
+      <p>All variants under this model must be deleted first. This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cancelDeleteModel()">Cancel</button>
+        <button class="btn-delete" (click)="confirmDeleteModel()">Delete</button>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- Delete Variant Modal -->
+@if (deletingVariantId) {
+  <div class="modal-overlay" (click)="cancelDeleteVariant()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-icon"><span class="material-symbols-rounded">warning</span></div>
+      <h3>Delete this variant?</h3>
+      <p>This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cancelDeleteVariant()">Cancel</button>
+        <button class="btn-delete" (click)="confirmDeleteVariant()">Delete</button>
+      </div>
+    </div>
+  </div>
+}

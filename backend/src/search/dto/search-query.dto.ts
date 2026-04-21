@@ -76,7 +76,19 @@ export class SearchQueryDto {
 
   @IsOptional()
   @IsString()
+  vehicleBrandId?: string;
+
+  @IsOptional()
+  @IsString()
+  modelId?: string;
+
+  @IsOptional()
+  @IsString()
   modelName?: string;
+
+  @IsOptional()
+  @IsString()
+  variantId?: string;
 
   @IsOptional()
   @Type(() => Number)

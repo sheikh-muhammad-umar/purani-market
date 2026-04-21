@@ -59,7 +59,27 @@ export class UpdateListingDto {
 
   @IsOptional()
   @IsString()
+  vehicleBrandId?: string;
+
+  @IsOptional()
+  @IsString()
+  vehicleBrandName?: string;
+
+  @IsOptional()
+  @IsString()
+  modelId?: string;
+
+  @IsOptional()
+  @IsString()
   modelName?: string;
+
+  @IsOptional()
+  @IsString()
+  variantId?: string;
+
+  @IsOptional()
+  @IsString()
+  variantName?: string;
 
   @IsObject()
   @IsOptional()

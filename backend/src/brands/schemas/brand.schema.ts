@@ -3,7 +3,7 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type BrandDocument = HydratedDocument<Brand>;
 
-@Schema({ timestamps: true, collection: 'brands' })
+@Schema({ timestamps: true, collection: 'mobile_brands' })
 export class Brand {
   _id!: Types.ObjectId;
 
