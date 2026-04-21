@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../../core/services/admin.service';
+import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
 
 interface RejectionReason {
   _id: string;
@@ -13,7 +14,7 @@ interface RejectionReason {
 @Component({
   selector: 'app-rejection-reasons',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, CustomSelectComponent],
   templateUrl: './rejection-reasons.component.html',
   styleUrl: './rejection-reasons.component.scss',
 })
@@ -35,8 +36,19 @@ export class RejectionReasonsComponent implements OnInit {
   // Search, filter, sort
   searchQuery = '';
   filterStatus = '';
-  sortCol: 'title' | '' = '';
-  sortDir: 'asc' | 'desc' = 'asc';
+  sortBy = 'default';
+
+  readonly statusOptions: SelectOption[] = [
+    { value: '', label: 'All' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+  ];
+
+  readonly sortOptions: SelectOption[] = [
+    { value: 'default', label: 'Default' },
+    { value: 'az', label: 'A → Z' },
+    { value: 'za', label: 'Z → A' },
+  ];
 
   constructor(private readonly adminService: AdminService) {}
 
@@ -61,28 +73,13 @@ export class RejectionReasonsComponent implements OnInit {
     }
 
     // Sort
-    if (this.sortCol) {
-      const dir = this.sortDir === 'asc' ? 1 : -1;
-      result = [...result].sort((a, b) => {
-        return (a.title || '').localeCompare(b.title || '') * dir;
-      });
+    if (this.sortBy === 'az') {
+      result = [...result].sort((a, b) => a.title.localeCompare(b.title));
+    } else if (this.sortBy === 'za') {
+      result = [...result].sort((a, b) => b.title.localeCompare(a.title));
     }
 
     return result;
-  }
-
-  sortBy(col: 'title'): void {
-    if (this.sortCol === col) {
-      this.sortDir = this.sortDir === 'asc' ? 'desc' : 'asc';
-    } else {
-      this.sortCol = col;
-      this.sortDir = 'asc';
-    }
-  }
-
-  sortIcon(col: string): string {
-    if (col !== this.sortCol) return 'unfold_more';
-    return this.sortDir === 'asc' ? 'expand_less' : 'expand_more';
   }
 
   loadReasons(): void {

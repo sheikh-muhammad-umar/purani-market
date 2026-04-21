@@ -18,17 +18,21 @@
   }
 
   <!-- Search / Filter / Sort Toolbar -->
-  <div class="rr-toolbar">
-    <input type="text" class="rr-search" placeholder="Search reasons..." [(ngModel)]="searchQuery" />
+  <div class="admin-toolbar">
+    <div class="admin-search">
+      <input type="text" placeholder="Search reasons..." [(ngModel)]="searchQuery" />
+    </div>
     <div class="rr-toolbar-actions">
-      <select class="rr-filter-select" [(ngModel)]="filterStatus">
-        <option value="">All</option>
-        <option value="active">Active</option>
-        <option value="inactive">Inactive</option>
-      </select>
-      <button class="sort-btn" [class.active]="sortCol === 'title'" (click)="sortBy('title')">
-        A-Z <span class="material-symbols-rounded sort-icon">{{ sortIcon('title') }}</span>
-      </button>
+      <app-custom-select
+        [options]="statusOptions"
+        [(ngModel)]="filterStatus"
+        placeholder="All"
+      ></app-custom-select>
+      <app-custom-select
+        [options]="sortOptions"
+        [(ngModel)]="sortBy"
+        placeholder="Sort"
+      ></app-custom-select>
     </div>
   </div>
 

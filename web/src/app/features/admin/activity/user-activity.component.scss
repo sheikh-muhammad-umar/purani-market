@@ -390,8 +390,8 @@
 
 /* Responsive */
 @media (max-width: 768px) {
-  .toolbar { flex-direction: column; align-items: stretch; }
-  .search-box { max-width: 100%; }
+  .toolbar { flex-wrap: wrap; }
+  .search-box { max-width: 100%; flex: 1 1 100%; }
   .sort-wrap { min-width: 0; }
   .filters-grid { grid-template-columns: repeat(2, 1fr); }
   .activity-row { flex-wrap: wrap; }

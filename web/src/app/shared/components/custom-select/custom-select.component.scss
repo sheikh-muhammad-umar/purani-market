@@ -44,7 +44,8 @@
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
-  right: 0;
+  min-width: 100%;
+  width: max-content;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -52,6 +53,7 @@
   z-index: 50;
   max-height: 220px;
   overflow-y: auto;
+  overflow-x: hidden;
   scrollbar-width: thin;
   animation: csSlide 0.15s ease-out;
 }
@@ -73,6 +75,7 @@
   color: var(--text-primary);
   cursor: pointer;
   transition: background 0.1s;
+  white-space: nowrap;
 
   &:hover { background: var(--background); }
   &.cs-active { color: var(--primary); font-weight: 600; background: rgba(13, 165, 195, 0.06); }

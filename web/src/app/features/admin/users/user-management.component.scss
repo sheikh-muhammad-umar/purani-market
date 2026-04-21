@@ -384,8 +384,8 @@
 
 /* ── Responsive ──────────────────────────────────────── */
 @media (max-width: 768px) {
-  .filters-bar { flex-direction: column; align-items: stretch; }
-  .search-box { max-width: 100%; }
+  .filters-bar { flex-wrap: wrap; }
+  .search-box { max-width: 100%; flex: 1 1 100%; }
   .filters-grid { grid-template-columns: repeat(2, 1fr); }
   .user-cards { grid-template-columns: 1fr; }
   .page-header h1 { font-size: 20px; }
