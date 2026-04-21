@@ -1,8 +1,13 @@
-import { IsString, IsNotEmpty, MaxLength } from 'class-validator';
+import { IsString, IsOptional, IsArray, IsNotEmpty, MaxLength, ArrayMinSize } from 'class-validator';
 
 export class RejectListingDto {
+  @IsArray()
+  @ArrayMinSize(1)
+  @IsString({ each: true })
+  rejectionReasonIds!: string[];
+
+  @IsOptional()
   @IsString()
-  @IsNotEmpty()
   @MaxLength(2000)
-  rejectionReason!: string;
+  customNote?: string;
 }

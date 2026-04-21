@@ -39,6 +39,10 @@ export const ADMIN_ROUTES: Routes = [
         path: 'activity',
         loadComponent: () => import('./activity/user-activity.component').then(m => m.UserActivityComponent),
       },
+      {
+        path: 'rejection-reasons',
+        loadComponent: () => import('./rejection-reasons/rejection-reasons.component').then(m => m.RejectionReasonsComponent),
+      },
     ],
   },
 ];

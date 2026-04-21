@@ -25,6 +25,7 @@ export class AdminLayoutComponent {
     { label: 'Payments', icon: 'payments', path: '/admin/payments' },
     { label: 'Locations', icon: 'location_on', path: '/admin/locations' },
     { label: 'Activity', icon: 'timeline', path: '/admin/activity' },
+    { label: 'Rejection Reasons', icon: 'rule', path: '/admin/rejection-reasons' },
   ];
 
   sidebarCollapsed = false;

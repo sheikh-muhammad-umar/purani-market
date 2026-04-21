@@ -209,7 +209,26 @@ export class ListingsService {
     if (dto.contactInfo !== undefined) {
       updateFields.contactInfo = { phone: dto.contactInfo.phone, email: dto.contactInfo.email };
     }
+    if (dto.categoryId !== undefined) updateFields.categoryId = new Types.ObjectId(dto.categoryId);
+    if (dto.categoryPath !== undefined) updateFields.categoryPath = dto.categoryPath.map(id => new Types.ObjectId(id));
+    if (dto.selectedFeatures !== undefined) updateFields.selectedFeatures = dto.selectedFeatures;
     updateFields.updatedAt = new Date();
+
+    // If listing was rejected, auto-resubmit for review and clear rejection data
+    if (listing.status === ListingStatus.REJECTED) {
+      const rejCount = (listing as any).rejectionCount || 0;
+      if (rejCount >= 3) {
+        throw new BadRequestException(
+          'This listing has reached the maximum number of review attempts. Unfortunately, it cannot be resubmitted. You may delete it and create a new listing.',
+        );
+      }
+      updateFields.status = ListingStatus.PENDING_REVIEW;
+      updateFields.rejectionReason = undefined;
+      updateFields.rejectionReasonIds = [];
+      updateFields.rejectionNote = undefined;
+      updateFields.rejectedAt = undefined;
+    }
+
     const updated = await this.listingModel
       .findByIdAndUpdate(id, { $set: updateFields }, { new: true })
       .exec();
@@ -239,7 +258,7 @@ export class ListingsService {
   async softDelete(id: string, userId: string, userRole: string): Promise<ProductListingDocument> {
     const listing = await this.findById(id);
     const isOwner = listing.sellerId.toString() === userId;
-    const isAdmin = userRole === 'admin';
+    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
     if (!isOwner && !isAdmin) {
       throw new ForbiddenException('You are not authorized to delete this listing');
     }
@@ -256,6 +275,38 @@ export class ListingsService {
     }
     await this.userModel.updateOne({ _id: listing.sellerId }, { $inc: { activeAdCount: -1 } }).exec();
     this.removeFromEs(id);
+    return updated;
+  }
+
+  async resubmitForReview(id: string, sellerId: string): Promise<ProductListingDocument> {
+    const listing = await this.findById(id);
+    this.assertOwnership(listing, sellerId);
+    if (listing.status !== ListingStatus.REJECTED) {
+      throw new BadRequestException('Only rejected listings can be resubmitted for review');
+    }
+    const rejCount = (listing as any).rejectionCount || 0;
+    if (rejCount >= 3) {
+      throw new BadRequestException(
+        'This listing has reached the maximum number of review attempts. Unfortunately, it cannot be resubmitted. You may delete it and create a new listing.',
+      );
+    }
+    const updated = await this.listingModel
+      .findByIdAndUpdate(id, {
+        $set: {
+          status: ListingStatus.PENDING_REVIEW,
+          updatedAt: new Date(),
+        },
+        $unset: {
+          rejectionReason: '',
+          rejectionReasonIds: '',
+          rejectionNote: '',
+          rejectedAt: '',
+        },
+      }, { new: true })
+      .exec();
+    if (!updated) {
+      throw new NotFoundException('Listing not found');
+    }
     return updated;
   }
 
@@ -320,6 +371,19 @@ export class ListingsService {
     } catch (err) {
       this.logger.warn(`Failed to remove listing ${listingId} from ES: ${(err as Error).message}`);
     }
+  }
+
+  async getSellerVerification(sellerId: string): Promise<{ emailVerified: boolean; phoneVerified: boolean; idVerified: boolean; activeAdsCount: number }> {
+    const [user, activeAdsCount] = await Promise.all([
+      this.userModel.findById(sellerId).select('emailVerified phoneVerified idVerified').lean().exec(),
+      this.listingModel.countDocuments({ sellerId: new Types.ObjectId(sellerId), status: ListingStatus.ACTIVE }).exec(),
+    ]);
+    return {
+      emailVerified: user?.emailVerified ?? false,
+      phoneVerified: user?.phoneVerified ?? false,
+      idVerified: (user as any)?.idVerified ?? false,
+      activeAdsCount,
+    };
   }
 
   private assertOwnership(listing: ProductListingDocument, sellerId: string): void {

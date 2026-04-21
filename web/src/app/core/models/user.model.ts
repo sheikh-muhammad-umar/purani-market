@@ -67,6 +67,7 @@ export interface User {
   profile: UserProfile;
   emailVerified: boolean;
   phoneVerified: boolean;
+  idVerified: boolean;
   pendingEmailChange?: PendingEmailChange;
   pendingPhoneChange?: PendingPhoneChange;
   verificationChangeCount?: VerificationChangeCount;

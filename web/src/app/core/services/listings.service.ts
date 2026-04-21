@@ -137,4 +137,8 @@ export class ListingsService {
   updateStatus(id: string, status: string): Observable<Listing> {
     return this.api.patch<Listing>(`/listings/${id}/status`, { status });
   }
+
+  resubmitForReview(id: string): Observable<Listing> {
+    return this.api.post<Listing>(`/listings/${id}/resubmit`, {});
+  }
 }

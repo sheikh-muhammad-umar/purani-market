@@ -55,9 +55,14 @@ export interface Listing {
   isFeatured: boolean;
   featuredUntil?: Date;
   rejectionReason?: string;
+  rejectionCount?: number;
   viewCount: number;
   favoriteCount: number;
   deletedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  sellerEmailVerified?: boolean;
+  sellerPhoneVerified?: boolean;
+  sellerIdVerified?: boolean;
+  sellerActiveAdsCount?: number;
 }

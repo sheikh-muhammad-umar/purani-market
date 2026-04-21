@@ -265,7 +265,6 @@ export class EditListingComponent implements OnInit {
       categoryAttributes: catAttrs,
       selectedFeatures: this.selectedFeatures(),
       location: { city: loc.city, area: loc.area },
-      isFeatured: this.featureAd(),
     };
 
     this.listingsService.update(this.listingId, payload).subscribe({

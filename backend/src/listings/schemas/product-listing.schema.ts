@@ -164,6 +164,18 @@ export class ProductListing {
   @Prop({ type: String })
   rejectionReason?: string;
 
+  @Prop({ type: [Types.ObjectId], ref: 'RejectionReason', default: [] })
+  rejectionReasonIds?: Types.ObjectId[];
+
+  @Prop({ type: String })
+  rejectionNote?: string;
+
+  @Prop({ type: Date })
+  rejectedAt?: Date;
+
+  @Prop({ type: Number, default: 0 })
+  rejectionCount!: number;
+
   @Prop({ type: Number, default: 0 })
   viewCount!: number;
 

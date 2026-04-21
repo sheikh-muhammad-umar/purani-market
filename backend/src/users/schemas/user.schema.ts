@@ -215,6 +215,9 @@ export class User {
   @Prop({ type: Boolean, default: false })
   phoneVerified!: boolean;
 
+  @Prop({ type: Boolean, default: false })
+  idVerified!: boolean;
+
   @Prop({ type: PendingEmailChange })
   pendingEmailChange?: PendingEmailChange;
 

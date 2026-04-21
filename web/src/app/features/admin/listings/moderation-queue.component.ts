@@ -24,9 +24,11 @@ export class ModerationQueueComponent implements OnInit {
   readonly totalListings = signal(0);
   readonly actionLoading = signal<string | null>(null);
 
-  rejectionReasons: Record<string, string> = {};
   rejectingId: string | null = null;
   expandedId: string | null = null;
+  selectedRejectReasonIds: Record<string, string[]> = {};
+  rejectCustomNote: Record<string, string> = {};
+  availableReasons: { _id: string; title: string; description?: string }[] = [];
 
   // Sorting
   sortCol = '';
@@ -38,6 +40,7 @@ export class ModerationQueueComponent implements OnInit {
   filterCategory = '';
   filterDateFrom = '';
   filterDateTo = '';
+  filterReviewCount = '';
   filtersOpen = false;
 
   conditionOptions: SelectOption[] = [
@@ -45,6 +48,13 @@ export class ModerationQueueComponent implements OnInit {
     { value: 'new', label: 'New' },
     { value: 'used', label: 'Used' },
     { value: 'refurbished', label: 'Refurbished' },
+  ];
+
+  reviewCountOptions: SelectOption[] = [
+    { value: '', label: 'All' },
+    { value: '0', label: 'First review' },
+    { value: '1', label: 'Resubmitted (2nd)' },
+    { value: '2', label: 'Resubmitted (3rd)' },
   ];
 
   categoryOptions: SelectOption[] = [{ value: '', label: 'All Categories' }];
@@ -61,6 +71,13 @@ export class ModerationQueueComponent implements OnInit {
   ngOnInit(): void {
     this.loadPendingListings();
     this.loadCategories();
+    this.loadRejectionReasons();
+  }
+
+  loadRejectionReasons(): void {
+    this.adminService.getRejectionReasons().subscribe({
+      next: (reasons) => { this.availableReasons = reasons; },
+    });
   }
 
   loadCategories(): void {
@@ -111,22 +128,50 @@ export class ModerationQueueComponent implements OnInit {
 
   startReject(listing: PendingListing): void {
     this.rejectingId = listing._id;
+    this.expandedId = listing._id;
+    if (!this.selectedRejectReasonIds[listing._id]) {
+      this.selectedRejectReasonIds[listing._id] = [];
+    }
+    if (!this.rejectCustomNote[listing._id]) {
+      this.rejectCustomNote[listing._id] = '';
+    }
+    // Scroll to the reject form after DOM updates
+    setTimeout(() => {
+      const el = document.getElementById('reject-form-' + listing._id);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
   }
 
   cancelReject(): void {
     this.rejectingId = null;
   }
 
+  toggleRejectReason(listingId: string, reasonId: string): void {
+    const list = this.selectedRejectReasonIds[listingId] || [];
+    const idx = list.indexOf(reasonId);
+    if (idx >= 0) {
+      list.splice(idx, 1);
+    } else {
+      list.push(reasonId);
+    }
+    this.selectedRejectReasonIds[listingId] = [...list];
+  }
+
   confirmReject(listing: PendingListing): void {
-    const reason = (this.rejectionReasons[listing._id] || '').trim();
-    if (!reason) return;
+    const reasons = this.selectedRejectReasonIds[listing._id];
+    if (!reasons || reasons.length === 0) return;
     this.actionLoading.set(listing._id);
-    this.adminService.rejectListing(listing._id, reason).subscribe({
+    const payload = {
+      rejectionReasonIds: reasons,
+      customNote: (this.rejectCustomNote[listing._id] || '').trim() || undefined,
+    };
+    this.adminService.rejectListing(listing._id, payload).subscribe({
       next: () => {
         this.listings.update((list) => list.filter((l) => l._id !== listing._id));
         this.totalListings.update((t) => t - 1);
         this.rejectingId = null;
-        delete this.rejectionReasons[listing._id];
+        delete this.selectedRejectReasonIds[listing._id];
+        delete this.rejectCustomNote[listing._id];
         this.actionLoading.set(null);
       },
       error: () => {
@@ -187,11 +232,12 @@ export class ModerationQueueComponent implements OnInit {
     this.filterCategory = '';
     this.filterDateFrom = '';
     this.filterDateTo = '';
+    this.filterReviewCount = '';
     this.searchQuery = '';
   }
 
   get hasActiveFilters(): boolean {
-    return !!(this.filterCondition || this.filterCategory || this.filterDateFrom || this.filterDateTo || this.searchQuery);
+    return !!(this.filterCondition || this.filterCategory || this.filterDateFrom || this.filterDateTo || this.filterReviewCount || this.searchQuery);
   }
 
   get activeFilterCount(): number {
@@ -199,6 +245,7 @@ export class ModerationQueueComponent implements OnInit {
     if (this.filterCondition) count++;
     if (this.filterCategory) count++;
     if (this.filterDateFrom || this.filterDateTo) count++;
+    if (this.filterReviewCount) count++;
     if (this.searchQuery) count++;
     return count;
   }
@@ -234,6 +281,12 @@ export class ModerationQueueComponent implements OnInit {
     if (this.filterDateTo) {
       const to = new Date(this.filterDateTo + 'T23:59:59').getTime();
       result = result.filter(l => new Date(l.createdAt).getTime() <= to);
+    }
+
+    // Review count filter
+    if (this.filterReviewCount !== '') {
+      const count = parseInt(this.filterReviewCount, 10);
+      result = result.filter(l => (l.rejectionCount || 0) === count);
     }
 
     return result;

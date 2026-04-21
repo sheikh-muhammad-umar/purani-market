@@ -21,6 +21,10 @@ import {
   UserActivity,
   UserActivitySchema,
 } from '../ai/schemas/user-activity.schema.js';
+import {
+  RejectionReason,
+  RejectionReasonSchema,
+} from './schemas/rejection-reason.schema.js';
 
 @Module({
   imports: [
@@ -35,6 +39,7 @@ import {
       { name: Review.name, schema: ReviewSchema },
       { name: PackagePurchase.name, schema: PackagePurchaseSchema },
       { name: UserActivity.name, schema: UserActivitySchema },
+      { name: RejectionReason.name, schema: RejectionReasonSchema },
     ]),
   ],
   controllers: [AdminController],

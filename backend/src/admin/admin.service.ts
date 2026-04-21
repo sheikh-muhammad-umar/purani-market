@@ -127,6 +127,8 @@ export class AdminService {
     private readonly categoryModel: Model<any>,
     @InjectModel(UserActivity.name)
     private readonly activityModel: Model<UserActivityDocument>,
+    @InjectModel('RejectionReason')
+    private readonly rejectionReasonModel: Model<any>,
     private readonly authService: AuthService,
     private readonly notificationsService: NotificationsService,
   ) {}
@@ -405,28 +407,42 @@ export class AdminService {
 
   async rejectListing(
     listingId: string,
-    reason: string,
+    rejectionReasonIds: string[],
+    customNote?: string,
   ): Promise<ProductListingDocument> {
     const listing = await this.listingModel.findById(listingId).exec();
     if (!listing) {
       throw new NotFoundException('Listing not found');
     }
 
+    // Fetch reason titles for notification
+    const reasons = await this.rejectionReasonModel
+      .find({ _id: { $in: rejectionReasonIds.map(id => new Types.ObjectId(id)) } })
+      .lean()
+      .exec();
+    const reasonTitles = reasons.map((r: any) => r.title);
+
     listing.status = ListingStatus.REJECTED;
-    listing.rejectionReason = reason;
+    listing.rejectionReasonIds = rejectionReasonIds.map(id => new Types.ObjectId(id));
+    listing.rejectionNote = customNote || undefined;
+    listing.rejectionReason = reasonTitles.join(', ') + (customNote ? ` — ${customNote}` : '');
+    (listing as any).rejectedAt = new Date();
+    (listing as any).rejectionCount = ((listing as any).rejectionCount || 0) + 1;
     await listing.save();
 
-    // Notify the seller about the rejection
+    // Notify the seller
+    const reasonText = reasonTitles.join(', ') + (customNote ? `. Note: ${customNote}` : '');
     await this.notificationsService.sendToUser(
       listing.sellerId.toString(),
       'productUpdates',
       {
         title: 'Listing rejected',
-        body: `Your listing "${listing.title}" was rejected. Reason: ${reason}`,
+        body: `Your listing "${listing.title}" was rejected. Reasons: ${reasonText}`,
         data: {
           type: 'listing_rejected',
           listingId: listing._id.toString(),
-          reason,
+          reasons: reasonTitles.join(', '),
+          note: customNote || '',
         },
       },
     );
@@ -677,5 +693,27 @@ export class AdminService {
         categoryName: catMap.get(r._id?.toString()),
         listingCount: r.count,
       }));
+  }
+
+  // ── Rejection Reasons CRUD ──────────────────────────────────────
+
+  async getRejectionReasons(activeOnly = false): Promise<any[]> {
+    const filter = activeOnly ? { isActive: true } : {};
+    return this.rejectionReasonModel.find(filter).sort({ createdAt: 1 }).lean().exec();
+  }
+
+  async createRejectionReason(data: { title: string; description?: string; isActive?: boolean; sortOrder?: number }): Promise<any> {
+    return new this.rejectionReasonModel(data).save();
+  }
+
+  async updateRejectionReason(id: string, data: Partial<{ title: string; description: string; isActive: boolean; sortOrder: number }>): Promise<any> {
+    const reason = await this.rejectionReasonModel.findByIdAndUpdate(id, { $set: data }, { new: true }).exec();
+    if (!reason) throw new NotFoundException('Rejection reason not found');
+    return reason;
+  }
+
+  async deleteRejectionReason(id: string): Promise<void> {
+    const result = await this.rejectionReasonModel.findByIdAndDelete(id).exec();
+    if (!result) throw new NotFoundException('Rejection reason not found');
   }
 }

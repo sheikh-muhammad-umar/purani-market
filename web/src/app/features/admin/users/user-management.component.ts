@@ -11,12 +11,13 @@ import { UserRole as UserRoleEnum, UserStatus as UserStatusEnum } from '../../..
 import { ROLE_OPTIONS, ROLE_CHANGE_OPTIONS, STATUS_OPTIONS } from '../../../core/constants/select-options';
 import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { VerificationBadgesComponent } from '../../../shared/components/verification-badges/verification-badges.component';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent, DatePickerComponent],
+  imports: [CommonModule, FormsModule, CustomSelectComponent, DatePickerComponent, VerificationBadgesComponent],
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.scss'],
 })

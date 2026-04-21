@@ -43,6 +43,9 @@
             <button class="sort-btn" [class.active]="sortCol === 'title'" (click)="sortListings('title')">
               Title <span class="material-symbols-rounded sort-icon">{{ sortIcon('title') }}</span>
             </button>
+            <button class="sort-btn" [class.active]="sortCol === 'rejectionCount'" (click)="sortListings('rejectionCount')">
+              Reviews <span class="material-symbols-rounded sort-icon">{{ sortIcon('rejectionCount') }}</span>
+            </button>
           </div>
         </div>
 
@@ -74,6 +77,14 @@
               <div class="filter-group">
                 <label class="filter-label">To</label>
                 <app-date-picker [(ngModel)]="filterDateTo"></app-date-picker>
+              </div>
+              <div class="filter-group">
+                <label class="filter-label">Reviews</label>
+                <app-custom-select
+                  [options]="reviewCountOptions"
+                  [(ngModel)]="filterReviewCount"
+                  placeholder="All"
+                ></app-custom-select>
               </div>
             </div>
             @if (hasActiveFilters) {
@@ -111,11 +122,18 @@
                 <h3 class="listing-title">{{ listing.title }}</h3>
                 <span class="listing-price">{{ formatPrice(listing) }}</span>
               </div>
-              <div class="listing-meta">
-                <span class="meta-item"><span class="meta-label">Seller:</span> {{ listing.sellerName }}</span>
-                <span class="meta-item"><span class="meta-label">Category:</span> {{ listing.categoryName }}</span>
-                <span class="meta-item"><span class="condition-badge">{{ listing.condition }}</span></span>
-                <span class="meta-item"><span class="meta-label">Submitted:</span> {{ formatDate(listing.createdAt) }}</span>
+              <div class="listing-meta-grid">
+                <span class="meta-cell"><span class="meta-label">Seller</span><span class="meta-value">{{ listing.sellerName }}</span></span>
+                <span class="meta-cell"><span class="meta-label">Category</span><span class="meta-value">{{ listing.categoryName }}</span></span>
+                <span class="meta-cell"><span class="meta-label">Location</span><span class="meta-value">{{ listing.location?.area ? (listing.location?.area + ', ') : '' }}{{ listing.location?.city || '—' }}</span></span>
+                <span class="meta-cell"><span class="meta-label">Submitted</span><span class="meta-value">{{ formatDate(listing.createdAt) }}</span></span>
+                <span class="meta-cell"><span class="meta-label">Review</span><span class="meta-value">
+                  @if (listing.rejectionCount) {
+                    <span class="review-badge" [class.max-reviews]="listing.rejectionCount >= 3">#{{ listing.rejectionCount + 1 }}</span>
+                  } @else {
+                    <span class="review-badge">#1</span>
+                  }
+                </span></span>
               </div>
             </div>
             <button class="expand-btn" (click)="$event.stopPropagation(); toggleExpand(listing._id)">
@@ -208,10 +226,18 @@
                 }
 
                 @if (rejectingId === listing._id) {
-                  <div class="reject-form">
-                    <input type="text" class="reject-reason-input" placeholder="Enter rejection reason..." [(ngModel)]="rejectionReasons[listing._id]" (keyup.enter)="confirmReject(listing)" />
+                  <div class="reject-form" [id]="'reject-form-' + listing._id">
+                    <div class="reject-reasons-list">
+                      @for (reason of availableReasons; track reason._id) {
+                        <label class="reject-reason-item" [class.selected]="selectedRejectReasonIds[listing._id]?.includes(reason._id)">
+                          <input type="checkbox" [checked]="selectedRejectReasonIds[listing._id]?.includes(reason._id)" (change)="toggleRejectReason(listing._id, reason._id)" />
+                          <span>{{ reason.title }}</span>
+                        </label>
+                      }
+                    </div>
+                    <input type="text" class="reject-reason-input" placeholder="Additional note (optional)..." [(ngModel)]="rejectCustomNote[listing._id]" />
                     <div class="reject-buttons">
-                      <button class="btn-action btn-confirm-reject" [disabled]="actionLoading() === listing._id || !(rejectionReasons[listing._id] || '').trim()" (click)="confirmReject(listing)">Confirm</button>
+                      <button class="btn-action btn-confirm-reject" [disabled]="actionLoading() === listing._id || !(selectedRejectReasonIds[listing._id]?.length)" (click)="confirmReject(listing)">Reject</button>
                       <button class="btn-action btn-cancel" [disabled]="actionLoading() === listing._id" (click)="cancelReject()">Cancel</button>
                     </div>
                   </div>

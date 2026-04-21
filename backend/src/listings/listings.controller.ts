@@ -88,7 +88,17 @@ export class ListingsController {
     @CurrentUser('sub') userId?: string,
     @CurrentUser('role') userRole?: string,
   ) {
-    return this.listingsService.findByIdAndIncrementViews(id, userId, userRole);
+    const listing = await this.listingsService.findByIdAndIncrementViews(id, userId, userRole);
+    // Enrich with seller verification info
+    const seller = await this.listingsService.getSellerVerification(listing.sellerId.toString());
+    const obj = listing.toJSON();
+    return {
+      ...obj,
+      sellerEmailVerified: seller.emailVerified,
+      sellerPhoneVerified: seller.phoneVerified,
+      sellerIdVerified: seller.idVerified,
+      sellerActiveAdsCount: seller.activeAdsCount,
+    };
   }
 
   @Post()
@@ -118,6 +128,15 @@ export class ListingsController {
     @Body() dto: UpdateStatusDto,
   ) {
     return this.listingsService.updateStatus(id, sellerId, dto.status);
+  }
+
+  @Post(':id/resubmit')
+  @UseGuards(JwtAuthGuard)
+  async resubmitListing(
+    @Param('id') id: string,
+    @CurrentUser('sub') sellerId: string,
+  ) {
+    return this.listingsService.resubmitForReview(id, sellerId);
   }
 
   @Delete(':id')

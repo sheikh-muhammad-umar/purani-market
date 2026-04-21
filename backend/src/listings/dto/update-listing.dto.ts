@@ -36,6 +36,15 @@ export class UpdateListingDto {
   @IsOptional()
   price?: CreateListingPriceDto;
 
+  @IsString()
+  @IsOptional()
+  categoryId?: string;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  categoryPath?: string[];
+
   @IsEnum(ListingCondition)
   @IsOptional()
   condition?: ListingCondition;
@@ -43,6 +52,11 @@ export class UpdateListingDto {
   @IsObject()
   @IsOptional()
   categoryAttributes?: Record<string, any>;
+
+  @IsArray()
+  @IsString({ each: true })
+  @IsOptional()
+  selectedFeatures?: string[];
 
   @IsArray()
   @ValidateNested({ each: true })

@@ -230,12 +230,23 @@
                 <span class="seller-rating">⭐ {{ averageRating().toFixed(1) }} ({{ totalReviews() }} reviews)</span>
               }
               <span class="seller-since">Member since {{ sellerMemberSince() }}</span>
+              <app-verification-badges
+                [emailVerified]="listing()?.sellerEmailVerified ?? false"
+                [phoneVerified]="listing()?.sellerPhoneVerified ?? false"
+                [idVerified]="listing()?.sellerIdVerified ?? false"
+                [compact]="true"
+              ></app-verification-badges>
             </div>
           </div>
           <div class="seller-stats-grid">
+            <div class="stat-row"><span class="stat-label">Active Ads</span><span class="stat-value">{{ listing()?.sellerActiveAdsCount ?? 0 }}</span></div>
             <div class="stat-row"><span class="stat-label">Response Rate</span><span class="stat-value">100%</span></div>
             <div class="stat-row"><span class="stat-label">Response Time</span><span class="stat-value">{{ sellerResponseTime() }}</span></div>
           </div>
+          <a class="view-profile-btn" [routerLink]="'/seller/' + listing()?.sellerId">
+            View all ads from this seller
+            <span class="material-symbols-rounded" style="font-size:16px;">arrow_forward</span>
+          </a>
         </div>
       </div>
     </div>

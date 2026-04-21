@@ -15,6 +15,7 @@ export interface AdminUser {
   status: UserStatus;
   emailVerified?: boolean;
   phoneVerified?: boolean;
+  idVerified?: boolean;
   profile: {
     firstName: string;
     lastName: string;
@@ -112,6 +113,7 @@ export interface PendingListing {
   selectedFeatures?: string[];
   location?: { city?: string; area?: string };
   contactInfo?: { phone?: string; email?: string };
+  rejectionCount?: number;
 }
 
 export interface PendingListingsResponse {
@@ -254,6 +256,26 @@ export class AdminService {
     return this.http.patch<any>(`${this.baseUrl}/admin/users/${userId}/permissions`, { permissions });
   }
 
+  // ── Rejection Reasons ──────────────────────────────────────────
+  getRejectionReasons(all = false): Observable<any[]> {
+    const params = all ? '?all=true' : '';
+    return this.http.get<any>(`${this.baseUrl}/admin/rejection-reasons${params}`).pipe(
+      map(res => (res && res.data && res.statusCode) ? res.data : res),
+    );
+  }
+
+  createRejectionReason(data: { title: string; description?: string }): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/admin/rejection-reasons`, data);
+  }
+
+  updateRejectionReason(id: string, data: { title?: string; description?: string; isActive?: boolean }): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}/admin/rejection-reasons/${id}`, data);
+  }
+
+  deleteRejectionReason(id: string): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/admin/rejection-reasons/${id}`);
+  }
+
   getPendingListings(): Observable<PendingListingsResponse> {
     return this.http.get<PendingListingsResponse>(`${this.baseUrl}/admin/listings/pending`);
   }
@@ -262,8 +284,8 @@ export class AdminService {
     return this.http.patch<void>(`${this.baseUrl}/admin/listings/${id}/approve`, {});
   }
 
-  rejectListing(id: string, reason: string): Observable<void> {
-    return this.http.patch<void>(`${this.baseUrl}/admin/listings/${id}/reject`, { reason });
+  rejectListing(id: string, payload: { rejectionReasonIds: string[]; customNote?: string }): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}/admin/listings/${id}/reject`, payload);
   }
 
   // --- Package Management ---

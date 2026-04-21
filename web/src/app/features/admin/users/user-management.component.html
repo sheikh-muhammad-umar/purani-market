@@ -86,20 +86,13 @@
             </div>
           </div>
 
-          <!-- Verification & Last seen -->
+          <!-- Verification badges -->
           <div class="uc-meta">
-            <span class="uc-meta-item">
-              <span class="material-symbols-rounded uc-meta-icon" [class.verified]="user.emailVerified" [class.unverified]="!user.emailVerified">
-                {{ user.emailVerified ? 'verified' : 'cancel' }}
-              </span>
-              Email {{ user.emailVerified ? 'verified' : 'not verified' }}
-            </span>
-            <span class="uc-meta-item">
-              <span class="material-symbols-rounded uc-meta-icon" [class.verified]="user.phoneVerified" [class.unverified]="!user.phoneVerified">
-                {{ user.phoneVerified ? 'verified' : 'cancel' }}
-              </span>
-              Phone {{ user.phoneVerified ? 'verified' : 'not verified' }}
-            </span>
+            <app-verification-badges
+              [emailVerified]="user.emailVerified ?? false"
+              [phoneVerified]="user.phoneVerified ?? false"
+              [idVerified]="user.idVerified ?? false"
+            ></app-verification-badges>
             <span class="uc-meta-item">
               <span class="material-symbols-rounded uc-meta-icon">schedule</span>
               {{ user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Never logged in' }}

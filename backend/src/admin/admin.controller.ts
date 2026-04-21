@@ -1,7 +1,9 @@
 import {
   Controller,
   Get,
+  Post,
   Patch,
+  Delete,
   Param,
   Query,
   Body,
@@ -22,6 +24,8 @@ import { UpdateUserRoleDto } from './dto/update-user-role.dto.js';
 import { UpdateAdLimitDto } from './dto/update-ad-limit.dto.js';
 import { RejectListingDto } from './dto/reject-listing.dto.js';
 import { UpdatePermissionsDto } from './dto/update-permissions.dto.js';
+import { CreateRejectionReasonDto } from './dto/create-rejection-reason.dto.js';
+import { UpdateRejectionReasonDto } from './dto/update-rejection-reason.dto.js';
 import { ListPurchasesQueryDto } from './dto/list-purchases-query.dto.js';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto.js';
 
@@ -147,8 +151,8 @@ export class AdminController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
-    const listing = await this.adminService.rejectListing(id, dto.rejectionReason);
-    this.tracker.track(adminId, UserAction.ADMIN_LISTING_REJECT, { listingId: id, title: listing.title, reason: dto.rejectionReason }, req);
+    const listing = await this.adminService.rejectListing(id, dto.rejectionReasonIds, dto.customNote);
+    this.tracker.track(adminId, UserAction.ADMIN_LISTING_REJECT, { listingId: id, title: listing.title, reasons: dto.rejectionReasonIds, note: dto.customNote }, req);
     return { message: 'Listing rejected', listingId: listing._id, status: listing.status, rejectionReason: listing.rejectionReason };
   }
 
@@ -187,6 +191,50 @@ export class AdminController {
   @Get('sellers/:id/ad-info')
   async getSellerAdInfo(@Param('id') id: string) {
     return this.adminService.getSellerAdInfo(id);
+  }
+
+  // ── Rejection Reasons (super_admin CRUD, admin read) ──────────
+
+  @Get('rejection-reasons')
+  async getRejectionReasons(@Query('all') all?: string) {
+    return this.adminService.getRejectionReasons(all !== 'true');
+  }
+
+  @Post('rejection-reasons')
+  @Roles(UserRole.SUPER_ADMIN)
+  async createRejectionReason(
+    @Body() dto: CreateRejectionReasonDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
+    const reason = await this.adminService.createRejectionReason(dto);
+    this.tracker.track(adminId, UserAction.ADMIN_REJECTION_REASON_CREATE, { title: dto.title }, req);
+    return reason;
+  }
+
+  @Patch('rejection-reasons/:id')
+  @Roles(UserRole.SUPER_ADMIN)
+  async updateRejectionReason(
+    @Param('id') id: string,
+    @Body() dto: UpdateRejectionReasonDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
+    const reason = await this.adminService.updateRejectionReason(id, dto);
+    this.tracker.track(adminId, UserAction.ADMIN_REJECTION_REASON_UPDATE, { id, changes: Object.keys(dto).join(', ') }, req);
+    return reason;
+  }
+
+  @Delete('rejection-reasons/:id')
+  @Roles(UserRole.SUPER_ADMIN)
+  async deleteRejectionReason(
+    @Param('id') id: string,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
+    await this.adminService.deleteRejectionReason(id);
+    this.tracker.track(adminId, UserAction.ADMIN_REJECTION_REASON_DELETE, { id }, req);
+    return { deleted: true };
   }
 
   // ── Permission Management (super_admin or roles:manage) ──────────

@@ -1,0 +1,105 @@
+<div class="rr-page">
+  <div class="page-header">
+    <h1>Rejection Reasons</h1>
+    <button class="btn-add" (click)="startAdd()">
+      <span class="material-symbols-rounded" style="font-size:18px;">add</span> Add Reason
+    </button>
+  </div>
+
+  @if (showAddForm) {
+    <div class="rr-form">
+      <input type="text" class="rr-input" placeholder="Reason title..." [(ngModel)]="newTitle" (keyup.enter)="saveNew()" />
+      <input type="text" class="rr-input rr-input-desc" placeholder="Description (optional)..." [(ngModel)]="newDescription" />
+      <div class="rr-form-actions">
+        <button class="btn-save" [disabled]="saving() || !newTitle.trim()" (click)="saveNew()">Save</button>
+        <button class="btn-cancel" (click)="cancelAdd()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  <!-- Search / Filter / Sort Toolbar -->
+  <div class="rr-toolbar">
+    <input type="text" class="rr-search" placeholder="Search reasons..." [(ngModel)]="searchQuery" />
+    <div class="rr-toolbar-actions">
+      <select class="rr-filter-select" [(ngModel)]="filterStatus">
+        <option value="">All</option>
+        <option value="active">Active</option>
+        <option value="inactive">Inactive</option>
+      </select>
+      <button class="sort-btn" [class.active]="sortCol === 'title'" (click)="sortBy('title')">
+        A-Z <span class="material-symbols-rounded sort-icon">{{ sortIcon('title') }}</span>
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  }
+
+  @if (!loading()) {
+    <div class="rr-list">
+      @for (reason of filteredReasons; track reason._id) {
+        <div class="rr-item" [class.inactive]="!reason.isActive">
+          @if (editingId === reason._id) {
+            <div class="rr-edit-form">
+              <input type="text" class="rr-input" [(ngModel)]="editTitle" (keyup.enter)="saveEdit()" />
+              <input type="text" class="rr-input rr-input-desc" placeholder="Description..." [(ngModel)]="editDescription" />
+              <div class="rr-form-actions">
+                <button class="btn-save" [disabled]="saving() || !editTitle.trim()" (click)="saveEdit()">Save</button>
+                <button class="btn-cancel" (click)="cancelEdit()">Cancel</button>
+              </div>
+            </div>
+          } @else {
+            <div class="rr-content">
+              <div class="rr-text">
+                <span class="rr-title">{{ reason.title }}</span>
+                @if (reason.description) {
+                  <span class="rr-desc">{{ reason.description }}</span>
+                }
+                @if (!reason.isActive) {
+                  <span class="rr-inactive-badge">Inactive</span>
+                }
+              </div>
+              <div class="rr-actions">
+                <button class="rr-action-btn" (click)="toggleActive(reason)" [title]="reason.isActive ? 'Deactivate' : 'Activate'">
+                  <span class="material-symbols-rounded">{{ reason.isActive ? 'toggle_on' : 'toggle_off' }}</span>
+                </button>
+                <button class="rr-action-btn" (click)="startEdit(reason)" title="Edit">
+                  <span class="material-symbols-rounded">edit</span>
+                </button>
+                <button class="rr-action-btn rr-delete" (click)="deleteReason(reason)" title="Delete">
+                  <span class="material-symbols-rounded">delete</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      } @empty {
+        <div class="empty-state">
+          @if (searchQuery || filterStatus) {
+            No reasons match your search.
+          } @else {
+            No rejection reasons yet. Add one to get started.
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Delete Confirmation Modal -->
+@if (deletingId) {
+  <div class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-icon">
+        <span class="material-symbols-rounded">warning</span>
+      </div>
+      <h3>Delete Rejection Reason?</h3>
+      <p>This action cannot be undone. Listings previously rejected with this reason will keep their history.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cancelDelete()">Cancel</button>
+        <button class="btn-delete" (click)="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+}

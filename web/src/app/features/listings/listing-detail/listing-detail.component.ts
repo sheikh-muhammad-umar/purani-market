@@ -8,6 +8,7 @@ import { FavoritesService } from '../../../core/services/favorites.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LoginModalService } from '../../../shared/components/login-modal/login-modal.service';
 import { Listing, Review } from '../../../core/models';
+import { VerificationBadgesComponent } from '../../../shared/components/verification-badges/verification-badges.component';
 import { extractIdFromSlug } from '../../../core/utils/slug';
 import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
@@ -15,7 +16,7 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
 @Component({
   selector: 'app-listing-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, ListingUrlPipe],
+  imports: [CommonModule, RouterLink, ListingUrlPipe, VerificationBadgesComponent],
   templateUrl: './listing-detail.component.html',
   styleUrls: ['./listing-detail.component.scss'],
 })
