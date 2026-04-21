@@ -17,6 +17,10 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'listings',
+        loadComponent: () => import('./all-listings/all-listings.component').then(m => m.AllListingsComponent),
+      },
+      {
+        path: 'moderation',
         loadComponent: () => import('./listings/moderation-queue.component').then(m => m.ModerationQueueComponent),
       },
       {

@@ -395,6 +395,121 @@ export class AdminService {
     };
   }
 
+  async getAllListings(params: {
+    page?: number; limit?: number; search?: string; status?: string;
+    categoryId?: string; provinceId?: string; cityId?: string;
+    dateFrom?: string; dateTo?: string; sort?: string; order?: 'asc' | 'desc';
+    rejectionReason?: string; deletionReason?: string;
+  }): Promise<PaginatedListings> {
+    const { page = 1, limit = 20, search, status, categoryId, provinceId, cityId, dateFrom, dateTo, sort, order, rejectionReason, deletionReason } = params;
+    const skip = (page - 1) * limit;
+    const filter: Record<string, any> = {};
+
+    if (status) filter.status = status;
+    if (categoryId) filter.categoryId = new Types.ObjectId(categoryId);
+    if (provinceId) filter['location.provinceId'] = new Types.ObjectId(provinceId);
+    if (cityId) filter['location.cityId'] = new Types.ObjectId(cityId);
+    if (rejectionReason) filter.rejectionReason = new RegExp(rejectionReason, 'i');
+    if (deletionReason) filter.deletionReason = new RegExp(deletionReason, 'i');
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      filter.$or = [{ title: regex }, { description: regex }];
+    }
+    if (dateFrom || dateTo) {
+      filter.createdAt = {};
+      if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) filter.createdAt.$lte = new Date(dateTo + 'T23:59:59');
+    }
+
+    const sortObj: Record<string, 1 | -1> = {};
+    if (sort) {
+      sortObj[sort] = order === 'asc' ? 1 : -1;
+    } else {
+      sortObj.createdAt = -1;
+    }
+
+    const [listings, total] = await Promise.all([
+      this.listingModel
+        .find(filter)
+        .populate('sellerId', 'email profile')
+        .populate('categoryId', 'name')
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limit)
+        .lean()
+        .exec(),
+      this.listingModel.countDocuments(filter).exec(),
+    ]);
+
+    const enriched = listings.map((l: any) => ({
+      ...l,
+      sellerName: l.sellerId
+        ? `${l.sellerId.profile?.firstName || ''} ${l.sellerId.profile?.lastName || ''}`.trim() || l.sellerId.email
+        : 'Unknown',
+      sellerEmail: l.sellerId?.email || '',
+      categoryName: l.categoryId?.name || 'Unknown',
+      sellerId: l.sellerId?._id || l.sellerId,
+      categoryId: l.categoryId?._id || l.categoryId,
+    }));
+
+    return { data: enriched, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
+  async getDeletedListings(params: {
+    page?: number; limit?: number; search?: string; reason?: string;
+    dateFrom?: string; dateTo?: string; sort?: string; order?: 'asc' | 'desc';
+  }): Promise<PaginatedListings> {
+    const { page = 1, limit = 20, search, reason, dateFrom, dateTo, sort, order } = params;
+    const skip = (page - 1) * limit;
+    const filter: Record<string, any> = { status: ListingStatus.DELETED };
+
+    if (search) {
+      const regex = new RegExp(search, 'i');
+      filter.$or = [{ title: regex }, { description: regex }];
+    }
+    if (reason) {
+      filter.deletionReason = new RegExp(reason, 'i');
+    }
+    if (dateFrom || dateTo) {
+      filter.deletedAt = {};
+      if (dateFrom) filter.deletedAt.$gte = new Date(dateFrom);
+      if (dateTo) filter.deletedAt.$lte = new Date(dateTo + 'T23:59:59');
+    }
+
+    const sortObj: Record<string, 1 | -1> = {};
+    if (sort) {
+      sortObj[sort] = order === 'asc' ? 1 : -1;
+    } else {
+      sortObj.deletedAt = -1;
+    }
+
+    const [listings, total] = await Promise.all([
+      this.listingModel
+        .find(filter)
+        .populate('sellerId', 'email profile')
+        .populate('categoryId', 'name')
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limit)
+        .lean()
+        .exec(),
+      this.listingModel.countDocuments(filter).exec(),
+    ]);
+
+    const enriched = listings.map((l: any) => ({
+      ...l,
+      sellerName: l.sellerId
+        ? `${l.sellerId.profile?.firstName || ''} ${l.sellerId.profile?.lastName || ''}`.trim() || l.sellerId.email
+        : 'Unknown',
+      sellerEmail: l.sellerId?.email || '',
+      categoryName: l.categoryId?.name || 'Unknown',
+      sellerId: l.sellerId?._id || l.sellerId,
+      categoryId: l.categoryId?._id || l.categoryId,
+    }));
+
+    return { data: enriched, total, page, limit, totalPages: Math.ceil(total / limit) };
+  }
+
   async approveListing(listingId: string): Promise<ProductListingDocument> {
     const listing = await this.listingModel.findById(listingId).exec();
     if (!listing) {

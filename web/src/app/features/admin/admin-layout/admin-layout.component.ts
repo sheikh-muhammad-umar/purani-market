@@ -20,6 +20,7 @@ export class AdminLayoutComponent {
     { label: 'Dashboard', icon: 'dashboard', path: '/admin' },
     { label: 'Users', icon: 'group', path: '/admin/users' },
     { label: 'Listings', icon: 'list_alt', path: '/admin/listings' },
+    { label: 'Moderation', icon: 'gavel', path: '/admin/moderation' },
     { label: 'Categories', icon: 'category', path: '/admin/categories' },
     { label: 'Packages', icon: 'inventory_2', path: '/admin/packages' },
     { label: 'Payments', icon: 'payments', path: '/admin/payments' },

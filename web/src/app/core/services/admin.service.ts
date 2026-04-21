@@ -300,6 +300,49 @@ export class AdminService {
     return this.http.get<PendingListingsResponse>(`${this.baseUrl}/admin/listings/pending`);
   }
 
+  getAllListings(params: {
+    page?: number; limit?: number; search?: string; status?: string;
+    categoryId?: string; provinceId?: string; cityId?: string;
+    dateFrom?: string; dateTo?: string; sort?: string; order?: 'asc' | 'desc';
+    rejectionReason?: string; deletionReason?: string;
+  } = {}): Observable<any> {
+    let httpParams = new HttpParams();
+    if (params.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
+    if (params.search) httpParams = httpParams.set('search', params.search);
+    if (params.status) httpParams = httpParams.set('status', params.status);
+    if (params.categoryId) httpParams = httpParams.set('categoryId', params.categoryId);
+    if (params.provinceId) httpParams = httpParams.set('provinceId', params.provinceId);
+    if (params.cityId) httpParams = httpParams.set('cityId', params.cityId);
+    if (params.dateFrom) httpParams = httpParams.set('dateFrom', params.dateFrom);
+    if (params.dateTo) httpParams = httpParams.set('dateTo', params.dateTo);
+    if (params.sort) httpParams = httpParams.set('sort', params.sort);
+    if (params.order) httpParams = httpParams.set('order', params.order);
+    if (params.rejectionReason) httpParams = httpParams.set('rejectionReason', params.rejectionReason);
+    if (params.deletionReason) httpParams = httpParams.set('deletionReason', params.deletionReason);
+    return this.http.get<any>(`${this.baseUrl}/admin/listings/all`, { params: httpParams }).pipe(
+      map(res => (res && res.data && res.statusCode) ? res.data : res),
+    );
+  }
+
+  getDeletedListings(params: {
+    page?: number; limit?: number; search?: string; reason?: string;
+    dateFrom?: string; dateTo?: string; sort?: string; order?: 'asc' | 'desc';
+  } = {}): Observable<any> {
+    let httpParams = new HttpParams();
+    if (params.page) httpParams = httpParams.set('page', params.page.toString());
+    if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
+    if (params.search) httpParams = httpParams.set('search', params.search);
+    if (params.reason) httpParams = httpParams.set('reason', params.reason);
+    if (params.dateFrom) httpParams = httpParams.set('dateFrom', params.dateFrom);
+    if (params.dateTo) httpParams = httpParams.set('dateTo', params.dateTo);
+    if (params.sort) httpParams = httpParams.set('sort', params.sort);
+    if (params.order) httpParams = httpParams.set('order', params.order);
+    return this.http.get<any>(`${this.baseUrl}/admin/listings/deleted`, { params: httpParams }).pipe(
+      map(res => (res && res.data && res.statusCode) ? res.data : res),
+    );
+  }
+
   approveListing(id: string): Observable<void> {
     return this.http.patch<void>(`${this.baseUrl}/admin/listings/${id}/approve`, {});
   }
