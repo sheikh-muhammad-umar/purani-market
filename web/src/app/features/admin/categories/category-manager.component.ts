@@ -40,6 +40,7 @@ export class CategoryManagerComponent implements OnInit {
   // Add/Edit form
   formName = '';
   formSlug = '';
+  formIcon = '';
   formParentId = '';
   formIsActive = true;
   formHasBrands = false;
@@ -141,6 +142,7 @@ export class CategoryManagerComponent implements OnInit {
   openAddForm(parentId?: string): void {
     this.formName = '';
     this.formSlug = '';
+    this.formIcon = '';
     this.formParentId = parentId || '';
     this.formIsActive = true;
     this.formHasBrands = false;
@@ -168,6 +170,7 @@ export class CategoryManagerComponent implements OnInit {
     const payload: CreateCategoryPayload = {
       name: this.formName.trim(),
       slug: this.formSlug.trim(),
+      icon: this.formIcon.trim(),
       level,
       isActive: this.formIsActive,
       hasBrands: this.formHasBrands,
@@ -194,6 +197,7 @@ export class CategoryManagerComponent implements OnInit {
     this.selectedCategory.set(cat);
     this.formName = cat.name;
     this.formSlug = cat.slug;
+    this.formIcon = cat.icon || '';
     this.formIsActive = cat.isActive;
     this.formHasBrands = cat.hasBrands ?? false;
     this.activePanel = 'edit';
@@ -206,6 +210,7 @@ export class CategoryManagerComponent implements OnInit {
     const payload: UpdateCategoryPayload = {
       name: this.formName.trim(),
       slug: this.formSlug.trim(),
+      icon: this.formIcon.trim(),
       isActive: this.formIsActive,
       hasBrands: this.formHasBrands,
     };

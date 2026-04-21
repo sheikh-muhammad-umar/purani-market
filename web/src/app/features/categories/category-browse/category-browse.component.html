@@ -28,15 +28,7 @@
           (keydown.enter)="openCategoryModal(category)"
         >
           <div class="card-image-wrap">
-            <img
-              [src]="getCategoryImage(category.slug, category.name)"
-              [alt]="category.name"
-              loading="lazy"
-            />
-            <div class="card-overlay"></div>
-            <span class="card-icon" aria-hidden="true">{{
-              getCategoryIcon(category.slug, category.name)
-            }}</span>
+            <img [src]="getCategoryImage(category)" [alt]="category.name" loading="lazy" />
           </div>
           <div class="card-content">
             <h3 class="card-title">{{ category.name }}</h3>

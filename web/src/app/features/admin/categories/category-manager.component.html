@@ -68,6 +68,11 @@
               <input type="text" [(ngModel)]="formSlug" placeholder="category-slug" />
             </div>
             <div class="form-group">
+              <label>Icon filename <span class="required-star">*</span></label>
+              <input type="text" [(ngModel)]="formIcon" placeholder="e.g. mobiles.svg" required />
+              <span class="form-hint">Place icon file in /assets/category-icons/ on FE</span>
+            </div>
+            <div class="form-group">
               <label>Parent</label>
               <app-custom-select
                 [options]="parentOptions()"
@@ -83,7 +88,7 @@
               <button
                 class="btn-primary"
                 (click)="submitAdd()"
-                [disabled]="saving() || !formName.trim() || !formSlug.trim()"
+                [disabled]="saving() || !formName.trim() || !formSlug.trim() || !formIcon.trim()"
               >
                 {{ saving() ? 'Saving...' : 'Create' }}
               </button>
@@ -105,6 +110,11 @@
             <div class="form-group">
               <label>Slug</label>
               <input type="text" [(ngModel)]="formSlug" placeholder="category-slug" />
+            </div>
+            <div class="form-group">
+              <label>Icon filename <span class="required-star">*</span></label>
+              <input type="text" [(ngModel)]="formIcon" placeholder="e.g. mobiles.svg" required />
+              <span class="form-hint">Place icon file in /assets/category-icons/ on FE</span>
             </div>
             <div class="form-group checkbox-group">
               <label><input type="checkbox" [(ngModel)]="formIsActive" /> Active</label>
@@ -305,6 +315,9 @@
             <h3>{{ selectedCategory()!.name }}</h3>
             <div class="info-row">
               <span class="info-label">Slug:</span> {{ selectedCategory()!.slug }}
+            </div>
+            <div class="info-row">
+              <span class="info-label">Icon:</span> {{ selectedCategory()!.icon || '—' }}
             </div>
             <div class="info-row">
               <span class="info-label">Level:</span> {{ selectedCategory()!.level }}

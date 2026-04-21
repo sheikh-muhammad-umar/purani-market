@@ -75,26 +75,6 @@
   }
 }
 
-.card-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(to top, rgba(0, 0, 0, 0.4) 0%, transparent 60%);
-}
-
-.card-icon {
-  position: absolute;
-  top: var(--space-1);
-  right: var(--space-1);
-  font-size: var(--text-xl);
-  background: rgba(255, 255, 255, 0.9);
-  border-radius: var(--radius-full);
-  width: 40px;
-  height: 40px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
 .card-content {
   padding: var(--space-2);
 }

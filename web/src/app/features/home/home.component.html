@@ -30,9 +30,7 @@
       <div class="category-grid-browse">
         @for (chip of categoryChips(); track chip.id) {
           <button class="cat-card" (click)="openCategoryModal(chip)">
-            <div class="cat-icon-wrap">
-              <span class="cat-icon-text" aria-hidden="true">{{ chip.icon }}</span>
-            </div>
+            <img class="cat-card-icon" [src]="chip.iconUrl" [alt]="chip.name" loading="lazy" />
             <span class="cat-card-name">{{ chip.name }}</span>
           </button>
         }

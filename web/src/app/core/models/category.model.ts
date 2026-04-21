@@ -24,6 +24,7 @@ export interface Category {
   _id: string;
   name: string;
   slug: string;
+  icon?: string;
   parentId?: string;
   level: 1 | 2 | 3;
   attributes: CategoryAttribute[];

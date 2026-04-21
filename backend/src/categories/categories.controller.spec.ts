@@ -27,6 +27,7 @@ describe('CategoriesController', () => {
       _id: rootId,
       name: 'Electronics',
       slug: 'electronics',
+      icon: '',
       parentId: null,
       level: 1,
       isActive: true,
@@ -39,6 +40,7 @@ describe('CategoriesController', () => {
           _id: childId,
           name: 'Mobile Phones',
           slug: 'mobile-phones',
+          icon: '',
           parentId: rootId,
           level: 2,
           isActive: true,
@@ -56,6 +58,7 @@ describe('CategoriesController', () => {
     _id: childId,
     name: 'Mobile Phones',
     slug: 'mobile-phones',
+    icon: '',
     parentId: rootId,
     level: 2,
     attributes: [
@@ -118,7 +121,7 @@ describe('CategoriesController', () => {
 
   describe('POST /api/categories', () => {
     it('should create a new category', async () => {
-      const dto = { name: 'Vehicles' };
+      const dto = { name: 'Vehicles', icon: 'car' };
       const result = await controller.createCategory(dto, 'admin-id', {});
       expect(categoriesService.create).toHaveBeenCalledWith(dto);
       expect(result).toEqual(mockCategory);

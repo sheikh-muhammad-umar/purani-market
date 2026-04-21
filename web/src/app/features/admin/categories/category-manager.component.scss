@@ -778,3 +778,12 @@
     font-size: 12px;
   }
 }
+
+.required-star {
+  color: #e74c3c;
+}
+.form-hint {
+  font-size: 10px;
+  color: var(--text-muted);
+  margin-top: 2px;
+}

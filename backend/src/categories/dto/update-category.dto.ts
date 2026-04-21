@@ -19,6 +19,10 @@ export class UpdateCategoryDto {
   slug?: string;
 
   @IsOptional()
+  @IsString()
+  icon?: string;
+
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 

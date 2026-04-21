@@ -6,6 +6,7 @@ import { Category, CategoryAttribute } from '../models';
 export interface CreateCategoryPayload {
   name: string;
   slug: string;
+  icon: string;
   parentId?: string;
   level: 1 | 2 | 3;
   isActive: boolean;
@@ -16,6 +17,7 @@ export interface CreateCategoryPayload {
 export interface UpdateCategoryPayload {
   name?: string;
   slug?: string;
+  icon?: string;
   isActive?: boolean;
   hasBrands?: boolean;
   sortOrder?: number;

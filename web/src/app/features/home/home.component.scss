@@ -125,18 +125,11 @@
   }
 }
 
-.cat-icon-wrap {
+.cat-card-icon {
   width: 48px;
   height: 48px;
   border-radius: 12px;
-  background: var(--background);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.cat-icon-text {
-  font-size: 24px;
+  object-fit: cover;
 }
 
 .cat-card-name {
@@ -480,13 +473,9 @@
     padding: var(--space-1);
   }
 
-  .cat-icon-wrap {
+  .cat-card-icon {
     width: 40px;
     height: 40px;
-  }
-
-  .cat-icon-text {
-    font-size: 20px;
   }
   .cat-card-name {
     font-size: 10px;

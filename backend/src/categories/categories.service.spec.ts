@@ -173,7 +173,7 @@ describe('CategoriesService', () => {
 
   describe('create', () => {
     it('should create a root category with level 1', async () => {
-      const dto = { name: 'Vehicles' };
+      const dto = { name: 'Vehicles', icon: 'car' };
       const result = await service.create(dto);
 
       expect(result.name).toBe('Vehicles');
@@ -195,7 +195,11 @@ describe('CategoriesService', () => {
         exec: jest.fn().mockResolvedValue(parentDoc),
       });
 
-      const dto = { name: 'Laptops', parentId: rootId.toString() };
+      const dto = {
+        name: 'Laptops',
+        icon: 'laptop',
+        parentId: rootId.toString(),
+      };
       const result = await service.create(dto);
 
       expect(result.name).toBe('Laptops');
@@ -215,7 +219,11 @@ describe('CategoriesService', () => {
         exec: jest.fn().mockResolvedValue(level2Doc),
       });
 
-      const dto = { name: 'Smartphones', parentId: childId.toString() };
+      const dto = {
+        name: 'Smartphones',
+        icon: 'phone',
+        parentId: childId.toString(),
+      };
       const result = await service.create(dto);
 
       expect(result.name).toBe('Smartphones');
@@ -234,19 +242,23 @@ describe('CategoriesService', () => {
         exec: jest.fn().mockResolvedValue(level3Doc),
       });
 
-      const dto = { name: 'Budget Phones', parentId: grandchildId.toString() };
+      const dto = {
+        name: 'Budget Phones',
+        icon: 'phone',
+        parentId: grandchildId.toString(),
+      };
       await expect(service.create(dto)).rejects.toThrow(BadRequestException);
     });
 
     it('should auto-generate slug from name', async () => {
-      const dto = { name: 'Home & Garden' };
+      const dto = { name: 'Home & Garden', icon: 'home' };
       const result = await service.create(dto);
 
       expect(result.slug).toBe('home-garden');
     });
 
     it('should use provided slug when given', async () => {
-      const dto = { name: 'Home & Garden', slug: 'home-garden' };
+      const dto = { name: 'Home & Garden', icon: 'home', slug: 'home-garden' };
       const result = await service.create(dto);
 
       expect(result.slug).toBe('home-garden');

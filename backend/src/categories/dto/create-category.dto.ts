@@ -19,6 +19,9 @@ export class CreateCategoryDto {
   @MaxLength(120)
   slug?: string;
 
+  @IsString()
+  icon!: string;
+
   @IsOptional()
   @IsMongoId()
   parentId?: string;

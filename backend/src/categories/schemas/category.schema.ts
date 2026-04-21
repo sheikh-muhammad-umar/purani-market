@@ -54,6 +54,9 @@ export class Category {
   @Prop({ type: String, required: true, unique: true })
   slug!: string;
 
+  @Prop({ type: String, required: true, default: '' })
+  icon!: string;
+
   @Prop({ type: Types.ObjectId, ref: 'Category', default: null })
   parentId!: Types.ObjectId | null;
 

@@ -22,6 +22,7 @@ export interface CategoryTreeNode {
   _id: string;
   name: string;
   slug: string;
+  icon?: string;
   parentId: string | null;
   level: number;
   isActive: boolean;
@@ -90,6 +91,7 @@ export class CategoriesService {
     const category = new this.categoryModel({
       name: dto.name,
       slug,
+      icon: dto.icon || '',
       parentId: dto.parentId || null,
       level,
       isActive: dto.isActive ?? true,
@@ -108,6 +110,7 @@ export class CategoriesService {
     const category = await this.findById(id);
     if (dto.name !== undefined) category.name = dto.name;
     if (dto.slug !== undefined) category.slug = dto.slug;
+    if (dto.icon !== undefined) (category as any).icon = dto.icon;
     if (dto.isActive !== undefined) category.isActive = dto.isActive;
     if (dto.hasBrands !== undefined)
       (category as any).hasBrands = dto.hasBrands;
@@ -222,6 +225,7 @@ export class CategoriesService {
         _id: cat._id.toString(),
         name: cat.name,
         slug: cat.slug,
+        icon: cat.icon || '',
         parentId: cat.parentId ? cat.parentId.toString() : null,
         level: cat.level,
         isActive: cat.isActive,

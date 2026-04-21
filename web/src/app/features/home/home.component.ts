@@ -14,37 +14,9 @@ import { Category, Listing } from '../../core/models';
 interface CategoryChip {
   id: string;
   name: string;
-  icon: string;
+  iconUrl: string;
   slug: string;
 }
-
-const CATEGORY_ICONS: Record<string, string> = {
-  cars: '🚗',
-  vehicles: '🚗',
-  automobiles: '🚗',
-  phones: '📱',
-  mobiles: '📱',
-  'mobile phones': '📱',
-  electronics: '📱',
-  property: '🏠',
-  'real estate': '🏠',
-  houses: '🏠',
-  fashion: '👗',
-  clothing: '👗',
-  apparel: '👗',
-  furniture: '🪑',
-  'home & garden': '🪑',
-  jobs: '💼',
-  services: '🔧',
-  kids: '🧸',
-  'kids & baby': '🧸',
-  sports: '⚽',
-  'sports & hobbies': '⚽',
-  animals: '🐾',
-  pets: '🐾',
-  books: '📚',
-  education: '📚',
-};
 
 @Component({
   selector: 'app-home',
@@ -81,7 +53,7 @@ export class HomeComponent implements OnInit {
       .map((c) => ({
         id: c._id,
         name: c.name,
-        icon: this.getCategoryIcon(c.slug, c.name),
+        iconUrl: c.icon ? `assets/category-icons/${c.icon}` : 'assets/category-icons/default.jpg',
         slug: c.slug,
       })),
   );
@@ -98,14 +70,6 @@ export class HomeComponent implements OnInit {
     this.loadFeatured();
     this.loadRecommendations();
     this.loadNearby();
-  }
-
-  getCategoryIcon(slug: string, name: string): string {
-    const key = slug.toLowerCase();
-    if (CATEGORY_ICONS[key]) return CATEGORY_ICONS[key];
-    const nameKey = name.toLowerCase();
-    if (CATEGORY_ICONS[nameKey]) return CATEGORY_ICONS[nameKey];
-    return '📦';
   }
 
   getListingImage(listing: Listing): string {
