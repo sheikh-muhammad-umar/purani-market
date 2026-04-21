@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
+import { getRedisConnectionToken } from '@nestjs-modules/ioredis';
 import {
   NotFoundException,
   BadRequestException,
@@ -16,12 +17,14 @@ import { User } from '../users/schemas/user.schema';
 import { Category, AttributeType } from '../categories/schemas/category.schema';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { AllowedStatusTransition } from './dto/update-status.dto';
+import { SearchSyncService } from '../search/search-sync.service';
 
 describe('ListingsService', () => {
   let service: ListingsService;
   let mockListingModel: any;
   let mockUserModel: any;
   let mockCategoryModel: any;
+  let mockRedis: Record<string, jest.Mock>;
 
   const listingId = new Types.ObjectId();
   const sellerId = new Types.ObjectId();
@@ -178,6 +181,12 @@ describe('ListingsService', () => {
       }),
     };
 
+    mockRedis = {
+      set: jest.fn().mockResolvedValue('OK'),
+      get: jest.fn().mockResolvedValue(null),
+      del: jest.fn().mockResolvedValue(1),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ListingsService,
@@ -187,6 +196,13 @@ describe('ListingsService', () => {
         },
         { provide: getModelToken(User.name), useValue: mockUserModel },
         { provide: getModelToken(Category.name), useValue: mockCategoryModel },
+        { provide: getModelToken('Conversation'), useValue: {} },
+        { provide: getModelToken('Message'), useValue: {} },
+        {
+          provide: SearchSyncService,
+          useValue: { indexListing: jest.fn(), removeListing: jest.fn() },
+        },
+        { provide: getRedisConnectionToken(), useValue: mockRedis },
       ],
     }).compile();
 
@@ -244,20 +260,76 @@ describe('ListingsService', () => {
   });
 
   describe('findByIdAndIncrementViews', () => {
-    it('should increment viewCount and return listing', async () => {
-      const updatedListing = { ...mockListing, viewCount: 1 };
-      mockListingModel.findByIdAndUpdate.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(updatedListing),
+    const mockReq = {
+      headers: { 'user-agent': 'test-agent' },
+      ip: '127.0.0.1',
+    };
+
+    it('should increment viewCount on first view and return listing', async () => {
+      mockListingModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ ...mockListing }),
       });
+      mockListingModel.updateOne = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ modifiedCount: 1 }),
+      });
+      mockRedis.set.mockResolvedValue('OK'); // NX succeeds = new view
+
       const result = await service.findByIdAndIncrementViews(
         listingId.toString(),
+        undefined,
+        undefined,
+        mockReq,
       );
-      expect(mockListingModel.findByIdAndUpdate).toHaveBeenCalledWith(
-        listingId.toString(),
+
+      expect(mockRedis.set).toHaveBeenCalledWith(
+        expect.stringContaining(`view:${listingId.toString()}:`),
+        '1',
+        'EX',
+        1800,
+        'NX',
+      );
+      expect(mockListingModel.updateOne).toHaveBeenCalledWith(
+        { _id: listingId },
         { $inc: { viewCount: 1 } },
-        { new: true },
       );
-      expect(result).toBe(updatedListing);
+      expect(result.viewCount).toBe(1);
+    });
+
+    it('should NOT increment viewCount on repeat view within window', async () => {
+      mockListingModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ ...mockListing }),
+      });
+      mockListingModel.updateOne = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ modifiedCount: 1 }),
+      });
+      mockRedis.set.mockResolvedValue(null); // NX fails = already viewed
+
+      const result = await service.findByIdAndIncrementViews(
+        listingId.toString(),
+        undefined,
+        undefined,
+        mockReq,
+      );
+
+      expect(mockListingModel.updateOne).not.toHaveBeenCalled();
+      expect(result.viewCount).toBe(0);
+    });
+
+    it('should NOT increment viewCount for the listing owner', async () => {
+      mockListingModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ ...mockListing }),
+      });
+      mockListingModel.updateOne = jest.fn();
+
+      await service.findByIdAndIncrementViews(
+        listingId.toString(),
+        sellerId.toString(),
+        undefined,
+        mockReq,
+      );
+
+      expect(mockRedis.set).not.toHaveBeenCalled();
+      expect(mockListingModel.updateOne).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundException for invalid ObjectId', async () => {
@@ -267,7 +339,7 @@ describe('ListingsService', () => {
     });
 
     it('should throw NotFoundException when listing not found', async () => {
-      mockListingModel.findByIdAndUpdate.mockReturnValue({
+      mockListingModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       });
       await expect(

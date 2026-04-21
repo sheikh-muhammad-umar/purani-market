@@ -7,6 +7,9 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { InjectRedis } from '@nestjs-modules/ioredis';
+import Redis from 'ioredis';
+import { createHash } from 'crypto';
 import {
   ProductListing,
   ProductListingDocument,
@@ -55,6 +58,7 @@ export class ListingsService {
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
     private readonly searchSyncService: SearchSyncService,
+    @InjectRedis() private readonly redis: Redis,
   ) {}
 
   async findAll(
@@ -187,10 +191,13 @@ export class ListingsService {
     return listing;
   }
 
+  private static readonly VIEW_WINDOW_SECONDS = 1800; // 30 minutes
+
   async findByIdAndIncrementViews(
     id: string,
     requesterId?: string,
     requesterRole?: string,
+    req?: any,
   ): Promise<ProductListingDocument> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Listing not found');
@@ -218,15 +225,53 @@ export class ListingsService {
       throw new NotFoundException('Listing not found');
     }
 
-    // Increment views only for active listings
-    if (listing.status === ListingStatus.ACTIVE) {
-      await this.listingModel
-        .updateOne({ _id: listing._id }, { $inc: { viewCount: 1 } })
-        .exec();
-      listing.viewCount += 1;
+    // Increment views only for active listings, deduplicated per visitor
+    if (listing.status === ListingStatus.ACTIVE && !isOwner && !isAdmin) {
+      const visitorId = this.getVisitorId(requesterId, req);
+      const viewKey = `view:${id}:${visitorId}`;
+
+      try {
+        // SET NX = only set if key doesn't exist, EX = expire after window
+        const isNew = await this.redis.set(
+          viewKey,
+          '1',
+          'EX',
+          ListingsService.VIEW_WINDOW_SECONDS,
+          'NX',
+        );
+
+        if (isNew) {
+          await this.listingModel
+            .updateOne({ _id: listing._id }, { $inc: { viewCount: 1 } })
+            .exec();
+          listing.viewCount += 1;
+        }
+      } catch (err) {
+        // Redis failure shouldn't break the page — fall through without incrementing
+        this.logger.warn(
+          `View dedup failed for ${id}: ${(err as Error).message}`,
+        );
+      }
     }
 
     return listing;
+  }
+
+  private getVisitorId(userId?: string, req?: any): string {
+    // Logged-in user: use their ID
+    if (userId) return `u:${userId}`;
+
+    // Anonymous: hash IP + user-agent for a fingerprint
+    const ip =
+      req?.headers?.['x-forwarded-for']?.split(',')[0]?.trim() ||
+      req?.ip ||
+      'unknown';
+    const ua = req?.headers?.['user-agent'] || 'unknown';
+    const hash = createHash('sha256')
+      .update(`${ip}:${ua}`)
+      .digest('hex')
+      .slice(0, 16);
+    return `a:${hash}`;
   }
 
   async update(

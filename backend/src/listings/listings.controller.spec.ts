@@ -123,10 +123,19 @@ describe('ListingsController', () => {
 
   describe('getListingById', () => {
     it('should return a listing and increment views', async () => {
-      const result = await controller.getListingById(listingId.toString());
+      const mockReq = { headers: {}, ip: '127.0.0.1' };
+      const result = await controller.getListingById(
+        listingId.toString(),
+        mockReq,
+      );
       expect(
         mockListingsService.findByIdAndIncrementViews,
-      ).toHaveBeenCalledWith(listingId.toString());
+      ).toHaveBeenCalledWith(
+        listingId.toString(),
+        undefined,
+        undefined,
+        mockReq,
+      );
       expect(result.viewCount).toBe(11);
     });
 
@@ -134,8 +143,9 @@ describe('ListingsController', () => {
       mockListingsService.findByIdAndIncrementViews!.mockRejectedValue(
         new NotFoundException('Listing not found'),
       );
+      const mockReq = { headers: {}, ip: '127.0.0.1' };
       await expect(
-        controller.getListingById(new Types.ObjectId().toString()),
+        controller.getListingById(new Types.ObjectId().toString(), mockReq),
       ).rejects.toThrow(NotFoundException);
     });
   });

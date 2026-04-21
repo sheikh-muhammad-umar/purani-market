@@ -7,6 +7,7 @@ import {
   Param,
   Body,
   Query,
+  Req,
   UseGuards,
   UseInterceptors,
   UploadedFile,
@@ -85,6 +86,7 @@ export class ListingsController {
   @UseGuards(OptionalJwtAuthGuard)
   async getListingById(
     @Param('id') id: string,
+    @Req() req: any,
     @CurrentUser('sub') userId?: string,
     @CurrentUser('role') userRole?: string,
   ) {
@@ -92,6 +94,7 @@ export class ListingsController {
       id,
       userId,
       userRole,
+      req,
     );
     // Enrich with seller verification info
     const seller = await this.listingsService.getSellerVerification(
