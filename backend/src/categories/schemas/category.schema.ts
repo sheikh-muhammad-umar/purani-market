@@ -11,6 +11,7 @@ export enum AttributeType {
   BOOLEAN = 'boolean',
   RANGE = 'range',
   YEAR = 'year',
+  PROVINCE_CITY = 'province_city',
 }
 
 @Schema({ _id: false })

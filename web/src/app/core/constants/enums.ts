@@ -62,6 +62,7 @@ export enum CategoryAttributeType {
   BOOLEAN = 'boolean',
   RANGE = 'range',
   YEAR = 'year',
+  PROVINCE_CITY = 'province_city',
 }
 
 // ─── Search ──────────────────────────────────────────────

@@ -10,6 +10,7 @@ import {
   SearchSuggestion,
 } from '../../../core/services/search.service';
 import { CategoriesService } from '../../../core/services/categories.service';
+import { LocationService } from '../../../core/services/location.service';
 import { RecentSearchesService } from '../../../core/services/recent-searches.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { SORT_OPTIONS } from '../../../core/constants/select-options';
@@ -84,6 +85,10 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly locationOpen = signal(false);
   readonly selectedCity = signal('');
   readonly expandedCategories = signal<Set<string>>(new Set());
+
+  // Province/City for province_city attribute type
+  readonly provinces = signal<{ _id: string; name: string }[]>([]);
+  readonly provinceCities = signal<Record<string, { _id: string; name: string }[]>>({});
   readonly popularCities = [
     'Lahore',
     'Karachi',
@@ -116,6 +121,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly searchService: SearchService,
     private readonly categoriesService: CategoriesService,
+    private readonly locationService: LocationService,
     private readonly recentSearches: RecentSearchesService,
     private readonly tracker: ActivityTrackerService,
   ) {}
@@ -440,12 +446,50 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
         next: (cat) => {
           this.selectedCategory.set(cat);
           this.categoryFilters.set(cat.attributes || []);
+          // Load provinces if any attribute is province_city type
+          if (cat.attributes?.some((a: any) => a.type === 'province_city')) {
+            this.loadProvinces();
+          }
         },
         error: () => {
           this.categoryFilters.set([]);
           this.selectedCategory.set(null);
         },
       });
+  }
+
+  loadProvinces(): void {
+    if (this.provinces().length > 0) return;
+    this.locationService.getProvinces().subscribe({
+      next: (p: any[]) => this.provinces.set(p),
+    });
+  }
+
+  loadCitiesForProvince(provinceName: string): void {
+    if (!provinceName || this.provinceCities()[provinceName]) return;
+    const province = this.provinces().find((p) => p.name === provinceName);
+    if (!province) return;
+    this.locationService.getCities(province._id).subscribe({
+      next: (cities: any[]) => {
+        this.provinceCities.update((m) => ({ ...m, [provinceName]: cities }));
+      },
+    });
+  }
+
+  onProvinceCityChange(attrKey: string, province: string, city: string): void {
+    const value = city ? `${province} - ${city}` : province;
+    this.filterValues.update((v) => ({
+      ...v,
+      [attrKey + '_province']: province,
+      [attrKey + '_city']: city,
+      [attrKey]: value,
+    }));
+    this.currentPage.set(1);
+    this.updateUrlAndSearch();
+  }
+
+  getCitiesForProvince(provinceName: string): { _id: string; name: string }[] {
+    return this.provinceCities()[provinceName] || [];
   }
 
   private buildSearchParams(): SearchParams {

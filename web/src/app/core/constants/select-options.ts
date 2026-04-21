@@ -83,6 +83,7 @@ export const ATTRIBUTE_TYPE_OPTIONS: SelectOption[] = [
   { value: CategoryAttributeType.BOOLEAN, label: 'Boolean' },
   { value: CategoryAttributeType.RANGE, label: 'Range' },
   { value: CategoryAttributeType.YEAR, label: 'Year' },
+  { value: CategoryAttributeType.PROVINCE_CITY, label: 'Province / City' },
 ];
 
 // ─── Search ──────────────────────────────────────────────

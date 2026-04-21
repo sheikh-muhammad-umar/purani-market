@@ -350,6 +350,46 @@
                     </select>
                   </div>
                 }
+                @case ('province_city') {
+                  <div class="province-city-filter">
+                    <select
+                      class="province-city-select"
+                      [ngModel]="filterValues()[filter.key + '_province'] || ''"
+                      (ngModelChange)="
+                        loadCitiesForProvince($any($event));
+                        onProvinceCityChange(filter.key, $any($event), '')
+                      "
+                    >
+                      <option value="">All Provinces</option>
+                      @for (p of provinces(); track p._id) {
+                        <option [value]="p.name">{{ p.name }}</option>
+                      }
+                    </select>
+                    @if (filterValues()[filter.key + '_province']) {
+                      <select
+                        class="province-city-select"
+                        [ngModel]="filterValues()[filter.key + '_city'] || ''"
+                        (ngModelChange)="
+                          onProvinceCityChange(
+                            filter.key,
+                            filterValues()[filter.key + '_province']?.toString() || '',
+                            $event
+                          )
+                        "
+                      >
+                        <option value="">All Cities</option>
+                        @for (
+                          c of getCitiesForProvince(
+                            filterValues()[filter.key + '_province']?.toString() || ''
+                          );
+                          track c._id
+                        ) {
+                          <option [value]="c.name">{{ c.name }}</option>
+                        }
+                      </select>
+                    }
+                  </div>
+                }
               }
             </div>
           }

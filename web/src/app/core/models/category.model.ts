@@ -5,7 +5,8 @@ export type CategoryAttributeType =
   | 'multiselect'
   | 'boolean'
   | 'range'
-  | 'year';
+  | 'year'
+  | 'province_city';
 
 export interface CategoryAttribute {
   name: string;
