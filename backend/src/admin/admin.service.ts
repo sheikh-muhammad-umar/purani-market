@@ -406,7 +406,7 @@ export class AdminService {
     const filter: Record<string, any> = {};
 
     if (status) filter.status = status;
-    if (categoryId) filter.categoryId = new Types.ObjectId(categoryId);
+    if (categoryId) filter.categoryPath = new Types.ObjectId(categoryId);
     if (provinceId) filter['location.provinceId'] = new Types.ObjectId(provinceId);
     if (cityId) filter['location.cityId'] = new Types.ObjectId(cityId);
     if (rejectionReason) filter.rejectionReason = new RegExp(rejectionReason, 'i');
