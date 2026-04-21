@@ -9,6 +9,7 @@ export interface CreateCategoryPayload {
   parentId?: string;
   level: 1 | 2 | 3;
   isActive: boolean;
+  hasBrands?: boolean;
   sortOrder: number;
 }
 
@@ -16,6 +17,7 @@ export interface UpdateCategoryPayload {
   name?: string;
   slug?: string;
   isActive?: boolean;
+  hasBrands?: boolean;
   sortOrder?: number;
 }
 

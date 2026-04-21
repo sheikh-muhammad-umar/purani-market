@@ -117,6 +117,18 @@ export class CreateListingDto {
   @IsEnum(ListingCondition)
   condition!: ListingCondition;
 
+  @IsOptional()
+  @IsString()
+  brandId?: string;
+
+  @IsOptional()
+  @IsString()
+  brandName?: string;
+
+  @IsOptional()
+  @IsString()
+  modelName?: string;
+
   @IsObject()
   @IsOptional()
   categoryAttributes?: Record<string, any>;

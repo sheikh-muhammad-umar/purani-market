@@ -71,6 +71,14 @@ export class SearchQueryDto {
   blockPhase?: string;
 
   @IsOptional()
+  @IsString()
+  brandId?: string;
+
+  @IsOptional()
+  @IsString()
+  modelName?: string;
+
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   lat?: number;

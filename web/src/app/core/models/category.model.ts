@@ -27,6 +27,7 @@ export interface Category {
   attributes: CategoryAttribute[];
   features: string[];
   isActive: boolean;
+  hasBrands: boolean;
   sortOrder: number;
   children?: Category[];
   createdAt: Date;

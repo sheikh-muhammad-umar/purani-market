@@ -65,6 +65,9 @@ export class Category {
   @Prop({ type: Boolean, default: true })
   isActive!: boolean;
 
+  @Prop({ type: Boolean, default: false })
+  hasBrands!: boolean;
+
   @Prop({ type: Number, default: 0 })
   sortOrder!: number;
 

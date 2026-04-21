@@ -1,0 +1,129 @@
+<div class="bm-page">
+  <div class="page-header">
+    <h1>Brands</h1>
+  </div>
+
+  <!-- Step 1: Select Category -->
+  <div class="bm-category-bar">
+    <app-custom-select
+      [options]="categoryOptions"
+      [(ngModel)]="selectedCategoryId"
+      (ngModelChange)="selectCategory($event)"
+      placeholder="Select Category"
+      [searchable]="true"
+    ></app-custom-select>
+  </div>
+
+  @if (!selectedCategoryId) {
+    <div class="empty-state">Select a category above to manage its brands.</div>
+  }
+
+  @if (selectedCategoryId) {
+    <!-- Toolbar -->
+    <div class="bm-toolbar">
+      <div class="bm-search">
+        <input
+          type="text"
+          placeholder="Search {{ selectedCategoryName }} brands..."
+          [(ngModel)]="searchQuery"
+        />
+      </div>
+      <span class="bm-count">{{ brandCount }} brands</span>
+      <button class="btn-add" (click)="startAdd()">
+        <span class="material-symbols-rounded" style="font-size: 16px">add</span> Add
+      </button>
+    </div>
+
+    <!-- Add Form -->
+    @if (showAddForm) {
+      <div class="bm-form">
+        <input
+          type="text"
+          class="bm-input"
+          placeholder="Brand name..."
+          [(ngModel)]="newName"
+          (keyup.enter)="saveNew()"
+          autofocus
+        />
+        <div class="bm-form-actions">
+          <button class="btn-save" [disabled]="saving() || !newName.trim()" (click)="saveNew()">
+            Save
+          </button>
+          <button class="btn-cancel" (click)="cancelAdd()">Cancel</button>
+        </div>
+      </div>
+    }
+
+    @if (loading()) {
+      <div class="loading-state"><div class="spinner"></div></div>
+    }
+
+    @if (!loading()) {
+      <!-- Brands Grid -->
+      <div class="bm-grid">
+        @for (brand of filteredBrands; track brand._id) {
+          <div class="bm-chip" [class.inactive]="!brand.isActive">
+            @if (editingId === brand._id) {
+              <input
+                type="text"
+                class="bm-edit-input"
+                [(ngModel)]="editName"
+                (keyup.enter)="saveEdit()"
+                (keyup.escape)="cancelEdit()"
+                autofocus
+              />
+              <button class="bm-icon-btn save" (click)="saveEdit()" [disabled]="saving()">
+                <span class="material-symbols-rounded">check</span>
+              </button>
+              <button class="bm-icon-btn" (click)="cancelEdit()">
+                <span class="material-symbols-rounded">close</span>
+              </button>
+            } @else {
+              <span class="bm-chip-name">{{ brand.name }}</span>
+              <div class="bm-chip-actions">
+                <button
+                  class="bm-icon-btn"
+                  (click)="toggleActive(brand)"
+                  [title]="brand.isActive ? 'Deactivate' : 'Activate'"
+                >
+                  <span class="material-symbols-rounded">{{
+                    brand.isActive ? 'toggle_on' : 'toggle_off'
+                  }}</span>
+                </button>
+                <button class="bm-icon-btn" (click)="startEdit(brand)" title="Edit">
+                  <span class="material-symbols-rounded">edit</span>
+                </button>
+                <button class="bm-icon-btn delete" (click)="deleteBrand(brand)" title="Delete">
+                  <span class="material-symbols-rounded">delete</span>
+                </button>
+              </div>
+            }
+          </div>
+        } @empty {
+          <div class="empty-state">
+            @if (searchQuery) {
+              No brands match "{{ searchQuery }}".
+            } @else {
+              No brands in this category yet.
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+</div>
+
+<!-- Delete Modal -->
+@if (deletingId) {
+  <div class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-icon"><span class="material-symbols-rounded">warning</span></div>
+      <h3>Delete this brand?</h3>
+      <p>This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cancelDelete()">Cancel</button>
+        <button class="btn-delete" (click)="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+}

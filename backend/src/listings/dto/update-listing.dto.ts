@@ -49,6 +49,18 @@ export class UpdateListingDto {
   @IsOptional()
   condition?: ListingCondition;
 
+  @IsOptional()
+  @IsString()
+  brandId?: string;
+
+  @IsOptional()
+  @IsString()
+  brandName?: string;
+
+  @IsOptional()
+  @IsString()
+  modelName?: string;
+
   @IsObject()
   @IsOptional()
   categoryAttributes?: Record<string, any>;

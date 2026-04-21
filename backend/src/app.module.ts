@@ -20,6 +20,7 @@ import { ReviewsModule } from './reviews/reviews.module.js';
 import { AiModule } from './ai/ai.module.js';
 import { FavoritesModule } from './favorites/favorites.module.js';
 import { AdminModule } from './admin/admin.module.js';
+import { BrandsModule } from './brands/brands.module.js';
 import { CommonModule } from './common/common.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
@@ -93,6 +94,7 @@ import { AppService } from './app.service.js';
     AiModule,
     FavoritesModule,
     AdminModule,
+    BrandsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

@@ -123,6 +123,15 @@ export class ProductListing {
   @Prop({ type: String, enum: ListingCondition, required: true })
   condition!: ListingCondition;
 
+  @Prop({ type: Types.ObjectId, ref: 'Brand' })
+  brandId?: Types.ObjectId;
+
+  @Prop({ type: String })
+  brandName?: string;
+
+  @Prop({ type: String })
+  modelName?: string;
+
   @Prop({
     type: MongooseSchema.Types.Map,
     of: MongooseSchema.Types.Mixed,
@@ -205,3 +214,4 @@ ProductListingSchema.index({ categoryPath: 1 });
 ProductListingSchema.index({ 'location.cityId': 1 });
 ProductListingSchema.index({ 'location.provinceId': 1 });
 ProductListingSchema.index({ 'location.cityId': 1, 'location.areaId': 1 });
+ProductListingSchema.index({ brandId: 1 });

@@ -48,6 +48,9 @@ export interface Listing {
   categoryId: string;
   categoryPath: string[];
   condition: ListingCondition;
+  brandId?: string;
+  brandName?: string;
+  modelName?: string;
   categoryAttributes: Record<string, unknown>;
   selectedFeatures: string[];
   images: ListingImage[];

@@ -25,6 +25,7 @@ export interface CategoryTreeNode {
   parentId: string | null;
   level: number;
   isActive: boolean;
+  hasBrands: boolean;
   sortOrder: number;
   attributes: any[];
   features: string[];
@@ -92,6 +93,7 @@ export class CategoriesService {
       parentId: dto.parentId || null,
       level,
       isActive: dto.isActive ?? true,
+      hasBrands: dto.hasBrands ?? false,
       sortOrder: dto.sortOrder ?? 0,
       attributes: [],
       features: [],
@@ -107,6 +109,8 @@ export class CategoriesService {
     if (dto.name !== undefined) category.name = dto.name;
     if (dto.slug !== undefined) category.slug = dto.slug;
     if (dto.isActive !== undefined) category.isActive = dto.isActive;
+    if (dto.hasBrands !== undefined)
+      (category as any).hasBrands = dto.hasBrands;
     if (dto.sortOrder !== undefined) category.sortOrder = dto.sortOrder;
     const saved = await category.save();
     await this.invalidateCache();
@@ -221,6 +225,7 @@ export class CategoriesService {
         parentId: cat.parentId ? cat.parentId.toString() : null,
         level: cat.level,
         isActive: cat.isActive,
+        hasBrands: cat.hasBrands ?? false,
         sortOrder: cat.sortOrder,
         attributes: cat.attributes || [],
         features: cat.features || [],

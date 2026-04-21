@@ -42,6 +42,7 @@ export class CategoryManagerComponent implements OnInit {
   formSlug = '';
   formParentId = '';
   formIsActive = true;
+  formHasBrands = false;
 
   // Attribute editing
   editingAttributes: CategoryAttribute[] = [];
@@ -92,11 +93,17 @@ export class CategoryManagerComponent implements OnInit {
   loadCategories(): void {
     this.loading.set(true);
     this.error.set(null);
+    const currentId = this.selectedCategory()?._id;
     this.categoriesService.getAll().subscribe({
       next: (categories) => {
         this.flatCategories.set(categories);
         this.tree.set(this.buildTree(categories));
         this.loading.set(false);
+        // Re-select the current category to refresh its data
+        if (currentId) {
+          const updated = categories.find((c) => c._id === currentId);
+          if (updated) this.selectedCategory.set(updated);
+        }
       },
       error: () => {
         this.error.set('Failed to load categories. Please try again.');
@@ -136,6 +143,7 @@ export class CategoryManagerComponent implements OnInit {
     this.formSlug = '';
     this.formParentId = parentId || '';
     this.formIsActive = true;
+    this.formHasBrands = false;
     this.activePanel = 'add';
   }
 
@@ -162,6 +170,7 @@ export class CategoryManagerComponent implements OnInit {
       slug: this.formSlug.trim(),
       level,
       isActive: this.formIsActive,
+      hasBrands: this.formHasBrands,
       sortOrder,
     };
     if (this.formParentId) payload.parentId = this.formParentId;
@@ -186,6 +195,7 @@ export class CategoryManagerComponent implements OnInit {
     this.formName = cat.name;
     this.formSlug = cat.slug;
     this.formIsActive = cat.isActive;
+    this.formHasBrands = cat.hasBrands ?? false;
     this.activePanel = 'edit';
   }
 
@@ -197,6 +207,7 @@ export class CategoryManagerComponent implements OnInit {
       name: this.formName.trim(),
       slug: this.formSlug.trim(),
       isActive: this.formIsActive,
+      hasBrands: this.formHasBrands,
     };
 
     this.saving.set(true);

@@ -28,6 +28,10 @@ export class CreateCategoryDto {
   isActive?: boolean;
 
   @IsOptional()
+  @IsBoolean()
+  hasBrands?: boolean;
+
+  @IsOptional()
   @IsNumber()
   @Min(0)
   sortOrder?: number;

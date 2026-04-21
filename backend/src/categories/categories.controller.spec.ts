@@ -30,6 +30,7 @@ describe('CategoriesController', () => {
       parentId: null,
       level: 1,
       isActive: true,
+      hasBrands: false,
       sortOrder: 0,
       attributes: [],
       features: [],
@@ -41,6 +42,7 @@ describe('CategoriesController', () => {
           parentId: rootId,
           level: 2,
           isActive: true,
+          hasBrands: false,
           sortOrder: 0,
           attributes: [],
           features: [],
@@ -67,6 +69,7 @@ describe('CategoriesController', () => {
     ],
     features: ['Charger', 'Box'],
     isActive: true,
+    hasBrands: false,
     sortOrder: 0,
   };
 

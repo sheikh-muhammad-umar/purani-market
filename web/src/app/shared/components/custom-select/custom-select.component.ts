@@ -32,7 +32,7 @@ export interface SelectOption {
       </button>
       @if (isOpen()) {
         <div class="cs-dropdown">
-          @if (searchable && options.length > 6) {
+          @if (searchable && options.length > 3) {
             <div class="cs-search-wrap">
               <input
                 #searchInput
@@ -45,7 +45,7 @@ export interface SelectOption {
               />
             </div>
           }
-          @for (opt of filteredOptions(); track opt.value) {
+          @for (opt of searchable && searchQuery() ? filteredOptions() : options; track opt.value) {
             <button
               type="button"
               class="cs-option"
@@ -55,7 +55,7 @@ export interface SelectOption {
               {{ opt.label }}
             </button>
           }
-          @if (filteredOptions().length === 0) {
+          @if (searchable && searchQuery() && filteredOptions().length === 0) {
             <div class="cs-no-results">No results</div>
           }
         </div>

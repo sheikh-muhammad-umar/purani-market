@@ -161,6 +161,8 @@ export class SearchService {
       filter.$or = [
         { title: { $regex: query.q, $options: 'i' } },
         { description: { $regex: query.q, $options: 'i' } },
+        { brandName: { $regex: query.q, $options: 'i' } },
+        { modelName: { $regex: query.q, $options: 'i' } },
       ];
     }
 
@@ -202,6 +204,13 @@ export class SearchService {
       filter['price.amount'] = {};
       if (query.priceMin) filter['price.amount'].$gte = query.priceMin;
       if (query.priceMax) filter['price.amount'].$lte = query.priceMax;
+    }
+
+    if (query.brandId) {
+      filter.brandId = new Types.ObjectId(query.brandId);
+    }
+    if (query.modelName) {
+      filter.modelName = { $regex: new RegExp(`^${query.modelName}$`, 'i') };
     }
 
     let sortObj: Record<string, 1 | -1> = { isFeatured: -1, createdAt: -1 };

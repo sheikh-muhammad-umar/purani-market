@@ -245,6 +245,12 @@ export class ListingsService {
     if (dto.description !== undefined)
       updateFields.description = dto.description;
     if (dto.condition !== undefined) updateFields.condition = dto.condition;
+    if (dto.brandId !== undefined)
+      updateFields.brandId = dto.brandId
+        ? new Types.ObjectId(dto.brandId)
+        : undefined;
+    if (dto.brandName !== undefined) updateFields.brandName = dto.brandName;
+    if (dto.modelName !== undefined) updateFields.modelName = dto.modelName;
     if (dto.categoryAttributes !== undefined) {
       updateFields.categoryAttributes = new Map(
         Object.entries(dto.categoryAttributes),
@@ -464,6 +470,9 @@ export class ListingsService {
       categoryId: new Types.ObjectId(dto.categoryId),
       categoryPath,
       condition: dto.condition,
+      brandId: dto.brandId ? new Types.ObjectId(dto.brandId) : undefined,
+      brandName: dto.brandName,
+      modelName: dto.modelName,
       categoryAttributes: dto.categoryAttributes
         ? new Map(Object.entries(dto.categoryAttributes))
         : new Map(),
