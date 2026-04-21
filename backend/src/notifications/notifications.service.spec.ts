@@ -162,7 +162,7 @@ describe('NotificationsService', () => {
 
   describe('isNotificationEnabled', () => {
     it('should return true when preference is enabled', () => {
-      const user = createMockUser() as any;
+      const user = createMockUser();
       expect(service.isNotificationEnabled(user, 'messages')).toBe(true);
     });
 
@@ -175,14 +175,14 @@ describe('NotificationsService', () => {
           promotions: true,
           packageAlerts: true,
         },
-      }) as any;
+      });
       expect(service.isNotificationEnabled(user, 'messages')).toBe(false);
     });
 
     it('should default to true when preferences are missing', () => {
       const user = createMockUser({
         notificationPreferences: undefined,
-      }) as any;
+      });
       expect(service.isNotificationEnabled(user, 'messages')).toBe(true);
     });
   });

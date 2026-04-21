@@ -59,13 +59,11 @@ describe('MessagingService', () => {
       ...data,
       _id: conversationId,
       createdAt: new Date(),
-      save: jest
-        .fn()
-        .mockResolvedValue({
-          ...data,
-          _id: conversationId,
-          createdAt: new Date(),
-        }),
+      save: jest.fn().mockResolvedValue({
+        ...data,
+        _id: conversationId,
+        createdAt: new Date(),
+      }),
     }));
     mockConversationModel.findOne = jest.fn().mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
@@ -84,13 +82,11 @@ describe('MessagingService', () => {
       ...data,
       _id: new Types.ObjectId(),
       createdAt: new Date(),
-      save: jest
-        .fn()
-        .mockResolvedValue({
-          ...data,
-          _id: new Types.ObjectId(),
-          createdAt: new Date(),
-        }),
+      save: jest.fn().mockResolvedValue({
+        ...data,
+        _id: new Types.ObjectId(),
+        createdAt: new Date(),
+      }),
     }));
     mockMessageModel.find = jest.fn().mockReturnValue({
       populate: jest.fn().mockReturnThis(),

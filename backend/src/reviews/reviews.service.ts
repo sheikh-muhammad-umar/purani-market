@@ -115,9 +115,7 @@ export class ReviewsService {
       .exec();
   }
 
-  async getReviewsBySeller(
-    sellerId: string,
-  ): Promise<{
+  async getReviewsBySeller(sellerId: string): Promise<{
     reviews: ReviewDocument[];
     averageRating: number;
     totalReviews: number;

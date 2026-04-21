@@ -55,7 +55,7 @@ export class ListingsController {
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 20,
       sort || 'createdAt',
-      (order === 'asc' ? 'asc' : 'desc') as 'asc' | 'desc',
+      order === 'asc' ? 'asc' : 'desc',
       sellerId,
       { categoryId, provinceId, cityId, areaId, province, city, area },
     );

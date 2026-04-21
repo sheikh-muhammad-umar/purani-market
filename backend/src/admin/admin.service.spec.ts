@@ -571,22 +571,18 @@ describe('AdminService', () => {
       });
 
       // Time series aggregations: user, listing, conversation, purchase
-      userModel.aggregate = jest
-        .fn()
-        .mockReturnValue({
-          exec: jest.fn().mockResolvedValue(registrationsTs),
-        });
+      userModel.aggregate = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(registrationsTs),
+      });
       listingModel.aggregate = jest
         .fn()
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(listingsTs) })
         .mockReturnValueOnce({
           exec: jest.fn().mockResolvedValue(categoryData),
         });
-      conversationModel.aggregate = jest
-        .fn()
-        .mockReturnValue({
-          exec: jest.fn().mockResolvedValue(conversationsTs),
-        });
+      conversationModel.aggregate = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(conversationsTs),
+      });
       packagePurchaseModel.aggregate.mockReturnValueOnce({
         exec: jest.fn().mockResolvedValue(purchasesTs),
       });

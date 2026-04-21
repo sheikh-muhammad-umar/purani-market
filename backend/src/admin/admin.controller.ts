@@ -413,7 +413,7 @@ export class AdminController {
 
   @Get('permissions')
   @Roles(UserRole.SUPER_ADMIN)
-  async listPermissions() {
+  listPermissions() {
     return {
       permissions: Object.entries(Permission).map(([key, value]) => ({
         key,

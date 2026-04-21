@@ -509,9 +509,7 @@ export class ListingsService {
     }
   }
 
-  async getSellerVerification(
-    sellerId: string,
-  ): Promise<{
+  async getSellerVerification(sellerId: string): Promise<{
     emailVerified: boolean;
     phoneVerified: boolean;
     idVerified: boolean;

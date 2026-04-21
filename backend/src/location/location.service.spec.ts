@@ -25,24 +25,16 @@ describe('LocationService', () => {
   beforeEach(async () => {
     mockListingModel = {
       find: jest.fn().mockReturnValue({
-        skip: jest
-          .fn()
-          .mockReturnValue({
-            limit: jest
-              .fn()
-              .mockReturnValue({
-                exec: jest.fn().mockResolvedValue(mockListings),
-              }),
+        skip: jest.fn().mockReturnValue({
+          limit: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue(mockListings),
           }),
-        sort: jest
-          .fn()
-          .mockReturnValue({
-            limit: jest
-              .fn()
-              .mockReturnValue({
-                exec: jest.fn().mockResolvedValue(mockListings),
-              }),
+        }),
+        sort: jest.fn().mockReturnValue({
+          limit: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue(mockListings),
           }),
+        }),
       }),
       countDocuments: jest
         .fn()

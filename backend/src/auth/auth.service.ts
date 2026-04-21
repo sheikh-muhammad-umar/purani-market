@@ -466,9 +466,7 @@ export class AuthService {
     };
   }
 
-  private async verifyGoogleToken(
-    idToken: string,
-  ): Promise<{
+  private async verifyGoogleToken(idToken: string): Promise<{
     email: string;
     sub: string;
     firstName: string;
@@ -495,9 +493,7 @@ export class AuthService {
     }
   }
 
-  private async verifyFacebookToken(
-    accessToken: string,
-  ): Promise<{
+  private async verifyFacebookToken(accessToken: string): Promise<{
     email: string;
     id: string;
     firstName: string;
@@ -591,7 +587,7 @@ export class AuthService {
     } catch {
       // Even if token is expired, we still try to decode it for blacklisting
       try {
-        payload = this.jwtService.decode(accessToken) as JwtPayload;
+        payload = this.jwtService.decode(accessToken);
       } catch {
         throw new UnauthorizedException('Invalid token');
       }

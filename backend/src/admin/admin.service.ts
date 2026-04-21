@@ -243,9 +243,7 @@ export class AdminService {
     };
   }
 
-  async getUserActivePackages(
-    userId: string,
-  ): Promise<{
+  async getUserActivePackages(userId: string): Promise<{
     count: number;
     packages: { name: string; type: string; expiresAt: string }[];
   }> {
@@ -961,7 +959,7 @@ export class AdminService {
     isActive?: boolean;
     sortOrder?: number;
   }): Promise<any> {
-    return new this.rejectionReasonModel(data).save();
+    return await new this.rejectionReasonModel(data).save();
   }
 
   async updateRejectionReason(
@@ -1001,7 +999,7 @@ export class AdminService {
     description?: string;
     isActive?: boolean;
   }): Promise<any> {
-    return new this.deletionReasonModel(data).save();
+    return await new this.deletionReasonModel(data).save();
   }
 
   async updateDeletionReason(
