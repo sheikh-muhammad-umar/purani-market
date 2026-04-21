@@ -104,6 +104,8 @@ export class ListingsController {
       sellerPhoneVerified: seller.phoneVerified,
       sellerIdVerified: seller.idVerified,
       sellerActiveAdsCount: seller.activeAdsCount,
+      sellerResponseRate: seller.responseRate,
+      sellerAvgResponseTime: seller.avgResponseTime,
     };
   }
 

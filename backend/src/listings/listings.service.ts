@@ -18,6 +18,14 @@ import {
   CategoryDocument,
   AttributeType,
 } from '../categories/schemas/category.schema.js';
+import {
+  Conversation,
+  ConversationDocument,
+} from '../messaging/schemas/conversation.schema.js';
+import {
+  Message,
+  MessageDocument,
+} from '../messaging/schemas/message.schema.js';
 import { CreateListingDto } from './dto/create-listing.dto.js';
 import { UpdateListingDto } from './dto/update-listing.dto.js';
 import { AllowedStatusTransition } from './dto/update-status.dto.js';
@@ -42,6 +50,10 @@ export class ListingsService {
     private readonly userModel: Model<UserDocument>,
     @InjectModel(Category.name)
     private readonly categoryModel: Model<CategoryDocument>,
+    @InjectModel(Conversation.name)
+    private readonly conversationModel: Model<ConversationDocument>,
+    @InjectModel(Message.name)
+    private readonly messageModel: Model<MessageDocument>,
     private readonly searchSyncService: SearchSyncService,
   ) {}
 
@@ -514,25 +526,79 @@ export class ListingsService {
     phoneVerified: boolean;
     idVerified: boolean;
     activeAdsCount: number;
+    responseRate: number;
+    avgResponseTime: string;
   }> {
-    const [user, activeAdsCount] = await Promise.all([
+    const sellerObjId = new Types.ObjectId(sellerId);
+    const [user, activeAdsCount, conversations] = await Promise.all([
       this.userModel
         .findById(sellerId)
         .select('emailVerified phoneVerified idVerified')
         .lean()
         .exec(),
       this.listingModel
-        .countDocuments({
-          sellerId: new Types.ObjectId(sellerId),
-          status: ListingStatus.ACTIVE,
-        })
+        .countDocuments({ sellerId: sellerObjId, status: ListingStatus.ACTIVE })
+        .exec(),
+      this.conversationModel
+        .find({ sellerId: sellerObjId })
+        .select('_id')
+        .lean()
         .exec(),
     ]);
+
+    let respondedCount = 0;
+    let totalResponseMs = 0;
+
+    if (conversations.length > 0) {
+      const convIds = conversations.map((c) => c._id);
+      const results = await this.messageModel.aggregate([
+        { $match: { conversationId: { $in: convIds } } },
+        { $sort: { createdAt: 1 } },
+        {
+          $group: {
+            _id: '$conversationId',
+            messages: {
+              $push: { senderId: '$senderId', createdAt: '$createdAt' },
+            },
+          },
+        },
+      ]);
+
+      for (const conv of results) {
+        const msgs = conv.messages;
+        if (msgs.length < 2) continue;
+        const firstMsg = msgs[0];
+        const sellerReply = msgs.find(
+          (m: any) => m.senderId.toString() === sellerId,
+        );
+        if (sellerReply) {
+          respondedCount++;
+          const diff =
+            new Date(sellerReply.createdAt).getTime() -
+            new Date(firstMsg.createdAt).getTime();
+          if (diff > 0) totalResponseMs += diff;
+        }
+      }
+    }
+
+    const totalConvs = conversations.length || 1;
+    const responseRate = Math.round((respondedCount / totalConvs) * 100);
+    const avgMs = respondedCount > 0 ? totalResponseMs / respondedCount : 0;
+    let avgResponseTime = 'N/A';
+    if (avgMs > 0) {
+      const mins = Math.round(avgMs / 60000);
+      if (mins < 60) avgResponseTime = `${mins} min`;
+      else if (mins < 1440) avgResponseTime = `${Math.round(mins / 60)} hr`;
+      else avgResponseTime = `${Math.round(mins / 1440)} days`;
+    }
+
     return {
       emailVerified: user?.emailVerified ?? false,
       phoneVerified: user?.phoneVerified ?? false,
       idVerified: (user as any)?.idVerified ?? false,
       activeAdsCount,
+      responseRate,
+      avgResponseTime,
     };
   }
 

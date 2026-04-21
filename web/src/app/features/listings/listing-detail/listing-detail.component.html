@@ -375,11 +375,12 @@
               ><span class="stat-value">{{ listing()?.sellerActiveAdsCount ?? 0 }}</span>
             </div>
             <div class="stat-row">
-              <span class="stat-label">Response Rate</span><span class="stat-value">100%</span>
+              <span class="stat-label">Response Rate</span
+              ><span class="stat-value">{{ listing()?.sellerResponseRate ?? 0 }}%</span>
             </div>
             <div class="stat-row">
               <span class="stat-label">Response Time</span
-              ><span class="stat-value">{{ sellerResponseTime() }}</span>
+              ><span class="stat-value">{{ listing()?.sellerAvgResponseTime ?? 'N/A' }}</span>
             </div>
           </div>
           <a class="view-profile-btn" [routerLink]="'/seller/' + listing()?.sellerId">

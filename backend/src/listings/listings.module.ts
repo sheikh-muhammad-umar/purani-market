@@ -12,11 +12,18 @@ import { UsersModule } from '../users/users.module.js';
 import { CategoriesModule } from '../categories/categories.module.js';
 import { PackagesModule } from '../packages/packages.module.js';
 import { SearchModule } from '../search/search.module.js';
+import {
+  Conversation,
+  ConversationSchema,
+} from '../messaging/schemas/conversation.schema.js';
+import { Message, MessageSchema } from '../messaging/schemas/message.schema.js';
 
 @Module({
   imports: [
     MongooseModule.forFeature([
       { name: ProductListing.name, schema: ProductListingSchema },
+      { name: Conversation.name, schema: ConversationSchema },
+      { name: Message.name, schema: MessageSchema },
     ]),
     UsersModule,
     forwardRef(() => CategoriesModule),

@@ -72,4 +72,6 @@ export interface Listing {
   sellerPhoneVerified?: boolean;
   sellerIdVerified?: boolean;
   sellerActiveAdsCount?: number;
+  sellerResponseRate?: number;
+  sellerAvgResponseTime?: string;
 }
