@@ -156,20 +156,6 @@ export class AdminController {
     return this.adminService.getAllListings({ page, limit, search, status, categoryId, provinceId, cityId, dateFrom, dateTo, sort, order, rejectionReason, deletionReason });
   }
 
-  @Get('listings/deleted')
-  async getDeletedListings(
-    @Query('page', new DefaultValuePipe(1), ParseIntPipe) page: number,
-    @Query('limit', new DefaultValuePipe(20), ParseIntPipe) limit: number,
-    @Query('search') search?: string,
-    @Query('reason') reason?: string,
-    @Query('dateFrom') dateFrom?: string,
-    @Query('dateTo') dateTo?: string,
-    @Query('sort') sort?: string,
-    @Query('order') order?: 'asc' | 'desc',
-  ) {
-    return this.adminService.getDeletedListings({ page, limit, search, reason, dateFrom, dateTo, sort, order });
-  }
-
   @Patch('listings/:id/approve')
   async approveListing(@Param('id') id: string, @CurrentUser('sub') adminId: string, @Req() req: any) {
     const listing = await this.adminService.approveListing(id);

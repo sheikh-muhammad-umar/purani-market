@@ -214,8 +214,6 @@
 
 .uc-meta-icon {
   font-size: 14px;
-  &.verified { color: var(--success); }
-  &.unverified { color: var(--text-muted); opacity: 0.5; }
 }
 
 /* Active packages chips */

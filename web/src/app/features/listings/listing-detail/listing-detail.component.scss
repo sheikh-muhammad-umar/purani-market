@@ -554,16 +554,6 @@
   margin-bottom: var(--space-2);
 }
 
-.seller-link {
-  text-decoration: none;
-  color: inherit;
-  border-radius: 10px;
-  padding: 8px;
-  margin: -8px;
-  transition: background 0.15s;
-  &:hover { background: var(--background); }
-}
-
 .view-profile-btn {
   display: flex;
   align-items: center;
