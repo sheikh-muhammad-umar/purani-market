@@ -51,12 +51,6 @@ export class ListingVideo {
 
 @Schema({ _id: false })
 export class ListingLocation {
-  @Prop({ type: String })
-  type?: string;
-
-  @Prop({ type: [Number] })
-  coordinates?: number[];
-
   @Prop({ type: Types.ObjectId, ref: 'Province' })
   provinceId?: Types.ObjectId;
 
@@ -205,10 +199,6 @@ export const ProductListingSchema =
 ProductListingSchema.index({ sellerId: 1 });
 ProductListingSchema.index({ categoryId: 1 });
 ProductListingSchema.index({ status: 1 });
-ProductListingSchema.index(
-  { 'location.coordinates': '2dsphere' },
-  { sparse: true },
-);
 ProductListingSchema.index({ isFeatured: -1, createdAt: -1 });
 ProductListingSchema.index({ createdAt: -1 });
 ProductListingSchema.index({ categoryPath: 1 });

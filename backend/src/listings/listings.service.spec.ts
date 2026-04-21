@@ -56,7 +56,6 @@ describe('ListingsService', () => {
     ],
     location: {
       type: 'Point',
-      coordinates: [74.3587, 31.5204],
       city: 'Lahore',
       area: 'Gulberg',
     },
@@ -125,8 +124,8 @@ describe('ListingsService', () => {
       { url: 'https://example.com/img1.jpg' },
       { url: 'https://example.com/img2.jpg' },
     ],
-    location: { coordinates: [74.3587, 31.5204], city: 'Lahore' },
     contactInfo: { phone: '+923001234567', email: 'seller@example.com' },
+    location: { city: 'Lahore' },
   };
 
   let savedListing: any;

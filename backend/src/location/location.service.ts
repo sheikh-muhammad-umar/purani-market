@@ -97,49 +97,63 @@ export class LocationService {
   }
 
   async findNearby(
-    lat: number,
-    lng: number,
-    radiusKm?: number,
+    params: { provinceId?: string; cityId?: string; areaId?: string },
     limit?: number,
     page?: number,
   ): Promise<NearbyResult> {
-    const radius = radiusKm ?? this.DEFAULT_RADIUS_KM;
     const safeLimit = Math.min(Math.max(1, limit ?? this.DEFAULT_LIMIT), 100);
     const safePage = Math.max(1, page ?? 1);
     const skip = (safePage - 1) * safeLimit;
+    const minResults = Math.min(safeLimit, 6);
 
-    // Convert km to meters for MongoDB $maxDistance
-    const radiusMeters = radius * 1000;
-
-    const filter = {
+    const baseFilter: Record<string, any> = {
       status: ListingStatus.ACTIVE,
       deletedAt: { $exists: false },
-      location: {
-        $near: {
-          $geometry: {
-            type: 'Point',
-            coordinates: [lng, lat], // GeoJSON: [longitude, latitude]
-          },
-          $maxDistance: radiusMeters,
-        },
-      },
     };
 
-    // $near already sorts by distance (closest first)
-    const [data, total] = await Promise.all([
-      this.listingModel.find(filter).skip(skip).limit(safeLimit).exec(),
-      this.listingModel
-        .countDocuments({
-          status: ListingStatus.ACTIVE,
-          deletedAt: { $exists: false },
-          location: {
-            $geoWithin: {
-              $centerSphere: [[lng, lat], radius / 6378.1], // radius in radians
-            },
-          },
-        })
-        .exec(),
-    ]);
+    // Try area → city → province → country (cascading fallback)
+    const levels: { key: string; value: string }[] = [];
+    if (params.areaId)
+      levels.push({ key: 'location.areaId', value: params.areaId });
+    if (params.cityId)
+      levels.push({ key: 'location.cityId', value: params.cityId });
+    if (params.provinceId)
+      levels.push({ key: 'location.provinceId', value: params.provinceId });
+    levels.push({ key: '', value: '' }); // country-wide (no location filter)
+
+    let data: ProductListingDocument[] = [];
+    let total = 0;
+
+    for (const level of levels) {
+      const filter = { ...baseFilter };
+      if (level.key) {
+        filter[level.key] = new Types.ObjectId(level.value);
+      }
+
+      total = await this.listingModel.countDocuments(filter).exec();
+      if (total >= minResults) {
+        data = await this.listingModel
+          .find(filter)
+          .sort({ isFeatured: -1, createdAt: -1 })
+          .skip(skip)
+          .limit(safeLimit)
+          .exec();
+        break;
+      }
+    }
+
+    // If we exhausted all levels with < minResults, use the last (country-wide)
+    if (data.length === 0) {
+      [data, total] = await Promise.all([
+        this.listingModel
+          .find(baseFilter)
+          .sort({ isFeatured: -1, createdAt: -1 })
+          .skip(skip)
+          .limit(safeLimit)
+          .exec(),
+        this.listingModel.countDocuments(baseFilter).exec(),
+      ]);
+    }
 
     return {
       data,
@@ -151,26 +165,24 @@ export class LocationService {
   }
 
   async findNearbyForRecommendations(
-    lat: number,
-    lng: number,
+    params: { provinceId?: string; cityId?: string; areaId?: string },
     limit: number = 20,
   ): Promise<ProductListingDocument[]> {
-    const radiusMeters = this.DEFAULT_RADIUS_KM * 1000;
+    const filter: Record<string, any> = {
+      status: ListingStatus.ACTIVE,
+      deletedAt: { $exists: false },
+    };
+
+    if (params.areaId) {
+      filter['location.areaId'] = new Types.ObjectId(params.areaId);
+    } else if (params.cityId) {
+      filter['location.cityId'] = new Types.ObjectId(params.cityId);
+    } else if (params.provinceId) {
+      filter['location.provinceId'] = new Types.ObjectId(params.provinceId);
+    }
 
     return this.listingModel
-      .find({
-        status: ListingStatus.ACTIVE,
-        deletedAt: { $exists: false },
-        location: {
-          $near: {
-            $geometry: {
-              type: 'Point',
-              coordinates: [lng, lat],
-            },
-            $maxDistance: radiusMeters,
-          },
-        },
-      })
+      .find(filter)
       .sort({ viewCount: -1, createdAt: -1 })
       .limit(limit)
       .exec();

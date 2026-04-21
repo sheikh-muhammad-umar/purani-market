@@ -73,18 +73,19 @@ export class ListingsService {
   }
 
   getNearby(
-    lat: number,
-    lng: number,
-    radius: number = 25,
-    limit: number = 12,
+    params: {
+      provinceId?: string;
+      cityId?: string;
+      areaId?: string;
+      limit?: number;
+    } = {},
   ): Observable<ListingsResponse> {
-    return this.api.get<ListingsResponse>('/listings', {
-      lat,
-      lng,
-      radius,
-      limit,
-      sort: 'distance',
-    });
+    const query: Record<string, string | number> = {};
+    if (params.provinceId) query['provinceId'] = params.provinceId;
+    if (params.cityId) query['cityId'] = params.cityId;
+    if (params.areaId) query['areaId'] = params.areaId;
+    if (params.limit) query['limit'] = params.limit;
+    return this.api.get<ListingsResponse>('/location/nearby', query);
   }
 
   getByCategory(

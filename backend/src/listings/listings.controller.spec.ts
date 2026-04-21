@@ -55,8 +55,8 @@ describe('ListingsController', () => {
       { url: 'https://example.com/img1.jpg' },
       { url: 'https://example.com/img2.jpg' },
     ],
-    location: { coordinates: [74.3587, 31.5204], city: 'Lahore' },
     contactInfo: { phone: '+923001234567' },
+    location: { city: 'Lahore' },
   };
 
   beforeEach(async () => {

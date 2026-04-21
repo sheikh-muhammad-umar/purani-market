@@ -271,10 +271,10 @@ export class ListingsService {
     }
     if (dto.location !== undefined) {
       updateFields.location = {
-        type: 'Point',
-        coordinates: dto.location.coordinates,
         city: dto.location.city,
         area: dto.location.area,
+        province: dto.location.province,
+        blockPhase: dto.location.blockPhase,
       };
     }
     if (dto.contactInfo !== undefined) {
@@ -475,15 +475,12 @@ export class ListingsService {
       video: dto.video
         ? { url: dto.video.url, thumbnailUrl: dto.video.thumbnailUrl }
         : undefined,
-      location:
-        dto.location.coordinates?.length === 2
-          ? {
-              type: 'Point',
-              coordinates: dto.location.coordinates,
-              city: dto.location.city,
-              area: dto.location.area,
-            }
-          : ({ city: dto.location.city, area: dto.location.area } as any),
+      location: {
+        city: dto.location.city,
+        area: dto.location.area,
+        province: dto.location.province,
+        blockPhase: dto.location.blockPhase,
+      },
       contactInfo: {
         phone: dto.contactInfo?.phone || seller.phone || '',
         email: dto.contactInfo?.email || seller.email || '',

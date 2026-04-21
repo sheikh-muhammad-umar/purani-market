@@ -145,24 +145,17 @@ describe('RecommendationService', () => {
         exec: jest.fn().mockResolvedValue(0),
       });
 
-      const result = await service.getRecommendations(
-        userId.toString(),
-        31.52,
-        74.35,
-      );
+      const result = await service.getRecommendations(userId.toString());
 
       expect(result).toEqual(mockListings);
       expect(mockListingModel.find).toHaveBeenCalledWith(
         expect.objectContaining({
           status: 'active',
-          location: expect.objectContaining({
-            $near: expect.any(Object),
-          }),
         }),
       );
     });
 
-    it('should return cold-start without location for new users without coords', async () => {
+    it('should return cold-start for new users', async () => {
       mockActivityModel.countDocuments.mockReturnValue({
         exec: jest.fn().mockResolvedValue(0),
       });
@@ -183,12 +176,7 @@ describe('RecommendationService', () => {
         exec: jest.fn().mockResolvedValue(0),
       });
 
-      await service.getRecommendations(
-        userId.toString(),
-        undefined,
-        undefined,
-        50,
-      );
+      await service.getRecommendations(userId.toString(), 50);
 
       const findResult = mockListingModel.find();
       const sortResult = findResult.sort();

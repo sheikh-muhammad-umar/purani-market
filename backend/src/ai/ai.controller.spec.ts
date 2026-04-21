@@ -58,18 +58,11 @@ describe('AiController', () => {
       expect(result).toEqual({ data: mockListings });
     });
 
-    it('should pass location parameters when provided', async () => {
-      await controller.getRecommendations(
-        userId.toString(),
-        '31.52',
-        '74.35',
-        '10',
-      );
+    it('should pass limit parameter when provided', async () => {
+      await controller.getRecommendations(userId.toString(), '10');
 
       expect(mockRecommendationService.getRecommendations).toHaveBeenCalledWith(
         userId.toString(),
-        31.52,
-        74.35,
         10,
       );
     });

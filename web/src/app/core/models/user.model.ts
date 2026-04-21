@@ -1,13 +1,7 @@
-export interface GeoPoint {
-  type: 'Point';
-  coordinates: [number, number]; // [lng, lat]
-}
-
 export interface UserProfile {
   firstName: string;
   lastName: string;
   avatar: string;
-  location: GeoPoint;
   city: string;
   postalCode: string;
 }

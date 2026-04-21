@@ -18,7 +18,6 @@ import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { AdminTrackerService } from '../ai/admin-tracker.service.js';
 import { UserAction } from '../ai/schemas/user-activity.schema.js';
 import { UserRole } from '../users/schemas/user.schema.js';
-import { NearbyQueryDto } from './dto/nearby-query.dto.js';
 import { GeocodeQueryDto } from './dto/geocode-query.dto.js';
 import { CreateProvinceDto } from './dto/create-province.dto.js';
 import { CreateCityDto } from './dto/create-city.dto.js';
@@ -50,15 +49,17 @@ export class LocationController {
   }
 
   @Get('nearby')
-  @UseGuards(JwtAuthGuard)
-  async getNearbyListings(@Query() query: NearbyQueryDto) {
-    this.locationService.validateCoordinates(query.lat, query.lng);
+  async getNearbyListings(
+    @Query('provinceId') provinceId?: string,
+    @Query('cityId') cityId?: string,
+    @Query('areaId') areaId?: string,
+    @Query('limit') limit?: string,
+    @Query('page') page?: string,
+  ) {
     return this.locationService.findNearby(
-      query.lat,
-      query.lng,
-      query.radius,
-      query.limit,
-      query.page,
+      { provinceId, cityId, areaId },
+      limit ? parseInt(limit, 10) : undefined,
+      page ? parseInt(page, 10) : undefined,
     );
   }
 

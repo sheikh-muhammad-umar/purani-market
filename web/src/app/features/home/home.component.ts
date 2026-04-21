@@ -196,55 +196,37 @@ export class HomeComponent implements OnInit {
   }
 
   private loadNearby(): void {
-    // Priority 1: Browser geolocation
-    if ('geolocation' in navigator) {
-      navigator.geolocation.getCurrentPosition(
-        (pos) => {
-          this.listingsService.getNearby(pos.coords.latitude, pos.coords.longitude).subscribe({
-            next: (res: ListingsResponse) => {
-              const data = Array.isArray(res?.data) ? res.data : [];
-              if (data.length > 0) {
-                this.nearbyListings.set(data);
-                if (data[0].location?.city) this.userCity.set(data[0].location.city);
-                this.loadingNearby.set(false);
-              } else {
-                this.loadNearbyFromStorage();
-              }
-            },
-            error: () => this.loadNearbyFromStorage(),
-          });
-        },
-        () => this.loadNearbyFromStorage(), // geolocation denied
-        { timeout: 5000 },
-      );
-    } else {
-      this.loadNearbyFromStorage();
-    }
-  }
-
-  private loadNearbyFromStorage(): void {
-    // Priority 2: User's selected location from header
+    // Use selected location from localStorage
     try {
       const locRaw = localStorage.getItem('selected_location');
       if (locRaw) {
         const loc = JSON.parse(locRaw);
-        if (loc.label && loc.label !== 'Pakistan' && loc.city?.name) {
-          this.userCity.set(loc.city.name);
-          // getByCategory with empty category will use stored location from localStorage
-          this.listingsService.getByCategory('', 1, 12).subscribe({
-            next: (res: any) => {
-              const data = Array.isArray(res?.data) ? res.data : [];
-              this.nearbyListings.set(data);
-              this.loadingNearby.set(false);
-            },
-            error: () => this.loadLatestListings(),
-          });
+        if (loc.label && loc.label !== 'Pakistan') {
+          if (loc.city?.name) this.userCity.set(loc.city.name);
+          this.listingsService
+            .getNearby({
+              provinceId: loc.province?._id,
+              cityId: loc.city?._id,
+              areaId: loc.area?._id,
+              limit: 12,
+            })
+            .subscribe({
+              next: (res: ListingsResponse) => {
+                const data = Array.isArray(res?.data) ? res.data : [];
+                this.nearbyListings.set(data);
+                this.loadingNearby.set(false);
+                if (!this.userCity() && data.length > 0 && data[0].location?.city) {
+                  this.userCity.set(data[0].location.city);
+                }
+              },
+              error: () => this.loadLatestListings(),
+            });
           return;
         }
       }
     } catch {}
 
-    // Priority 3: Show latest listings
+    // No location selected — show latest listings
     this.loadLatestListings();
   }
 

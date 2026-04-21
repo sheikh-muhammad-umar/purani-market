@@ -28,21 +28,13 @@ export class AiController {
   @UseGuards(JwtAuthGuard)
   async getRecommendations(
     @CurrentUser('sub') userId: string,
-    @Query('lat') lat?: string,
-    @Query('lng') lng?: string,
     @Query('limit') limit?: string,
   ) {
-    const parsedLat = lat ? parseFloat(lat) : undefined;
-    const parsedLng = lng ? parseFloat(lng) : undefined;
     const parsedLimit = limit ? parseInt(limit, 10) : undefined;
-
     const listings = await this.recommendationService.getRecommendations(
       userId,
-      parsedLat,
-      parsedLng,
       parsedLimit,
     );
-
     return { data: listings };
   }
 

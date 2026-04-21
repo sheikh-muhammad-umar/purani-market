@@ -57,19 +57,16 @@ export class RecommendationService {
 
   async getRecommendations(
     userId: string,
-    lat?: number,
-    lng?: number,
     limit: number = 20,
   ): Promise<ProductListingDocument[]> {
     const safeLimit = Math.min(Math.max(1, limit), 20);
 
-    // Check if user has activity
     const activityCount = await this.activityModel
       .countDocuments({ userId: new Types.ObjectId(userId) })
       .exec();
 
     if (activityCount === 0) {
-      return this.getColdStartRecommendations(lat, lng, safeLimit);
+      return this.getColdStartRecommendations(safeLimit);
     }
 
     return this.getPersonalizedRecommendations(userId, safeLimit);
@@ -176,8 +173,6 @@ export class RecommendationService {
   }
 
   private async getColdStartRecommendations(
-    lat?: number,
-    lng?: number,
     limit: number = 20,
   ): Promise<ProductListingDocument[]> {
     const filter: Record<string, any> = {
@@ -185,23 +180,7 @@ export class RecommendationService {
       deletedAt: { $exists: false },
     };
 
-    // If location is available, use geo query for nearby trending
-    if (lat !== undefined && lng !== undefined) {
-      filter.location = {
-        $near: {
-          $geometry: { type: 'Point', coordinates: [lng, lat] },
-          $maxDistance: 25000, // 25km
-        },
-      };
-
-      return this.listingModel
-        .find(filter)
-        .sort({ viewCount: -1, createdAt: -1 })
-        .limit(limit)
-        .exec();
-    }
-
-    // No location — random mix
+    // Random mix of featured and regular
     const [featured, regular] = await Promise.all([
       this.listingModel
         .find({ ...filter, isFeatured: true })

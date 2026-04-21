@@ -47,52 +47,41 @@ describe('LocationController', () => {
   });
 
   describe('getNearbyListings', () => {
-    it('should return nearby listings with valid coordinates', async () => {
-      const result = await controller.getNearbyListings({
-        lat: 31.52,
-        lng: 74.35,
-      });
-
-      expect(mockLocationService.validateCoordinates).toHaveBeenCalledWith(
-        31.52,
-        74.35,
-      );
-      expect(mockLocationService.findNearby).toHaveBeenCalledWith(
-        31.52,
-        74.35,
+    it('should return nearby listings with location IDs', async () => {
+      const result = await controller.getNearbyListings(
         undefined,
+        'city-id-1',
+        undefined,
+        undefined,
+        undefined,
+      );
+
+      expect(mockLocationService.findNearby).toHaveBeenCalledWith(
+        { provinceId: undefined, cityId: 'city-id-1', areaId: undefined },
         undefined,
         undefined,
       );
       expect(result).toEqual(mockNearbyResult);
     });
 
-    it('should pass radius, limit, and page to service', async () => {
-      await controller.getNearbyListings({
-        lat: 31.52,
-        lng: 74.35,
-        radius: 50,
-        limit: 10,
-        page: 2,
-      });
+    it('should pass limit and page to service', async () => {
+      await controller.getNearbyListings(
+        'province-id-1',
+        'city-id-1',
+        undefined,
+        '10',
+        '2',
+      );
 
       expect(mockLocationService.findNearby).toHaveBeenCalledWith(
-        31.52,
-        74.35,
-        50,
+        {
+          provinceId: 'province-id-1',
+          cityId: 'city-id-1',
+          areaId: undefined,
+        },
         10,
         2,
       );
-    });
-
-    it('should propagate BadRequestException for invalid coordinates', async () => {
-      mockLocationService.validateCoordinates!.mockImplementation(() => {
-        throw new BadRequestException('Invalid coordinates');
-      });
-
-      await expect(
-        controller.getNearbyListings({ lat: 91, lng: 74.35 }),
-      ).rejects.toThrow(BadRequestException);
     });
   });
 

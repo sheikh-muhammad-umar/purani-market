@@ -58,41 +58,20 @@ describe('LocationService', () => {
     service = module.get<LocationService>(LocationService);
   });
   describe('findNearby', () => {
-    it('should return nearby listings with default radius (25km)', async () => {
-      const result = await service.findNearby(31.52, 74.35);
+    it('should return nearby listings filtered by city', async () => {
+      const result = await service.findNearby({ cityId: 'city-id-1' });
       expect(result.data).toEqual(mockListings);
       expect(result.total).toBe(2);
       expect(result.page).toBe(1);
       expect(result.limit).toBe(20);
-      expect(mockListingModel.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          status: 'active',
-          location: expect.objectContaining({
-            $near: expect.objectContaining({
-              $geometry: { type: 'Point', coordinates: [74.35, 31.52] },
-              $maxDistance: 25000,
-            }),
-          }),
-        }),
-      );
-    });
-    it('should use custom radius when provided', async () => {
-      await service.findNearby(31.52, 74.35, 50);
-      expect(mockListingModel.find).toHaveBeenCalledWith(
-        expect.objectContaining({
-          location: expect.objectContaining({
-            $near: expect.objectContaining({ $maxDistance: 50000 }),
-          }),
-        }),
-      );
     });
     it('should paginate results correctly', async () => {
-      const result = await service.findNearby(31.52, 74.35, 25, 10, 2);
+      const result = await service.findNearby({ cityId: 'city-id-1' }, 10, 2);
       expect(result.page).toBe(2);
       expect(result.limit).toBe(10);
     });
     it('should clamp limit to max 100', async () => {
-      const result = await service.findNearby(31.52, 74.35, 25, 200);
+      const result = await service.findNearby({ cityId: 'city-id-1' }, 200);
       expect(result.limit).toBe(100);
     });
   });

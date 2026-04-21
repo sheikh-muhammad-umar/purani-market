@@ -1,5 +1,3 @@
-import { GeoPoint } from './user.model';
-
 export type ListingCondition = 'new' | 'used' | 'refurbished';
 export type ListingStatus =
   | 'active'
@@ -27,8 +25,6 @@ export interface ListingVideo {
 }
 
 export interface ListingLocation {
-  type: 'Point';
-  coordinates: [number, number];
   provinceId?: string;
   cityId?: string;
   areaId?: string;

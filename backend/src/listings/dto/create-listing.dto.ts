@@ -51,11 +51,6 @@ export class CreateListingVideoDto {
 }
 
 export class CreateListingLocationDto {
-  @IsArray()
-  @IsNumber({}, { each: true })
-  @IsOptional()
-  coordinates?: number[];
-
   @IsString()
   @IsOptional()
   provinceId?: string;
@@ -72,7 +67,6 @@ export class CreateListingLocationDto {
   @IsOptional()
   blockPhase?: string;
 
-  // Legacy name fields (still accepted for backward compat)
   @IsString()
   @IsOptional()
   city?: string;

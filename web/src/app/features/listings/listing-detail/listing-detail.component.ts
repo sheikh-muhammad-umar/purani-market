@@ -269,15 +269,11 @@ export class ListingDetailComponent implements OnInit {
   }
 
   getMapUrl(): SafeResourceUrl | null {
-    return this.mapUrl();
+    return null;
   }
 
-  private buildMapUrl(listing: Listing): void {
-    const loc = listing.location;
-    if (!loc?.coordinates) return;
-    const [lng, lat] = loc.coordinates;
-    const url = `https://maps.google.com/maps?q=${lat},${lng}&z=14&output=embed`;
-    this.mapUrl.set(this.sanitizer.bypassSecurityTrustResourceUrl(url));
+  private buildMapUrl(_listing: Listing): void {
+    // Coordinates removed — map not available
   }
 
   async shareListing(): Promise<void> {
