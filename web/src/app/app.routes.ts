@@ -14,6 +14,10 @@ export const routes: Routes = [
     loadChildren: () => import('./features/listings/listings.routes').then(m => m.LISTINGS_ROUTES),
   },
   {
+    path: 'seller/:id',
+    loadComponent: () => import('./features/seller-profile/seller-profile.component').then(m => m.SellerProfileComponent),
+  },
+  {
     path: 'search',
     loadChildren: () => import('./features/search/search.routes').then(m => m.SEARCH_ROUTES),
   },

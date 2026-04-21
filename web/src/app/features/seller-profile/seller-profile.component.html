@@ -1,0 +1,59 @@
+<div class="seller-profile-page">
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  }
+
+  @if (!loading() && seller()) {
+    <!-- Seller Info Card -->
+    <div class="sp-header">
+      <div class="sp-avatar">{{ seller()!.avatar ? '' : '👤' }}</div>
+      <div class="sp-info">
+        <h1 class="sp-name">{{ seller()!.name }}</h1>
+        @if (seller()!.city) {
+          <span class="sp-city">
+            <span class="material-symbols-rounded" style="font-size:16px;">location_on</span>
+            {{ seller()!.city }}
+          </span>
+        }
+        <span class="sp-since">Member since {{ formatDate(seller()!.memberSince) }}</span>
+        <app-verification-badges
+          [emailVerified]="seller()!.emailVerified"
+          [phoneVerified]="seller()!.phoneVerified"
+          [idVerified]="seller()!.idVerified"
+        ></app-verification-badges>
+      </div>
+      <div class="sp-stat">
+        <span class="sp-stat-val">{{ totalListings() }}</span>
+        <span class="sp-stat-label">Active Ads</span>
+      </div>
+    </div>
+
+    <!-- Listings Grid -->
+    <h2 class="sp-section-title">Ads by this seller</h2>
+    @if (listings().length === 0) {
+      <div class="empty-state">This seller has no active ads.</div>
+    }
+    <div class="sp-listings-grid">
+      @for (listing of listings(); track listing._id) {
+        <a class="sp-listing-card" [routerLink]="listing | listingUrl">
+          <div class="sp-listing-img">
+            @if (listing.images?.length) {
+              <img [src]="listing.images[0].thumbnailUrl || listing.images[0].url" [alt]="listing.title" />
+            } @else {
+              <div class="sp-no-img">No Image</div>
+            }
+          </div>
+          <div class="sp-listing-info">
+            <span class="sp-listing-title">{{ listing.title }}</span>
+            <span class="sp-listing-price">{{ listing.price.currency }} {{ listing.price.amount | number }}</span>
+            <span class="sp-listing-location">{{ listing.location?.area ? (listing.location.area + ', ') : '' }}{{ listing.location?.city || '' }}</span>
+          </div>
+        </a>
+      }
+    </div>
+  }
+
+  @if (!loading() && !seller()) {
+    <div class="empty-state">Seller not found.</div>
+  }
+</div>

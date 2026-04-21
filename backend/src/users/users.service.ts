@@ -77,4 +77,28 @@ export class UsersService {
     }
     return obj;
   }
+
+  async getPublicProfile(userId: string): Promise<Record<string, any>> {
+    if (!Types.ObjectId.isValid(userId)) {
+      throw new NotFoundException('User not found');
+    }
+    const user = await this.userModel
+      .findById(userId)
+      .select('profile emailVerified phoneVerified idVerified createdAt')
+      .lean()
+      .exec();
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+    return {
+      _id: user._id,
+      name: `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() || 'User',
+      avatar: user.profile?.avatar || '',
+      city: user.profile?.city || '',
+      emailVerified: user.emailVerified ?? false,
+      phoneVerified: user.phoneVerified ?? false,
+      idVerified: (user as any).idVerified ?? false,
+      memberSince: user.createdAt,
+    };
+  }
 }

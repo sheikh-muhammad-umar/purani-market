@@ -141,4 +141,8 @@ export class ListingsService {
   resubmitForReview(id: string): Observable<Listing> {
     return this.api.post<Listing>(`/listings/${id}/resubmit`, {});
   }
+
+  getBySeller(sellerId: string, page = 1, limit = 50): Observable<ListingsResponse> {
+    return this.api.get<ListingsResponse>('/listings', { sellerId, page, limit, sort: 'createdAt', order: 'desc' });
+  }
 }
