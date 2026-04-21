@@ -148,6 +148,13 @@
                     @if (attr.key) {
                       <span class="attr-badge">{{ attr.key }}</span>
                     }
+                    <button
+                      class="btn-remove"
+                      (click)="removeAttribute($index)"
+                      title="Remove attribute"
+                    >
+                      ✕
+                    </button>
                   </div>
                   <div class="attr-row">
                     <div class="form-group compact">
@@ -171,20 +178,24 @@
                         placeholder="Select type"
                       ></app-custom-select>
                     </div>
-                    <div class="form-group compact checkbox-group">
-                      <label><input type="checkbox" [(ngModel)]="attr.required" /> Required</label>
-                    </div>
                     <div class="form-group compact">
                       <label>Unit</label>
                       <input type="text" [(ngModel)]="attr.unit" placeholder="e.g. km" />
                     </div>
-                    <button
-                      class="btn-remove"
-                      (click)="removeAttribute($index)"
-                      title="Remove attribute"
-                    >
-                      ✕
-                    </button>
+                    <div class="attr-actions-col">
+                      <label class="attr-spacer-label">&nbsp;</label>
+                      <div class="attr-checks-row">
+                        <label class="required-check"
+                          ><input type="checkbox" [(ngModel)]="attr.required" /> Required</label
+                        >
+                        @if (attr.type === 'select' || attr.type === 'multiselect') {
+                          <label class="required-check"
+                            ><input type="checkbox" [(ngModel)]="attr.allowOther" /> Allow
+                            Other</label
+                          >
+                        }
+                      </div>
+                    </div>
                   </div>
                   <!-- Range min/max -->
                   @if (attr.type === 'range') {

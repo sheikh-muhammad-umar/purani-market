@@ -33,7 +33,7 @@ describe('SearchController', () => {
       (searchService.search as jest.Mock).mockResolvedValue(mockResult);
 
       const query = { q: 'phone', page: 1, limit: 20 };
-      const result = await controller.search(query);
+      const result = await controller.search(query, { query: {} });
 
       expect(searchService.search).toHaveBeenCalledWith(query);
       expect(result).toEqual(mockResult);
@@ -63,7 +63,7 @@ describe('SearchController', () => {
         limit: 10,
       };
 
-      await controller.search(query);
+      await controller.search(query, { query: {} });
 
       expect(searchService.search).toHaveBeenCalledWith(query);
     });
@@ -80,7 +80,10 @@ describe('SearchController', () => {
       };
       (searchService.search as jest.Mock).mockResolvedValue(mockResult);
 
-      const result = await controller.search({ q: 'nonexistent' });
+      const result = await controller.search(
+        { q: 'nonexistent' },
+        { query: {} },
+      );
 
       expect(result.items).toHaveLength(0);
       expect(result.suggestions).toContain('popular term');
@@ -101,7 +104,7 @@ describe('SearchController', () => {
         filters: { brand: 'Apple', storage: '256GB' },
       };
 
-      await controller.search(query);
+      await controller.search(query, { query: {} });
 
       expect(searchService.search).toHaveBeenCalledWith(query);
       const passedQuery = (searchService.search as jest.Mock).mock.calls[0][0];

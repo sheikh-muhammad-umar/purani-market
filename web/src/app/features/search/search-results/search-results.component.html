@@ -207,36 +207,12 @@
           <!-- Condition Card -->
           <div class="filter-card">
             <h4 class="filter-card-title">Condition</h4>
-            <div class="condition-options">
-              <button
-                class="cond-option"
-                [class.active]="selectedCondition() === ''"
-                (click)="onConditionChange('')"
-              >
-                Any
-              </button>
-              <button
-                class="cond-option"
-                [class.active]="selectedCondition() === 'new'"
-                (click)="onConditionChange('new')"
-              >
-                New
-              </button>
-              <button
-                class="cond-option"
-                [class.active]="selectedCondition() === 'used'"
-                (click)="onConditionChange('used')"
-              >
-                Used
-              </button>
-              <button
-                class="cond-option"
-                [class.active]="selectedCondition() === 'refurbished'"
-                (click)="onConditionChange('refurbished')"
-              >
-                Refurbished
-              </button>
-            </div>
+            <app-custom-select
+              [options]="conditionOptions"
+              [ngModel]="selectedCondition()"
+              (ngModelChange)="onConditionChange($any($event))"
+              placeholder="Any"
+            ></app-custom-select>
           </div>
 
           <!-- Dynamic Category-Specific Filters -->
@@ -245,37 +221,22 @@
               <h4 class="filter-card-title">{{ filter.name }}</h4>
               @switch (filter.type) {
                 @case ('select') {
-                  <div class="filter-options-list">
-                    <button
-                      class="filter-opt"
-                      [class.active]="!filterValues()[filter.key]"
-                      (click)="onDynamicFilterChange(filter.key, '')"
-                    >
-                      Any
-                    </button>
-                    @for (opt of filter.options || []; track opt) {
-                      <button
-                        class="filter-opt"
-                        [class.active]="filterValues()[filter.key] === opt"
-                        (click)="onDynamicFilterChange(filter.key, opt)"
-                      >
-                        {{ opt }}
-                      </button>
-                    }
-                  </div>
+                  <app-custom-select
+                    [options]="getSelectFilterOptions(filter)"
+                    [ngModel]="filterValues()[filter.key] || ''"
+                    (ngModelChange)="onDynamicFilterChange(filter.key, $any($event))"
+                    placeholder="Any"
+                    [searchable]="true"
+                  ></app-custom-select>
                 }
                 @case ('multiselect') {
-                  <div class="filter-options-list">
-                    @for (opt of filter.options || []; track opt) {
-                      <button
-                        class="filter-opt"
-                        [class.active]="filterValues()[filter.key] === opt"
-                        (click)="onDynamicFilterChange(filter.key, opt)"
-                      >
-                        {{ opt }}
-                      </button>
-                    }
-                  </div>
+                  <app-custom-select
+                    [options]="getSelectFilterOptions(filter)"
+                    [ngModel]="filterValues()[filter.key] || ''"
+                    (ngModelChange)="onDynamicFilterChange(filter.key, $any($event))"
+                    placeholder="Any"
+                    [searchable]="true"
+                  ></app-custom-select>
                 }
                 @case ('range') {
                   <div class="price-range-row">
@@ -327,66 +288,51 @@
                 }
                 @case ('year') {
                   <div class="price-range-row">
-                    <select
-                      class="price-field"
+                    <app-custom-select
+                      [options]="getYearFilterOptions(filter, '_min')"
                       [ngModel]="filterValues()[filter.key + '_min'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $event)"
-                    >
-                      <option value="">From</option>
-                      @for (yr of getYearRange(filter); track yr) {
-                        <option [value]="yr">{{ yr }}</option>
-                      }
-                    </select>
+                      (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $any($event))"
+                      placeholder="From"
+                      [searchable]="true"
+                    ></app-custom-select>
                     <span class="price-to">to</span>
-                    <select
-                      class="price-field"
+                    <app-custom-select
+                      [options]="getYearFilterOptions(filter, '_max')"
                       [ngModel]="filterValues()[filter.key + '_max'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)"
-                    >
-                      <option value="">To</option>
-                      @for (yr of getYearRange(filter); track yr) {
-                        <option [value]="yr">{{ yr }}</option>
-                      }
-                    </select>
+                      (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $any($event))"
+                      placeholder="To"
+                      [searchable]="true"
+                    ></app-custom-select>
                   </div>
                 }
                 @case ('province_city') {
                   <div class="province-city-filter">
-                    <select
-                      class="province-city-select"
+                    <app-custom-select
+                      [options]="getProvinceOptions()"
                       [ngModel]="filterValues()[filter.key + '_province'] || ''"
                       (ngModelChange)="
                         loadCitiesForProvince($any($event));
                         onProvinceCityChange(filter.key, $any($event), '')
                       "
-                    >
-                      <option value="">All Provinces</option>
-                      @for (p of provinces(); track p._id) {
-                        <option [value]="p.name">{{ p.name }}</option>
-                      }
-                    </select>
+                      placeholder="All Provinces"
+                      [searchable]="true"
+                    ></app-custom-select>
                     @if (filterValues()[filter.key + '_province']) {
-                      <select
-                        class="province-city-select"
+                      <app-custom-select
+                        [options]="
+                          getCityOptions(filterValues()[filter.key + '_province']?.toString() || '')
+                        "
                         [ngModel]="filterValues()[filter.key + '_city'] || ''"
                         (ngModelChange)="
                           onProvinceCityChange(
                             filter.key,
                             filterValues()[filter.key + '_province']?.toString() || '',
-                            $event
+                            $any($event)
                           )
                         "
-                      >
-                        <option value="">All Cities</option>
-                        @for (
-                          c of getCitiesForProvince(
-                            filterValues()[filter.key + '_province']?.toString() || ''
-                          );
-                          track c._id
-                        ) {
-                          <option [value]="c.name">{{ c.name }}</option>
-                        }
-                      </select>
+                        placeholder="All Cities"
+                        [searchable]="true"
+                      ></app-custom-select>
                     }
                   </div>
                 }

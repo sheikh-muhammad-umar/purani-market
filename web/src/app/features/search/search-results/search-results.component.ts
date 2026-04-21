@@ -11,6 +11,10 @@ import {
 } from '../../../core/services/search.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { LocationService } from '../../../core/services/location.service';
+import {
+  CustomSelectComponent,
+  SelectOption,
+} from '../../../shared/components/custom-select/custom-select.component';
 import { RecentSearchesService } from '../../../core/services/recent-searches.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { SORT_OPTIONS } from '../../../core/constants/select-options';
@@ -39,6 +43,7 @@ export interface ActiveFilter {
     PriceFormatPipe,
     TruncateTextPipe,
     ListingUrlPipe,
+    CustomSelectComponent,
   ],
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.scss'],
@@ -89,6 +94,46 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   // Province/City for province_city attribute type
   readonly provinces = signal<{ _id: string; name: string }[]>([]);
   readonly provinceCities = signal<Record<string, { _id: string; name: string }[]>>({});
+
+  getProvinceOptions(): SelectOption[] {
+    return [
+      { value: '', label: 'All Provinces' },
+      ...this.provinces().map((p) => ({ value: p.name, label: p.name })),
+    ];
+  }
+
+  getCityOptions(provinceName: string): SelectOption[] {
+    const cities = this.provinceCities()[provinceName] || [];
+    return [
+      { value: '', label: 'All Cities' },
+      ...cities.map((c) => ({ value: c.name, label: c.name })),
+    ];
+  }
+
+  getSelectFilterOptions(filter: any): SelectOption[] {
+    const opts = (filter.options || []).filter((opt: string) => opt !== 'Other');
+    return [
+      { value: '', label: 'Any' },
+      ...opts.map((opt: string) => ({ value: opt, label: opt })),
+    ];
+  }
+
+  getYearFilterOptions(filter: any, suffix: string): SelectOption[] {
+    return [
+      { value: '', label: suffix === '_min' ? 'From' : 'To' },
+      ...this.getYearRange(filter).map((yr: number) => ({
+        value: yr.toString(),
+        label: yr.toString(),
+      })),
+    ];
+  }
+
+  readonly conditionOptions: SelectOption[] = [
+    { value: '', label: 'Any' },
+    { value: 'new', label: 'New' },
+    { value: 'used', label: 'Used' },
+    { value: 'refurbished', label: 'Refurbished' },
+  ];
   readonly popularCities = [
     'Lahore',
     'Karachi',
@@ -445,7 +490,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (cat) => {
           this.selectedCategory.set(cat);
-          this.categoryFilters.set(cat.attributes || []);
+          this.categoryFilters.set((cat.attributes || []).filter((a: any) => a.type !== 'text'));
           // Load provinces if any attribute is province_city type
           if (cat.attributes?.some((a: any) => a.type === 'province_city')) {
             this.loadProvinces();

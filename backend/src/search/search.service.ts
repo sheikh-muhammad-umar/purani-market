@@ -213,6 +213,22 @@ export class SearchService {
       filter.modelName = { $regex: new RegExp(`^${query.modelName}$`, 'i') };
     }
 
+    // Dynamic category attribute filters
+    if (query.filters && typeof query.filters === 'object') {
+      for (const [key, value] of Object.entries(query.filters)) {
+        if (
+          value &&
+          typeof value === 'string' &&
+          !key.endsWith('_province') &&
+          !key.endsWith('_city')
+        ) {
+          filter[`categoryAttributes.${key}`] = {
+            $regex: new RegExp(`^${value}$`, 'i'),
+          };
+        }
+      }
+    }
+
     let sortObj: Record<string, 1 | -1> = { isFeatured: -1, createdAt: -1 };
     if (query.sort === 'price_asc')
       sortObj = { isFeatured: -1, 'price.amount': 1 };

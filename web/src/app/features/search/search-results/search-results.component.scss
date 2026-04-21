@@ -398,6 +398,11 @@
   display: flex;
   align-items: center;
   gap: var(--space-1);
+
+  app-custom-select {
+    flex: 1;
+    min-width: 0;
+  }
 }
 
 .price-field {

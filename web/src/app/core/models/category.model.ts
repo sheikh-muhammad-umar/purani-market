@@ -17,6 +17,7 @@ export interface CategoryAttribute {
   unit?: string;
   rangeMin?: number;
   rangeMax?: number;
+  allowOther?: boolean;
 }
 
 export interface Category {

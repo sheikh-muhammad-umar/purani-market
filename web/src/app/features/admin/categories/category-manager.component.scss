@@ -363,6 +363,10 @@
   align-items: center;
   gap: 6px;
   margin-bottom: 5px;
+
+  .btn-remove {
+    margin-left: auto;
+  }
 }
 .attr-number {
   font-size: 11px;
@@ -383,7 +387,7 @@
 
 .attr-row {
   display: flex;
-  gap: 6px;
+  gap: 8px;
   align-items: flex-end;
   flex-wrap: wrap;
   .form-group.compact {
@@ -402,24 +406,53 @@
       box-sizing: border-box;
     }
   }
-  .checkbox-group {
-    min-width: auto;
-    flex: 0 0 auto;
-    align-self: center;
-    padding-top: 12px;
+}
+
+.attr-actions-col {
+  flex: 0 0 auto;
+  display: flex;
+  flex-direction: column;
+
+  .attr-spacer-label {
+    font-size: 10px;
+    margin-bottom: 2px;
+    visibility: hidden;
   }
 }
+
+.required-check {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  white-space: nowrap;
+  cursor: pointer;
+  color: var(--text-secondary);
+  input[type='checkbox'] {
+    accent-color: var(--primary);
+  }
+}
+
+.attr-checks-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  height: 38px;
+}
+
 .btn-remove {
-  width: 26px;
-  height: 26px;
+  width: 22px;
+  height: 22px;
   border: none;
   background: #fde8e8;
   color: #e74c3c;
   border-radius: 6px;
   cursor: pointer;
-  font-size: 13px;
+  font-size: 14px;
   flex-shrink: 0;
-  align-self: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
   &:hover {
     background: #f9d0d0;
   }

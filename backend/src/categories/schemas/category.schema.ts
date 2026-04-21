@@ -39,6 +39,9 @@ export class CategoryAttribute {
 
   @Prop({ type: Number })
   rangeMax?: number;
+
+  @Prop({ type: Boolean, default: false })
+  allowOther!: boolean;
 }
 
 @Schema({ timestamps: true, collection: 'categories' })
