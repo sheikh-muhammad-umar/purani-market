@@ -20,4 +20,5 @@ export class RejectionReason {
   updatedAt!: Date;
 }
 
-export const RejectionReasonSchema = SchemaFactory.createForClass(RejectionReason);
+export const RejectionReasonSchema =
+  SchemaFactory.createForClass(RejectionReason);

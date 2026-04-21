@@ -49,8 +49,15 @@
   min-height: 38px;
   box-sizing: border-box;
 
-  &:hover { border-color: var(--primary); color: var(--primary); }
-  &.active { background: rgba(13, 165, 195, 0.08); border-color: var(--primary); color: var(--primary); }
+  &:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  &.active {
+    background: rgba(13, 165, 195, 0.08);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
 }
 
 .filter-badge {
@@ -79,8 +86,14 @@
 }
 
 @keyframes filterSlide {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .filters-grid {
@@ -112,13 +125,15 @@
   border: none;
   border-radius: 6px;
   background: rgba(231, 76, 60, 0.08);
-  color: #E74C3C;
+  color: #e74c3c;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   transition: background 0.15s;
-  &:hover { background: rgba(231, 76, 60, 0.15); }
+  &:hover {
+    background: rgba(231, 76, 60, 0.15);
+  }
 }
 
 .btn-secondary {
@@ -132,11 +147,17 @@
   cursor: pointer;
   font-family: 'Inter', sans-serif;
 
-  &:hover:not(:disabled) { background: var(--background); }
-  &:disabled { opacity: 0.5; cursor: not-allowed; }
+  &:hover:not(:disabled) {
+    background: var(--background);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+  }
 }
 
-.loading-state, .error-state {
+.loading-state,
+.error-state {
   text-align: center;
   padding: 48px 24px;
   color: var(--text-secondary);
@@ -152,7 +173,11 @@
   margin: 0 auto 12px;
 }
 
-@keyframes spin { to { transform: rotate(360deg); } }
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
 
 .btn-retry {
   margin-top: 12px;
@@ -198,7 +223,9 @@
     border-bottom: 1px solid var(--border);
   }
 
-  tbody tr:hover { background: var(--background); }
+  tbody tr:hover {
+    background: var(--background);
+  }
 }
 
 .mono {
@@ -223,10 +250,22 @@
   font-weight: 600;
   text-transform: capitalize;
 
-  &[data-status='completed'] { background: rgba(0, 184, 148, 0.12); color: var(--success); }
-  &[data-status='pending'] { background: rgba(243, 179, 36, 0.12); color: var(--warning); }
-  &[data-status='failed'] { background: rgba(231, 76, 60, 0.12); color: var(--error); }
-  &[data-status='refunded'] { background: rgba(92, 107, 192, 0.12); color: #5c6bc0; }
+  &[data-status='completed'] {
+    background: rgba(0, 184, 148, 0.12);
+    color: var(--success);
+  }
+  &[data-status='pending'] {
+    background: rgba(243, 179, 36, 0.12);
+    color: var(--warning);
+  }
+  &[data-status='failed'] {
+    background: rgba(231, 76, 60, 0.12);
+    color: var(--error);
+  }
+  &[data-status='refunded'] {
+    background: rgba(92, 107, 192, 0.12);
+    color: #5c6bc0;
+  }
 }
 
 .pagination {
@@ -248,7 +287,9 @@
     flex-direction: column;
     align-items: flex-start;
     gap: 4px;
-    h1 { font-size: 20px; }
+    h1 {
+      font-size: 20px;
+    }
   }
   .filters-grid {
     grid-template-columns: repeat(2, 1fr);
@@ -258,7 +299,8 @@
     display: block;
     overflow-x: auto;
     -webkit-overflow-scrolling: touch;
-    th, td {
+    th,
+    td {
       padding: 8px 6px;
       white-space: nowrap;
     }
@@ -282,7 +324,16 @@
   cursor: pointer;
   user-select: none;
   white-space: nowrap;
-  &:hover { color: var(--primary); }
+  &:hover {
+    color: var(--primary);
+  }
 }
-.sort-icon { font-size: 16px; vertical-align: middle; color: var(--text-muted); margin-left: 2px; }
-.sortable:hover .sort-icon { color: var(--primary); }
+.sort-icon {
+  font-size: 16px;
+  vertical-align: middle;
+  color: var(--text-muted);
+  margin-left: 2px;
+}
+.sortable:hover .sort-icon {
+  color: var(--primary);
+}

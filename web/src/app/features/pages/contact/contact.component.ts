@@ -10,7 +10,10 @@ import { FormsModule } from '@angular/forms';
   template: `
     <div class="static-page">
       <h1>Contact Us</h1>
-      <p class="page-subtitle">Have a question, concern, or feedback? We'd love to hear from you. Reach out through any of the channels below.</p>
+      <p class="page-subtitle">
+        Have a question, concern, or feedback? We'd love to hear from you. Reach out through any of
+        the channels below.
+      </p>
 
       <h2>Get in Touch</h2>
       <div class="card-grid">
@@ -37,7 +40,10 @@ import { FormsModule } from '@angular/forms';
       </div>
 
       <h2>Send Us a Message</h2>
-      <p>Fill out the form below and our support team will get back to you within <strong>24–48 hours</strong>.</p>
+      <p>
+        Fill out the form below and our support team will get back to you within
+        <strong>24–48 hours</strong>.
+      </p>
 
       <form class="contact-form" (ngSubmit)="onSubmit()">
         <input
@@ -56,12 +62,7 @@ import { FormsModule } from '@angular/forms';
           required
           aria-label="Your Email"
         />
-        <select
-          [(ngModel)]="form.subject"
-          name="subject"
-          required
-          aria-label="Subject"
-        >
+        <select [(ngModel)]="form.subject" name="subject" required aria-label="Subject">
           <option value="" disabled>Select a subject</option>
           <option value="general">General Enquiry</option>
           <option value="bug">Bug Report</option>
@@ -104,7 +105,10 @@ import { FormsModule } from '@angular/forms';
 
       <h2>Other Resources</h2>
       <ul>
-        <li><a routerLink="/trust-safety">Trust &amp; Safety</a> — learn how we keep the platform secure</li>
+        <li>
+          <a routerLink="/trust-safety">Trust &amp; Safety</a> — learn how we keep the platform
+          secure
+        </li>
         <li><a routerLink="/selling-tips">Selling Tips</a> — get the best price for your items</li>
         <li><a routerLink="/terms">Terms of Service</a> — our platform rules and policies</li>
         <li><a routerLink="/privacy">Privacy Policy</a> — how we handle your data</li>
@@ -112,14 +116,14 @@ import { FormsModule } from '@angular/forms';
 
       <p class="last-updated">Last updated: June 2025</p>
     </div>
-  `
+  `,
 })
 export class ContactComponent {
   form = {
     name: '',
     email: '',
     subject: '',
-    message: ''
+    message: '',
   };
 
   submitted = false;

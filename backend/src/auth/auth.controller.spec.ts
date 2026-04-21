@@ -53,7 +53,11 @@ describe('AuthController', () => {
 
     it('should call authService.register with phone dto', async () => {
       const dto = { phone: '+923001234567', password: 'password123' };
-      const expected = { message: 'Registration successful. Please check your phone for the OTP code.', userId: 'def' };
+      const expected = {
+        message:
+          'Registration successful. Please check your phone for the OTP code.',
+        userId: 'def',
+      };
       mockAuthService.register.mockResolvedValue(expected);
 
       const result = await controller.register(dto);
@@ -85,7 +89,10 @@ describe('AuthController', () => {
       const result = await controller.verifyPhone(dto);
 
       expect(result).toEqual(expected);
-      expect(mockAuthService.verifyPhone).toHaveBeenCalledWith('+923001234567', '123456');
+      expect(mockAuthService.verifyPhone).toHaveBeenCalledWith(
+        '+923001234567',
+        '123456',
+      );
     });
   });
 
@@ -173,21 +180,31 @@ describe('AuthController', () => {
       const result = await controller.refreshToken(dto);
 
       expect(result).toEqual(expected);
-      expect(mockAuthService.refreshToken).toHaveBeenCalledWith('valid-refresh-token');
+      expect(mockAuthService.refreshToken).toHaveBeenCalledWith(
+        'valid-refresh-token',
+      );
     });
   });
 
   describe('POST /api/auth/logout', () => {
     it('should call authService.logout with token and user id', async () => {
       const req = { headers: { authorization: 'Bearer access-token-123' } };
-      const user = { sub: 'user123', jti: 'jti-123', role: 'buyer', type: 'access' };
+      const user = {
+        sub: 'user123',
+        jti: 'jti-123',
+        role: 'buyer',
+        type: 'access',
+      };
       const expected = { message: 'Logged out successfully' };
       mockAuthService.logout.mockResolvedValue(expected);
 
       const result = await controller.logout(req, user as any);
 
       expect(result).toEqual(expected);
-      expect(mockAuthService.logout).toHaveBeenCalledWith('access-token-123', 'user123');
+      expect(mockAuthService.logout).toHaveBeenCalledWith(
+        'access-token-123',
+        'user123',
+      );
     });
   });
 
@@ -225,7 +242,12 @@ describe('AuthController', () => {
 
   describe('POST /api/auth/mfa/enable', () => {
     it('should call authService.enableMfa with user id', async () => {
-      const user = { sub: 'user123', jti: 'jti-123', role: 'buyer', type: 'access' };
+      const user = {
+        sub: 'user123',
+        jti: 'jti-123',
+        role: 'buyer',
+        type: 'access',
+      };
       const expected = {
         secret: 'TOTP_SECRET_BASE32',
         qrCodeUrl: 'data:image/png;base64,...',
@@ -263,13 +285,18 @@ describe('AuthController', () => {
   describe('POST /api/auth/forgot-password', () => {
     it('should call authService.forgotPassword with email', async () => {
       const dto = { email: 'test@example.com' };
-      const expected = { message: 'If an account with that email exists, a password reset link has been sent.' };
+      const expected = {
+        message:
+          'If an account with that email exists, a password reset link has been sent.',
+      };
       mockAuthService.forgotPassword.mockResolvedValue(expected);
 
       const result = await controller.forgotPassword(dto);
 
       expect(result).toEqual(expected);
-      expect(mockAuthService.forgotPassword).toHaveBeenCalledWith('test@example.com');
+      expect(mockAuthService.forgotPassword).toHaveBeenCalledWith(
+        'test@example.com',
+      );
     });
   });
 
@@ -291,15 +318,25 @@ describe('AuthController', () => {
 
   describe('POST /api/auth/change-email', () => {
     it('should call authService.requestEmailChange with user id and new email', async () => {
-      const user = { sub: 'user123', jti: 'jti-123', role: 'buyer', type: 'access' };
+      const user = {
+        sub: 'user123',
+        jti: 'jti-123',
+        role: 'buyer',
+        type: 'access',
+      };
       const dto = { newEmail: 'new@example.com' };
-      const expected = { message: 'Verification link sent to new email address' };
+      const expected = {
+        message: 'Verification link sent to new email address',
+      };
       mockAuthService.requestEmailChange.mockResolvedValue(expected);
 
       const result = await controller.changeEmail(dto, user as any);
 
       expect(result).toEqual(expected);
-      expect(mockAuthService.requestEmailChange).toHaveBeenCalledWith('user123', 'new@example.com');
+      expect(mockAuthService.requestEmailChange).toHaveBeenCalledWith(
+        'user123',
+        'new@example.com',
+      );
     });
   });
 
@@ -312,13 +349,20 @@ describe('AuthController', () => {
       const result = await controller.verifyEmailChange(dto);
 
       expect(result).toEqual(expected);
-      expect(mockAuthService.verifyEmailChange).toHaveBeenCalledWith('change-email-token');
+      expect(mockAuthService.verifyEmailChange).toHaveBeenCalledWith(
+        'change-email-token',
+      );
     });
   });
 
   describe('POST /api/auth/change-phone', () => {
     it('should call authService.requestPhoneChange with user id and new phone', async () => {
-      const user = { sub: 'user123', jti: 'jti-123', role: 'buyer', type: 'access' };
+      const user = {
+        sub: 'user123',
+        jti: 'jti-123',
+        role: 'buyer',
+        type: 'access',
+      };
       const dto = { newPhone: '+923009876543' };
       const expected = { message: 'OTP sent to new phone number' };
       mockAuthService.requestPhoneChange.mockResolvedValue(expected);
@@ -326,13 +370,21 @@ describe('AuthController', () => {
       const result = await controller.changePhone(dto, user as any);
 
       expect(result).toEqual(expected);
-      expect(mockAuthService.requestPhoneChange).toHaveBeenCalledWith('user123', '+923009876543');
+      expect(mockAuthService.requestPhoneChange).toHaveBeenCalledWith(
+        'user123',
+        '+923009876543',
+      );
     });
   });
 
   describe('POST /api/auth/change-phone/verify', () => {
     it('should call authService.verifyPhoneChange with user id and otp', async () => {
-      const user = { sub: 'user123', jti: 'jti-123', role: 'buyer', type: 'access' };
+      const user = {
+        sub: 'user123',
+        jti: 'jti-123',
+        role: 'buyer',
+        type: 'access',
+      };
       const dto = { otp: '654321' };
       const expected = { message: 'Phone number updated successfully' };
       mockAuthService.verifyPhoneChange.mockResolvedValue(expected);
@@ -340,7 +392,10 @@ describe('AuthController', () => {
       const result = await controller.verifyPhoneChange(dto, user as any);
 
       expect(result).toEqual(expected);
-      expect(mockAuthService.verifyPhoneChange).toHaveBeenCalledWith('user123', '654321');
+      expect(mockAuthService.verifyPhoneChange).toHaveBeenCalledWith(
+        'user123',
+        '654321',
+      );
     });
   });
 });

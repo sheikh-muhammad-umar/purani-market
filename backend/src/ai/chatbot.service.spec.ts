@@ -21,42 +21,60 @@ describe('ChatbotService', () => {
     });
 
     it('should respond to account management FAQs', async () => {
-      const result = await service.processMessage('session1', 'How do I register?');
+      const result = await service.processMessage(
+        'session1',
+        'How do I register?',
+      );
 
       expect(result.reply).toContain('Sign Up');
       expect(result.escalated).toBe(false);
     });
 
     it('should respond to password reset FAQ', async () => {
-      const result = await service.processMessage('session1', 'I forgot my password');
+      const result = await service.processMessage(
+        'session1',
+        'I forgot my password',
+      );
 
       expect(result.reply).toContain('Forgot Password');
       expect(result.escalated).toBe(false);
     });
 
     it('should respond to product listing FAQs', async () => {
-      const result = await service.processMessage('session1', 'How do I post an ad?');
+      const result = await service.processMessage(
+        'session1',
+        'How do I post an ad?',
+      );
 
       expect(result.reply).toContain('ad');
       expect(result.escalated).toBe(false);
     });
 
     it('should respond to ad limit FAQ', async () => {
-      const result = await service.processMessage('session1', 'How many free ads can I post?');
+      const result = await service.processMessage(
+        'session1',
+        'How many free ads can I post?',
+      );
 
       expect(result.reply).toContain('10');
       expect(result.escalated).toBe(false);
     });
 
     it('should respond to platform policy FAQs', async () => {
-      const result = await service.processMessage('session1', 'What are the platform rules?');
+      const result = await service.processMessage(
+        'session1',
+        'What are the platform rules?',
+      );
 
       expect(result.reply).toContain('Terms of Service');
       expect(result.escalated).toBe(false);
     });
 
     it('should respond to payment FAQs', async () => {
-      const result = await service.processMessage('session1', 'How do I pay with jazzcash?');
+      const result = await service.processMessage(
+        'session1',
+        'How do I pay with jazzcash?',
+      );
 
       expect(result.reply).toContain('JazzCash');
       expect(result.escalated).toBe(false);
@@ -70,7 +88,10 @@ describe('ChatbotService', () => {
     });
 
     it('should return fallback for unrecognized messages', async () => {
-      const result = await service.processMessage('session1', 'xyzzy random gibberish');
+      const result = await service.processMessage(
+        'session1',
+        'xyzzy random gibberish',
+      );
 
       expect(result.reply).toContain('rephrase');
       expect(result.escalated).toBe(false);
@@ -81,7 +102,10 @@ describe('ChatbotService', () => {
 
       await service.processMessage(sessionId, 'xyzzy gibberish 1');
       await service.processMessage(sessionId, 'xyzzy gibberish 2');
-      const result = await service.processMessage(sessionId, 'xyzzy gibberish 3');
+      const result = await service.processMessage(
+        sessionId,
+        'xyzzy gibberish 3',
+      );
 
       expect(result.escalated).toBe(true);
       expect(result.reply).toContain('human support');

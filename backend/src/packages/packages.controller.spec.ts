@@ -4,7 +4,10 @@ import { Types } from 'mongoose';
 import { PackagesController } from './packages.controller';
 import { PackagesService } from './packages.service';
 import { AdPackageType } from './schemas/ad-package.schema';
-import { PaymentMethod, PaymentStatus } from './schemas/package-purchase.schema';
+import {
+  PaymentMethod,
+  PaymentStatus,
+} from './schemas/package-purchase.schema';
 
 describe('PackagesController', () => {
   let controller: PackagesController;
@@ -49,9 +52,7 @@ describe('PackagesController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PackagesController],
-      providers: [
-        { provide: PackagesService, useValue: mockPackagesService },
-      ],
+      providers: [{ provide: PackagesService, useValue: mockPackagesService }],
     }).compile();
 
     controller = module.get<PackagesController>(PackagesController);
@@ -90,7 +91,10 @@ describe('PackagesController', () => {
         paymentMethod: PaymentMethod.JAZZCASH,
       };
 
-      const result = await controller.purchasePackages(sellerId.toString(), dto);
+      const result = await controller.purchasePackages(
+        sellerId.toString(),
+        dto,
+      );
 
       expect(result.redirectUrl).toContain('jazzcash');
       expect(result.transactionId).toBe('JC-123');

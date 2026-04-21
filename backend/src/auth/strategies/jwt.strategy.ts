@@ -47,7 +47,11 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
 
     // Fetch fresh role & permissions from DB (so super_admin changes take effect immediately)
     if (payload.role === 'admin' || payload.role === 'super_admin') {
-      const user = await this.userModel.findById(payload.sub).select('role permissions').lean().exec();
+      const user = await this.userModel
+        .findById(payload.sub)
+        .select('role permissions')
+        .lean()
+        .exec();
       if (user) {
         payload.role = user.role;
         payload.permissions = user.permissions || [];

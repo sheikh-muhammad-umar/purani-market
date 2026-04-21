@@ -3,7 +3,10 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type MessageDocument = HydratedDocument<Message>;
 
-@Schema({ timestamps: { createdAt: true, updatedAt: false }, collection: 'messages' })
+@Schema({
+  timestamps: { createdAt: true, updatedAt: false },
+  collection: 'messages',
+})
 export class Message {
   _id!: Types.ObjectId;
 

@@ -65,13 +65,24 @@ export class MessagingController {
     @CurrentUser('sub') userId: string,
     @Body() dto: SendMessageDto,
   ) {
-    const saved = await this.messagingService.sendMessage(conversationId, userId, dto.content);
+    const saved = await this.messagingService.sendMessage(
+      conversationId,
+      userId,
+      dto.content,
+    );
 
     // Ensure both participants are in the socket room
-    const conv = await this.messagingService.getConversationById(conversationId);
+    const conv =
+      await this.messagingService.getConversationById(conversationId);
     if (conv) {
-      await this.messagingGateway.joinUserToRoom(conv.buyerId.toString(), conversationId);
-      await this.messagingGateway.joinUserToRoom(conv.sellerId.toString(), conversationId);
+      await this.messagingGateway.joinUserToRoom(
+        conv.buyerId.toString(),
+        conversationId,
+      );
+      await this.messagingGateway.joinUserToRoom(
+        conv.sellerId.toString(),
+        conversationId,
+      );
     }
 
     this.messagingGateway.server

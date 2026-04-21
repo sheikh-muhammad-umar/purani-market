@@ -12,7 +12,12 @@ function makeListing(overrides: Partial<FavoriteListingPopulated> = {}): Favorit
     status: overrides.status ?? 'active',
     images: overrides.images ?? [{ url: 'img.jpg', thumbnailUrl: 'thumb.jpg', sortOrder: 0 }],
     condition: overrides.condition ?? 'used',
-    location: overrides.location ?? { type: 'Point', coordinates: [74, 31], city: 'Lahore', area: 'DHA' },
+    location: overrides.location ?? {
+      type: 'Point',
+      coordinates: [74, 31],
+      city: 'Lahore',
+      area: 'DHA',
+    },
     createdAt: overrides.createdAt ?? new Date('2024-06-01'),
     isFeatured: overrides.isFeatured ?? false,
   };
@@ -35,9 +40,33 @@ describe('FavoritesListComponent', () => {
   };
 
   const mockFavorites: Favorite[] = [
-    makeFavorite({ _id: 'fav1', productListingId: makeListing({ _id: 'l1', title: 'Car', price: { amount: 500000, currency: 'PKR' }, status: 'active' }) }),
-    makeFavorite({ _id: 'fav2', productListingId: makeListing({ _id: 'l2', title: 'Phone', price: { amount: 25000, currency: 'PKR' }, status: 'sold' }) }),
-    makeFavorite({ _id: 'fav3', productListingId: makeListing({ _id: 'l3', title: 'Laptop', price: { amount: 120000, currency: 'PKR' }, status: 'reserved' }) }),
+    makeFavorite({
+      _id: 'fav1',
+      productListingId: makeListing({
+        _id: 'l1',
+        title: 'Car',
+        price: { amount: 500000, currency: 'PKR' },
+        status: 'active',
+      }),
+    }),
+    makeFavorite({
+      _id: 'fav2',
+      productListingId: makeListing({
+        _id: 'l2',
+        title: 'Phone',
+        price: { amount: 25000, currency: 'PKR' },
+        status: 'sold',
+      }),
+    }),
+    makeFavorite({
+      _id: 'fav3',
+      productListingId: makeListing({
+        _id: 'l3',
+        title: 'Laptop',
+        price: { amount: 120000, currency: 'PKR' },
+        status: 'reserved',
+      }),
+    }),
   ];
 
   beforeEach(() => {
@@ -46,9 +75,7 @@ describe('FavoritesListComponent', () => {
       remove: vi.fn().mockReturnValue(of(undefined)),
     };
 
-    component = new FavoritesListComponent(
-      favoritesService as unknown as FavoritesService,
-    );
+    component = new FavoritesListComponent(favoritesService as unknown as FavoritesService);
   });
 
   it('should create', () => {
@@ -91,7 +118,9 @@ describe('FavoritesListComponent', () => {
 
   it('should fallback to full url when no thumbnail', () => {
     const fav = makeFavorite({
-      productListingId: makeListing({ images: [{ url: 'full.jpg', thumbnailUrl: '', sortOrder: 0 }] }),
+      productListingId: makeListing({
+        images: [{ url: 'full.jpg', thumbnailUrl: '', sortOrder: 0 }],
+      }),
     });
     expect(component.getImage(fav)).toBe('full.jpg');
   });

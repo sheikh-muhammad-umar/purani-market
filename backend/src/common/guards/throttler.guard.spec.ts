@@ -46,7 +46,10 @@ describe('CustomThrottlerGuard', () => {
       };
 
       await expect(
-        (guard as any).throwThrottlingException(mockContext, throttlerLimitDetail),
+        (guard as any).throwThrottlingException(
+          mockContext,
+          throttlerLimitDetail,
+        ),
       ).rejects.toThrow(ThrottlerException);
 
       expect(mockHeader).toHaveBeenCalledWith('Retry-After', '600');
@@ -74,7 +77,10 @@ describe('CustomThrottlerGuard', () => {
       };
 
       await expect(
-        (guard as any).throwThrottlingException(mockContext, throttlerLimitDetail),
+        (guard as any).throwThrottlingException(
+          mockContext,
+          throttlerLimitDetail,
+        ),
       ).rejects.toThrow(ThrottlerException);
 
       expect(mockHeader).toHaveBeenCalledWith('Retry-After', '451');
@@ -102,7 +108,10 @@ describe('CustomThrottlerGuard', () => {
       };
 
       await expect(
-        (guard as any).throwThrottlingException(mockContext, throttlerLimitDetail),
+        (guard as any).throwThrottlingException(
+          mockContext,
+          throttlerLimitDetail,
+        ),
       ).rejects.toThrow('Too Many Requests. Please retry after 300 seconds.');
     });
   });

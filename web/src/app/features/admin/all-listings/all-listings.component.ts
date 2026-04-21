@@ -5,7 +5,10 @@ import { RouterLink } from '@angular/router';
 import { AdminService } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { LocationService } from '../../../core/services/location.service';
-import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
+import {
+  CustomSelectComponent,
+  SelectOption,
+} from '../../../shared/components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 
 interface AdminListing {
@@ -77,7 +80,17 @@ export class AllListingsComponent implements OnInit {
   deletionReasonOptions: SelectOption[] = [{ value: '', label: 'All' }];
 
   get hasActiveFilters(): boolean {
-    return !!(this.filterStatus || this.filterCategory || this.filterProvince || this.filterCity || this.filterRejectionReason || this.filterDeletionReason || this.filterDateFrom || this.filterDateTo || this.searchQuery);
+    return !!(
+      this.filterStatus ||
+      this.filterCategory ||
+      this.filterProvince ||
+      this.filterCity ||
+      this.filterRejectionReason ||
+      this.filterDeletionReason ||
+      this.filterDateFrom ||
+      this.filterDateTo ||
+      this.searchQuery
+    );
   }
   get activeFilterCount(): number {
     let c = 0;
@@ -108,7 +121,10 @@ export class AllListingsComponent implements OnInit {
   loadCategories(): void {
     this.categoriesService.getAll().subscribe({
       next: (cats) => {
-        this.categoryOptions = [{ value: '', label: 'All Categories' }, ...cats.map(c => ({ value: c._id, label: c.name }))];
+        this.categoryOptions = [
+          { value: '', label: 'All Categories' },
+          ...cats.map((c) => ({ value: c._id, label: c.name })),
+        ];
       },
     });
   }
@@ -116,7 +132,10 @@ export class AllListingsComponent implements OnInit {
   loadProvinces(): void {
     this.locationService.getProvinces().subscribe({
       next: (provinces: any[]) => {
-        this.provinceOptions = [{ value: '', label: 'All Provinces' }, ...provinces.map((p: any) => ({ value: p._id, label: p.name }))];
+        this.provinceOptions = [
+          { value: '', label: 'All Provinces' },
+          ...provinces.map((p: any) => ({ value: p._id, label: p.name })),
+        ];
       },
     });
   }
@@ -127,7 +146,10 @@ export class AllListingsComponent implements OnInit {
     if (this.filterProvince) {
       this.locationService.getCities(this.filterProvince).subscribe({
         next: (cities: any[]) => {
-          this.cityOptions = [{ value: '', label: 'All Cities' }, ...cities.map((c: any) => ({ value: c._id, label: c.name }))];
+          this.cityOptions = [
+            { value: '', label: 'All Cities' },
+            ...cities.map((c: any) => ({ value: c._id, label: c.name })),
+          ];
         },
       });
     }
@@ -137,7 +159,10 @@ export class AllListingsComponent implements OnInit {
   loadRejectionReasons(): void {
     this.adminService.getRejectionReasons(true).subscribe({
       next: (reasons) => {
-        this.rejectionReasonOptions = [{ value: '', label: 'All' }, ...reasons.map((r: any) => ({ value: r.title, label: r.title }))];
+        this.rejectionReasonOptions = [
+          { value: '', label: 'All' },
+          ...reasons.map((r: any) => ({ value: r.title, label: r.title })),
+        ];
       },
     });
   }
@@ -145,7 +170,10 @@ export class AllListingsComponent implements OnInit {
   loadDeletionReasons(): void {
     this.adminService.getDeletionReasons(true).subscribe({
       next: (reasons) => {
-        this.deletionReasonOptions = [{ value: '', label: 'All' }, ...reasons.map((r: any) => ({ value: r.title, label: r.title }))];
+        this.deletionReasonOptions = [
+          { value: '', label: 'All' },
+          ...reasons.map((r: any) => ({ value: r.title, label: r.title })),
+        ];
       },
     });
   }
@@ -161,47 +189,78 @@ export class AllListingsComponent implements OnInit {
     };
     const { sort, order } = sortMap[this.sortBy] || sortMap['newest'];
 
-    this.adminService.getAllListings({
-      page: this.page, limit: 20,
-      search: this.searchQuery.trim() || undefined,
-      status: this.filterStatus || undefined,
-      categoryId: this.filterCategory || undefined,
-      provinceId: this.filterProvince || undefined,
-      cityId: this.filterCity || undefined,
-      rejectionReason: this.filterRejectionReason || undefined,
-      deletionReason: this.filterDeletionReason || undefined,
-      dateFrom: this.filterDateFrom || undefined,
-      dateTo: this.filterDateTo || undefined,
-      sort, order,
-    }).subscribe({
-      next: (res: any) => {
-        this.listings.set(res.data ?? []);
-        this.total.set(res.total ?? 0);
-        this.totalPages.set(res.totalPages ?? 0);
-        this.loading.set(false);
-      },
-      error: () => { this.listings.set([]); this.loading.set(false); },
-    });
+    this.adminService
+      .getAllListings({
+        page: this.page,
+        limit: 20,
+        search: this.searchQuery.trim() || undefined,
+        status: this.filterStatus || undefined,
+        categoryId: this.filterCategory || undefined,
+        provinceId: this.filterProvince || undefined,
+        cityId: this.filterCity || undefined,
+        rejectionReason: this.filterRejectionReason || undefined,
+        deletionReason: this.filterDeletionReason || undefined,
+        dateFrom: this.filterDateFrom || undefined,
+        dateTo: this.filterDateTo || undefined,
+        sort,
+        order,
+      })
+      .subscribe({
+        next: (res: any) => {
+          this.listings.set(res.data ?? []);
+          this.total.set(res.total ?? 0);
+          this.totalPages.set(res.totalPages ?? 0);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.listings.set([]);
+          this.loading.set(false);
+        },
+      });
   }
 
-  applyFilters(): void { this.page = 1; this.loadListings(); }
+  applyFilters(): void {
+    this.page = 1;
+    this.loadListings();
+  }
   clearFilters(): void {
-    this.searchQuery = ''; this.filterStatus = ''; this.filterCategory = '';
-    this.filterProvince = ''; this.filterCity = '';
-    this.filterRejectionReason = ''; this.filterDeletionReason = '';
-    this.filterDateFrom = ''; this.filterDateTo = ''; this.sortBy = 'newest';
+    this.searchQuery = '';
+    this.filterStatus = '';
+    this.filterCategory = '';
+    this.filterProvince = '';
+    this.filterCity = '';
+    this.filterRejectionReason = '';
+    this.filterDeletionReason = '';
+    this.filterDateFrom = '';
+    this.filterDateTo = '';
+    this.sortBy = 'newest';
     this.cityOptions = [{ value: '', label: 'All Cities' }];
-    this.page = 1; this.loadListings();
+    this.page = 1;
+    this.loadListings();
   }
-  goToPage(p: number): void { if (p < 1 || p > this.totalPages()) return; this.page = p; this.loadListings(); }
+  goToPage(p: number): void {
+    if (p < 1 || p > this.totalPages()) return;
+    this.page = p;
+    this.loadListings();
+  }
 
-  formatDate(d: string): string { return d ? new Date(d).toLocaleDateString('en-PK', { month: 'short', day: 'numeric', year: 'numeric' }) : '—'; }
-  formatPrice(l: AdminListing): string { return l.price ? `${l.price.currency} ${l.price.amount.toLocaleString()}` : '—'; }
+  formatDate(d: string): string {
+    return d
+      ? new Date(d).toLocaleDateString('en-PK', { month: 'short', day: 'numeric', year: 'numeric' })
+      : '—';
+  }
+  formatPrice(l: AdminListing): string {
+    return l.price ? `${l.price.currency} ${l.price.amount.toLocaleString()}` : '—';
+  }
 
   getStatusColor(status: string): string {
     const map: Record<string, string> = {
-      active: '#00B894', pending_review: '#F39C12', rejected: '#E74C3C',
-      sold: '#6C5CE7', inactive: '#636e72', deleted: '#E74C3C',
+      active: '#00B894',
+      pending_review: '#F39C12',
+      rejected: '#E74C3C',
+      sold: '#6C5CE7',
+      inactive: '#636e72',
+      deleted: '#E74C3C',
     };
     return map[status] || '#636e72';
   }

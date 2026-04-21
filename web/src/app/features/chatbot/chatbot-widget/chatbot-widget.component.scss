@@ -1,9 +1,9 @@
 $primary: var(--primary);
 $primary-dark: #0a5c5f;
-$secondary: #FF6B6B;
-$text-dark: #2D3436;
-$bg-light: #F8F9FA;
-$white: #FFFFFF;
+$secondary: #ff6b6b;
+$text-dark: #2d3436;
+$bg-light: #f8f9fa;
+$white: #ffffff;
 $shadow-card: 0 2px 8px rgba(0, 0, 0, 0.08);
 $shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.16);
 
@@ -27,7 +27,9 @@ $shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.16);
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s, transform 0.2s;
+  transition:
+    background 0.2s,
+    transform 0.2s;
 
   &:hover {
     background: $primary-dark;
@@ -171,7 +173,9 @@ $shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.16);
   font-family: 'Inter', sans-serif;
   color: $primary;
   cursor: pointer;
-  transition: background 0.2s, border-color 0.2s;
+  transition:
+    background 0.2s,
+    border-color 0.2s;
 
   &:hover {
     background: darken($bg-light, 4%);
@@ -225,7 +229,9 @@ $shadow-modal: 0 16px 48px rgba(0, 0, 0, 0.16);
 }
 
 @keyframes typing-bounce {
-  0%, 80%, 100% {
+  0%,
+  80%,
+  100% {
     transform: translateY(0);
   }
   40% {

@@ -9,138 +9,161 @@
 
     <!-- Search bar (desktop) -->
     @if (!isAuthPage) {
-    <div class="header-search">
-      <div class="search-location" (click)="toggleLocationDropdown()">
-        <span class="material-symbols-rounded" style="font-size:18px;">location_on</span>
-        {{ locationLabel() }}
-        <span class="material-symbols-rounded location-chevron" style="font-size:16px;">expand_more</span>
-      </div>
-      @if (locationDropdownOpen()) {
-        <div class="location-dropdown">
-          <div class="location-dropdown-header">
-            @if (selectedArea()) {
-              <button class="location-back-btn" (click)="goBackToAreas()">
-                <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
-                {{ selectedArea()!.name }}
-              </button>
-            } @else if (selectedCity()) {
-              <button class="location-back-btn" (click)="goBackToCities()">
-                <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
-                {{ selectedCity()!.name }}
-              </button>
-            } @else if (selectedProvince()) {
-              <button class="location-back-btn" (click)="goBackToProvinces()">
-                <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
-                {{ selectedProvince()!.name }}
-              </button>
-            } @else {
-              <span class="location-dropdown-title">Select Location</span>
-            }
-            @if (!selectedProvince()) {
-              <button class="location-clear-btn" (click)="seeAllPakistan()">All Pakistan</button>
-            } @else if (selectedProvince() && !selectedCity()) {
-              <button class="location-clear-btn" (click)="seeAllInProvince()">All {{ selectedProvince()!.name }}</button>
-            } @else if (selectedCity() && !selectedArea()) {
-              <button class="location-clear-btn" (click)="seeAllInCity()">All {{ selectedCity()!.name }}</button>
-            } @else if (selectedArea()) {
-              <button class="location-clear-btn" (click)="seeAllInArea()">All {{ selectedArea()!.name }}</button>
-            }
-          </div>
-          <input
-            type="text"
-            class="location-search-input"
-            placeholder="Search location..."
-            [value]="locationSearch()"
-            (input)="locationSearch.set($any($event.target).value)"
-            (click)="$event.stopPropagation()"
-            autocomplete="off"
-          />
-          <div class="location-dropdown-list">
-            @if (!selectedProvince()) {
-              @for (province of filteredProvinces(); track province._id) {
-                <button class="location-option" (click)="selectProvince(province)">
-                  {{ province.name }}
-                  <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+      <div class="header-search">
+        <div class="search-location" (click)="toggleLocationDropdown()">
+          <span class="material-symbols-rounded" style="font-size: 18px">location_on</span>
+          {{ locationLabel() }}
+          <span class="material-symbols-rounded location-chevron" style="font-size: 16px"
+            >expand_more</span
+          >
+        </div>
+        @if (locationDropdownOpen()) {
+          <div class="location-dropdown">
+            <div class="location-dropdown-header">
+              @if (selectedArea()) {
+                <button class="location-back-btn" (click)="goBackToAreas()">
+                  <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span>
+                  {{ selectedArea()!.name }}
+                </button>
+              } @else if (selectedCity()) {
+                <button class="location-back-btn" (click)="goBackToCities()">
+                  <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span>
+                  {{ selectedCity()!.name }}
+                </button>
+              } @else if (selectedProvince()) {
+                <button class="location-back-btn" (click)="goBackToProvinces()">
+                  <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span>
+                  {{ selectedProvince()!.name }}
+                </button>
+              } @else {
+                <span class="location-dropdown-title">Select Location</span>
+              }
+              @if (!selectedProvince()) {
+                <button class="location-clear-btn" (click)="seeAllPakistan()">All Pakistan</button>
+              } @else if (selectedProvince() && !selectedCity()) {
+                <button class="location-clear-btn" (click)="seeAllInProvince()">
+                  All {{ selectedProvince()!.name }}
+                </button>
+              } @else if (selectedCity() && !selectedArea()) {
+                <button class="location-clear-btn" (click)="seeAllInCity()">
+                  All {{ selectedCity()!.name }}
+                </button>
+              } @else if (selectedArea()) {
+                <button class="location-clear-btn" (click)="seeAllInArea()">
+                  All {{ selectedArea()!.name }}
                 </button>
               }
-              @if (filteredProvinces().length === 0) {
-                <div class="location-empty">No match</div>
-              }
-            } @else if (!selectedCity()) {
-              @for (city of filteredCities(); track city._id) {
-                <button class="location-option" (click)="selectCity(city)">
-                  {{ city.name }}
-                  <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
-                </button>
-              }
-              @if (filteredCities().length === 0) {
-                <div class="location-empty">No match</div>
-              }
-            } @else if (!selectedArea()) {
-              @for (area of filteredAreas(); track area._id) {
-                <button class="location-option" (click)="selectArea(area)">
-                  {{ area.name }}
-                  @if (area.subareas.length > 0 || area.blockPhases.length > 0) {
-                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+            </div>
+            <input
+              type="text"
+              class="location-search-input"
+              placeholder="Search location..."
+              [value]="locationSearch()"
+              (input)="locationSearch.set($any($event.target).value)"
+              (click)="$event.stopPropagation()"
+              autocomplete="off"
+            />
+            <div class="location-dropdown-list">
+              @if (!selectedProvince()) {
+                @for (province of filteredProvinces(); track province._id) {
+                  <button class="location-option" (click)="selectProvince(province)">
+                    {{ province.name }}
+                    <span class="material-symbols-rounded" style="font-size: 16px"
+                      >chevron_right</span
+                    >
+                  </button>
+                }
+                @if (filteredProvinces().length === 0) {
+                  <div class="location-empty">No match</div>
+                }
+              } @else if (!selectedCity()) {
+                @for (city of filteredCities(); track city._id) {
+                  <button class="location-option" (click)="selectCity(city)">
+                    {{ city.name }}
+                    <span class="material-symbols-rounded" style="font-size: 16px"
+                      >chevron_right</span
+                    >
+                  </button>
+                }
+                @if (filteredCities().length === 0) {
+                  <div class="location-empty">No match</div>
+                }
+              } @else if (!selectedArea()) {
+                @for (area of filteredAreas(); track area._id) {
+                  <button class="location-option" (click)="selectArea(area)">
+                    {{ area.name }}
+                    @if (area.subareas.length > 0 || area.blockPhases.length > 0) {
+                      <span class="material-symbols-rounded" style="font-size: 16px"
+                        >chevron_right</span
+                      >
+                    }
+                  </button>
+                }
+                @if (filteredAreas().length === 0) {
+                  <div class="location-empty">No match</div>
+                }
+              } @else {
+                @if (selectedArea()!.subareas.length > 0) {
+                  <div class="location-section-label">Subareas</div>
+                  @for (sub of selectedArea()!.subareas; track sub) {
+                    <button class="location-option" (click)="selectSubItem(sub)">
+                      {{ sub }}
+                    </button>
                   }
-                </button>
-              }
-              @if (filteredAreas().length === 0) {
-                <div class="location-empty">No match</div>
-              }
-            } @else {
-              @if (selectedArea()!.subareas.length > 0) {
-                <div class="location-section-label">Subareas</div>
-                @for (sub of selectedArea()!.subareas; track sub) {
-                  <button class="location-option" (click)="selectSubItem(sub)">
-                    {{ sub }}
-                  </button>
+                }
+                @if (selectedArea()!.blockPhases.length > 0) {
+                  <div class="location-section-label">Blocks / Phases</div>
+                  @for (block of selectedArea()!.blockPhases; track block) {
+                    <button class="location-option" (click)="selectSubItem(block)">
+                      {{ block }}
+                    </button>
+                  }
                 }
               }
-              @if (selectedArea()!.blockPhases.length > 0) {
-                <div class="location-section-label">Blocks / Phases</div>
-                @for (block of selectedArea()!.blockPhases; track block) {
-                  <button class="location-option" (click)="selectSubItem(block)">
-                    {{ block }}
-                  </button>
-                }
-              }
+            </div>
+          </div>
+        }
+        <div class="search-divider"></div>
+        <input
+          #desktopSearch
+          type="text"
+          class="search-input"
+          placeholder="{{ searchPlaceholder() }}"
+          (keyup.enter)="goToSearch(desktopSearch.value)"
+          (focus)="onSearchFocus()"
+          (blur)="onSearchBlur()"
+          autocomplete="off"
+        />
+        @if (searchDropdownOpen() && recentSearches.searches().length > 0) {
+          <div class="recent-searches-dropdown">
+            <div class="recent-searches-header">
+              <span>Recent Searches</span>
+              <button class="recent-clear-btn" (mousedown)="clearRecentSearches($event)">
+                Clear all
+              </button>
+            </div>
+            @for (term of recentSearches.searches(); track term) {
+              <button
+                class="recent-search-item"
+                (mousedown)="selectRecentSearch(term, desktopSearch)"
+              >
+                <span
+                  class="material-symbols-rounded"
+                  style="font-size: 16px; color: var(--text-muted)"
+                  >history</span
+                >
+                <span class="recent-search-text">{{ term }}</span>
+                <span class="recent-remove-btn" (mousedown)="removeRecentSearch(term, $event)">
+                  <span class="material-symbols-rounded" style="font-size: 14px">close</span>
+                </span>
+              </button>
             }
           </div>
-        </div>
-      }
-      <div class="search-divider"></div>
-      <input
-        #desktopSearch
-        type="text"
-        class="search-input"
-        placeholder="{{ searchPlaceholder() }}"
-        (keyup.enter)="goToSearch(desktopSearch.value)"
-        (focus)="onSearchFocus()"
-        (blur)="onSearchBlur()"
-        autocomplete="off"
-      />
-      @if (searchDropdownOpen() && recentSearches.searches().length > 0) {
-        <div class="recent-searches-dropdown">
-          <div class="recent-searches-header">
-            <span>Recent Searches</span>
-            <button class="recent-clear-btn" (mousedown)="clearRecentSearches($event)">Clear all</button>
-          </div>
-          @for (term of recentSearches.searches(); track term) {
-            <button class="recent-search-item" (mousedown)="selectRecentSearch(term, desktopSearch)">
-              <span class="material-symbols-rounded" style="font-size:16px;color:var(--text-muted);">history</span>
-              <span class="recent-search-text">{{ term }}</span>
-              <span class="recent-remove-btn" (mousedown)="removeRecentSearch(term, $event)">
-                <span class="material-symbols-rounded" style="font-size:14px;">close</span>
-              </span>
-            </button>
-          }
-        </div>
-      }
-      <button class="search-circle" (click)="goToSearch(desktopSearch.value)">
-        <span class="material-symbols-rounded">search</span>
-      </button>
-    </div>
+        }
+        <button class="search-circle" (click)="goToSearch(desktopSearch.value)">
+          <span class="material-symbols-rounded">search</span>
+        </button>
+      </div>
     }
 
     <!-- Desktop nav -->
@@ -155,15 +178,21 @@
         <a routerLink="/favorites" class="nav-icon" title="Favorites">
           <span class="material-symbols-rounded">favorite_border</span>
         </a>
-        <button class="theme-toggle nav-icon" (click)="themeService.toggle()" [title]="themeService.theme() === 'dark' ? 'Light mode' : 'Dark mode'">
-          <span class="material-symbols-rounded">{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
+        <button
+          class="theme-toggle nav-icon"
+          (click)="themeService.toggle()"
+          [title]="themeService.theme() === 'dark' ? 'Light mode' : 'Dark mode'"
+        >
+          <span class="material-symbols-rounded">{{
+            themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'
+          }}</span>
         </button>
 
         <!-- Account dropdown -->
         <div class="account-dropdown-wrap">
           <button class="nav-icon account-trigger" (click)="toggleAccountMenu()">
             <span class="avatar-circle">
-              <span class="material-symbols-rounded" style="font-size:20px;">person</span>
+              <span class="material-symbols-rounded" style="font-size: 20px">person</span>
             </span>
           </button>
           @if (accountMenuOpen()) {
@@ -194,12 +223,14 @@
         </div>
 
         <a routerLink="/listings/create" class="post-ad-btn">
-          <span class="material-symbols-rounded" style="font-size:18px;">add_circle</span>
+          <span class="material-symbols-rounded" style="font-size: 18px">add_circle</span>
           Post Ad
         </a>
       } @else if (!isAuthPage) {
         <button class="theme-toggle nav-icon" (click)="themeService.toggle()">
-          <span class="material-symbols-rounded">{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
+          <span class="material-symbols-rounded">{{
+            themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'
+          }}</span>
         </button>
         <a routerLink="/auth/login" class="nav-text-link">Login</a>
         <a routerLink="/auth/register" class="post-ad-btn">Register</a>
@@ -209,170 +240,211 @@
 
   <!-- Mobile search bar -->
   @if (!isAuthPage && !isMessagingPage && !isProfilePage && !isAdminPage) {
-  <div class="mobile-search">
-    <div class="mobile-search-row">
-      <button class="mobile-location-btn" (click)="toggleLocationDropdown()">
-        <span class="material-symbols-rounded" style="font-size:18px;">location_on</span>
-        <span class="mobile-location-text">{{ locationLabel() }}</span>
-      </button>
-      @if (locationDropdownOpen()) {
-        <div class="mobile-location-dropdown">
-          <div class="location-dropdown-header">
-            @if (selectedArea()) {
-              <button class="location-back-btn" (click)="goBackToAreas()">
-                <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
-                {{ selectedArea()!.name }}
-              </button>
-            } @else if (selectedCity()) {
-              <button class="location-back-btn" (click)="goBackToCities()">
-                <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
-                {{ selectedCity()!.name }}
-              </button>
-            } @else if (selectedProvince()) {
-              <button class="location-back-btn" (click)="goBackToProvinces()">
-                <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span>
-                {{ selectedProvince()!.name }}
-              </button>
-            } @else {
-              <span class="location-dropdown-title">Select Location</span>
-            }
-            @if (!selectedProvince()) {
-              <button class="location-clear-btn" (click)="seeAllPakistan()">All Pakistan</button>
-            } @else if (selectedProvince() && !selectedCity()) {
-              <button class="location-clear-btn" (click)="seeAllInProvince()">All {{ selectedProvince()!.name }}</button>
-            } @else if (selectedCity() && !selectedArea()) {
-              <button class="location-clear-btn" (click)="seeAllInCity()">All {{ selectedCity()!.name }}</button>
-            } @else if (selectedArea()) {
-              <button class="location-clear-btn" (click)="seeAllInArea()">All {{ selectedArea()!.name }}</button>
-            }
-          </div>
-          <input
-            type="text"
-            class="location-search-input"
-            placeholder="Search location..."
-            [value]="locationSearch()"
-            (input)="locationSearch.set($any($event.target).value)"
-            (click)="$event.stopPropagation()"
-            autocomplete="off"
-          />
-          <div class="location-dropdown-list">
-            @if (!selectedProvince()) {
-              @for (province of filteredProvinces(); track province._id) {
-                <button class="location-option" (click)="selectProvince(province)">
-                  {{ province.name }}
-                  <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
+    <div class="mobile-search">
+      <div class="mobile-search-row">
+        <button class="mobile-location-btn" (click)="toggleLocationDropdown()">
+          <span class="material-symbols-rounded" style="font-size: 18px">location_on</span>
+          <span class="mobile-location-text">{{ locationLabel() }}</span>
+        </button>
+        @if (locationDropdownOpen()) {
+          <div class="mobile-location-dropdown">
+            <div class="location-dropdown-header">
+              @if (selectedArea()) {
+                <button class="location-back-btn" (click)="goBackToAreas()">
+                  <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span>
+                  {{ selectedArea()!.name }}
+                </button>
+              } @else if (selectedCity()) {
+                <button class="location-back-btn" (click)="goBackToCities()">
+                  <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span>
+                  {{ selectedCity()!.name }}
+                </button>
+              } @else if (selectedProvince()) {
+                <button class="location-back-btn" (click)="goBackToProvinces()">
+                  <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span>
+                  {{ selectedProvince()!.name }}
+                </button>
+              } @else {
+                <span class="location-dropdown-title">Select Location</span>
+              }
+              @if (!selectedProvince()) {
+                <button class="location-clear-btn" (click)="seeAllPakistan()">All Pakistan</button>
+              } @else if (selectedProvince() && !selectedCity()) {
+                <button class="location-clear-btn" (click)="seeAllInProvince()">
+                  All {{ selectedProvince()!.name }}
+                </button>
+              } @else if (selectedCity() && !selectedArea()) {
+                <button class="location-clear-btn" (click)="seeAllInCity()">
+                  All {{ selectedCity()!.name }}
+                </button>
+              } @else if (selectedArea()) {
+                <button class="location-clear-btn" (click)="seeAllInArea()">
+                  All {{ selectedArea()!.name }}
                 </button>
               }
-              @if (filteredProvinces().length === 0) {
-                <div class="location-empty">No match</div>
-              }
-            } @else if (!selectedCity()) {
-              @for (city of filteredCities(); track city._id) {
-                <button class="location-option" (click)="selectCity(city)">
-                  {{ city.name }}
-                  <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
-                </button>
-              }
-              @if (filteredCities().length === 0) {
-                <div class="location-empty">No match</div>
-              }
-            } @else if (!selectedArea()) {
-              @for (area of filteredAreas(); track area._id) {
-                <button class="location-option" (click)="selectArea(area)">
-                  {{ area.name }}
-                  @if (area.subareas.length > 0 || area.blockPhases.length > 0) {
-                    <span class="material-symbols-rounded" style="font-size:16px;">chevron_right</span>
-                  }
-                </button>
-              }
-              @if (filteredAreas().length === 0) {
-                <div class="location-empty">No match</div>
-              }
-            } @else {
-              @if (selectedArea()!.subareas.length > 0) {
-                <div class="location-section-label">Subareas</div>
-                @for (sub of selectedArea()!.subareas; track sub) {
-                  <button class="location-option" (click)="selectSubItem(sub)">
-                    {{ sub }}
-                  </button>
-                }
-              }
-              @if (selectedArea()!.blockPhases.length > 0) {
-                <div class="location-section-label">Blocks / Phases</div>
-                @for (block of selectedArea()!.blockPhases; track block) {
-                  <button class="location-option" (click)="selectSubItem(block)">
-                    {{ block }}
-                  </button>
-                }
-              }
-            }
-          </div>
-        </div>
-      }
-      <div class="mobile-search-wrap">
-        <input
-          #mobileSearch
-          type="text"
-          class="search-input"
-          placeholder="Search..."
-          (keyup.enter)="goToSearch(mobileSearch.value)"
-          (focus)="onSearchFocus()"
-          (blur)="onSearchBlur()"
-          autocomplete="off"
-        />
-        @if (searchDropdownOpen() && recentSearches.searches().length > 0) {
-          <div class="recent-searches-dropdown mobile-recent">
-            <div class="recent-searches-header">
-              <span>Recent Searches</span>
-              <button class="recent-clear-btn" (mousedown)="clearRecentSearches($event)">Clear all</button>
             </div>
-            @for (term of recentSearches.searches(); track term) {
-              <button class="recent-search-item" (mousedown)="selectRecentSearch(term, mobileSearch)">
-                <span class="material-symbols-rounded" style="font-size:16px;color:var(--text-muted);">history</span>
-                <span class="recent-search-text">{{ term }}</span>
-                <span class="recent-remove-btn" (mousedown)="removeRecentSearch(term, $event)">
-                  <span class="material-symbols-rounded" style="font-size:14px;">close</span>
-                </span>
-              </button>
-            }
+            <input
+              type="text"
+              class="location-search-input"
+              placeholder="Search location..."
+              [value]="locationSearch()"
+              (input)="locationSearch.set($any($event.target).value)"
+              (click)="$event.stopPropagation()"
+              autocomplete="off"
+            />
+            <div class="location-dropdown-list">
+              @if (!selectedProvince()) {
+                @for (province of filteredProvinces(); track province._id) {
+                  <button class="location-option" (click)="selectProvince(province)">
+                    {{ province.name }}
+                    <span class="material-symbols-rounded" style="font-size: 16px"
+                      >chevron_right</span
+                    >
+                  </button>
+                }
+                @if (filteredProvinces().length === 0) {
+                  <div class="location-empty">No match</div>
+                }
+              } @else if (!selectedCity()) {
+                @for (city of filteredCities(); track city._id) {
+                  <button class="location-option" (click)="selectCity(city)">
+                    {{ city.name }}
+                    <span class="material-symbols-rounded" style="font-size: 16px"
+                      >chevron_right</span
+                    >
+                  </button>
+                }
+                @if (filteredCities().length === 0) {
+                  <div class="location-empty">No match</div>
+                }
+              } @else if (!selectedArea()) {
+                @for (area of filteredAreas(); track area._id) {
+                  <button class="location-option" (click)="selectArea(area)">
+                    {{ area.name }}
+                    @if (area.subareas.length > 0 || area.blockPhases.length > 0) {
+                      <span class="material-symbols-rounded" style="font-size: 16px"
+                        >chevron_right</span
+                      >
+                    }
+                  </button>
+                }
+                @if (filteredAreas().length === 0) {
+                  <div class="location-empty">No match</div>
+                }
+              } @else {
+                @if (selectedArea()!.subareas.length > 0) {
+                  <div class="location-section-label">Subareas</div>
+                  @for (sub of selectedArea()!.subareas; track sub) {
+                    <button class="location-option" (click)="selectSubItem(sub)">
+                      {{ sub }}
+                    </button>
+                  }
+                }
+                @if (selectedArea()!.blockPhases.length > 0) {
+                  <div class="location-section-label">Blocks / Phases</div>
+                  @for (block of selectedArea()!.blockPhases; track block) {
+                    <button class="location-option" (click)="selectSubItem(block)">
+                      {{ block }}
+                    </button>
+                  }
+                }
+              }
+            </div>
           </div>
         }
-        <button class="mobile-search-btn" (click)="goToSearch(mobileSearch.value)">
-          <span class="material-symbols-rounded" style="font-size:18px;">search</span>
-        </button>
+        <div class="mobile-search-wrap">
+          <input
+            #mobileSearch
+            type="text"
+            class="search-input"
+            placeholder="Search..."
+            (keyup.enter)="goToSearch(mobileSearch.value)"
+            (focus)="onSearchFocus()"
+            (blur)="onSearchBlur()"
+            autocomplete="off"
+          />
+          @if (searchDropdownOpen() && recentSearches.searches().length > 0) {
+            <div class="recent-searches-dropdown mobile-recent">
+              <div class="recent-searches-header">
+                <span>Recent Searches</span>
+                <button class="recent-clear-btn" (mousedown)="clearRecentSearches($event)">
+                  Clear all
+                </button>
+              </div>
+              @for (term of recentSearches.searches(); track term) {
+                <button
+                  class="recent-search-item"
+                  (mousedown)="selectRecentSearch(term, mobileSearch)"
+                >
+                  <span
+                    class="material-symbols-rounded"
+                    style="font-size: 16px; color: var(--text-muted)"
+                    >history</span
+                  >
+                  <span class="recent-search-text">{{ term }}</span>
+                  <span class="recent-remove-btn" (mousedown)="removeRecentSearch(term, $event)">
+                    <span class="material-symbols-rounded" style="font-size: 14px">close</span>
+                  </span>
+                </button>
+              }
+            </div>
+          }
+          <button class="mobile-search-btn" (click)="goToSearch(mobileSearch.value)">
+            <span class="material-symbols-rounded" style="font-size: 18px">search</span>
+          </button>
+        </div>
       </div>
     </div>
-  </div>
   }
 </header>
 
 <!-- Mobile Bottom Navigation -->
 @if (!isAuthPage) {
-<nav class="mobile-bottom-nav">
-  <a routerLink="/" class="bottom-nav-item">
-    <span class="material-symbols-rounded bottom-icon">home</span>
-    <span class="bottom-label">Home</span>
-  </a>
-  <a [routerLink]="authService.isAuthenticated() ? '/messaging' : null" (click)="!authService.isAuthenticated() && loginModal.open('/messaging')" class="bottom-nav-item">
-    <span class="material-symbols-rounded bottom-icon" style="position: relative;">
-      chat_bubble_outline
-      @if (unreadCount() > 0) {
-        <span class="bottom-badge">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
-      }
-    </span>
-    <span class="bottom-label">Chat</span>
-  </a>
-  <a [routerLink]="authService.isAuthenticated() ? '/listings/create' : null" (click)="!authService.isAuthenticated() && loginModal.open('/listings/create')" class="bottom-nav-item sell-item">
-    <span class="sell-circle"><span class="material-symbols-rounded" style="font-size: 26px; color: #fff;">add</span></span>
-    <span class="bottom-label">Sell</span>
-  </a>
-  <a [routerLink]="authService.isAuthenticated() ? '/listings/my' : null" (click)="!authService.isAuthenticated() && loginModal.open('/listings/my')" class="bottom-nav-item">
-    <span class="material-symbols-rounded bottom-icon">list_alt</span>
-    <span class="bottom-label">My Ads</span>
-  </a>
-  <a [routerLink]="authService.isAuthenticated() ? '/profile' : null" (click)="!authService.isAuthenticated() && loginModal.open('/profile')" class="bottom-nav-item">
-    <span class="material-symbols-rounded bottom-icon">person_outline</span>
-    <span class="bottom-label">Account</span>
-  </a>
-</nav>
+  <nav class="mobile-bottom-nav">
+    <a routerLink="/" class="bottom-nav-item">
+      <span class="material-symbols-rounded bottom-icon">home</span>
+      <span class="bottom-label">Home</span>
+    </a>
+    <a
+      [routerLink]="authService.isAuthenticated() ? '/messaging' : null"
+      (click)="!authService.isAuthenticated() && loginModal.open('/messaging')"
+      class="bottom-nav-item"
+    >
+      <span class="material-symbols-rounded bottom-icon" style="position: relative">
+        chat_bubble_outline
+        @if (unreadCount() > 0) {
+          <span class="bottom-badge">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
+        }
+      </span>
+      <span class="bottom-label">Chat</span>
+    </a>
+    <a
+      [routerLink]="authService.isAuthenticated() ? '/listings/create' : null"
+      (click)="!authService.isAuthenticated() && loginModal.open('/listings/create')"
+      class="bottom-nav-item sell-item"
+    >
+      <span class="sell-circle"
+        ><span class="material-symbols-rounded" style="font-size: 26px; color: #fff"
+          >add</span
+        ></span
+      >
+      <span class="bottom-label">Sell</span>
+    </a>
+    <a
+      [routerLink]="authService.isAuthenticated() ? '/listings/my' : null"
+      (click)="!authService.isAuthenticated() && loginModal.open('/listings/my')"
+      class="bottom-nav-item"
+    >
+      <span class="material-symbols-rounded bottom-icon">list_alt</span>
+      <span class="bottom-label">My Ads</span>
+    </a>
+    <a
+      [routerLink]="authService.isAuthenticated() ? '/profile' : null"
+      (click)="!authService.isAuthenticated() && loginModal.open('/profile')"
+      class="bottom-nav-item"
+    >
+      <span class="material-symbols-rounded bottom-icon">person_outline</span>
+      <span class="bottom-label">Account</span>
+    </a>
+  </nav>
 }

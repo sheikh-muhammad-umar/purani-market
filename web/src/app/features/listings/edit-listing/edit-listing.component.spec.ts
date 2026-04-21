@@ -39,7 +39,12 @@ function makeListing(overrides: Partial<Listing> = {}): Listing {
       { url: 'img2.jpg', thumbnailUrl: 'thumb2.jpg', sortOrder: 1 },
     ],
     video: overrides.video,
-    location: overrides.location ?? { type: 'Point', coordinates: [74, 31], city: 'Lahore', area: 'DHA' },
+    location: overrides.location ?? {
+      type: 'Point',
+      coordinates: [74, 31],
+      city: 'Lahore',
+      area: 'DHA',
+    },
     contactInfo: overrides.contactInfo ?? { phone: '03001234567', email: 'seller@test.com' },
     status: overrides.status ?? 'active',
     isFeatured: overrides.isFeatured ?? false,
@@ -54,7 +59,11 @@ const mockCategories: Category[] = [
   makeCategory({ _id: 'c1', name: 'Vehicles', slug: 'vehicles', level: 1 }),
   makeCategory({ _id: 'c2', name: 'Electronics', slug: 'electronics', level: 1 }),
   makeCategory({
-    _id: 'c3', name: 'Cars', slug: 'cars', level: 2, parentId: 'c1',
+    _id: 'c3',
+    name: 'Cars',
+    slug: 'cars',
+    level: 2,
+    parentId: 'c1',
     attributes: [
       { name: 'Make', key: 'make', type: 'select', options: ['Toyota', 'Honda'], required: true },
       { name: 'Mileage', key: 'mileage', type: 'number', required: false, unit: 'km' },
@@ -238,17 +247,22 @@ describe('EditListingComponent', () => {
   // --- Submit ---
   it('should submit update and navigate on success', () => {
     component.submit();
-    expect(listingsService.update).toHaveBeenCalledWith('listing-1', expect.objectContaining({
-      title: 'Test Car',
-      description: 'A great car',
-      price: { amount: 500000, currency: 'PKR' },
-    }));
+    expect(listingsService.update).toHaveBeenCalledWith(
+      'listing-1',
+      expect.objectContaining({
+        title: 'Test Car',
+        description: 'A great car',
+        price: { amount: 500000, currency: 'PKR' },
+      }),
+    );
     expect(component.submitting()).toBe(false);
     expect(router.navigate).toHaveBeenCalledWith(['/listings', 'listing-1']);
   });
 
   it('should handle submit error', () => {
-    listingsService.update = vi.fn().mockReturnValue(throwError(() => ({ error: { message: 'Forbidden' } })));
+    listingsService.update = vi
+      .fn()
+      .mockReturnValue(throwError(() => ({ error: { message: 'Forbidden' } })));
     component.submit();
     expect(component.error()).toBe('Forbidden');
     expect(component.submitting()).toBe(false);

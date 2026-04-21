@@ -1,10 +1,16 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { FcmProvider, PushNotificationPayload } from './providers/fcm.provider.js';
+import {
+  FcmProvider,
+  PushNotificationPayload,
+} from './providers/fcm.provider.js';
 import { HmsProvider } from './providers/hms.provider.js';
 import { User, UserDocument } from '../users/schemas/user.schema.js';
-import { Favorite, FavoriteDocument } from '../favorites/schemas/favorite.schema.js';
+import {
+  Favorite,
+  FavoriteDocument,
+} from '../favorites/schemas/favorite.schema.js';
 
 export type NotificationType =
   | 'messages'
@@ -167,9 +173,7 @@ export class NotificationsService {
     });
   }
 
-  async sendAdLimitReachedNotification(
-    userId: string,
-  ): Promise<boolean> {
+  async sendAdLimitReachedNotification(userId: string): Promise<boolean> {
     return this.sendToUser(userId, 'packageAlerts', {
       title: 'Free ad limit reached',
       body: 'You have reached your free ad limit. Purchase a package to post more ads.',

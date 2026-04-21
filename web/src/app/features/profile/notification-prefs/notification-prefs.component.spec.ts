@@ -9,12 +9,18 @@ describe('NotificationPrefsComponent logic', () => {
     packageAlerts: true,
   };
 
-  function isEnabled(prefs: NotificationPreferences | undefined, key: keyof NotificationPreferences): boolean {
+  function isEnabled(
+    prefs: NotificationPreferences | undefined,
+    key: keyof NotificationPreferences,
+  ): boolean {
     if (!prefs) return true;
     return prefs[key] ?? true;
   }
 
-  function togglePref(prefs: NotificationPreferences, key: keyof NotificationPreferences): NotificationPreferences {
+  function togglePref(
+    prefs: NotificationPreferences,
+    key: keyof NotificationPreferences,
+  ): NotificationPreferences {
     return { ...prefs, [key]: !prefs[key] };
   }
 

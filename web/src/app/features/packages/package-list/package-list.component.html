@@ -13,33 +13,54 @@
         <button
           class="filter-chip"
           [class.active]="selectedType() === 'all'"
-          (click)="setType('all')">All</button>
+          (click)="setType('all')"
+        >
+          All
+        </button>
         <button
           class="filter-chip"
           [class.active]="selectedType() === 'featured_ads'"
-          (click)="setType('featured_ads')">⭐ Featured Ads</button>
+          (click)="setType('featured_ads')"
+        >
+          ⭐ Featured Ads
+        </button>
         <button
           class="filter-chip"
           [class.active]="selectedType() === 'ad_slots'"
-          (click)="setType('ad_slots')">📦 Ad Slots</button>
+          (click)="setType('ad_slots')"
+        >
+          📦 Ad Slots
+        </button>
       </div>
       <div class="duration-filters">
         <button
           class="filter-chip"
           [class.active]="selectedDuration() === null"
-          (click)="setDuration(null)">All Durations</button>
+          (click)="setDuration(null)"
+        >
+          All Durations
+        </button>
         <button
           class="filter-chip"
           [class.active]="selectedDuration() === 7"
-          (click)="setDuration(7)">7 Days</button>
+          (click)="setDuration(7)"
+        >
+          7 Days
+        </button>
         <button
           class="filter-chip"
           [class.active]="selectedDuration() === 15"
-          (click)="setDuration(15)">15 Days</button>
+          (click)="setDuration(15)"
+        >
+          15 Days
+        </button>
         <button
           class="filter-chip"
           [class.active]="selectedDuration() === 30"
-          (click)="setDuration(30)">30 Days</button>
+          (click)="setDuration(30)"
+        >
+          30 Days
+        </button>
       </div>
     </div>
 
@@ -47,11 +68,14 @@
       <div class="packages-grid">
         @for (i of [1, 2, 3]; track i) {
           <div class="package-card-skeleton card">
-            <div class="skeleton-text short" style="height: 1em;"></div>
-            <div class="skeleton-text" style="height: 0.8em; margin-top: 12px;"></div>
-            <div class="skeleton-text medium" style="height: 0.8em; margin-top: 8px;"></div>
-            <div class="skeleton-text short" style="height: 0.8em; margin-top: 8px;"></div>
-            <div class="skeleton-text" style="height: 2em; width: 40%; margin-top: 16px; border-radius: 8px;"></div>
+            <div class="skeleton-text short" style="height: 1em"></div>
+            <div class="skeleton-text" style="height: 0.8em; margin-top: 12px"></div>
+            <div class="skeleton-text medium" style="height: 0.8em; margin-top: 8px"></div>
+            <div class="skeleton-text short" style="height: 0.8em; margin-top: 8px"></div>
+            <div
+              class="skeleton-text"
+              style="height: 2em; width: 40%; margin-top: 16px; border-radius: 8px"
+            ></div>
           </div>
         }
       </div>
@@ -72,7 +96,11 @@
         @for (pkg of filteredPackages(); track pkg._id) {
           <div class="package-card card" [class.featured-type]="pkg.type === 'featured_ads'">
             <div class="package-badge">
-              <span class="badge" [class.badge-featured]="pkg.type === 'featured_ads'" [class.badge-success]="pkg.type === 'ad_slots'">
+              <span
+                class="badge"
+                [class.badge-featured]="pkg.type === 'featured_ads'"
+                [class.badge-success]="pkg.type === 'ad_slots'"
+              >
                 {{ getTypeIcon(pkg.type) }} {{ getTypeLabel(pkg.type) }}
               </span>
             </div>
@@ -80,7 +108,10 @@
             <div class="package-details">
               <div class="detail-row">
                 <span class="detail-label">Quantity</span>
-                <span class="detail-value">{{ pkg.quantity }} {{ pkg.type === 'featured_ads' ? 'featured ads' : 'ad slots' }}</span>
+                <span class="detail-value"
+                  >{{ pkg.quantity }}
+                  {{ pkg.type === 'featured_ads' ? 'featured ads' : 'ad slots' }}</span
+                >
               </div>
               <div class="detail-row">
                 <span class="detail-label">Duration</span>

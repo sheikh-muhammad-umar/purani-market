@@ -46,7 +46,9 @@ export class RecommendationService {
       categoryId: data.categoryId
         ? new Types.ObjectId(data.categoryId)
         : undefined,
-      metadata: data.metadata ? new Map(Object.entries(data.metadata)) : new Map(),
+      metadata: data.metadata
+        ? new Map(Object.entries(data.metadata))
+        : new Map(),
       ip: data.ip,
       userAgent: data.userAgent,
     });
@@ -92,7 +94,9 @@ export class RecommendationService {
     const recentActivities = await this.activityModel
       .find({
         userId: userObjId,
-        action: { $in: [UserAction.VIEW, UserAction.FAVORITE, UserAction.CONTACT] },
+        action: {
+          $in: [UserAction.VIEW, UserAction.FAVORITE, UserAction.CONTACT],
+        },
       })
       .sort({ createdAt: -1 })
       .limit(50)
@@ -128,21 +132,41 @@ export class RecommendationService {
 
     // Mix of featured and non-featured, sorted by relevance then randomized
     const [featured, regular] = await Promise.all([
-      this.listingModel.find({ ...filter, isFeatured: true }).sort({ viewCount: -1 }).limit(Math.ceil(limit / 3)).exec(),
-      this.listingModel.aggregate([
-        { $match: { ...filter, $or: [{ isFeatured: false }, { isFeatured: { $exists: false } }] } },
-        { $sample: { size: limit } },
-      ]).exec(),
+      this.listingModel
+        .find({ ...filter, isFeatured: true })
+        .sort({ viewCount: -1 })
+        .limit(Math.ceil(limit / 3))
+        .exec(),
+      this.listingModel
+        .aggregate([
+          {
+            $match: {
+              ...filter,
+              $or: [{ isFeatured: false }, { isFeatured: { $exists: false } }],
+            },
+          },
+          { $sample: { size: limit } },
+        ])
+        .exec(),
     ]);
 
     // Merge: featured sprinkled in, then fill with regular
-    const featuredIds = new Set(featured.map(f => f._id.toString()));
+    const featuredIds = new Set(featured.map((f) => f._id.toString()));
     const mixed: any[] = [];
-    const regularFiltered = regular.filter((r: any) => !featuredIds.has(r._id.toString()));
-    let fi = 0, ri = 0;
-    while (mixed.length < limit && (fi < featured.length || ri < regularFiltered.length)) {
+    const regularFiltered = regular.filter(
+      (r: any) => !featuredIds.has(r._id.toString()),
+    );
+    let fi = 0,
+      ri = 0;
+    while (
+      mixed.length < limit &&
+      (fi < featured.length || ri < regularFiltered.length)
+    ) {
       // Insert a featured ad every 3rd position
-      if (fi < featured.length && (mixed.length % 3 === 0 || ri >= regularFiltered.length)) {
+      if (
+        fi < featured.length &&
+        (mixed.length % 3 === 0 || ri >= regularFiltered.length)
+      ) {
         mixed.push(featured[fi++]);
       } else if (ri < regularFiltered.length) {
         mixed.push(regularFiltered[ri++]);
@@ -179,19 +203,39 @@ export class RecommendationService {
 
     // No location — random mix
     const [featured, regular] = await Promise.all([
-      this.listingModel.find({ ...filter, isFeatured: true }).sort({ viewCount: -1 }).limit(Math.ceil(limit / 3)).exec(),
-      this.listingModel.aggregate([
-        { $match: { ...filter, $or: [{ isFeatured: false }, { isFeatured: { $exists: false } }] } },
-        { $sample: { size: limit } },
-      ]).exec(),
+      this.listingModel
+        .find({ ...filter, isFeatured: true })
+        .sort({ viewCount: -1 })
+        .limit(Math.ceil(limit / 3))
+        .exec(),
+      this.listingModel
+        .aggregate([
+          {
+            $match: {
+              ...filter,
+              $or: [{ isFeatured: false }, { isFeatured: { $exists: false } }],
+            },
+          },
+          { $sample: { size: limit } },
+        ])
+        .exec(),
     ]);
 
-    const featuredIds = new Set(featured.map(f => f._id.toString()));
+    const featuredIds = new Set(featured.map((f) => f._id.toString()));
     const mixed: any[] = [];
-    const regularFiltered = regular.filter((r: any) => !featuredIds.has(r._id.toString()));
-    let fi = 0, ri = 0;
-    while (mixed.length < limit && (fi < featured.length || ri < regularFiltered.length)) {
-      if (fi < featured.length && (mixed.length % 3 === 0 || ri >= regularFiltered.length)) {
+    const regularFiltered = regular.filter(
+      (r: any) => !featuredIds.has(r._id.toString()),
+    );
+    let fi = 0,
+      ri = 0;
+    while (
+      mixed.length < limit &&
+      (fi < featured.length || ri < regularFiltered.length)
+    ) {
+      if (
+        fi < featured.length &&
+        (mixed.length % 3 === 0 || ri >= regularFiltered.length)
+      ) {
         mixed.push(featured[fi++]);
       } else if (ri < regularFiltered.length) {
         mixed.push(regularFiltered[ri++]);

@@ -23,7 +23,7 @@ describe('RegisterComponent form logic', () => {
         password: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', [Validators.required]],
       },
-      { validators: passwordMatchValidator }
+      { validators: passwordMatchValidator },
     );
   }
 
@@ -76,7 +76,9 @@ describe('RegisterComponent form logic', () => {
   it('should validate phone pattern in phone mode', () => {
     const form = createRegisterForm();
     form.get('email')?.clearValidators();
-    form.get('phone')?.setValidators([Validators.required, Validators.pattern(/^\+?[1-9]\d{6,14}$/)]);
+    form
+      .get('phone')
+      ?.setValidators([Validators.required, Validators.pattern(/^\+?[1-9]\d{6,14}$/)]);
     form.get('phone')?.updateValueAndValidity();
 
     form.get('phone')?.setValue('abc');

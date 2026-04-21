@@ -10,7 +10,9 @@
   color: var(--text-secondary);
   margin-bottom: var(--space-3);
 
-  &:hover { color: var(--primary); }
+  &:hover {
+    color: var(--primary);
+  }
 }
 
 .error-state {
@@ -50,7 +52,9 @@
   opacity: 0.4;
   transition: opacity 0.2s ease;
 
-  &.active { opacity: 1; }
+  &.active {
+    opacity: 1;
+  }
   &.completed .step-number {
     background: var(--success);
     border-color: var(--success);
@@ -86,7 +90,9 @@
   background: var(--border);
   transition: background 0.2s ease;
 
-  &.active { background: var(--primary); }
+  &.active {
+    background: var(--primary);
+  }
 }
 
 /* Step Content */
@@ -106,7 +112,9 @@
 .confirm-summary {
   padding: var(--space-3);
 
-  &:hover { transform: none; }
+  &:hover {
+    transform: none;
+  }
 
   h2 {
     margin-top: var(--space-1);
@@ -165,7 +173,9 @@
   font-family: var(--font-body);
   transition: border-color 0.2s ease;
 
-  &:hover { transform: none; }
+  &:hover {
+    transform: none;
+  }
 
   &.selected {
     border-color: var(--primary);
@@ -202,6 +212,10 @@
 }
 
 @media (max-width: 480px) {
-  .step-label { display: none; }
-  .step-connector { width: 24px; }
+  .step-label {
+    display: none;
+  }
+  .step-connector {
+    width: 24px;
+  }
 }

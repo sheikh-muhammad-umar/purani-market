@@ -40,19 +40,19 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
     this.subs.push(
       this.wsService.on('newMessage').subscribe(() => {
         this.loadConversations();
-      })
+      }),
     );
 
     // Check if a conversation ID is in the URL
     this.subs.push(
-      this.router.events.pipe(
-        filter((e): e is NavigationEnd => e instanceof NavigationEnd)
-      ).subscribe((e) => {
-        const match = e.url.match(/\/messaging\/([a-f0-9]+)/);
-        if (match) {
-          this.selectedConversationId.set(match[1]);
-        }
-      })
+      this.router.events
+        .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+        .subscribe((e) => {
+          const match = e.url.match(/\/messaging\/([a-f0-9]+)/);
+          if (match) {
+            this.selectedConversationId.set(match[1]);
+          }
+        }),
     );
 
     // Initial check
@@ -64,7 +64,7 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    this.subs.forEach(s => s.unsubscribe());
+    this.subs.forEach((s) => s.unsubscribe());
   }
 
   selectConversation(id: string): void {
@@ -116,7 +116,7 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
   private loadConversations(): void {
     this.messagingService.getConversations().subscribe({
       next: (res: any) => {
-        const list = Array.isArray(res) ? res : res.data ?? [];
+        const list = Array.isArray(res) ? res : (res.data ?? []);
         this.conversations.set(list);
         this.loading.set(false);
       },

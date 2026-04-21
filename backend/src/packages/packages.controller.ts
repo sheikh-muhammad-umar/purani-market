@@ -1,4 +1,13 @@
-import { Controller, Get, Post, Patch, Param, Body, Req, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Param,
+  Body,
+  Req,
+  UseGuards,
+} from '@nestjs/common';
 import { PackagesService } from './packages.service.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
@@ -37,9 +46,18 @@ export class PackagesController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async createPackage(@Body() dto: CreatePackageDto, @CurrentUser('sub') adminId: string, @Req() req: any) {
+  async createPackage(
+    @Body() dto: CreatePackageDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
     const pkg = await this.packagesService.createPackage(dto);
-    this.tracker.track(adminId, UserAction.ADMIN_PACKAGE_CREATE, { packageName: dto.name, type: dto.type }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_PACKAGE_CREATE,
+      { packageName: dto.name, type: dto.type },
+      req,
+    );
     return pkg;
   }
 
@@ -53,7 +71,12 @@ export class PackagesController {
     @Req() req: any,
   ) {
     const pkg = await this.packagesService.updatePackage(id, dto);
-    this.tracker.track(adminId, UserAction.ADMIN_PACKAGE_UPDATE, { packageId: id, changes: Object.keys(dto).join(', ') }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_PACKAGE_UPDATE,
+      { packageId: id, changes: Object.keys(dto).join(', ') },
+      req,
+    );
     return pkg;
   }
 

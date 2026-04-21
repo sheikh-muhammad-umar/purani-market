@@ -29,7 +29,7 @@ export class PackageListComponent implements OnInit {
     this.error.set(null);
     this.packagesService.getAll().subscribe({
       next: (res: any) => {
-        const packages = Array.isArray(res) ? res : res.data ?? [];
+        const packages = Array.isArray(res) ? res : (res.data ?? []);
         this.packages.set(packages);
         this.loading.set(false);
       },
@@ -45,10 +45,10 @@ export class PackageListComponent implements OnInit {
     const type = this.selectedType();
     const duration = this.selectedDuration();
     if (type !== 'all') {
-      result = result.filter(p => p.type === type);
+      result = result.filter((p) => p.type === type);
     }
     if (duration !== null) {
-      result = result.filter(p => p.duration === duration);
+      result = result.filter((p) => p.duration === duration);
     }
     return result;
   }

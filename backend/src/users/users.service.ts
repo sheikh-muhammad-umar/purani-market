@@ -92,7 +92,9 @@ export class UsersService {
     }
     return {
       _id: user._id,
-      name: `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() || 'User',
+      name:
+        `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() ||
+        'User',
       avatar: user.profile?.avatar || '',
       city: user.profile?.city || '',
       emailVerified: user.emailVerified ?? false,

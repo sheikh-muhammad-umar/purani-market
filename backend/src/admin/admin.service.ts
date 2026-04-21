@@ -1,4 +1,8 @@
-import { Injectable, NotFoundException, ForbiddenException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Category } from '../categories/schemas/category.schema.js';
@@ -17,10 +21,7 @@ import {
   Conversation,
   ConversationDocument,
 } from '../messaging/schemas/conversation.schema.js';
-import {
-  Review,
-  ReviewDocument,
-} from '../reviews/schemas/review.schema.js';
+import { Review, ReviewDocument } from '../reviews/schemas/review.schema.js';
 import {
   PackagePurchase,
   PackagePurchaseDocument,
@@ -32,7 +33,10 @@ import { ListUsersQueryDto } from './dto/list-users-query.dto.js';
 import { ListPurchasesQueryDto } from './dto/list-purchases-query.dto.js';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto.js';
 import { AdPackageType } from '../packages/schemas/ad-package.schema.js';
-import { UserActivity, UserActivityDocument } from '../ai/schemas/user-activity.schema.js';
+import {
+  UserActivity,
+  UserActivityDocument,
+} from '../ai/schemas/user-activity.schema.js';
 
 export interface PaginatedUsers {
   data: Record<string, unknown>[];
@@ -133,10 +137,18 @@ export class AdminService {
     private readonly deletionReasonModel: Model<any>,
     private readonly authService: AuthService,
     private readonly notificationsService: NotificationsService,
-  ) { }
+  ) {}
 
   async listUsers(query: ListUsersQueryDto): Promise<PaginatedUsers> {
-    const { page = 1, limit = 20, search, role, status, registeredFrom, registeredTo } = query;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      role,
+      status,
+      registeredFrom,
+      registeredTo,
+    } = query;
     const filter: Record<string, any> = {};
 
     if (search) {
@@ -192,27 +204,51 @@ export class AdminService {
   async getUserActivitySummary(userId: string): Promise<UserActivitySummary> {
     const userObjectId = new Types.ObjectId(userId);
 
-    const [listingsCount, activeListingsCount, conversationsCount, violationsCount] =
-      await Promise.all([
-        this.listingModel.countDocuments({ sellerId: userObjectId, status: { $ne: ListingStatus.DELETED } }).exec(),
-        this.listingModel.countDocuments({ sellerId: userObjectId, status: ListingStatus.ACTIVE }).exec(),
-        this.conversationModel
-          .countDocuments({
-            $or: [{ buyerId: userObjectId }, { sellerId: userObjectId }],
-          })
-          .exec(),
-        this.reviewModel
-          .countDocuments({
-            sellerId: userObjectId,
-            status: 'pending',
-          })
-          .exec(),
-      ]);
+    const [
+      listingsCount,
+      activeListingsCount,
+      conversationsCount,
+      violationsCount,
+    ] = await Promise.all([
+      this.listingModel
+        .countDocuments({
+          sellerId: userObjectId,
+          status: { $ne: ListingStatus.DELETED },
+        })
+        .exec(),
+      this.listingModel
+        .countDocuments({
+          sellerId: userObjectId,
+          status: ListingStatus.ACTIVE,
+        })
+        .exec(),
+      this.conversationModel
+        .countDocuments({
+          $or: [{ buyerId: userObjectId }, { sellerId: userObjectId }],
+        })
+        .exec(),
+      this.reviewModel
+        .countDocuments({
+          sellerId: userObjectId,
+          status: 'pending',
+        })
+        .exec(),
+    ]);
 
-    return { listingsCount, activeListingsCount, conversationsCount, violationsCount };
+    return {
+      listingsCount,
+      activeListingsCount,
+      conversationsCount,
+      violationsCount,
+    };
   }
 
-  async getUserActivePackages(userId: string): Promise<{ count: number; packages: { name: string; type: string; expiresAt: string }[] }> {
+  async getUserActivePackages(
+    userId: string,
+  ): Promise<{
+    count: number;
+    packages: { name: string; type: string; expiresAt: string }[];
+  }> {
     const now = new Date();
     const purchases = await this.packagePurchaseModel
       .find({
@@ -239,17 +275,35 @@ export class AdminService {
     page = 1,
     limit = 50,
     action?: string,
-  ): Promise<{ data: UserActivityDocument[]; total: number; page: number; limit: number; totalPages: number }> {
+  ): Promise<{
+    data: UserActivityDocument[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
     const filter: Record<string, any> = { userId: new Types.ObjectId(userId) };
     if (action) filter.action = action;
 
     const skip = (page - 1) * limit;
     const [data, total] = await Promise.all([
-      this.activityModel.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit).lean().exec(),
+      this.activityModel
+        .find(filter)
+        .sort({ createdAt: -1 })
+        .skip(skip)
+        .limit(limit)
+        .lean()
+        .exec(),
       this.activityModel.countDocuments(filter).exec(),
     ]);
 
-    return { data: data as any, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return {
+      data: data as any,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async getAllActivityLog(params: {
@@ -261,8 +315,23 @@ export class AdminService {
     dateTo?: string;
     sort?: string;
     order?: 'asc' | 'desc';
-  }): Promise<{ data: any[]; total: number; page: number; limit: number; totalPages: number }> {
-    const { page = 1, limit = 50, action, userId, dateFrom, dateTo, sort = 'createdAt', order = 'desc' } = params;
+  }): Promise<{
+    data: any[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const {
+      page = 1,
+      limit = 50,
+      action,
+      userId,
+      dateFrom,
+      dateTo,
+      sort = 'createdAt',
+      order = 'desc',
+    } = params;
     const filter: Record<string, any> = {};
 
     if (userId) filter.userId = new Types.ObjectId(userId);
@@ -273,15 +342,29 @@ export class AdminService {
       if (dateTo) filter.createdAt.$lte = new Date(dateTo + 'T23:59:59.999Z');
     }
 
-    const sortObj: Record<string, 1 | -1> = { [sort]: order === 'asc' ? 1 : -1 };
+    const sortObj: Record<string, 1 | -1> = {
+      [sort]: order === 'asc' ? 1 : -1,
+    };
     const skip = (page - 1) * limit;
 
     const [data, total] = await Promise.all([
-      this.activityModel.find(filter).sort(sortObj).skip(skip).limit(limit).lean().exec(),
+      this.activityModel
+        .find(filter)
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limit)
+        .lean()
+        .exec(),
       this.activityModel.countDocuments(filter).exec(),
     ]);
 
-    return { data: data as any, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return {
+      data: data as any,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async updateUserStatus(
@@ -303,10 +386,7 @@ export class AdminService {
     return user;
   }
 
-  async updateUserRole(
-    userId: string,
-    role: UserRole,
-  ): Promise<UserDocument> {
+  async updateUserRole(userId: string, role: UserRole): Promise<UserDocument> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException('User not found');
@@ -321,10 +401,7 @@ export class AdminService {
     return user;
   }
 
-  async updateAdLimit(
-    userId: string,
-    adLimit: number,
-  ): Promise<UserDocument> {
+  async updateAdLimit(userId: string, adLimit: number): Promise<UserDocument> {
     const user = await this.userModel
       .findByIdAndUpdate(userId, { $set: { adLimit } }, { new: true })
       .exec();
@@ -345,7 +422,9 @@ export class AdminService {
       throw new NotFoundException('User not found');
     }
     if (user.role === UserRole.USER) {
-      throw new ForbiddenException('Cannot assign permissions to regular users. Change role to admin first.');
+      throw new ForbiddenException(
+        'Cannot assign permissions to regular users. Change role to admin first.',
+      );
     }
     if (user.role === UserRole.SUPER_ADMIN) {
       throw new ForbiddenException('Super admin already has all permissions.');
@@ -355,10 +434,7 @@ export class AdminService {
     return user;
   }
 
-  async getPendingListings(
-    page = 1,
-    limit = 20,
-  ): Promise<PaginatedListings> {
+  async getPendingListings(page = 1, limit = 20): Promise<PaginatedListings> {
     const skip = (page - 1) * limit;
     const filter = { status: ListingStatus.PENDING_REVIEW };
 
@@ -378,7 +454,8 @@ export class AdminService {
     const enriched = listings.map((l: any) => ({
       ...l,
       sellerName: l.sellerId
-        ? `${l.sellerId.profile?.firstName || ''} ${l.sellerId.profile?.lastName || ''}`.trim() || l.sellerId.email
+        ? `${l.sellerId.profile?.firstName || ''} ${l.sellerId.profile?.lastName || ''}`.trim() ||
+          l.sellerId.email
         : 'Unknown',
       sellerEmail: l.sellerId?.email || '',
       categoryName: l.categoryId?.name || 'Unknown',
@@ -396,20 +473,45 @@ export class AdminService {
   }
 
   async getAllListings(params: {
-    page?: number; limit?: number; search?: string; status?: string;
-    categoryId?: string; provinceId?: string; cityId?: string;
-    dateFrom?: string; dateTo?: string; sort?: string; order?: 'asc' | 'desc';
-    rejectionReason?: string; deletionReason?: string;
+    page?: number;
+    limit?: number;
+    search?: string;
+    status?: string;
+    categoryId?: string;
+    provinceId?: string;
+    cityId?: string;
+    dateFrom?: string;
+    dateTo?: string;
+    sort?: string;
+    order?: 'asc' | 'desc';
+    rejectionReason?: string;
+    deletionReason?: string;
   }): Promise<PaginatedListings> {
-    const { page = 1, limit = 20, search, status, categoryId, provinceId, cityId, dateFrom, dateTo, sort, order, rejectionReason, deletionReason } = params;
+    const {
+      page = 1,
+      limit = 20,
+      search,
+      status,
+      categoryId,
+      provinceId,
+      cityId,
+      dateFrom,
+      dateTo,
+      sort,
+      order,
+      rejectionReason,
+      deletionReason,
+    } = params;
     const skip = (page - 1) * limit;
     const filter: Record<string, any> = {};
 
     if (status) filter.status = status;
     if (categoryId) filter.categoryPath = new Types.ObjectId(categoryId);
-    if (provinceId) filter['location.provinceId'] = new Types.ObjectId(provinceId);
+    if (provinceId)
+      filter['location.provinceId'] = new Types.ObjectId(provinceId);
     if (cityId) filter['location.cityId'] = new Types.ObjectId(cityId);
-    if (rejectionReason) filter.rejectionReason = new RegExp(rejectionReason, 'i');
+    if (rejectionReason)
+      filter.rejectionReason = new RegExp(rejectionReason, 'i');
     if (deletionReason) filter.deletionReason = new RegExp(deletionReason, 'i');
     if (search) {
       const regex = new RegExp(search, 'i');
@@ -444,7 +546,8 @@ export class AdminService {
     const enriched = listings.map((l: any) => ({
       ...l,
       sellerName: l.sellerId
-        ? `${l.sellerId.profile?.firstName || ''} ${l.sellerId.profile?.lastName || ''}`.trim() || l.sellerId.email
+        ? `${l.sellerId.profile?.firstName || ''} ${l.sellerId.profile?.lastName || ''}`.trim() ||
+          l.sellerId.email
         : 'Unknown',
       sellerEmail: l.sellerId?.email || '',
       categoryName: l.categoryId?.name || 'Unknown',
@@ -452,7 +555,13 @@ export class AdminService {
       categoryId: l.categoryId?._id || l.categoryId,
     }));
 
-    return { data: enriched, total, page, limit, totalPages: Math.ceil(total / limit) };
+    return {
+      data: enriched,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   async approveListing(listingId: string): Promise<ProductListingDocument> {
@@ -479,21 +588,28 @@ export class AdminService {
 
     // Fetch reason titles for notification
     const reasons = await this.rejectionReasonModel
-      .find({ _id: { $in: rejectionReasonIds.map(id => new Types.ObjectId(id)) } })
+      .find({
+        _id: { $in: rejectionReasonIds.map((id) => new Types.ObjectId(id)) },
+      })
       .lean()
       .exec();
     const reasonTitles = reasons.map((r: any) => r.title);
 
     listing.status = ListingStatus.REJECTED;
-    listing.rejectionReasonIds = rejectionReasonIds.map(id => new Types.ObjectId(id));
+    listing.rejectionReasonIds = rejectionReasonIds.map(
+      (id) => new Types.ObjectId(id),
+    );
     listing.rejectionNote = customNote || undefined;
-    listing.rejectionReason = reasonTitles.join(', ') + (customNote ? ` — ${customNote}` : '');
+    listing.rejectionReason =
+      reasonTitles.join(', ') + (customNote ? ` — ${customNote}` : '');
     (listing as any).rejectedAt = new Date();
-    (listing as any).rejectionCount = ((listing as any).rejectionCount || 0) + 1;
+    (listing as any).rejectionCount =
+      ((listing as any).rejectionCount || 0) + 1;
     await listing.save();
 
     // Notify the seller
-    const reasonText = reasonTitles.join(', ') + (customNote ? `. Note: ${customNote}` : '');
+    const reasonText =
+      reasonTitles.join(', ') + (customNote ? `. Note: ${customNote}` : '');
     await this.notificationsService.sendToUser(
       listing.sellerId.toString(),
       'productUpdates',
@@ -512,10 +628,15 @@ export class AdminService {
     return listing;
   }
 
-  async getAnalytics(dateFrom?: string, dateTo?: string): Promise<AnalyticsData> {
+  async getAnalytics(
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<AnalyticsData> {
     const now = new Date();
     const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    const from = dateFrom ? new Date(dateFrom) : new Date(now.getFullYear(), now.getMonth() - 6, 1);
+    const from = dateFrom
+      ? new Date(dateFrom)
+      : new Date(now.getFullYear(), now.getMonth() - 6, 1);
     const to = dateTo ? new Date(dateTo) : now;
 
     const [keyMetrics, timeSeries, categoryAnalytics] = await Promise.all([
@@ -527,7 +648,10 @@ export class AdminService {
     return { keyMetrics, timeSeries, categoryAnalytics };
   }
 
-  async exportAnalytics(dateFrom: string, dateTo: string): Promise<AnalyticsExport> {
+  async exportAnalytics(
+    dateFrom: string,
+    dateTo: string,
+  ): Promise<AnalyticsExport> {
     const analytics = await this.getAnalytics(dateFrom, dateTo);
 
     return {
@@ -539,8 +663,18 @@ export class AdminService {
     };
   }
 
-  async listPackagePurchases(query: ListPurchasesQueryDto): Promise<PaginatedPurchases> {
-    const { page = 1, limit = 20, dateFrom, dateTo, sellerId, type, status } = query;
+  async listPackagePurchases(
+    query: ListPurchasesQueryDto,
+  ): Promise<PaginatedPurchases> {
+    const {
+      page = 1,
+      limit = 20,
+      dateFrom,
+      dateTo,
+      sellerId,
+      type,
+      status,
+    } = query;
     const filter: Record<string, any> = {};
 
     if (dateFrom || dateTo) {
@@ -583,14 +717,29 @@ export class AdminService {
   }
 
   async listPayments(query: ListPaymentsQueryDto): Promise<PaginatedPurchases> {
-    const { page = 1, limit = 20, dateFrom, dateTo, sellerId, paymentMethod, status } = query as any;
+    const {
+      page = 1,
+      limit = 20,
+      dateFrom,
+      dateTo,
+      sellerId,
+      paymentMethod,
+      status,
+    } = query as any;
     const filter: Record<string, any> = {};
 
     // If status filter is provided, use it; otherwise show all non-pending
     if (status) {
       filter.paymentStatus = status;
     } else {
-      filter.paymentStatus = { $in: [PaymentStatus.COMPLETED, PaymentStatus.FAILED, PaymentStatus.REFUNDED, PaymentStatus.PENDING] };
+      filter.paymentStatus = {
+        $in: [
+          PaymentStatus.COMPLETED,
+          PaymentStatus.FAILED,
+          PaymentStatus.REFUNDED,
+          PaymentStatus.PENDING,
+        ],
+      };
     }
 
     if (dateFrom || dateTo) {
@@ -635,23 +784,25 @@ export class AdminService {
     }
 
     const now = new Date();
-    const activePackages = await this.packagePurchaseModel.aggregate([
-      {
-        $match: {
-          sellerId: new Types.ObjectId(sellerId),
-          type: AdPackageType.AD_SLOTS,
-          paymentStatus: PaymentStatus.COMPLETED,
-          expiresAt: { $gt: now },
-          remainingQuantity: { $gt: 0 },
+    const activePackages = await this.packagePurchaseModel
+      .aggregate([
+        {
+          $match: {
+            sellerId: new Types.ObjectId(sellerId),
+            type: AdPackageType.AD_SLOTS,
+            paymentStatus: PaymentStatus.COMPLETED,
+            expiresAt: { $gt: now },
+            remainingQuantity: { $gt: 0 },
+          },
         },
-      },
-      {
-        $group: {
-          _id: null,
-          totalSlots: { $sum: '$remainingQuantity' },
+        {
+          $group: {
+            _id: null,
+            totalSlots: { $sum: '$remainingQuantity' },
+          },
         },
-      },
-    ]).exec();
+      ])
+      .exec();
 
     const activePackageSlots = activePackages[0]?.totalSlots || 0;
     const remainingFreeSlots = Math.max(0, user.adLimit - user.activeAdCount);
@@ -665,14 +816,24 @@ export class AdminService {
     };
   }
 
-  private async getKeyMetrics(thirtyDaysAgo: Date): Promise<AnalyticsData['keyMetrics']> {
-    const [totalUsers, activeUsers, totalListings, totalConversations, purchaseAgg] =
-      await Promise.all([
-        this.userModel.countDocuments().exec(),
-        this.userModel.countDocuments({ lastLoginAt: { $gte: thirtyDaysAgo } }).exec(),
-        this.listingModel.countDocuments().exec(),
-        this.conversationModel.countDocuments().exec(),
-        this.packagePurchaseModel.aggregate([
+  private async getKeyMetrics(
+    thirtyDaysAgo: Date,
+  ): Promise<AnalyticsData['keyMetrics']> {
+    const [
+      totalUsers,
+      activeUsers,
+      totalListings,
+      totalConversations,
+      purchaseAgg,
+    ] = await Promise.all([
+      this.userModel.countDocuments().exec(),
+      this.userModel
+        .countDocuments({ lastLoginAt: { $gte: thirtyDaysAgo } })
+        .exec(),
+      this.listingModel.countDocuments().exec(),
+      this.conversationModel.countDocuments().exec(),
+      this.packagePurchaseModel
+        .aggregate([
           { $match: { paymentStatus: PaymentStatus.COMPLETED } },
           {
             $group: {
@@ -681,10 +842,14 @@ export class AdminService {
               totalRevenue: { $sum: '$price' },
             },
           },
-        ]).exec(),
-      ]);
+        ])
+        .exec(),
+    ]);
 
-    const purchaseData = purchaseAgg[0] || { totalPurchases: 0, totalRevenue: 0 };
+    const purchaseData = purchaseAgg[0] || {
+      totalPurchases: 0,
+      totalRevenue: 0,
+    };
 
     return {
       totalUsers,
@@ -705,48 +870,70 @@ export class AdminService {
       $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
     };
 
-    const [registrations, listings, conversations, purchases] = await Promise.all([
-      this.userModel.aggregate([
-        { $match: { createdAt: dateMatch } },
-        { $group: { _id: groupByDate, count: { $sum: 1 } } },
-        { $sort: { _id: 1 } },
-        { $project: { _id: 0, date: '$_id', count: 1 } },
-      ]).exec(),
-      this.listingModel.aggregate([
-        { $match: { createdAt: dateMatch } },
-        { $group: { _id: groupByDate, count: { $sum: 1 } } },
-        { $sort: { _id: 1 } },
-        { $project: { _id: 0, date: '$_id', count: 1 } },
-      ]).exec(),
-      this.conversationModel.aggregate([
-        { $match: { createdAt: dateMatch } },
-        { $group: { _id: groupByDate, count: { $sum: 1 } } },
-        { $sort: { _id: 1 } },
-        { $project: { _id: 0, date: '$_id', count: 1 } },
-      ]).exec(),
-      this.packagePurchaseModel.aggregate([
-        { $match: { createdAt: dateMatch, paymentStatus: PaymentStatus.COMPLETED } },
-        { $group: { _id: groupByDate, count: { $sum: 1 } } },
-        { $sort: { _id: 1 } },
-        { $project: { _id: 0, date: '$_id', count: 1 } },
-      ]).exec(),
-    ]);
+    const [registrations, listings, conversations, purchases] =
+      await Promise.all([
+        this.userModel
+          .aggregate([
+            { $match: { createdAt: dateMatch } },
+            { $group: { _id: groupByDate, count: { $sum: 1 } } },
+            { $sort: { _id: 1 } },
+            { $project: { _id: 0, date: '$_id', count: 1 } },
+          ])
+          .exec(),
+        this.listingModel
+          .aggregate([
+            { $match: { createdAt: dateMatch } },
+            { $group: { _id: groupByDate, count: { $sum: 1 } } },
+            { $sort: { _id: 1 } },
+            { $project: { _id: 0, date: '$_id', count: 1 } },
+          ])
+          .exec(),
+        this.conversationModel
+          .aggregate([
+            { $match: { createdAt: dateMatch } },
+            { $group: { _id: groupByDate, count: { $sum: 1 } } },
+            { $sort: { _id: 1 } },
+            { $project: { _id: 0, date: '$_id', count: 1 } },
+          ])
+          .exec(),
+        this.packagePurchaseModel
+          .aggregate([
+            {
+              $match: {
+                createdAt: dateMatch,
+                paymentStatus: PaymentStatus.COMPLETED,
+              },
+            },
+            { $group: { _id: groupByDate, count: { $sum: 1 } } },
+            { $sort: { _id: 1 } },
+            { $project: { _id: 0, date: '$_id', count: 1 } },
+          ])
+          .exec(),
+      ]);
 
     return { registrations, listings, conversations, purchases };
   }
 
   private async getCategoryAnalytics(): Promise<CategoryAnalytics[]> {
-    const raw = await this.listingModel.aggregate([
-      { $match: { categoryId: { $ne: null } } },
-      { $group: { _id: '$categoryId', count: { $sum: 1 } } },
-      { $sort: { count: -1 } },
-      { $limit: 20 },
-    ]).exec();
+    const raw = await this.listingModel
+      .aggregate([
+        { $match: { categoryId: { $ne: null } } },
+        { $group: { _id: '$categoryId', count: { $sum: 1 } } },
+        { $sort: { count: -1 } },
+        { $limit: 20 },
+      ])
+      .exec();
 
     // Look up category names
     const catIds = raw.map((r: any) => r._id).filter(Boolean);
-    const categories = await this.categoryModel.find({ _id: { $in: catIds } }).select('name').lean().exec();
-    const catMap = new Map(categories.map((c: any) => [c._id.toString(), c.name]));
+    const categories = await this.categoryModel
+      .find({ _id: { $in: catIds } })
+      .select('name')
+      .lean()
+      .exec();
+    const catMap = new Map(
+      categories.map((c: any) => [c._id.toString(), c.name]),
+    );
 
     return raw
       .filter((r: any) => catMap.has(r._id?.toString()))
@@ -761,15 +948,34 @@ export class AdminService {
 
   async getRejectionReasons(activeOnly = false): Promise<any[]> {
     const filter = activeOnly ? { isActive: true } : {};
-    return this.rejectionReasonModel.find(filter).sort({ createdAt: 1 }).lean().exec();
+    return this.rejectionReasonModel
+      .find(filter)
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec();
   }
 
-  async createRejectionReason(data: { title: string; description?: string; isActive?: boolean; sortOrder?: number }): Promise<any> {
+  async createRejectionReason(data: {
+    title: string;
+    description?: string;
+    isActive?: boolean;
+    sortOrder?: number;
+  }): Promise<any> {
     return new this.rejectionReasonModel(data).save();
   }
 
-  async updateRejectionReason(id: string, data: Partial<{ title: string; description: string; isActive: boolean; sortOrder: number }>): Promise<any> {
-    const reason = await this.rejectionReasonModel.findByIdAndUpdate(id, { $set: data }, { new: true }).exec();
+  async updateRejectionReason(
+    id: string,
+    data: Partial<{
+      title: string;
+      description: string;
+      isActive: boolean;
+      sortOrder: number;
+    }>,
+  ): Promise<any> {
+    const reason = await this.rejectionReasonModel
+      .findByIdAndUpdate(id, { $set: data }, { new: true })
+      .exec();
     if (!reason) throw new NotFoundException('Rejection reason not found');
     return reason;
   }
@@ -783,15 +989,28 @@ export class AdminService {
 
   async getDeletionReasons(activeOnly = false): Promise<any[]> {
     const filter = activeOnly ? { isActive: true } : {};
-    return this.deletionReasonModel.find(filter).sort({ createdAt: 1 }).lean().exec();
+    return this.deletionReasonModel
+      .find(filter)
+      .sort({ createdAt: 1 })
+      .lean()
+      .exec();
   }
 
-  async createDeletionReason(data: { title: string; description?: string; isActive?: boolean }): Promise<any> {
+  async createDeletionReason(data: {
+    title: string;
+    description?: string;
+    isActive?: boolean;
+  }): Promise<any> {
     return new this.deletionReasonModel(data).save();
   }
 
-  async updateDeletionReason(id: string, data: Partial<{ title: string; description: string; isActive: boolean }>): Promise<any> {
-    const reason = await this.deletionReasonModel.findByIdAndUpdate(id, { $set: data }, { new: true }).exec();
+  async updateDeletionReason(
+    id: string,
+    data: Partial<{ title: string; description: string; isActive: boolean }>,
+  ): Promise<any> {
+    const reason = await this.deletionReasonModel
+      .findByIdAndUpdate(id, { $set: data }, { new: true })
+      .exec();
     if (!reason) throw new NotFoundException('Deletion reason not found');
     return reason;
   }

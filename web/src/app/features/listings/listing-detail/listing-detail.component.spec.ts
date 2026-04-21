@@ -53,7 +53,11 @@ describe('ListingDetailComponent', () => {
 
     favoritesServiceMock = {
       check: vi.fn().mockReturnValue(of({ isFavorited: false })),
-      add: vi.fn().mockReturnValue(of({ _id: 'fav-1', userId: 'u1', productListingId: 'listing-1', createdAt: new Date() })),
+      add: vi
+        .fn()
+        .mockReturnValue(
+          of({ _id: 'fav-1', userId: 'u1', productListingId: 'listing-1', createdAt: new Date() }),
+        ),
       remove: vi.fn().mockReturnValue(of(undefined)),
     };
 
@@ -147,7 +151,19 @@ describe('ListingDetailComponent', () => {
 
   it('should load reviews for the listing', () => {
     const mockReviews = {
-      data: [{ _id: 'r1', rating: 5, text: 'Great!', reviewerId: 'u1', sellerId: 's1', productListingId: 'listing-1', status: 'approved' as const, createdAt: new Date(), updatedAt: new Date() }],
+      data: [
+        {
+          _id: 'r1',
+          rating: 5,
+          text: 'Great!',
+          reviewerId: 'u1',
+          sellerId: 's1',
+          productListingId: 'listing-1',
+          status: 'approved' as const,
+          createdAt: new Date(),
+          updatedAt: new Date(),
+        },
+      ],
       averageRating: 4.5,
       total: 1,
     };
@@ -165,7 +181,9 @@ describe('ListingDetailComponent', () => {
       { ...mockListing, _id: 'listing-2', title: 'Honda Civic' },
       { ...mockListing, _id: 'listing-3', title: 'Suzuki Alto' },
     ];
-    listingsServiceMock.getByCategory.mockReturnValue(of({ data: [...similar, mockListing], total: 3, page: 1, limit: 8 }));
+    listingsServiceMock.getByCategory.mockReturnValue(
+      of({ data: [...similar, mockListing], total: 3, page: 1, limit: 8 }),
+    );
     component.ngOnInit();
 
     expect(listingsServiceMock.getByCategory).toHaveBeenCalledWith('cat-1', 1, 8);
@@ -234,7 +252,10 @@ describe('ListingDetailComponent', () => {
   });
 
   it('should return null map URL when listing has no coordinates', () => {
-    const noCoordListing = { ...mockListing, location: { ...mockListing.location, coordinates: undefined } };
+    const noCoordListing = {
+      ...mockListing,
+      location: { ...mockListing.location, coordinates: undefined },
+    };
     listingsServiceMock.getById.mockReturnValue(of(noCoordListing as any));
     component.ngOnInit();
     expect(component.getMapUrl()).toBeNull();

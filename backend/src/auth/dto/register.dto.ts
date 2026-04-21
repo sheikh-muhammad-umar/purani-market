@@ -16,7 +16,8 @@ export class RegisterDto {
   @ValidateIf((o: RegisterDto) => !o.email)
   @IsString({ message: 'Please provide a valid phone number' })
   @Matches(/^\+?[1-9]\d{6,14}$/, {
-    message: 'Phone number must be a valid international format (e.g. +923001234567)',
+    message:
+      'Phone number must be a valid international format (e.g. +923001234567)',
   })
   phone?: string;
 

@@ -16,7 +16,9 @@
         }
 
         @if (!productListingId()) {
-          <div class="alert alert-error">No listing specified. Please navigate from a listing page.</div>
+          <div class="alert alert-error">
+            No listing specified. Please navigate from a listing page.
+          </div>
         } @else {
           <form class="auth-form" (ngSubmit)="submit()">
             <div class="form-group">
@@ -31,7 +33,8 @@
                     [attr.aria-pressed]="star === rating()"
                     (click)="setRating(star)"
                     (mouseenter)="setHover(star)"
-                    (mouseleave)="clearHover()">
+                    (mouseleave)="clearHover()"
+                  >
                     ★
                   </button>
                 }
@@ -51,9 +54,14 @@
                 (ngModelChange)="onTextChange($event)"
                 [attr.maxlength]="MAX_TEXT_LENGTH"
                 rows="5"
-                aria-describedby="char-count">
+                aria-describedby="char-count"
+              >
               </textarea>
-              <div class="char-counter" id="char-count" [class.near-limit]="textLength > MAX_TEXT_LENGTH * 0.9">
+              <div
+                class="char-counter"
+                id="char-count"
+                [class.near-limit]="textLength > MAX_TEXT_LENGTH * 0.9"
+              >
                 {{ textLength }} / {{ MAX_TEXT_LENGTH }}
               </div>
             </div>
@@ -61,7 +69,8 @@
             <button
               type="submit"
               class="btn btn-primary btn-full"
-              [disabled]="!isValid || submitting()">
+              [disabled]="!isValid || submitting()"
+            >
               @if (submitting()) {
                 <span class="spinner"></span> Submitting...
               } @else {

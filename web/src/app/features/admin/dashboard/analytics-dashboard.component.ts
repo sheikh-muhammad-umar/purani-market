@@ -30,7 +30,12 @@ export class AnalyticsDashboardComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly exporting = signal(false);
   readonly metrics = signal<MetricsSummary | null>(null);
-  readonly timeSeries = signal<{ registrations: TimeSeriesPoint[]; listings: TimeSeriesPoint[]; conversations: TimeSeriesPoint[]; purchases: TimeSeriesPoint[] } | null>(null);
+  readonly timeSeries = signal<{
+    registrations: TimeSeriesPoint[];
+    listings: TimeSeriesPoint[];
+    conversations: TimeSeriesPoint[];
+    purchases: TimeSeriesPoint[];
+  } | null>(null);
   readonly categoryAnalytics = signal<CategoryAnalytics[]>([]);
 
   startDate = '';
@@ -45,14 +50,19 @@ export class AnalyticsDashboardComponent implements OnInit {
       { label: 'Total Listings', value: m.totalListings, icon: 'list_alt', format: 'number' },
       { label: 'Conversations', value: m.totalConversations, icon: 'chat', format: 'number' },
       { label: 'Purchases', value: m.totalPurchases, icon: 'shopping_cart', format: 'number' },
-      { label: 'Revenue', value: m.totalRevenue, icon: 'account_balance_wallet', format: 'currency' },
+      {
+        label: 'Revenue',
+        value: m.totalRevenue,
+        icon: 'account_balance_wallet',
+        format: 'currency',
+      },
     ];
   });
 
   readonly maxCategoryCount = computed(() => {
     const cats = this.categoryAnalytics();
     if (cats.length === 0) return 1;
-    return Math.max(...cats.map(c => c.listingCount), 1);
+    return Math.max(...cats.map((c) => c.listingCount), 1);
   });
 
   constructor(private readonly adminService: AdminService) {}
@@ -85,7 +95,8 @@ export class AnalyticsDashboardComponent implements OnInit {
           totalRevenue: km.totalRevenue ?? 0,
         });
         const ts = data?.timeSeries;
-        const mapPoints = (arr: any[]) => (arr ?? []).map((p: any) => ({ date: p.date, value: p.value ?? p.count ?? 0 }));
+        const mapPoints = (arr: any[]) =>
+          (arr ?? []).map((p: any) => ({ date: p.date, value: p.value ?? p.count ?? 0 }));
         this.timeSeries.set({
           registrations: mapPoints(ts?.registrations),
           listings: mapPoints(ts?.listings),
@@ -138,7 +149,7 @@ export class AnalyticsDashboardComponent implements OnInit {
 
   getMaxTimeSeriesValue(points: TimeSeriesPoint[]): number {
     if (!points || points.length === 0) return 1;
-    return Math.max(...points.map(p => p.value), 1);
+    return Math.max(...points.map((p) => p.value), 1);
   }
 
   getBarHeight(value: number, max: number): number {

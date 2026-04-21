@@ -3,7 +3,9 @@
     <span class="material-symbols-rounded dp-icon">calendar_today</span>
     @if (displayValue()) {
       <span class="dp-value">{{ displayValue() }}</span>
-      <span class="dp-clear material-symbols-rounded" (click)="clear(); $event.stopPropagation()">close</span>
+      <span class="dp-clear material-symbols-rounded" (click)="clear(); $event.stopPropagation()"
+        >close</span
+      >
     } @else {
       <span class="dp-placeholder">Select date</span>
     }

@@ -25,7 +25,8 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
       useFactory: (configService: ConfigService) => ({
         secret: configService.get<string>('jwt.secret'),
         signOptions: {
-          expiresIn: (configService.get<string>('jwt.accessExpiration') ?? '15m') as any,
+          expiresIn: (configService.get<string>('jwt.accessExpiration') ??
+            '15m') as any,
         },
       }),
     }),
@@ -34,7 +35,19 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
     ]),
   ],
   controllers: [AuthController],
-  providers: [AuthService, EmailService, SmsService, VerifiedUserGuard, JwtStrategy],
-  exports: [AuthService, EmailService, SmsService, VerifiedUserGuard, JwtModule],
+  providers: [
+    AuthService,
+    EmailService,
+    SmsService,
+    VerifiedUserGuard,
+    JwtStrategy,
+  ],
+  exports: [
+    AuthService,
+    EmailService,
+    SmsService,
+    VerifiedUserGuard,
+    JwtModule,
+  ],
 })
 export class AuthModule {}

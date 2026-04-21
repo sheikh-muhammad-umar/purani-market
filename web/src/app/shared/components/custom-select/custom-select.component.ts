@@ -51,7 +51,9 @@ export interface SelectOption {
               class="cs-option"
               [class.cs-active]="opt.value === value"
               (click)="select(opt)"
-            >{{ opt.label }}</button>
+            >
+              {{ opt.label }}
+            </button>
           }
           @if (filteredOptions().length === 0) {
             <div class="cs-no-results">No results</div>
@@ -91,12 +93,12 @@ export class CustomSelectComponent implements ControlValueAccessor {
   filteredOptions = computed(() => {
     const q = this.searchQuery().toLowerCase().trim();
     if (!q) return this.options;
-    return this.options.filter(o => o.label.toLowerCase().includes(q));
+    return this.options.filter((o) => o.label.toLowerCase().includes(q));
   });
 
   toggle(): void {
     if (this.disabled) return;
-    this.isOpen.update(v => !v);
+    this.isOpen.update((v) => !v);
     if (this.isOpen()) {
       this.searchQuery.set('');
       setTimeout(() => this.searchInput?.nativeElement?.focus(), 0);
@@ -121,11 +123,17 @@ export class CustomSelectComponent implements ControlValueAccessor {
 
   writeValue(val: any): void {
     this.value = val ?? '';
-    const match = this.options.find(o => o.value === val);
+    const match = this.options.find((o) => o.value === val);
     this.selectedLabel.set(match?.label ?? '');
   }
 
-  registerOnChange(fn: any): void { this.onChange = fn; }
-  registerOnTouched(fn: any): void { this.onTouched = fn; }
-  setDisabledState(isDisabled: boolean): void { this.disabled = isDisabled; }
+  registerOnChange(fn: any): void {
+    this.onChange = fn;
+  }
+  registerOnTouched(fn: any): void {
+    this.onTouched = fn;
+  }
+  setDisabledState(isDisabled: boolean): void {
+    this.disabled = isDisabled;
+  }
 }

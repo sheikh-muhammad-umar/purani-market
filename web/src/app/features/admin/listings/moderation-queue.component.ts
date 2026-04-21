@@ -1,13 +1,13 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  AdminService,
-  PendingListing,
-} from '../../../core/services/admin.service';
+import { AdminService, PendingListing } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category } from '../../../core/models/category.model';
-import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
+import {
+  CustomSelectComponent,
+  SelectOption,
+} from '../../../shared/components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 
 @Component({
@@ -76,7 +76,9 @@ export class ModerationQueueComponent implements OnInit {
 
   loadRejectionReasons(): void {
     this.adminService.getRejectionReasons().subscribe({
-      next: (reasons) => { this.availableReasons = reasons; },
+      next: (reasons) => {
+        this.availableReasons = reasons;
+      },
     });
   }
 
@@ -85,7 +87,7 @@ export class ModerationQueueComponent implements OnInit {
       next: (cats: Category[]) => {
         this.categoryOptions = [
           { value: '', label: 'All Categories' },
-          ...cats.map(c => ({ value: c._id, label: c.name })),
+          ...cats.map((c) => ({ value: c._id, label: c.name })),
         ];
       },
     });
@@ -96,10 +98,10 @@ export class ModerationQueueComponent implements OnInit {
     this.error.set(null);
     this.adminService.getPendingListings().subscribe({
       next: (res: any) => {
-        const data = (res && res.data && res.statusCode) ? res.data : res;
+        const data = res && res.data && res.statusCode ? res.data : res;
         const listings = data.listings ?? data.data ?? [];
         const sorted = [...listings].sort(
-          (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime()
+          (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
         );
         this.listings.set(sorted);
         this.totalListings.set(data.total ?? sorted.length);
@@ -199,11 +201,11 @@ export class ModerationQueueComponent implements OnInit {
 
   objectKeys(obj: any): string[] {
     if (!obj || typeof obj !== 'object') return [];
-    return Object.keys(obj).filter(k => obj[k] !== '' && obj[k] !== null && obj[k] !== undefined);
+    return Object.keys(obj).filter((k) => obj[k] !== '' && obj[k] !== null && obj[k] !== undefined);
   }
 
   formatAttrKey(key: string): string {
-    return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
   sortListings(col: string): void {
@@ -214,12 +216,14 @@ export class ModerationQueueComponent implements OnInit {
       this.sortDir = 'asc';
     }
     const dir = this.sortDir === 'asc' ? 1 : -1;
-    this.listings.update(list => [...list].sort((a: any, b: any) => {
-      let va = col === 'price' ? a.price?.amount : a[col];
-      let vb = col === 'price' ? b.price?.amount : b[col];
-      if (typeof va === 'string') return (va || '').localeCompare(vb || '') * dir;
-      return ((va ?? 0) - (vb ?? 0)) * dir;
-    }));
+    this.listings.update((list) =>
+      [...list].sort((a: any, b: any) => {
+        let va = col === 'price' ? a.price?.amount : a[col];
+        let vb = col === 'price' ? b.price?.amount : b[col];
+        if (typeof va === 'string') return (va || '').localeCompare(vb || '') * dir;
+        return ((va ?? 0) - (vb ?? 0)) * dir;
+      }),
+    );
   }
 
   sortIcon(col: string): string {
@@ -237,7 +241,14 @@ export class ModerationQueueComponent implements OnInit {
   }
 
   get hasActiveFilters(): boolean {
-    return !!(this.filterCondition || this.filterCategory || this.filterDateFrom || this.filterDateTo || this.filterReviewCount || this.searchQuery);
+    return !!(
+      this.filterCondition ||
+      this.filterCategory ||
+      this.filterDateFrom ||
+      this.filterDateTo ||
+      this.filterReviewCount ||
+      this.searchQuery
+    );
   }
 
   get activeFilterCount(): number {
@@ -256,37 +267,38 @@ export class ModerationQueueComponent implements OnInit {
     // Text search
     const q = this.searchQuery.toLowerCase().trim();
     if (q) {
-      result = result.filter(l =>
-        l.title.toLowerCase().includes(q) ||
-        l.sellerEmail?.toLowerCase().includes(q) ||
-        l.sellerName?.toLowerCase().includes(q)
+      result = result.filter(
+        (l) =>
+          l.title.toLowerCase().includes(q) ||
+          l.sellerEmail?.toLowerCase().includes(q) ||
+          l.sellerName?.toLowerCase().includes(q),
       );
     }
 
     // Condition filter
     if (this.filterCondition) {
-      result = result.filter(l => l.condition === this.filterCondition);
+      result = result.filter((l) => l.condition === this.filterCondition);
     }
 
     // Category filter
     if (this.filterCategory) {
-      result = result.filter(l => l.categoryId === this.filterCategory);
+      result = result.filter((l) => l.categoryId === this.filterCategory);
     }
 
     // Date range filter
     if (this.filterDateFrom) {
       const from = new Date(this.filterDateFrom + 'T00:00:00').getTime();
-      result = result.filter(l => new Date(l.createdAt).getTime() >= from);
+      result = result.filter((l) => new Date(l.createdAt).getTime() >= from);
     }
     if (this.filterDateTo) {
       const to = new Date(this.filterDateTo + 'T23:59:59').getTime();
-      result = result.filter(l => new Date(l.createdAt).getTime() <= to);
+      result = result.filter((l) => new Date(l.createdAt).getTime() <= to);
     }
 
     // Review count filter
     if (this.filterReviewCount !== '') {
       const count = parseInt(this.filterReviewCount, 10);
-      result = result.filter(l => (l.rejectionCount || 0) === count);
+      result = result.filter((l) => (l.rejectionCount || 0) === count);
     }
 
     return result;

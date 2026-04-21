@@ -69,7 +69,10 @@
                     </span>
                   }
                 </div>
-                <p class="info-text-left">A verification link will be sent to the new email. Your current email stays active until verified.</p>
+                <p class="info-text-left">
+                  A verification link will be sent to the new email. Your current email stays active
+                  until verified.
+                </p>
                 <button type="submit" class="btn btn-primary btn-sm" [disabled]="emailChanging()">
                   @if (emailChanging()) {
                     <span class="spinner" aria-hidden="true"></span>
@@ -80,7 +83,9 @@
                 </button>
               </form>
             } @else {
-              <p class="info-text-left">Check your new email for the verification link. The link is valid for 24 hours.</p>
+              <p class="info-text-left">
+                Check your new email for the verification link. The link is valid for 24 hours.
+              </p>
             }
           </div>
         }
@@ -134,7 +139,10 @@
                     </span>
                   }
                 </div>
-                <p class="info-text-left">A 6-digit OTP will be sent to the new number. Your current number stays active until verified.</p>
+                <p class="info-text-left">
+                  A 6-digit OTP will be sent to the new number. Your current number stays active
+                  until verified.
+                </p>
                 <button type="submit" class="btn btn-primary btn-sm" [disabled]="phoneChanging()">
                   @if (phoneChanging()) {
                     <span class="spinner" aria-hidden="true"></span>
@@ -215,10 +223,14 @@
         <div class="settings-card-header">
           <div>
             <h3 class="section-title">Appearance</h3>
-            <p class="section-desc">{{ themeService.theme() === 'dark' ? 'Dark mode is on' : 'Light mode is on' }}</p>
+            <p class="section-desc">
+              {{ themeService.theme() === 'dark' ? 'Dark mode is on' : 'Light mode is on' }}
+            </p>
           </div>
           <button type="button" class="theme-toggle-setting" (click)="themeService.toggle()">
-            <span class="material-symbols-rounded">{{ themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode' }}</span>
+            <span class="material-symbols-rounded">{{
+              themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'
+            }}</span>
             <span>{{ themeService.theme() === 'dark' ? 'Light' : 'Dark' }}</span>
           </button>
         </div>
@@ -248,7 +260,7 @@
           </div>
           <div class="detail-item">
             <span class="detail-label">Last Login</span>
-            <span class="detail-value">{{ user()?.lastLoginAt | date:'medium' }}</span>
+            <span class="detail-value">{{ user()?.lastLoginAt | date: 'medium' }}</span>
           </div>
         </div>
       </div>

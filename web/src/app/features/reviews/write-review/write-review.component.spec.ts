@@ -137,9 +137,11 @@ describe('WriteReviewComponent', () => {
   });
 
   it('should handle submit error', () => {
-    reviewsService.submit.mockReturnValue(throwError(() => ({
-      error: { message: 'You must have a conversation first' },
-    })));
+    reviewsService.submit.mockReturnValue(
+      throwError(() => ({
+        error: { message: 'You must have a conversation first' },
+      })),
+    );
     component.ngOnInit();
     component.setRating(4);
     component.onTextChange('Good product');

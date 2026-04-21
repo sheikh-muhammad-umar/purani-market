@@ -40,12 +40,18 @@ describe('MediaService', () => {
     _id: listingId,
     sellerId,
     images: [
-      { url: 'https://storage.example.com/img1.jpg', thumbnailUrl: 'https://storage.example.com/thumb1.jpg', sortOrder: 0 },
+      {
+        url: 'https://storage.example.com/img1.jpg',
+        thumbnailUrl: 'https://storage.example.com/thumb1.jpg',
+        sortOrder: 0,
+      },
     ],
     video: undefined,
   };
 
-  const createMockFile = (overrides: Partial<Express.Multer.File> = {}): Express.Multer.File => ({
+  const createMockFile = (
+    overrides: Partial<Express.Multer.File> = {},
+  ): Express.Multer.File => ({
     fieldname: 'file',
     originalname: 'test.jpg',
     encoding: '7bit',
@@ -78,7 +84,10 @@ describe('MediaService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MediaService,
-        { provide: getModelToken(ProductListing.name), useValue: mockListingModel },
+        {
+          provide: getModelToken(ProductListing.name),
+          useValue: mockListingModel,
+        },
         { provide: StorageService, useValue: mockStorageService },
       ],
     }).compile();
@@ -88,64 +97,103 @@ describe('MediaService', () => {
 
   describe('validateFile', () => {
     it('should accept valid JPEG image', () => {
-      const file = createMockFile({ mimetype: 'image/jpeg', size: 1024 * 1024 });
+      const file = createMockFile({
+        mimetype: 'image/jpeg',
+        size: 1024 * 1024,
+      });
       expect(() => service.validateFile(file, MediaType.IMAGE)).not.toThrow();
     });
 
     it('should accept valid PNG image', () => {
-      const file = createMockFile({ mimetype: 'image/png', size: 2 * 1024 * 1024 });
+      const file = createMockFile({
+        mimetype: 'image/png',
+        size: 2 * 1024 * 1024,
+      });
       expect(() => service.validateFile(file, MediaType.IMAGE)).not.toThrow();
     });
 
     it('should accept valid WebP image', () => {
-      const file = createMockFile({ mimetype: 'image/webp', size: 1024 * 1024 });
+      const file = createMockFile({
+        mimetype: 'image/webp',
+        size: 1024 * 1024,
+      });
       expect(() => service.validateFile(file, MediaType.IMAGE)).not.toThrow();
     });
 
     it('should reject invalid image format (GIF)', () => {
       const file = createMockFile({ mimetype: 'image/gif', size: 1024 * 1024 });
-      expect(() => service.validateFile(file, MediaType.IMAGE)).toThrow(BadRequestException);
+      expect(() => service.validateFile(file, MediaType.IMAGE)).toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject image exceeding 5MB', () => {
-      const file = createMockFile({ mimetype: 'image/jpeg', size: MAX_IMAGE_SIZE + 1 });
-      expect(() => service.validateFile(file, MediaType.IMAGE)).toThrow(BadRequestException);
+      const file = createMockFile({
+        mimetype: 'image/jpeg',
+        size: MAX_IMAGE_SIZE + 1,
+      });
+      expect(() => service.validateFile(file, MediaType.IMAGE)).toThrow(
+        BadRequestException,
+      );
     });
 
     it('should accept image exactly at 5MB', () => {
-      const file = createMockFile({ mimetype: 'image/jpeg', size: MAX_IMAGE_SIZE });
+      const file = createMockFile({
+        mimetype: 'image/jpeg',
+        size: MAX_IMAGE_SIZE,
+      });
       expect(() => service.validateFile(file, MediaType.IMAGE)).not.toThrow();
     });
 
     it('should accept valid MP4 video', () => {
-      const file = createMockFile({ mimetype: 'video/mp4', size: 10 * 1024 * 1024 });
+      const file = createMockFile({
+        mimetype: 'video/mp4',
+        size: 10 * 1024 * 1024,
+      });
       expect(() => service.validateFile(file, MediaType.VIDEO)).not.toThrow();
     });
 
     it('should reject invalid video format (AVI)', () => {
-      const file = createMockFile({ mimetype: 'video/avi', size: 10 * 1024 * 1024 });
-      expect(() => service.validateFile(file, MediaType.VIDEO)).toThrow(BadRequestException);
+      const file = createMockFile({
+        mimetype: 'video/avi',
+        size: 10 * 1024 * 1024,
+      });
+      expect(() => service.validateFile(file, MediaType.VIDEO)).toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject video exceeding 50MB', () => {
-      const file = createMockFile({ mimetype: 'video/mp4', size: MAX_VIDEO_SIZE + 1 });
-      expect(() => service.validateFile(file, MediaType.VIDEO)).toThrow(BadRequestException);
+      const file = createMockFile({
+        mimetype: 'video/mp4',
+        size: MAX_VIDEO_SIZE + 1,
+      });
+      expect(() => service.validateFile(file, MediaType.VIDEO)).toThrow(
+        BadRequestException,
+      );
     });
 
     it('should accept video exactly at 50MB', () => {
-      const file = createMockFile({ mimetype: 'video/mp4', size: MAX_VIDEO_SIZE });
+      const file = createMockFile({
+        mimetype: 'video/mp4',
+        size: MAX_VIDEO_SIZE,
+      });
       expect(() => service.validateFile(file, MediaType.VIDEO)).not.toThrow();
     });
 
     it('should throw when no file is provided', () => {
-      expect(() => service.validateFile(null as any, MediaType.IMAGE)).toThrow(BadRequestException);
+      expect(() => service.validateFile(null as any, MediaType.IMAGE)).toThrow(
+        BadRequestException,
+      );
     });
   });
 
   describe('validateMediaLimits', () => {
     it('should allow image upload when under limit', () => {
       const listing = { images: [], video: undefined } as any;
-      expect(() => service.validateMediaLimits(listing, MediaType.IMAGE)).not.toThrow();
+      expect(() =>
+        service.validateMediaLimits(listing, MediaType.IMAGE),
+      ).not.toThrow();
     });
 
     it('should reject image upload when at max (20 images)', () => {
@@ -154,21 +202,26 @@ describe('MediaService', () => {
         sortOrder: i,
       }));
       const listing = { images, video: undefined } as any;
-      expect(() => service.validateMediaLimits(listing, MediaType.IMAGE)).toThrow(
-        BadRequestException,
-      );
+      expect(() =>
+        service.validateMediaLimits(listing, MediaType.IMAGE),
+      ).toThrow(BadRequestException);
     });
 
     it('should allow video upload when no video exists', () => {
       const listing = { images: [], video: undefined } as any;
-      expect(() => service.validateMediaLimits(listing, MediaType.VIDEO)).not.toThrow();
+      expect(() =>
+        service.validateMediaLimits(listing, MediaType.VIDEO),
+      ).not.toThrow();
     });
 
     it('should reject video upload when listing already has a video', () => {
-      const listing = { images: [], video: { url: 'https://example.com/video.mp4' } } as any;
-      expect(() => service.validateMediaLimits(listing, MediaType.VIDEO)).toThrow(
-        BadRequestException,
-      );
+      const listing = {
+        images: [],
+        video: { url: 'https://example.com/video.mp4' },
+      } as any;
+      expect(() =>
+        service.validateMediaLimits(listing, MediaType.VIDEO),
+      ).toThrow(BadRequestException);
     });
   });
 
@@ -184,7 +237,12 @@ describe('MediaService', () => {
     it('should throw NotFoundException for invalid listing ID', async () => {
       const file = createMockFile();
       await expect(
-        service.uploadMedia('invalid-id', sellerId.toString(), file, MediaType.IMAGE),
+        service.uploadMedia(
+          'invalid-id',
+          sellerId.toString(),
+          file,
+          MediaType.IMAGE,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -194,7 +252,12 @@ describe('MediaService', () => {
       });
       const file = createMockFile();
       await expect(
-        service.uploadMedia(new Types.ObjectId().toString(), sellerId.toString(), file, MediaType.IMAGE),
+        service.uploadMedia(
+          new Types.ObjectId().toString(),
+          sellerId.toString(),
+          file,
+          MediaType.IMAGE,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -202,7 +265,12 @@ describe('MediaService', () => {
       const otherSellerId = new Types.ObjectId();
       const file = createMockFile();
       await expect(
-        service.uploadMedia(listingId.toString(), otherSellerId.toString(), file, MediaType.IMAGE),
+        service.uploadMedia(
+          listingId.toString(),
+          otherSellerId.toString(),
+          file,
+          MediaType.IMAGE,
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -223,7 +291,10 @@ describe('MediaService', () => {
     });
 
     it('should upload a video successfully', async () => {
-      const file = createMockFile({ mimetype: 'video/mp4', size: 10 * 1024 * 1024 });
+      const file = createMockFile({
+        mimetype: 'video/mp4',
+        size: 10 * 1024 * 1024,
+      });
       const result = await service.uploadMedia(
         listingId.toString(),
         sellerId.toString(),

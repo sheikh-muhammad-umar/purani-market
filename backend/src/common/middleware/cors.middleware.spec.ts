@@ -6,10 +6,7 @@ describe('CorsMiddleware', () => {
   let middleware: CorsMiddleware;
   let configService: ConfigService;
 
-  function createMockReqRes(overrides?: {
-    method?: string;
-    origin?: string;
-  }) {
+  function createMockReqRes(overrides?: { method?: string; origin?: string }) {
     const req = {
       method: overrides?.method ?? 'GET',
       headers: {
@@ -33,7 +30,9 @@ describe('CorsMiddleware', () => {
 
   beforeEach(() => {
     configService = {
-      get: jest.fn().mockReturnValue('https://example.com,https://app.example.com'),
+      get: jest
+        .fn()
+        .mockReturnValue('https://example.com,https://app.example.com'),
     } as unknown as ConfigService;
     middleware = new CorsMiddleware(configService);
   });

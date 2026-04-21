@@ -20,7 +20,7 @@ export class VerifyEmailComponent implements OnInit {
 
   constructor(
     private readonly authService: AuthService,
-    private readonly route: ActivatedRoute
+    private readonly route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
@@ -33,10 +33,10 @@ export class VerifyEmailComponent implements OnInit {
           this.loading.set(false);
           this.success.set(true);
         },
-        error: err => {
+        error: (err) => {
           this.loading.set(false);
           this.errorMessage.set(
-            err.error?.message || 'Verification failed. The link may have expired.'
+            err.error?.message || 'Verification failed. The link may have expired.',
           );
         },
       });

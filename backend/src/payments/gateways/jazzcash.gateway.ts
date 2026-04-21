@@ -25,13 +25,20 @@ export class JazzCashGateway implements PaymentGateway {
     };
   }
 
-  async verifyCallback(payload: Record<string, any>): Promise<PaymentVerifyResult> {
+  async verifyCallback(
+    payload: Record<string, any>,
+  ): Promise<PaymentVerifyResult> {
     // Stub: simulate callback verification
     const transactionId = payload.transactionId || payload.pp_TxnRefNo || '';
-    const responseCode = payload.responseCode || payload.pp_ResponseCode || '000';
+    const responseCode =
+      payload.responseCode || payload.pp_ResponseCode || '000';
     if (responseCode === '000') {
       return { transactionId, status: 'completed' };
     }
-    return { transactionId, status: 'failed', reason: `JazzCash error: ${responseCode}` };
+    return {
+      transactionId,
+      status: 'failed',
+      reason: `JazzCash error: ${responseCode}`,
+    };
   }
 }

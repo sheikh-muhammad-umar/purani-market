@@ -33,7 +33,18 @@ const mockPackages: AdPackage[] = [
 ];
 
 const mockCategories = [
-  { _id: 'c1', name: 'Electronics', slug: 'electronics', level: 1, attributes: [], filters: [], isActive: true, sortOrder: 0, createdAt: new Date(), updatedAt: new Date() },
+  {
+    _id: 'c1',
+    name: 'Electronics',
+    slug: 'electronics',
+    level: 1,
+    attributes: [],
+    filters: [],
+    isActive: true,
+    sortOrder: 0,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
 ];
 
 function createMockAdminService() {

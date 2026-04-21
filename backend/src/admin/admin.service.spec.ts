@@ -3,10 +3,16 @@ import { getModelToken } from '@nestjs/mongoose';
 import { NotFoundException } from '@nestjs/common';
 import { AdminService } from './admin.service.js';
 import { User, UserRole, UserStatus } from '../users/schemas/user.schema.js';
-import { ProductListing, ListingStatus } from '../listings/schemas/product-listing.schema.js';
+import {
+  ProductListing,
+  ListingStatus,
+} from '../listings/schemas/product-listing.schema.js';
 import { Conversation } from '../messaging/schemas/conversation.schema.js';
 import { Review } from '../reviews/schemas/review.schema.js';
-import { PackagePurchase, PaymentStatus } from '../packages/schemas/package-purchase.schema.js';
+import {
+  PackagePurchase,
+  PaymentStatus,
+} from '../packages/schemas/package-purchase.schema.js';
 import { AdPackageType } from '../packages/schemas/ad-package.schema.js';
 import { AuthService } from '../auth/auth.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
@@ -45,9 +51,15 @@ describe('AdminService', () => {
 
     userModel = {
       find: jest.fn().mockReturnValue(chainable),
-      findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
-      findByIdAndUpdate: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
-      countDocuments: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(0) }),
+      findById: jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+      findByIdAndUpdate: jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+      countDocuments: jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(0) }),
     };
 
     listingModel = {
@@ -57,21 +69,33 @@ describe('AdminService', () => {
         limit: jest.fn().mockReturnThis(),
         exec: jest.fn().mockResolvedValue([]),
       }),
-      findById: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
-      countDocuments: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(0) }),
+      findById: jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(null) }),
+      countDocuments: jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(0) }),
     };
 
     conversationModel = {
-      countDocuments: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(0) }),
+      countDocuments: jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(0) }),
     };
 
     reviewModel = {
-      countDocuments: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(0) }),
+      countDocuments: jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(0) }),
     };
 
     packagePurchaseModel = {
-      aggregate: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }),
-      countDocuments: jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(0) }),
+      aggregate: jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }),
+      countDocuments: jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(0) }),
       find: jest.fn().mockReturnValue({
         sort: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
@@ -94,9 +118,15 @@ describe('AdminService', () => {
         AdminService,
         { provide: getModelToken(User.name), useValue: userModel },
         { provide: getModelToken(ProductListing.name), useValue: listingModel },
-        { provide: getModelToken(Conversation.name), useValue: conversationModel },
+        {
+          provide: getModelToken(Conversation.name),
+          useValue: conversationModel,
+        },
         { provide: getModelToken(Review.name), useValue: reviewModel },
-        { provide: getModelToken(PackagePurchase.name), useValue: packagePurchaseModel },
+        {
+          provide: getModelToken(PackagePurchase.name),
+          useValue: packagePurchaseModel,
+        },
         { provide: AuthService, useValue: authService },
         { provide: NotificationsService, useValue: notificationsService },
       ],
@@ -121,7 +151,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue(mockUsers),
       };
       userModel.find.mockReturnValue(chainable);
-      userModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(1) });
+      userModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(1),
+      });
 
       const result = await service.listUsers({});
 
@@ -142,7 +174,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue([]),
       };
       userModel.find.mockReturnValue(chainable);
-      userModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
+      userModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
 
       await service.listUsers({ search: 'john' });
 
@@ -161,7 +195,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue([]),
       };
       userModel.find.mockReturnValue(chainable);
-      userModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
+      userModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
 
       await service.listUsers({ role: UserRole.SELLER });
 
@@ -179,7 +215,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue([]),
       };
       userModel.find.mockReturnValue(chainable);
-      userModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
+      userModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
 
       await service.listUsers({ status: UserStatus.SUSPENDED });
 
@@ -197,7 +235,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue([]),
       };
       userModel.find.mockReturnValue(chainable);
-      userModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
+      userModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
 
       await service.listUsers({
         registeredFrom: '2024-01-01',
@@ -220,7 +260,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue([]),
       };
       userModel.find.mockReturnValue(chainable);
-      userModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(50) });
+      userModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(50),
+      });
 
       const result = await service.listUsers({ page: 3, limit: 10 });
 
@@ -232,9 +274,15 @@ describe('AdminService', () => {
 
   describe('getUserActivitySummary', () => {
     it('should return activity counts', async () => {
-      listingModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(5) });
-      conversationModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(3) });
-      reviewModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(1) });
+      listingModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(5),
+      });
+      conversationModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(3),
+      });
+      reviewModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(1),
+      });
 
       const result = await service.getUserActivitySummary(mockUserId);
 
@@ -246,19 +294,35 @@ describe('AdminService', () => {
 
   describe('updateUserStatus', () => {
     it('should suspend user and invalidate sessions', async () => {
-      const user = { ...mockUser, save: jest.fn().mockResolvedValue(undefined) };
-      userModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(user) });
+      const user = {
+        ...mockUser,
+        save: jest.fn().mockResolvedValue(undefined),
+      };
+      userModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(user),
+      });
 
-      const result = await service.updateUserStatus(mockUserId, UserStatus.SUSPENDED);
+      const result = await service.updateUserStatus(
+        mockUserId,
+        UserStatus.SUSPENDED,
+      );
 
       expect(user.status).toBe(UserStatus.SUSPENDED);
       expect(user.save).toHaveBeenCalled();
-      expect(authService.invalidateAllSessions).toHaveBeenCalledWith(mockUserId);
+      expect(authService.invalidateAllSessions).toHaveBeenCalledWith(
+        mockUserId,
+      );
     });
 
     it('should reactivate user without invalidating sessions', async () => {
-      const user = { ...mockUser, status: UserStatus.SUSPENDED, save: jest.fn().mockResolvedValue(undefined) };
-      userModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(user) });
+      const user = {
+        ...mockUser,
+        status: UserStatus.SUSPENDED,
+        save: jest.fn().mockResolvedValue(undefined),
+      };
+      userModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(user),
+      });
 
       await service.updateUserStatus(mockUserId, UserStatus.ACTIVE);
 
@@ -268,7 +332,9 @@ describe('AdminService', () => {
     });
 
     it('should throw NotFoundException for non-existent user', async () => {
-      userModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+      userModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
 
       await expect(
         service.updateUserStatus('nonexistent', UserStatus.SUSPENDED),
@@ -278,18 +344,27 @@ describe('AdminService', () => {
 
   describe('updateUserRole', () => {
     it('should change role and invalidate sessions', async () => {
-      const user = { ...mockUser, save: jest.fn().mockResolvedValue(undefined) };
-      userModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(user) });
+      const user = {
+        ...mockUser,
+        save: jest.fn().mockResolvedValue(undefined),
+      };
+      userModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(user),
+      });
 
       await service.updateUserRole(mockUserId, UserRole.SELLER);
 
       expect(user.role).toBe(UserRole.SELLER);
       expect(user.save).toHaveBeenCalled();
-      expect(authService.invalidateAllSessions).toHaveBeenCalledWith(mockUserId);
+      expect(authService.invalidateAllSessions).toHaveBeenCalledWith(
+        mockUserId,
+      );
     });
 
     it('should throw NotFoundException for non-existent user', async () => {
-      userModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+      userModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
 
       await expect(
         service.updateUserRole('nonexistent', UserRole.ADMIN),
@@ -319,16 +394,20 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      await expect(
-        service.updateAdLimit('nonexistent', 25),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.updateAdLimit('nonexistent', 25)).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
   describe('getPendingListings', () => {
     it('should return paginated pending listings sorted oldest first', async () => {
       const mockListings = [
-        { _id: new Types.ObjectId(), title: 'Listing 1', status: 'pending_review' },
+        {
+          _id: new Types.ObjectId(),
+          title: 'Listing 1',
+          status: 'pending_review',
+        },
       ];
       const chainable = {
         sort: jest.fn().mockReturnThis(),
@@ -337,7 +416,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue(mockListings),
       };
       listingModel.find.mockReturnValue(chainable);
-      listingModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(1) });
+      listingModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(1),
+      });
 
       const result = await service.getPendingListings(1, 20);
 
@@ -345,7 +426,9 @@ describe('AdminService', () => {
       expect(result.total).toBe(1);
       expect(result.page).toBe(1);
       expect(result.totalPages).toBe(1);
-      expect(listingModel.find).toHaveBeenCalledWith({ status: ListingStatus.PENDING_REVIEW });
+      expect(listingModel.find).toHaveBeenCalledWith({
+        status: ListingStatus.PENDING_REVIEW,
+      });
       expect(chainable.sort).toHaveBeenCalledWith({ createdAt: 1 });
     });
 
@@ -357,7 +440,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue([]),
       };
       listingModel.find.mockReturnValue(chainable);
-      listingModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(50) });
+      listingModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(50),
+      });
 
       const result = await service.getPendingListings(3, 10);
 
@@ -376,7 +461,9 @@ describe('AdminService', () => {
         sellerId: new Types.ObjectId(),
         save: jest.fn().mockResolvedValue(undefined),
       };
-      listingModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(mockListing) });
+      listingModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockListing),
+      });
 
       const result = await service.approveListing(mockListing._id.toString());
 
@@ -385,11 +472,13 @@ describe('AdminService', () => {
     });
 
     it('should throw NotFoundException for non-existent listing', async () => {
-      listingModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+      listingModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
 
-      await expect(
-        service.approveListing('nonexistent'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.approveListing('nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -404,7 +493,9 @@ describe('AdminService', () => {
         rejectionReason: undefined as string | undefined,
         save: jest.fn().mockResolvedValue(undefined),
       };
-      listingModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(mockListing) });
+      listingModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockListing),
+      });
 
       const result = await service.rejectListing(
         mockListing._id.toString(),
@@ -427,7 +518,9 @@ describe('AdminService', () => {
         rejectionReason: undefined as string | undefined,
         save: jest.fn().mockResolvedValue(undefined),
       };
-      listingModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(mockListing) });
+      listingModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockListing),
+      });
 
       await service.rejectListing(listingId.toString(), 'Policy violation');
 
@@ -442,7 +535,9 @@ describe('AdminService', () => {
     });
 
     it('should throw NotFoundException for non-existent listing', async () => {
-      listingModel.findById.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+      listingModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
 
       await expect(
         service.rejectListing('nonexistent', 'reason'),
@@ -455,27 +550,46 @@ describe('AdminService', () => {
       userModel.countDocuments
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(100) })
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(50) });
-      listingModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(200) });
-      conversationModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(75) });
+      listingModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(200),
+      });
+      conversationModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(75),
+      });
 
       const purchaseAggResult = [{ totalPurchases: 10, totalRevenue: 50000 }];
       const registrationsTs = [{ date: '2024-01-01', count: 5 }];
       const listingsTs = [{ date: '2024-01-01', count: 10 }];
       const conversationsTs = [{ date: '2024-01-01', count: 3 }];
       const purchasesTs = [{ date: '2024-01-01', count: 1 }];
-      const categoryData = [{ categoryId: '507f1f77bcf86cd799439011', count: 50 }];
+      const categoryData = [
+        { categoryId: '507f1f77bcf86cd799439011', count: 50 },
+      ];
 
-      packagePurchaseModel.aggregate
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(purchaseAggResult) });
+      packagePurchaseModel.aggregate.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(purchaseAggResult),
+      });
 
       // Time series aggregations: user, listing, conversation, purchase
-      userModel.aggregate = jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(registrationsTs) });
-      listingModel.aggregate = jest.fn()
+      userModel.aggregate = jest
+        .fn()
+        .mockReturnValue({
+          exec: jest.fn().mockResolvedValue(registrationsTs),
+        });
+      listingModel.aggregate = jest
+        .fn()
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(listingsTs) })
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(categoryData) });
-      conversationModel.aggregate = jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue(conversationsTs) });
-      packagePurchaseModel.aggregate
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(purchasesTs) });
+        .mockReturnValueOnce({
+          exec: jest.fn().mockResolvedValue(categoryData),
+        });
+      conversationModel.aggregate = jest
+        .fn()
+        .mockReturnValue({
+          exec: jest.fn().mockResolvedValue(conversationsTs),
+        });
+      packagePurchaseModel.aggregate.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(purchasesTs),
+      });
 
       const result = await service.getAnalytics('2024-01-01', '2024-06-30');
 
@@ -493,18 +607,29 @@ describe('AdminService', () => {
       userModel.countDocuments
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(0) })
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(0) });
-      listingModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
-      conversationModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
-      packagePurchaseModel.aggregate
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue([]) });
+      listingModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
+      conversationModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
+      packagePurchaseModel.aggregate.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue([]),
+      });
 
-      userModel.aggregate = jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
-      listingModel.aggregate = jest.fn()
+      userModel.aggregate = jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
+      listingModel.aggregate = jest
+        .fn()
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue([]) })
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue([]) });
-      conversationModel.aggregate = jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
-      packagePurchaseModel.aggregate
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue([]) });
+      conversationModel.aggregate = jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
+      packagePurchaseModel.aggregate.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue([]),
+      });
 
       const result = await service.getAnalytics();
 
@@ -518,23 +643,39 @@ describe('AdminService', () => {
       userModel.countDocuments
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(10) })
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(5) });
-      listingModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(20) });
-      conversationModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(8) });
-      packagePurchaseModel.aggregate
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue([{ totalPurchases: 2, totalRevenue: 5000 }]) });
+      listingModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(20),
+      });
+      conversationModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(8),
+      });
+      packagePurchaseModel.aggregate.mockReturnValueOnce({
+        exec: jest
+          .fn()
+          .mockResolvedValue([{ totalPurchases: 2, totalRevenue: 5000 }]),
+      });
 
-      userModel.aggregate = jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
-      listingModel.aggregate = jest.fn()
+      userModel.aggregate = jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
+      listingModel.aggregate = jest
+        .fn()
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue([]) })
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue([]) });
-      conversationModel.aggregate = jest.fn().mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
-      packagePurchaseModel.aggregate
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue([]) });
+      conversationModel.aggregate = jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
+      packagePurchaseModel.aggregate.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue([]),
+      });
 
       const result = await service.exportAnalytics('2024-01-01', '2024-12-31');
 
       expect(result.generatedAt).toBeDefined();
-      expect(result.dateRange).toEqual({ from: '2024-01-01', to: '2024-12-31' });
+      expect(result.dateRange).toEqual({
+        from: '2024-01-01',
+        to: '2024-12-31',
+      });
       expect(result.keyMetrics.totalUsers).toBe(10);
       expect(result.categoryAnalytics).toEqual([]);
     });
@@ -542,7 +683,9 @@ describe('AdminService', () => {
 
   describe('listPackagePurchases', () => {
     it('should return paginated purchases with defaults', async () => {
-      const mockPurchases = [{ _id: new Types.ObjectId(), sellerId: new Types.ObjectId() }];
+      const mockPurchases = [
+        { _id: new Types.ObjectId(), sellerId: new Types.ObjectId() },
+      ];
       const chainable = {
         sort: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
@@ -551,7 +694,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue(mockPurchases),
       };
       packagePurchaseModel.find.mockReturnValue(chainable);
-      packagePurchaseModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(1) });
+      packagePurchaseModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(1),
+      });
 
       const result = await service.listPackagePurchases({});
 
@@ -571,9 +716,14 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue([]),
       };
       packagePurchaseModel.find.mockReturnValue(chainable);
-      packagePurchaseModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
+      packagePurchaseModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
 
-      await service.listPackagePurchases({ dateFrom: '2024-01-01', dateTo: '2024-12-31' });
+      await service.listPackagePurchases({
+        dateFrom: '2024-01-01',
+        dateTo: '2024-12-31',
+      });
 
       const filterArg = packagePurchaseModel.find.mock.calls[0][0];
       expect(filterArg.createdAt).toBeDefined();
@@ -591,7 +741,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue([]),
       };
       packagePurchaseModel.find.mockReturnValue(chainable);
-      packagePurchaseModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
+      packagePurchaseModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
 
       await service.listPackagePurchases({
         sellerId: sellerId.toString(),
@@ -608,7 +760,9 @@ describe('AdminService', () => {
 
   describe('listPayments', () => {
     it('should return paginated payment transactions', async () => {
-      const mockPayments = [{ _id: new Types.ObjectId(), paymentStatus: PaymentStatus.COMPLETED }];
+      const mockPayments = [
+        { _id: new Types.ObjectId(), paymentStatus: PaymentStatus.COMPLETED },
+      ];
       const chainable = {
         sort: jest.fn().mockReturnThis(),
         skip: jest.fn().mockReturnThis(),
@@ -617,7 +771,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue(mockPayments),
       };
       packagePurchaseModel.find.mockReturnValue(chainable);
-      packagePurchaseModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(1) });
+      packagePurchaseModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(1),
+      });
 
       const result = await service.listPayments({});
 
@@ -639,7 +795,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue([]),
       };
       packagePurchaseModel.find.mockReturnValue(chainable);
-      packagePurchaseModel.countDocuments.mockReturnValue({ exec: jest.fn().mockResolvedValue(0) });
+      packagePurchaseModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
 
       await service.listPayments({
         dateFrom: '2024-01-01',

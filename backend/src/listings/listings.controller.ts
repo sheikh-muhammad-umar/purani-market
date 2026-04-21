@@ -88,9 +88,15 @@ export class ListingsController {
     @CurrentUser('sub') userId?: string,
     @CurrentUser('role') userRole?: string,
   ) {
-    const listing = await this.listingsService.findByIdAndIncrementViews(id, userId, userRole);
+    const listing = await this.listingsService.findByIdAndIncrementViews(
+      id,
+      userId,
+      userRole,
+    );
     // Enrich with seller verification info
-    const seller = await this.listingsService.getSellerVerification(listing.sellerId.toString());
+    const seller = await this.listingsService.getSellerVerification(
+      listing.sellerId.toString(),
+    );
     const obj = listing.toJSON();
     return {
       ...obj,

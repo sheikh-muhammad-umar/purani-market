@@ -6,11 +6,13 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   selector: 'app-date-picker',
   standalone: true,
   imports: [CommonModule],
-  providers: [{
-    provide: NG_VALUE_ACCESSOR,
-    useExisting: forwardRef(() => DatePickerComponent),
-    multi: true,
-  }],
+  providers: [
+    {
+      provide: NG_VALUE_ACCESSOR,
+      useExisting: forwardRef(() => DatePickerComponent),
+      multi: true,
+    },
+  ],
   templateUrl: './date-picker.component.html',
   styleUrl: './date-picker.component.scss',
 })
@@ -19,7 +21,20 @@ export class DatePickerComponent implements ControlValueAccessor {
   value = signal('');
   viewDate = signal(new Date());
 
-  readonly monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+  readonly monthNames = [
+    'Jan',
+    'Feb',
+    'Mar',
+    'Apr',
+    'May',
+    'Jun',
+    'Jul',
+    'Aug',
+    'Sep',
+    'Oct',
+    'Nov',
+    'Dec',
+  ];
   readonly dayNames = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
 
   currentMonth = computed(() => this.monthNames[this.viewDate().getMonth()]);
@@ -34,20 +49,33 @@ export class DatePickerComponent implements ControlValueAccessor {
     const today = new Date();
     const selectedStr = this.value();
 
-    const cells: { day: number; date: string; isToday: boolean; isSelected: boolean; isCurrentMonth: boolean }[] = [];
+    const cells: {
+      day: number;
+      date: string;
+      isToday: boolean;
+      isSelected: boolean;
+      isCurrentMonth: boolean;
+    }[] = [];
 
     // Previous month padding
     const prevDays = new Date(year, month, 0).getDate();
     for (let i = firstDay - 1; i >= 0; i--) {
       const day = prevDays - i;
       const date = this.formatDate(year, month - 1, day);
-      cells.push({ day, date, isToday: false, isSelected: date === selectedStr, isCurrentMonth: false });
+      cells.push({
+        day,
+        date,
+        isToday: false,
+        isSelected: date === selectedStr,
+        isCurrentMonth: false,
+      });
     }
 
     // Current month
     for (let day = 1; day <= daysInMonth; day++) {
       const date = this.formatDate(year, month, day);
-      const isToday = day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
+      const isToday =
+        day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
       cells.push({ day, date, isToday, isSelected: date === selectedStr, isCurrentMonth: true });
     }
 
@@ -55,7 +83,13 @@ export class DatePickerComponent implements ControlValueAccessor {
     const remaining = 42 - cells.length;
     for (let day = 1; day <= remaining; day++) {
       const date = this.formatDate(year, month + 1, day);
-      cells.push({ day, date, isToday: false, isSelected: date === selectedStr, isCurrentMonth: false });
+      cells.push({
+        day,
+        date,
+        isToday: false,
+        isSelected: date === selectedStr,
+        isCurrentMonth: false,
+      });
     }
 
     return cells;
@@ -80,22 +114,26 @@ export class DatePickerComponent implements ControlValueAccessor {
     }
   }
 
-  registerOnChange(fn: (val: string) => void): void { this.onChange = fn; }
-  registerOnTouched(fn: () => void): void { this.onTouched = fn; }
+  registerOnChange(fn: (val: string) => void): void {
+    this.onChange = fn;
+  }
+  registerOnTouched(fn: () => void): void {
+    this.onTouched = fn;
+  }
 
   toggle(): void {
-    this.open.update(o => !o);
+    this.open.update((o) => !o);
     if (this.open() && !this.value()) {
       this.viewDate.set(new Date());
     }
   }
 
   prevMonth(): void {
-    this.viewDate.update(d => new Date(d.getFullYear(), d.getMonth() - 1, 1));
+    this.viewDate.update((d) => new Date(d.getFullYear(), d.getMonth() - 1, 1));
   }
 
   nextMonth(): void {
-    this.viewDate.update(d => new Date(d.getFullYear(), d.getMonth() + 1, 1));
+    this.viewDate.update((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
   }
 
   selectDate(date: string): void {

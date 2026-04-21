@@ -22,7 +22,7 @@
 /* Branding Panel */
 .auth-branding {
   flex: 0 0 380px;
-  background: linear-gradient(135deg, #0A8BA5, #0DA5C3);
+  background: linear-gradient(135deg, #0a8ba5, #0da5c3);
   color: #fff;
   padding: var(--space-5) var(--space-4);
   display: flex;
@@ -41,7 +41,7 @@
   width: 36px;
   height: 36px;
   background: #fff;
-  color: #0DA5C3;
+  color: #0da5c3;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -141,7 +141,9 @@
   text-decoration: none;
   font-weight: 500;
 
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 .btn-full {
@@ -161,7 +163,8 @@
   text-transform: uppercase;
   letter-spacing: 1px;
 
-  &::before, &::after {
+  &::before,
+  &::after {
     content: '';
     flex: 1;
     height: 1px;
@@ -191,7 +194,9 @@
   font-family: inherit;
   transition: background 0.2s;
 
-  &:hover { background: var(--background); }
+  &:hover {
+    background: var(--background);
+  }
 }
 
 .auth-footer {
@@ -204,7 +209,9 @@
     color: var(--primary);
     font-weight: 600;
     text-decoration: none;
-    &:hover { text-decoration: underline; }
+    &:hover {
+      text-decoration: underline;
+    }
   }
 }
 
@@ -234,7 +241,8 @@
     font-size: var(--text-xl);
   }
 
-  .branding-desc, .branding-features {
+  .branding-desc,
+  .branding-features {
     display: none;
   }
 

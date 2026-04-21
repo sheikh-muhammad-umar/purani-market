@@ -3,7 +3,10 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type FavoriteDocument = HydratedDocument<Favorite>;
 
-@Schema({ timestamps: { createdAt: true, updatedAt: false }, collection: 'favorites' })
+@Schema({
+  timestamps: { createdAt: true, updatedAt: false },
+  collection: 'favorites',
+})
 export class Favorite {
   _id!: Types.ObjectId;
 

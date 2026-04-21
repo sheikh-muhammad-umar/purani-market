@@ -4,7 +4,13 @@ import { Observable, map } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { UserRole, UserStatus } from '../models/user.model';
 import { ListingImage, ListingStatus } from '../models/listing.model';
-import { AdPackage, PackagePurchase, PackageType, PaymentMethod, PaymentStatus } from '../models/package.model';
+import {
+  AdPackage,
+  PackagePurchase,
+  PackageType,
+  PaymentMethod,
+  PaymentStatus,
+} from '../models/package.model';
 
 export interface AdminUser {
   _id: string;
@@ -205,9 +211,9 @@ export class AdminService {
       params = params.set('dateFrom', dateRange.startDate);
       params = params.set('dateTo', dateRange.endDate);
     }
-    return this.http.get<any>(`${this.baseUrl}/admin/analytics`, { params }).pipe(
-      map(res => (res && res.data && res.statusCode) ? res.data : res),
-    );
+    return this.http
+      .get<any>(`${this.baseUrl}/admin/analytics`, { params })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 
   exportReport(dateRange: DateRange): Observable<Blob> {
@@ -229,9 +235,9 @@ export class AdminService {
     if (params.status) httpParams = httpParams.set('status', params.status);
     if (params.startDate) httpParams = httpParams.set('registeredFrom', params.startDate);
     if (params.endDate) httpParams = httpParams.set('registeredTo', params.endDate);
-    return this.http.get<any>(`${this.baseUrl}/admin/users`, { params: httpParams }).pipe(
-      map(res => (res && res.data && res.statusCode) ? res.data : res),
-    );
+    return this.http
+      .get<any>(`${this.baseUrl}/admin/users`, { params: httpParams })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 
   updateUserStatus(userId: string, status: UserStatus): Observable<void> {
@@ -243,32 +249,41 @@ export class AdminService {
   }
 
   updateAdLimit(userId: string, limit: number): Observable<void> {
-    return this.http.patch<void>(`${this.baseUrl}/admin/users/${userId}/ad-limit`, { adLimit: limit });
+    return this.http.patch<void>(`${this.baseUrl}/admin/users/${userId}/ad-limit`, {
+      adLimit: limit,
+    });
   }
 
-  getPermissionsList(): Observable<{ permissions: { key: string; value: string; group: string; action: string }[] }> {
-    return this.http.get<any>(`${this.baseUrl}/admin/permissions`).pipe(
-      map(res => (res && res.data && res.statusCode) ? res.data : res),
-    );
+  getPermissionsList(): Observable<{
+    permissions: { key: string; value: string; group: string; action: string }[];
+  }> {
+    return this.http
+      .get<any>(`${this.baseUrl}/admin/permissions`)
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 
   updatePermissions(userId: string, permissions: string[]): Observable<any> {
-    return this.http.patch<any>(`${this.baseUrl}/admin/users/${userId}/permissions`, { permissions });
+    return this.http.patch<any>(`${this.baseUrl}/admin/users/${userId}/permissions`, {
+      permissions,
+    });
   }
 
   // ── Rejection Reasons ──────────────────────────────────────────
   getRejectionReasons(all = false): Observable<any[]> {
     const params = all ? '?all=true' : '';
-    return this.http.get<any>(`${this.baseUrl}/admin/rejection-reasons${params}`).pipe(
-      map(res => (res && res.data && res.statusCode) ? res.data : res),
-    );
+    return this.http
+      .get<any>(`${this.baseUrl}/admin/rejection-reasons${params}`)
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 
   createRejectionReason(data: { title: string; description?: string }): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/admin/rejection-reasons`, data);
   }
 
-  updateRejectionReason(id: string, data: { title?: string; description?: string; isActive?: boolean }): Observable<any> {
+  updateRejectionReason(
+    id: string,
+    data: { title?: string; description?: string; isActive?: boolean },
+  ): Observable<any> {
     return this.http.patch<any>(`${this.baseUrl}/admin/rejection-reasons/${id}`, data);
   }
 
@@ -279,16 +294,19 @@ export class AdminService {
   // ── Deletion Reasons ───────────────────────────────────────────
   getDeletionReasons(all = false): Observable<any[]> {
     const params = all ? '?all=true' : '';
-    return this.http.get<any>(`${this.baseUrl}/admin/deletion-reasons${params}`).pipe(
-      map(res => (res && res.data && res.statusCode) ? res.data : res),
-    );
+    return this.http
+      .get<any>(`${this.baseUrl}/admin/deletion-reasons${params}`)
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 
   createDeletionReason(data: { title: string; description?: string }): Observable<any> {
     return this.http.post<any>(`${this.baseUrl}/admin/deletion-reasons`, data);
   }
 
-  updateDeletionReason(id: string, data: { title?: string; description?: string; isActive?: boolean }): Observable<any> {
+  updateDeletionReason(
+    id: string,
+    data: { title?: string; description?: string; isActive?: boolean },
+  ): Observable<any> {
     return this.http.patch<any>(`${this.baseUrl}/admin/deletion-reasons/${id}`, data);
   }
 
@@ -300,12 +318,23 @@ export class AdminService {
     return this.http.get<PendingListingsResponse>(`${this.baseUrl}/admin/listings/pending`);
   }
 
-  getAllListings(params: {
-    page?: number; limit?: number; search?: string; status?: string;
-    categoryId?: string; provinceId?: string; cityId?: string;
-    dateFrom?: string; dateTo?: string; sort?: string; order?: 'asc' | 'desc';
-    rejectionReason?: string; deletionReason?: string;
-  } = {}): Observable<any> {
+  getAllListings(
+    params: {
+      page?: number;
+      limit?: number;
+      search?: string;
+      status?: string;
+      categoryId?: string;
+      provinceId?: string;
+      cityId?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      sort?: string;
+      order?: 'asc' | 'desc';
+      rejectionReason?: string;
+      deletionReason?: string;
+    } = {},
+  ): Observable<any> {
     let httpParams = new HttpParams();
     if (params.page) httpParams = httpParams.set('page', params.page.toString());
     if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
@@ -318,18 +347,22 @@ export class AdminService {
     if (params.dateTo) httpParams = httpParams.set('dateTo', params.dateTo);
     if (params.sort) httpParams = httpParams.set('sort', params.sort);
     if (params.order) httpParams = httpParams.set('order', params.order);
-    if (params.rejectionReason) httpParams = httpParams.set('rejectionReason', params.rejectionReason);
+    if (params.rejectionReason)
+      httpParams = httpParams.set('rejectionReason', params.rejectionReason);
     if (params.deletionReason) httpParams = httpParams.set('deletionReason', params.deletionReason);
-    return this.http.get<any>(`${this.baseUrl}/admin/listings/all`, { params: httpParams }).pipe(
-      map(res => (res && res.data && res.statusCode) ? res.data : res),
-    );
+    return this.http
+      .get<any>(`${this.baseUrl}/admin/listings/all`, { params: httpParams })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 
   approveListing(id: string): Observable<void> {
     return this.http.patch<void>(`${this.baseUrl}/admin/listings/${id}/approve`, {});
   }
 
-  rejectListing(id: string, payload: { rejectionReasonIds: string[]; customNote?: string }): Observable<void> {
+  rejectListing(
+    id: string,
+    payload: { rejectionReasonIds: string[]; customNote?: string },
+  ): Observable<void> {
     return this.http.patch<void>(`${this.baseUrl}/admin/listings/${id}/reject`, payload);
   }
 
@@ -356,7 +389,9 @@ export class AdminService {
     if (params.sellerId) httpParams = httpParams.set('sellerId', params.sellerId);
     if (params.type) httpParams = httpParams.set('type', params.type);
     if (params.status) httpParams = httpParams.set('status', params.status);
-    return this.http.get<AdminPurchasesResponse>(`${this.baseUrl}/admin/packages/purchases`, { params: httpParams });
+    return this.http.get<AdminPurchasesResponse>(`${this.baseUrl}/admin/packages/purchases`, {
+      params: httpParams,
+    });
   }
 
   getAdminPayments(params: AdminPaymentsParams = {}): Observable<AdminPaymentsResponse> {
@@ -367,25 +402,31 @@ export class AdminService {
     if (params.endDate) httpParams = httpParams.set('dateTo', params.endDate);
     if (params.paymentMethod) httpParams = httpParams.set('paymentMethod', params.paymentMethod);
     if (params.status) httpParams = httpParams.set('status', params.status);
-    return this.http.get<any>(`${this.baseUrl}/admin/payments`, { params: httpParams }).pipe(
-      map(res => (res && res.data && res.statusCode) ? res.data : res),
-    );
+    return this.http
+      .get<any>(`${this.baseUrl}/admin/payments`, { params: httpParams })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 
   getUserActivity(userId: string, page = 1, limit = 50, action?: string): Observable<any> {
-    let httpParams = new HttpParams()
-      .set('page', page.toString())
-      .set('limit', limit.toString());
+    let httpParams = new HttpParams().set('page', page.toString()).set('limit', limit.toString());
     if (action) httpParams = httpParams.set('action', action);
-    return this.http.get<any>(`${this.baseUrl}/admin/users/${userId}/activity`, { params: httpParams }).pipe(
-      map(res => (res && res.data && res.statusCode) ? res.data : res),
-    );
+    return this.http
+      .get<any>(`${this.baseUrl}/admin/users/${userId}/activity`, { params: httpParams })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 
-  getAllActivity(params: {
-    page?: number; limit?: number; action?: string; userId?: string;
-    dateFrom?: string; dateTo?: string; sort?: string; order?: 'asc' | 'desc';
-  } = {}): Observable<any> {
+  getAllActivity(
+    params: {
+      page?: number;
+      limit?: number;
+      action?: string;
+      userId?: string;
+      dateFrom?: string;
+      dateTo?: string;
+      sort?: string;
+      order?: 'asc' | 'desc';
+    } = {},
+  ): Observable<any> {
     let httpParams = new HttpParams();
     if (params.page) httpParams = httpParams.set('page', params.page.toString());
     if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
@@ -395,8 +436,8 @@ export class AdminService {
     if (params.dateTo) httpParams = httpParams.set('dateTo', params.dateTo);
     if (params.sort) httpParams = httpParams.set('sort', params.sort);
     if (params.order) httpParams = httpParams.set('order', params.order);
-    return this.http.get<any>(`${this.baseUrl}/admin/activity`, { params: httpParams }).pipe(
-      map(res => (res && res.data && res.statusCode) ? res.data : res),
-    );
+    return this.http
+      .get<any>(`${this.baseUrl}/admin/activity`, { params: httpParams })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 }

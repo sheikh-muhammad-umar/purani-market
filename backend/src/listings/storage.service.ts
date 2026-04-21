@@ -22,7 +22,11 @@ export class StorageService {
     this.ensureDir(this.uploadDir);
   }
 
-  async saveFile(folder: string, filename: string, buffer: Buffer): Promise<UploadResult> {
+  async saveFile(
+    folder: string,
+    filename: string,
+    buffer: Buffer,
+  ): Promise<UploadResult> {
     const uniqueName = `${randomUUID()}-${filename}`;
     const dir = path.join(this.uploadDir, folder);
     this.ensureDir(dir);

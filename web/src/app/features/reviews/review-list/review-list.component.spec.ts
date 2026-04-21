@@ -41,10 +41,7 @@ describe('ReviewListComponent', () => {
     };
     route = { snapshot: { queryParams: { listingId: 'listing1' } } };
 
-    component = new ReviewListComponent(
-      reviewsService as unknown as ReviewsService,
-      route as any,
-    );
+    component = new ReviewListComponent(reviewsService as unknown as ReviewsService, route as any);
   });
 
   it('should create', () => {
@@ -62,10 +59,7 @@ describe('ReviewListComponent', () => {
 
   it('should load reviews by seller when sellerId is provided', () => {
     route.snapshot.queryParams = { sellerId: 'seller1' };
-    component = new ReviewListComponent(
-      reviewsService as unknown as ReviewsService,
-      route as any,
-    );
+    component = new ReviewListComponent(reviewsService as unknown as ReviewsService, route as any);
     component.ngOnInit();
     expect(reviewsService.getBySeller).toHaveBeenCalledWith('seller1');
     expect(component.reviews().length).toBe(3);
@@ -73,10 +67,7 @@ describe('ReviewListComponent', () => {
 
   it('should prefer listingId over sellerId', () => {
     route.snapshot.queryParams = { listingId: 'l1', sellerId: 's1' };
-    component = new ReviewListComponent(
-      reviewsService as unknown as ReviewsService,
-      route as any,
-    );
+    component = new ReviewListComponent(reviewsService as unknown as ReviewsService, route as any);
     component.ngOnInit();
     expect(reviewsService.getByListing).toHaveBeenCalledWith('l1');
     expect(reviewsService.getBySeller).not.toHaveBeenCalled();
@@ -84,10 +75,7 @@ describe('ReviewListComponent', () => {
 
   it('should show error when no listingId or sellerId', () => {
     route.snapshot.queryParams = {};
-    component = new ReviewListComponent(
-      reviewsService as unknown as ReviewsService,
-      route as any,
-    );
+    component = new ReviewListComponent(reviewsService as unknown as ReviewsService, route as any);
     component.ngOnInit();
     expect(component.error()).toBe('No listing or seller specified.');
     expect(component.loading()).toBe(false);
@@ -117,10 +105,7 @@ describe('ReviewListComponent', () => {
 
   it('should return correct page title for seller', () => {
     route.snapshot.queryParams = { sellerId: 'seller1' };
-    component = new ReviewListComponent(
-      reviewsService as unknown as ReviewsService,
-      route as any,
-    );
+    component = new ReviewListComponent(reviewsService as unknown as ReviewsService, route as any);
     component.ngOnInit();
     expect(component.getPageTitle()).toBe('Seller Reviews');
   });

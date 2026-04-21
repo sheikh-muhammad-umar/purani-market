@@ -3,7 +3,10 @@
   <section class="hero-section">
     <div class="hero-content">
       <h1 class="hero-headline">Buy and sell with <span class="hero-accent">confidence.</span></h1>
-      <p class="hero-desc">The premium local marketplace. Verified users, secure messaging, and a beautifully simple way to discover what you need.</p>
+      <p class="hero-desc">
+        The premium local marketplace. Verified users, secure messaging, and a beautifully simple
+        way to discover what you need.
+      </p>
       <div class="hero-actions">
         <a routerLink="/search" class="btn btn-primary hero-btn">Browse Listings</a>
         <a routerLink="/categories" class="btn btn-outline hero-btn-outline">Learn How It Works</a>
@@ -16,10 +19,10 @@
     <h2 class="section-heading">Browse by Category</h2>
     @if (loadingCategories()) {
       <div class="category-grid-browse">
-        @for (i of [1,2,3,4,5,6,7,8]; track i) {
+        @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
           <div class="cat-card-skeleton">
-            <div class="skeleton" style="width:48px;height:48px;border-radius:12px;"></div>
-            <div class="skeleton" style="width:60px;height:12px;margin-top:8px;"></div>
+            <div class="skeleton" style="width: 48px; height: 48px; border-radius: 12px"></div>
+            <div class="skeleton" style="width: 60px; height: 12px; margin-top: 8px"></div>
           </div>
         }
       </div>
@@ -41,7 +44,14 @@
   <section class="home-section" aria-label="Featured ads">
     <div class="section-header">
       <h2 class="section-title">
-        <span aria-hidden="true"><span class="mat-icon" style="font-size:20px;vertical-align:middle;color:var(--accent);">auto_awesome</span></span> Featured Ads
+        <span aria-hidden="true"
+          ><span
+            class="mat-icon"
+            style="font-size: 20px; vertical-align: middle; color: var(--accent)"
+            >auto_awesome</span
+          ></span
+        >
+        Featured Ads
       </h2>
       <a routerLink="/search" [queryParams]="{ featured: true }" class="see-all-link">
         See all →
@@ -49,7 +59,7 @@
     </div>
     @if (loadingFeatured()) {
       <div class="carousel-scroll">
-        @for (i of [1,2,3,4]; track i) {
+        @for (i of [1, 2, 3, 4]; track i) {
           <div class="listing-card-skeleton">
             <div class="skeleton img-skeleton"></div>
             <div class="skeleton text-skeleton title-sk"></div>
@@ -67,18 +77,16 @@
             role="listitem"
           >
             <div class="listing-img-wrap">
-              <img
-                [src]="getListingImage(listing)"
-                [alt]="listing.title"
-                loading="lazy"
-              />
+              <img [src]="getListingImage(listing)" [alt]="listing.title" loading="lazy" />
               @if (listing.isFeatured) {
                 <span class="badge badge-featured">Featured</span>
               }
             </div>
             <div class="listing-info">
-              <p class="listing-price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
-              <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
+              <p class="listing-price">
+                {{ listing.price.amount | priceFormat: listing.price.currency }}
+              </p>
+              <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
               <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
             </div>
           </a>
@@ -94,13 +102,18 @@
   <section class="home-section" aria-label="Recommended for you">
     <div class="section-header">
       <h2 class="section-title">
-        <span aria-hidden="true"><span class="mat-icon" style="font-size:20px;vertical-align:middle;">recommend</span></span> Recommended for You
+        <span aria-hidden="true"
+          ><span class="mat-icon" style="font-size: 20px; vertical-align: middle"
+            >recommend</span
+          ></span
+        >
+        Recommended for You
       </h2>
       <a routerLink="/search" class="see-all-link">See all →</a>
     </div>
     @if (loadingRecommendations()) {
       <div class="masonry-grid">
-        @for (i of [1,2,3,4,5,6]; track i) {
+        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
           <div class="listing-card-skeleton">
             <div class="skeleton img-skeleton" [style.height.px]="150 + (i % 3) * 40"></div>
             <div class="skeleton text-skeleton title-sk"></div>
@@ -117,24 +130,24 @@
             role="listitem"
           >
             <div class="listing-img-wrap">
-              <img
-                [src]="getListingImage(listing)"
-                [alt]="listing.title"
-                loading="lazy"
-              />
+              <img [src]="getListingImage(listing)" [alt]="listing.title" loading="lazy" />
               @if (listing.isFeatured) {
                 <span class="badge badge-featured">Featured</span>
               }
             </div>
             <div class="listing-info">
-              <p class="listing-price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
-              <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
+              <p class="listing-price">
+                {{ listing.price.amount | priceFormat: listing.price.currency }}
+              </p>
+              <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
               <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
             </div>
           </a>
         }
         @if (recommendations().length === 0) {
-          <p class="empty-state">No recommendations yet. Start browsing to get personalized suggestions!</p>
+          <p class="empty-state">
+            No recommendations yet. Start browsing to get personalized suggestions!
+          </p>
         }
       </div>
     }
@@ -144,18 +157,21 @@
   <section class="home-section" aria-label="Listings near you">
     <div class="section-header">
       <h2 class="section-title">
-        <span aria-hidden="true"><span class="mat-icon" style="font-size:14px;vertical-align:middle;">location_on</span></span> Near You
+        <span aria-hidden="true"
+          ><span class="mat-icon" style="font-size: 14px; vertical-align: middle"
+            >location_on</span
+          ></span
+        >
+        Near You
         @if (userCity()) {
           <span class="city-label">({{ userCity() }})</span>
         }
       </h2>
-      <a routerLink="/search" [queryParams]="{ nearby: true }" class="see-all-link">
-        See all →
-      </a>
+      <a routerLink="/search" [queryParams]="{ nearby: true }" class="see-all-link"> See all → </a>
     </div>
     @if (loadingNearby()) {
       <div class="carousel-scroll">
-        @for (i of [1,2,3,4,5,6]; track i) {
+        @for (i of [1, 2, 3, 4, 5, 6]; track i) {
           <div class="listing-card-skeleton">
             <div class="skeleton img-skeleton"></div>
             <div class="skeleton text-skeleton title-sk"></div>
@@ -173,21 +189,23 @@
             role="listitem"
           >
             <div class="listing-img-wrap">
-              <img
-                [src]="getListingImage(listing)"
-                [alt]="listing.title"
-                loading="lazy"
-              />
+              <img [src]="getListingImage(listing)" [alt]="listing.title" loading="lazy" />
             </div>
             <div class="listing-info">
-              <p class="listing-price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
-              <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
-              <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}, {{ listing.location.area || '' }}</p>
+              <p class="listing-price">
+                {{ listing.price.amount | priceFormat: listing.price.currency }}
+              </p>
+              <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
+              <p class="listing-location">
+                📍 {{ listing.location.city || 'Unknown' }}, {{ listing.location.area || '' }}
+              </p>
             </div>
           </a>
         }
         @if (nearbyListings().length === 0 && !loadingNearby()) {
-          <p class="empty-state">Enable location access to see listings near you, or browse by category above.</p>
+          <p class="empty-state">
+            Enable location access to see listings near you, or browse by category above.
+          </p>
         }
       </div>
     }

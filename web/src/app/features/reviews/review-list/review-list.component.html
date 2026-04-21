@@ -8,10 +8,17 @@
             <span class="rating-number">{{ averageRating().toFixed(1) }}</span>
             <div class="stars-row">
               @for (star of getStars(averageRating()); track star) {
-                <span class="star" [class.filled]="star <= averageRating()" [class.half]="star > averageRating() && star - 1 < averageRating()">★</span>
+                <span
+                  class="star"
+                  [class.filled]="star <= averageRating()"
+                  [class.half]="star > averageRating() && star - 1 < averageRating()"
+                  >★</span
+                >
               }
             </div>
-            <span class="review-count">{{ totalReviews() }} {{ totalReviews() === 1 ? 'review' : 'reviews' }}</span>
+            <span class="review-count"
+              >{{ totalReviews() }} {{ totalReviews() === 1 ? 'review' : 'reviews' }}</span
+            >
           </div>
         </div>
       }

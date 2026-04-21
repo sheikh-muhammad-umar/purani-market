@@ -175,14 +175,17 @@ export class DeviceToken {
   token!: string;
 }
 
-@Schema({ timestamps: true, collection: 'users',
+@Schema({
+  timestamps: true,
+  collection: 'users',
   toJSON: {
     transform: (_doc: any, ret: any) => {
       delete ret.passwordHash;
       delete ret.__v;
       delete ret.deletedAt;
       if (ret.mfa) delete ret.mfa.totpSecret;
-      if (ret.pendingEmailChange) delete ret.pendingEmailChange.verificationToken;
+      if (ret.pendingEmailChange)
+        delete ret.pendingEmailChange.verificationToken;
       if (ret.pendingPhoneChange) delete ret.pendingPhoneChange.otpHash;
       return ret;
     },

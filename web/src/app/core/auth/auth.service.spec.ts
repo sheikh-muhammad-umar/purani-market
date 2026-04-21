@@ -174,7 +174,8 @@ describe('AuthService', () => {
     it('should handle MFA flow: login returns MFA required, then verify completes auth', () => {
       // Step 1: Login returns MFA required
       const loginResponse: LoginResponse = { mfaRequired: true, mfaToken: 'mfa-session' };
-      const needsMfa = 'mfaRequired' in loginResponse && (loginResponse as MfaRequiredResponse).mfaRequired;
+      const needsMfa =
+        'mfaRequired' in loginResponse && (loginResponse as MfaRequiredResponse).mfaRequired;
       expect(needsMfa).toBe(true);
 
       // User is NOT authenticated yet

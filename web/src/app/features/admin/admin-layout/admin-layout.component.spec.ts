@@ -17,31 +17,31 @@ describe('AdminLayoutComponent', () => {
   });
 
   it('should include Dashboard nav item', () => {
-    const dashboard = component.navItems.find(n => n.label === 'Dashboard');
+    const dashboard = component.navItems.find((n) => n.label === 'Dashboard');
     expect(dashboard).toBeDefined();
     expect(dashboard!.path).toBe('/admin');
   });
 
   it('should include Users nav item', () => {
-    const users = component.navItems.find(n => n.label === 'Users');
+    const users = component.navItems.find((n) => n.label === 'Users');
     expect(users).toBeDefined();
     expect(users!.path).toBe('/admin/users');
   });
 
   it('should include Listings nav item', () => {
-    const listings = component.navItems.find(n => n.label === 'Listings');
+    const listings = component.navItems.find((n) => n.label === 'Listings');
     expect(listings).toBeDefined();
     expect(listings!.path).toBe('/admin/listings');
   });
 
   it('should include Categories nav item', () => {
-    const categories = component.navItems.find(n => n.label === 'Categories');
+    const categories = component.navItems.find((n) => n.label === 'Categories');
     expect(categories).toBeDefined();
     expect(categories!.path).toBe('/admin/categories');
   });
 
   it('should include Packages nav item', () => {
-    const packages = component.navItems.find(n => n.label === 'Packages');
+    const packages = component.navItems.find((n) => n.label === 'Packages');
     expect(packages).toBeDefined();
     expect(packages!.path).toBe('/admin/packages');
   });
@@ -59,7 +59,7 @@ describe('AdminLayoutComponent', () => {
   });
 
   it('should have icons for all nav items', () => {
-    component.navItems.forEach(item => {
+    component.navItems.forEach((item) => {
       expect(item.icon).toBeTruthy();
     });
   });

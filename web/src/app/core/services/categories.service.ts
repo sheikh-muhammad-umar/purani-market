@@ -24,9 +24,9 @@ export class CategoriesService {
   constructor(private readonly api: ApiService) {}
 
   getAll(): Observable<Category[]> {
-    return this.api.get<Category[]>('/categories').pipe(
-      map(tree => this.flattenTree(Array.isArray(tree) ? tree : [])),
-    );
+    return this.api
+      .get<Category[]>('/categories')
+      .pipe(map((tree) => this.flattenTree(Array.isArray(tree) ? tree : [])));
   }
 
   getTree(): Observable<Category[]> {
@@ -38,14 +38,12 @@ export class CategoriesService {
   }
 
   getBySlug(slug: string): Observable<Category | undefined> {
-    return this.getAll().pipe(
-      map(categories => categories.find(c => c.slug === slug)),
-    );
+    return this.getAll().pipe(map((categories) => categories.find((c) => c.slug === slug)));
   }
 
   getChildren(parentId: string): Observable<Category[]> {
     return this.getAll().pipe(
-      map(categories => categories.filter(c => c.parentId === parentId && c.isActive)),
+      map((categories) => categories.filter((c) => c.parentId === parentId && c.isActive)),
     );
   }
 
@@ -61,8 +59,12 @@ export class CategoriesService {
     return this.api.delete<void>(`/categories/${id}`);
   }
 
-  getInheritedAttributes(categoryId: string): Observable<{ attributes: CategoryAttribute[]; features: string[] }> {
-    return this.api.get<{ attributes: CategoryAttribute[]; features: string[] }>(`/categories/${categoryId}/inherited-attributes`);
+  getInheritedAttributes(
+    categoryId: string,
+  ): Observable<{ attributes: CategoryAttribute[]; features: string[] }> {
+    return this.api.get<{ attributes: CategoryAttribute[]; features: string[] }>(
+      `/categories/${categoryId}/inherited-attributes`,
+    );
   }
 
   updateAttributes(id: string, attributes: CategoryAttribute[]): Observable<Category> {
@@ -75,12 +77,10 @@ export class CategoriesService {
 
   buildBreadcrumb(categories: Category[], targetId: string): Category[] {
     const trail: Category[] = [];
-    let current = categories.find(c => c._id === targetId);
+    let current = categories.find((c) => c._id === targetId);
     while (current) {
       trail.unshift(current);
-      current = current.parentId
-        ? categories.find(c => c._id === current!.parentId)
-        : undefined;
+      current = current.parentId ? categories.find((c) => c._id === current!.parentId) : undefined;
     }
     return trail;
   }

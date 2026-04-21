@@ -2,16 +2,29 @@
   <div class="page-header">
     <h1>Rejection Reasons</h1>
     <button class="btn-add" (click)="startAdd()">
-      <span class="material-symbols-rounded" style="font-size:18px;">add</span> Add Reason
+      <span class="material-symbols-rounded" style="font-size: 18px">add</span> Add Reason
     </button>
   </div>
 
   @if (showAddForm) {
     <div class="rr-form">
-      <input type="text" class="rr-input" placeholder="Reason title..." [(ngModel)]="newTitle" (keyup.enter)="saveNew()" />
-      <input type="text" class="rr-input rr-input-desc" placeholder="Description (optional)..." [(ngModel)]="newDescription" />
+      <input
+        type="text"
+        class="rr-input"
+        placeholder="Reason title..."
+        [(ngModel)]="newTitle"
+        (keyup.enter)="saveNew()"
+      />
+      <input
+        type="text"
+        class="rr-input rr-input-desc"
+        placeholder="Description (optional)..."
+        [(ngModel)]="newDescription"
+      />
       <div class="rr-form-actions">
-        <button class="btn-save" [disabled]="saving() || !newTitle.trim()" (click)="saveNew()">Save</button>
+        <button class="btn-save" [disabled]="saving() || !newTitle.trim()" (click)="saveNew()">
+          Save
+        </button>
         <button class="btn-cancel" (click)="cancelAdd()">Cancel</button>
       </div>
     </div>
@@ -46,10 +59,26 @@
         <div class="rr-item" [class.inactive]="!reason.isActive">
           @if (editingId === reason._id) {
             <div class="rr-edit-form">
-              <input type="text" class="rr-input" [(ngModel)]="editTitle" (keyup.enter)="saveEdit()" />
-              <input type="text" class="rr-input rr-input-desc" placeholder="Description..." [(ngModel)]="editDescription" />
+              <input
+                type="text"
+                class="rr-input"
+                [(ngModel)]="editTitle"
+                (keyup.enter)="saveEdit()"
+              />
+              <input
+                type="text"
+                class="rr-input rr-input-desc"
+                placeholder="Description..."
+                [(ngModel)]="editDescription"
+              />
               <div class="rr-form-actions">
-                <button class="btn-save" [disabled]="saving() || !editTitle.trim()" (click)="saveEdit()">Save</button>
+                <button
+                  class="btn-save"
+                  [disabled]="saving() || !editTitle.trim()"
+                  (click)="saveEdit()"
+                >
+                  Save
+                </button>
                 <button class="btn-cancel" (click)="cancelEdit()">Cancel</button>
               </div>
             </div>
@@ -65,13 +94,23 @@
                 }
               </div>
               <div class="rr-actions">
-                <button class="rr-action-btn" (click)="toggleActive(reason)" [title]="reason.isActive ? 'Deactivate' : 'Activate'">
-                  <span class="material-symbols-rounded">{{ reason.isActive ? 'toggle_on' : 'toggle_off' }}</span>
+                <button
+                  class="rr-action-btn"
+                  (click)="toggleActive(reason)"
+                  [title]="reason.isActive ? 'Deactivate' : 'Activate'"
+                >
+                  <span class="material-symbols-rounded">{{
+                    reason.isActive ? 'toggle_on' : 'toggle_off'
+                  }}</span>
                 </button>
                 <button class="rr-action-btn" (click)="startEdit(reason)" title="Edit">
                   <span class="material-symbols-rounded">edit</span>
                 </button>
-                <button class="rr-action-btn rr-delete" (click)="deleteReason(reason)" title="Delete">
+                <button
+                  class="rr-action-btn rr-delete"
+                  (click)="deleteReason(reason)"
+                  title="Delete"
+                >
                   <span class="material-symbols-rounded">delete</span>
                 </button>
               </div>
@@ -99,7 +138,10 @@
         <span class="material-symbols-rounded">warning</span>
       </div>
       <h3>Delete Rejection Reason?</h3>
-      <p>This action cannot be undone. Listings previously rejected with this reason will keep their history.</p>
+      <p>
+        This action cannot be undone. Listings previously rejected with this reason will keep their
+        history.
+      </p>
       <div class="modal-actions">
         <button class="btn-cancel" (click)="cancelDelete()">Cancel</button>
         <button class="btn-delete" (click)="confirmDelete()">Delete</button>

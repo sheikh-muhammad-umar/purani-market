@@ -129,7 +129,9 @@
   scroll-snap-type: x mandatory;
   scrollbar-width: none;
   padding-bottom: var(--space-1);
-  &::-webkit-scrollbar { display: none; }
+  &::-webkit-scrollbar {
+    display: none;
+  }
 }
 
 .featured-card {
@@ -166,7 +168,9 @@
   color: inherit;
   display: flex;
   flex-direction: column;
-  transition: box-shadow 0.2s ease, transform 0.2s ease;
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
 
   &:hover {
     box-shadow: var(--shadow-hover);
@@ -346,7 +350,9 @@
     -webkit-overflow-scrolling: touch;
     flex-wrap: nowrap;
 
-    &::-webkit-scrollbar { display: none; }
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .breadcrumb-item {
@@ -360,7 +366,9 @@
     flex-wrap: nowrap;
     scrollbar-width: none;
 
-    &::-webkit-scrollbar { display: none; }
+    &::-webkit-scrollbar {
+      display: none;
+    }
   }
 
   .subcategory-chip {

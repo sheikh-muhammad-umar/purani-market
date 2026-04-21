@@ -49,7 +49,7 @@ export class ConversationListComponent implements OnInit, OnDestroy {
   private initiateChat(listingId: string): void {
     this.messagingService.getConversations().subscribe({
       next: (res) => {
-        const conversations = Array.isArray(res) ? res : res.data ?? [];
+        const conversations = Array.isArray(res) ? res : (res.data ?? []);
         const existing = conversations.find((c: any) => {
           const pid = c.productListingId?._id || c.productListingId;
           return pid === listingId;
@@ -57,19 +57,21 @@ export class ConversationListComponent implements OnInit, OnDestroy {
         if (existing) {
           this.router.navigate(['/messaging', existing._id]);
         } else {
-          this.messagingService.startConversation({
-            productListingId: listingId,
-            message: 'Hi, I\'m interested in this listing.',
-          }).subscribe({
-            next: (conversation: any) => {
-              const convId = conversation?.conversation?._id || conversation?._id;
-              this.router.navigate(['/messaging', convId]);
-            },
-            error: () => {
-              this.error.set('Failed to start conversation');
-              this.loading.set(false);
-            },
-          });
+          this.messagingService
+            .startConversation({
+              productListingId: listingId,
+              message: "Hi, I'm interested in this listing.",
+            })
+            .subscribe({
+              next: (conversation: any) => {
+                const convId = conversation?.conversation?._id || conversation?._id;
+                this.router.navigate(['/messaging', convId]);
+              },
+              error: () => {
+                this.error.set('Failed to start conversation');
+                this.loading.set(false);
+              },
+            });
         }
       },
       error: () => {
@@ -86,7 +88,9 @@ export class ConversationListComponent implements OnInit, OnDestroy {
   getListingTitle(conversation: any): string {
     const pid = conversation.productListingId;
     if (typeof pid === 'object' && pid?.title) return pid.title;
-    return 'Listing #' + (typeof pid === 'string' ? pid.slice(0, 8) : pid?._id?.slice(0, 8) ?? '');
+    return (
+      'Listing #' + (typeof pid === 'string' ? pid.slice(0, 8) : (pid?._id?.slice(0, 8) ?? ''))
+    );
   }
 
   getListingPrice(conversation: any): string {
@@ -122,7 +126,7 @@ export class ConversationListComponent implements OnInit, OnDestroy {
   private loadConversations(): void {
     this.messagingService.getConversations().subscribe({
       next: (res) => {
-        const conversations = Array.isArray(res) ? res : res.data ?? [];
+        const conversations = Array.isArray(res) ? res : (res.data ?? []);
         this.conversations.set(conversations);
         this.loading.set(false);
 
@@ -142,13 +146,19 @@ export class ConversationListComponent implements OnInit, OnDestroy {
     return this.unreadCounts()[conversationId] || 0;
   }
 
-  private handleNewMessage(data: { conversationId: string; content: string; createdAt: string }): void {
+  private handleNewMessage(data: {
+    conversationId: string;
+    content: string;
+    createdAt: string;
+  }): void {
     const updated = this.conversations().map((c) =>
       c._id === data.conversationId
         ? { ...c, lastMessagePreview: data.content, lastMessageAt: new Date(data.createdAt) }
         : c,
     );
-    updated.sort((a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
+    updated.sort(
+      (a, b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime(),
+    );
     this.conversations.set(updated);
 
     // Refresh unread counts

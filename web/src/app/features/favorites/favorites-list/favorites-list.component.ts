@@ -50,17 +50,25 @@ export class FavoritesListComponent implements OnInit {
   getImage(favorite: Favorite): string {
     const listing = this.getListing(favorite);
     if (!listing) return 'assets/placeholder.png';
-    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png';
+    return (
+      listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png'
+    );
   }
 
   getStatusBadgeClass(status: string): string {
     switch (status) {
-      case 'active': return 'badge-success';
-      case 'sold': return 'badge-sold';
-      case 'reserved': return 'badge-warning';
-      case 'rejected': return 'badge-error';
-      case 'pending_review': return 'badge-pending';
-      default: return '';
+      case 'active':
+        return 'badge-success';
+      case 'sold':
+        return 'badge-sold';
+      case 'reserved':
+        return 'badge-warning';
+      case 'rejected':
+        return 'badge-error';
+      case 'pending_review':
+        return 'badge-pending';
+      default:
+        return '';
     }
   }
 
@@ -72,7 +80,7 @@ export class FavoritesListComponent implements OnInit {
     this.removingId.set(favorite._id);
     this.favoritesService.remove(favorite._id).subscribe({
       next: () => {
-        this.favorites.update(list => list.filter(f => f._id !== favorite._id));
+        this.favorites.update((list) => list.filter((f) => f._id !== favorite._id));
         this.removingId.set(null);
       },
       error: () => {

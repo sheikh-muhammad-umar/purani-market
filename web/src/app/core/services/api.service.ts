@@ -28,7 +28,9 @@ export class ApiService {
         httpParams = httpParams.set(key, String(value));
       });
     }
-    return this.http.get<any>(`${this.baseUrl}${path}`, { params: httpParams }).pipe(map(unwrap<T>));
+    return this.http
+      .get<any>(`${this.baseUrl}${path}`, { params: httpParams })
+      .pipe(map(unwrap<T>));
   }
 
   post<T>(path: string, body: unknown): Observable<T> {
@@ -40,6 +42,8 @@ export class ApiService {
   }
 
   delete<T>(path: string, options?: { body?: any }): Observable<T> {
-    return this.http.delete<any>(`${this.baseUrl}${path}`, options ? { body: options.body } : undefined).pipe(map(unwrap<T>));
+    return this.http
+      .delete<any>(`${this.baseUrl}${path}`, options ? { body: options.body } : undefined)
+      .pipe(map(unwrap<T>));
   }
 }

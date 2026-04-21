@@ -127,30 +127,30 @@ describe('Dark Mode', () => {
   it('should have sufficient contrast between text and background in dark mode', () => {
     // Simplified relative luminance check
     // Dark text (#E8E8E8) on dark background (#1A1A2E)
-    const textLum = relativeLuminance(0xE8, 0xE8, 0xE8);
-    const bgLum = relativeLuminance(0x1A, 0x1A, 0x2E);
+    const textLum = relativeLuminance(0xe8, 0xe8, 0xe8);
+    const bgLum = relativeLuminance(0x1a, 0x1a, 0x2e);
     const ratio = contrastRatio(textLum, bgLum);
     // WCAG AA requires >= 4.5:1 for normal text
     expect(ratio).toBeGreaterThanOrEqual(4.5);
   });
 
   it('should have sufficient contrast between text and surface in dark mode', () => {
-    const textLum = relativeLuminance(0xE8, 0xE8, 0xE8);
-    const surfaceLum = relativeLuminance(0x16, 0x21, 0x3E);
+    const textLum = relativeLuminance(0xe8, 0xe8, 0xe8);
+    const surfaceLum = relativeLuminance(0x16, 0x21, 0x3e);
     const ratio = contrastRatio(textLum, surfaceLum);
     expect(ratio).toBeGreaterThanOrEqual(4.5);
   });
 
   it('should have sufficient contrast between text and card in dark mode', () => {
-    const textLum = relativeLuminance(0xE8, 0xE8, 0xE8);
-    const cardLum = relativeLuminance(0x0F, 0x34, 0x60);
+    const textLum = relativeLuminance(0xe8, 0xe8, 0xe8);
+    const cardLum = relativeLuminance(0x0f, 0x34, 0x60);
     const ratio = contrastRatio(textLum, cardLum);
     expect(ratio).toBeGreaterThanOrEqual(4.5);
   });
 
   it('should have sufficient contrast in light mode', () => {
-    const textLum = relativeLuminance(0x2D, 0x34, 0x36);
-    const bgLum = relativeLuminance(0xF8, 0xF9, 0xFA);
+    const textLum = relativeLuminance(0x2d, 0x34, 0x36);
+    const bgLum = relativeLuminance(0xf8, 0xf9, 0xfa);
     const ratio = contrastRatio(textLum, bgLum);
     expect(ratio).toBeGreaterThanOrEqual(4.5);
   });

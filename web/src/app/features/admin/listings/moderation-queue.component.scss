@@ -42,7 +42,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .btn-retry {
@@ -211,7 +213,7 @@
 
 .btn-approve {
   background: #e6f9f0;
-  color: #00B894;
+  color: #00b894;
   text-align: center;
 
   &:hover:not(:disabled) {
@@ -221,7 +223,7 @@
 
 .btn-reject {
   background: #fde8e8;
-  color: #E74C3C;
+  color: #e74c3c;
   text-align: center;
 
   &:hover:not(:disabled) {
@@ -249,7 +251,7 @@
 
   &:focus {
     outline: none;
-    border-color: #E74C3C;
+    border-color: #e74c3c;
   }
 }
 
@@ -259,7 +261,7 @@
 }
 
 .btn-confirm-reject {
-  background: #E74C3C;
+  background: #e74c3c;
   color: #fff;
   flex: 1;
 
@@ -348,8 +350,14 @@
     box-sizing: border-box;
     background: var(--surface);
     color: var(--text-primary);
-    &:focus { outline: none; border-color: var(--primary); box-shadow: 0 0 0 3px rgba(13,165,195,0.1); }
-    &::placeholder { color: var(--text-muted); }
+    &:focus {
+      outline: none;
+      border-color: var(--primary);
+      box-shadow: 0 0 0 3px rgba(13, 165, 195, 0.1);
+    }
+    &::placeholder {
+      color: var(--text-muted);
+    }
   }
 }
 
@@ -372,8 +380,15 @@
   transition: all 0.15s;
   align-self: flex-start;
 
-  &:hover { border-color: var(--primary); color: var(--primary); }
-  &.active { background: rgba(13, 165, 195, 0.08); border-color: var(--primary); color: var(--primary); }
+  &:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  &.active {
+    background: rgba(13, 165, 195, 0.08);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
 }
 
 .filter-badge {
@@ -401,8 +416,14 @@
 }
 
 @keyframes filterSlide {
-  from { opacity: 0; transform: translateY(-6px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(-6px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .filters-grid {
@@ -434,14 +455,16 @@
   border: none;
   border-radius: 6px;
   background: rgba(231, 76, 60, 0.08);
-  color: #E74C3C;
+  color: #e74c3c;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
   font-family: inherit;
   transition: background 0.15s;
 
-  &:hover { background: rgba(231, 76, 60, 0.15); }
+  &:hover {
+    background: rgba(231, 76, 60, 0.15);
+  }
 }
 
 @media (max-width: 768px) {
@@ -476,22 +499,41 @@
   font-family: inherit;
   white-space: nowrap;
   transition: all 0.12s;
-  &:hover { border-color: var(--primary); color: var(--primary); }
-  &.active { background: rgba(13, 165, 195, 0.08); border-color: var(--primary); color: var(--primary); }
+  &:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+  &.active {
+    background: rgba(13, 165, 195, 0.08);
+    border-color: var(--primary);
+    color: var(--primary);
+  }
 }
 
-.sort-icon { font-size: 16px; }
+.sort-icon {
+  font-size: 16px;
+}
 
 @media (max-width: 480px) {
-  .admin-toolbar { flex-wrap: wrap; }
-  .admin-search { max-width: 100%; flex: 1 1 100%; }
-  .sort-btns { width: 100%; justify-content: flex-start; }
+  .admin-toolbar {
+    flex-wrap: wrap;
+  }
+  .admin-search {
+    max-width: 100%;
+    flex: 1 1 100%;
+  }
+  .sort-btns {
+    width: 100%;
+    justify-content: flex-start;
+  }
 }
 
 /* Expandable listing card */
 .listing-card {
   transition: box-shadow 0.2s;
-  &.expanded { box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12); }
+  &.expanded {
+    box-shadow: 0 4px 16px rgba(0, 0, 0, 0.12);
+  }
 }
 
 .listing-summary {
@@ -500,7 +542,9 @@
   align-items: flex-start;
   cursor: pointer;
   min-width: 0;
-  &:hover { opacity: 0.95; }
+  &:hover {
+    opacity: 0.95;
+  }
 }
 
 .expand-btn {
@@ -516,10 +560,18 @@
   flex-shrink: 0;
   color: var(--text-muted);
   transition: all 0.15s;
-  &:hover { background: var(--background); color: var(--primary); border-color: var(--primary); }
+  &:hover {
+    background: var(--background);
+    color: var(--primary);
+    border-color: var(--primary);
+  }
 }
 
-.expanded .expand-btn { background: rgba(13, 165, 195, 0.08); color: var(--primary); border-color: var(--primary); }
+.expanded .expand-btn {
+  background: rgba(13, 165, 195, 0.08);
+  color: var(--primary);
+  border-color: var(--primary);
+}
 
 .summary-actions {
   display: flex;
@@ -589,8 +641,13 @@
   font-size: 13px;
 }
 
-.attr-label { color: var(--text-muted); }
-.attr-value { font-weight: 600; color: var(--text-primary); }
+.attr-label {
+  color: var(--text-muted);
+}
+.attr-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
 
 .detail-features {
   display: flex;
@@ -611,7 +668,11 @@
   display: grid;
   grid-template-columns: 1fr 1fr;
   gap: 16px;
-  p { font-size: 13px; color: var(--text-secondary); margin: 2px 0; }
+  p {
+    font-size: 13px;
+    color: var(--text-secondary);
+    margin: 2px 0;
+  }
 }
 
 .detail-actions {
@@ -631,13 +692,29 @@
 }
 
 @media (max-width: 768px) {
-  .listing-summary { flex-direction: column; }
-  .listing-thumbnail { width: 100%; height: 180px; }
-  .listing-meta-grid { grid-template-columns: repeat(2, 1fr); }
-  .detail-row-grid { grid-template-columns: 1fr; }
-  .detail-attrs { grid-template-columns: 1fr; }
-  .detail-img { width: 100px; height: 75px; }
-  .summary-actions { display: none; }
+  .listing-summary {
+    flex-direction: column;
+  }
+  .listing-thumbnail {
+    width: 100%;
+    height: 180px;
+  }
+  .listing-meta-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .detail-row-grid {
+    grid-template-columns: 1fr;
+  }
+  .detail-attrs {
+    grid-template-columns: 1fr;
+  }
+  .detail-img {
+    width: 100px;
+    height: 75px;
+  }
+  .summary-actions {
+    display: none;
+  }
 }
 
 /* Rejection reasons checkboxes */
@@ -664,11 +741,17 @@
   cursor: pointer;
   transition: background 0.1s;
 
-  &:hover { background: var(--background); }
-  &.selected { background: rgba(231, 76, 60, 0.08); color: #E74C3C; font-weight: 600; }
+  &:hover {
+    background: var(--background);
+  }
+  &.selected {
+    background: rgba(231, 76, 60, 0.08);
+    color: #e74c3c;
+    font-weight: 600;
+  }
 
-  input[type="checkbox"] {
-    accent-color: #E74C3C;
+  input[type='checkbox'] {
+    accent-color: #e74c3c;
     width: 16px;
     height: 16px;
     cursor: pointer;
@@ -682,10 +765,10 @@
   font-size: 11px;
   font-weight: 600;
   background: rgba(243, 156, 18, 0.12);
-  color: #F39C12;
+  color: #f39c12;
 
   &.max-reviews {
     background: rgba(231, 76, 60, 0.12);
-    color: #E74C3C;
+    color: #e74c3c;
   }
 }

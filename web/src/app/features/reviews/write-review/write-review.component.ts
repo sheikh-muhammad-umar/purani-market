@@ -38,10 +38,13 @@ export class WriteReviewComponent implements OnInit {
   }
 
   get isValid(): boolean {
-    return this.rating() >= 1 && this.rating() <= 5
-      && this.text().trim().length > 0
-      && this.text().length <= this.MAX_TEXT_LENGTH
-      && !!this.productListingId();
+    return (
+      this.rating() >= 1 &&
+      this.rating() <= 5 &&
+      this.text().trim().length > 0 &&
+      this.text().length <= this.MAX_TEXT_LENGTH &&
+      !!this.productListingId()
+    );
   }
 
   stars: number[] = [1, 2, 3, 4, 5];
@@ -77,20 +80,22 @@ export class WriteReviewComponent implements OnInit {
     this.submitting.set(true);
     this.error.set(null);
 
-    this.reviewsService.submit({
-      productListingId: this.productListingId()!,
-      rating: this.rating() as 1 | 2 | 3 | 4 | 5,
-      text: this.text().trim(),
-    }).subscribe({
-      next: () => {
-        this.success.set(true);
-        this.submitting.set(false);
-      },
-      error: (err) => {
-        const message = err?.error?.message || 'Failed to submit review. Please try again.';
-        this.error.set(message);
-        this.submitting.set(false);
-      },
-    });
+    this.reviewsService
+      .submit({
+        productListingId: this.productListingId()!,
+        rating: this.rating() as 1 | 2 | 3 | 4 | 5,
+        text: this.text().trim(),
+      })
+      .subscribe({
+        next: () => {
+          this.success.set(true);
+          this.submitting.set(false);
+        },
+        error: (err) => {
+          const message = err?.error?.message || 'Failed to submit review. Please try again.';
+          this.error.set(message);
+          this.submitting.set(false);
+        },
+      });
   }
 }

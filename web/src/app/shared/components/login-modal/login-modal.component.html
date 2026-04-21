@@ -44,20 +44,20 @@
             placeholder="••••••••"
             autocomplete="current-password"
           />
-          @if (loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['required']) {
+          @if (
+            loginForm.get('password')?.touched && loginForm.get('password')?.errors?.['required']
+          ) {
             <span class="form-error">Password is required</span>
           }
         </div>
 
         <div class="form-row-between">
-          <button type="button" class="link-btn" (click)="goToForgotPassword()">Forgot password?</button>
+          <button type="button" class="link-btn" (click)="goToForgotPassword()">
+            Forgot password?
+          </button>
         </div>
 
-        <button
-          class="btn btn-primary btn-full"
-          type="submit"
-          [disabled]="loading()"
-        >
+        <button class="btn btn-primary btn-full" type="submit" [disabled]="loading()">
           @if (loading()) {
             <span class="spinner"></span> Signing in...
           } @else {

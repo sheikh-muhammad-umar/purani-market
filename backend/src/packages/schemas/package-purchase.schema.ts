@@ -64,7 +64,8 @@ export class PackagePurchase {
   updatedAt!: Date;
 }
 
-export const PackagePurchaseSchema = SchemaFactory.createForClass(PackagePurchase);
+export const PackagePurchaseSchema =
+  SchemaFactory.createForClass(PackagePurchase);
 
 // Indexes
 PackagePurchaseSchema.index({ sellerId: 1 });

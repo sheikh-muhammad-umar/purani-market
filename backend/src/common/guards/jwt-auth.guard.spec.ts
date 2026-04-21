@@ -32,17 +32,17 @@ describe('JwtAuthGuard', () => {
 
     it('should throw the original error when err is provided', () => {
       const originalError = new Error('Token expired');
-      expect(() =>
-        guard.handleRequest(originalError, null, null),
-      ).toThrow(originalError);
+      expect(() => guard.handleRequest(originalError, null, null)).toThrow(
+        originalError,
+      );
     });
 
     it('should throw the original error even if user is present', () => {
       const originalError = new Error('Some auth error');
       const user = { id: '123' };
-      expect(() =>
-        guard.handleRequest(originalError, user, null),
-      ).toThrow(originalError);
+      expect(() => guard.handleRequest(originalError, user, null)).toThrow(
+        originalError,
+      );
     });
   });
 });

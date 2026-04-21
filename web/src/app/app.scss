@@ -40,13 +40,21 @@
   align-items: center;
   justify-content: center;
   z-index: 90;
-  transition: opacity 0.2s, transform 0.2s;
+  transition:
+    opacity 0.2s,
+    transform 0.2s;
 
-  .material-symbols-rounded { font-size: 22px; }
+  .material-symbols-rounded {
+    font-size: 22px;
+  }
 
-  &:active { transform: scale(0.9); }
+  &:active {
+    transform: scale(0.9);
+  }
 }
 
 @media (max-width: 767px) {
-  .scroll-top-btn { display: flex; }
+  .scroll-top-btn {
+    display: flex;
+  }
 }

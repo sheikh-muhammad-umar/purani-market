@@ -3,7 +3,10 @@ import { HydratedDocument, Types } from 'mongoose';
 
 export type ConversationDocument = HydratedDocument<Conversation>;
 
-@Schema({ timestamps: { createdAt: true, updatedAt: false }, collection: 'conversations' })
+@Schema({
+  timestamps: { createdAt: true, updatedAt: false },
+  collection: 'conversations',
+})
 export class Conversation {
   _id!: Types.ObjectId;
 

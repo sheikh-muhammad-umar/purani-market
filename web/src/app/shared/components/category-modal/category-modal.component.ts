@@ -33,18 +33,18 @@ export class CategoryModalComponent {
     const parent = this.currentParent();
     if (!parent) return [];
     return this.allCategories()
-      .filter(c => c.parentId === parent._id && c.isActive)
+      .filter((c) => c.parentId === parent._id && c.isActive)
       .sort((a, b) => a.sortOrder - b.sortOrder);
   });
 
   constructor(private readonly router: Router) {}
 
   hasChildren(categoryId: string): boolean {
-    return this.allCategories().some(c => c.parentId === categoryId && c.isActive);
+    return this.allCategories().some((c) => c.parentId === categoryId && c.isActive);
   }
 
   drillInto(category: Category): void {
-    this.parentStack.update(stack => [...stack, category]);
+    this.parentStack.update((stack) => [...stack, category]);
   }
 
   navigateTo(category: Category): void {
@@ -56,7 +56,7 @@ export class CategoryModalComponent {
     if (index === 0) {
       this.parentStack.set([]);
     } else {
-      this.parentStack.update(stack => stack.slice(0, index));
+      this.parentStack.update((stack) => stack.slice(0, index));
     }
   }
 

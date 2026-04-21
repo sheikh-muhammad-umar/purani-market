@@ -85,8 +85,14 @@ describe('ReviewsService', () => {
       providers: [
         ReviewsService,
         { provide: getModelToken(Review.name), useValue: mockReviewModel },
-        { provide: getModelToken(ProductListing.name), useValue: mockListingModel },
-        { provide: getModelToken('Conversation'), useValue: mockConversationModel },
+        {
+          provide: getModelToken(ProductListing.name),
+          useValue: mockListingModel,
+        },
+        {
+          provide: getModelToken('Conversation'),
+          useValue: mockConversationModel,
+        },
       ],
     }).compile();
 
@@ -192,9 +198,9 @@ describe('ReviewsService', () => {
     });
 
     it('should throw NotFoundException for invalid listing ID', async () => {
-      await expect(
-        service.getReviewsByListing('invalid-id'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getReviewsByListing('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -208,9 +214,9 @@ describe('ReviewsService', () => {
     });
 
     it('should throw NotFoundException for invalid seller ID', async () => {
-      await expect(
-        service.getReviewsBySeller('invalid-id'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.getReviewsBySeller('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 

@@ -125,7 +125,12 @@ describe('AnalyticsDashboardComponent', () => {
   });
 
   it('should get max time series value', () => {
-    expect(component.getMaxTimeSeriesValue([{ date: '2024-01-01', value: 10 }, { date: '2024-01-02', value: 20 }])).toBe(20);
+    expect(
+      component.getMaxTimeSeriesValue([
+        { date: '2024-01-01', value: 10 },
+        { date: '2024-01-02', value: 20 },
+      ]),
+    ).toBe(20);
   });
 
   it('should return 1 for empty time series', () => {

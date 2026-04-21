@@ -29,14 +29,14 @@ export class ResetPasswordComponent implements OnInit {
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
     private readonly route: ActivatedRoute,
-    private readonly router: Router
+    private readonly router: Router,
   ) {
     this.resetForm = this.fb.group(
       {
         password: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', [Validators.required]],
       },
-      { validators: this.passwordMatchValidator }
+      { validators: this.passwordMatchValidator },
     );
   }
 
@@ -71,10 +71,10 @@ export class ResetPasswordComponent implements OnInit {
         this.loading.set(false);
         this.success.set(true);
       },
-      error: err => {
+      error: (err) => {
         this.loading.set(false);
         this.errorMessage.set(
-          err.error?.message || 'Failed to reset password. The link may have expired.'
+          err.error?.message || 'Failed to reset password. The link may have expired.',
         );
       },
     });

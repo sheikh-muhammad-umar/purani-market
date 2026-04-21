@@ -55,9 +55,7 @@ describe('RecommendationService', () => {
       }),
       sort: jest.fn().mockReturnValue({
         limit: jest.fn().mockReturnValue({
-          exec: jest.fn().mockResolvedValue([
-            { ...mockActivity, categoryId },
-          ]),
+          exec: jest.fn().mockResolvedValue([{ ...mockActivity, categoryId }]),
         }),
       }),
     });
@@ -78,8 +76,14 @@ describe('RecommendationService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         RecommendationService,
-        { provide: getModelToken(UserActivity.name), useValue: mockActivityModel },
-        { provide: getModelToken(ProductListing.name), useValue: mockListingModel },
+        {
+          provide: getModelToken(UserActivity.name),
+          useValue: mockActivityModel,
+        },
+        {
+          provide: getModelToken(ProductListing.name),
+          useValue: mockListingModel,
+        },
       ],
     }).compile();
 
@@ -88,27 +92,39 @@ describe('RecommendationService', () => {
 
   describe('trackActivity', () => {
     it('should create and save a user activity', async () => {
-      const result = await service.trackActivity(userId.toString(), UserAction.VIEW, {
-        productListingId: listingId.toString(),
-        categoryId: categoryId.toString(),
-      });
+      const result = await service.trackActivity(
+        userId.toString(),
+        UserAction.VIEW,
+        {
+          productListingId: listingId.toString(),
+          categoryId: categoryId.toString(),
+        },
+      );
 
       expect(result).toEqual(mockActivity);
     });
 
     it('should handle search activity with query', async () => {
-      const result = await service.trackActivity(userId.toString(), UserAction.SEARCH, {
-        searchQuery: 'toyota corolla',
-      });
+      const result = await service.trackActivity(
+        userId.toString(),
+        UserAction.SEARCH,
+        {
+          searchQuery: 'toyota corolla',
+        },
+      );
 
       expect(result).toEqual(mockActivity);
     });
 
     it('should handle activity with metadata', async () => {
-      const result = await service.trackActivity(userId.toString(), UserAction.VIEW, {
-        productListingId: listingId.toString(),
-        metadata: { source: 'homepage' },
-      });
+      const result = await service.trackActivity(
+        userId.toString(),
+        UserAction.VIEW,
+        {
+          productListingId: listingId.toString(),
+          metadata: { source: 'homepage' },
+        },
+      );
 
       expect(result).toEqual(mockActivity);
     });
@@ -167,7 +183,12 @@ describe('RecommendationService', () => {
         exec: jest.fn().mockResolvedValue(0),
       });
 
-      await service.getRecommendations(userId.toString(), undefined, undefined, 50);
+      await service.getRecommendations(
+        userId.toString(),
+        undefined,
+        undefined,
+        50,
+      );
 
       const findResult = mockListingModel.find();
       const sortResult = findResult.sort();
@@ -177,7 +198,10 @@ describe('RecommendationService', () => {
 
   describe('dismissRecommendation', () => {
     it('should track a dismiss activity', async () => {
-      await service.dismissRecommendation(userId.toString(), listingId.toString());
+      await service.dismissRecommendation(
+        userId.toString(),
+        listingId.toString(),
+      );
 
       expect(mockActivityModel).toHaveBeenCalled();
     });

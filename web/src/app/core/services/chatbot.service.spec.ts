@@ -39,12 +39,14 @@ describe('ChatbotService', () => {
     const mockResponse: ChatbotResponse = { reply: 'Escalating...', escalate: true };
     apiService.post.mockReturnValue(of(mockResponse));
 
-    service.sendMessage({
-      message: 'Complex issue',
-      sessionId: 'session-456',
-      history: [],
-    }).subscribe((res) => {
-      expect(res.escalate).toBe(true);
-    });
+    service
+      .sendMessage({
+        message: 'Complex issue',
+        sessionId: 'session-456',
+        history: [],
+      })
+      .subscribe((res) => {
+        expect(res.escalate).toBe(true);
+      });
   });
 });

@@ -7,8 +7,7 @@ export class CorsMiddleware implements NestMiddleware {
   private readonly allowedOrigins: string[];
 
   constructor(private readonly configService: ConfigService) {
-    const origins =
-      this.configService.get<string>('cors.allowedOrigins') || '';
+    const origins = this.configService.get<string>('cors.allowedOrigins') || '';
     this.allowedOrigins = origins
       .split(',')
       .map((o) => o.trim())

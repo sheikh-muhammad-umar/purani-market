@@ -85,7 +85,12 @@ export class AdminController {
     return this.adminService.getAllActivityLog({
       page: page ? parseInt(page, 10) : 1,
       limit: limit ? parseInt(limit, 10) : 50,
-      action, userId, dateFrom, dateTo, sort, order,
+      action,
+      userId,
+      dateFrom,
+      dateTo,
+      sort,
+      order,
     });
   }
 
@@ -97,8 +102,16 @@ export class AdminController {
     @Req() req: any,
   ) {
     const user = await this.adminService.updateUserStatus(id, dto.status);
-    this.tracker.track(adminId, UserAction.ADMIN_USER_STATUS_CHANGE, { targetUserId: id, newStatus: dto.status }, req);
-    return { message: `User status updated to ${dto.status}`, userId: user._id };
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_USER_STATUS_CHANGE,
+      { targetUserId: id, newStatus: dto.status },
+      req,
+    );
+    return {
+      message: `User status updated to ${dto.status}`,
+      userId: user._id,
+    };
   }
 
   @Patch('users/:id/role')
@@ -109,7 +122,12 @@ export class AdminController {
     @Req() req: any,
   ) {
     const user = await this.adminService.updateUserRole(id, dto.role);
-    this.tracker.track(adminId, UserAction.ADMIN_USER_ROLE_CHANGE, { targetUserId: id, newRole: dto.role }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_USER_ROLE_CHANGE,
+      { targetUserId: id, newRole: dto.role },
+      req,
+    );
     return { message: `User role updated to ${dto.role}`, userId: user._id };
   }
 
@@ -121,7 +139,12 @@ export class AdminController {
     @Req() req: any,
   ) {
     const user = await this.adminService.updateAdLimit(id, dto.adLimit);
-    this.tracker.track(adminId, UserAction.ADMIN_USER_AD_LIMIT_CHANGE, { targetUserId: id, newAdLimit: dto.adLimit }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_USER_AD_LIMIT_CHANGE,
+      { targetUserId: id, newAdLimit: dto.adLimit },
+      req,
+    );
     return {
       message: `Ad limit updated to ${dto.adLimit}`,
       userId: user._id,
@@ -153,14 +176,41 @@ export class AdminController {
     @Query('rejectionReason') rejectionReason?: string,
     @Query('deletionReason') deletionReason?: string,
   ) {
-    return this.adminService.getAllListings({ page, limit, search, status, categoryId, provinceId, cityId, dateFrom, dateTo, sort, order, rejectionReason, deletionReason });
+    return this.adminService.getAllListings({
+      page,
+      limit,
+      search,
+      status,
+      categoryId,
+      provinceId,
+      cityId,
+      dateFrom,
+      dateTo,
+      sort,
+      order,
+      rejectionReason,
+      deletionReason,
+    });
   }
 
   @Patch('listings/:id/approve')
-  async approveListing(@Param('id') id: string, @CurrentUser('sub') adminId: string, @Req() req: any) {
+  async approveListing(
+    @Param('id') id: string,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
     const listing = await this.adminService.approveListing(id);
-    this.tracker.track(adminId, UserAction.ADMIN_LISTING_APPROVE, { listingId: id, title: listing.title }, req);
-    return { message: 'Listing approved', listingId: listing._id, status: listing.status };
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_LISTING_APPROVE,
+      { listingId: id, title: listing.title },
+      req,
+    );
+    return {
+      message: 'Listing approved',
+      listingId: listing._id,
+      status: listing.status,
+    };
   }
 
   @Patch('listings/:id/reject')
@@ -170,9 +220,28 @@ export class AdminController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
-    const listing = await this.adminService.rejectListing(id, dto.rejectionReasonIds, dto.customNote);
-    this.tracker.track(adminId, UserAction.ADMIN_LISTING_REJECT, { listingId: id, title: listing.title, reasons: dto.rejectionReasonIds, note: dto.customNote }, req);
-    return { message: 'Listing rejected', listingId: listing._id, status: listing.status, rejectionReason: listing.rejectionReason };
+    const listing = await this.adminService.rejectListing(
+      id,
+      dto.rejectionReasonIds,
+      dto.customNote,
+    );
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_LISTING_REJECT,
+      {
+        listingId: id,
+        title: listing.title,
+        reasons: dto.rejectionReasonIds,
+        note: dto.customNote,
+      },
+      req,
+    );
+    return {
+      message: 'Listing rejected',
+      listingId: listing._id,
+      status: listing.status,
+      rejectionReason: listing.rejectionReason,
+    };
   }
 
   @Get('analytics')
@@ -191,9 +260,19 @@ export class AdminController {
     @Req() req?: any,
   ) {
     const now = new Date();
-    const from = dateFrom || new Date(now.getFullYear() - 1, now.getMonth(), now.getDate()).toISOString().split('T')[0];
+    const from =
+      dateFrom ||
+      new Date(now.getFullYear() - 1, now.getMonth(), now.getDate())
+        .toISOString()
+        .split('T')[0];
     const to = dateTo || now.toISOString().split('T')[0];
-    if (adminId) this.tracker.track(adminId, UserAction.ADMIN_EXPORT_REPORT, { dateFrom: from, dateTo: to }, req);
+    if (adminId)
+      this.tracker.track(
+        adminId,
+        UserAction.ADMIN_EXPORT_REPORT,
+        { dateFrom: from, dateTo: to },
+        req,
+      );
     return this.adminService.exportAnalytics(from, to);
   }
 
@@ -227,7 +306,12 @@ export class AdminController {
     @Req() req: any,
   ) {
     const reason = await this.adminService.createRejectionReason(dto);
-    this.tracker.track(adminId, UserAction.ADMIN_REJECTION_REASON_CREATE, { title: dto.title }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_REJECTION_REASON_CREATE,
+      { title: dto.title },
+      req,
+    );
     return reason;
   }
 
@@ -240,7 +324,12 @@ export class AdminController {
     @Req() req: any,
   ) {
     const reason = await this.adminService.updateRejectionReason(id, dto);
-    this.tracker.track(adminId, UserAction.ADMIN_REJECTION_REASON_UPDATE, { id, changes: Object.keys(dto).join(', ') }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_REJECTION_REASON_UPDATE,
+      { id, changes: Object.keys(dto).join(', ') },
+      req,
+    );
     return reason;
   }
 
@@ -252,7 +341,12 @@ export class AdminController {
     @Req() req: any,
   ) {
     await this.adminService.deleteRejectionReason(id);
-    this.tracker.track(adminId, UserAction.ADMIN_REJECTION_REASON_DELETE, { id }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_REJECTION_REASON_DELETE,
+      { id },
+      req,
+    );
     return { deleted: true };
   }
 
@@ -271,7 +365,12 @@ export class AdminController {
     @Req() req: any,
   ) {
     const reason = await this.adminService.createDeletionReason(dto);
-    this.tracker.track(adminId, UserAction.ADMIN_REJECTION_REASON_CREATE, { type: 'deletion_reason', title: dto.title }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_REJECTION_REASON_CREATE,
+      { type: 'deletion_reason', title: dto.title },
+      req,
+    );
     return reason;
   }
 
@@ -284,7 +383,12 @@ export class AdminController {
     @Req() req: any,
   ) {
     const reason = await this.adminService.updateDeletionReason(id, dto);
-    this.tracker.track(adminId, UserAction.ADMIN_REJECTION_REASON_UPDATE, { type: 'deletion_reason', id }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_REJECTION_REASON_UPDATE,
+      { type: 'deletion_reason', id },
+      req,
+    );
     return reason;
   }
 
@@ -296,7 +400,12 @@ export class AdminController {
     @Req() req: any,
   ) {
     await this.adminService.deleteDeletionReason(id);
-    this.tracker.track(adminId, UserAction.ADMIN_REJECTION_REASON_DELETE, { type: 'deletion_reason', id }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_REJECTION_REASON_DELETE,
+      { type: 'deletion_reason', id },
+      req,
+    );
     return { deleted: true };
   }
 
@@ -324,11 +433,20 @@ export class AdminController {
     @Req() req: any,
   ) {
     const user = await this.adminService.updatePermissions(id, dto.permissions);
-    this.tracker.track(adminId, UserAction.ADMIN_USER_ROLE_CHANGE, {
-      targetUserId: id,
-      action: 'permissions_update',
-      permissions: dto.permissions.join(', '),
-    }, req);
-    return { message: 'Permissions updated', userId: user._id, permissions: user.permissions };
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_USER_ROLE_CHANGE,
+      {
+        targetUserId: id,
+        action: 'permissions_update',
+        permissions: dto.permissions.join(', '),
+      },
+      req,
+    );
+    return {
+      message: 'Permissions updated',
+      userId: user._id,
+      permissions: user.permissions,
+    };
   }
 }

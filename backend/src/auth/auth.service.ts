@@ -75,20 +75,26 @@ export class AuthService {
     );
   }
 
-  async register(dto: RegisterDto): Promise<{ message: string; userId: string }> {
+  async register(
+    dto: RegisterDto,
+  ): Promise<{ message: string; userId: string }> {
     if (!dto.email && !dto.phone) {
       throw new BadRequestException('Either email or phone is required');
     }
 
     // Check for duplicates
     if (dto.email) {
-      const existingEmail = await this.userModel.findOne({ email: dto.email }).exec();
+      const existingEmail = await this.userModel
+        .findOne({ email: dto.email })
+        .exec();
       if (existingEmail) {
         throw new ConflictException('Email is already registered');
       }
     }
     if (dto.phone) {
-      const existingPhone = await this.userModel.findOne({ phone: dto.phone }).exec();
+      const existingPhone = await this.userModel
+        .findOne({ phone: dto.phone })
+        .exec();
       if (existingPhone) {
         throw new ConflictException('Phone number is already registered');
       }
@@ -114,24 +120,28 @@ export class AuthService {
     if (dto.email) {
       await this.sendEmailVerification(user._id, dto.email);
       return {
-        message: 'Registration successful. Please check your email for verification.',
+        message:
+          'Registration successful. Please check your email for verification.',
         userId: user._id.toString(),
       };
     } else {
       await this.sendPhoneVerification(user._id, dto.phone!);
       return {
-        message: 'Registration successful. Please check your phone for the OTP code.',
+        message:
+          'Registration successful. Please check your phone for the OTP code.',
         userId: user._id.toString(),
       };
     }
   }
 
   async verifyEmail(token: string): Promise<{ message: string }> {
-    const record = await this.verificationTokenModel.findOne({
-      token,
-      type: VerificationType.EMAIL,
-      used: false,
-    }).exec();
+    const record = await this.verificationTokenModel
+      .findOne({
+        token,
+        type: VerificationType.EMAIL,
+        used: false,
+      })
+      .exec();
 
     if (!record) {
       throw new BadRequestException('Invalid or expired verification token');
@@ -146,9 +156,11 @@ export class AuthService {
     await record.save();
 
     // Mark email as verified
-    await this.userModel.findByIdAndUpdate(record.userId, {
-      emailVerified: true,
-    }).exec();
+    await this.userModel
+      .findByIdAndUpdate(record.userId, {
+        emailVerified: true,
+      })
+      .exec();
 
     return { message: 'Email verified successfully' };
   }
@@ -159,11 +171,14 @@ export class AuthService {
       throw new NotFoundException('User not found');
     }
 
-    const record = await this.verificationTokenModel.findOne({
-      userId: user._id,
-      type: VerificationType.PHONE,
-      used: false,
-    }).sort({ createdAt: -1 }).exec();
+    const record = await this.verificationTokenModel
+      .findOne({
+        userId: user._id,
+        type: VerificationType.PHONE,
+        used: false,
+      })
+      .sort({ createdAt: -1 })
+      .exec();
 
     if (!record) {
       throw new BadRequestException('Invalid or expired OTP');
@@ -184,9 +199,11 @@ export class AuthService {
     await record.save();
 
     // Mark phone as verified
-    await this.userModel.findByIdAndUpdate(user._id, {
-      phoneVerified: true,
-    }).exec();
+    await this.userModel
+      .findByIdAndUpdate(user._id, {
+        phoneVerified: true,
+      })
+      .exec();
 
     return { message: 'Phone number verified successfully' };
   }
@@ -220,11 +237,13 @@ export class AuthService {
 
     // Rate limit: max 5 resends per hour
     const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
-    const recentCount = await this.verificationTokenModel.countDocuments({
-      userId: user._id,
-      type: email ? VerificationType.EMAIL : VerificationType.PHONE,
-      createdAt: { $gte: oneHourAgo },
-    }).exec();
+    const recentCount = await this.verificationTokenModel
+      .countDocuments({
+        userId: user._id,
+        type: email ? VerificationType.EMAIL : VerificationType.PHONE,
+        createdAt: { $gte: oneHourAgo },
+      })
+      .exec();
 
     if (recentCount >= MAX_RESENDS_PER_HOUR) {
       throw new BadRequestException(
@@ -233,14 +252,16 @@ export class AuthService {
     }
 
     // Invalidate previous tokens
-    await this.verificationTokenModel.updateMany(
-      {
-        userId: user._id,
-        type: email ? VerificationType.EMAIL : VerificationType.PHONE,
-        used: false,
-      },
-      { used: true },
-    ).exec();
+    await this.verificationTokenModel
+      .updateMany(
+        {
+          userId: user._id,
+          type: email ? VerificationType.EMAIL : VerificationType.PHONE,
+          used: false,
+        },
+        { used: true },
+      )
+      .exec();
 
     // Send new verification
     if (email) {
@@ -257,13 +278,15 @@ export class AuthService {
       Date.now() - UNVERIFIED_REMINDER_HOURS * 60 * 60 * 1000,
     );
 
-    const unverifiedUsers = await this.userModel.find({
-      $or: [
-        { email: { $exists: true }, emailVerified: false },
-        { phone: { $exists: true }, phoneVerified: false },
-      ],
-      createdAt: { $lte: reminderThreshold },
-    }).exec();
+    const unverifiedUsers = await this.userModel
+      .find({
+        $or: [
+          { email: { $exists: true }, emailVerified: false },
+          { phone: { $exists: true }, phoneVerified: false },
+        ],
+        createdAt: { $lte: reminderThreshold },
+      })
+      .exec();
 
     for (const user of unverifiedUsers) {
       if (user.email && !user.emailVerified) {
@@ -322,10 +345,12 @@ export class AuthService {
     }
 
     // Record login timestamp and device info
-    await this.userModel.findByIdAndUpdate(user._id, {
-      lastLoginAt: new Date(),
-      lastLoginDevice: userAgent || 'unknown',
-    }).exec();
+    await this.userModel
+      .findByIdAndUpdate(user._id, {
+        lastLoginAt: new Date(),
+        lastLoginDevice: userAgent || 'unknown',
+      })
+      .exec();
 
     // Generate tokens
     const tokens = await this.generateTokens(user);
@@ -381,10 +406,12 @@ export class AuthService {
     }
 
     // 1. Check if user exists with matching social login
-    let user = await this.userModel.findOne({
-      'socialLogins.provider': provider,
-      'socialLogins.providerId': providerId,
-    }).exec();
+    let user = await this.userModel
+      .findOne({
+        'socialLogins.provider': provider,
+        'socialLogins.providerId': providerId,
+      })
+      .exec();
 
     if (!user) {
       // 2. Check if user exists with matching email — link social login
@@ -408,10 +435,12 @@ export class AuthService {
     }
 
     // Record login timestamp
-    await this.userModel.findByIdAndUpdate(user._id, {
-      lastLoginAt: new Date(),
-      lastLoginDevice: `social:${provider}`,
-    }).exec();
+    await this.userModel
+      .findByIdAndUpdate(user._id, {
+        lastLoginAt: new Date(),
+        lastLoginDevice: `social:${provider}`,
+      })
+      .exec();
 
     // Generate tokens
     const tokens = await this.generateTokens(user);
@@ -439,7 +468,12 @@ export class AuthService {
 
   private async verifyGoogleToken(
     idToken: string,
-  ): Promise<{ email: string; sub: string; firstName: string; lastName: string }> {
+  ): Promise<{
+    email: string;
+    sub: string;
+    firstName: string;
+    lastName: string;
+  }> {
     try {
       const ticket = await this.googleClient.verifyIdToken({
         idToken,
@@ -463,7 +497,12 @@ export class AuthService {
 
   private async verifyFacebookToken(
     accessToken: string,
-  ): Promise<{ email: string; id: string; firstName: string; lastName: string }> {
+  ): Promise<{
+    email: string;
+    id: string;
+    firstName: string;
+    lastName: string;
+  }> {
     try {
       const response = await fetch(
         `https://graph.facebook.com/me?fields=id,email,first_name,last_name&access_token=${encodeURIComponent(accessToken)}`,
@@ -478,7 +517,9 @@ export class AuthService {
         last_name?: string;
       };
       if (!data.id || !data.email) {
-        throw new UnauthorizedException('Facebook token missing required fields');
+        throw new UnauthorizedException(
+          'Facebook token missing required fields',
+        );
       }
       return {
         email: data.email,
@@ -540,7 +581,10 @@ export class AuthService {
     };
   }
 
-  async logout(accessToken: string, userId: string): Promise<{ message: string }> {
+  async logout(
+    accessToken: string,
+    userId: string,
+  ): Promise<{ message: string }> {
     let payload: JwtPayload;
     try {
       payload = this.jwtService.verify<JwtPayload>(accessToken);
@@ -567,7 +611,9 @@ export class AuthService {
     return { message: 'Logged out successfully' };
   }
 
-  async enableMfa(userId: string): Promise<{ secret: string; qrCodeUrl: string }> {
+  async enableMfa(
+    userId: string,
+  ): Promise<{ secret: string; qrCodeUrl: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException('User not found');
@@ -583,12 +629,14 @@ export class AuthService {
     const qrCodeUrl = await QRCode.toDataURL(otpauthUrl);
 
     // Store the TOTP secret
-    await this.userModel.findByIdAndUpdate(userId, {
-      'mfa.totpSecret': secret,
-      'mfa.enabled': true,
-      'mfa.failedAttempts': 0,
-      'mfa.lockedUntil': null,
-    }).exec();
+    await this.userModel
+      .findByIdAndUpdate(userId, {
+        'mfa.totpSecret': secret,
+        'mfa.enabled': true,
+        'mfa.failedAttempts': 0,
+        'mfa.lockedUntil': null,
+      })
+      .exec();
 
     return { secret, qrCodeUrl };
   }
@@ -635,7 +683,9 @@ export class AuthService {
 
     if (!isValid) {
       // Increment failed attempts
-      const windowStart = new Date(Date.now() - MFA_FAILED_WINDOW_MINUTES * 60 * 1000);
+      const windowStart = new Date(
+        Date.now() - MFA_FAILED_WINDOW_MINUTES * 60 * 1000,
+      );
       const failedAttempts = (user.mfa.failedAttempts || 0) + 1;
 
       // Check if we need to reset the counter (outside the window)
@@ -663,12 +713,14 @@ export class AuthService {
     }
 
     // Reset failed attempts on success
-    await this.userModel.findByIdAndUpdate(userId, {
-      'mfa.failedAttempts': 0,
-      'mfa.lockedUntil': null,
-      lastLoginAt: new Date(),
-      lastLoginDevice: userAgent || 'unknown',
-    }).exec();
+    await this.userModel
+      .findByIdAndUpdate(userId, {
+        'mfa.failedAttempts': 0,
+        'mfa.lockedUntil': null,
+        lastLoginAt: new Date(),
+        lastLoginDevice: userAgent || 'unknown',
+      })
+      .exec();
 
     // Generate tokens
     const tokens = await this.generateTokens(user);
@@ -695,7 +747,8 @@ export class AuthService {
   }
 
   async forgotPassword(email: string): Promise<{ message: string }> {
-    const genericMessage = 'If an account with that email exists, a password reset link has been sent.';
+    const genericMessage =
+      'If an account with that email exists, a password reset link has been sent.';
 
     const user = await this.userModel.findOne({ email }).exec();
     if (!user) {
@@ -703,14 +756,16 @@ export class AuthService {
     }
 
     // Invalidate any existing password reset tokens for this user
-    await this.verificationTokenModel.updateMany(
-      {
-        userId: user._id,
-        type: VerificationType.PASSWORD_RESET,
-        used: false,
-      },
-      { used: true },
-    ).exec();
+    await this.verificationTokenModel
+      .updateMany(
+        {
+          userId: user._id,
+          type: VerificationType.PASSWORD_RESET,
+          used: false,
+        },
+        { used: true },
+      )
+      .exec();
 
     const token = crypto.randomBytes(32).toString('hex');
     const expiresAt = new Date(
@@ -733,11 +788,13 @@ export class AuthService {
     token: string,
     newPassword: string,
   ): Promise<{ message: string }> {
-    const record = await this.verificationTokenModel.findOne({
-      token,
-      type: VerificationType.PASSWORD_RESET,
-      used: false,
-    }).exec();
+    const record = await this.verificationTokenModel
+      .findOne({
+        token,
+        type: VerificationType.PASSWORD_RESET,
+        used: false,
+      })
+      .exec();
 
     if (!record) {
       throw new BadRequestException('Invalid or expired password reset token');
@@ -755,9 +812,11 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(newPassword, BCRYPT_COST_FACTOR);
 
     // Update user password
-    await this.userModel.findByIdAndUpdate(record.userId, {
-      passwordHash,
-    }).exec();
+    await this.userModel
+      .findByIdAndUpdate(record.userId, {
+        passwordHash,
+      })
+      .exec();
 
     // Invalidate all sessions by removing all refresh tokens from Redis
     await this.invalidateAllSessions(record.userId.toString());
@@ -787,7 +846,10 @@ export class AuthService {
     } while (cursor !== '0');
   }
 
-  async requestEmailChange(userId: string, newEmail: string): Promise<{ message: string }> {
+  async requestEmailChange(
+    userId: string,
+    newEmail: string,
+  ): Promise<{ message: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException('User not found');
@@ -804,13 +866,17 @@ export class AuthService {
 
     // Generate verification token
     const token = crypto.randomBytes(32).toString('hex');
-    const expiresAt = new Date(Date.now() + EMAIL_CHANGE_EXPIRY_HOURS * 60 * 60 * 1000);
+    const expiresAt = new Date(
+      Date.now() + EMAIL_CHANGE_EXPIRY_HOURS * 60 * 60 * 1000,
+    );
 
     // Store pending change on user document
-    await this.userModel.findByIdAndUpdate(userId, {
-      pendingEmailChange: { newEmail, verificationToken: token, expiresAt },
-      $inc: { 'verificationChangeCount.count': 1 },
-    }).exec();
+    await this.userModel
+      .findByIdAndUpdate(userId, {
+        pendingEmailChange: { newEmail, verificationToken: token, expiresAt },
+        $inc: { 'verificationChangeCount.count': 1 },
+      })
+      .exec();
 
     // Send verification email to new address
     await this.emailService.sendEmailChangeVerification(newEmail, token);
@@ -819,9 +885,11 @@ export class AuthService {
   }
 
   async verifyEmailChange(token: string): Promise<{ message: string }> {
-    const user = await this.userModel.findOne({
-      'pendingEmailChange.verificationToken': token,
-    }).exec();
+    const user = await this.userModel
+      .findOne({
+        'pendingEmailChange.verificationToken': token,
+      })
+      .exec();
 
     if (!user || !user.pendingEmailChange) {
       throw new BadRequestException('Invalid or expired email change token');
@@ -829,17 +897,21 @@ export class AuthService {
 
     if (user.pendingEmailChange.expiresAt < new Date()) {
       // Discard expired request
-      await this.userModel.findByIdAndUpdate(user._id, {
-        $unset: { pendingEmailChange: 1 },
-      }).exec();
+      await this.userModel
+        .findByIdAndUpdate(user._id, {
+          $unset: { pendingEmailChange: 1 },
+        })
+        .exec();
       throw new BadRequestException('Email change token has expired');
     }
 
     // Check if new email is still available
-    const existing = await this.userModel.findOne({
-      email: user.pendingEmailChange.newEmail,
-      _id: { $ne: user._id },
-    }).exec();
+    const existing = await this.userModel
+      .findOne({
+        email: user.pendingEmailChange.newEmail,
+        _id: { $ne: user._id },
+      })
+      .exec();
     if (existing) {
       throw new ConflictException('Email is already in use');
     }
@@ -848,11 +920,13 @@ export class AuthService {
     const newEmail = user.pendingEmailChange.newEmail;
 
     // Update email, mark verified, clear pending change
-    await this.userModel.findByIdAndUpdate(user._id, {
-      email: newEmail,
-      emailVerified: true,
-      $unset: { pendingEmailChange: 1 },
-    }).exec();
+    await this.userModel
+      .findByIdAndUpdate(user._id, {
+        email: newEmail,
+        emailVerified: true,
+        $unset: { pendingEmailChange: 1 },
+      })
+      .exec();
 
     // Invalidate all sessions
     await this.invalidateAllSessions(user._id.toString());
@@ -865,7 +939,10 @@ export class AuthService {
     return { message: 'Email updated successfully' };
   }
 
-  async requestPhoneChange(userId: string, newPhone: string): Promise<{ message: string }> {
+  async requestPhoneChange(
+    userId: string,
+    newPhone: string,
+  ): Promise<{ message: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException('User not found');
@@ -883,13 +960,17 @@ export class AuthService {
     // Generate OTP
     const otp = this.generateOtp();
     const otpHash = await bcrypt.hash(otp, BCRYPT_COST_FACTOR);
-    const expiresAt = new Date(Date.now() + PHONE_CHANGE_OTP_EXPIRY_MINUTES * 60 * 1000);
+    const expiresAt = new Date(
+      Date.now() + PHONE_CHANGE_OTP_EXPIRY_MINUTES * 60 * 1000,
+    );
 
     // Store pending change on user document
-    await this.userModel.findByIdAndUpdate(userId, {
-      pendingPhoneChange: { newPhone, otpHash, expiresAt, attempts: 0 },
-      $inc: { 'verificationChangeCount.count': 1 },
-    }).exec();
+    await this.userModel
+      .findByIdAndUpdate(userId, {
+        pendingPhoneChange: { newPhone, otpHash, expiresAt, attempts: 0 },
+        $inc: { 'verificationChangeCount.count': 1 },
+      })
+      .exec();
 
     // Send OTP to new phone
     await this.smsService.sendOtp(newPhone, otp);
@@ -897,7 +978,10 @@ export class AuthService {
     return { message: 'OTP sent to new phone number' };
   }
 
-  async verifyPhoneChange(userId: string, otp: string): Promise<{ message: string }> {
+  async verifyPhoneChange(
+    userId: string,
+    otp: string,
+  ): Promise<{ message: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user || !user.pendingPhoneChange) {
       throw new BadRequestException('No pending phone change request');
@@ -905,9 +989,11 @@ export class AuthService {
 
     if (user.pendingPhoneChange.expiresAt < new Date()) {
       // Discard expired request
-      await this.userModel.findByIdAndUpdate(user._id, {
-        $unset: { pendingPhoneChange: 1 },
-      }).exec();
+      await this.userModel
+        .findByIdAndUpdate(user._id, {
+          $unset: { pendingPhoneChange: 1 },
+        })
+        .exec();
       throw new BadRequestException('Phone change OTP has expired');
     }
 
@@ -915,17 +1001,21 @@ export class AuthService {
     const isValid = await bcrypt.compare(otp, user.pendingPhoneChange.otpHash);
     if (!isValid) {
       // Increment attempts
-      await this.userModel.findByIdAndUpdate(user._id, {
-        $inc: { 'pendingPhoneChange.attempts': 1 },
-      }).exec();
+      await this.userModel
+        .findByIdAndUpdate(user._id, {
+          $inc: { 'pendingPhoneChange.attempts': 1 },
+        })
+        .exec();
       throw new BadRequestException('Invalid OTP code');
     }
 
     // Check if new phone is still available
-    const existing = await this.userModel.findOne({
-      phone: user.pendingPhoneChange.newPhone,
-      _id: { $ne: user._id },
-    }).exec();
+    const existing = await this.userModel
+      .findOne({
+        phone: user.pendingPhoneChange.newPhone,
+        _id: { $ne: user._id },
+      })
+      .exec();
     if (existing) {
       throw new ConflictException('Phone number is already in use');
     }
@@ -933,11 +1023,13 @@ export class AuthService {
     const newPhone = user.pendingPhoneChange.newPhone;
 
     // Update phone, mark verified, clear pending change
-    await this.userModel.findByIdAndUpdate(user._id, {
-      phone: newPhone,
-      phoneVerified: true,
-      $unset: { pendingPhoneChange: 1 },
-    }).exec();
+    await this.userModel
+      .findByIdAndUpdate(user._id, {
+        phone: newPhone,
+        phoneVerified: true,
+        $unset: { pendingPhoneChange: 1 },
+      })
+      .exec();
 
     // Invalidate all sessions
     await this.invalidateAllSessions(user._id.toString());
@@ -1051,11 +1143,16 @@ export class AuthService {
     if (!match) return 900; // default 15 minutes
     const value = parseInt(match[1], 10);
     switch (match[2]) {
-      case 's': return value;
-      case 'm': return value * 60;
-      case 'h': return value * 3600;
-      case 'd': return value * 86400;
-      default: return 900;
+      case 's':
+        return value;
+      case 'm':
+        return value * 60;
+      case 'h':
+        return value * 3600;
+      case 'd':
+        return value * 86400;
+      default:
+        return 900;
     }
   }
 }

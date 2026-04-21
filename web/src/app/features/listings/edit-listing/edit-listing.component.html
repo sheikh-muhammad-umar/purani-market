@@ -16,7 +16,11 @@
             type="button"
           >
             <span class="step-number">
-              @if (currentStep() > i + 1) { ✓ } @else { {{ i + 1 }} }
+              @if (currentStep() > i + 1) {
+                ✓
+              } @else {
+                {{ i + 1 }}
+              }
             </span>
             <span class="step-label">{{ label }}</span>
           </button>
@@ -36,7 +40,14 @@
               <h4>Category</h4>
               <div class="category-grid">
                 @for (cat of level1Categories(); track cat._id) {
-                  <button class="category-chip" [class.selected]="selectedLevel1()?._id === cat._id" (click)="selectLevel1(cat)" type="button">{{ cat.name }}</button>
+                  <button
+                    class="category-chip"
+                    [class.selected]="selectedLevel1()?._id === cat._id"
+                    (click)="selectLevel1(cat)"
+                    type="button"
+                  >
+                    {{ cat.name }}
+                  </button>
                 }
               </div>
             </div>
@@ -45,7 +56,14 @@
                 <h4>Subcategory</h4>
                 <div class="category-grid">
                   @for (cat of level2Categories(); track cat._id) {
-                    <button class="category-chip" [class.selected]="selectedLevel2()?._id === cat._id" (click)="selectLevel2(cat)" type="button">{{ cat.name }}</button>
+                    <button
+                      class="category-chip"
+                      [class.selected]="selectedLevel2()?._id === cat._id"
+                      (click)="selectLevel2(cat)"
+                      type="button"
+                    >
+                      {{ cat.name }}
+                    </button>
                   }
                 </div>
               </div>
@@ -55,14 +73,23 @@
                 <h4>Sub-subcategory</h4>
                 <div class="category-grid">
                   @for (cat of level3Categories(); track cat._id) {
-                    <button class="category-chip" [class.selected]="selectedLevel3()?._id === cat._id" (click)="selectLevel3(cat)" type="button">{{ cat.name }}</button>
+                    <button
+                      class="category-chip"
+                      [class.selected]="selectedLevel3()?._id === cat._id"
+                      (click)="selectLevel3(cat)"
+                      type="button"
+                    >
+                      {{ cat.name }}
+                    </button>
                   }
                 </div>
               </div>
             }
           </div>
           @if (selectedCategory()) {
-            <div class="selected-path">Selected: <strong>{{ getCategoryPath() }}</strong></div>
+            <div class="selected-path">
+              Selected: <strong>{{ getCategoryPath() }}</strong>
+            </div>
           }
         </div>
       }
@@ -79,13 +106,27 @@
             </div>
             <div class="form-group">
               <label class="form-label" for="description">Description *</label>
-              <textarea id="description" class="form-input textarea" formControlName="description" rows="5" maxlength="5000"></textarea>
-              <span class="char-count">{{ detailsForm.get('description')?.value?.length || 0 }}/5000</span>
+              <textarea
+                id="description"
+                class="form-input textarea"
+                formControlName="description"
+                rows="5"
+                maxlength="5000"
+              ></textarea>
+              <span class="char-count"
+                >{{ detailsForm.get('description')?.value?.length || 0 }}/5000</span
+              >
             </div>
             <div class="form-row">
               <div class="form-group">
                 <label class="form-label" for="price">Price (PKR) *</label>
-                <input id="price" class="form-input" type="number" formControlName="price" min="1" />
+                <input
+                  id="price"
+                  class="form-input"
+                  type="number"
+                  formControlName="price"
+                  min="1"
+                />
               </div>
               <div class="form-group">
                 <label class="form-label" for="condition">Condition *</label>
@@ -101,24 +142,45 @@
                 <h4>Category-Specific Details</h4>
                 @for (attr of categoryAttributes(); track attr.key) {
                   <div class="form-group">
-                    <label class="form-label" [for]="attr.key">{{ attr.name }}{{ attr.required ? ' *' : '' }}
-                      @if (attr.unit) { <span class="unit">({{ attr.unit }})</span> }
+                    <label class="form-label" [for]="attr.key"
+                      >{{ attr.name }}{{ attr.required ? ' *' : '' }}
+                      @if (attr.unit) {
+                        <span class="unit">({{ attr.unit }})</span>
+                      }
                     </label>
                     @switch (attr.type) {
                       @case ('select') {
-                        <select [id]="attr.key" class="form-input" [formControl]="getDynamicControl(attr.key)">
+                        <select
+                          [id]="attr.key"
+                          class="form-input"
+                          [formControl]="getDynamicControl(attr.key)"
+                        >
                           <option value="">Select {{ attr.name }}</option>
-                          @for (opt of attr.options; track opt) { <option [value]="opt">{{ opt }}</option> }
+                          @for (opt of attr.options; track opt) {
+                            <option [value]="opt">{{ opt }}</option>
+                          }
                         </select>
                       }
                       @case ('number') {
-                        <input [id]="attr.key" class="form-input" type="number" [formControl]="getDynamicControl(attr.key)" />
+                        <input
+                          [id]="attr.key"
+                          class="form-input"
+                          type="number"
+                          [formControl]="getDynamicControl(attr.key)"
+                        />
                       }
                       @case ('boolean') {
-                        <label class="checkbox-label"><input type="checkbox" [formControl]="getDynamicControl(attr.key)" /> {{ attr.name }}</label>
+                        <label class="checkbox-label"
+                          ><input type="checkbox" [formControl]="getDynamicControl(attr.key)" />
+                          {{ attr.name }}</label
+                        >
                       }
                       @default {
-                        <input [id]="attr.key" class="form-input" [formControl]="getDynamicControl(attr.key)" />
+                        <input
+                          [id]="attr.key"
+                          class="form-input"
+                          [formControl]="getDynamicControl(attr.key)"
+                        />
                       }
                     }
                   </div>
@@ -133,16 +195,19 @@
       @if (currentStep() === 3) {
         <div class="wizard-step">
           <h2>Media</h2>
-          <p class="step-description">Existing media is preserved. Use the full media manager on the listing page to add/remove images.</p>
+          <p class="step-description">
+            Existing media is preserved. Use the full media manager on the listing page to
+            add/remove images.
+          </p>
           @if (listing()?.images?.length) {
-            <div class="review-thumbnails" style="flex-wrap: wrap; gap: 8px;">
+            <div class="review-thumbnails" style="flex-wrap: wrap; gap: 8px">
               @for (img of listing()!.images; track img.url) {
                 <img [src]="img.thumbnailUrl || img.url" alt="Listing image" class="review-thumb" />
               }
             </div>
           }
           @if (listing()?.video) {
-            <p style="margin-top: 16px;">1 video attached</p>
+            <p style="margin-top: 16px">1 video attached</p>
           }
         </div>
       }
@@ -168,28 +233,51 @@
       @if (currentStep() === 5) {
         <div class="wizard-step">
           <h2>Review Changes</h2>
-          @if (error()) { <div class="alert alert-error">{{ error() }}</div> }
+          @if (error()) {
+            <div class="alert alert-error">{{ error() }}</div>
+          }
           <div class="review-sections">
             <div class="review-section">
-              <div class="review-header"><h4>Category</h4><button class="edit-link" (click)="goToStep(1)" type="button">Edit</button></div>
+              <div class="review-header">
+                <h4>Category</h4>
+                <button class="edit-link" (click)="goToStep(1)" type="button">Edit</button>
+              </div>
               <p>{{ getCategoryPath() }}</p>
             </div>
             <div class="review-section">
-              <div class="review-header"><h4>Details</h4><button class="edit-link" (click)="goToStep(2)" type="button">Edit</button></div>
+              <div class="review-header">
+                <h4>Details</h4>
+                <button class="edit-link" (click)="goToStep(2)" type="button">Edit</button>
+              </div>
               <div class="review-details">
-                <div class="detail-row"><span class="detail-label">Title</span><span>{{ detailsForm.get('title')?.value }}</span></div>
-                <div class="detail-row"><span class="detail-label">Price</span><span class="price">PKR {{ detailsForm.get('price')?.value | number }}</span></div>
-                <div class="detail-row"><span class="detail-label">Condition</span><span>{{ detailsForm.get('condition')?.value }}</span></div>
+                <div class="detail-row">
+                  <span class="detail-label">Title</span
+                  ><span>{{ detailsForm.get('title')?.value }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Price</span
+                  ><span class="price">PKR {{ detailsForm.get('price')?.value | number }}</span>
+                </div>
+                <div class="detail-row">
+                  <span class="detail-label">Condition</span
+                  ><span>{{ detailsForm.get('condition')?.value }}</span>
+                </div>
               </div>
             </div>
             <div class="review-section">
-              <div class="review-header"><h4>Location</h4><button class="edit-link" (click)="goToStep(4)" type="button">Edit</button></div>
+              <div class="review-header">
+                <h4>Location</h4>
+                <button class="edit-link" (click)="goToStep(4)" type="button">Edit</button>
+              </div>
               <p>{{ locationForm.get('area')?.value }}, {{ locationForm.get('city')?.value }}</p>
             </div>
             <div class="review-section feature-section">
               <label class="checkbox-label feature-toggle">
                 <input type="checkbox" [checked]="featureAd()" (change)="toggleFeatureAd()" />
-                <div><strong>⭐ Feature this ad</strong><p class="feature-desc">Featured ads appear at the top of search results</p></div>
+                <div>
+                  <strong>⭐ Feature this ad</strong>
+                  <p class="feature-desc">Featured ads appear at the top of search results</p>
+                </div>
               </label>
             </div>
           </div>
@@ -200,13 +288,31 @@
       <div class="wizard-nav">
         @if (currentStep() > 1) {
           <button class="btn btn-outline" (click)="prevStep()" type="button">Back</button>
-        } @else { <div></div> }
+        } @else {
+          <div></div>
+        }
 
         @if (currentStep() < totalSteps) {
-          <button class="btn btn-primary" (click)="nextStep()" [disabled]="!isStepValid(currentStep())" type="button">Continue</button>
+          <button
+            class="btn btn-primary"
+            (click)="nextStep()"
+            [disabled]="!isStepValid(currentStep())"
+            type="button"
+          >
+            Continue
+          </button>
         } @else {
-          <button class="btn btn-primary" (click)="submit()" [disabled]="submitting()" type="button">
-            @if (submitting()) { <span class="spinner"></span> Saving... } @else { Save Changes }
+          <button
+            class="btn btn-primary"
+            (click)="submit()"
+            [disabled]="submitting()"
+            type="button"
+          >
+            @if (submitting()) {
+              <span class="spinner"></span> Saving...
+            } @else {
+              Save Changes
+            }
           </button>
         }
       </div>

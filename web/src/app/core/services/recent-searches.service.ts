@@ -10,14 +10,14 @@ export class RecentSearchesService {
   add(term: string): void {
     const q = term.trim();
     if (!q) return;
-    const current = this.searches().filter(s => s !== q);
+    const current = this.searches().filter((s) => s !== q);
     const updated = [q, ...current].slice(0, MAX_ITEMS);
     this.searches.set(updated);
     this.save(updated);
   }
 
   remove(term: string): void {
-    const updated = this.searches().filter(s => s !== term);
+    const updated = this.searches().filter((s) => s !== term);
     this.searches.set(updated);
     this.save(updated);
   }
@@ -31,7 +31,7 @@ export class RecentSearchesService {
   filter(query: string): string[] {
     const q = query.toLowerCase().trim();
     if (!q) return this.searches();
-    return this.searches().filter(s => s.toLowerCase().includes(q));
+    return this.searches().filter((s) => s.toLowerCase().includes(q));
   }
 
   private load(): string[] {

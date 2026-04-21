@@ -6,7 +6,7 @@
 
   @if (loading()) {
     <div class="categories-grid" aria-label="Loading categories">
-      @for (i of [1,2,3,4,5,6,7,8]; track i) {
+      @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
         <div class="category-card-skeleton">
           <div class="skeleton card-img-skeleton"></div>
           <div class="skeleton card-title-skeleton"></div>
@@ -21,7 +21,9 @@
           class="category-card"
           role="listitem"
           (click)="openCategoryModal(category)"
-          [attr.aria-label]="category.name + ' - ' + getSubcategoryCount(category._id) + ' subcategories'"
+          [attr.aria-label]="
+            category.name + ' - ' + getSubcategoryCount(category._id) + ' subcategories'
+          "
           tabindex="0"
           (keydown.enter)="openCategoryModal(category)"
         >
@@ -32,7 +34,9 @@
               loading="lazy"
             />
             <div class="card-overlay"></div>
-            <span class="card-icon" aria-hidden="true">{{ getCategoryIcon(category.slug, category.name) }}</span>
+            <span class="card-icon" aria-hidden="true">{{
+              getCategoryIcon(category.slug, category.name)
+            }}</span>
           </div>
           <div class="card-content">
             <h3 class="card-title">{{ category.name }}</h3>

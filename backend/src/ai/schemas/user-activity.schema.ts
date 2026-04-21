@@ -25,7 +25,11 @@ export class UserActivity {
   @Prop({ type: Types.ObjectId, ref: 'Category' })
   categoryId?: Types.ObjectId;
 
-  @Prop({ type: MongooseSchema.Types.Map, of: MongooseSchema.Types.Mixed, default: () => new Map() })
+  @Prop({
+    type: MongooseSchema.Types.Map,
+    of: MongooseSchema.Types.Mixed,
+    default: () => new Map(),
+  })
   metadata!: Map<string, any>;
 
   @Prop({ type: String })
@@ -48,4 +52,7 @@ UserActivitySchema.index({ userId: 1, createdAt: -1 });
 UserActivitySchema.index({ action: 1 });
 UserActivitySchema.index({ userId: 1, action: 1 });
 UserActivitySchema.index({ productListingId: 1, action: 1 });
-UserActivitySchema.index({ createdAt: 1 }, { expireAfterSeconds: 365 * 24 * 60 * 60 }); // TTL: 1 year
+UserActivitySchema.index(
+  { createdAt: 1 },
+  { expireAfterSeconds: 365 * 24 * 60 * 60 },
+); // TTL: 1 year

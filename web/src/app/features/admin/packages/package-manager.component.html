@@ -9,19 +9,28 @@
       class="tab-btn"
       [class.active]="activeTab === 'packages'"
       (click)="switchTab('packages')"
-    >📦 Packages</button>
+    >
+      📦 Packages
+    </button>
     <button
       class="tab-btn"
       [class.active]="activeTab === 'purchases'"
       (click)="switchTab('purchases')"
-    >🧾 Purchases</button>
+    >
+      🧾 Purchases
+    </button>
   </div>
 
   <!-- Error -->
   @if (error()) {
     <div class="error-state">
       <p>{{ error() }}</p>
-      <button class="btn-retry" (click)="activeTab === 'packages' ? loadPackages() : loadPurchases()">Retry</button>
+      <button
+        class="btn-retry"
+        (click)="activeTab === 'packages' ? loadPackages() : loadPurchases()"
+      >
+        Retry
+      </button>
     </div>
   }
 
@@ -40,25 +49,50 @@
       <div class="list-panel">
         <div class="list-header">
           <h2>Ad Packages</h2>
-          <button class="btn-primary" (click)="openCreateForm()" [disabled]="saving()">+ New Package</button>
+          <button class="btn-primary" (click)="openCreateForm()" [disabled]="saving()">
+            + New Package
+          </button>
         </div>
 
         @if ((packages() || []).length === 0) {
-          <div class="empty-list">
-            No packages found. Create one to get started.
-          </div>
+          <div class="empty-list">No packages found. Create one to get started.</div>
         }
 
         @if ((packages() || []).length > 0) {
           <table class="data-table" aria-label="Ad packages">
             <thead>
               <tr>
-                <th style="padding-left: 46px;" class="sortable" (click)="sortPackages('name')">Name <span class="material-symbols-rounded sort-icon">{{ sortIcon('name', pkgSortCol, pkgSortDir) }}</span></th>
-                <th class="sortable" (click)="sortPackages('type')">Type <span class="material-symbols-rounded sort-icon">{{ sortIcon('type', pkgSortCol, pkgSortDir) }}</span></th>
-                <th class="sortable" (click)="sortPackages('duration')">Duration <span class="material-symbols-rounded sort-icon">{{ sortIcon('duration', pkgSortCol, pkgSortDir) }}</span></th>
+                <th style="padding-left: 46px" class="sortable" (click)="sortPackages('name')">
+                  Name
+                  <span class="material-symbols-rounded sort-icon">{{
+                    sortIcon('name', pkgSortCol, pkgSortDir)
+                  }}</span>
+                </th>
+                <th class="sortable" (click)="sortPackages('type')">
+                  Type
+                  <span class="material-symbols-rounded sort-icon">{{
+                    sortIcon('type', pkgSortCol, pkgSortDir)
+                  }}</span>
+                </th>
+                <th class="sortable" (click)="sortPackages('duration')">
+                  Duration
+                  <span class="material-symbols-rounded sort-icon">{{
+                    sortIcon('duration', pkgSortCol, pkgSortDir)
+                  }}</span>
+                </th>
                 <th>Qty</th>
-                <th class="sortable" (click)="sortPackages('defaultPrice')">Price <span class="material-symbols-rounded sort-icon">{{ sortIcon('defaultPrice', pkgSortCol, pkgSortDir) }}</span></th>
-                <th class="sortable" (click)="sortPackages('isActive')">Status <span class="material-symbols-rounded sort-icon">{{ sortIcon('isActive', pkgSortCol, pkgSortDir) }}</span></th>
+                <th class="sortable" (click)="sortPackages('defaultPrice')">
+                  Price
+                  <span class="material-symbols-rounded sort-icon">{{
+                    sortIcon('defaultPrice', pkgSortCol, pkgSortDir)
+                  }}</span>
+                </th>
+                <th class="sortable" (click)="sortPackages('isActive')">
+                  Status
+                  <span class="material-symbols-rounded sort-icon">{{
+                    sortIcon('isActive', pkgSortCol, pkgSortDir)
+                  }}</span>
+                </th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -72,7 +106,9 @@
                           class="expand-toggle"
                           (click)="togglePackageExpand(pkg._id)"
                           type="button"
-                        >{{ isPackageExpanded(pkg._id) ? '▾' : '▸' }}</button>
+                        >
+                          {{ isPackageExpanded(pkg._id) ? '▾' : '▸' }}
+                        </button>
                       }
                       @if (!pkg.categoryPricing.length) {
                         <span class="expand-placeholder"></span>
@@ -80,13 +116,26 @@
                       {{ pkg.name }}
                     </span>
                   </td>
-                  <td><span class="type-badge" [class.featured]="pkg.type === 'featured_ads'">{{ pkg.type === 'featured_ads' ? 'Featured' : 'Ad Slots' }}</span></td>
+                  <td>
+                    <span class="type-badge" [class.featured]="pkg.type === 'featured_ads'">{{
+                      pkg.type === 'featured_ads' ? 'Featured' : 'Ad Slots'
+                    }}</span>
+                  </td>
                   <td>{{ pkg.duration }} days</td>
                   <td>{{ pkg.quantity }}</td>
                   <td class="price-cell">Rs {{ pkg.defaultPrice | number }}</td>
-                  <td><span class="status-badge" [class.active]="pkg.isActive" [class.inactive]="!pkg.isActive">{{ pkg.isActive ? 'Active' : 'Inactive' }}</span></td>
                   <td>
-                    <button class="btn-action" (click)="openEditForm(pkg)" [disabled]="saving()">Edit</button>
+                    <span
+                      class="status-badge"
+                      [class.active]="pkg.isActive"
+                      [class.inactive]="!pkg.isActive"
+                      >{{ pkg.isActive ? 'Active' : 'Inactive' }}</span
+                    >
+                  </td>
+                  <td>
+                    <button class="btn-action" (click)="openEditForm(pkg)" [disabled]="saving()">
+                      Edit
+                    </button>
                   </td>
                 </tr>
                 @if (isPackageExpanded(pkg._id) && pkg.categoryPricing.length) {
@@ -124,33 +173,44 @@
 
             <div class="form-group">
               <label for="pkg-name">Package Name</label>
-              <input id="pkg-name" type="text" [(ngModel)]="formName" placeholder="e.g. Premium Featured 10">
+              <input
+                id="pkg-name"
+                type="text"
+                [(ngModel)]="formName"
+                placeholder="e.g. Premium Featured 10"
+              />
             </div>
 
             <div class="form-group">
               <label for="pkg-type">Type</label>
-              <app-custom-select [options]="typeOptions" [(ngModel)]="formType" placeholder="Select type"></app-custom-select>
+              <app-custom-select
+                [options]="typeOptions"
+                [(ngModel)]="formType"
+                placeholder="Select type"
+              ></app-custom-select>
             </div>
 
             <div class="form-group">
               <label for="pkg-duration">Duration</label>
-              <app-custom-select [options]="durationOptions" [(ngModel)]="formDuration" placeholder="Select duration"></app-custom-select>
+              <app-custom-select
+                [options]="durationOptions"
+                [(ngModel)]="formDuration"
+                placeholder="Select duration"
+              ></app-custom-select>
             </div>
 
             <div class="form-group">
               <label for="pkg-qty">Quantity</label>
-              <input id="pkg-qty" type="number" [(ngModel)]="formQuantity" min="1">
+              <input id="pkg-qty" type="number" [(ngModel)]="formQuantity" min="1" />
             </div>
 
             <div class="form-group">
               <label for="pkg-price">Default Price (Rs)</label>
-              <input id="pkg-price" type="number" [(ngModel)]="formDefaultPrice" min="0">
+              <input id="pkg-price" type="number" [(ngModel)]="formDefaultPrice" min="0" />
             </div>
 
             <div class="form-group checkbox-group">
-              <label>
-                <input type="checkbox" [(ngModel)]="formIsActive"> Active
-              </label>
+              <label> <input type="checkbox" [(ngModel)]="formIsActive" /> Active </label>
             </div>
 
             <!-- Category-Specific Pricing -->
@@ -162,12 +222,19 @@
                 <div class="pricing-item">
                   <div class="pricing-item-header">
                     <span class="pricing-item-label">Price Group #{{ $index + 1 }}</span>
-                    <button class="btn-remove" (click)="removeCategoryPrice($index)" aria-label="Remove pricing" title="Remove">✕</button>
+                    <button
+                      class="btn-remove"
+                      (click)="removeCategoryPrice($index)"
+                      aria-label="Remove pricing"
+                      title="Remove"
+                    >
+                      ✕
+                    </button>
                   </div>
 
                   <div class="form-group">
                     <label>Price (Rs)</label>
-                    <input type="number" [(ngModel)]="cp.price" min="0" placeholder="Enter price">
+                    <input type="number" [(ngModel)]="cp.price" min="0" placeholder="Enter price" />
                   </div>
 
                   <div class="form-group">
@@ -177,7 +244,13 @@
                         @for (cid of cp.categoryIds; track cid) {
                           <span class="cat-chip">
                             {{ getCategoryName(cid) }}
-                            <button class="cat-chip-remove" (click)="togglePricingCategory(cp, cid)" type="button">✕</button>
+                            <button
+                              class="cat-chip-remove"
+                              (click)="togglePricingCategory(cp, cid)"
+                              type="button"
+                            >
+                              ✕
+                            </button>
                           </span>
                         }
                       </div>
@@ -196,7 +269,9 @@
                             class="cat-pick-btn"
                             [class.picked]="cp.categoryIds.includes(cat._id)"
                             (click)="togglePricingCategory(cp, cat._id)"
-                          >{{ cat.name }}</button>
+                          >
+                            {{ cat.name }}
+                          </button>
                         }
                         @if (filteredCategoriesForRow($index).length === 0) {
                           <span class="cat-no-results">No categories found</span>
@@ -207,7 +282,9 @@
                 </div>
               }
 
-              <button class="btn-add-item" (click)="addCategoryPrice()">+ Add Category Price</button>
+              <button class="btn-add-item" (click)="addCategoryPrice()">
+                + Add Category Price
+              </button>
             </div>
 
             <div class="form-actions">
@@ -215,8 +292,12 @@
                 class="btn-primary"
                 (click)="activePanel === 'create' ? submitCreate() : submitEdit()"
                 [disabled]="saving() || !formName.trim()"
-              >{{ saving() ? 'Saving...' : (activePanel === 'create' ? 'Create' : 'Save Changes') }}</button>
-              <button class="btn-secondary" (click)="cancelForm()" [disabled]="saving()">Cancel</button>
+              >
+                {{ saving() ? 'Saving...' : activePanel === 'create' ? 'Create' : 'Save Changes' }}
+              </button>
+              <button class="btn-secondary" (click)="cancelForm()" [disabled]="saving()">
+                Cancel
+              </button>
             </div>
           </div>
         </div>
@@ -237,15 +318,23 @@
       </div>
       <div class="form-group compact">
         <label>Seller ID</label>
-        <input type="text" [(ngModel)]="purchaseFilterSellerId" placeholder="Seller ID">
+        <input type="text" [(ngModel)]="purchaseFilterSellerId" placeholder="Seller ID" />
       </div>
       <div class="form-group compact">
         <label>Type</label>
-        <app-custom-select [options]="purchaseTypeOptions" [(ngModel)]="purchaseFilterType" placeholder="All"></app-custom-select>
+        <app-custom-select
+          [options]="purchaseTypeOptions"
+          [(ngModel)]="purchaseFilterType"
+          placeholder="All"
+        ></app-custom-select>
       </div>
       <div class="form-group compact">
         <label>Status</label>
-        <app-custom-select [options]="purchaseStatusOptions" [(ngModel)]="purchaseFilterStatus" placeholder="All"></app-custom-select>
+        <app-custom-select
+          [options]="purchaseStatusOptions"
+          [(ngModel)]="purchaseFilterStatus"
+          placeholder="All"
+        ></app-custom-select>
       </div>
       <div class="filter-actions">
         <button class="btn-primary" (click)="applyPurchaseFilters()">Apply</button>
@@ -254,9 +343,7 @@
     </div>
 
     @if ((purchases() || []).length === 0) {
-      <div class="empty-list">
-        No purchases found.
-      </div>
+      <div class="empty-list">No purchases found.</div>
     }
 
     @if ((purchases() || []).length > 0) {
@@ -277,13 +364,21 @@
           @for (p of purchases(); track $index) {
             <tr>
               <td>{{ p.sellerId }}</td>
-              <td><span class="type-badge" [class.featured]="p.type === 'featured_ads'">{{ p.type === 'featured_ads' ? 'Featured' : 'Ad Slots' }}</span></td>
+              <td>
+                <span class="type-badge" [class.featured]="p.type === 'featured_ads'">{{
+                  p.type === 'featured_ads' ? 'Featured' : 'Ad Slots'
+                }}</span>
+              </td>
               <td>{{ p.quantity }}</td>
               <td>{{ p.remainingQuantity }}</td>
               <td class="price-cell">Rs {{ p.price | number }}</td>
               <td>{{ p.paymentMethod }}</td>
-              <td><span class="payment-status" [attr.data-status]="p.paymentStatus">{{ p.paymentStatus }}</span></td>
-              <td>{{ p.createdAt | date:'mediumDate' }}</td>
+              <td>
+                <span class="payment-status" [attr.data-status]="p.paymentStatus">{{
+                  p.paymentStatus
+                }}</span>
+              </td>
+              <td>{{ p.createdAt | date: 'mediumDate' }}</td>
             </tr>
           }
         </tbody>
@@ -292,9 +387,17 @@
 
     @if ((purchases() || []).length > 0) {
       <div class="pagination">
-        <button class="btn-secondary" (click)="prevPurchasePage()" [disabled]="purchasePage <= 1">← Prev</button>
+        <button class="btn-secondary" (click)="prevPurchasePage()" [disabled]="purchasePage <= 1">
+          ← Prev
+        </button>
         <span class="page-info">Page {{ purchasePage }} of {{ totalPurchasePages }}</span>
-        <button class="btn-secondary" (click)="nextPurchasePage()" [disabled]="purchasePage >= totalPurchasePages">Next →</button>
+        <button
+          class="btn-secondary"
+          (click)="nextPurchasePage()"
+          [disabled]="purchasePage >= totalPurchasePages"
+        >
+          Next →
+        </button>
       </div>
     }
   }

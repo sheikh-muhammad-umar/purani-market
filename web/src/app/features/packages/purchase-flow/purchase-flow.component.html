@@ -13,12 +13,20 @@
     } @else if (pkg(); as package) {
       <div class="purchase-layout">
         <div class="steps-indicator">
-          <div class="step-item" [class.active]="getStepNumber() >= 1" [class.completed]="getStepNumber() > 1">
+          <div
+            class="step-item"
+            [class.active]="getStepNumber() >= 1"
+            [class.completed]="getStepNumber() > 1"
+          >
             <span class="step-number">1</span>
             <span class="step-label">Package Details</span>
           </div>
           <div class="step-connector" [class.active]="getStepNumber() > 1"></div>
-          <div class="step-item" [class.active]="getStepNumber() >= 2" [class.completed]="getStepNumber() > 2">
+          <div
+            class="step-item"
+            [class.active]="getStepNumber() >= 2"
+            [class.completed]="getStepNumber() > 2"
+          >
             <span class="step-number">2</span>
             <span class="step-label">Payment Method</span>
           </div>
@@ -33,7 +41,11 @@
         @if (step() === 'details') {
           <div class="step-content">
             <div class="package-summary card">
-              <span class="badge" [class.badge-featured]="package.type === 'featured_ads'" [class.badge-success]="package.type === 'ad_slots'">
+              <span
+                class="badge"
+                [class.badge-featured]="package.type === 'featured_ads'"
+                [class.badge-success]="package.type === 'ad_slots'"
+              >
                 {{ getTypeLabel(package.type) }}
               </span>
               <h2>{{ package.name }}</h2>
@@ -82,7 +94,8 @@
                 <button
                   class="payment-option card"
                   [class.selected]="selectedPaymentMethod() === method"
-                  (click)="selectPaymentMethod($any(method))">
+                  (click)="selectPaymentMethod($any(method))"
+                >
                   <span class="payment-icon">{{ getPaymentMethodIcon($any(method)) }}</span>
                   <span class="payment-label">{{ getPaymentMethodLabel($any(method)) }}</span>
                   @if (selectedPaymentMethod() === method) {
@@ -96,7 +109,8 @@
               <button
                 class="btn btn-primary"
                 [disabled]="!selectedPaymentMethod()"
-                (click)="goToConfirm()">
+                (click)="goToConfirm()"
+              >
                 Continue
               </button>
             </div>
@@ -139,11 +153,10 @@
             }
 
             <div class="step-actions">
-              <button class="btn btn-outline" [disabled]="purchasing()" (click)="goBack()">Back</button>
-              <button
-                class="btn btn-primary"
-                [disabled]="purchasing()"
-                (click)="confirmPurchase()">
+              <button class="btn btn-outline" [disabled]="purchasing()" (click)="goBack()">
+                Back
+              </button>
+              <button class="btn btn-primary" [disabled]="purchasing()" (click)="confirmPurchase()">
                 @if (purchasing()) {
                   <span class="spinner"></span> Processing...
                 } @else {

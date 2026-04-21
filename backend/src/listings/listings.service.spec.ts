@@ -7,7 +7,11 @@ import {
 } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ListingsService } from './listings.service';
-import { ProductListing, ListingCondition, ListingStatus } from './schemas/product-listing.schema';
+import {
+  ProductListing,
+  ListingCondition,
+  ListingStatus,
+} from './schemas/product-listing.schema';
 import { User } from '../users/schemas/user.schema';
 import { Category, AttributeType } from '../categories/schemas/category.schema';
 import { CreateListingDto } from './dto/create-listing.dto';
@@ -34,12 +38,28 @@ describe('ListingsService', () => {
     categoryId,
     categoryPath: [parentCategoryId, categoryId],
     condition: 'new',
-    categoryAttributes: new Map([['brand', 'Apple'], ['storage', '256GB']]),
+    categoryAttributes: new Map([
+      ['brand', 'Apple'],
+      ['storage', '256GB'],
+    ]),
     images: [
-      { url: 'https://example.com/img1.jpg', thumbnailUrl: 'https://example.com/img1_thumb.jpg', sortOrder: 0 },
-      { url: 'https://example.com/img2.jpg', thumbnailUrl: 'https://example.com/img2_thumb.jpg', sortOrder: 1 },
+      {
+        url: 'https://example.com/img1.jpg',
+        thumbnailUrl: 'https://example.com/img1_thumb.jpg',
+        sortOrder: 0,
+      },
+      {
+        url: 'https://example.com/img2.jpg',
+        thumbnailUrl: 'https://example.com/img2_thumb.jpg',
+        sortOrder: 1,
+      },
     ],
-    location: { type: 'Point', coordinates: [74.3587, 31.5204], city: 'Lahore', area: 'Gulberg' },
+    location: {
+      type: 'Point',
+      coordinates: [74.3587, 31.5204],
+      city: 'Lahore',
+      area: 'Gulberg',
+    },
     contactInfo: { phone: '+923001234567', email: 'seller@example.com' },
     status: ListingStatus.ACTIVE,
     isFeatured: false,
@@ -64,8 +84,20 @@ describe('ListingsService', () => {
     parentId: parentCategoryId,
     level: 2,
     attributes: [
-      { name: 'Brand', key: 'brand', type: AttributeType.SELECT, options: ['Apple', 'Samsung', 'OnePlus'], required: true },
-      { name: 'Storage', key: 'storage', type: AttributeType.SELECT, options: ['64GB', '128GB', '256GB'], required: false },
+      {
+        name: 'Brand',
+        key: 'brand',
+        type: AttributeType.SELECT,
+        options: ['Apple', 'Samsung', 'OnePlus'],
+        required: true,
+      },
+      {
+        name: 'Storage',
+        key: 'storage',
+        type: AttributeType.SELECT,
+        options: ['64GB', '128GB', '256GB'],
+        required: false,
+      },
     ],
     filters: [],
     isActive: true,
@@ -100,7 +132,10 @@ describe('ListingsService', () => {
   let savedListing: any;
 
   beforeEach(async () => {
-    savedListing = { ...mockListing, save: jest.fn().mockResolvedValue(mockListing) };
+    savedListing = {
+      ...mockListing,
+      save: jest.fn().mockResolvedValue(mockListing),
+    };
 
     mockListingModel = jest.fn().mockImplementation(() => savedListing);
     mockListingModel.findById = jest.fn().mockReturnValue({
@@ -147,7 +182,10 @@ describe('ListingsService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ListingsService,
-        { provide: getModelToken(ProductListing.name), useValue: mockListingModel },
+        {
+          provide: getModelToken(ProductListing.name),
+          useValue: mockListingModel,
+        },
         { provide: getModelToken(User.name), useValue: mockUserModel },
         { provide: getModelToken(Category.name), useValue: mockCategoryModel },
       ],
@@ -184,21 +222,25 @@ describe('ListingsService', () => {
   describe('findById', () => {
     it('should return a listing by id', async () => {
       const result = await service.findById(listingId.toString());
-      expect(mockListingModel.findById).toHaveBeenCalledWith(listingId.toString());
+      expect(mockListingModel.findById).toHaveBeenCalledWith(
+        listingId.toString(),
+      );
       expect(result).toBe(mockListing);
     });
 
     it('should throw NotFoundException for invalid ObjectId', async () => {
-      await expect(service.findById('invalid-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findById('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException when listing not found', async () => {
       mockListingModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       });
-      await expect(service.findById(new Types.ObjectId().toString())).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.findById(new Types.ObjectId().toString()),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -208,7 +250,9 @@ describe('ListingsService', () => {
       mockListingModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue(updatedListing),
       });
-      const result = await service.findByIdAndIncrementViews(listingId.toString());
+      const result = await service.findByIdAndIncrementViews(
+        listingId.toString(),
+      );
       expect(mockListingModel.findByIdAndUpdate).toHaveBeenCalledWith(
         listingId.toString(),
         { $inc: { viewCount: 1 } },
@@ -218,9 +262,9 @@ describe('ListingsService', () => {
     });
 
     it('should throw NotFoundException for invalid ObjectId', async () => {
-      await expect(service.findByIdAndIncrementViews('invalid')).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.findByIdAndIncrementViews('invalid'),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should throw NotFoundException when listing not found', async () => {
@@ -239,15 +283,21 @@ describe('ListingsService', () => {
       mockListingModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue(updatedListing),
       });
-      const result = await service.update(listingId.toString(), sellerId.toString(), {
-        title: 'Updated Title',
-      });
+      const result = await service.update(
+        listingId.toString(),
+        sellerId.toString(),
+        {
+          title: 'Updated Title',
+        },
+      );
       expect(result.title).toBe('Updated Title');
     });
 
     it('should throw ForbiddenException if non-owner tries to update', async () => {
       await expect(
-        service.update(listingId.toString(), otherUserId.toString(), { title: 'Hack' }),
+        service.update(listingId.toString(), otherUserId.toString(), {
+          title: 'Hack',
+        }),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -257,7 +307,9 @@ describe('ListingsService', () => {
         exec: jest.fn().mockResolvedValue(deletedListing),
       });
       await expect(
-        service.update(listingId.toString(), sellerId.toString(), { title: 'X' }),
+        service.update(listingId.toString(), sellerId.toString(), {
+          title: 'X',
+        }),
       ).rejects.toThrow(BadRequestException);
     });
   });
@@ -277,7 +329,10 @@ describe('ListingsService', () => {
     });
 
     it('should update listing status to reserved', async () => {
-      const reservedListing = { ...mockListing, status: ListingStatus.RESERVED };
+      const reservedListing = {
+        ...mockListing,
+        status: ListingStatus.RESERVED,
+      };
       mockListingModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue(reservedListing),
       });
@@ -316,11 +371,19 @@ describe('ListingsService', () => {
 
   describe('softDelete', () => {
     it('should soft-delete listing for the owner', async () => {
-      const deletedListing = { ...mockListing, status: ListingStatus.DELETED, deletedAt: new Date() };
+      const deletedListing = {
+        ...mockListing,
+        status: ListingStatus.DELETED,
+        deletedAt: new Date(),
+      };
       mockListingModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue(deletedListing),
       });
-      const result = await service.softDelete(listingId.toString(), sellerId.toString(), 'seller');
+      const result = await service.softDelete(
+        listingId.toString(),
+        sellerId.toString(),
+        'seller',
+      );
       expect(result.status).toBe(ListingStatus.DELETED);
       expect(mockUserModel.updateOne).toHaveBeenCalledWith(
         { _id: sellerId },
@@ -329,17 +392,29 @@ describe('ListingsService', () => {
     });
 
     it('should allow admin to soft-delete any listing', async () => {
-      const deletedListing = { ...mockListing, status: ListingStatus.DELETED, deletedAt: new Date() };
+      const deletedListing = {
+        ...mockListing,
+        status: ListingStatus.DELETED,
+        deletedAt: new Date(),
+      };
       mockListingModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue(deletedListing),
       });
-      const result = await service.softDelete(listingId.toString(), otherUserId.toString(), 'admin');
+      const result = await service.softDelete(
+        listingId.toString(),
+        otherUserId.toString(),
+        'admin',
+      );
       expect(result.status).toBe(ListingStatus.DELETED);
     });
 
     it('should throw ForbiddenException if non-owner non-admin tries to delete', async () => {
       await expect(
-        service.softDelete(listingId.toString(), otherUserId.toString(), 'seller'),
+        service.softDelete(
+          listingId.toString(),
+          otherUserId.toString(),
+          'seller',
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
 
@@ -377,8 +452,14 @@ describe('ListingsService', () => {
     });
 
     it('should throw BadRequestException when fewer than 2 media items', async () => {
-      const dto = { ...validCreateDto, images: [{ url: 'https://example.com/img1.jpg' }], video: undefined };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(BadRequestException);
+      const dto = {
+        ...validCreateDto,
+        images: [{ url: 'https://example.com/img1.jpg' }],
+        video: undefined,
+      };
+      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should accept 1 image + 1 video as 2 media items', async () => {
@@ -393,7 +474,9 @@ describe('ListingsService', () => {
 
     it('should throw BadRequestException for invalid category ID', async () => {
       const dto = { ...validCreateDto, categoryId: 'invalid' };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(BadRequestException);
+      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw BadRequestException when category not found', async () => {
@@ -402,12 +485,19 @@ describe('ListingsService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
       const dto = { ...validCreateDto, categoryId: nonExistentId.toString() };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(BadRequestException);
+      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw BadRequestException when required category attribute is missing', async () => {
-      const dto = { ...validCreateDto, categoryAttributes: { storage: '256GB' } };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(BadRequestException);
+      const dto = {
+        ...validCreateDto,
+        categoryAttributes: { storage: '256GB' },
+      };
+      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw BadRequestException when select attribute has invalid option', async () => {
@@ -415,29 +505,39 @@ describe('ListingsService', () => {
         ...validCreateDto,
         categoryAttributes: { brand: 'Nokia', storage: '256GB' },
       };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(BadRequestException);
+      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw ForbiddenException when seller has reached ad limit', async () => {
       mockUserModel.findById = jest.fn().mockReturnValue({
         exec: jest.fn().mockResolvedValue({ ...mockSeller, activeAdCount: 10 }),
       });
-      await expect(service.create(sellerId.toString(), validCreateDto)).rejects.toThrow(ForbiddenException);
+      await expect(
+        service.create(sellerId.toString(), validCreateDto),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw NotFoundException when seller not found', async () => {
       mockUserModel.findById = jest.fn().mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       });
-      await expect(service.create(sellerId.toString(), validCreateDto)).rejects.toThrow(NotFoundException);
+      await expect(
+        service.create(sellerId.toString(), validCreateDto),
+      ).rejects.toThrow(NotFoundException);
     });
 
     it('should build category path from hierarchy', async () => {
       await service.create(sellerId.toString(), validCreateDto);
       const constructorCall = mockListingModel.mock.calls[0][0];
       expect(constructorCall.categoryPath).toHaveLength(2);
-      expect(constructorCall.categoryPath[0].toString()).toBe(parentCategoryId.toString());
-      expect(constructorCall.categoryPath[1].toString()).toBe(categoryId.toString());
+      expect(constructorCall.categoryPath[0].toString()).toBe(
+        parentCategoryId.toString(),
+      );
+      expect(constructorCall.categoryPath[1].toString()).toBe(
+        categoryId.toString(),
+      );
     });
 
     it('should increment seller activeAdCount after creation', async () => {
@@ -450,12 +550,16 @@ describe('ListingsService', () => {
 
     it('should throw BadRequestException when zero media items provided', async () => {
       const dto = { ...validCreateDto, images: [], video: undefined };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(BadRequestException);
+      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should allow seller with activeAdCount below adLimit', async () => {
       mockUserModel.findById = jest.fn().mockReturnValue({
-        exec: jest.fn().mockResolvedValue({ ...mockSeller, activeAdCount: 9, adLimit: 10 }),
+        exec: jest
+          .fn()
+          .mockResolvedValue({ ...mockSeller, activeAdCount: 9, adLimit: 10 }),
       });
       const result = await service.create(sellerId.toString(), validCreateDto);
       expect(result).toBe(mockListing);
@@ -467,85 +571,144 @@ describe('ListingsService', () => {
       const textCategory = {
         ...mockCategory,
         attributes: [
-          { name: 'Description', key: 'desc', type: AttributeType.TEXT, required: true, options: [] },
+          {
+            name: 'Description',
+            key: 'desc',
+            type: AttributeType.TEXT,
+            required: true,
+            options: [],
+          },
         ],
       };
       mockCategoryModel.findById = jest.fn().mockImplementation((id: any) => {
         const idStr = id.toString();
-        if (idStr === categoryId.toString()) return { exec: jest.fn().mockResolvedValue(textCategory) };
-        if (idStr === parentCategoryId.toString()) return { exec: jest.fn().mockResolvedValue(mockParentCategory) };
+        if (idStr === categoryId.toString())
+          return { exec: jest.fn().mockResolvedValue(textCategory) };
+        if (idStr === parentCategoryId.toString())
+          return { exec: jest.fn().mockResolvedValue(mockParentCategory) };
         return { exec: jest.fn().mockResolvedValue(null) };
       });
       const dto = { ...validCreateDto, categoryAttributes: { desc: 123 } };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(BadRequestException);
+      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject non-number value for NUMBER attribute', async () => {
       const numCategory = {
         ...mockCategory,
         attributes: [
-          { name: 'Mileage', key: 'mileage', type: AttributeType.NUMBER, required: true, options: [] },
+          {
+            name: 'Mileage',
+            key: 'mileage',
+            type: AttributeType.NUMBER,
+            required: true,
+            options: [],
+          },
         ],
       };
       mockCategoryModel.findById = jest.fn().mockImplementation((id: any) => {
         const idStr = id.toString();
-        if (idStr === categoryId.toString()) return { exec: jest.fn().mockResolvedValue(numCategory) };
-        if (idStr === parentCategoryId.toString()) return { exec: jest.fn().mockResolvedValue(mockParentCategory) };
+        if (idStr === categoryId.toString())
+          return { exec: jest.fn().mockResolvedValue(numCategory) };
+        if (idStr === parentCategoryId.toString())
+          return { exec: jest.fn().mockResolvedValue(mockParentCategory) };
         return { exec: jest.fn().mockResolvedValue(null) };
       });
-      const dto = { ...validCreateDto, categoryAttributes: { mileage: 'not-a-number' } };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(BadRequestException);
+      const dto = {
+        ...validCreateDto,
+        categoryAttributes: { mileage: 'not-a-number' },
+      };
+      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject non-boolean value for BOOLEAN attribute', async () => {
       const boolCategory = {
         ...mockCategory,
         attributes: [
-          { name: 'Negotiable', key: 'negotiable', type: AttributeType.BOOLEAN, required: true, options: [] },
+          {
+            name: 'Negotiable',
+            key: 'negotiable',
+            type: AttributeType.BOOLEAN,
+            required: true,
+            options: [],
+          },
         ],
       };
       mockCategoryModel.findById = jest.fn().mockImplementation((id: any) => {
         const idStr = id.toString();
-        if (idStr === categoryId.toString()) return { exec: jest.fn().mockResolvedValue(boolCategory) };
-        if (idStr === parentCategoryId.toString()) return { exec: jest.fn().mockResolvedValue(mockParentCategory) };
+        if (idStr === categoryId.toString())
+          return { exec: jest.fn().mockResolvedValue(boolCategory) };
+        if (idStr === parentCategoryId.toString())
+          return { exec: jest.fn().mockResolvedValue(mockParentCategory) };
         return { exec: jest.fn().mockResolvedValue(null) };
       });
-      const dto = { ...validCreateDto, categoryAttributes: { negotiable: 'yes' } };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(BadRequestException);
+      const dto = {
+        ...validCreateDto,
+        categoryAttributes: { negotiable: 'yes' },
+      };
+      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject non-array value for MULTISELECT attribute', async () => {
       const multiCategory = {
         ...mockCategory,
         attributes: [
-          { name: 'Colors', key: 'colors', type: AttributeType.MULTISELECT, required: true, options: ['Red', 'Blue', 'Green'] },
+          {
+            name: 'Colors',
+            key: 'colors',
+            type: AttributeType.MULTISELECT,
+            required: true,
+            options: ['Red', 'Blue', 'Green'],
+          },
         ],
       };
       mockCategoryModel.findById = jest.fn().mockImplementation((id: any) => {
         const idStr = id.toString();
-        if (idStr === categoryId.toString()) return { exec: jest.fn().mockResolvedValue(multiCategory) };
-        if (idStr === parentCategoryId.toString()) return { exec: jest.fn().mockResolvedValue(mockParentCategory) };
+        if (idStr === categoryId.toString())
+          return { exec: jest.fn().mockResolvedValue(multiCategory) };
+        if (idStr === parentCategoryId.toString())
+          return { exec: jest.fn().mockResolvedValue(mockParentCategory) };
         return { exec: jest.fn().mockResolvedValue(null) };
       });
       const dto = { ...validCreateDto, categoryAttributes: { colors: 'Red' } };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(BadRequestException);
+      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should reject invalid option in MULTISELECT attribute', async () => {
       const multiCategory = {
         ...mockCategory,
         attributes: [
-          { name: 'Colors', key: 'colors', type: AttributeType.MULTISELECT, required: true, options: ['Red', 'Blue', 'Green'] },
+          {
+            name: 'Colors',
+            key: 'colors',
+            type: AttributeType.MULTISELECT,
+            required: true,
+            options: ['Red', 'Blue', 'Green'],
+          },
         ],
       };
       mockCategoryModel.findById = jest.fn().mockImplementation((id: any) => {
         const idStr = id.toString();
-        if (idStr === categoryId.toString()) return { exec: jest.fn().mockResolvedValue(multiCategory) };
-        if (idStr === parentCategoryId.toString()) return { exec: jest.fn().mockResolvedValue(mockParentCategory) };
+        if (idStr === categoryId.toString())
+          return { exec: jest.fn().mockResolvedValue(multiCategory) };
+        if (idStr === parentCategoryId.toString())
+          return { exec: jest.fn().mockResolvedValue(mockParentCategory) };
         return { exec: jest.fn().mockResolvedValue(null) };
       });
-      const dto = { ...validCreateDto, categoryAttributes: { colors: ['Red', 'Yellow'] } };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(BadRequestException);
+      const dto = {
+        ...validCreateDto,
+        categoryAttributes: { colors: ['Red', 'Yellow'] },
+      };
+      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -555,7 +718,9 @@ describe('ListingsService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
       await expect(
-        service.update(listingId.toString(), sellerId.toString(), { title: 'New' }),
+        service.update(listingId.toString(), sellerId.toString(), {
+          title: 'New',
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 
@@ -564,7 +729,11 @@ describe('ListingsService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
       await expect(
-        service.updateStatus(listingId.toString(), sellerId.toString(), AllowedStatusTransition.SOLD),
+        service.updateStatus(
+          listingId.toString(),
+          sellerId.toString(),
+          AllowedStatusTransition.SOLD,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });

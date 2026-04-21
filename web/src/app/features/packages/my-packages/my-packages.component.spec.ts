@@ -81,8 +81,8 @@ describe('MyPackagesComponent', () => {
     component.ngOnInit();
     const history = component.historyPurchases();
     expect(history.length).toBe(2);
-    expect(history.map(h => h._id)).toContain('expired1');
-    expect(history.map(h => h._id)).toContain('failed1');
+    expect(history.map((h) => h._id)).toContain('expired1');
+    expect(history.map((h) => h._id)).toContain('failed1');
   });
 
   it('should switch tabs', () => {
@@ -153,7 +153,9 @@ describe('MyPackagesComponent', () => {
   });
 
   it('should show empty state when no active packages', () => {
-    packagesService.getMyPurchases.mockReturnValue(of({ data: [expiredPurchase, failedPurchase], total: 2 }));
+    packagesService.getMyPurchases.mockReturnValue(
+      of({ data: [expiredPurchase, failedPurchase], total: 2 }),
+    );
     component.ngOnInit();
     expect(component.activePurchases().length).toBe(0);
   });

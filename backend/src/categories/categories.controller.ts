@@ -51,18 +51,37 @@ export class CategoriesController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async createCategory(@Body() dto: CreateCategoryDto, @CurrentUser('sub') adminId: string, @Req() req: any) {
+  async createCategory(
+    @Body() dto: CreateCategoryDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
     const cat = await this.categoriesService.create(dto);
-    this.tracker.track(adminId, UserAction.ADMIN_CATEGORY_CREATE, { categoryId: cat._id?.toString(), name: dto.name }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_CATEGORY_CREATE,
+      { categoryId: cat._id?.toString(), name: dto.name },
+      req,
+    );
     return cat;
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async updateCategory(@Param('id') id: string, @Body() dto: UpdateCategoryDto, @CurrentUser('sub') adminId: string, @Req() req: any) {
+  async updateCategory(
+    @Param('id') id: string,
+    @Body() dto: UpdateCategoryDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
     const cat = await this.categoriesService.update(id, dto);
-    this.tracker.track(adminId, UserAction.ADMIN_CATEGORY_UPDATE, { categoryId: id, changes: Object.keys(dto).join(', ') }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_CATEGORY_UPDATE,
+      { categoryId: id, changes: Object.keys(dto).join(', ') },
+      req,
+    );
     return cat;
   }
 
@@ -70,26 +89,61 @@ export class CategoriesController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
   @HttpCode(HttpStatus.NO_CONTENT)
-  async deleteCategory(@Param('id') id: string, @CurrentUser('sub') adminId: string, @Req() req: any) {
+  async deleteCategory(
+    @Param('id') id: string,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
     await this.categoriesService.delete(id);
-    this.tracker.track(adminId, UserAction.ADMIN_CATEGORY_DELETE, { categoryId: id }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_CATEGORY_DELETE,
+      { categoryId: id },
+      req,
+    );
   }
 
   @Patch(':id/attributes')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async updateAttributes(@Param('id') id: string, @Body() dto: UpdateAttributesDto, @CurrentUser('sub') adminId: string, @Req() req: any) {
-    const result = await this.categoriesService.updateAttributes(id, dto.attributes as any);
-    this.tracker.track(adminId, UserAction.ADMIN_CATEGORY_ATTRIBUTES_UPDATE, { categoryId: id, attributeCount: dto.attributes?.length }, req);
+  async updateAttributes(
+    @Param('id') id: string,
+    @Body() dto: UpdateAttributesDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
+    const result = await this.categoriesService.updateAttributes(
+      id,
+      dto.attributes as any,
+    );
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_CATEGORY_ATTRIBUTES_UPDATE,
+      { categoryId: id, attributeCount: dto.attributes?.length },
+      req,
+    );
     return result;
   }
 
   @Patch(':id/features')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles('admin')
-  async updateFeatures(@Param('id') id: string, @Body() dto: UpdateFeaturesDto, @CurrentUser('sub') adminId: string, @Req() req: any) {
-    const result = await this.categoriesService.updateFeatures(id, dto.features);
-    this.tracker.track(adminId, UserAction.ADMIN_CATEGORY_FEATURES_UPDATE, { categoryId: id, featureCount: dto.features?.length }, req);
+  async updateFeatures(
+    @Param('id') id: string,
+    @Body() dto: UpdateFeaturesDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
+    const result = await this.categoriesService.updateFeatures(
+      id,
+      dto.features,
+    );
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_CATEGORY_FEATURES_UPDATE,
+      { categoryId: id, featureCount: dto.features?.length },
+      req,
+    );
     return result;
   }
 }

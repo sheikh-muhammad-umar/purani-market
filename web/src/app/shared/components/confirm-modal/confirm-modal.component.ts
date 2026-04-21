@@ -27,8 +27,8 @@ export class ConfirmModalService {
     });
     this.isOpen.set(true);
 
-    return new Promise<boolean>(resolve => {
-      const sub = this.result$.subscribe(val => {
+    return new Promise<boolean>((resolve) => {
+      const sub = this.result$.subscribe((val) => {
         sub.unsubscribe();
         resolve(val);
       });
@@ -51,14 +51,26 @@ export class ConfirmModalService {
         <div class="confirm-card" [attr.data-variant]="svc.options().variant">
           <div class="confirm-icon">
             <span class="material-symbols-rounded">
-              {{ svc.options().variant === 'danger' ? 'warning' : svc.options().variant === 'warning' ? 'help' : 'info' }}
+              {{
+                svc.options().variant === 'danger'
+                  ? 'warning'
+                  : svc.options().variant === 'warning'
+                    ? 'help'
+                    : 'info'
+              }}
             </span>
           </div>
           <h3 class="confirm-title">{{ svc.options().title }}</h3>
           <p class="confirm-message">{{ svc.options().message }}</p>
           <div class="confirm-actions">
-            <button class="btn-cancel" (click)="svc.respond(false)">{{ svc.options().cancelText }}</button>
-            <button class="btn-confirm" [attr.data-variant]="svc.options().variant" (click)="svc.respond(true)">
+            <button class="btn-cancel" (click)="svc.respond(false)">
+              {{ svc.options().cancelText }}
+            </button>
+            <button
+              class="btn-confirm"
+              [attr.data-variant]="svc.options().variant"
+              (click)="svc.respond(true)"
+            >
               {{ svc.options().confirmText }}
             </button>
           </div>
@@ -66,91 +78,137 @@ export class ConfirmModalService {
       </div>
     }
   `,
-  styles: [`
-    .confirm-overlay {
-      position: fixed;
-      inset: 0;
-      background: rgba(0, 0, 0, 0.45);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 9999;
-      animation: fadeIn 0.15s ease;
-    }
-
-    .confirm-card {
-      background: #fff;
-      border-radius: 12px;
-      padding: 1.75rem;
-      max-width: 400px;
-      width: 90%;
-      text-align: center;
-      box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
-      animation: slideUp 0.2s ease;
-    }
-
-    .confirm-icon {
-      margin-bottom: 0.75rem;
-
-      .material-symbols-rounded {
-        font-size: 2.5rem;
+  styles: [
+    `
+      .confirm-overlay {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.45);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        z-index: 9999;
+        animation: fadeIn 0.15s ease;
       }
 
-      [data-variant="danger"] & .material-symbols-rounded { color: #ef4444; }
-      [data-variant="warning"] & .material-symbols-rounded { color: #f59e0b; }
-      [data-variant="info"] & .material-symbols-rounded { color: #3b82f6; }
-    }
+      .confirm-card {
+        background: #fff;
+        border-radius: 12px;
+        padding: 1.75rem;
+        max-width: 400px;
+        width: 90%;
+        text-align: center;
+        box-shadow: 0 20px 60px rgba(0, 0, 0, 0.15);
+        animation: slideUp 0.2s ease;
+      }
 
-    .confirm-title {
-      margin: 0 0 0.5rem;
-      font-size: 1.1rem;
-      font-weight: 600;
-      color: #111;
-    }
+      .confirm-icon {
+        margin-bottom: 0.75rem;
 
-    .confirm-message {
-      margin: 0 0 1.5rem;
-      font-size: 0.9rem;
-      color: #555;
-      line-height: 1.5;
-    }
+        .material-symbols-rounded {
+          font-size: 2.5rem;
+        }
 
-    .confirm-actions {
-      display: flex;
-      gap: 0.75rem;
-      justify-content: center;
-    }
+        [data-variant='danger'] & .material-symbols-rounded {
+          color: #ef4444;
+        }
+        [data-variant='warning'] & .material-symbols-rounded {
+          color: #f59e0b;
+        }
+        [data-variant='info'] & .material-symbols-rounded {
+          color: #3b82f6;
+        }
+      }
 
-    .btn-cancel, .btn-confirm {
-      padding: 0.5rem 1.25rem;
-      border-radius: 6px;
-      font-size: 0.875rem;
-      font-weight: 500;
-      cursor: pointer;
-      border: none;
-      transition: background 0.15s, transform 0.1s;
+      .confirm-title {
+        margin: 0 0 0.5rem;
+        font-size: 1.1rem;
+        font-weight: 600;
+        color: #111;
+      }
 
-      &:active { transform: scale(0.97); }
-    }
+      .confirm-message {
+        margin: 0 0 1.5rem;
+        font-size: 0.9rem;
+        color: #555;
+        line-height: 1.5;
+      }
 
-    .btn-cancel {
-      background: #f3f4f6;
-      color: #374151;
+      .confirm-actions {
+        display: flex;
+        gap: 0.75rem;
+        justify-content: center;
+      }
 
-      &:hover { background: #e5e7eb; }
-    }
+      .btn-cancel,
+      .btn-confirm {
+        padding: 0.5rem 1.25rem;
+        border-radius: 6px;
+        font-size: 0.875rem;
+        font-weight: 500;
+        cursor: pointer;
+        border: none;
+        transition:
+          background 0.15s,
+          transform 0.1s;
 
-    .btn-confirm {
-      color: #fff;
+        &:active {
+          transform: scale(0.97);
+        }
+      }
 
-      &[data-variant="danger"] { background: #ef4444; &:hover { background: #dc2626; } }
-      &[data-variant="warning"] { background: #f59e0b; &:hover { background: #d97706; } }
-      &[data-variant="info"] { background: #3b82f6; &:hover { background: #2563eb; } }
-    }
+      .btn-cancel {
+        background: #f3f4f6;
+        color: #374151;
 
-    @keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
-    @keyframes slideUp { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
-  `],
+        &:hover {
+          background: #e5e7eb;
+        }
+      }
+
+      .btn-confirm {
+        color: #fff;
+
+        &[data-variant='danger'] {
+          background: #ef4444;
+          &:hover {
+            background: #dc2626;
+          }
+        }
+        &[data-variant='warning'] {
+          background: #f59e0b;
+          &:hover {
+            background: #d97706;
+          }
+        }
+        &[data-variant='info'] {
+          background: #3b82f6;
+          &:hover {
+            background: #2563eb;
+          }
+        }
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+        }
+        to {
+          opacity: 1;
+        }
+      }
+      @keyframes slideUp {
+        from {
+          opacity: 0;
+          transform: translateY(10px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+    `,
+  ],
 })
 export class ConfirmModalComponent {
   constructor(readonly svc: ConfirmModalService) {}

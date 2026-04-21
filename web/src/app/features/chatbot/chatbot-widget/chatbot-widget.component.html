@@ -32,10 +32,7 @@
           <p class="chatbot-welcome__text">Hi! How can I help you today?</p>
           <div class="chatbot-welcome__actions">
             @for (action of quickActions; track action.label) {
-              <button
-                class="quick-action-btn"
-                (click)="sendQuickAction(action)"
-              >
+              <button class="quick-action-btn" (click)="sendQuickAction(action)">
                 {{ action.label }}
               </button>
             }
@@ -65,9 +62,7 @@
 
       <!-- Escalation notice -->
       @if (escalated()) {
-        <div class="escalation-notice">
-          A support agent will follow up with you shortly.
-        </div>
+        <div class="escalation-notice">A support agent will follow up with you shortly.</div>
       }
     </div>
 

@@ -8,7 +8,13 @@ import {
   AdminPurchasesParams,
 } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
-import { AdPackage, PackagePurchase, PackageType, PaymentStatus, CategoryPricing } from '../../../core/models';
+import {
+  AdPackage,
+  PackagePurchase,
+  PackageType,
+  PaymentStatus,
+  CategoryPricing,
+} from '../../../core/models';
 import { Category } from '../../../core/models/category.model';
 import {
   PACKAGE_TYPE_OPTIONS,
@@ -17,7 +23,10 @@ import {
   PAYMENT_STATUS_OPTIONS,
 } from '../../../core/constants/select-options';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
-import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
+import {
+  CustomSelectComponent,
+  SelectOption,
+} from '../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-package-manager',
@@ -41,7 +50,7 @@ export class PackageManagerComponent implements OnInit {
 
   readonly categoryOptions = computed<SelectOption[]>(() => [
     { value: '', label: 'Select category' },
-    ...this.categories().map(c => ({ value: c._id, label: c.name })),
+    ...this.categories().map((c) => ({ value: c._id, label: c.name })),
   ]);
 
   activeTab: 'packages' | 'purchases' = 'packages';
@@ -91,7 +100,7 @@ export class PackageManagerComponent implements OnInit {
     this.error.set(null);
     this.adminService.getAdminPackages().subscribe({
       next: (res: any) => {
-        const unwrapped = (res && res.data && res.statusCode) ? res.data : res;
+        const unwrapped = res && res.data && res.statusCode ? res.data : res;
         this.packages.set(unwrapped.data ?? unwrapped ?? []);
         this.loading.set(false);
       },
@@ -123,7 +132,7 @@ export class PackageManagerComponent implements OnInit {
 
     this.adminService.getAdminPurchases(params).subscribe({
       next: (res: any) => {
-        const unwrapped = (res && res.data && res.statusCode) ? res.data : res;
+        const unwrapped = res && res.data && res.statusCode ? res.data : res;
         this.purchases.set(unwrapped.data ?? unwrapped ?? []);
         this.purchasesTotal.set(unwrapped.total ?? 0);
         this.loading.set(false);
@@ -182,8 +191,10 @@ export class PackageManagerComponent implements OnInit {
     };
     if (this.formCategoryPricing.length > 0) {
       payload.categoryPricing = this.formCategoryPricing
-        .flatMap(cp => cp.categoryIds.filter(id => id).map(id => ({ categoryId: id, price: cp.price })))
-        .filter(cp => cp.price > 0);
+        .flatMap((cp) =>
+          cp.categoryIds.filter((id) => id).map((id) => ({ categoryId: id, price: cp.price })),
+        )
+        .filter((cp) => cp.price > 0);
     }
     this.saving.set(true);
     this.adminService.createPackage(payload).subscribe({
@@ -209,8 +220,10 @@ export class PackageManagerComponent implements OnInit {
       defaultPrice: this.formDefaultPrice,
       isActive: this.formIsActive,
       categoryPricing: this.formCategoryPricing
-        .flatMap(cp => cp.categoryIds.filter(id => id).map(id => ({ categoryId: id, price: cp.price })))
-        .filter(cp => cp.price > 0),
+        .flatMap((cp) =>
+          cp.categoryIds.filter((id) => id).map((id) => ({ categoryId: id, price: cp.price })),
+        )
+        .filter((cp) => cp.price > 0),
     };
     this.saving.set(true);
     this.adminService.updatePackage(this.editingPackage._id, payload).subscribe({
@@ -248,7 +261,7 @@ export class PackageManagerComponent implements OnInit {
   }
 
   getCategoryName(catId: string): string {
-    return this.categories().find(c => c._id === catId)?.name ?? catId;
+    return this.categories().find((c) => c._id === catId)?.name ?? catId;
   }
 
   togglePackageExpand(pkgId: string): void {
@@ -280,7 +293,9 @@ export class PackageManagerComponent implements OnInit {
     }));
   }
 
-  private groupCategoryPricing(flat: { categoryId: string; price: number }[]): { categoryIds: string[]; price: number }[] {
+  private groupCategoryPricing(
+    flat: { categoryId: string; price: number }[],
+  ): { categoryIds: string[]; price: number }[] {
     const groups = new Map<number, string[]>();
     for (const cp of flat) {
       const existing = groups.get(cp.price);
@@ -296,7 +311,7 @@ export class PackageManagerComponent implements OnInit {
   filteredCategoriesForRow(index: number): Category[] {
     const q = (this.pricingCatSearch[index] || '').toLowerCase().trim();
     if (!q) return this.categories();
-    return this.categories().filter(c => c.name.toLowerCase().includes(q));
+    return this.categories().filter((c) => c.name.toLowerCase().includes(q));
   }
 
   // --- Purchase Filters ---
@@ -343,11 +358,14 @@ export class PackageManagerComponent implements OnInit {
       this.pkgSortDir = 'asc';
     }
     const dir = this.pkgSortDir === 'asc' ? 1 : -1;
-    this.packages.update(pkgs => [...pkgs].sort((a: any, b: any) => {
-      const va = a[col]; const vb = b[col];
-      if (typeof va === 'string') return va.localeCompare(vb) * dir;
-      return ((va ?? 0) - (vb ?? 0)) * dir;
-    }));
+    this.packages.update((pkgs) =>
+      [...pkgs].sort((a: any, b: any) => {
+        const va = a[col];
+        const vb = b[col];
+        if (typeof va === 'string') return va.localeCompare(vb) * dir;
+        return ((va ?? 0) - (vb ?? 0)) * dir;
+      }),
+    );
   }
 
   sortIcon(col: string, currentCol: string, currentDir: string): string {

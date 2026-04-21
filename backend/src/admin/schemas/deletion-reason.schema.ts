@@ -20,4 +20,5 @@ export class DeletionReason {
   updatedAt!: Date;
 }
 
-export const DeletionReasonSchema = SchemaFactory.createForClass(DeletionReason);
+export const DeletionReasonSchema =
+  SchemaFactory.createForClass(DeletionReason);

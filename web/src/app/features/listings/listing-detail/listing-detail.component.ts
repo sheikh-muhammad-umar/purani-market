@@ -108,7 +108,9 @@ export class ListingDetailComponent implements OnInit {
         this.averageRating.set(res.averageRating);
         this.totalReviews.set(res.total);
       },
-      error: () => { /* silently fail for reviews */ },
+      error: () => {
+        /* silently fail for reviews */
+      },
     });
   }
 
@@ -116,11 +118,11 @@ export class ListingDetailComponent implements OnInit {
     this.listingsService.getByCategory(categoryId, 1, 8).subscribe({
       next: (res: ListingsResponse) => {
         const currentId = this.listing()?._id;
-        this.similarListings.set(
-          res.data.filter(l => l._id !== currentId).slice(0, 6)
-        );
+        this.similarListings.set(res.data.filter((l) => l._id !== currentId).slice(0, 6));
       },
-      error: () => { /* silently fail */ },
+      error: () => {
+        /* silently fail */
+      },
     });
   }
 
@@ -128,7 +130,7 @@ export class ListingDetailComponent implements OnInit {
     if (!this.authService.isAuthenticated()) return;
     this.favoritesService.getAll().subscribe({
       next: (res) => {
-        const favorites = Array.isArray(res) ? res : res.data ?? [];
+        const favorites = Array.isArray(res) ? res : (res.data ?? []);
         const fav = favorites.find((f: any) => {
           const pid = f.productListingId;
           const id = typeof pid === 'string' ? pid : pid?._id;
@@ -137,7 +139,9 @@ export class ListingDetailComponent implements OnInit {
         this.isFavorited.set(!!fav);
         this.favoriteId.set(fav?._id ?? null);
       },
-      error: () => { /* not logged in or error */ },
+      error: () => {
+        /* not logged in or error */
+      },
     });
   }
 
@@ -198,7 +202,7 @@ export class ListingDetailComponent implements OnInit {
   nextImage(): void {
     const images = this.listing()?.images ?? [];
     if (this.currentImageIndex() < images.length - 1) {
-      this.currentImageIndex.update(i => i + 1);
+      this.currentImageIndex.update((i) => i + 1);
     }
   }
 
@@ -214,7 +218,7 @@ export class ListingDetailComponent implements OnInit {
 
   prevImage(): void {
     if (this.currentImageIndex() > 0) {
-      this.currentImageIndex.update(i => i - 1);
+      this.currentImageIndex.update((i) => i - 1);
     }
   }
 
@@ -229,7 +233,7 @@ export class ListingDetailComponent implements OnInit {
   }
 
   formatLabel(key: string): string {
-    return key.replace(/_/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+    return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
   }
 
   getFeatureTags(attrs: Record<string, unknown> | undefined): string[] {
@@ -237,7 +241,7 @@ export class ListingDetailComponent implements OnInit {
     const tags: string[] = [];
     for (const [key, value] of Object.entries(attrs)) {
       if (Array.isArray(value)) {
-        tags.push(...value.map(v => String(v)));
+        tags.push(...value.map((v) => String(v)));
       } else if (value === true) {
         tags.push(this.formatLabel(key));
       }
@@ -285,8 +289,14 @@ export class ListingDetailComponent implements OnInit {
     // On mobile with native share API, use it directly
     if (navigator.share) {
       try {
-        await navigator.share({ title: l.title, text: `Check out: ${l.title}`, url: window.location.href });
-      } catch { /* user cancelled */ }
+        await navigator.share({
+          title: l.title,
+          text: `Check out: ${l.title}`,
+          url: window.location.href,
+        });
+      } catch {
+        /* user cancelled */
+      }
     } else {
       // Desktop: show share popup
       this.sharePopupOpen.set(true);

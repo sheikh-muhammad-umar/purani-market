@@ -1,4 +1,12 @@
-import { IsOptional, IsString, IsEnum, IsInt, Min, Max, IsDateString } from 'class-validator';
+import {
+  IsOptional,
+  IsString,
+  IsEnum,
+  IsInt,
+  Min,
+  Max,
+  IsDateString,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 import { UserRole, UserStatus } from '../../users/schemas/user.schema.js';
 

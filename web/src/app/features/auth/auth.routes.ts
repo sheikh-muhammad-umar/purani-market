@@ -5,35 +5,35 @@ export const AUTH_ROUTES: Routes = [
   {
     path: 'login',
     canActivate: [guestGuard],
-    loadComponent: () => import('./login/login.component').then(m => m.LoginComponent),
+    loadComponent: () => import('./login/login.component').then((m) => m.LoginComponent),
   },
   {
     path: 'register',
     canActivate: [guestGuard],
-    loadComponent: () => import('./register/register.component').then(m => m.RegisterComponent),
+    loadComponent: () => import('./register/register.component').then((m) => m.RegisterComponent),
   },
   {
     path: 'forgot-password',
     loadComponent: () =>
-      import('./forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
+      import('./forgot-password/forgot-password.component').then((m) => m.ForgotPasswordComponent),
   },
   {
     path: 'reset-password',
     loadComponent: () =>
-      import('./reset-password/reset-password.component').then(m => m.ResetPasswordComponent),
+      import('./reset-password/reset-password.component').then((m) => m.ResetPasswordComponent),
   },
   {
     path: 'verify-email',
     loadComponent: () =>
-      import('./verify-email/verify-email.component').then(m => m.VerifyEmailComponent),
+      import('./verify-email/verify-email.component').then((m) => m.VerifyEmailComponent),
   },
   {
     path: 'verify-phone',
     loadComponent: () =>
-      import('./verify-phone/verify-phone.component').then(m => m.VerifyPhoneComponent),
+      import('./verify-phone/verify-phone.component').then((m) => m.VerifyPhoneComponent),
   },
   {
     path: 'mfa',
-    loadComponent: () => import('./mfa/mfa.component').then(m => m.MfaComponent),
+    loadComponent: () => import('./mfa/mfa.component').then((m) => m.MfaComponent),
   },
 ];

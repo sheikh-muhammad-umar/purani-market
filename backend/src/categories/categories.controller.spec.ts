@@ -57,7 +57,13 @@ describe('CategoriesController', () => {
     parentId: rootId,
     level: 2,
     attributes: [
-      { name: 'Brand', key: 'brand', type: 'select', options: ['Apple', 'Samsung'], required: true },
+      {
+        name: 'Brand',
+        key: 'brand',
+        type: 'select',
+        options: ['Apple', 'Samsung'],
+        required: true,
+      },
     ],
     features: ['Charger', 'Box'],
     isActive: true,
@@ -135,11 +141,20 @@ describe('CategoriesController', () => {
     it('should update category attributes', async () => {
       const dto = {
         attributes: [
-          { name: 'Storage', key: 'storage', type: 'select', options: ['64GB', '128GB'], required: false },
+          {
+            name: 'Storage',
+            key: 'storage',
+            type: 'select',
+            options: ['64GB', '128GB'],
+            required: false,
+          },
         ],
       };
       const result = await controller.updateAttributes(childId, dto as any);
-      expect(categoriesService.updateAttributes).toHaveBeenCalledWith(childId, dto.attributes);
+      expect(categoriesService.updateAttributes).toHaveBeenCalledWith(
+        childId,
+        dto.attributes,
+      );
     });
   });
 
@@ -147,23 +162,35 @@ describe('CategoriesController', () => {
     it('should update category features', async () => {
       const dto = { features: ['ABS', 'Air Bags'] };
       const result = await controller.updateFeatures(childId, dto as any);
-      expect(categoriesService.updateFeatures).toHaveBeenCalledWith(childId, dto.features);
+      expect(categoriesService.updateFeatures).toHaveBeenCalledWith(
+        childId,
+        dto.features,
+      );
     });
   });
 
   describe('Admin-only endpoint guards', () => {
     it('should have Roles("admin") on createCategory', () => {
-      const roles = Reflect.getMetadata('roles', CategoriesController.prototype.createCategory);
+      const roles = Reflect.getMetadata(
+        'roles',
+        CategoriesController.prototype.createCategory,
+      );
       expect(roles).toEqual(['admin']);
     });
 
     it('should have Roles("admin") on updateAttributes', () => {
-      const roles = Reflect.getMetadata('roles', CategoriesController.prototype.updateAttributes);
+      const roles = Reflect.getMetadata(
+        'roles',
+        CategoriesController.prototype.updateAttributes,
+      );
       expect(roles).toEqual(['admin']);
     });
 
     it('should have Roles("admin") on updateFeatures', () => {
-      const roles = Reflect.getMetadata('roles', CategoriesController.prototype.updateFeatures);
+      const roles = Reflect.getMetadata(
+        'roles',
+        CategoriesController.prototype.updateFeatures,
+      );
       expect(roles).toEqual(['admin']);
     });
   });

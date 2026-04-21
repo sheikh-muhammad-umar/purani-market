@@ -6,7 +6,11 @@ import { Model, Types } from 'mongoose';
 import Redis from 'ioredis';
 import { CategoriesService } from '../categories/categories.service.js';
 import { AttributeType } from '../categories/schemas/category.schema.js';
-import { ProductListing, ProductListingDocument, ListingStatus } from '../listings/schemas/product-listing.schema.js';
+import {
+  ProductListing,
+  ProductListingDocument,
+  ListingStatus,
+} from '../listings/schemas/product-listing.schema.js';
 import { LISTINGS_INDEX } from './search-index.service.js';
 import { SearchSyncService } from './search-sync.service.js';
 import { SearchQueryDto, SearchSortOption } from './dto/search-query.dto.js';
@@ -50,7 +54,8 @@ export class SearchService {
     try {
       const from = (page - 1) * limit;
       const baseQuery = await this.buildSearchQuery(query);
-      const boostedQuery = this.searchSyncService.buildFeaturedBoostQuery(baseQuery);
+      const boostedQuery =
+        this.searchSyncService.buildFeaturedBoostQuery(baseQuery);
       const sortClause = this.buildSortClause(query.sort);
 
       const response = await this.esService.search({
@@ -65,7 +70,7 @@ export class SearchService {
       const total =
         typeof response.hits.total === 'number'
           ? response.hits.total
-          : response.hits.total?.value ?? 0;
+          : (response.hits.total?.value ?? 0);
 
       // If ES has no data at all (index empty), fall back to MongoDB
       if (total === 0 && !query.q) {
@@ -90,8 +95,13 @@ export class SearchService {
       const missingLocation = items.some((item: any) => !item.location?.city);
       if (missingLocation && items.length > 0) {
         const ids = items.map((item: any) => new Types.ObjectId(item._id));
-        const dbListings = await this.listingModel.find({ _id: { $in: ids } }).lean().exec();
-        const dbMap = new Map(dbListings.map((l: any) => [l._id.toString(), l]));
+        const dbListings = await this.listingModel
+          .find({ _id: { $in: ids } })
+          .lean()
+          .exec();
+        const dbMap = new Map(
+          dbListings.map((l: any) => [l._id.toString(), l]),
+        );
         for (const item of items) {
           const dbItem = dbMap.get(item._id);
           if (dbItem?.location) {
@@ -137,7 +147,11 @@ export class SearchService {
     }
   }
 
-  private async mongoFallbackSearch(query: SearchQueryDto, page: number, limit: number): Promise<SearchResult> {
+  private async mongoFallbackSearch(
+    query: SearchQueryDto,
+    page: number,
+    limit: number,
+  ): Promise<SearchResult> {
     const filter: Record<string, any> = {
       status: ListingStatus.ACTIVE,
       deletedAt: { $exists: false },
@@ -164,7 +178,9 @@ export class SearchService {
     if (query.provinceId) {
       filter['location.provinceId'] = new Types.ObjectId(query.provinceId);
     } else if (query.province) {
-      filter['location.province'] = { $regex: new RegExp(`^${query.province}$`, 'i') };
+      filter['location.province'] = {
+        $regex: new RegExp(`^${query.province}$`, 'i'),
+      };
     }
     if (query.cityId) {
       filter['location.cityId'] = new Types.ObjectId(query.cityId);
@@ -177,7 +193,9 @@ export class SearchService {
       filter['location.area'] = { $regex: new RegExp(`^${query.area}$`, 'i') };
     }
     if (query.blockPhase) {
-      filter['location.blockPhase'] = { $regex: new RegExp(`^${query.blockPhase}$`, 'i') };
+      filter['location.blockPhase'] = {
+        $regex: new RegExp(`^${query.blockPhase}$`, 'i'),
+      };
     }
 
     if (query.priceMin || query.priceMax) {
@@ -187,13 +205,22 @@ export class SearchService {
     }
 
     let sortObj: Record<string, 1 | -1> = { isFeatured: -1, createdAt: -1 };
-    if (query.sort === 'price_asc') sortObj = { isFeatured: -1, 'price.amount': 1 };
-    else if (query.sort === 'price_desc') sortObj = { isFeatured: -1, 'price.amount': -1 };
-    else if (query.sort === 'newest') sortObj = { isFeatured: -1, createdAt: -1 };
+    if (query.sort === 'price_asc')
+      sortObj = { isFeatured: -1, 'price.amount': 1 };
+    else if (query.sort === 'price_desc')
+      sortObj = { isFeatured: -1, 'price.amount': -1 };
+    else if (query.sort === 'newest')
+      sortObj = { isFeatured: -1, createdAt: -1 };
 
     const skip = (page - 1) * limit;
     const [items, total] = await Promise.all([
-      this.listingModel.find(filter).sort(sortObj).skip(skip).limit(limit).lean().exec(),
+      this.listingModel
+        .find(filter)
+        .sort(sortObj)
+        .skip(skip)
+        .limit(limit)
+        .lean()
+        .exec(),
       this.listingModel.countDocuments(filter).exec(),
     ]);
 
@@ -278,7 +305,9 @@ export class SearchService {
             term.toLowerCase().includes(query.q!.toLowerCase()) &&
             !uniqueSuggestions.includes(term),
         );
-        uniqueSuggestions.push(...filtered.slice(0, 5 - uniqueSuggestions.length));
+        uniqueSuggestions.push(
+          ...filtered.slice(0, 5 - uniqueSuggestions.length),
+        );
       }
 
       return { suggestions: uniqueSuggestions };
@@ -434,12 +463,13 @@ export class SearchService {
             break;
           }
           case AttributeType.MULTISELECT: {
-            esFilters.push({ terms: { [attrPath]: Array.isArray(value) ? value : [value] } });
+            esFilters.push({
+              terms: { [attrPath]: Array.isArray(value) ? value : [value] },
+            });
             break;
           }
           case AttributeType.BOOLEAN: {
-            const boolVal =
-              value === true || value === 'true' || value === 1;
+            const boolVal = value === true || value === 'true' || value === 1;
             esFilters.push({ term: { [attrPath]: boolVal } });
             break;
           }
@@ -545,9 +575,7 @@ export class SearchService {
 
         const buckets =
           (catResponse.aggregations?.related_categories as any)?.buckets || [];
-        relatedCategories.push(
-          ...buckets.map((b: any) => b.key as string),
-        );
+        relatedCategories.push(...buckets.map((b: any) => b.key as string));
       } catch {
         // Ignore aggregation errors
       }

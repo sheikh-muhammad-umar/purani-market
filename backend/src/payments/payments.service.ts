@@ -1,5 +1,9 @@
 import { Injectable, BadRequestException } from '@nestjs/common';
-import { PaymentGateway, PaymentInitResult, PaymentVerifyResult } from './interfaces/payment-gateway.interface.js';
+import {
+  PaymentGateway,
+  PaymentInitResult,
+  PaymentVerifyResult,
+} from './interfaces/payment-gateway.interface.js';
 import { JazzCashGateway } from './gateways/jazzcash.gateway.js';
 import { EasyPaisaGateway } from './gateways/easypaisa.gateway.js';
 import { CardGateway } from './gateways/card.gateway.js';

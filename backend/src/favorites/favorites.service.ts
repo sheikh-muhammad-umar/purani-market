@@ -64,7 +64,8 @@ export class FavoritesService {
       .find({ userId: new Types.ObjectId(userId) })
       .populate({
         path: 'productListingId',
-        select: 'title price status images condition location createdAt isFeatured',
+        select:
+          'title price status images condition location createdAt isFeatured',
       })
       .sort({ createdAt: -1 })
       .exec();
@@ -81,7 +82,9 @@ export class FavoritesService {
     }
 
     if (favorite.userId.toString() !== userId) {
-      throw new ForbiddenException('You are not authorized to remove this favorite');
+      throw new ForbiddenException(
+        'You are not authorized to remove this favorite',
+      );
     }
 
     await this.favoriteModel.deleteOne({ _id: favorite._id }).exec();

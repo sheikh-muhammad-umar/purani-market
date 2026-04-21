@@ -2,7 +2,11 @@ import { of, throwError, Subject, BehaviorSubject } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { convertToParamMap, ParamMap } from '@angular/router';
 import { SearchResultsComponent, SortOption, ActiveFilter } from './search-results.component';
-import { SearchService, SearchResponse, SearchSuggestion } from '../../../core/services/search.service';
+import {
+  SearchService,
+  SearchResponse,
+  SearchSuggestion,
+} from '../../../core/services/search.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category, Listing, CategoryAttribute } from '../../../core/models';
 
@@ -22,7 +26,12 @@ function makeListing(overrides: Partial<Listing> = {}): Listing {
       { url: 'https://img.test/1.jpg', thumbnailUrl: 'https://img.test/1_thumb.jpg', sortOrder: 0 },
     ],
     video: undefined,
-    location: overrides.location ?? { type: 'Point', coordinates: [74.3, 31.5], city: 'Lahore', area: 'Gulberg' },
+    location: overrides.location ?? {
+      type: 'Point',
+      coordinates: [74.3, 31.5],
+      city: 'Lahore',
+      area: 'Gulberg',
+    },
     contactInfo: { phone: '03001234567', email: 'test@test.com' },
     status: 'active',
     isFeatured: overrides.isFeatured ?? false,
@@ -88,14 +97,31 @@ describe('SearchResultsComponent', () => {
 
     categoriesServiceMock = {
       getAll: vi.fn().mockReturnValue(of(mockCategories)),
-      getById: vi.fn().mockReturnValue(of(makeCategory({
-        _id: 'c1',
-        name: 'Cars',
-        attributes: [
-          { name: 'Make', key: 'make', type: 'select' as const, options: ['Toyota', 'Honda', 'BMW'], required: false },
-          { name: 'Mileage', key: 'mileage', type: 'range' as const, rangeMin: 0, rangeMax: 500000, required: false },
-        ],
-      }))),
+      getById: vi.fn().mockReturnValue(
+        of(
+          makeCategory({
+            _id: 'c1',
+            name: 'Cars',
+            attributes: [
+              {
+                name: 'Make',
+                key: 'make',
+                type: 'select' as const,
+                options: ['Toyota', 'Honda', 'BMW'],
+                required: false,
+              },
+              {
+                name: 'Mileage',
+                key: 'mileage',
+                type: 'range' as const,
+                rangeMin: 0,
+                rangeMax: 500000,
+                required: false,
+              },
+            ],
+          }),
+        ),
+      ),
     };
 
     routerMock = { navigate: vi.fn() };
@@ -203,17 +229,22 @@ describe('SearchResultsComponent', () => {
 
     const filters = component.buildActiveFilters();
     expect(filters.length).toBe(5);
-    expect(filters.find(f => f.key === 'category')?.displayValue).toBe('Cars');
-    expect(filters.find(f => f.key === 'condition')?.displayValue).toBe('Used');
-    expect(filters.find(f => f.key === 'minPrice')?.displayValue).toBe('Min: PKR 1000');
-    expect(filters.find(f => f.key === 'maxPrice')?.displayValue).toBe('Max: PKR 50000');
-    expect(filters.find(f => f.key === 'make')?.displayValue).toBe('Make: Toyota');
+    expect(filters.find((f) => f.key === 'category')?.displayValue).toBe('Cars');
+    expect(filters.find((f) => f.key === 'condition')?.displayValue).toBe('Used');
+    expect(filters.find((f) => f.key === 'minPrice')?.displayValue).toBe('Min: PKR 1000');
+    expect(filters.find((f) => f.key === 'maxPrice')?.displayValue).toBe('Max: PKR 50000');
+    expect(filters.find((f) => f.key === 'make')?.displayValue).toBe('Make: Toyota');
   });
 
   it('should remove a filter chip', () => {
     component.ngOnInit();
     component.selectedCondition.set('new');
-    const filter: ActiveFilter = { key: 'condition', label: 'Condition', value: 'new', displayValue: 'New' };
+    const filter: ActiveFilter = {
+      key: 'condition',
+      label: 'Condition',
+      value: 'new',
+      displayValue: 'New',
+    };
     component.removeFilter(filter);
     expect(component.selectedCondition()).toBe('');
   });
@@ -221,7 +252,12 @@ describe('SearchResultsComponent', () => {
   it('should remove category filter chip', () => {
     component.ngOnInit();
     component.selectedCategoryId.set('c1');
-    const filter: ActiveFilter = { key: 'category', label: 'Category', value: 'c1', displayValue: 'Cars' };
+    const filter: ActiveFilter = {
+      key: 'category',
+      label: 'Category',
+      value: 'c1',
+      displayValue: 'Cars',
+    };
     component.removeFilter(filter);
     expect(component.selectedCategoryId()).toBe('');
   });
@@ -230,9 +266,19 @@ describe('SearchResultsComponent', () => {
     component.ngOnInit();
     component.minPrice.set(500);
     component.maxPrice.set(10000);
-    component.removeFilter({ key: 'minPrice', label: 'Min Price', value: '500', displayValue: 'Min: PKR 500' });
+    component.removeFilter({
+      key: 'minPrice',
+      label: 'Min Price',
+      value: '500',
+      displayValue: 'Min: PKR 500',
+    });
     expect(component.minPrice()).toBeNull();
-    component.removeFilter({ key: 'maxPrice', label: 'Max Price', value: '10000', displayValue: 'Max: PKR 10000' });
+    component.removeFilter({
+      key: 'maxPrice',
+      label: 'Max Price',
+      value: '10000',
+      displayValue: 'Max: PKR 10000',
+    });
     expect(component.maxPrice()).toBeNull();
   });
 
@@ -318,11 +364,18 @@ describe('SearchResultsComponent', () => {
 
   it('should have correct sort options', () => {
     expect(component.sortOptions.length).toBe(4);
-    expect(component.sortOptions.map(o => o.value)).toEqual(['relevance', 'price_asc', 'price_desc', 'newest']);
+    expect(component.sortOptions.map((o) => o.value)).toEqual([
+      'relevance',
+      'price_asc',
+      'price_desc',
+      'newest',
+    ]);
   });
 
   it('should parse category from query params and load filters', () => {
-    queryParamSubject = new BehaviorSubject<ParamMap>(convertToParamMap({ q: 'car', category: 'c1' }));
+    queryParamSubject = new BehaviorSubject<ParamMap>(
+      convertToParamMap({ q: 'car', category: 'c1' }),
+    );
     routeMock = { queryParamMap: queryParamSubject };
     component = new SearchResultsComponent(
       routeMock as any,
@@ -337,7 +390,7 @@ describe('SearchResultsComponent', () => {
 
   it('should parse sort and price from query params', () => {
     queryParamSubject = new BehaviorSubject<ParamMap>(
-      convertToParamMap({ q: 'phone', sort: 'price_desc', minPrice: '500', maxPrice: '10000' })
+      convertToParamMap({ q: 'phone', sort: 'price_desc', minPrice: '500', maxPrice: '10000' }),
     );
     routeMock = { queryParamMap: queryParamSubject };
     component = new SearchResultsComponent(

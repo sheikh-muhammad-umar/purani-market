@@ -96,23 +96,21 @@ describe('UserManagementComponent', () => {
     component.searchQuery = 'alice';
     component.onSearch();
     expect(adminService.getUsers).toHaveBeenCalledWith(
-      expect.objectContaining({ search: 'alice', page: 1 })
+      expect.objectContaining({ search: 'alice', page: 1 }),
     );
   });
 
   it('should pass role filter as param', () => {
     component.roleFilter = 'seller';
     component.applyFilters();
-    expect(adminService.getUsers).toHaveBeenCalledWith(
-      expect.objectContaining({ role: 'seller' })
-    );
+    expect(adminService.getUsers).toHaveBeenCalledWith(expect.objectContaining({ role: 'seller' }));
   });
 
   it('should pass status filter as param', () => {
     component.statusFilter = 'suspended';
     component.applyFilters();
     expect(adminService.getUsers).toHaveBeenCalledWith(
-      expect.objectContaining({ status: 'suspended' })
+      expect.objectContaining({ status: 'suspended' }),
     );
   });
 

@@ -10,7 +10,11 @@ describe('LocationController', () => {
 
   const mockNearbyResult = {
     data: [
-      { _id: 'listing1', title: 'Nearby 1', location: { type: 'Point', coordinates: [74.35, 31.52] } },
+      {
+        _id: 'listing1',
+        title: 'Nearby 1',
+        location: { type: 'Point', coordinates: [74.35, 31.52] },
+      },
     ],
     total: 1,
     page: 1,
@@ -49,9 +53,16 @@ describe('LocationController', () => {
         lng: 74.35,
       });
 
-      expect(mockLocationService.validateCoordinates).toHaveBeenCalledWith(31.52, 74.35);
+      expect(mockLocationService.validateCoordinates).toHaveBeenCalledWith(
+        31.52,
+        74.35,
+      );
       expect(mockLocationService.findNearby).toHaveBeenCalledWith(
-        31.52, 74.35, undefined, undefined, undefined,
+        31.52,
+        74.35,
+        undefined,
+        undefined,
+        undefined,
       );
       expect(result).toEqual(mockNearbyResult);
     });
@@ -66,7 +77,11 @@ describe('LocationController', () => {
       });
 
       expect(mockLocationService.findNearby).toHaveBeenCalledWith(
-        31.52, 74.35, 50, 10, 2,
+        31.52,
+        74.35,
+        50,
+        10,
+        2,
       );
     });
 

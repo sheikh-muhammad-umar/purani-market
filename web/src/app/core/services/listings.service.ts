@@ -20,9 +20,14 @@ export interface CreateListingPayload {
   categoryAttributes: Record<string, unknown>;
   selectedFeatures?: string[];
   location: {
-    provinceId?: string; cityId?: string; areaId?: string;
-    city?: string; province?: string; area?: string;
-    blockPhase?: string; coordinates?: [number, number];
+    provinceId?: string;
+    cityId?: string;
+    areaId?: string;
+    city?: string;
+    province?: string;
+    area?: string;
+    blockPhase?: string;
+    coordinates?: [number, number];
   };
   contactInfo?: { phone: string; email: string };
   isFeatured?: boolean;
@@ -41,7 +46,9 @@ export class ListingsService {
     return this.api.get<ListingsResponse>('/listings/featured', { limit });
   }
 
-  getFeaturedFiltered(params: { category?: string; city?: string; limit?: number } = {}): Observable<ListingsResponse> {
+  getFeaturedFiltered(
+    params: { category?: string; city?: string; limit?: number } = {},
+  ): Observable<ListingsResponse> {
     const clean: Record<string, string | number> = {};
     if (params.category) clean['category'] = params.category;
     if (params.limit) clean['limit'] = params.limit;
@@ -65,7 +72,12 @@ export class ListingsService {
     return this.api.get<ListingsResponse>('/listings/featured', clean);
   }
 
-  getNearby(lat: number, lng: number, radius: number = 25, limit: number = 12): Observable<ListingsResponse> {
+  getNearby(
+    lat: number,
+    lng: number,
+    radius: number = 25,
+    limit: number = 12,
+  ): Observable<ListingsResponse> {
     return this.api.get<ListingsResponse>('/listings', {
       lat,
       lng,
@@ -75,7 +87,13 @@ export class ListingsService {
     });
   }
 
-  getByCategory(categoryId: string, page: number = 1, limit: number = 20, sort?: string, order?: 'asc' | 'desc'): Observable<ListingsResponse> {
+  getByCategory(
+    categoryId: string,
+    page: number = 1,
+    limit: number = 20,
+    sort?: string,
+    order?: 'asc' | 'desc',
+  ): Observable<ListingsResponse> {
     const params: Record<string, string | number> = {
       categoryId,
       page,
@@ -143,6 +161,12 @@ export class ListingsService {
   }
 
   getBySeller(sellerId: string, page = 1, limit = 50): Observable<ListingsResponse> {
-    return this.api.get<ListingsResponse>('/listings', { sellerId, page, limit, sort: 'createdAt', order: 'desc' });
+    return this.api.get<ListingsResponse>('/listings', {
+      sellerId,
+      page,
+      limit,
+      sort: 'createdAt',
+      order: 'desc',
+    });
   }
 }

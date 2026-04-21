@@ -19,17 +19,28 @@
   cursor: pointer;
   transition: border-color 0.15s;
 
-  &:hover { border-color: var(--primary); }
+  &:hover {
+    border-color: var(--primary);
+  }
 }
 
-.dp-icon { font-size: 18px; color: var(--text-muted); }
-.dp-placeholder { color: var(--text-muted); }
-.dp-value { flex: 1; }
+.dp-icon {
+  font-size: 18px;
+  color: var(--text-muted);
+}
+.dp-placeholder {
+  color: var(--text-muted);
+}
+.dp-value {
+  flex: 1;
+}
 .dp-clear {
   font-size: 16px;
   color: var(--text-muted);
   cursor: pointer;
-  &:hover { color: var(--error); }
+  &:hover {
+    color: var(--error);
+  }
 }
 
 .dp-dropdown {
@@ -66,8 +77,13 @@
   border-radius: 50%;
   color: var(--text-secondary);
   display: flex;
-  &:hover { background: var(--background); color: var(--primary); }
-  .material-symbols-rounded { font-size: 20px; }
+  &:hover {
+    background: var(--background);
+    color: var(--primary);
+  }
+  .material-symbols-rounded {
+    font-size: 20px;
+  }
 }
 
 .dp-days-header {
@@ -106,7 +122,9 @@
   font-family: inherit;
   transition: background 0.15s;
 
-  &:hover { background: var(--background); }
+  &:hover {
+    background: var(--background);
+  }
 
   &.today {
     font-weight: 700;
@@ -118,7 +136,9 @@
     background: var(--primary);
     color: #fff;
     font-weight: 600;
-    &:hover { background: var(--primary-dark); }
+    &:hover {
+      background: var(--primary-dark);
+    }
   }
 
   &.other-month {

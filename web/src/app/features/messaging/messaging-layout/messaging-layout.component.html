@@ -11,12 +11,15 @@
 
     <div class="msg-list">
       @if (loading()) {
-        @for (i of [1,2,3,4,5]; track i) {
+        @for (i of [1, 2, 3, 4, 5]; track i) {
           <div class="msg-item-skeleton">
-            <div class="skeleton" style="width:44px;height:44px;border-radius:50%;flex-shrink:0;"></div>
-            <div style="flex:1;">
-              <div class="skeleton-text" style="width:60%;"></div>
-              <div class="skeleton-text short" style="width:80%;margin-top:6px;"></div>
+            <div
+              class="skeleton"
+              style="width: 44px; height: 44px; border-radius: 50%; flex-shrink: 0"
+            ></div>
+            <div style="flex: 1">
+              <div class="skeleton-text" style="width: 60%"></div>
+              <div class="skeleton-text short" style="width: 80%; margin-top: 6px"></div>
             </div>
           </div>
         }
@@ -45,7 +48,9 @@
 
         @if (conversations().length === 0) {
           <div class="msg-empty">
-            <span class="material-symbols-rounded" style="font-size:48px;color:var(--text-muted);">chat_bubble_outline</span>
+            <span class="material-symbols-rounded" style="font-size: 48px; color: var(--text-muted)"
+              >chat_bubble_outline</span
+            >
             <p>No conversations yet</p>
           </div>
         }
@@ -56,10 +61,15 @@
   <!-- Right: Chat Window -->
   <div class="msg-chat-area" [class.hidden-mobile]="!selectedConversationId()">
     @if (selectedConversationId()) {
-      <app-chat-window [conversationIdInput]="selectedConversationId()!" (back)="selectedConversationId.set(null)" />
+      <app-chat-window
+        [conversationIdInput]="selectedConversationId()!"
+        (back)="selectedConversationId.set(null)"
+      />
     } @else {
       <div class="msg-no-chat">
-        <span class="material-symbols-rounded" style="font-size:64px;color:var(--text-muted);">forum</span>
+        <span class="material-symbols-rounded" style="font-size: 64px; color: var(--text-muted)"
+          >forum</span
+        >
         <h3>Select a conversation</h3>
         <p>Choose a conversation from the left to start chatting</p>
       </div>

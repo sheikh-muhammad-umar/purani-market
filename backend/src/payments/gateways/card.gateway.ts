@@ -25,13 +25,19 @@ export class CardGateway implements PaymentGateway {
     };
   }
 
-  async verifyCallback(payload: Record<string, any>): Promise<PaymentVerifyResult> {
+  async verifyCallback(
+    payload: Record<string, any>,
+  ): Promise<PaymentVerifyResult> {
     // Stub: simulate callback verification
     const transactionId = payload.transactionId || payload.charge_id || '';
     const status = payload.status || 'succeeded';
     if (status === 'succeeded') {
       return { transactionId, status: 'completed' };
     }
-    return { transactionId, status: 'failed', reason: `Card payment error: ${status}` };
+    return {
+      transactionId,
+      status: 'failed',
+      reason: `Card payment error: ${status}`,
+    };
   }
 }

@@ -1,4 +1,10 @@
-import { IsEmail, IsOptional, IsString, Matches, ValidateIf } from 'class-validator';
+import {
+  IsEmail,
+  IsOptional,
+  IsString,
+  Matches,
+  ValidateIf,
+} from 'class-validator';
 
 export class ResendVerificationDto {
   @ValidateIf((o: ResendVerificationDto) => !o.phone)

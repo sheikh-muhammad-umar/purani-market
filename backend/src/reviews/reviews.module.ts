@@ -8,9 +8,7 @@ import { MessagingModule } from '../messaging/messaging.module.js';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([
-      { name: Review.name, schema: ReviewSchema },
-    ]),
+    MongooseModule.forFeature([{ name: Review.name, schema: ReviewSchema }]),
     ListingsModule,
     MessagingModule,
   ],

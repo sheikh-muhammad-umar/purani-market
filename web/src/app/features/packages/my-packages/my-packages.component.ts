@@ -33,7 +33,7 @@ export class MyPackagesComponent implements OnInit {
     this.error.set(null);
     this.packagesService.getMyPurchases().subscribe({
       next: (res) => {
-        this.purchases.set(Array.isArray(res) ? res : res.data ?? []);
+        this.purchases.set(Array.isArray(res) ? res : (res.data ?? []));
         this.loading.set(false);
       },
       error: () => {
@@ -49,31 +49,38 @@ export class MyPackagesComponent implements OnInit {
 
   activePurchases(): PackagePurchase[] {
     const now = new Date();
-    return this.purchases().filter(p =>
-      p.paymentStatus === PaymentStatusEnum.COMPLETED &&
-      p.expiresAt &&
-      new Date(p.expiresAt) > now &&
-      p.remainingQuantity > 0
+    return this.purchases().filter(
+      (p) =>
+        p.paymentStatus === PaymentStatusEnum.COMPLETED &&
+        p.expiresAt &&
+        new Date(p.expiresAt) > now &&
+        p.remainingQuantity > 0,
     );
   }
 
   historyPurchases(): PackagePurchase[] {
     const now = new Date();
-    return this.purchases().filter(p =>
-      p.paymentStatus !== PaymentStatusEnum.COMPLETED ||
-      !p.expiresAt ||
-      new Date(p.expiresAt) <= now ||
-      p.remainingQuantity <= 0
+    return this.purchases().filter(
+      (p) =>
+        p.paymentStatus !== PaymentStatusEnum.COMPLETED ||
+        !p.expiresAt ||
+        new Date(p.expiresAt) <= now ||
+        p.remainingQuantity <= 0,
     );
   }
 
   getStatusBadgeClass(status: PaymentStatus): string {
     switch (status) {
-      case PaymentStatusEnum.COMPLETED: return 'badge-success';
-      case PaymentStatusEnum.PENDING: return 'badge-pending';
-      case PaymentStatusEnum.FAILED: return 'badge-error';
-      case PaymentStatusEnum.REFUNDED: return 'badge-warning';
-      default: return '';
+      case PaymentStatusEnum.COMPLETED:
+        return 'badge-success';
+      case PaymentStatusEnum.PENDING:
+        return 'badge-pending';
+      case PaymentStatusEnum.FAILED:
+        return 'badge-error';
+      case PaymentStatusEnum.REFUNDED:
+        return 'badge-warning';
+      default:
+        return '';
     }
   }
 
@@ -102,10 +109,14 @@ export class MyPackagesComponent implements OnInit {
 
   getPaymentMethodLabel(method: string): string {
     switch (method) {
-      case PaymentMethodEnum.JAZZCASH: return 'JazzCash';
-      case PaymentMethodEnum.EASYPAISA: return 'EasyPaisa';
-      case PaymentMethodEnum.CARD: return 'Card';
-      default: return method;
+      case PaymentMethodEnum.JAZZCASH:
+        return 'JazzCash';
+      case PaymentMethodEnum.EASYPAISA:
+        return 'EasyPaisa';
+      case PaymentMethodEnum.CARD:
+        return 'Card';
+      default:
+        return method;
     }
   }
 }

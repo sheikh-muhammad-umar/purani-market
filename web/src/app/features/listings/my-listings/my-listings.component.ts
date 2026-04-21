@@ -40,9 +40,21 @@ export class MyListingsComponent implements OnInit {
   analytics = computed<AnalyticsCard[]>(() => {
     const items = this.listings();
     return [
-      { label: 'Total Views', value: items.reduce((s, l) => s + (l.viewCount || 0), 0), icon: '👁' },
-      { label: 'Total Favorites', value: items.reduce((s, l) => s + (l.favoriteCount || 0), 0), icon: '❤️' },
-      { label: 'Active Listings', value: items.filter(l => l.status === 'active').length, icon: '📦' },
+      {
+        label: 'Total Views',
+        value: items.reduce((s, l) => s + (l.viewCount || 0), 0),
+        icon: '👁',
+      },
+      {
+        label: 'Total Favorites',
+        value: items.reduce((s, l) => s + (l.favoriteCount || 0), 0),
+        icon: '❤️',
+      },
+      {
+        label: 'Active Listings',
+        value: items.filter((l) => l.status === 'active').length,
+        icon: '📦',
+      },
     ];
   });
 
@@ -52,7 +64,13 @@ export class MyListingsComponent implements OnInit {
   paidSlots = computed(() => {
     const now = new Date();
     return this.purchases()
-      .filter(p => p.type === 'ad_slots' && p.paymentStatus === 'completed' && p.expiresAt && new Date(p.expiresAt) > now)
+      .filter(
+        (p) =>
+          p.type === 'ad_slots' &&
+          p.paymentStatus === 'completed' &&
+          p.expiresAt &&
+          new Date(p.expiresAt) > now,
+      )
       .reduce((s, p) => s + (p.remainingQuantity || 0), 0);
   });
 
@@ -66,14 +84,20 @@ export class MyListingsComponent implements OnInit {
   featuredAds = computed<FeaturedAdInfo[]>(() => {
     const now = new Date();
     return this.listings()
-      .filter(l => l.isFeatured && l.featuredUntil && new Date(l.featuredUntil) > now)
-      .map(l => ({ listingId: l._id, title: l.title, expiresAt: new Date(l.featuredUntil!) }));
+      .filter((l) => l.isFeatured && l.featuredUntil && new Date(l.featuredUntil) > now)
+      .map((l) => ({ listingId: l._id, title: l.title, expiresAt: new Date(l.featuredUntil!) }));
   });
 
   featuredSlotsRemaining = computed(() => {
     const now = new Date();
     return this.purchases()
-      .filter(p => p.type === 'featured_ads' && p.paymentStatus === 'completed' && p.expiresAt && new Date(p.expiresAt) > now)
+      .filter(
+        (p) =>
+          p.type === 'featured_ads' &&
+          p.paymentStatus === 'completed' &&
+          p.expiresAt &&
+          new Date(p.expiresAt) > now,
+      )
       .reduce((s, p) => s + (p.remainingQuantity || 0), 0);
   });
 
@@ -98,7 +122,7 @@ export class MyListingsComponent implements OnInit {
     this.loading.set(true);
     this.listingsService.getMyListings(this.page(), 50).subscribe({
       next: (res: any) => {
-        const data = Array.isArray(res) ? res : res?.data ?? [];
+        const data = Array.isArray(res) ? res : (res?.data ?? []);
         this.listings.set(data);
         this.total.set(res?.total ?? data.length);
         this.loading.set(false);
@@ -119,29 +143,42 @@ export class MyListingsComponent implements OnInit {
 
   loadPurchases(): void {
     this.packagesService.getMyPurchases().subscribe({
-      next: (res: any) => this.purchases.set(Array.isArray(res) ? res : res.data ?? []),
+      next: (res: any) => this.purchases.set(Array.isArray(res) ? res : (res.data ?? [])),
       error: () => this.purchases.set([]),
     });
   }
 
   getStatusBadgeClass(status: string): string {
     switch (status) {
-      case 'active': return 'badge-success';
-      case 'inactive': return 'badge-inactive';
-      case 'sold': return 'badge-sold';
-      case 'reserved': return 'badge-warning';
-      case 'rejected': return 'badge-error';
-      case 'pending_review': return 'badge-pending';
-      default: return '';
+      case 'active':
+        return 'badge-success';
+      case 'inactive':
+        return 'badge-inactive';
+      case 'sold':
+        return 'badge-sold';
+      case 'reserved':
+        return 'badge-warning';
+      case 'rejected':
+        return 'badge-error';
+      case 'pending_review':
+        return 'badge-pending';
+      default:
+        return '';
     }
   }
 
   getImage(listing: Listing): string {
-    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png';
+    return (
+      listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png'
+    );
   }
 
   formatDate(date: Date | string): string {
-    return new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' });
+    return new Date(date).toLocaleDateString('en-US', {
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+    });
   }
 
   daysUntil(date: Date | string): number {
@@ -195,7 +232,7 @@ export class MyListingsComponent implements OnInit {
         this.actionLoading.set(null);
         this.tracker.track('listing_delete', {
           productListingId: listingId,
-          metadata: { previousStatus: this.listings().find(l => l._id === listingId)?.status },
+          metadata: { previousStatus: this.listings().find((l) => l._id === listingId)?.status },
         });
         this.loadAll();
       },

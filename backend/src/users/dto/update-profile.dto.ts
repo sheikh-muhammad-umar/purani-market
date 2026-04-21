@@ -1,4 +1,12 @@
-import { IsString, IsOptional, IsNumber, IsArray, ValidateNested, ArrayMinSize, ArrayMaxSize } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsArray,
+  ValidateNested,
+  ArrayMinSize,
+  ArrayMaxSize,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class UpdateLocationDto {

@@ -24,7 +24,7 @@ export class VerifyPhoneComponent {
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
     private readonly route: ActivatedRoute,
-    private readonly router: Router
+    private readonly router: Router,
   ) {
     this.phone = this.route.snapshot.queryParamMap.get('phone') || '';
     this.verifyForm = this.fb.group({
@@ -46,7 +46,7 @@ export class VerifyPhoneComponent {
         this.loading.set(false);
         this.success.set(true);
       },
-      error: err => {
+      error: (err) => {
         this.loading.set(false);
         this.errorMessage.set(err.error?.message || 'Invalid or expired verification code.');
       },

@@ -19,22 +19,44 @@ interface CategoryChip {
 }
 
 const CATEGORY_ICONS: Record<string, string> = {
-  cars: '🚗', vehicles: '🚗', automobiles: '🚗',
-  phones: '📱', mobiles: '📱', 'mobile phones': '📱', electronics: '📱',
-  property: '🏠', 'real estate': '🏠', houses: '🏠',
-  fashion: '👗', clothing: '👗', apparel: '👗',
-  furniture: '🪑', 'home & garden': '🪑',
-  jobs: '💼', services: '🔧',
-  kids: '🧸', 'kids & baby': '🧸',
-  sports: '⚽', 'sports & hobbies': '⚽',
-  animals: '🐾', pets: '🐾',
-  books: '📚', education: '📚',
+  cars: '🚗',
+  vehicles: '🚗',
+  automobiles: '🚗',
+  phones: '📱',
+  mobiles: '📱',
+  'mobile phones': '📱',
+  electronics: '📱',
+  property: '🏠',
+  'real estate': '🏠',
+  houses: '🏠',
+  fashion: '👗',
+  clothing: '👗',
+  apparel: '👗',
+  furniture: '🪑',
+  'home & garden': '🪑',
+  jobs: '💼',
+  services: '🔧',
+  kids: '🧸',
+  'kids & baby': '🧸',
+  sports: '⚽',
+  'sports & hobbies': '⚽',
+  animals: '🐾',
+  pets: '🐾',
+  books: '📚',
+  education: '📚',
 };
 
 @Component({
   selector: 'app-home',
   standalone: true,
-  imports: [CommonModule, RouterLink, PriceFormatPipe, TruncateTextPipe, CategoryModalComponent, ListingUrlPipe],
+  imports: [
+    CommonModule,
+    RouterLink,
+    PriceFormatPipe,
+    TruncateTextPipe,
+    CategoryModalComponent,
+    ListingUrlPipe,
+  ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
@@ -54,14 +76,14 @@ export class HomeComponent implements OnInit {
 
   readonly categoryChips = computed<CategoryChip[]>(() =>
     this.categories()
-      .filter(c => c.level === 1 && c.isActive)
+      .filter((c) => c.level === 1 && c.isActive)
       .sort((a, b) => a.sortOrder - b.sortOrder)
-      .map(c => ({
+      .map((c) => ({
         id: c._id,
         name: c.name,
         icon: this.getCategoryIcon(c.slug, c.name),
         slug: c.slug,
-      }))
+      })),
   );
 
   constructor(
@@ -87,11 +109,13 @@ export class HomeComponent implements OnInit {
   }
 
   getListingImage(listing: Listing): string {
-    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png';
+    return (
+      listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png'
+    );
   }
 
   openCategoryModal(chip: CategoryChip): void {
-    const cat = this.categories().find(c => c._id === chip.id);
+    const cat = this.categories().find((c) => c._id === chip.id);
     if (cat) {
       this.selectedCategory.set(cat);
     }
@@ -126,7 +150,7 @@ export class HomeComponent implements OnInit {
 
     this.listingsService.getFeaturedFiltered({ city, limit: 10 }).subscribe({
       next: (res: any) => {
-        const data = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? res as any : [];
+        const data = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? (res as any) : [];
         if (data.length > 0) {
           this.featuredListings.set(data);
           this.loadingFeatured.set(false);

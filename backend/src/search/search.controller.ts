@@ -1,5 +1,15 @@
-import { Controller, Get, Query, UsePipes, ValidationPipe } from '@nestjs/common';
-import { SearchService, SearchResult, SuggestionResult } from './search.service.js';
+import {
+  Controller,
+  Get,
+  Query,
+  UsePipes,
+  ValidationPipe,
+} from '@nestjs/common';
+import {
+  SearchService,
+  SearchResult,
+  SuggestionResult,
+} from './search.service.js';
 import { SearchQueryDto } from './dto/search-query.dto.js';
 import { SuggestionQueryDto } from './dto/suggestion-query.dto.js';
 

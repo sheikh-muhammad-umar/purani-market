@@ -3,7 +3,12 @@
     <div class="mobile-overlay" (click)="closeMobileMenu()"></div>
   }
 
-  <aside class="admin-sidebar" [class.mobile-open]="mobileMenuOpen" role="navigation" aria-label="Admin navigation">
+  <aside
+    class="admin-sidebar"
+    [class.mobile-open]="mobileMenuOpen"
+    role="navigation"
+    aria-label="Admin navigation"
+  >
     <div class="sidebar-inner">
       <div class="sidebar-header">
         <span class="sidebar-logo material-symbols-rounded">admin_panel_settings</span>
@@ -48,8 +53,15 @@
 
   <main class="admin-content">
     <div class="mobile-topbar">
-      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Open admin menu">☰</button>
-      <span class="mobile-topbar-title"><span class="material-symbols-rounded" style="font-size:18px;vertical-align:middle;">admin_panel_settings</span> Admin Panel</span>
+      <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Open admin menu">
+        ☰
+      </button>
+      <span class="mobile-topbar-title"
+        ><span class="material-symbols-rounded" style="font-size: 18px; vertical-align: middle"
+          >admin_panel_settings</span
+        >
+        Admin Panel</span
+      >
     </div>
     <router-outlet></router-outlet>
   </main>

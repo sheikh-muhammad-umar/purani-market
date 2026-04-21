@@ -29,7 +29,10 @@ export class MessagingService {
   }
 
   getMessages(conversationId: string, page: number = 1): Observable<MessagesResponse> {
-    return this.api.get<MessagesResponse>(`/conversations/${conversationId}/messages`, { page, limit: 20 });
+    return this.api.get<MessagesResponse>(`/conversations/${conversationId}/messages`, {
+      page,
+      limit: 20,
+    });
   }
 
   startConversation(payload: StartConversationPayload): Observable<Conversation> {

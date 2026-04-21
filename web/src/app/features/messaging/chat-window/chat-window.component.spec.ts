@@ -64,8 +64,18 @@ describe('ChatWindowComponent', () => {
   let readSubject: Subject<unknown>;
 
   const mockMessages: Message[] = [
-    makeMessage({ _id: 'm1', senderId: 'user1', content: 'Hi there', createdAt: new Date('2024-01-15T10:00:00Z') }),
-    makeMessage({ _id: 'm2', senderId: 'seller1', content: 'Hello!', createdAt: new Date('2024-01-15T10:01:00Z') }),
+    makeMessage({
+      _id: 'm1',
+      senderId: 'user1',
+      content: 'Hi there',
+      createdAt: new Date('2024-01-15T10:00:00Z'),
+    }),
+    makeMessage({
+      _id: 'm2',
+      senderId: 'seller1',
+      content: 'Hello!',
+      createdAt: new Date('2024-01-15T10:01:00Z'),
+    }),
   ];
 
   const mockListing = makeListing({ _id: 'listing1', title: 'iPhone 15' });
@@ -86,9 +96,11 @@ describe('ChatWindowComponent', () => {
     readSubject = new Subject();
 
     messagingServiceMock = {
-      getMessages: vi.fn().mockReturnValue(
-        of({ data: [...mockMessages], total: 2, page: 1, limit: 20 } as MessagesResponse),
-      ),
+      getMessages: vi
+        .fn()
+        .mockReturnValue(
+          of({ data: [...mockMessages], total: 2, page: 1, limit: 20 } as MessagesResponse),
+        ),
       getConversations: vi.fn().mockReturnValue(of({ data: [mockConversation], total: 1 })),
     };
 
@@ -273,9 +285,11 @@ describe('ChatWindowComponent', () => {
     const twentyMessages = Array.from({ length: 20 }, (_, i) =>
       makeMessage({ _id: `m${i}`, content: `Message ${i}` }),
     );
-    messagingServiceMock.getMessages = vi.fn().mockReturnValue(
-      of({ data: twentyMessages, total: 40, page: 1, limit: 20 } as MessagesResponse),
-    );
+    messagingServiceMock.getMessages = vi
+      .fn()
+      .mockReturnValue(
+        of({ data: twentyMessages, total: 40, page: 1, limit: 20 } as MessagesResponse),
+      );
     component = new ChatWindowComponent(
       routeMock as unknown as ActivatedRoute,
       messagingServiceMock as unknown as MessagingService,
@@ -288,9 +302,11 @@ describe('ChatWindowComponent', () => {
 
     // Now load older
     const olderMessages = [makeMessage({ _id: 'old1', content: 'Old message' })];
-    messagingServiceMock.getMessages = vi.fn().mockReturnValue(
-      of({ data: olderMessages, total: 21, page: 2, limit: 20 } as MessagesResponse),
-    );
+    messagingServiceMock.getMessages = vi
+      .fn()
+      .mockReturnValue(
+        of({ data: olderMessages, total: 21, page: 2, limit: 20 } as MessagesResponse),
+      );
     component.loadOlderMessages();
     expect(component.currentPage()).toBe(2);
   });

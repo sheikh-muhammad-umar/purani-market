@@ -50,7 +50,7 @@ export class SettingsComponent implements OnInit {
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
     public readonly themeService: ThemeService,
-    private readonly http: HttpClient
+    private readonly http: HttpClient,
   ) {
     this.emailForm = this.fb.group({
       newEmail: ['', [Validators.required, Validators.email]],
@@ -111,14 +111,12 @@ export class SettingsComponent implements OnInit {
           this.emailChanging.set(false);
           this.emailVerificationSent.set(true);
           this.emailChangeSuccess.set(
-            res.message || 'Verification link sent to your new email address.'
+            res.message || 'Verification link sent to your new email address.',
           );
         },
         error: (err) => {
           this.emailChanging.set(false);
-          this.emailChangeError.set(
-            err.error?.message || 'Failed to initiate email change.'
-          );
+          this.emailChangeError.set(err.error?.message || 'Failed to initiate email change.');
         },
       });
   }
@@ -151,15 +149,11 @@ export class SettingsComponent implements OnInit {
         next: (res) => {
           this.phoneChanging.set(false);
           this.phoneOtpSent.set(true);
-          this.phoneChangeSuccess.set(
-            res.message || 'OTP sent to your new phone number.'
-          );
+          this.phoneChangeSuccess.set(res.message || 'OTP sent to your new phone number.');
         },
         error: (err) => {
           this.phoneChanging.set(false);
-          this.phoneChangeError.set(
-            err.error?.message || 'Failed to initiate phone change.'
-          );
+          this.phoneChangeError.set(err.error?.message || 'Failed to initiate phone change.');
         },
       });
   }
@@ -180,18 +174,14 @@ export class SettingsComponent implements OnInit {
       .subscribe({
         next: (res) => {
           this.otpVerifying.set(false);
-          this.phoneChangeSuccess.set(
-            res.message || 'Phone number updated successfully.'
-          );
+          this.phoneChangeSuccess.set(res.message || 'Phone number updated successfully.');
           this.phoneOtpSent.set(false);
           this.showPhoneChange.set(false);
           this.loadUser();
         },
         error: (err) => {
           this.otpVerifying.set(false);
-          this.phoneChangeError.set(
-            err.error?.message || 'Invalid OTP. Please try again.'
-          );
+          this.phoneChangeError.set(err.error?.message || 'Invalid OTP. Please try again.');
         },
       });
   }

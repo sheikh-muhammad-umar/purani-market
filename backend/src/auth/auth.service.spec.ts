@@ -79,12 +79,18 @@ describe('AuthService', () => {
       providers: [
         AuthService,
         { provide: getModelToken(User.name), useValue: mockUserModel },
-        { provide: getModelToken(VerificationToken.name), useValue: mockVerificationTokenModel },
+        {
+          provide: getModelToken(VerificationToken.name),
+          useValue: mockVerificationTokenModel,
+        },
         { provide: EmailService, useValue: mockEmailService },
         { provide: SmsService, useValue: mockSmsService },
         { provide: JwtService, useValue: mockJwtService },
         { provide: ConfigService, useValue: mockConfigService },
-        { provide: 'default_IORedisModuleConnectionToken', useValue: mockRedis },
+        {
+          provide: 'default_IORedisModuleConnectionToken',
+          useValue: mockRedis,
+        },
       ],
     }).compile();
 
@@ -93,7 +99,9 @@ describe('AuthService', () => {
 
   describe('register', () => {
     it('should register a user with email and send verification email', async () => {
-      mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
       const mockUser = { _id: { toString: () => 'user123' } };
       mockUserModel.create.mockResolvedValue(mockUser);
       mockVerificationTokenModel.create.mockResolvedValue({});
@@ -109,7 +117,9 @@ describe('AuthService', () => {
     });
 
     it('should register a user with phone and send OTP', async () => {
-      mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
       const mockUser = { _id: { toString: () => 'user456' } };
       mockUserModel.create.mockResolvedValue(mockUser);
       mockVerificationTokenModel.create.mockResolvedValue({});
@@ -125,7 +135,9 @@ describe('AuthService', () => {
     });
 
     it('should hash password with bcrypt cost factor 12', async () => {
-      mockUserModel.findOne.mockReturnValue({ exec: jest.fn().mockResolvedValue(null) });
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
       const mockUser = { _id: { toString: () => 'user789' } };
       mockUserModel.create.mockResolvedValue(mockUser);
       mockVerificationTokenModel.create.mockResolvedValue({});
@@ -136,7 +148,10 @@ describe('AuthService', () => {
       });
 
       const createCall = mockUserModel.create.mock.calls[0][0];
-      const isValid = await bcrypt.compare('mypassword', createCall.passwordHash);
+      const isValid = await bcrypt.compare(
+        'mypassword',
+        createCall.passwordHash,
+      );
       expect(isValid).toBe(true);
       expect(createCall.passwordHash).toMatch(/^\$2[aby]\$12\$/);
     });
@@ -147,7 +162,10 @@ describe('AuthService', () => {
       });
 
       await expect(
-        service.register({ email: 'taken@example.com', password: 'password123' }),
+        service.register({
+          email: 'taken@example.com',
+          password: 'password123',
+        }),
       ).rejects.toThrow(ConflictException);
     });
 
@@ -231,7 +249,11 @@ describe('AuthService', () => {
 
   describe('resendVerification', () => {
     it('should resend email verification', async () => {
-      const mockUser = { _id: 'user123', email: 'test@example.com', emailVerified: false };
+      const mockUser = {
+        _id: 'user123',
+        email: 'test@example.com',
+        emailVerified: false,
+      };
       mockUserModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockUser),
       });
@@ -248,7 +270,11 @@ describe('AuthService', () => {
     });
 
     it('should throw BadRequestException when rate limit exceeded', async () => {
-      const mockUser = { _id: 'user123', email: 'test@example.com', emailVerified: false };
+      const mockUser = {
+        _id: 'user123',
+        email: 'test@example.com',
+        emailVerified: false,
+      };
       mockUserModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockUser),
       });
@@ -295,7 +321,12 @@ describe('AuthService', () => {
         .mockReturnValueOnce('access-token')
         .mockReturnValueOnce('refresh-token');
 
-      const result = await service.login('test@example.com', undefined, 'password123', 'Mozilla/5.0');
+      const result = await service.login(
+        'test@example.com',
+        undefined,
+        'password123',
+        'Mozilla/5.0',
+      );
 
       expect(result.accessToken).toBe('access-token');
       expect(result.refreshToken).toBe('refresh-token');
@@ -312,7 +343,12 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      await service.login('test@example.com', undefined, 'password123', 'Mozilla/5.0');
+      await service.login(
+        'test@example.com',
+        undefined,
+        'password123',
+        'Mozilla/5.0',
+      );
 
       expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
         mockUser._id,
@@ -381,7 +417,11 @@ describe('AuthService', () => {
     });
 
     it('should login with phone number', async () => {
-      const phoneUser = { ...mockUser, phone: '+923001234567', email: undefined };
+      const phoneUser = {
+        ...mockUser,
+        phone: '+923001234567',
+        email: undefined,
+      };
       mockUserModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(phoneUser),
       });
@@ -392,7 +432,11 @@ describe('AuthService', () => {
         .mockReturnValueOnce('access-token')
         .mockReturnValueOnce('refresh-token');
 
-      const result = await service.login(undefined, '+923001234567', 'password123');
+      const result = await service.login(
+        undefined,
+        '+923001234567',
+        'password123',
+      );
 
       expect(result.accessToken).toBe('access-token');
       expect(result.user!.phone).toBe('+923001234567');
@@ -407,7 +451,12 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue(mfaUser),
       });
 
-      const result = await service.login('test@example.com', undefined, 'password123', 'Mozilla/5.0');
+      const result = await service.login(
+        'test@example.com',
+        undefined,
+        'password123',
+        'Mozilla/5.0',
+      );
 
       expect(result.mfaRequired).toBe(true);
       expect(result.userId).toBe('user123');
@@ -494,9 +543,9 @@ describe('AuthService', () => {
         throw new Error('invalid token');
       });
 
-      await expect(
-        service.refreshToken('invalid-token'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.refreshToken('invalid-token')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw UnauthorizedException for non-refresh token type', async () => {
@@ -607,15 +656,18 @@ describe('AuthService', () => {
 
     it('should login existing user with matching social login (Google)', async () => {
       // Mock Google token verification
-      const verifyIdTokenSpy = jest.spyOn(service as any, 'verifyGoogleToken').mockResolvedValue({
-        email: 'social@example.com',
-        sub: 'google-123',
-        firstName: 'John',
-        lastName: 'Doe',
-      });
+      const verifyIdTokenSpy = jest
+        .spyOn(service as any, 'verifyGoogleToken')
+        .mockResolvedValue({
+          email: 'social@example.com',
+          sub: 'google-123',
+          firstName: 'John',
+          lastName: 'Doe',
+        });
 
-      mockUserModel.findOne
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(mockSavedUser) }); // social login match
+      mockUserModel.findOne.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(mockSavedUser),
+      }); // social login match
       mockUserModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue({}),
       });
@@ -652,7 +704,9 @@ describe('AuthService', () => {
 
       mockUserModel.findOne
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(null) }) // no social login match
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(existingUser) }); // email match
+        .mockReturnValueOnce({
+          exec: jest.fn().mockResolvedValue(existingUser),
+        }); // email match
       mockUserModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue({}),
       });
@@ -733,8 +787,9 @@ describe('AuthService', () => {
         socialLogins: [{ provider: 'facebook', providerId: 'fb-123' }],
       };
 
-      mockUserModel.findOne
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(fbUser) });
+      mockUserModel.findOne.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(fbUser),
+      });
       mockUserModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue({}),
       });
@@ -758,8 +813,9 @@ describe('AuthService', () => {
         lastName: 'Doe',
       });
 
-      mockUserModel.findOne
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(mockSavedUser) });
+      mockUserModel.findOne.mockReturnValueOnce({
+        exec: jest.fn().mockResolvedValue(mockSavedUser),
+      });
       mockUserModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue({}),
       });
@@ -780,9 +836,9 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException for invalid Google token', async () => {
-      jest.spyOn(service as any, 'verifyGoogleToken').mockRejectedValue(
-        new UnauthorizedException('Invalid Google token'),
-      );
+      jest
+        .spyOn(service as any, 'verifyGoogleToken')
+        .mockRejectedValue(new UnauthorizedException('Invalid Google token'));
 
       await expect(
         service.socialLogin({
@@ -795,9 +851,9 @@ describe('AuthService', () => {
     });
 
     it('should throw UnauthorizedException for invalid Facebook token', async () => {
-      jest.spyOn(service as any, 'verifyFacebookToken').mockRejectedValue(
-        new UnauthorizedException('Invalid Facebook token'),
-      );
+      jest
+        .spyOn(service as any, 'verifyFacebookToken')
+        .mockRejectedValue(new UnauthorizedException('Invalid Facebook token'));
 
       await expect(
         service.socialLogin({
@@ -829,7 +885,9 @@ describe('AuthService', () => {
 
       mockUserModel.findOne
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(null) })
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(unverifiedUser) });
+        .mockReturnValueOnce({
+          exec: jest.fn().mockResolvedValue(unverifiedUser),
+        });
       mockUserModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue({}),
       });
@@ -881,7 +939,9 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      await expect(service.enableMfa('nonexistent')).rejects.toThrow(NotFoundException);
+      await expect(service.enableMfa('nonexistent')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw BadRequestException if MFA is already enabled', async () => {
@@ -894,7 +954,9 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue(mockUser),
       });
 
-      await expect(service.enableMfa('user123')).rejects.toThrow(BadRequestException);
+      await expect(service.enableMfa('user123')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -910,7 +972,12 @@ describe('AuthService', () => {
         email: 'test@example.com',
         phone: undefined,
         role: 'buyer',
-        mfa: { enabled: true, totpSecret, failedAttempts: 0, lockedUntil: null },
+        mfa: {
+          enabled: true,
+          totpSecret,
+          failedAttempts: 0,
+          lockedUntil: null,
+        },
       };
       mockUserModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockUser),
@@ -923,7 +990,11 @@ describe('AuthService', () => {
         .mockReturnValueOnce('mfa-access-token')
         .mockReturnValueOnce('mfa-refresh-token');
 
-      const result = await service.verifyMfa('user123', validCode, 'Mozilla/5.0');
+      const result = await service.verifyMfa(
+        'user123',
+        validCode,
+        'Mozilla/5.0',
+      );
 
       expect(result.accessToken).toBe('mfa-access-token');
       expect(result.refreshToken).toBe('mfa-refresh-token');
@@ -943,7 +1014,12 @@ describe('AuthService', () => {
         _id: { toString: () => 'user123' },
         email: 'test@example.com',
         role: 'buyer',
-        mfa: { enabled: true, totpSecret, failedAttempts: 0, lockedUntil: null },
+        mfa: {
+          enabled: true,
+          totpSecret,
+          failedAttempts: 0,
+          lockedUntil: null,
+        },
       };
       mockUserModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockUser),
@@ -952,9 +1028,9 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      await expect(
-        service.verifyMfa('user123', '000000'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.verifyMfa('user123', '000000')).rejects.toThrow(
+        UnauthorizedException,
+      );
 
       // Should increment failed attempts
       expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
@@ -970,7 +1046,12 @@ describe('AuthService', () => {
         _id: { toString: () => 'user123' },
         email: 'test@example.com',
         role: 'buyer',
-        mfa: { enabled: true, totpSecret, failedAttempts: 4, lockedUntil: null },
+        mfa: {
+          enabled: true,
+          totpSecret,
+          failedAttempts: 4,
+          lockedUntil: null,
+        },
       };
       mockUserModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockUser),
@@ -979,9 +1060,9 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      await expect(
-        service.verifyMfa('user123', '000000'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.verifyMfa('user123', '000000')).rejects.toThrow(
+        ForbiddenException,
+      );
 
       // Should set lockedUntil
       expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
@@ -999,15 +1080,20 @@ describe('AuthService', () => {
         _id: { toString: () => 'user123' },
         email: 'test@example.com',
         role: 'buyer',
-        mfa: { enabled: true, totpSecret, failedAttempts: 0, lockedUntil: futureDate },
+        mfa: {
+          enabled: true,
+          totpSecret,
+          failedAttempts: 0,
+          lockedUntil: futureDate,
+        },
       };
       mockUserModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockUser),
       });
 
-      await expect(
-        service.verifyMfa('user123', '123456'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.verifyMfa('user123', '123456')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
 
     it('should throw UnauthorizedException for non-existent user', async () => {
@@ -1015,9 +1101,9 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      await expect(
-        service.verifyMfa('nonexistent', '123456'),
-      ).rejects.toThrow(UnauthorizedException);
+      await expect(service.verifyMfa('nonexistent', '123456')).rejects.toThrow(
+        UnauthorizedException,
+      );
     });
 
     it('should throw BadRequestException when MFA is not enabled', async () => {
@@ -1031,9 +1117,9 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue(mockUser),
       });
 
-      await expect(
-        service.verifyMfa('user123', '123456'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.verifyMfa('user123', '123456')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -1127,7 +1213,10 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      const result = await service.resetPassword('valid-token', 'newPassword123');
+      const result = await service.resetPassword(
+        'valid-token',
+        'newPassword123',
+      );
 
       expect(result.message).toContain('reset successfully');
       expect(mockRecord.used).toBe(true);
@@ -1177,7 +1266,13 @@ describe('AuthService', () => {
 
       await service.resetPassword('valid-token', 'newPassword123');
 
-      expect(mockRedis.scan).toHaveBeenCalledWith('0', 'MATCH', 'rt:*', 'COUNT', 100);
+      expect(mockRedis.scan).toHaveBeenCalledWith(
+        '0',
+        'MATCH',
+        'rt:*',
+        'COUNT',
+        100,
+      );
       expect(mockRedis.del).toHaveBeenCalledWith('rt:jti-1');
       expect(mockRedis.del).not.toHaveBeenCalledWith('rt:jti-2');
     });
@@ -1227,7 +1322,10 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      const result = await service.requestEmailChange('user123', 'new@example.com');
+      const result = await service.requestEmailChange(
+        'user123',
+        'new@example.com',
+      );
 
       expect(result.message).toContain('Verification link sent');
       expect(mockEmailService.sendEmailChangeVerification).toHaveBeenCalledWith(
@@ -1356,7 +1454,9 @@ describe('AuthService', () => {
 
       await service.verifyEmailChange('valid-token');
 
-      expect(mockEmailService.sendEmailChangeNotification).toHaveBeenCalledWith('old@example.com');
+      expect(mockEmailService.sendEmailChangeNotification).toHaveBeenCalledWith(
+        'old@example.com',
+      );
     });
 
     it('should throw BadRequestException for invalid token', async () => {
@@ -1364,9 +1464,9 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      await expect(
-        service.verifyEmailChange('invalid-token'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.verifyEmailChange('invalid-token')).rejects.toThrow(
+        BadRequestException,
+      );
     });
 
     it('should throw BadRequestException for expired token', async () => {
@@ -1386,9 +1486,9 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      await expect(
-        service.verifyEmailChange('expired-token'),
-      ).rejects.toThrow(BadRequestException);
+      await expect(service.verifyEmailChange('expired-token')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -1410,7 +1510,10 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      const result = await service.requestPhoneChange('user123', '+923009876543');
+      const result = await service.requestPhoneChange(
+        'user123',
+        '+923009876543',
+      );
 
       expect(result.message).toContain('OTP sent');
       expect(mockSmsService.sendOtp).toHaveBeenCalledWith(
@@ -1606,7 +1709,12 @@ describe('AuthService', () => {
   describe('checkUnverifiedAccounts', () => {
     it('should send reminder emails to unverified email users after 24 hours', async () => {
       const unverifiedUsers = [
-        { email: 'unverified@example.com', emailVerified: false, phone: undefined, phoneVerified: false },
+        {
+          email: 'unverified@example.com',
+          emailVerified: false,
+          phone: undefined,
+          phoneVerified: false,
+        },
       ];
       mockUserModel.find.mockReturnValue({
         exec: jest.fn().mockResolvedValue(unverifiedUsers),
@@ -1614,12 +1722,19 @@ describe('AuthService', () => {
 
       await service.checkUnverifiedAccounts();
 
-      expect(mockEmailService.sendReminderEmail).toHaveBeenCalledWith('unverified@example.com');
+      expect(mockEmailService.sendReminderEmail).toHaveBeenCalledWith(
+        'unverified@example.com',
+      );
     });
 
     it('should send reminder SMS to unverified phone users after 24 hours', async () => {
       const unverifiedUsers = [
-        { email: undefined, emailVerified: false, phone: '+923001234567', phoneVerified: false },
+        {
+          email: undefined,
+          emailVerified: false,
+          phone: '+923001234567',
+          phoneVerified: false,
+        },
       ];
       mockUserModel.find.mockReturnValue({
         exec: jest.fn().mockResolvedValue(unverifiedUsers),
@@ -1627,12 +1742,19 @@ describe('AuthService', () => {
 
       await service.checkUnverifiedAccounts();
 
-      expect(mockSmsService.sendReminderSms).toHaveBeenCalledWith('+923001234567');
+      expect(mockSmsService.sendReminderSms).toHaveBeenCalledWith(
+        '+923001234567',
+      );
     });
 
     it('should handle users with both unverified email and phone', async () => {
       const unverifiedUsers = [
-        { email: 'both@example.com', emailVerified: false, phone: '+923001111111', phoneVerified: false },
+        {
+          email: 'both@example.com',
+          emailVerified: false,
+          phone: '+923001111111',
+          phoneVerified: false,
+        },
       ];
       mockUserModel.find.mockReturnValue({
         exec: jest.fn().mockResolvedValue(unverifiedUsers),
@@ -1640,8 +1762,12 @@ describe('AuthService', () => {
 
       await service.checkUnverifiedAccounts();
 
-      expect(mockEmailService.sendReminderEmail).toHaveBeenCalledWith('both@example.com');
-      expect(mockSmsService.sendReminderSms).toHaveBeenCalledWith('+923001111111');
+      expect(mockEmailService.sendReminderEmail).toHaveBeenCalledWith(
+        'both@example.com',
+      );
+      expect(mockSmsService.sendReminderSms).toHaveBeenCalledWith(
+        '+923001111111',
+      );
     });
 
     it('should not send reminders when no unverified accounts exist', async () => {
@@ -1658,7 +1784,11 @@ describe('AuthService', () => {
 
   describe('resendVerification - phone', () => {
     it('should resend phone verification OTP', async () => {
-      const mockUser = { _id: 'user123', phone: '+923001234567', phoneVerified: false };
+      const mockUser = {
+        _id: 'user123',
+        phone: '+923001234567',
+        phoneVerified: false,
+      };
       mockUserModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockUser),
       });
@@ -1670,13 +1800,20 @@ describe('AuthService', () => {
       });
       mockVerificationTokenModel.create.mockResolvedValue({});
 
-      const result = await service.resendVerification(undefined, '+923001234567');
+      const result = await service.resendVerification(
+        undefined,
+        '+923001234567',
+      );
       expect(result.message).toContain('sent');
       expect(mockSmsService.sendOtp).toHaveBeenCalled();
     });
 
     it('should throw BadRequestException when phone is already verified', async () => {
-      const mockUser = { _id: 'user123', phone: '+923001234567', phoneVerified: true };
+      const mockUser = {
+        _id: 'user123',
+        phone: '+923001234567',
+        phoneVerified: true,
+      };
       mockUserModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockUser),
       });
@@ -1687,7 +1824,11 @@ describe('AuthService', () => {
     });
 
     it('should throw BadRequestException when email is already verified', async () => {
-      const mockUser = { _id: 'user123', email: 'test@example.com', emailVerified: true };
+      const mockUser = {
+        _id: 'user123',
+        email: 'test@example.com',
+        emailVerified: true,
+      };
       mockUserModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(mockUser),
       });
@@ -1813,11 +1954,13 @@ describe('AuthService', () => {
       };
       mockUserModel.findOne
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(mockUser) })
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue({ _id: 'other-user' }) });
+        .mockReturnValueOnce({
+          exec: jest.fn().mockResolvedValue({ _id: 'other-user' }),
+        });
 
-      await expect(
-        service.verifyEmailChange('valid-token'),
-      ).rejects.toThrow(ConflictException);
+      await expect(service.verifyEmailChange('valid-token')).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
@@ -1840,10 +1983,16 @@ describe('AuthService', () => {
     it('should throw ConflictException for duplicate phone number', async () => {
       mockUserModel.findOne
         .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(null) }) // email check passes
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue({ _id: 'existing' }) }); // phone check fails
+        .mockReturnValueOnce({
+          exec: jest.fn().mockResolvedValue({ _id: 'existing' }),
+        }); // phone check fails
 
       await expect(
-        service.register({ email: 'new@example.com', phone: '+923001234567', password: 'password123' }),
+        service.register({
+          email: 'new@example.com',
+          phone: '+923001234567',
+          password: 'password123',
+        }),
       ).rejects.toThrow(ConflictException);
     });
   });

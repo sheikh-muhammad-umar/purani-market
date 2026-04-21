@@ -7,12 +7,12 @@
     @if (loading()) {
       <div class="favorites-grid">
         @for (i of [1, 2, 3, 4]; track i) {
-          <div class="card" style="padding: 0; overflow: hidden;">
+          <div class="card" style="padding: 0; overflow: hidden">
             <div class="skeleton-image"></div>
-            <div style="padding: 12px;">
-              <div class="skeleton-text" style="width: 80%;"></div>
-              <div class="skeleton-text short" style="height: 1.2em; margin-top: 8px;"></div>
-              <div class="skeleton-text medium" style="margin-top: 8px;"></div>
+            <div style="padding: 12px">
+              <div class="skeleton-text" style="width: 80%"></div>
+              <div class="skeleton-text short" style="height: 1.2em; margin-top: 8px"></div>
+              <div class="skeleton-text medium" style="margin-top: 8px"></div>
             </div>
           </div>
         }
@@ -47,7 +47,8 @@
                   [disabled]="removingId() === favorite._id"
                   (click)="removeFavorite(favorite)"
                   title="Remove from favorites"
-                  aria-label="Remove from favorites">
+                  aria-label="Remove from favorites"
+                >
                   @if (removingId() === favorite._id) {
                     <span class="spinner"></span>
                   } @else {

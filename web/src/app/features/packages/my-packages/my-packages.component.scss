@@ -11,7 +11,9 @@
   margin-bottom: var(--space-3);
   gap: var(--space-2);
 
-  h1 { font-size: var(--text-2xl); }
+  h1 {
+    font-size: var(--text-2xl);
+  }
 }
 
 .subtitle {
@@ -37,9 +39,13 @@
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
-  transition: color 0.2s ease, border-color 0.2s ease;
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
 
-  &:hover { color: var(--primary); }
+  &:hover {
+    color: var(--primary);
+  }
 
   &.active {
     color: var(--primary);
@@ -60,7 +66,9 @@
   margin-bottom: var(--space-1);
 }
 
-.empty-state h3 { margin-bottom: var(--space-1); }
+.empty-state h3 {
+  margin-bottom: var(--space-1);
+}
 
 .empty-state p,
 .error-state p {
@@ -74,13 +82,17 @@
   gap: var(--space-3);
   grid-template-columns: 1fr;
 
-  @media (min-width: 768px) { grid-template-columns: repeat(2, 1fr); }
+  @media (min-width: 768px) {
+    grid-template-columns: repeat(2, 1fr);
+  }
 }
 
 .purchase-card {
   padding: var(--space-3);
 
-  &:hover { transform: none; }
+  &:hover {
+    transform: none;
+  }
 }
 
 .active-card {
@@ -170,7 +182,9 @@
   align-items: center;
   padding: var(--space-2) var(--space-3);
 
-  &:hover { transform: none; }
+  &:hover {
+    transform: none;
+  }
 }
 
 .history-main {
@@ -218,5 +232,7 @@
 }
 
 @media (max-width: 480px) {
-  .page-header { flex-direction: column; }
+  .page-header {
+    flex-direction: column;
+  }
 }

@@ -52,7 +52,9 @@ describe('MessagingGateway', () => {
       createdAt: new Date(),
     }),
   }));
-  mockMessageModel.updateMany = jest.fn().mockResolvedValue({ modifiedCount: 1 });
+  mockMessageModel.updateMany = jest
+    .fn()
+    .mockResolvedValue({ modifiedCount: 1 });
 
   const mockUserModel = {
     findById: jest.fn(),
@@ -106,7 +108,10 @@ describe('MessagingGateway', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MessagingGateway,
-        { provide: getModelToken(Conversation.name), useValue: mockConversationModel },
+        {
+          provide: getModelToken(Conversation.name),
+          useValue: mockConversationModel,
+        },
         { provide: getModelToken(Message.name), useValue: mockMessageModel },
         { provide: getModelToken(User.name), useValue: mockUserModel },
       ],
@@ -121,7 +126,9 @@ describe('MessagingGateway', () => {
       const client = createMockSocket('socket1', buyerId.toString());
       await gateway.handleConnection(client);
 
-      expect(client.join).toHaveBeenCalledWith(`conversation:${conversationId.toString()}`);
+      expect(client.join).toHaveBeenCalledWith(
+        `conversation:${conversationId.toString()}`,
+      );
       expect(gateway.isUserOnline(buyerId.toString())).toBe(true);
     });
 
@@ -226,7 +233,9 @@ describe('MessagingGateway', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('You are not a participant in this conversation');
+      expect(result.error).toBe(
+        'You are not a participant in this conversation',
+      );
     });
 
     it('should block message with prohibited content and notify sender', async () => {
@@ -365,7 +374,9 @@ describe('MessagingGateway', () => {
       });
 
       expect(result.success).toBe(false);
-      expect(result.error).toBe('You are not a participant in this conversation');
+      expect(result.error).toBe(
+        'You are not a participant in this conversation',
+      );
     });
 
     it('should reject markRead with invalid conversation ID', async () => {
@@ -390,8 +401,12 @@ describe('MessagingGateway', () => {
     });
 
     it('should allow clean content', () => {
-      expect(gateway.containsProhibitedContent('Hello, is this available?')).toBe(false);
-      expect(gateway.containsProhibitedContent('What is the best price?')).toBe(false);
+      expect(
+        gateway.containsProhibitedContent('Hello, is this available?'),
+      ).toBe(false);
+      expect(gateway.containsProhibitedContent('What is the best price?')).toBe(
+        false,
+      );
     });
   });
 

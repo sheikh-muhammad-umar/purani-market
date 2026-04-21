@@ -54,7 +54,9 @@ export class SellerProfileComponent implements OnInit {
         this.seller.set(data);
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); },
+      error: () => {
+        this.loading.set(false);
+      },
     });
   }
 

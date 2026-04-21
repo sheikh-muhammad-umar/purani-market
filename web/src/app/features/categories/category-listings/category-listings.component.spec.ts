@@ -37,7 +37,12 @@ function makeListing(overrides: Partial<Listing> = {}): Listing {
       { url: 'https://img.test/1.jpg', thumbnailUrl: 'https://img.test/1_thumb.jpg', sortOrder: 0 },
     ],
     video: undefined,
-    location: overrides.location ?? { type: 'Point', coordinates: [74.3, 31.5], city: 'Lahore', area: 'Gulberg' },
+    location: overrides.location ?? {
+      type: 'Point',
+      coordinates: [74.3, 31.5],
+      city: 'Lahore',
+      area: 'Gulberg',
+    },
     contactInfo: { phone: '03001234567', email: 'test@test.com' },
     status: 'active',
     isFeatured: overrides.isFeatured ?? false,
@@ -59,8 +64,22 @@ describe('CategoryListingsComponent', () => {
   const mockCategories: Category[] = [
     makeCategory({ _id: 'c1', name: 'Vehicles', slug: 'vehicles', sortOrder: 1 }),
     makeCategory({ _id: 'c2', name: 'Cars', slug: 'cars', parentId: 'c1', level: 2, sortOrder: 1 }),
-    makeCategory({ _id: 'c3', name: 'Bikes', slug: 'bikes', parentId: 'c1', level: 2, sortOrder: 2 }),
-    makeCategory({ _id: 'c4', name: 'Sedans', slug: 'sedans', parentId: 'c2', level: 3, sortOrder: 1 }),
+    makeCategory({
+      _id: 'c3',
+      name: 'Bikes',
+      slug: 'bikes',
+      parentId: 'c1',
+      level: 2,
+      sortOrder: 2,
+    }),
+    makeCategory({
+      _id: 'c4',
+      name: 'Sedans',
+      slug: 'sedans',
+      parentId: 'c2',
+      level: 3,
+      sortOrder: 1,
+    }),
     makeCategory({ _id: 'c5', name: 'Electronics', slug: 'electronics', sortOrder: 2 }),
   ];
 
@@ -208,7 +227,9 @@ describe('CategoryListingsComponent', () => {
   });
 
   it('should handle listings service error', () => {
-    listingsServiceMock.getByCategory = vi.fn().mockReturnValue(throwError(() => new Error('fail')));
+    listingsServiceMock.getByCategory = vi
+      .fn()
+      .mockReturnValue(throwError(() => new Error('fail')));
     component = new CategoryListingsComponent(
       routeMock as any,
       routerMock as any,
@@ -231,12 +252,14 @@ describe('CategoryListingsComponent', () => {
   });
 
   it('should calculate total pages correctly', () => {
-    listingsServiceMock.getByCategory = vi.fn().mockReturnValue(of({
-      data: mockListings,
-      total: 45,
-      page: 1,
-      limit: 20,
-    }));
+    listingsServiceMock.getByCategory = vi.fn().mockReturnValue(
+      of({
+        data: mockListings,
+        total: 45,
+        page: 1,
+        limit: 20,
+      }),
+    );
     component = new CategoryListingsComponent(
       routeMock as any,
       routerMock as any,

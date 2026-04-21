@@ -55,10 +55,16 @@ describe('MessagingController', () => {
 
   describe('createConversation', () => {
     it('should call service.createConversation with correct params', async () => {
-      const dto = { productListingId: new Types.ObjectId().toString(), message: 'Hi' };
+      const dto = {
+        productListingId: new Types.ObjectId().toString(),
+        message: 'Hi',
+      };
       await controller.createConversation(userId, dto);
 
-      expect(mockMessagingService.createConversation).toHaveBeenCalledWith(userId, dto);
+      expect(mockMessagingService.createConversation).toHaveBeenCalledWith(
+        userId,
+        dto,
+      );
     });
 
     it('should return conversation and message', async () => {
@@ -73,7 +79,9 @@ describe('MessagingController', () => {
     it('should call service.getUserConversations with userId', async () => {
       await controller.getUserConversations(userId);
 
-      expect(mockMessagingService.getUserConversations).toHaveBeenCalledWith(userId);
+      expect(mockMessagingService.getUserConversations).toHaveBeenCalledWith(
+        userId,
+      );
     });
 
     it('should return array of conversations', async () => {
@@ -115,7 +123,11 @@ describe('MessagingController', () => {
     });
 
     it('should return paginated messages', async () => {
-      const result = await controller.getConversationMessages(conversationId, userId, '1');
+      const result = await controller.getConversationMessages(
+        conversationId,
+        userId,
+        '1',
+      );
 
       expect(result.messages).toBeDefined();
       expect(result.total).toBeDefined();

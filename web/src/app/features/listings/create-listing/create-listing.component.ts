@@ -1,6 +1,13 @@
 import { Component, OnInit, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ReactiveFormsModule, FormBuilder, FormGroup, Validators, FormControl, FormArray } from '@angular/forms';
+import {
+  ReactiveFormsModule,
+  FormBuilder,
+  FormGroup,
+  Validators,
+  FormControl,
+  FormArray,
+} from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { ListingsService, CreateListingPayload } from '../../../core/services/listings.service';
@@ -44,14 +51,20 @@ export class CreateListingComponent implements OnInit {
 
   // Category state
   allCategories = signal<Category[]>([]);
-  level1Categories = computed(() => this.allCategories().filter(c => c.level === 1 && c.isActive));
+  level1Categories = computed(() =>
+    this.allCategories().filter((c) => c.level === 1 && c.isActive),
+  );
   level2Categories = signal<Category[]>([]);
   level3Categories = signal<Category[]>([]);
   selectedLevel1 = signal<Category | null>(null);
   selectedLevel2 = signal<Category | null>(null);
   selectedLevel3 = signal<Category | null>(null);
-  selectedCategory = computed(() => this.selectedLevel3() ?? this.selectedLevel2() ?? this.selectedLevel1());
-  categoryAttributes = computed<CategoryAttribute[]>(() => this.selectedCategory()?.attributes ?? []);
+  selectedCategory = computed(
+    () => this.selectedLevel3() ?? this.selectedLevel2() ?? this.selectedLevel1(),
+  );
+  categoryAttributes = computed<CategoryAttribute[]>(
+    () => this.selectedCategory()?.attributes ?? [],
+  );
   categoryFeatures = computed<string[]>(() => this.selectedCategory()?.features ?? []);
   selectedFeatures = signal<string[]>([]);
 
@@ -70,7 +83,10 @@ export class CreateListingComponent implements OnInit {
   openDropdown = signal<string | null>(null);
 
   // Year options for year-type attributes (current year down to 1970)
-  readonly yearOptions: number[] = Array.from({ length: new Date().getFullYear() - 1969 }, (_, i) => new Date().getFullYear() - i);
+  readonly yearOptions: number[] = Array.from(
+    { length: new Date().getFullYear() - 1969 },
+    (_, i) => new Date().getFullYear() - i,
+  );
 
   getYearOptions(attr: { rangeMin?: number; rangeMax?: number }): number[] {
     const max = attr.rangeMax ?? new Date().getFullYear();
@@ -92,12 +108,12 @@ export class CreateListingComponent implements OnInit {
   filteredCities = computed(() => {
     const q = this.citySearch().toLowerCase().trim();
     const all = this.citiesForListing();
-    return q ? all.filter(c => c.name.toLowerCase().includes(q)) : all;
+    return q ? all.filter((c) => c.name.toLowerCase().includes(q)) : all;
   });
   filteredAreas = computed(() => {
     const q = this.areaSearch().toLowerCase().trim();
     const all = this.areasForListing();
-    return q ? all.filter(a => a.name.toLowerCase().includes(q)) : all;
+    return q ? all.filter((a) => a.name.toLowerCase().includes(q)) : all;
   });
   blockPhaseOptions = computed<string[]>(() => {
     const area = this.selectedAreaObj();
@@ -107,7 +123,7 @@ export class CreateListingComponent implements OnInit {
   filteredBlockPhases = computed(() => {
     const q = this.blockPhaseSearch().toLowerCase().trim();
     const all = this.blockPhaseOptions();
-    return q ? all.filter(b => b.toLowerCase().includes(q)) : all;
+    return q ? all.filter((b) => b.toLowerCase().includes(q)) : all;
   });
 
   // Submission
@@ -204,9 +220,10 @@ export class CreateListingComponent implements OnInit {
 
     // If user already had a phone (just not verified), use verifyPhone
     // If user added a new phone via change-phone, use verifyPhoneChange
-    const verify$ = phone === this.authService.user()?.phone
-      ? this.authService.verifyPhone(phone, otp)
-      : this.authService.verifyPhoneChange(otp);
+    const verify$ =
+      phone === this.authService.user()?.phone
+        ? this.authService.verifyPhone(phone, otp)
+        : this.authService.verifyPhoneChange(otp);
 
     verify$.subscribe({
       next: () => {
@@ -229,9 +246,10 @@ export class CreateListingComponent implements OnInit {
     this.phoneError.set('');
     const phone = this.pendingPhone();
 
-    const resend$ = phone === this.authService.user()?.phone
-      ? this.authService.resendVerification(phone)
-      : this.authService.addPhone(phone);
+    const resend$ =
+      phone === this.authService.user()?.phone
+        ? this.authService.resendVerification(phone)
+        : this.authService.addPhone(phone);
 
     resend$.subscribe({
       next: () => {
@@ -248,10 +266,16 @@ export class CreateListingComponent implements OnInit {
   private loadFeaturedSlots(): void {
     this.packagesService.getMyPurchases().subscribe({
       next: (res) => {
-        const purchases = Array.isArray(res) ? res : res.data ?? [];
+        const purchases = Array.isArray(res) ? res : (res.data ?? []);
         const now = new Date();
         const remaining = purchases
-          .filter((p: any) => p.type === 'featured_ads' && p.paymentStatus === 'completed' && p.expiresAt && new Date(p.expiresAt) > now)
+          .filter(
+            (p: any) =>
+              p.type === 'featured_ads' &&
+              p.paymentStatus === 'completed' &&
+              p.expiresAt &&
+              new Date(p.expiresAt) > now,
+          )
           .reduce((sum: number, p: any) => sum + (p.remainingQuantity || 0), 0);
         this.featuredSlotsRemaining.set(remaining);
       },
@@ -266,7 +290,7 @@ export class CreateListingComponent implements OnInit {
     this.selectedLevel3.set(null);
     this.level3Categories.set([]);
     this.selectedFeatures.set([]);
-    const children = this.allCategories().filter(c => c.parentId === cat._id && c.isActive);
+    const children = this.allCategories().filter((c) => c.parentId === cat._id && c.isActive);
     this.level2Categories.set(children);
   }
 
@@ -274,7 +298,7 @@ export class CreateListingComponent implements OnInit {
     this.selectedLevel2.set(cat);
     this.selectedLevel3.set(null);
     this.selectedFeatures.set([]);
-    const children = this.allCategories().filter(c => c.parentId === cat._id && c.isActive);
+    const children = this.allCategories().filter((c) => c.parentId === cat._id && c.isActive);
     this.level3Categories.set(children);
   }
 
@@ -288,9 +312,9 @@ export class CreateListingComponent implements OnInit {
   }
 
   toggleFeature(feature: string): void {
-    this.selectedFeatures.update(features => {
+    this.selectedFeatures.update((features) => {
       if (features.includes(feature)) {
-        return features.filter(f => f !== feature);
+        return features.filter((f) => f !== feature);
       }
       return [...features, feature];
     });
@@ -334,10 +358,11 @@ export class CreateListingComponent implements OnInit {
   }
 
   isDetailsStepValid(): boolean {
-    const baseValid = this.detailsForm.get('title')!.valid
-      && this.detailsForm.get('description')!.valid
-      && this.detailsForm.get('price')!.valid
-      && this.detailsForm.get('condition')!.valid;
+    const baseValid =
+      this.detailsForm.get('title')!.valid &&
+      this.detailsForm.get('description')!.valid &&
+      this.detailsForm.get('price')!.valid &&
+      this.detailsForm.get('condition')!.valid;
 
     if (!baseValid) return false;
 
@@ -345,11 +370,15 @@ export class CreateListingComponent implements OnInit {
     const title = this.detailsForm.get('title')?.value || '';
     const description = this.detailsForm.get('description')?.value || '';
     if (this.containsPhoneNumber(title)) {
-      this.phoneInAdError.set('Phone numbers are not allowed in the title. Buyers will contact you through the app.');
+      this.phoneInAdError.set(
+        'Phone numbers are not allowed in the title. Buyers will contact you through the app.',
+      );
       return false;
     }
     if (this.containsPhoneNumber(description)) {
-      this.phoneInAdError.set('Phone numbers are not allowed in the description. Buyers will contact you through the app.');
+      this.phoneInAdError.set(
+        'Phone numbers are not allowed in the description. Buyers will contact you through the app.',
+      );
       return false;
     }
     this.phoneInAdError.set('');
@@ -391,7 +420,7 @@ export class CreateListingComponent implements OnInit {
       if (file.type.startsWith('image/')) {
         if (this.mediaItems().length >= 20) continue;
         const preview = URL.createObjectURL(file);
-        this.mediaItems.update(items => [...items, { file, preview, type: 'image' }]);
+        this.mediaItems.update((items) => [...items, { file, preview, type: 'image' }]);
       } else if (file.type.startsWith('video/')) {
         if (this.videoItem()) continue;
         const preview = URL.createObjectURL(file);
@@ -401,7 +430,7 @@ export class CreateListingComponent implements OnInit {
   }
 
   removeImage(index: number): void {
-    this.mediaItems.update(items => {
+    this.mediaItems.update((items) => {
       const removed = items[index];
       if (removed) URL.revokeObjectURL(removed.preview);
       return items.filter((_, i) => i !== index);
@@ -416,7 +445,7 @@ export class CreateListingComponent implements OnInit {
 
   moveImage(from: number, to: number): void {
     if (to < 0 || to >= this.mediaItems().length) return;
-    this.mediaItems.update(items => {
+    this.mediaItems.update((items) => {
       const arr = [...items];
       const [moved] = arr.splice(from, 1);
       arr.splice(to, 0, moved);
@@ -427,7 +456,7 @@ export class CreateListingComponent implements OnInit {
   isMediaStepValid(): boolean {
     const images = this.mediaItems().length;
     const video = this.videoItem() ? 1 : 0;
-    return images >= 1 && (images + video) >= 2;
+    return images >= 1 && images + video >= 2;
   }
 
   // --- Location Step ---
@@ -481,12 +510,18 @@ export class CreateListingComponent implements OnInit {
   // --- Navigation ---
   isStepValid(step: number): boolean {
     switch (step) {
-      case 1: return this.isCategoryStepValid();
-      case 2: return this.isDetailsStepValid();
-      case 3: return this.isMediaStepValid();
-      case 4: return this.isLocationStepValid();
-      case 5: return true;
-      default: return false;
+      case 1:
+        return this.isCategoryStepValid();
+      case 2:
+        return this.isDetailsStepValid();
+      case 3:
+        return this.isMediaStepValid();
+      case 4:
+        return this.isLocationStepValid();
+      case 5:
+        return true;
+      default:
+        return false;
     }
   }
 
@@ -503,16 +538,16 @@ export class CreateListingComponent implements OnInit {
       /\+92[\s\-]?[0-9]{10}\b/,
       /0092[\s\-]?[0-9]{10}\b/,
     ];
-    if (patterns.some(p => p.test(normalized))) return true;
+    if (patterns.some((p) => p.test(normalized))) return true;
 
     // Strategy 2: Strip ALL non-digits, then scan for Pakistani patterns in the digit stream
     const digits = text.replace(/\D/g, '');
     const digitPatterns = [
-      /0[3][0-9]{9}/,       // 03xxxxxxxxx
-      /920[3][0-9]{9}/,     // 9203xxxxxxxxx (+92 without +)
-      /00920[3][0-9]{9}/,   // 009203xxxxxxxxx
+      /0[3][0-9]{9}/, // 03xxxxxxxxx
+      /920[3][0-9]{9}/, // 9203xxxxxxxxx (+92 without +)
+      /00920[3][0-9]{9}/, // 009203xxxxxxxxx
     ];
-    if (digitPatterns.some(p => p.test(digits))) return true;
+    if (digitPatterns.some((p) => p.test(digits))) return true;
 
     return false;
   }
@@ -547,12 +582,12 @@ export class CreateListingComponent implements OnInit {
     }
 
     this.showStepErrors.set(false);
-    this.currentStep.update(s => s + 1);
+    this.currentStep.update((s) => s + 1);
   }
 
   prevStep(): void {
     if (this.currentStep() > 1) {
-      this.currentStep.update(s => s - 1);
+      this.currentStep.update((s) => s - 1);
     }
   }
 
@@ -582,7 +617,7 @@ export class CreateListingComponent implements OnInit {
   }
 
   toggleFeatureAd(): void {
-    this.featureAd.update(v => !v);
+    this.featureAd.update((v) => !v);
   }
 
   submit(): void {

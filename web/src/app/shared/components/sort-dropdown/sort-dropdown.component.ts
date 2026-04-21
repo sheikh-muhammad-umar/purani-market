@@ -32,7 +32,7 @@ export class SortDropdownComponent {
   }
 
   toggle(): void {
-    this.open.update(v => !v);
+    this.open.update((v) => !v);
   }
 
   select(option: SortOption): void {

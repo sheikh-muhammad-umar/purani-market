@@ -22,14 +22,24 @@ function makeCategory(overrides: Partial<Category> = {}): Category {
 
 describe('CategoryBrowseComponent', () => {
   let component: CategoryBrowseComponent;
-  let categoriesServiceMock: { getAll: ReturnType<typeof vi.fn>; getById: ReturnType<typeof vi.fn> };
+  let categoriesServiceMock: {
+    getAll: ReturnType<typeof vi.fn>;
+    getById: ReturnType<typeof vi.fn>;
+  };
 
   const mockCategories: Category[] = [
     makeCategory({ _id: 'c1', name: 'Cars', slug: 'cars', sortOrder: 2 }),
     makeCategory({ _id: 'c2', name: 'Phones', slug: 'phones', sortOrder: 1 }),
     makeCategory({ _id: 'c3', name: 'Property', slug: 'property', sortOrder: 3 }),
     makeCategory({ _id: 'c4', name: 'Inactive', slug: 'inactive', isActive: false, sortOrder: 4 }),
-    makeCategory({ _id: 'c5', name: 'Sedans', slug: 'sedans', level: 2, parentId: 'c1', sortOrder: 1 }),
+    makeCategory({
+      _id: 'c5',
+      name: 'Sedans',
+      slug: 'sedans',
+      level: 2,
+      parentId: 'c1',
+      sortOrder: 1,
+    }),
     makeCategory({ _id: 'c6', name: 'SUVs', slug: 'suvs', level: 2, parentId: 'c1', sortOrder: 2 }),
   ];
 
@@ -39,9 +49,7 @@ describe('CategoryBrowseComponent', () => {
       getById: vi.fn(),
     };
 
-    component = new CategoryBrowseComponent(
-      categoriesServiceMock as unknown as CategoriesService,
-    );
+    component = new CategoryBrowseComponent(categoriesServiceMock as unknown as CategoriesService);
   });
 
   it('should create', () => {
@@ -56,7 +64,7 @@ describe('CategoryBrowseComponent', () => {
     component.ngOnInit();
     const topLevel = component.topLevelCategories();
     expect(topLevel.length).toBe(3);
-    expect(topLevel.map(c => c.name)).toEqual(['Phones', 'Cars', 'Property']);
+    expect(topLevel.map((c) => c.name)).toEqual(['Phones', 'Cars', 'Property']);
   });
 
   it('should sort top-level categories by sortOrder', () => {
@@ -69,13 +77,13 @@ describe('CategoryBrowseComponent', () => {
 
   it('should exclude inactive categories', () => {
     component.ngOnInit();
-    const names = component.topLevelCategories().map(c => c.name);
+    const names = component.topLevelCategories().map((c) => c.name);
     expect(names).not.toContain('Inactive');
   });
 
   it('should exclude non-level-1 categories', () => {
     component.ngOnInit();
-    const names = component.topLevelCategories().map(c => c.name);
+    const names = component.topLevelCategories().map((c) => c.name);
     expect(names).not.toContain('Sedans');
     expect(names).not.toContain('SUVs');
   });
@@ -87,9 +95,7 @@ describe('CategoryBrowseComponent', () => {
 
   it('should set loading to false on error', () => {
     categoriesServiceMock.getAll = vi.fn().mockReturnValue(throwError(() => new Error('fail')));
-    component = new CategoryBrowseComponent(
-      categoriesServiceMock as unknown as CategoriesService,
-    );
+    component = new CategoryBrowseComponent(categoriesServiceMock as unknown as CategoriesService);
     component.ngOnInit();
     expect(component.loading()).toBe(false);
     expect(component.topLevelCategories().length).toBe(0);

@@ -26,7 +26,7 @@ export const adminGuard: CanActivateFn = () => {
   // Has token but user not fetched yet — fetch and check
   if (authService.getAccessToken() && !authService.user()) {
     return authService.fetchCurrentUser().pipe(
-      map(() => authService.isAdmin() ? true : router.createUrlTree(['/'])),
+      map(() => (authService.isAdmin() ? true : router.createUrlTree(['/']))),
       catchError(() => of(router.createUrlTree(['/auth/login']))),
     );
   }

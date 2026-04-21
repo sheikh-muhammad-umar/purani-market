@@ -7,7 +7,9 @@ import { ChatbotService } from './chatbot.service';
 
 describe('AiController', () => {
   let controller: AiController;
-  let mockRecommendationService: Partial<Record<keyof RecommendationService, jest.Mock>>;
+  let mockRecommendationService: Partial<
+    Record<keyof RecommendationService, jest.Mock>
+  >;
   let mockChatbotService: Partial<Record<keyof ChatbotService, jest.Mock>>;
 
   const userId = new Types.ObjectId();
@@ -79,11 +81,12 @@ describe('AiController', () => {
         productListingId: listingId.toString(),
       });
 
-      expect(mockRecommendationService.dismissRecommendation).toHaveBeenCalledWith(
-        userId.toString(),
-        listingId.toString(),
-      );
-      expect(result).toEqual({ message: 'Recommendation dismissed successfully' });
+      expect(
+        mockRecommendationService.dismissRecommendation,
+      ).toHaveBeenCalledWith(userId.toString(), listingId.toString());
+      expect(result).toEqual({
+        message: 'Recommendation dismissed successfully',
+      });
     });
   });
 

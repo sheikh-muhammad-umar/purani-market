@@ -24,7 +24,7 @@ function createComponent(
   packagesService: Record<string, ReturnType<typeof vi.fn>>,
 ): PurchaseFlowComponent {
   const route = {
-    snapshot: { paramMap: { get: (key: string) => key === 'id' ? packageId : null } },
+    snapshot: { paramMap: { get: (key: string) => (key === 'id' ? packageId : null) } },
   } as any;
   return new PurchaseFlowComponent(route, packagesService as unknown as PackagesService);
 }
@@ -41,7 +41,11 @@ describe('PurchaseFlowComponent', () => {
   beforeEach(() => {
     packagesService = {
       getById: vi.fn().mockReturnValue(of(mockPkg)),
-      purchase: vi.fn().mockReturnValue(of({ redirectUrl: 'https://pay.example.com/checkout', transactionId: 'txn123' })),
+      purchase: vi
+        .fn()
+        .mockReturnValue(
+          of({ redirectUrl: 'https://pay.example.com/checkout', transactionId: 'txn123' }),
+        ),
     };
     component = createComponent('pkg1', packagesService);
   });

@@ -36,7 +36,12 @@
           maxlength="6"
           autocomplete="one-time-code"
           inputmode="numeric"
-          style="text-align: center; font-family: var(--font-mono); font-size: var(--text-xl); letter-spacing: 0.5em;"
+          style="
+            text-align: center;
+            font-family: var(--font-mono);
+            font-size: var(--text-xl);
+            letter-spacing: 0.5em;
+          "
         />
         @if (mfaForm.get('code')?.touched && mfaForm.get('code')?.errors) {
           <span class="form-error">Please enter a valid 6-digit code</span>

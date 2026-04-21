@@ -17,11 +17,15 @@
         (keyup.enter)="applyFilters()"
       />
       <button class="btn-search" (click)="applyFilters()">
-        <span class="material-symbols-rounded" style="font-size:18px;">search</span>
+        <span class="material-symbols-rounded" style="font-size: 18px">search</span>
       </button>
     </div>
-    <button class="filter-toggle-btn" [class.active]="filtersOpen || hasActiveFilters" (click)="filtersOpen = !filtersOpen">
-      <span class="material-symbols-rounded" style="font-size:18px;">filter_list</span>
+    <button
+      class="filter-toggle-btn"
+      [class.active]="filtersOpen || hasActiveFilters"
+      (click)="filtersOpen = !filtersOpen"
+    >
+      <span class="material-symbols-rounded" style="font-size: 18px">filter_list</span>
       Filters
       @if (activeFilterCount > 0) {
         <span class="filter-badge">{{ activeFilterCount }}</span>
@@ -53,16 +57,23 @@
         </div>
         <div class="filter-group">
           <label class="filter-label">From</label>
-          <app-date-picker [(ngModel)]="filterDateFrom" (ngModelChange)="applyFilters()"></app-date-picker>
+          <app-date-picker
+            [(ngModel)]="filterDateFrom"
+            (ngModelChange)="applyFilters()"
+          ></app-date-picker>
         </div>
         <div class="filter-group">
           <label class="filter-label">To</label>
-          <app-date-picker [(ngModel)]="filterDateTo" (ngModelChange)="applyFilters()"></app-date-picker>
+          <app-date-picker
+            [(ngModel)]="filterDateTo"
+            (ngModelChange)="applyFilters()"
+          ></app-date-picker>
         </div>
       </div>
       @if (hasActiveFilters) {
         <button class="clear-filters-btn" (click)="resetFilters()">
-          <span class="material-symbols-rounded" style="font-size:16px;">close</span> Clear all filters
+          <span class="material-symbols-rounded" style="font-size: 16px">close</span> Clear all
+          filters
         </button>
       }
     </div>
@@ -89,7 +100,11 @@
       @for (entry of activities(); track entry._id) {
         <div class="activity-card" [class.expanded]="expandedId === entry._id">
           <div class="activity-row" (click)="hasDetails(entry) && toggleExpand(entry._id)">
-            <div class="activity-icon" [style.background]="getActionColor(entry.action) + '14'" [style.color]="getActionColor(entry.action)">
+            <div
+              class="activity-icon"
+              [style.background]="getActionColor(entry.action) + '14'"
+              [style.color]="getActionColor(entry.action)"
+            >
               <span class="material-symbols-rounded">{{ getActionIcon(entry.action) }}</span>
             </div>
             <div class="activity-main">
@@ -127,7 +142,9 @@
             <div class="activity-end">
               <span class="activity-time">{{ formatDate(entry.createdAt) }}</span>
               @if (hasDetails(entry)) {
-                <span class="material-symbols-rounded expand-icon">{{ expandedId === entry._id ? 'expand_less' : 'expand_more' }}</span>
+                <span class="material-symbols-rounded expand-icon">{{
+                  expandedId === entry._id ? 'expand_less' : 'expand_more'
+                }}</span>
               }
             </div>
           </div>
@@ -169,9 +186,17 @@
     <!-- Pagination -->
     @if (totalPages() > 1) {
       <div class="pagination">
-        <button class="btn-secondary" (click)="goToPage(page - 1)" [disabled]="page <= 1">← Prev</button>
+        <button class="btn-secondary" (click)="goToPage(page - 1)" [disabled]="page <= 1">
+          ← Prev
+        </button>
         <span class="page-info">Page {{ page }} of {{ totalPages() }}</span>
-        <button class="btn-secondary" (click)="goToPage(page + 1)" [disabled]="page >= totalPages()">Next →</button>
+        <button
+          class="btn-secondary"
+          (click)="goToPage(page + 1)"
+          [disabled]="page >= totalPages()"
+        >
+          Next →
+        </button>
       </div>
     }
   }

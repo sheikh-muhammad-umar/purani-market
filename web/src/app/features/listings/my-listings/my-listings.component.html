@@ -24,10 +24,12 @@
       <div class="meter-card card">
         <h3 class="meter-title">Ad Slots</h3>
         <div class="meter-bar-container">
-          <div class="meter-bar" [style.width.%]="slotPercent()"
-               [class.meter-bar-warning]="slotPercent() >= 80"
-               [class.meter-bar-full]="slotPercent() >= 100">
-          </div>
+          <div
+            class="meter-bar"
+            [style.width.%]="slotPercent()"
+            [class.meter-bar-warning]="slotPercent() >= 80"
+            [class.meter-bar-full]="slotPercent() >= 100"
+          ></div>
         </div>
         <div class="meter-details">
           <span>{{ slotsUsed() }} / {{ totalSlots() }} used</span>
@@ -35,7 +37,8 @@
             ({{ freeSlotLimit() }} free
             @if (paidSlots() > 0) {
               + {{ paidSlots() }} paid
-            })
+            }
+            )
           </span>
         </div>
       </div>
@@ -73,23 +76,33 @@
       <div class="listings-table-wrapper">
         <table class="listings-table" role="table">
           <thead>
-            <tr><th>Listing</th><th>Status</th><th>Views</th><th>Favorites</th><th>Created</th><th>Actions</th></tr>
+            <tr>
+              <th>Listing</th>
+              <th>Status</th>
+              <th>Views</th>
+              <th>Favorites</th>
+              <th>Created</th>
+              <th>Actions</th>
+            </tr>
           </thead>
           <tbody>
             @for (i of [1, 2, 3, 4, 5]; track i) {
               <tr>
                 <td class="listing-cell">
-                  <div class="skeleton" style="width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0;"></div>
-                  <div style="flex: 1;">
-                    <div class="skeleton-text" style="width: 70%;"></div>
-                    <div class="skeleton-text short" style="margin-top: 4px;"></div>
+                  <div
+                    class="skeleton"
+                    style="width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0"
+                  ></div>
+                  <div style="flex: 1">
+                    <div class="skeleton-text" style="width: 70%"></div>
+                    <div class="skeleton-text short" style="margin-top: 4px"></div>
                   </div>
                 </td>
-                <td><div class="skeleton-text" style="width: 60px;"></div></td>
-                <td><div class="skeleton-text" style="width: 40px;"></div></td>
-                <td><div class="skeleton-text" style="width: 30px;"></div></td>
-                <td><div class="skeleton-text" style="width: 80px;"></div></td>
-                <td><div class="skeleton-text" style="width: 100px;"></div></td>
+                <td><div class="skeleton-text" style="width: 60px"></div></td>
+                <td><div class="skeleton-text" style="width: 40px"></div></td>
+                <td><div class="skeleton-text" style="width: 30px"></div></td>
+                <td><div class="skeleton-text" style="width: 80px"></div></td>
+                <td><div class="skeleton-text" style="width: 100px"></div></td>
               </tr>
             }
           </tbody>
@@ -117,18 +130,26 @@
           </thead>
           <tbody>
             @for (listing of listings(); track listing._id) {
-              <tr [class.row-sold]="listing.status === 'sold'"
-                  [class.row-rejected]="listing.status === 'rejected'"
-                  [class.row-inactive]="listing.status === 'inactive'">
+              <tr
+                [class.row-sold]="listing.status === 'sold'"
+                [class.row-rejected]="listing.status === 'rejected'"
+                [class.row-inactive]="listing.status === 'inactive'"
+              >
                 <td class="listing-cell">
                   <img [src]="getImage(listing)" [alt]="listing.title" class="listing-thumb" />
                   <div class="listing-meta">
-                    <a [routerLink]="['/listings', listing | listingUrl]" class="listing-title-link">{{ listing.title }}</a>
+                    <a
+                      [routerLink]="['/listings', listing | listingUrl]"
+                      class="listing-title-link"
+                      >{{ listing.title }}</a
+                    >
                     <span class="listing-price">PKR {{ listing.price.amount | number }}</span>
                   </div>
                 </td>
                 <td>
-                  <span class="badge" [ngClass]="getStatusBadgeClass(listing.status)">{{ listing.status }}</span>
+                  <span class="badge" [ngClass]="getStatusBadgeClass(listing.status)">{{
+                    listing.status
+                  }}</span>
                   @if (listing.isFeatured) {
                     <span class="badge badge-featured">⭐ Featured</span>
                   }
@@ -141,44 +162,79 @@
                     <span class="spinner"></span>
                   } @else {
                     <div class="action-buttons">
-                      <a [routerLink]="['/listings', listing | listingUrl, 'edit']"
-                         class="btn btn-outline btn-sm"
-                         title="Edit listing">Edit</a>
+                      <a
+                        [routerLink]="['/listings', listing | listingUrl, 'edit']"
+                        class="btn btn-outline btn-sm"
+                        title="Edit listing"
+                        >Edit</a
+                      >
 
                       @if (listing.status === 'active') {
-                        <button class="btn btn-outline btn-sm"
-                                title="Mark as sold"
-                                (click)="markStatus(listing, 'sold')">Sold</button>
-                        <button class="btn btn-outline btn-sm"
-                                title="Mark as reserved"
-                                (click)="markStatus(listing, 'reserved')">Reserved</button>
-                        <button class="btn btn-outline btn-sm"
-                                title="Disable this ad"
-                                (click)="markStatus(listing, 'inactive')">Disable</button>
+                        <button
+                          class="btn btn-outline btn-sm"
+                          title="Mark as sold"
+                          (click)="markStatus(listing, 'sold')"
+                        >
+                          Sold
+                        </button>
+                        <button
+                          class="btn btn-outline btn-sm"
+                          title="Mark as reserved"
+                          (click)="markStatus(listing, 'reserved')"
+                        >
+                          Reserved
+                        </button>
+                        <button
+                          class="btn btn-outline btn-sm"
+                          title="Disable this ad"
+                          (click)="markStatus(listing, 'inactive')"
+                        >
+                          Disable
+                        </button>
                       }
 
                       @if (listing.status === 'inactive') {
-                        <button class="btn btn-outline btn-sm btn-success"
-                                title="Re-activate this ad"
-                                (click)="markStatus(listing, 'active')">Activate</button>
+                        <button
+                          class="btn btn-outline btn-sm btn-success"
+                          title="Re-activate this ad"
+                          (click)="markStatus(listing, 'active')"
+                        >
+                          Activate
+                        </button>
                       }
 
-                      @if (listing.status === 'active' && !listing.isFeatured && featuredSlotsRemaining() > 0) {
-                        <button class="btn btn-accent btn-sm"
-                                title="Feature this ad"
-                                (click)="featureListing(listing)">⭐ Feature</button>
+                      @if (
+                        listing.status === 'active' &&
+                        !listing.isFeatured &&
+                        featuredSlotsRemaining() > 0
+                      ) {
+                        <button
+                          class="btn btn-accent btn-sm"
+                          title="Feature this ad"
+                          (click)="featureListing(listing)"
+                        >
+                          ⭐ Feature
+                        </button>
                       }
 
                       @if (confirmDeleteId() === listing._id) {
                         <div class="confirm-delete">
                           <span>Delete?</span>
-                          <button class="btn btn-error btn-sm" (click)="deleteListing(listing._id)">Yes</button>
-                          <button class="btn btn-outline btn-sm" (click)="cancelDelete()">No</button>
+                          <button class="btn btn-error btn-sm" (click)="deleteListing(listing._id)">
+                            Yes
+                          </button>
+                          <button class="btn btn-outline btn-sm" (click)="cancelDelete()">
+                            No
+                          </button>
                         </div>
                       } @else {
-                        <button class="btn btn-outline btn-sm btn-danger"
-                                title="Delete listing"
-                                (click)="confirmDelete(listing._id)">Delete</button>
+                        <button
+                          class="btn btn-outline btn-sm btn-danger"
+                          title="Delete listing"
+                          (click)="confirmDelete(listing._id)"
+                        >
+                          Delete
+                        </button>
                       }
                     </div>
                   }

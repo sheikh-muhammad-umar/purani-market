@@ -5,7 +5,11 @@ import { Types } from 'mongoose';
 
 describe('UsersController', () => {
   let controller: UsersController;
-  let usersService: { findById: jest.Mock; updateProfile: jest.Mock; sanitizeUser: jest.Mock };
+  let usersService: {
+    findById: jest.Mock;
+    updateProfile: jest.Mock;
+    sanitizeUser: jest.Mock;
+  };
 
   const userId = new Types.ObjectId().toString();
   const sanitizedUser = {

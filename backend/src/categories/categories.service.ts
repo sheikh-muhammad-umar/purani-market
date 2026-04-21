@@ -1,9 +1,17 @@
-import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
-import { Category, CategoryDocument, CategoryAttribute } from './schemas/category.schema.js';
+import {
+  Category,
+  CategoryDocument,
+  CategoryAttribute,
+} from './schemas/category.schema.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
 
@@ -44,7 +52,12 @@ export class CategoriesService {
       .exec();
 
     const tree = this.buildTree(categories);
-    await this.redis.set(CACHE_KEY_TREE, JSON.stringify(tree), 'EX', CACHE_TTL_SECONDS);
+    await this.redis.set(
+      CACHE_KEY_TREE,
+      JSON.stringify(tree),
+      'EX',
+      CACHE_TTL_SECONDS,
+    );
     return tree;
   }
 
@@ -64,7 +77,9 @@ export class CategoriesService {
     if (dto.parentId) {
       const parent = await this.findById(dto.parentId);
       if (parent.level >= 3) {
-        throw new BadRequestException('Maximum category nesting depth is 3 levels');
+        throw new BadRequestException(
+          'Maximum category nesting depth is 3 levels',
+        );
       }
       level = parent.level + 1;
     }
@@ -100,15 +115,22 @@ export class CategoriesService {
 
   async delete(id: string): Promise<void> {
     const category = await this.findById(id);
-    const children = await this.categoryModel.find({ parentId: category._id }).exec();
+    const children = await this.categoryModel
+      .find({ parentId: category._id })
+      .exec();
     if (children.length > 0) {
-      throw new BadRequestException('Cannot delete a category that has subcategories');
+      throw new BadRequestException(
+        'Cannot delete a category that has subcategories',
+      );
     }
     await this.categoryModel.deleteOne({ _id: category._id }).exec();
     await this.invalidateCache();
   }
 
-  async updateAttributes(id: string, attributes: CategoryAttribute[]): Promise<CategoryDocument> {
+  async updateAttributes(
+    id: string,
+    attributes: CategoryAttribute[],
+  ): Promise<CategoryDocument> {
     const category = await this.findById(id);
     category.attributes = attributes;
     const saved = await category.save();
@@ -116,7 +138,10 @@ export class CategoriesService {
     return saved;
   }
 
-  async updateFeatures(id: string, features: string[]): Promise<CategoryDocument> {
+  async updateFeatures(
+    id: string,
+    features: string[],
+  ): Promise<CategoryDocument> {
     const category = await this.findById(id);
     category.features = features;
     const saved = await category.save();
@@ -132,7 +157,9 @@ export class CategoriesService {
    * Get all attributes for a category including inherited ones from parent categories.
    * Child attributes override parent attributes with the same key.
    */
-  async getInheritedAttributes(categoryId: string): Promise<CategoryAttribute[]> {
+  async getInheritedAttributes(
+    categoryId: string,
+  ): Promise<CategoryAttribute[]> {
     const chain = await this.getCategoryChain(categoryId);
     const merged = new Map<string, CategoryAttribute>();
     for (const cat of chain) {
@@ -158,7 +185,9 @@ export class CategoriesService {
     return Array.from(merged);
   }
 
-  private async getCategoryChain(categoryId: string): Promise<CategoryDocument[]> {
+  private async getCategoryChain(
+    categoryId: string,
+  ): Promise<CategoryDocument[]> {
     const chain: CategoryDocument[] = [];
     let current = await this.findById(categoryId);
     chain.unshift(current);
@@ -178,7 +207,9 @@ export class CategoriesService {
       .replace(/-+/g, '-');
   }
 
-  private buildTree(categories: Array<Record<string, any>>): CategoryTreeNode[] {
+  private buildTree(
+    categories: Array<Record<string, any>>,
+  ): CategoryTreeNode[] {
     const map = new Map<string, CategoryTreeNode>();
     const roots: CategoryTreeNode[] = [];
 

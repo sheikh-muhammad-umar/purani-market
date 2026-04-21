@@ -28,25 +28,49 @@
           <div class="admin-search">
             <input type="text" placeholder="Search by title, seller..." [(ngModel)]="searchQuery" />
           </div>
-          <button class="filter-toggle-btn" [class.active]="filtersOpen || hasActiveFilters" (click)="filtersOpen = !filtersOpen">
-            <span class="material-symbols-rounded" style="font-size:18px;">filter_list</span>
+          <button
+            class="filter-toggle-btn"
+            [class.active]="filtersOpen || hasActiveFilters"
+            (click)="filtersOpen = !filtersOpen"
+          >
+            <span class="material-symbols-rounded" style="font-size: 18px">filter_list</span>
             Filters
             @if (activeFilterCount > 0) {
               <span class="filter-badge">{{ activeFilterCount }}</span>
             }
           </button>
           <div class="sort-btns">
-            <button class="sort-btn" [class.active]="sortCol === 'createdAt'" (click)="sortListings('createdAt')">
-              Date <span class="material-symbols-rounded sort-icon">{{ sortIcon('createdAt') }}</span>
+            <button
+              class="sort-btn"
+              [class.active]="sortCol === 'createdAt'"
+              (click)="sortListings('createdAt')"
+            >
+              Date
+              <span class="material-symbols-rounded sort-icon">{{ sortIcon('createdAt') }}</span>
             </button>
-            <button class="sort-btn" [class.active]="sortCol === 'price'" (click)="sortListings('price')">
+            <button
+              class="sort-btn"
+              [class.active]="sortCol === 'price'"
+              (click)="sortListings('price')"
+            >
               Price <span class="material-symbols-rounded sort-icon">{{ sortIcon('price') }}</span>
             </button>
-            <button class="sort-btn" [class.active]="sortCol === 'title'" (click)="sortListings('title')">
+            <button
+              class="sort-btn"
+              [class.active]="sortCol === 'title'"
+              (click)="sortListings('title')"
+            >
               Title <span class="material-symbols-rounded sort-icon">{{ sortIcon('title') }}</span>
             </button>
-            <button class="sort-btn" [class.active]="sortCol === 'rejectionCount'" (click)="sortListings('rejectionCount')">
-              Reviews <span class="material-symbols-rounded sort-icon">{{ sortIcon('rejectionCount') }}</span>
+            <button
+              class="sort-btn"
+              [class.active]="sortCol === 'rejectionCount'"
+              (click)="sortListings('rejectionCount')"
+            >
+              Reviews
+              <span class="material-symbols-rounded sort-icon">{{
+                sortIcon('rejectionCount')
+              }}</span>
             </button>
           </div>
         </div>
@@ -91,7 +115,8 @@
             </div>
             @if (hasActiveFilters) {
               <button class="clear-filters-btn" (click)="clearFilters()">
-                <span class="material-symbols-rounded" style="font-size:16px;">close</span> Clear all filters
+                <span class="material-symbols-rounded" style="font-size: 16px">close</span> Clear
+                all filters
               </button>
             }
           </div>
@@ -100,7 +125,13 @@
 
       @if (filteredListings.length === 0) {
         <div class="empty-state">
-          <p>{{ searchQuery || hasActiveFilters ? 'No listings match your filters.' : 'No pending listings to review.' }}</p>
+          <p>
+            {{
+              searchQuery || hasActiveFilters
+                ? 'No listings match your filters.'
+                : 'No pending listings to review.'
+            }}
+          </p>
           @if (hasActiveFilters) {
             <button class="btn-retry" (click)="clearFilters()">Clear Filters</button>
           }
@@ -125,30 +156,67 @@
                 <span class="listing-price">{{ formatPrice(listing) }}</span>
               </div>
               <div class="listing-meta-grid">
-                <span class="meta-cell"><span class="meta-label">Seller</span><span class="meta-value">{{ listing.sellerName }}</span></span>
-                <span class="meta-cell"><span class="meta-label">Category</span><span class="meta-value">{{ listing.categoryName }}</span></span>
-                <span class="meta-cell"><span class="meta-label">Location</span><span class="meta-value">{{ listing.location?.area ? (listing.location?.area + ', ') : '' }}{{ listing.location?.city || '—' }}</span></span>
-                <span class="meta-cell"><span class="meta-label">Submitted</span><span class="meta-value">{{ formatDate(listing.createdAt) }}</span></span>
-                <span class="meta-cell"><span class="meta-label">Review</span><span class="meta-value">
-                  @if (listing.rejectionCount) {
-                    <span class="review-badge" [class.max-reviews]="listing.rejectionCount >= 3">#{{ listing.rejectionCount + 1 }}</span>
-                  } @else {
-                    <span class="review-badge">#1</span>
-                  }
-                </span></span>
+                <span class="meta-cell"
+                  ><span class="meta-label">Seller</span
+                  ><span class="meta-value">{{ listing.sellerName }}</span></span
+                >
+                <span class="meta-cell"
+                  ><span class="meta-label">Category</span
+                  ><span class="meta-value">{{ listing.categoryName }}</span></span
+                >
+                <span class="meta-cell"
+                  ><span class="meta-label">Location</span
+                  ><span class="meta-value"
+                    >{{ listing.location?.area ? listing.location?.area + ', ' : ''
+                    }}{{ listing.location?.city || '—' }}</span
+                  ></span
+                >
+                <span class="meta-cell"
+                  ><span class="meta-label">Submitted</span
+                  ><span class="meta-value">{{ formatDate(listing.createdAt) }}</span></span
+                >
+                <span class="meta-cell"
+                  ><span class="meta-label">Review</span
+                  ><span class="meta-value">
+                    @if (listing.rejectionCount) {
+                      <span class="review-badge" [class.max-reviews]="listing.rejectionCount >= 3"
+                        >#{{ listing.rejectionCount + 1 }}</span
+                      >
+                    } @else {
+                      <span class="review-badge">#1</span>
+                    }
+                  </span></span
+                >
               </div>
             </div>
-            <button class="expand-btn" (click)="$event.stopPropagation(); toggleExpand(listing._id)">
-              <span class="material-symbols-rounded">{{ expandedId === listing._id ? 'expand_less' : 'expand_more' }}</span>
+            <button
+              class="expand-btn"
+              (click)="$event.stopPropagation(); toggleExpand(listing._id)"
+            >
+              <span class="material-symbols-rounded">{{
+                expandedId === listing._id ? 'expand_less' : 'expand_more'
+              }}</span>
             </button>
             @if (expandedId !== listing._id) {
               <div class="summary-actions" (click)="$event.stopPropagation()">
-                <button class="btn-action btn-approve" [disabled]="actionLoading() === listing._id" (click)="approveListing(listing)" title="Approve">
-                  <span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> Approve
+                <button
+                  class="btn-action btn-approve"
+                  [disabled]="actionLoading() === listing._id"
+                  (click)="approveListing(listing)"
+                  title="Approve"
+                >
+                  <span class="material-symbols-rounded" style="font-size: 16px">check_circle</span>
+                  Approve
                 </button>
                 @if (rejectingId !== listing._id) {
-                  <button class="btn-action btn-reject" [disabled]="actionLoading() === listing._id" (click)="startReject(listing)" title="Reject">
-                    <span class="material-symbols-rounded" style="font-size:16px;">cancel</span> Reject
+                  <button
+                    class="btn-action btn-reject"
+                    [disabled]="actionLoading() === listing._id"
+                    (click)="startReject(listing)"
+                    title="Reject"
+                  >
+                    <span class="material-symbols-rounded" style="font-size: 16px">cancel</span>
+                    Reject
                   </button>
                 }
               </div>
@@ -163,7 +231,11 @@
                   <h4>Images ({{ listing.images.length }})</h4>
                   <div class="detail-images">
                     @for (img of listing.images; track $index) {
-                      <img [src]="img.thumbnailUrl || img.url" [alt]="listing.title" class="detail-img" />
+                      <img
+                        [src]="img.thumbnailUrl || img.url"
+                        [alt]="listing.title"
+                        class="detail-img"
+                      />
                     }
                   </div>
                 </div>
@@ -174,7 +246,9 @@
                 <p class="detail-description">{{ listing.description }}</p>
               </div>
 
-              @if (listing.categoryAttributes && objectKeys(listing.categoryAttributes).length > 0) {
+              @if (
+                listing.categoryAttributes && objectKeys(listing.categoryAttributes).length > 0
+              ) {
                 <div class="detail-section">
                   <h4>Attributes</h4>
                   <div class="detail-attrs">
@@ -202,7 +276,10 @@
               <div class="detail-section detail-row-grid">
                 <div>
                   <h4>Location</h4>
-                  <p>{{ listing.location?.area ? (listing.location?.area + ', ') : '' }}{{ listing.location?.city || '—' }}</p>
+                  <p>
+                    {{ listing.location?.area ? listing.location?.area + ', ' : ''
+                    }}{{ listing.location?.city || '—' }}
+                  </p>
                 </div>
                 <div>
                   <h4>Seller Contact</h4>
@@ -217,13 +294,23 @@
               </div>
 
               <div class="detail-actions">
-                <button class="btn-action btn-approve" [disabled]="actionLoading() === listing._id" (click)="approveListing(listing)">
-                  <span class="material-symbols-rounded" style="font-size:16px;">check_circle</span> Approve
+                <button
+                  class="btn-action btn-approve"
+                  [disabled]="actionLoading() === listing._id"
+                  (click)="approveListing(listing)"
+                >
+                  <span class="material-symbols-rounded" style="font-size: 16px">check_circle</span>
+                  Approve
                 </button>
 
                 @if (rejectingId !== listing._id) {
-                  <button class="btn-action btn-reject" [disabled]="actionLoading() === listing._id" (click)="startReject(listing)">
-                    <span class="material-symbols-rounded" style="font-size:16px;">cancel</span> Reject
+                  <button
+                    class="btn-action btn-reject"
+                    [disabled]="actionLoading() === listing._id"
+                    (click)="startReject(listing)"
+                  >
+                    <span class="material-symbols-rounded" style="font-size: 16px">cancel</span>
+                    Reject
                   </button>
                 }
 
@@ -231,16 +318,45 @@
                   <div class="reject-form" [id]="'reject-form-' + listing._id">
                     <div class="reject-reasons-list">
                       @for (reason of availableReasons; track reason._id) {
-                        <label class="reject-reason-item" [class.selected]="selectedRejectReasonIds[listing._id]?.includes(reason._id)">
-                          <input type="checkbox" [checked]="selectedRejectReasonIds[listing._id]?.includes(reason._id)" (change)="toggleRejectReason(listing._id, reason._id)" />
+                        <label
+                          class="reject-reason-item"
+                          [class.selected]="
+                            selectedRejectReasonIds[listing._id]?.includes(reason._id)
+                          "
+                        >
+                          <input
+                            type="checkbox"
+                            [checked]="selectedRejectReasonIds[listing._id]?.includes(reason._id)"
+                            (change)="toggleRejectReason(listing._id, reason._id)"
+                          />
                           <span>{{ reason.title }}</span>
                         </label>
                       }
                     </div>
-                    <input type="text" class="reject-reason-input" placeholder="Additional note (optional)..." [(ngModel)]="rejectCustomNote[listing._id]" />
+                    <input
+                      type="text"
+                      class="reject-reason-input"
+                      placeholder="Additional note (optional)..."
+                      [(ngModel)]="rejectCustomNote[listing._id]"
+                    />
                     <div class="reject-buttons">
-                      <button class="btn-action btn-confirm-reject" [disabled]="actionLoading() === listing._id || !(selectedRejectReasonIds[listing._id]?.length)" (click)="confirmReject(listing)">Reject</button>
-                      <button class="btn-action btn-cancel" [disabled]="actionLoading() === listing._id" (click)="cancelReject()">Cancel</button>
+                      <button
+                        class="btn-action btn-confirm-reject"
+                        [disabled]="
+                          actionLoading() === listing._id ||
+                          !selectedRejectReasonIds[listing._id]?.length
+                        "
+                        (click)="confirmReject(listing)"
+                      >
+                        Reject
+                      </button>
+                      <button
+                        class="btn-action btn-cancel"
+                        [disabled]="actionLoading() === listing._id"
+                        (click)="cancelReject()"
+                      >
+                        Cancel
+                      </button>
                     </div>
                   </div>
                 }

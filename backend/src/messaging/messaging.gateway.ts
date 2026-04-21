@@ -10,7 +10,10 @@ import {
 import { Server, Socket } from 'socket.io';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Conversation, ConversationDocument } from './schemas/conversation.schema.js';
+import {
+  Conversation,
+  ConversationDocument,
+} from './schemas/conversation.schema.js';
 import { Message, MessageDocument } from './schemas/message.schema.js';
 import { User, UserDocument } from '../users/schemas/user.schema.js';
 
@@ -40,7 +43,9 @@ export interface MarkReadPayload {
 }
 
 @WebSocketGateway({ namespace: '/ws/messaging', cors: { origin: '*' } })
-export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnect {
+export class MessagingGateway
+  implements OnGatewayConnection, OnGatewayDisconnect
+{
   @WebSocketServer()
   server!: Server;
 
@@ -121,7 +126,9 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
     }
 
     // Verify conversation exists and user is a participant
-    const conversation = await this.conversationModel.findById(conversationId).exec();
+    const conversation = await this.conversationModel
+      .findById(conversationId)
+      .exec();
     if (!conversation) {
       return { success: false, error: 'Conversation not found' };
     }
@@ -130,7 +137,10 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
       conversation.buyerId.toString() !== userId &&
       conversation.sellerId.toString() !== userId
     ) {
-      return { success: false, error: 'You are not a participant in this conversation' };
+      return {
+        success: false,
+        error: 'You are not a participant in this conversation',
+      };
     }
 
     // Check prohibited content
@@ -151,7 +161,8 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
     const savedMessage = await message.save();
 
     // Update conversation with last message info
-    const preview = content.length > 100 ? content.substring(0, 100) + '...' : content;
+    const preview =
+      content.length > 100 ? content.substring(0, 100) + '...' : content;
     await this.conversationModel.findByIdAndUpdate(conversationId, {
       lastMessageAt: savedMessage.createdAt,
       lastMessagePreview: preview,
@@ -169,9 +180,11 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
         : conversation.buyerId.toString();
 
     if (!this.isUserOnline(recipientId)) {
-      this.sendPushNotification(recipientId, conversationId, content).catch(() => {
-        // Push notification failures are non-critical
-      });
+      this.sendPushNotification(recipientId, conversationId, content).catch(
+        () => {
+          // Push notification failures are non-critical
+        },
+      );
     }
 
     return { success: true, message: savedMessage };
@@ -216,7 +229,9 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
     }
 
     // Verify user is a participant
-    const conversation = await this.conversationModel.findById(conversationId).exec();
+    const conversation = await this.conversationModel
+      .findById(conversationId)
+      .exec();
     if (!conversation) {
       return { success: false, error: 'Conversation not found' };
     }
@@ -225,7 +240,10 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
       conversation.buyerId.toString() !== userId &&
       conversation.sellerId.toString() !== userId
     ) {
-      return { success: false, error: 'You are not a participant in this conversation' };
+      return {
+        success: false,
+        error: 'You are not a participant in this conversation',
+      };
     }
 
     const validIds = messageIds
@@ -276,7 +294,10 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
     conversationId: string,
     messageContent: string,
   ): Promise<void> {
-    const user = await this.userModel.findById(recipientId).select('deviceTokens notificationPreferences').exec();
+    const user = await this.userModel
+      .findById(recipientId)
+      .select('deviceTokens notificationPreferences')
+      .exec();
     if (!user) return;
 
     // Respect notification preferences
@@ -284,7 +305,10 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
 
     // Stub: In production, this would call FCM/HMS providers
     // For now, just log the intent
-    const preview = messageContent.length > 50 ? messageContent.substring(0, 50) + '...' : messageContent;
+    const preview =
+      messageContent.length > 50
+        ? messageContent.substring(0, 50) + '...'
+        : messageContent;
     console.log(
       `[Push Notification Stub] Sending to user ${recipientId} for conversation ${conversationId}: "${preview}"`,
     );
@@ -298,7 +322,7 @@ export class MessagingGateway implements OnGatewayConnection, OnGatewayDisconnec
     for (const socketId of socketIds) {
       try {
         const sockets = await this.server.fetchSockets();
-        const socket = sockets.find(s => s.id === socketId);
+        const socket = sockets.find((s) => s.id === socketId);
         if (socket) {
           socket.join(room);
         }

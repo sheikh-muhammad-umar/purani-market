@@ -69,7 +69,10 @@ describe('FavoritesService', () => {
       providers: [
         FavoritesService,
         { provide: getModelToken(Favorite.name), useValue: mockFavoriteModel },
-        { provide: getModelToken(ProductListing.name), useValue: mockListingModel },
+        {
+          provide: getModelToken(ProductListing.name),
+          useValue: mockListingModel,
+        },
       ],
     }).compile();
 
@@ -78,10 +81,15 @@ describe('FavoritesService', () => {
 
   describe('addFavorite', () => {
     it('should add a favorite and increment listing favoriteCount', async () => {
-      const result = await service.addFavorite(userId.toString(), listingId.toString());
+      const result = await service.addFavorite(
+        userId.toString(),
+        listingId.toString(),
+      );
 
       expect(result).toEqual(mockFavorite);
-      expect(mockListingModel.findById).toHaveBeenCalledWith(listingId.toString());
+      expect(mockListingModel.findById).toHaveBeenCalledWith(
+        listingId.toString(),
+      );
       expect(mockListingModel.updateOne).toHaveBeenCalledWith(
         { _id: new Types.ObjectId(listingId.toString()) },
         { $inc: { favoriteCount: 1 } },
@@ -179,7 +187,9 @@ describe('FavoritesService', () => {
     it('should remove a favorite and decrement listing favoriteCount', async () => {
       await service.removeFavorite(favoriteId.toString(), userId.toString());
 
-      expect(mockFavoriteModel.deleteOne).toHaveBeenCalledWith({ _id: mockFavorite._id });
+      expect(mockFavoriteModel.deleteOne).toHaveBeenCalledWith({
+        _id: mockFavorite._id,
+      });
       expect(mockListingModel.updateOne).toHaveBeenCalledWith(
         { _id: mockFavorite.productListingId },
         { $inc: { favoriteCount: -1 } },
@@ -198,7 +208,10 @@ describe('FavoritesService', () => {
       });
 
       await expect(
-        service.removeFavorite(new Types.ObjectId().toString(), userId.toString()),
+        service.removeFavorite(
+          new Types.ObjectId().toString(),
+          userId.toString(),
+        ),
       ).rejects.toThrow(NotFoundException);
     });
 

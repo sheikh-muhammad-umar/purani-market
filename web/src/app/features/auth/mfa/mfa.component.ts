@@ -25,7 +25,7 @@ export class MfaComponent implements OnInit {
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
     private readonly route: ActivatedRoute,
-    private readonly router: Router
+    private readonly router: Router,
   ) {
     this.mfaForm = this.fb.group({
       code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
@@ -47,11 +47,11 @@ export class MfaComponent implements OnInit {
   enableMfa(): void {
     this.setupLoading.set(true);
     this.authService.enableMfa().subscribe({
-      next: data => {
+      next: (data) => {
         this.setupLoading.set(false);
         this.setupData.set(data);
       },
-      error: err => {
+      error: (err) => {
         this.setupLoading.set(false);
         this.errorMessage.set(err.error?.message || 'Failed to enable MFA.');
       },
@@ -71,18 +71,16 @@ export class MfaComponent implements OnInit {
     const token = this.isSetupMode() ? 'setup' : this.mfaToken;
 
     this.authService.verifyMfa(token, code).subscribe({
-      next: tokens => {
+      next: (tokens) => {
         this.loading.set(false);
         this.authService.storeTokens(tokens);
         this.authService.fetchCurrentUser().subscribe(() => {
           this.router.navigate(['/']);
         });
       },
-      error: err => {
+      error: (err) => {
         this.loading.set(false);
-        this.errorMessage.set(
-          err.error?.message || 'Invalid verification code. Please try again.'
-        );
+        this.errorMessage.set(err.error?.message || 'Invalid verification code. Please try again.');
       },
     });
   }

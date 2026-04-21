@@ -21,7 +21,12 @@ function makeListing(overrides: Partial<Listing> = {}): Listing {
       { url: 'https://img.test/1.jpg', thumbnailUrl: 'https://img.test/1_thumb.jpg', sortOrder: 0 },
     ],
     video: undefined,
-    location: overrides.location ?? { type: 'Point', coordinates: [74.3, 31.5], city: 'Lahore', area: 'Gulberg' },
+    location: overrides.location ?? {
+      type: 'Point',
+      coordinates: [74.3, 31.5],
+      city: 'Lahore',
+      area: 'Gulberg',
+    },
     contactInfo: { phone: '03001234567', email: 'test@test.com' },
     status: 'active',
     isFeatured: overrides.isFeatured ?? false,
@@ -49,9 +54,18 @@ function makeCategory(overrides: Partial<Category> = {}): Category {
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
-  let categoriesServiceMock: { getAll: ReturnType<typeof vi.fn>; getById: ReturnType<typeof vi.fn> };
-  let listingsServiceMock: { getFeatured: ReturnType<typeof vi.fn>; getNearby: ReturnType<typeof vi.fn> };
-  let recommendationsServiceMock: { getRecommendations: ReturnType<typeof vi.fn>; dismiss: ReturnType<typeof vi.fn> };
+  let categoriesServiceMock: {
+    getAll: ReturnType<typeof vi.fn>;
+    getById: ReturnType<typeof vi.fn>;
+  };
+  let listingsServiceMock: {
+    getFeatured: ReturnType<typeof vi.fn>;
+    getNearby: ReturnType<typeof vi.fn>;
+  };
+  let recommendationsServiceMock: {
+    getRecommendations: ReturnType<typeof vi.fn>;
+    dismiss: ReturnType<typeof vi.fn>;
+  };
 
   const mockCategories: Category[] = [
     makeCategory({ _id: 'c1', name: 'Cars', slug: 'cars', sortOrder: 1 }),
@@ -62,8 +76,18 @@ describe('HomeComponent', () => {
   ];
 
   const mockFeatured: Listing[] = [
-    makeListing({ _id: 'f1', title: 'Featured Car', isFeatured: true, price: { amount: 500000, currency: 'PKR' } }),
-    makeListing({ _id: 'f2', title: 'Featured Phone', isFeatured: true, price: { amount: 25000, currency: 'PKR' } }),
+    makeListing({
+      _id: 'f1',
+      title: 'Featured Car',
+      isFeatured: true,
+      price: { amount: 500000, currency: 'PKR' },
+    }),
+    makeListing({
+      _id: 'f2',
+      title: 'Featured Phone',
+      isFeatured: true,
+      price: { amount: 25000, currency: 'PKR' },
+    }),
   ];
 
   const mockRecommendations: Listing[] = [
@@ -78,7 +102,9 @@ describe('HomeComponent', () => {
     };
 
     listingsServiceMock = {
-      getFeatured: vi.fn().mockReturnValue(of({ data: mockFeatured, total: 2, page: 1, limit: 10 })),
+      getFeatured: vi
+        .fn()
+        .mockReturnValue(of({ data: mockFeatured, total: 2, page: 1, limit: 10 })),
       getNearby: vi.fn().mockReturnValue(of({ data: [], total: 0, page: 1, limit: 12 })),
     };
 
@@ -179,7 +205,9 @@ describe('HomeComponent', () => {
   });
 
   it('should set loading to false on recommendations error', () => {
-    recommendationsServiceMock.getRecommendations = vi.fn().mockReturnValue(throwError(() => new Error('fail')));
+    recommendationsServiceMock.getRecommendations = vi
+      .fn()
+      .mockReturnValue(throwError(() => new Error('fail')));
     component = new HomeComponent(
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
@@ -226,22 +254,27 @@ describe('HomeComponent', () => {
   it('should exclude inactive categories from chips', () => {
     component.ngOnInit();
     const chips = component.categoryChips();
-    const names = chips.map(c => c.name);
+    const names = chips.map((c) => c.name);
     expect(names).not.toContain('Inactive');
   });
 
   it('should exclude non-level-1 categories from chips', () => {
     component.ngOnInit();
     const chips = component.categoryChips();
-    const names = chips.map(c => c.name);
+    const names = chips.map((c) => c.name);
     expect(names).not.toContain('Sub Category');
   });
 
   it('should set userCity from nearby listings response', () => {
     const nearbyData: Listing[] = [
-      makeListing({ _id: 'n1', location: { type: 'Point', coordinates: [74.3, 31.5], city: 'Karachi', area: 'DHA' } }),
+      makeListing({
+        _id: 'n1',
+        location: { type: 'Point', coordinates: [74.3, 31.5], city: 'Karachi', area: 'DHA' },
+      }),
     ];
-    listingsServiceMock.getNearby = vi.fn().mockReturnValue(of({ data: nearbyData, total: 1, page: 1, limit: 12 }));
+    listingsServiceMock.getNearby = vi
+      .fn()
+      .mockReturnValue(of({ data: nearbyData, total: 1, page: 1, limit: 12 }));
 
     // Mock navigator.geolocation
     const mockGeolocation = {

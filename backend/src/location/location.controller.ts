@@ -54,7 +54,11 @@ export class LocationController {
   async getNearbyListings(@Query() query: NearbyQueryDto) {
     this.locationService.validateCoordinates(query.lat, query.lng);
     return this.locationService.findNearby(
-      query.lat, query.lng, query.radius, query.limit, query.page,
+      query.lat,
+      query.lng,
+      query.radius,
+      query.limit,
+      query.page,
     );
   }
 
@@ -76,27 +80,55 @@ export class LocationController {
   @Post('provinces')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async createProvince(@Body() dto: CreateProvinceDto, @CurrentUser('sub') adminId: string, @Req() req: any) {
+  async createProvince(
+    @Body() dto: CreateProvinceDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
     const result = await this.locationService.createProvince(dto.name);
-    this.tracker.track(adminId, UserAction.ADMIN_LOCATION_CREATE, { type: 'province', name: dto.name }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_LOCATION_CREATE,
+      { type: 'province', name: dto.name },
+      req,
+    );
     return result;
   }
 
   @Patch('provinces/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async updateProvince(@Param('id') id: string, @Body() dto: CreateProvinceDto, @CurrentUser('sub') adminId: string, @Req() req: any) {
+  async updateProvince(
+    @Param('id') id: string,
+    @Body() dto: CreateProvinceDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
     const result = await this.locationService.updateProvince(id, dto.name);
-    this.tracker.track(adminId, UserAction.ADMIN_LOCATION_UPDATE, { type: 'province', id, newName: dto.name }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_LOCATION_UPDATE,
+      { type: 'province', id, newName: dto.name },
+      req,
+    );
     return result;
   }
 
   @Delete('provinces/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async deleteProvince(@Param('id') id: string, @CurrentUser('sub') adminId: string, @Req() req: any) {
+  async deleteProvince(
+    @Param('id') id: string,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
     await this.locationService.deleteProvince(id);
-    this.tracker.track(adminId, UserAction.ADMIN_LOCATION_DELETE, { type: 'province', id }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_LOCATION_DELETE,
+      { type: 'province', id },
+      req,
+    );
     return { deleted: true };
   }
 
@@ -105,27 +137,58 @@ export class LocationController {
   @Post('cities')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async createCity(@Body() dto: CreateCityDto, @CurrentUser('sub') adminId: string, @Req() req: any) {
-    const result = await this.locationService.createCity(dto.name, dto.provinceId);
-    this.tracker.track(adminId, UserAction.ADMIN_LOCATION_CREATE, { type: 'city', name: dto.name, provinceId: dto.provinceId }, req);
+  async createCity(
+    @Body() dto: CreateCityDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
+    const result = await this.locationService.createCity(
+      dto.name,
+      dto.provinceId,
+    );
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_LOCATION_CREATE,
+      { type: 'city', name: dto.name, provinceId: dto.provinceId },
+      req,
+    );
     return result;
   }
 
   @Patch('cities/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async updateCity(@Param('id') id: string, @Body() dto: CreateProvinceDto, @CurrentUser('sub') adminId: string, @Req() req: any) {
+  async updateCity(
+    @Param('id') id: string,
+    @Body() dto: CreateProvinceDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
     const result = await this.locationService.updateCity(id, dto.name);
-    this.tracker.track(adminId, UserAction.ADMIN_LOCATION_UPDATE, { type: 'city', id, newName: dto.name }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_LOCATION_UPDATE,
+      { type: 'city', id, newName: dto.name },
+      req,
+    );
     return result;
   }
 
   @Delete('cities/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async deleteCity(@Param('id') id: string, @CurrentUser('sub') adminId: string, @Req() req: any) {
+  async deleteCity(
+    @Param('id') id: string,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
     await this.locationService.deleteCity(id);
-    this.tracker.track(adminId, UserAction.ADMIN_LOCATION_DELETE, { type: 'city', id }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_LOCATION_DELETE,
+      { type: 'city', id },
+      req,
+    );
     return { deleted: true };
   }
 
@@ -134,27 +197,60 @@ export class LocationController {
   @Post('areas')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async createArea(@Body() dto: CreateAreaDto, @CurrentUser('sub') adminId: string, @Req() req: any) {
-    const result = await this.locationService.createArea(dto.name, dto.cityId, dto.subareas, dto.blockPhases);
-    this.tracker.track(adminId, UserAction.ADMIN_LOCATION_CREATE, { type: 'area', name: dto.name, cityId: dto.cityId }, req);
+  async createArea(
+    @Body() dto: CreateAreaDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
+    const result = await this.locationService.createArea(
+      dto.name,
+      dto.cityId,
+      dto.subareas,
+      dto.blockPhases,
+    );
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_LOCATION_CREATE,
+      { type: 'area', name: dto.name, cityId: dto.cityId },
+      req,
+    );
     return result;
   }
 
   @Patch('areas/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async updateArea(@Param('id') id: string, @Body() dto: UpdateAreaDto, @CurrentUser('sub') adminId: string, @Req() req: any) {
+  async updateArea(
+    @Param('id') id: string,
+    @Body() dto: UpdateAreaDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
     const result = await this.locationService.updateArea(id, dto);
-    this.tracker.track(adminId, UserAction.ADMIN_LOCATION_UPDATE, { type: 'area', id, changes: Object.keys(dto).join(', ') }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_LOCATION_UPDATE,
+      { type: 'area', id, changes: Object.keys(dto).join(', ') },
+      req,
+    );
     return result;
   }
 
   @Delete('areas/:id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async deleteArea(@Param('id') id: string, @CurrentUser('sub') adminId: string, @Req() req: any) {
+  async deleteArea(
+    @Param('id') id: string,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
     await this.locationService.deleteArea(id);
-    this.tracker.track(adminId, UserAction.ADMIN_LOCATION_DELETE, { type: 'area', id }, req);
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_LOCATION_DELETE,
+      { type: 'area', id },
+      req,
+    );
     return { deleted: true };
   }
 }

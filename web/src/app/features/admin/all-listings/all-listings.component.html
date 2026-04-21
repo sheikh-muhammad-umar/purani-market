@@ -1,20 +1,40 @@
 <div class="al-page">
   <div class="page-header">
     <h1>All Listings</h1>
-    @if (!loading()) { <span class="al-count">{{ total() }} listings</span> }
+    @if (!loading()) {
+      <span class="al-count">{{ total() }} listings</span>
+    }
   </div>
 
   <!-- Toolbar -->
   <div class="admin-toolbar">
     <div class="admin-search">
-      <input type="text" placeholder="Search listings..." [(ngModel)]="searchQuery" (keyup.enter)="applyFilters()" />
-      <button (click)="applyFilters()"><span class="material-symbols-rounded" style="font-size:18px;">search</span></button>
+      <input
+        type="text"
+        placeholder="Search listings..."
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="applyFilters()"
+      />
+      <button (click)="applyFilters()">
+        <span class="material-symbols-rounded" style="font-size: 18px">search</span>
+      </button>
     </div>
-    <button class="filter-toggle-btn" [class.active]="filtersOpen || hasActiveFilters" (click)="filtersOpen = !filtersOpen">
-      <span class="material-symbols-rounded" style="font-size:18px;">filter_list</span> Filters
-      @if (activeFilterCount > 0) { <span class="filter-badge">{{ activeFilterCount }}</span> }
+    <button
+      class="filter-toggle-btn"
+      [class.active]="filtersOpen || hasActiveFilters"
+      (click)="filtersOpen = !filtersOpen"
+    >
+      <span class="material-symbols-rounded" style="font-size: 18px">filter_list</span> Filters
+      @if (activeFilterCount > 0) {
+        <span class="filter-badge">{{ activeFilterCount }}</span>
+      }
     </button>
-    <app-custom-select [options]="sortOptions" [(ngModel)]="sortBy" (ngModelChange)="applyFilters()" placeholder="Sort"></app-custom-select>
+    <app-custom-select
+      [options]="sortOptions"
+      [(ngModel)]="sortBy"
+      (ngModelChange)="applyFilters()"
+      placeholder="Sort"
+    ></app-custom-select>
   </div>
 
   <!-- Filters -->
@@ -23,49 +43,98 @@
       <div class="filters-grid">
         <div class="filter-group">
           <label class="filter-label">Status</label>
-          <app-custom-select [options]="statusOptions" [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()" placeholder="All Status"></app-custom-select>
+          <app-custom-select
+            [options]="statusOptions"
+            [(ngModel)]="filterStatus"
+            (ngModelChange)="applyFilters()"
+            placeholder="All Status"
+          ></app-custom-select>
         </div>
         <div class="filter-group">
           <label class="filter-label">Category</label>
-          <app-custom-select [options]="categoryOptions" [(ngModel)]="filterCategory" (ngModelChange)="applyFilters()" placeholder="All Categories" [searchable]="true"></app-custom-select>
+          <app-custom-select
+            [options]="categoryOptions"
+            [(ngModel)]="filterCategory"
+            (ngModelChange)="applyFilters()"
+            placeholder="All Categories"
+            [searchable]="true"
+          ></app-custom-select>
         </div>
         <div class="filter-group">
           <label class="filter-label">Province</label>
-          <app-custom-select [options]="provinceOptions" [(ngModel)]="filterProvince" (ngModelChange)="onProvinceChange()" placeholder="All Provinces" [searchable]="true"></app-custom-select>
+          <app-custom-select
+            [options]="provinceOptions"
+            [(ngModel)]="filterProvince"
+            (ngModelChange)="onProvinceChange()"
+            placeholder="All Provinces"
+            [searchable]="true"
+          ></app-custom-select>
         </div>
         <div class="filter-group">
           <label class="filter-label">City</label>
-          <app-custom-select [options]="cityOptions" [(ngModel)]="filterCity" (ngModelChange)="applyFilters()" placeholder="All Cities" [searchable]="true"></app-custom-select>
+          <app-custom-select
+            [options]="cityOptions"
+            [(ngModel)]="filterCity"
+            (ngModelChange)="applyFilters()"
+            placeholder="All Cities"
+            [searchable]="true"
+          ></app-custom-select>
         </div>
         <div class="filter-group">
           <label class="filter-label">Rejection Reason</label>
-          <app-custom-select [options]="rejectionReasonOptions" [(ngModel)]="filterRejectionReason" (ngModelChange)="applyFilters()" placeholder="All" [searchable]="true"></app-custom-select>
+          <app-custom-select
+            [options]="rejectionReasonOptions"
+            [(ngModel)]="filterRejectionReason"
+            (ngModelChange)="applyFilters()"
+            placeholder="All"
+            [searchable]="true"
+          ></app-custom-select>
         </div>
         <div class="filter-group">
           <label class="filter-label">Deletion Reason</label>
-          <app-custom-select [options]="deletionReasonOptions" [(ngModel)]="filterDeletionReason" (ngModelChange)="applyFilters()" placeholder="All" [searchable]="true"></app-custom-select>
+          <app-custom-select
+            [options]="deletionReasonOptions"
+            [(ngModel)]="filterDeletionReason"
+            (ngModelChange)="applyFilters()"
+            placeholder="All"
+            [searchable]="true"
+          ></app-custom-select>
         </div>
         <div class="filter-group">
           <label class="filter-label">From</label>
-          <app-date-picker [(ngModel)]="filterDateFrom" (ngModelChange)="applyFilters()"></app-date-picker>
+          <app-date-picker
+            [(ngModel)]="filterDateFrom"
+            (ngModelChange)="applyFilters()"
+          ></app-date-picker>
         </div>
         <div class="filter-group">
           <label class="filter-label">To</label>
-          <app-date-picker [(ngModel)]="filterDateTo" (ngModelChange)="applyFilters()"></app-date-picker>
+          <app-date-picker
+            [(ngModel)]="filterDateTo"
+            (ngModelChange)="applyFilters()"
+          ></app-date-picker>
         </div>
       </div>
       @if (hasActiveFilters) {
-        <button class="clear-filters-btn" (click)="clearFilters()"><span class="material-symbols-rounded" style="font-size:16px;">close</span> Clear all</button>
+        <button class="clear-filters-btn" (click)="clearFilters()">
+          <span class="material-symbols-rounded" style="font-size: 16px">close</span> Clear all
+        </button>
       }
     </div>
   }
 
-  @if (loading()) { <div class="loading-state"><div class="spinner"></div></div> }
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  }
 
   @if (!loading() && listings().length === 0) {
     <div class="empty-state">
-      @if (hasActiveFilters) { No listings match your filters. <button class="btn-retry" (click)="clearFilters()">Clear</button> }
-      @else { No listings found. }
+      @if (hasActiveFilters) {
+        No listings match your filters.
+        <button class="btn-retry" (click)="clearFilters()">Clear</button>
+      } @else {
+        No listings found.
+      }
     </div>
   }
 
@@ -74,8 +143,14 @@
       @for (listing of listings(); track listing._id) {
         <div class="al-card">
           <div class="al-thumb">
-            @if (listing.images?.length) { <img [src]="listing.images![0].thumbnailUrl || listing.images![0].url" [alt]="listing.title" /> }
-            @else { <div class="al-no-img">No Image</div> }
+            @if (listing.images?.length) {
+              <img
+                [src]="listing.images![0].thumbnailUrl || listing.images![0].url"
+                [alt]="listing.title"
+              />
+            } @else {
+              <div class="al-no-img">No Image</div>
+            }
           </div>
           <div class="al-body">
             <div class="al-top">
@@ -83,18 +158,40 @@
               <span class="al-price">{{ formatPrice(listing) }}</span>
             </div>
             <div class="al-meta-grid">
-              <span class="al-meta"><span class="al-meta-label">Status</span><span class="al-status" [style.color]="getStatusColor(listing.status)">{{ listing.status }}</span></span>
-              <span class="al-meta"><span class="al-meta-label">Seller</span>{{ listing.sellerName }}</span>
-              <span class="al-meta"><span class="al-meta-label">Category</span>{{ listing.categoryName }}</span>
-              <span class="al-meta"><span class="al-meta-label">Location</span>{{ listing.location?.city || '—' }}</span>
-              <span class="al-meta"><span class="al-meta-label">Created</span>{{ formatDate(listing.createdAt) }}</span>
-              <span class="al-meta"><span class="al-meta-label">Views</span>{{ listing.viewCount || 0 }}</span>
+              <span class="al-meta"
+                ><span class="al-meta-label">Status</span
+                ><span class="al-status" [style.color]="getStatusColor(listing.status)">{{
+                  listing.status
+                }}</span></span
+              >
+              <span class="al-meta"
+                ><span class="al-meta-label">Seller</span>{{ listing.sellerName }}</span
+              >
+              <span class="al-meta"
+                ><span class="al-meta-label">Category</span>{{ listing.categoryName }}</span
+              >
+              <span class="al-meta"
+                ><span class="al-meta-label">Location</span
+                >{{ listing.location?.city || '—' }}</span
+              >
+              <span class="al-meta"
+                ><span class="al-meta-label">Created</span>{{ formatDate(listing.createdAt) }}</span
+              >
+              <span class="al-meta"
+                ><span class="al-meta-label">Views</span>{{ listing.viewCount || 0 }}</span
+              >
             </div>
             @if (listing.rejectionReason) {
-              <div class="al-reason al-reject"><span class="material-symbols-rounded" style="font-size:13px;">block</span> {{ listing.rejectionReason }}</div>
+              <div class="al-reason al-reject">
+                <span class="material-symbols-rounded" style="font-size: 13px">block</span>
+                {{ listing.rejectionReason }}
+              </div>
             }
             @if (listing.deletionReason) {
-              <div class="al-reason al-delete"><span class="material-symbols-rounded" style="font-size:13px;">delete</span> {{ listing.deletionReason }}</div>
+              <div class="al-reason al-delete">
+                <span class="material-symbols-rounded" style="font-size: 13px">delete</span>
+                {{ listing.deletionReason }}
+              </div>
             }
             @if (listing.isFeatured) {
               <span class="al-featured-badge">⭐ Featured</span>
@@ -108,7 +205,9 @@
       <div class="pagination">
         <button class="btn-page" (click)="goToPage(page - 1)" [disabled]="page <= 1">← Prev</button>
         <span class="page-info">Page {{ page }} of {{ totalPages() }}</span>
-        <button class="btn-page" (click)="goToPage(page + 1)" [disabled]="page >= totalPages()">Next →</button>
+        <button class="btn-page" (click)="goToPage(page + 1)" [disabled]="page >= totalPages()">
+          Next →
+        </button>
       </div>
     }
   }

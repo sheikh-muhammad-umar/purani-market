@@ -34,7 +34,9 @@ const mockPayments: PaymentTransaction[] = [
 
 function createMockAdminService() {
   return {
-    getAdminPayments: vi.fn().mockReturnValue(of({ data: mockPayments, total: 2, page: 1, limit: 15 })),
+    getAdminPayments: vi
+      .fn()
+      .mockReturnValue(of({ data: mockPayments, total: 2, page: 1, limit: 15 })),
   };
 }
 

@@ -8,10 +8,15 @@ import { map } from 'rxjs';
 export const unwrapInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     map((event: any) => {
-      if (event?.body && typeof event.body === 'object' && 'data' in event.body && 'statusCode' in event.body) {
+      if (
+        event?.body &&
+        typeof event.body === 'object' &&
+        'data' in event.body &&
+        'statusCode' in event.body
+      ) {
         return event.clone({ body: event.body.data });
       }
       return event;
-    })
+    }),
   );
 };

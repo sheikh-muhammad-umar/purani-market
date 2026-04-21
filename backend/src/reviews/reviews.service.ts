@@ -7,7 +7,11 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Review, ReviewDocument, ReviewStatus } from './schemas/review.schema.js';
+import {
+  Review,
+  ReviewDocument,
+  ReviewStatus,
+} from './schemas/review.schema.js';
 import {
   ProductListing,
   ProductListingDocument,
@@ -87,9 +91,7 @@ export class ReviewsService {
       return await review.save();
     } catch (error: any) {
       if (error.code === 11000) {
-        throw new ConflictException(
-          'You have already reviewed this listing',
-        );
+        throw new ConflictException('You have already reviewed this listing');
       }
       throw error;
     }
@@ -105,14 +107,21 @@ export class ReviewsService {
         productListingId: new Types.ObjectId(listingId),
         status: ReviewStatus.APPROVED,
       })
-      .populate('reviewerId', 'profile.firstName profile.lastName profile.avatar')
+      .populate(
+        'reviewerId',
+        'profile.firstName profile.lastName profile.avatar',
+      )
       .sort({ createdAt: -1 })
       .exec();
   }
 
   async getReviewsBySeller(
     sellerId: string,
-  ): Promise<{ reviews: ReviewDocument[]; averageRating: number; totalReviews: number }> {
+  ): Promise<{
+    reviews: ReviewDocument[];
+    averageRating: number;
+    totalReviews: number;
+  }> {
     if (!Types.ObjectId.isValid(sellerId)) {
       throw new NotFoundException('Seller not found');
     }
@@ -122,7 +131,10 @@ export class ReviewsService {
         sellerId: new Types.ObjectId(sellerId),
         status: ReviewStatus.APPROVED,
       })
-      .populate('reviewerId', 'profile.firstName profile.lastName profile.avatar')
+      .populate(
+        'reviewerId',
+        'profile.firstName profile.lastName profile.avatar',
+      )
       .populate('productListingId', 'title')
       .sort({ createdAt: -1 })
       .exec();

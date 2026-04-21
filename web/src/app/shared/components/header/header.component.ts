@@ -28,7 +28,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // Location selector state
   locationDropdownOpen = signal(false);
   searchDropdownOpen = signal(false);
-  searchPlaceholder = signal(window.innerWidth < 1024 ? 'Search...' : 'Find cars, phones, furniture...');
+  searchPlaceholder = signal(
+    window.innerWidth < 1024 ? 'Search...' : 'Find cars, phones, furniture...',
+  );
   provinces = signal<Province[]>([]);
   cities = signal<City[]>([]);
   areas = signal<Area[]>([]);
@@ -40,15 +42,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   filteredProvinces = computed(() => {
     const q = this.locationSearch().toLowerCase().trim();
-    return q ? this.provinces().filter(p => p.name.toLowerCase().includes(q)) : this.provinces();
+    return q ? this.provinces().filter((p) => p.name.toLowerCase().includes(q)) : this.provinces();
   });
   filteredCities = computed(() => {
     const q = this.locationSearch().toLowerCase().trim();
-    return q ? this.cities().filter(c => c.name.toLowerCase().includes(q)) : this.cities();
+    return q ? this.cities().filter((c) => c.name.toLowerCase().includes(q)) : this.cities();
   });
   filteredAreas = computed(() => {
     const q = this.locationSearch().toLowerCase().trim();
-    return q ? this.areas().filter(a => a.name.toLowerCase().includes(q)) : this.areas();
+    return q ? this.areas().filter((a) => a.name.toLowerCase().includes(q)) : this.areas();
   });
 
   constructor(
@@ -72,25 +74,23 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.restoreLocationFromStorage();
 
     this.subs.push(
-      this.router.events.pipe(
-        filter((e): e is NavigationEnd => e instanceof NavigationEnd),
-      ).subscribe(() => {
-        this.refreshUnreadCount();
-        this.closeAccountMenu();
-      })
+      this.router.events
+        .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
+        .subscribe(() => {
+          this.refreshUnreadCount();
+          this.closeAccountMenu();
+        }),
     );
 
     const userId = this.authService.user()?._id;
     if (userId) {
       this.wsService.connect(userId);
     }
-    this.subs.push(
-      this.wsService.on('newMessage').subscribe(() => this.refreshUnreadCount())
-    );
+    this.subs.push(this.wsService.on('newMessage').subscribe(() => this.refreshUnreadCount()));
   }
 
   ngOnDestroy(): void {
-    this.subs.forEach(s => s.unsubscribe());
+    this.subs.forEach((s) => s.unsubscribe());
   }
 
   private refreshUnreadCount(): void {
@@ -118,7 +118,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   toggleMenu(): void {
-    this.mobileMenuOpen.update(open => !open);
+    this.mobileMenuOpen.update((open) => !open);
   }
 
   closeMenu(): void {
@@ -126,7 +126,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   toggleAccountMenu(): void {
-    this.accountMenuOpen.update(open => !open);
+    this.accountMenuOpen.update((open) => !open);
   }
 
   closeAccountMenu(): void {
@@ -176,14 +176,20 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize')
   onResize(): void {
-    this.searchPlaceholder.set(window.innerWidth < 1024 ? 'Search...' : 'Find cars, phones, furniture...');
+    this.searchPlaceholder.set(
+      window.innerWidth < 1024 ? 'Search...' : 'Find cars, phones, furniture...',
+    );
   }
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
     const target = event.target as HTMLElement;
-    if (!target.closest('.search-location') && !target.closest('.location-dropdown') &&
-        !target.closest('.mobile-location-btn') && !target.closest('.mobile-location-dropdown')) {
+    if (
+      !target.closest('.search-location') &&
+      !target.closest('.location-dropdown') &&
+      !target.closest('.mobile-location-btn') &&
+      !target.closest('.mobile-location-dropdown')
+    ) {
       this.locationDropdownOpen.set(false);
     }
     if (!target.closest('.header-search') && !target.closest('.mobile-search-wrap')) {
@@ -192,7 +198,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   toggleLocationDropdown(): void {
-    this.locationDropdownOpen.update(open => !open);
+    this.locationDropdownOpen.update((open) => !open);
     if (!this.locationDropdownOpen()) {
       this.locationSearch.set('');
     }

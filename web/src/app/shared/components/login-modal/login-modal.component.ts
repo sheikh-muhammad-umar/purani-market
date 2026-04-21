@@ -63,9 +63,7 @@ export class LoginModalComponent {
       },
       error: (err) => {
         this.loading.set(false);
-        this.errorMessage.set(
-          err.error?.message || 'Invalid credentials. Please try again.',
-        );
+        this.errorMessage.set(err.error?.message || 'Invalid credentials. Please try again.');
       },
     });
   }

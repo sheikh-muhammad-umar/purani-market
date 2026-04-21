@@ -1,7 +1,11 @@
 import { Component, OnInit, signal, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { ChatbotService, ChatMessage, ChatbotResponse } from '../../../core/services/chatbot.service';
+import {
+  ChatbotService,
+  ChatMessage,
+  ChatbotResponse,
+} from '../../../core/services/chatbot.service';
 
 @Component({
   selector: 'app-chatbot-widget',
@@ -63,7 +67,8 @@ export class ChatbotWidgetComponent implements OnInit {
             if (this.unresolved >= 3) {
               this.appendMessage({
                 role: 'assistant',
-                content: 'It seems I\'m unable to fully resolve your issue. Would you like me to connect you with a human support agent?',
+                content:
+                  "It seems I'm unable to fully resolve your issue. Would you like me to connect you with a human support agent?",
               });
               this.escalated.set(true);
             }

@@ -33,20 +33,26 @@
   color: var(--text-primary);
 }
 
-.static-page p, .static-page li {
+.static-page p,
+.static-page li {
   font-size: var(--text-sm);
   line-height: 1.7;
   color: var(--text-secondary);
 }
 
-.static-page ul, .static-page ol {
+.static-page ul,
+.static-page ol {
   padding-left: var(--space-3);
   margin-bottom: var(--space-2);
 }
 
-.static-page li { margin-bottom: 6px; }
+.static-page li {
+  margin-bottom: 6px;
+}
 
-.static-page a { color: var(--primary); }
+.static-page a {
+  color: var(--primary);
+}
 
 .static-page .card-grid {
   display: grid;
@@ -86,7 +92,10 @@
   color: var(--text-primary);
 }
 
-.static-page .contact-form textarea { min-height: 120px; resize: vertical; }
+.static-page .contact-form textarea {
+  min-height: 120px;
+  resize: vertical;
+}
 
 .static-page .btn-submit {
   align-self: flex-start;
@@ -100,7 +109,9 @@
   cursor: pointer;
 }
 
-.static-page .btn-submit:hover { opacity: 0.9; }
+.static-page .btn-submit:hover {
+  opacity: 0.9;
+}
 
 .static-page .last-updated {
   margin-top: var(--space-4);

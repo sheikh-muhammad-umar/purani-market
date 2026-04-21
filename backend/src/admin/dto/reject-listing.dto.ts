@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsArray, IsNotEmpty, MaxLength, ArrayMinSize } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsArray,
+  IsNotEmpty,
+  MaxLength,
+  ArrayMinSize,
+} from 'class-validator';
 
 export class RejectListingDto {
   @IsArray()

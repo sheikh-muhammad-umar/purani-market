@@ -6,13 +6,12 @@ import {
   CreateCategoryPayload,
   UpdateCategoryPayload,
 } from '../../../core/services/categories.service';
-import {
-  Category,
-  CategoryAttribute,
-  CategoryAttributeType,
-} from '../../../core/models';
+import { Category, CategoryAttribute, CategoryAttributeType } from '../../../core/models';
 import { ATTRIBUTE_TYPE_OPTIONS } from '../../../core/constants/select-options';
-import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
+import {
+  CustomSelectComponent,
+  SelectOption,
+} from '../../../shared/components/custom-select/custom-select.component';
 
 interface TreeNode {
   category: Category;
@@ -46,7 +45,15 @@ export class CategoryManagerComponent implements OnInit {
 
   // Attribute editing
   editingAttributes: CategoryAttribute[] = [];
-  readonly attributeTypes: CategoryAttributeType[] = ['text', 'number', 'select', 'multiselect', 'boolean', 'range', 'year'];
+  readonly attributeTypes: CategoryAttributeType[] = [
+    'text',
+    'number',
+    'select',
+    'multiselect',
+    'boolean',
+    'range',
+    'year',
+  ];
   readonly attributeTypeOptions: SelectOption[] = ATTRIBUTE_TYPE_OPTIONS;
 
   // Features editing
@@ -57,11 +64,11 @@ export class CategoryManagerComponent implements OnInit {
     const cats = this.flatCategories();
     const sel = this.selectedCategory();
     if (this.activePanel === 'add') {
-      return cats.filter(c => c.level < 3);
+      return cats.filter((c) => c.level < 3);
     }
     if (this.activePanel === 'edit' && sel) {
       const descendants = this.getDescendantIds(sel._id, cats);
-      return cats.filter(c => c._id !== sel._id && !descendants.has(c._id) && c.level < 3);
+      return cats.filter((c) => c._id !== sel._id && !descendants.has(c._id) && c.level < 3);
     }
     return [];
   });
@@ -69,7 +76,10 @@ export class CategoryManagerComponent implements OnInit {
   readonly parentOptions = computed<SelectOption[]>(() => {
     return [
       { value: '', label: 'None (Root)' },
-      ...this.possibleParents().map(p => ({ value: p._id, label: `${p.name} (Level ${p.level})` })),
+      ...this.possibleParents().map((p) => ({
+        value: p._id,
+        label: `${p.name} (Level ${p.level})`,
+      })),
     ];
   });
 
@@ -96,20 +106,18 @@ export class CategoryManagerComponent implements OnInit {
   }
 
   buildTree(categories: Category[]): TreeNode[] {
-    const roots = categories
-      .filter(c => !c.parentId)
-      .sort((a, b) => a.sortOrder - b.sortOrder);
-    return roots.map(r => this.buildNode(r, categories));
+    const roots = categories.filter((c) => !c.parentId).sort((a, b) => a.sortOrder - b.sortOrder);
+    return roots.map((r) => this.buildNode(r, categories));
   }
 
   buildNode(cat: Category, all: Category[]): TreeNode {
     const children = all
-      .filter(c => c.parentId === cat._id)
+      .filter((c) => c.parentId === cat._id)
       .sort((a, b) => a.sortOrder - b.sortOrder);
     return {
       category: cat,
       expanded: false,
-      children: children.map(c => this.buildNode(c, all)),
+      children: children.map((c) => this.buildNode(c, all)),
     };
   }
 
@@ -140,16 +148,14 @@ export class CategoryManagerComponent implements OnInit {
 
   submitAdd(): void {
     if (!this.formName.trim() || !this.formSlug.trim()) return;
-    const parent = this.flatCategories().find(c => c._id === this.formParentId);
+    const parent = this.flatCategories().find((c) => c._id === this.formParentId);
     const level = parent ? ((parent.level + 1) as 1 | 2 | 3) : 1;
     if (level > 3) return;
 
-    const siblings = this.flatCategories().filter(c =>
-      this.formParentId ? c.parentId === this.formParentId : !c.parentId
+    const siblings = this.flatCategories().filter((c) =>
+      this.formParentId ? c.parentId === this.formParentId : !c.parentId,
     );
-    const sortOrder = siblings.length > 0
-      ? Math.max(...siblings.map(s => s.sortOrder)) + 1
-      : 0;
+    const sortOrder = siblings.length > 0 ? Math.max(...siblings.map((s) => s.sortOrder)) + 1 : 0;
 
     const payload: CreateCategoryPayload = {
       name: this.formName.trim(),
@@ -267,7 +273,7 @@ export class CategoryManagerComponent implements OnInit {
   openAttributes(cat: Category): void {
     this.selectedCategory.set(cat);
     this.editingAttributes = cat.attributes
-      ? cat.attributes.map(a => ({ ...a, options: a.options ? [...a.options] : [] }))
+      ? cat.attributes.map((a) => ({ ...a, options: a.options ? [...a.options] : [] }))
       : [];
     this.activePanel = 'attributes';
   }
@@ -309,7 +315,7 @@ export class CategoryManagerComponent implements OnInit {
   saveAttributes(): void {
     const sel = this.selectedCategory();
     if (!sel) return;
-    const valid = this.editingAttributes.every(a => a.name.trim() && a.key.trim());
+    const valid = this.editingAttributes.every((a) => a.name.trim() && a.key.trim());
     if (!valid) return;
 
     this.saving.set(true);
@@ -367,16 +373,16 @@ export class CategoryManagerComponent implements OnInit {
   // --- HELPERS ---
   private getDescendantIds(parentId: string, cats: Category[]): Set<string> {
     const ids = new Set<string>();
-    const children = cats.filter(c => c.parentId === parentId);
+    const children = cats.filter((c) => c.parentId === parentId);
     for (const child of children) {
       ids.add(child._id);
       const sub = this.getDescendantIds(child._id, cats);
-      sub.forEach(id => ids.add(id));
+      sub.forEach((id) => ids.add(id));
     }
     return ids;
   }
 
   hasChildren(cat: Category): boolean {
-    return this.flatCategories().some(c => c.parentId === cat._id);
+    return this.flatCategories().some((c) => c.parentId === cat._id);
   }
 }

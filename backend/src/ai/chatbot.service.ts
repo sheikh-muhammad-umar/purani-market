@@ -27,79 +27,99 @@ export class ChatbotService {
     // Account management
     {
       keywords: ['register', 'sign up', 'create account', 'registration'],
-      answer: 'To register, click the "Sign Up" button and enter your email or phone number. You will receive a verification code to complete registration.',
+      answer:
+        'To register, click the "Sign Up" button and enter your email or phone number. You will receive a verification code to complete registration.',
       category: 'account',
     },
     {
       keywords: ['login', 'sign in', 'log in', 'cannot login'],
-      answer: 'You can log in using your email/phone and password, or use Google/Facebook social login. If you forgot your password, use the "Forgot Password" link.',
+      answer:
+        'You can log in using your email/phone and password, or use Google/Facebook social login. If you forgot your password, use the "Forgot Password" link.',
       category: 'account',
     },
     {
-      keywords: ['password', 'reset password', 'forgot password', 'change password'],
-      answer: 'To reset your password, go to the login page and click "Forgot Password". Enter your email and we will send you a reset link valid for 30 minutes.',
+      keywords: [
+        'password',
+        'reset password',
+        'forgot password',
+        'change password',
+      ],
+      answer:
+        'To reset your password, go to the login page and click "Forgot Password". Enter your email and we will send you a reset link valid for 30 minutes.',
       category: 'account',
     },
     {
       keywords: ['delete account', 'remove account', 'deactivate'],
-      answer: 'To delete your account, please contact our support team. Note that this action is irreversible and all your data will be permanently removed.',
+      answer:
+        'To delete your account, please contact our support team. Note that this action is irreversible and all your data will be permanently removed.',
       category: 'account',
     },
     {
       keywords: ['change email', 'update email'],
-      answer: 'Go to Settings > Account and click "Change Email". A verification link will be sent to your new email address. Your current email stays active until the new one is verified.',
+      answer:
+        'Go to Settings > Account and click "Change Email". A verification link will be sent to your new email address. Your current email stays active until the new one is verified.',
       category: 'account',
     },
     {
       keywords: ['change phone', 'update phone'],
-      answer: 'Go to Settings > Account and click "Change Phone". An OTP will be sent to your new phone number for verification.',
+      answer:
+        'Go to Settings > Account and click "Change Phone". An OTP will be sent to your new phone number for verification.',
       category: 'account',
     },
     // Product listing
     {
       keywords: ['post ad', 'create listing', 'sell', 'create ad', 'new ad'],
-      answer: 'To post an ad, click the "+" button, select a category, fill in the details, upload at least 2 photos, set your location, and submit. Your ad will be live shortly.',
+      answer:
+        'To post an ad, click the "+" button, select a category, fill in the details, upload at least 2 photos, set your location, and submit. Your ad will be live shortly.',
       category: 'listing',
     },
     {
       keywords: ['edit ad', 'update listing', 'modify ad'],
-      answer: 'Go to "My Ads" in your dashboard, find the listing you want to edit, and click "Edit". You can update the title, description, price, photos, and other details.',
+      answer:
+        'Go to "My Ads" in your dashboard, find the listing you want to edit, and click "Edit". You can update the title, description, price, photos, and other details.',
       category: 'listing',
     },
     {
       keywords: ['delete ad', 'remove listing', 'remove ad'],
-      answer: 'Go to "My Ads", find the listing, and click "Delete". The ad will be removed from search results but data is retained for 90 days.',
+      answer:
+        'Go to "My Ads", find the listing, and click "Delete". The ad will be removed from search results but data is retained for 90 days.',
       category: 'listing',
     },
     {
       keywords: ['ad limit', 'free ads', 'how many ads', 'posting limit'],
-      answer: 'You can post up to 10 free ads. To post more, you can purchase an ad package from the Packages section.',
+      answer:
+        'You can post up to 10 free ads. To post more, you can purchase an ad package from the Packages section.',
       category: 'listing',
     },
     {
       keywords: ['featured', 'promote', 'boost', 'featured ad'],
-      answer: 'Featured ads appear at the top of search results. Purchase a Featured Ad package from the Packages section, then select which ad to feature.',
+      answer:
+        'Featured ads appear at the top of search results. Purchase a Featured Ad package from the Packages section, then select which ad to feature.',
       category: 'listing',
     },
     // Platform policies
     {
       keywords: ['policy', 'rules', 'terms', 'guidelines', 'prohibited'],
-      answer: 'Our platform prohibits illegal items, counterfeit goods, and inappropriate content. Please review our Terms of Service for the complete list of policies.',
+      answer:
+        'Our platform prohibits illegal items, counterfeit goods, and inappropriate content. Please review our Terms of Service for the complete list of policies.',
       category: 'policy',
     },
     {
       keywords: ['report', 'scam', 'fraud', 'fake'],
-      answer: 'If you encounter a suspicious listing or user, use the "Report" button on the listing or profile page. Our moderation team will review it promptly.',
+      answer:
+        'If you encounter a suspicious listing or user, use the "Report" button on the listing or profile page. Our moderation team will review it promptly.',
       category: 'policy',
     },
     {
       keywords: ['payment', 'pay', 'jazzcash', 'easypaisa', 'card'],
-      answer: 'We support JazzCash, EasyPaisa, and Credit/Debit Card payments for purchasing ad packages. All transactions are encrypted and secure.',
+      answer:
+        'We support JazzCash, EasyPaisa, and Credit/Debit Card payments for purchasing ad packages. All transactions are encrypted and secure.',
       category: 'policy',
     },
     {
       keywords: ['safety', 'safe', 'meet', 'meeting'],
-      answer: 'For your safety, always meet in public places, bring a friend, verify the product before paying, and never share personal financial information.',
+      answer:
+        'For your safety, always meet in public places, bring a friend, verify the product before paying, and never share personal financial information.',
       category: 'policy',
     },
   ];
@@ -127,8 +147,13 @@ export class ChatbotService {
     });
 
     if (session.escalated) {
-      const reply = 'Your conversation has been escalated to human support. A support agent will be with you shortly.';
-      session.messages.push({ role: 'bot', content: reply, timestamp: new Date() });
+      const reply =
+        'Your conversation has been escalated to human support. A support agent will be with you shortly.';
+      session.messages.push({
+        role: 'bot',
+        content: reply,
+        timestamp: new Date(),
+      });
       return { reply, escalated: true };
     }
 
@@ -137,7 +162,11 @@ export class ChatbotService {
 
     if (reply) {
       session.unresolvedTurns = 0;
-      session.messages.push({ role: 'bot', content: reply, timestamp: new Date() });
+      session.messages.push({
+        role: 'bot',
+        content: reply,
+        timestamp: new Date(),
+      });
       return { reply, escalated: false };
     }
 
@@ -170,7 +199,14 @@ export class ChatbotService {
     const lowerMessage = message.toLowerCase();
 
     // Check for greetings
-    const greetings = ['hello', 'hi', 'hey', 'good morning', 'good afternoon', 'good evening'];
+    const greetings = [
+      'hello',
+      'hi',
+      'hey',
+      'good morning',
+      'good afternoon',
+      'good evening',
+    ];
     if (greetings.some((g) => lowerMessage.includes(g))) {
       return 'Hello! How can I help you today? I can assist with account management, posting ads, and platform policies.';
     }

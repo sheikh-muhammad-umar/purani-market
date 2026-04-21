@@ -36,12 +36,25 @@ function makeUser(overrides: Partial<User> = {}): User {
     _id: 'u1',
     email: 'seller@test.com',
     role: 'seller',
-    profile: { firstName: 'Test', lastName: 'Seller', avatar: '', location: { type: 'Point', coordinates: [0, 0] }, city: 'Lahore', postalCode: '54000' },
+    profile: {
+      firstName: 'Test',
+      lastName: 'Seller',
+      avatar: '',
+      location: { type: 'Point', coordinates: [0, 0] },
+      city: 'Lahore',
+      postalCode: '54000',
+    },
     emailVerified: true,
     phoneVerified: false,
     socialLogins: [],
     mfa: { enabled: false, failedAttempts: 0 },
-    notificationPreferences: { messages: true, offers: true, productUpdates: true, promotions: true, packageAlerts: true },
+    notificationPreferences: {
+      messages: true,
+      offers: true,
+      productUpdates: true,
+      promotions: true,
+      packageAlerts: true,
+    },
     deviceTokens: [],
     adLimit: overrides.adLimit ?? 10,
     activeAdCount: overrides.activeAdCount ?? 3,
@@ -86,15 +99,21 @@ describe('MyListingsComponent', () => {
     makeListing({ _id: 'l1', title: 'Car', viewCount: 100, favoriteCount: 20, status: 'active' }),
     makeListing({ _id: 'l2', title: 'Phone', viewCount: 50, favoriteCount: 10, status: 'sold' }),
     makeListing({
-      _id: 'l3', title: 'Featured Laptop', viewCount: 200, favoriteCount: 30,
-      status: 'active', isFeatured: true,
+      _id: 'l3',
+      title: 'Featured Laptop',
+      viewCount: 200,
+      favoriteCount: 30,
+      status: 'active',
+      isFeatured: true,
       featuredUntil: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
     }),
   ];
 
   beforeEach(() => {
     listingsService = {
-      getMyListings: vi.fn().mockReturnValue(of({ data: mockListings, total: 3, page: 1, limit: 50 })),
+      getMyListings: vi
+        .fn()
+        .mockReturnValue(of({ data: mockListings, total: 3, page: 1, limit: 50 })),
       updateStatus: vi.fn().mockReturnValue(of({})),
       featureListing: vi.fn().mockReturnValue(of({})),
       deleteListing: vi.fn().mockReturnValue(of(undefined)),
@@ -159,19 +178,23 @@ describe('MyListingsComponent', () => {
   });
 
   it('should compute featured slots remaining from purchases', () => {
-    packagesService.getMyPurchases.mockReturnValue(of({
-      data: [makePurchase({ type: 'featured_ads', remainingQuantity: 3 })],
-      total: 1,
-    }));
+    packagesService.getMyPurchases.mockReturnValue(
+      of({
+        data: [makePurchase({ type: 'featured_ads', remainingQuantity: 3 })],
+        total: 1,
+      }),
+    );
     component.ngOnInit();
     expect(component.featuredSlotsRemaining()).toBe(3);
   });
 
   it('should exclude expired purchases from paid slots', () => {
-    packagesService.getMyPurchases.mockReturnValue(of({
-      data: [makePurchase({ expiresAt: new Date(Date.now() - 1000) })],
-      total: 1,
-    }));
+    packagesService.getMyPurchases.mockReturnValue(
+      of({
+        data: [makePurchase({ expiresAt: new Date(Date.now() - 1000) })],
+        total: 1,
+      }),
+    );
     component.ngOnInit();
     expect(component.paidSlots()).toBe(0);
   });
@@ -188,7 +211,9 @@ describe('MyListingsComponent', () => {
 
   // --- Image helper ---
   it('should return thumbnail url', () => {
-    const listing = makeListing({ images: [{ url: 'full.jpg', thumbnailUrl: 'thumb.jpg', sortOrder: 0 }] });
+    const listing = makeListing({
+      images: [{ url: 'full.jpg', thumbnailUrl: 'thumb.jpg', sortOrder: 0 }],
+    });
     expect(component.getImage(listing)).toBe('thumb.jpg');
   });
 

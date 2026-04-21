@@ -19,23 +19,38 @@
 
   <!-- Three-panel layout -->
   <div class="panels">
-
     <!-- Panel 1: Provinces -->
     <div class="panel">
       <div class="panel-header">
         <h2>Provinces</h2>
-        <button class="btn-icon add" (click)="showAddProvince = !showAddProvince" title="Add Province">+</button>
+        <button
+          class="btn-icon add"
+          (click)="showAddProvince = !showAddProvince"
+          title="Add Province"
+        >
+          +
+        </button>
       </div>
 
       @if (showAddProvince) {
         <div class="add-form">
-          <input type="text" [(ngModel)]="newProvinceName" placeholder="Province name" (keyup.enter)="addProvince()" />
+          <input
+            type="text"
+            [(ngModel)]="newProvinceName"
+            placeholder="Province name"
+            (keyup.enter)="addProvince()"
+          />
           <button class="btn-sm save" (click)="addProvince()">Add</button>
           <button class="btn-sm cancel" (click)="showAddProvince = false">Cancel</button>
         </div>
       }
 
-      <input type="text" class="search-input" [(ngModel)]="provinceSearch" placeholder="Search provinces..." />
+      <input
+        type="text"
+        class="search-input"
+        [(ngModel)]="provinceSearch"
+        placeholder="Search provinces..."
+      />
 
       <div class="list-container">
         @if (loading()) {
@@ -50,12 +65,30 @@
             @if (editingId() !== p._id) {
               <span class="item-name">{{ p.name }}</span>
               <div class="item-actions">
-                <button class="btn-icon edit" (click)="$event.stopPropagation(); startEdit(p._id, p.name)" title="Rename">✎</button>
-                <button class="btn-icon delete" (click)="$event.stopPropagation(); deleteProvince(p)" title="Delete">✕</button>
+                <button
+                  class="btn-icon edit"
+                  (click)="$event.stopPropagation(); startEdit(p._id, p.name)"
+                  title="Rename"
+                >
+                  ✎
+                </button>
+                <button
+                  class="btn-icon delete"
+                  (click)="$event.stopPropagation(); deleteProvince(p)"
+                  title="Delete"
+                >
+                  ✕
+                </button>
               </div>
             }
             @if (editingId() === p._id) {
-              <input type="text" [(ngModel)]="editingName" (keyup.enter)="saveProvinceName(p)" (keyup.escape)="cancelEdit()" class="edit-input" />
+              <input
+                type="text"
+                [(ngModel)]="editingName"
+                (keyup.enter)="saveProvinceName(p)"
+                (keyup.escape)="cancelEdit()"
+                class="edit-input"
+              />
               <div class="item-actions">
                 <button class="btn-icon save" (click)="saveProvinceName(p)">✓</button>
                 <button class="btn-icon cancel" (click)="cancelEdit()">✕</button>
@@ -77,20 +110,32 @@
           <span class="context">in {{ selectedProvince()!.name }}</span>
         }
         @if (selectedProvince()) {
-          <button class="btn-icon add" (click)="showAddCity = !showAddCity" title="Add City">+</button>
+          <button class="btn-icon add" (click)="showAddCity = !showAddCity" title="Add City">
+            +
+          </button>
         }
       </div>
 
       @if (showAddCity) {
         <div class="add-form">
-          <input type="text" [(ngModel)]="newCityName" placeholder="City name" (keyup.enter)="addCity()" />
+          <input
+            type="text"
+            [(ngModel)]="newCityName"
+            placeholder="City name"
+            (keyup.enter)="addCity()"
+          />
           <button class="btn-sm save" (click)="addCity()">Add</button>
           <button class="btn-sm cancel" (click)="showAddCity = false">Cancel</button>
         </div>
       }
 
       @if (selectedProvince()) {
-        <input type="text" class="search-input" [(ngModel)]="citySearch" placeholder="Search cities..." />
+        <input
+          type="text"
+          class="search-input"
+          [(ngModel)]="citySearch"
+          placeholder="Search cities..."
+        />
       }
 
       <div class="list-container">
@@ -106,12 +151,30 @@
             @if (editingId() !== c._id) {
               <span class="item-name">{{ c.name }}</span>
               <div class="item-actions">
-                <button class="btn-icon edit" (click)="$event.stopPropagation(); startEdit(c._id, c.name)" title="Rename">✎</button>
-                <button class="btn-icon delete" (click)="$event.stopPropagation(); deleteCity(c)" title="Delete">✕</button>
+                <button
+                  class="btn-icon edit"
+                  (click)="$event.stopPropagation(); startEdit(c._id, c.name)"
+                  title="Rename"
+                >
+                  ✎
+                </button>
+                <button
+                  class="btn-icon delete"
+                  (click)="$event.stopPropagation(); deleteCity(c)"
+                  title="Delete"
+                >
+                  ✕
+                </button>
               </div>
             }
             @if (editingId() === c._id) {
-              <input type="text" [(ngModel)]="editingName" (keyup.enter)="saveCityName(c)" (keyup.escape)="cancelEdit()" class="edit-input" />
+              <input
+                type="text"
+                [(ngModel)]="editingName"
+                (keyup.enter)="saveCityName(c)"
+                (keyup.escape)="cancelEdit()"
+                class="edit-input"
+              />
               <div class="item-actions">
                 <button class="btn-icon save" (click)="saveCityName(c)">✓</button>
                 <button class="btn-icon cancel" (click)="cancelEdit()">✕</button>
@@ -133,20 +196,32 @@
           <span class="context">in {{ selectedCity()!.name }}</span>
         }
         @if (selectedCity()) {
-          <button class="btn-icon add" (click)="showAddArea = !showAddArea" title="Add Area">+</button>
+          <button class="btn-icon add" (click)="showAddArea = !showAddArea" title="Add Area">
+            +
+          </button>
         }
       </div>
 
       @if (showAddArea) {
         <div class="add-form">
-          <input type="text" [(ngModel)]="newAreaName" placeholder="Area name" (keyup.enter)="addArea()" />
+          <input
+            type="text"
+            [(ngModel)]="newAreaName"
+            placeholder="Area name"
+            (keyup.enter)="addArea()"
+          />
           <button class="btn-sm save" (click)="addArea()">Add</button>
           <button class="btn-sm cancel" (click)="showAddArea = false">Cancel</button>
         </div>
       }
 
       @if (selectedCity()) {
-        <input type="text" class="search-input" [(ngModel)]="areaSearch" placeholder="Search areas..." />
+        <input
+          type="text"
+          class="search-input"
+          [(ngModel)]="areaSearch"
+          placeholder="Search areas..."
+        />
       }
 
       <div class="list-container">
@@ -170,12 +245,30 @@
                 }
               </span>
               <div class="item-actions">
-                <button class="btn-icon edit" (click)="$event.stopPropagation(); startEdit(a._id, a.name)" title="Rename">✎</button>
-                <button class="btn-icon delete" (click)="$event.stopPropagation(); deleteArea(a)" title="Delete">✕</button>
+                <button
+                  class="btn-icon edit"
+                  (click)="$event.stopPropagation(); startEdit(a._id, a.name)"
+                  title="Rename"
+                >
+                  ✎
+                </button>
+                <button
+                  class="btn-icon delete"
+                  (click)="$event.stopPropagation(); deleteArea(a)"
+                  title="Delete"
+                >
+                  ✕
+                </button>
               </div>
             }
             @if (editingId() === a._id) {
-              <input type="text" [(ngModel)]="editingName" (keyup.enter)="saveAreaName(a)" (keyup.escape)="cancelEdit()" class="edit-input" />
+              <input
+                type="text"
+                [(ngModel)]="editingName"
+                (keyup.enter)="saveAreaName(a)"
+                (keyup.escape)="cancelEdit()"
+                class="edit-input"
+              />
               <div class="item-actions">
                 <button class="btn-icon save" (click)="saveAreaName(a)">✓</button>
                 <button class="btn-icon cancel" (click)="cancelEdit()">✕</button>
@@ -202,7 +295,9 @@
             @for (s of selectedArea()!.subareas; track $index) {
               <span class="tag">
                 {{ s }}
-                <button class="tag-remove" (click)="removeSubarea($index)" title="Remove">&times;</button>
+                <button class="tag-remove" (click)="removeSubarea($index)" title="Remove">
+                  &times;
+                </button>
               </span>
             }
             @if (selectedArea()!.subareas.length === 0) {
@@ -210,8 +305,15 @@
             }
           </div>
           <div class="add-inline">
-            <input type="text" [(ngModel)]="newSubarea" placeholder="Add subarea..." (keyup.enter)="addSubarea()" />
-            <button class="btn-sm save" (click)="addSubarea()" [disabled]="savingArea()">Add</button>
+            <input
+              type="text"
+              [(ngModel)]="newSubarea"
+              placeholder="Add subarea..."
+              (keyup.enter)="addSubarea()"
+            />
+            <button class="btn-sm save" (click)="addSubarea()" [disabled]="savingArea()">
+              Add
+            </button>
           </div>
         </div>
 
@@ -222,7 +324,9 @@
             @for (b of selectedArea()!.blockPhases; track $index) {
               <span class="tag">
                 {{ b }}
-                <button class="tag-remove" (click)="removeBlockPhase($index)" title="Remove">&times;</button>
+                <button class="tag-remove" (click)="removeBlockPhase($index)" title="Remove">
+                  &times;
+                </button>
               </span>
             }
             @if (selectedArea()!.blockPhases.length === 0) {
@@ -230,8 +334,15 @@
             }
           </div>
           <div class="add-inline">
-            <input type="text" [(ngModel)]="newBlockPhase" placeholder="Add block/phase..." (keyup.enter)="addBlockPhase()" />
-            <button class="btn-sm save" (click)="addBlockPhase()" [disabled]="savingArea()">Add</button>
+            <input
+              type="text"
+              [(ngModel)]="newBlockPhase"
+              placeholder="Add block/phase..."
+              (keyup.enter)="addBlockPhase()"
+            />
+            <button class="btn-sm save" (click)="addBlockPhase()" [disabled]="savingArea()">
+              Add
+            </button>
           </div>
         </div>
       </div>

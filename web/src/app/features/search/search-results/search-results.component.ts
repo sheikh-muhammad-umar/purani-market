@@ -3,7 +3,12 @@ import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
-import { SearchService, SearchParams, SearchResponse, SearchSuggestion } from '../../../core/services/search.service';
+import {
+  SearchService,
+  SearchParams,
+  SearchResponse,
+  SearchSuggestion,
+} from '../../../core/services/search.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { RecentSearchesService } from '../../../core/services/recent-searches.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
@@ -26,7 +31,14 @@ export interface ActiveFilter {
 @Component({
   selector: 'app-search-results',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormsModule, PriceFormatPipe, TruncateTextPipe, ListingUrlPipe],
+  imports: [
+    CommonModule,
+    RouterLink,
+    FormsModule,
+    PriceFormatPipe,
+    TruncateTextPipe,
+    ListingUrlPipe,
+  ],
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.scss'],
 })
@@ -72,8 +84,20 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly locationOpen = signal(false);
   readonly selectedCity = signal('');
   readonly expandedCategories = signal<Set<string>>(new Set());
-  readonly popularCities = ['Lahore', 'Karachi', 'Islamabad', 'Rawalpindi', 'Faisalabad', 'Multan', 'Peshawar', 'Quetta'];
-  readonly yearRange: number[] = Array.from({ length: new Date().getFullYear() - 1969 }, (_, i) => new Date().getFullYear() - i);
+  readonly popularCities = [
+    'Lahore',
+    'Karachi',
+    'Islamabad',
+    'Rawalpindi',
+    'Faisalabad',
+    'Multan',
+    'Peshawar',
+    'Quetta',
+  ];
+  readonly yearRange: number[] = Array.from(
+    { length: new Date().getFullYear() - 1969 },
+    (_, i) => new Date().getFullYear() - i,
+  );
 
   getYearRange(filter: { rangeMin?: number; rangeMax?: number }): number[] {
     const max = filter.rangeMax ?? new Date().getFullYear();
@@ -100,42 +124,40 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.loadCategories();
     this.setupSuggestions();
 
-    this.route.queryParamMap
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
-        const q = params.get('q') || '';
-        const category = params.get('category') || '';
-        const sort = (params.get('sort') as SortOption) || SearchSortOption.RELEVANCE;
-        const page = Number(params.get('page')) || 1;
-        const minPrice = params.get('minPrice') ? Number(params.get('minPrice')) : null;
-        const maxPrice = params.get('maxPrice') ? Number(params.get('maxPrice')) : null;
-        const condition = params.get('condition') || '';
+    this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      const q = params.get('q') || '';
+      const category = params.get('category') || '';
+      const sort = (params.get('sort') as SortOption) || SearchSortOption.RELEVANCE;
+      const page = Number(params.get('page')) || 1;
+      const minPrice = params.get('minPrice') ? Number(params.get('minPrice')) : null;
+      const maxPrice = params.get('maxPrice') ? Number(params.get('maxPrice')) : null;
+      const condition = params.get('condition') || '';
 
-        this.query.set(q);
-        this.searchInput.set(q);
-        this.selectedCategoryId.set(category);
-        if (category) this.autoExpandCategory(category);
-        this.sortBy.set(sort);
-        this.currentPage.set(page);
-        this.minPrice.set(minPrice);
-        this.maxPrice.set(maxPrice);
-        this.selectedCondition.set(condition);
+      this.query.set(q);
+      this.searchInput.set(q);
+      this.selectedCategoryId.set(category);
+      if (category) this.autoExpandCategory(category);
+      this.sortBy.set(sort);
+      this.currentPage.set(page);
+      this.minPrice.set(minPrice);
+      this.maxPrice.set(maxPrice);
+      this.selectedCondition.set(condition);
 
-        // Parse dynamic filter params
-        const dynamicFilters: Record<string, string | number | boolean> = {};
-        params.keys.forEach(key => {
-          if (!['q', 'category', 'sort', 'page', 'minPrice', 'maxPrice', 'condition'].includes(key)) {
-            dynamicFilters[key] = params.get(key) || '';
-          }
-        });
-        this.filterValues.set(dynamicFilters);
-
-        if (category) {
-          this.loadCategoryFilters(category);
+      // Parse dynamic filter params
+      const dynamicFilters: Record<string, string | number | boolean> = {};
+      params.keys.forEach((key) => {
+        if (!['q', 'category', 'sort', 'page', 'minPrice', 'maxPrice', 'condition'].includes(key)) {
+          dynamicFilters[key] = params.get(key) || '';
         }
-
-        this.executeSearch();
       });
+      this.filterValues.set(dynamicFilters);
+
+      if (category) {
+        this.loadCategoryFilters(category);
+      }
+
+      this.executeSearch();
+    });
   }
 
   ngOnDestroy(): void {
@@ -255,7 +277,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
   // Category tree helpers
   getSubcategories(parentId: string): Category[] {
-    return this.categories().filter(c => c.parentId === parentId && c.isActive);
+    return this.categories().filter((c) => c.parentId === parentId && c.isActive);
   }
 
   isCategoryChildSelected(parentId: string): boolean {
@@ -270,7 +292,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   }
 
   toggleCategoryExpand(catId: string): void {
-    this.expandedCategories.update(set => {
+    this.expandedCategories.update((set) => {
       const next = new Set(set);
       if (next.has(catId)) {
         next.delete(catId);
@@ -285,15 +307,15 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     // Find the category and expand all its ancestors
     const cats = this.categories();
     const toExpand = new Set<string>();
-    let current = cats.find(c => c._id === catId);
+    let current = cats.find((c) => c._id === catId);
     while (current?.parentId) {
       toExpand.add(current.parentId);
-      current = cats.find(c => c._id === current!.parentId);
+      current = cats.find((c) => c._id === current!.parentId);
     }
     if (toExpand.size > 0) {
-      this.expandedCategories.update(set => {
+      this.expandedCategories.update((set) => {
         const next = new Set(set);
-        toExpand.forEach(id => next.add(id));
+        toExpand.forEach((id) => next.add(id));
         return next;
       });
     }
@@ -318,32 +340,54 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   }
 
   getListingImage(listing: Listing): string {
-    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png';
+    return (
+      listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png'
+    );
   }
 
   buildActiveFilters(): ActiveFilter[] {
     const filters: ActiveFilter[] = [];
     const catId = this.selectedCategoryId();
     if (catId) {
-      const cat = this.categories().find(c => c._id === catId);
-      filters.push({ key: 'category', label: 'Category', value: catId, displayValue: cat?.name || catId });
+      const cat = this.categories().find((c) => c._id === catId);
+      filters.push({
+        key: 'category',
+        label: 'Category',
+        value: catId,
+        displayValue: cat?.name || catId,
+      });
     }
     const condition = this.selectedCondition();
     if (condition) {
-      filters.push({ key: 'condition', label: 'Condition', value: condition, displayValue: condition.charAt(0).toUpperCase() + condition.slice(1) });
+      filters.push({
+        key: 'condition',
+        label: 'Condition',
+        value: condition,
+        displayValue: condition.charAt(0).toUpperCase() + condition.slice(1),
+      });
     }
     const min = this.minPrice();
     if (min !== null) {
-      filters.push({ key: 'minPrice', label: 'Min Price', value: String(min), displayValue: `Min: PKR ${min}` });
+      filters.push({
+        key: 'minPrice',
+        label: 'Min Price',
+        value: String(min),
+        displayValue: `Min: PKR ${min}`,
+      });
     }
     const max = this.maxPrice();
     if (max !== null) {
-      filters.push({ key: 'maxPrice', label: 'Max Price', value: String(max), displayValue: `Max: PKR ${max}` });
+      filters.push({
+        key: 'maxPrice',
+        label: 'Max Price',
+        value: String(max),
+        displayValue: `Max: PKR ${max}`,
+      });
     }
     const dynamic = this.filterValues();
     Object.entries(dynamic).forEach(([key, value]) => {
       if (value !== undefined && value !== '') {
-        const filterDef = this.categoryFilters().find(f => f.key === key);
+        const filterDef = this.categoryFilters().find((f) => f.key === key);
         filters.push({
           key,
           label: filterDef?.name || key,
@@ -360,36 +404,40 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .pipe(
         debounceTime(300),
         distinctUntilChanged(),
-        switchMap(term => {
+        switchMap((term) => {
           if (!term || term.length < 2) {
             // Show recent searches when input is empty or short
-            const recent = this.recentSearches.filter(term).map(t => ({ term: t, type: 'recent' as const }));
+            const recent = this.recentSearches
+              .filter(term)
+              .map((t) => ({ term: t, type: 'recent' as const }));
             return of(recent);
           }
           return this.searchService.getSuggestions(term);
         }),
         takeUntil(this.destroy$),
       )
-      .subscribe(suggestions => {
+      .subscribe((suggestions) => {
         this.suggestions.set(suggestions);
         this.showSuggestions.set(suggestions.length > 0);
       });
   }
 
   private loadCategories(): void {
-    this.categoriesService.getAll()
+    this.categoriesService
+      .getAll()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: cats => this.categories.set(cats),
+        next: (cats) => this.categories.set(cats),
         error: () => this.categories.set([]),
       });
   }
 
   private loadCategoryFilters(categoryId: string): void {
-    this.categoriesService.getById(categoryId)
+    this.categoriesService
+      .getById(categoryId)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: cat => {
+        next: (cat) => {
           this.selectedCategory.set(cat);
           this.categoryFilters.set(cat.attributes || []);
         },
@@ -459,7 +507,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       });
     }
 
-    this.searchService.search(params)
+    this.searchService
+      .search(params)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res: SearchResponse) => {

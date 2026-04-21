@@ -12,7 +12,9 @@ export class CustomThrottlerGuard extends NestThrottlerGuard {
     throttlerLimitDetail: ThrottlerLimitDetail,
   ): Promise<void> {
     const res = this.getRequestResponse(context).res;
-    const retryAfterSeconds = Math.ceil(throttlerLimitDetail.timeToExpire / 1000);
+    const retryAfterSeconds = Math.ceil(
+      throttlerLimitDetail.timeToExpire / 1000,
+    );
     res.header('Retry-After', String(retryAfterSeconds));
 
     throw new ThrottlerException(

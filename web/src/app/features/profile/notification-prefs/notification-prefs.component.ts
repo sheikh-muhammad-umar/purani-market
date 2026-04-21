@@ -58,7 +58,7 @@ export class NotificationPrefsComponent implements OnInit {
 
   constructor(
     private readonly authService: AuthService,
-    private readonly http: HttpClient
+    private readonly http: HttpClient,
   ) {}
 
   ngOnInit(): void {

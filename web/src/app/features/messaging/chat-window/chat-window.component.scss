@@ -25,7 +25,9 @@
   color: inherit;
 
   &:hover {
-    .product-title { color: var(--primary); }
+    .product-title {
+      color: var(--primary);
+    }
   }
 }
 
@@ -67,9 +69,15 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
 
-  &.status-active { color: var(--success); }
-  &.status-sold { color: var(--secondary); }
-  &.status-reserved { color: var(--accent); }
+  &.status-active {
+    color: var(--success);
+  }
+  &.status-sold {
+    color: var(--secondary);
+  }
+  &.status-reserved {
+    color: var(--accent);
+  }
 }
 
 // Messages container
@@ -102,7 +110,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .load-more-btn {
@@ -116,8 +126,13 @@
   cursor: pointer;
   margin-bottom: 8px;
 
-  &:hover:not(:disabled) { background: var(--surface); }
-  &:disabled { opacity: 0.5; cursor: default; }
+  &:hover:not(:disabled) {
+    background: var(--surface);
+  }
+  &:disabled {
+    opacity: 0.5;
+    cursor: default;
+  }
 }
 
 // Chat bubbles
@@ -134,7 +149,9 @@
       border-radius: 16px 16px 4px 16px;
     }
 
-    .bubble-time { color: rgba(255, 255, 255, 0.7); }
+    .bubble-time {
+      color: rgba(255, 255, 255, 0.7);
+    }
   }
 
   &.received {
@@ -147,7 +164,9 @@
       box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
     }
 
-    .bubble-time { color: var(--text-muted); }
+    .bubble-time {
+      color: var(--text-muted);
+    }
   }
 }
 
@@ -178,7 +197,9 @@
   font-size: 12px;
   color: rgba(255, 255, 255, 0.5);
 
-  &.read { color: #a8e6cf; }
+  &.read {
+    color: #a8e6cf;
+  }
 }
 
 // Typing indicator
@@ -198,14 +219,26 @@
     background: var(--text-muted);
     animation: typingBounce 1.4s infinite ease-in-out;
 
-    &:nth-child(2) { animation-delay: 0.2s; }
-    &:nth-child(3) { animation-delay: 0.4s; }
+    &:nth-child(2) {
+      animation-delay: 0.2s;
+    }
+    &:nth-child(3) {
+      animation-delay: 0.4s;
+    }
   }
 }
 
 @keyframes typingBounce {
-  0%, 80%, 100% { transform: scale(0.6); opacity: 0.4; }
-  40% { transform: scale(1); opacity: 1; }
+  0%,
+  80%,
+  100% {
+    transform: scale(0.6);
+    opacity: 0.4;
+  }
+  40% {
+    transform: scale(1);
+    opacity: 1;
+  }
 }
 
 // Quick replies
@@ -227,7 +260,9 @@
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition:
+    background 0.15s,
+    transform 0.1s;
   white-space: nowrap;
 
   &:hover {
@@ -235,7 +270,9 @@
     transform: scale(1.02);
   }
 
-  &:active { transform: scale(0.98); }
+  &:active {
+    transform: scale(0.98);
+  }
 }
 
 // Input area
@@ -269,8 +306,12 @@
   outline: none;
   transition: border-color 0.15s;
 
-  &:focus { border-color: var(--primary); }
-  &::placeholder { color: var(--text-muted); }
+  &:focus {
+    border-color: var(--primary);
+  }
+  &::placeholder {
+    color: var(--text-muted);
+  }
 }
 
 .send-btn {
@@ -284,12 +325,21 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s, transform 0.1s;
+  transition:
+    background 0.15s,
+    transform 0.1s;
   flex-shrink: 0;
 
-  &:hover:not(:disabled) { background: var(--primary-dark); }
-  &:active:not(:disabled) { transform: scale(0.95); }
-  &:disabled { background: var(--text-muted); cursor: default; }
+  &:hover:not(:disabled) {
+    background: var(--primary-dark);
+  }
+  &:active:not(:disabled) {
+    transform: scale(0.95);
+  }
+  &:disabled {
+    background: var(--text-muted);
+    cursor: default;
+  }
 }
 
 @media (max-width: 767px) {
@@ -373,12 +423,16 @@
   cursor: pointer;
   padding: 0;
 
-  &:hover { text-decoration: underline; }
+  &:hover {
+    text-decoration: underline;
+  }
 }
 
 /* Hide back button on desktop (sidebar is always visible) */
 @media (min-width: 768px) {
-  .chat-top-bar { display: none; }
+  .chat-top-bar {
+    display: none;
+  }
 }
 
 .messages-skeleton {

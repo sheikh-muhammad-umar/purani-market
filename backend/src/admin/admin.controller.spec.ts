@@ -31,10 +31,7 @@ describe('AdminController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AdminController],
-      providers: [
-        { provide: AdminService, useValue: adminService },
-        Reflector,
-      ],
+      providers: [{ provide: AdminService, useValue: adminService }, Reflector],
     }).compile();
 
     controller = module.get<AdminController>(AdminController);
@@ -167,10 +164,7 @@ describe('AdminController', () => {
 
       expect(result.message).toContain('25');
       expect(result.adLimit).toBe(25);
-      expect(adminService.updateAdLimit).toHaveBeenCalledWith(
-        mockUserId,
-        25,
-      );
+      expect(adminService.updateAdLimit).toHaveBeenCalledWith(mockUserId, 25);
     });
   });
 
@@ -264,14 +258,19 @@ describe('AdminController', () => {
           conversations: [{ date: '2024-01-01', count: 3 }],
           purchases: [{ date: '2024-01-01', count: 1 }],
         },
-        categoryAnalytics: [{ categoryId: '507f1f77bcf86cd799439011', count: 50 }],
+        categoryAnalytics: [
+          { categoryId: '507f1f77bcf86cd799439011', count: 50 },
+        ],
       };
       adminService.getAnalytics.mockResolvedValue(mockAnalytics);
 
       const result = await controller.getAnalytics();
 
       expect(result).toEqual(mockAnalytics);
-      expect(adminService.getAnalytics).toHaveBeenCalledWith(undefined, undefined);
+      expect(adminService.getAnalytics).toHaveBeenCalledWith(
+        undefined,
+        undefined,
+      );
     });
 
     it('should pass date params to service', async () => {
@@ -283,7 +282,10 @@ describe('AdminController', () => {
 
       await controller.getAnalytics('2024-01-01', '2024-06-30');
 
-      expect(adminService.getAnalytics).toHaveBeenCalledWith('2024-01-01', '2024-06-30');
+      expect(adminService.getAnalytics).toHaveBeenCalledWith(
+        '2024-01-01',
+        '2024-06-30',
+      );
     });
   });
 
@@ -310,10 +312,16 @@ describe('AdminController', () => {
       };
       adminService.exportAnalytics.mockResolvedValue(mockExport);
 
-      const result = await controller.exportAnalytics('2024-01-01', '2024-06-30');
+      const result = await controller.exportAnalytics(
+        '2024-01-01',
+        '2024-06-30',
+      );
 
       expect(result).toEqual(mockExport);
-      expect(adminService.exportAnalytics).toHaveBeenCalledWith('2024-01-01', '2024-06-30');
+      expect(adminService.exportAnalytics).toHaveBeenCalledWith(
+        '2024-01-01',
+        '2024-06-30',
+      );
     });
 
     it('should use defaults when no date params provided', async () => {

@@ -25,13 +25,19 @@ export class EasyPaisaGateway implements PaymentGateway {
     };
   }
 
-  async verifyCallback(payload: Record<string, any>): Promise<PaymentVerifyResult> {
+  async verifyCallback(
+    payload: Record<string, any>,
+  ): Promise<PaymentVerifyResult> {
     // Stub: simulate callback verification
     const transactionId = payload.transactionId || payload.orderId || '';
     const status = payload.status || 'success';
     if (status === 'success') {
       return { transactionId, status: 'completed' };
     }
-    return { transactionId, status: 'failed', reason: `EasyPaisa error: ${status}` };
+    return {
+      transactionId,
+      status: 'failed',
+      reason: `EasyPaisa error: ${status}`,
+    };
   }
 }

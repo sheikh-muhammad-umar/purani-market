@@ -119,9 +119,7 @@ describe('SearchIndexService', () => {
     });
 
     it('should define categoryPath as keyword type', () => {
-      expect(listingsIndexMapping.properties.categoryPath.type).toBe(
-        'keyword',
-      );
+      expect(listingsIndexMapping.properties.categoryPath.type).toBe('keyword');
     });
 
     it('should define location as geo_point type', () => {

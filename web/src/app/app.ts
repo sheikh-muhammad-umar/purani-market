@@ -8,7 +8,13 @@ import { ConfirmModalComponent } from './shared/components/confirm-modal/confirm
 @Component({
   selector: 'app-root',
   standalone: true,
-  imports: [RouterOutlet, HeaderComponent, FooterComponent, LoginModalComponent, ConfirmModalComponent],
+  imports: [
+    RouterOutlet,
+    HeaderComponent,
+    FooterComponent,
+    LoginModalComponent,
+    ConfirmModalComponent,
+  ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
 })
@@ -27,6 +33,9 @@ export class App {
   scrollToTop(): void {
     this.scrolling = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
-    setTimeout(() => { this.scrolling = false; this.showScrollTop.set(false); }, 600);
+    setTimeout(() => {
+      this.scrolling = false;
+      this.showScrollTop.set(false);
+    }, 600);
   }
 }

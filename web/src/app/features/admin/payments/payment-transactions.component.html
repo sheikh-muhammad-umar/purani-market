@@ -25,8 +25,12 @@
   @if (!loading() && !error()) {
     <!-- Toolbar -->
     <div class="toolbar">
-      <button class="filter-toggle-btn" [class.active]="filtersOpen || hasActiveFilters" (click)="filtersOpen = !filtersOpen">
-        <span class="material-symbols-rounded" style="font-size:18px;">filter_list</span>
+      <button
+        class="filter-toggle-btn"
+        [class.active]="filtersOpen || hasActiveFilters"
+        (click)="filtersOpen = !filtersOpen"
+      >
+        <span class="material-symbols-rounded" style="font-size: 18px">filter_list</span>
         Filters
         @if (activeFilterCount > 0) {
           <span class="filter-badge">{{ activeFilterCount }}</span>
@@ -40,24 +44,41 @@
         <div class="filters-grid">
           <div class="filter-group">
             <label class="filter-label">Payment Method</label>
-            <app-custom-select [options]="paymentMethodOptions" [(ngModel)]="filterPaymentMethod" (ngModelChange)="applyFilters()" placeholder="All"></app-custom-select>
+            <app-custom-select
+              [options]="paymentMethodOptions"
+              [(ngModel)]="filterPaymentMethod"
+              (ngModelChange)="applyFilters()"
+              placeholder="All"
+            ></app-custom-select>
           </div>
           <div class="filter-group">
             <label class="filter-label">Status</label>
-            <app-custom-select [options]="paymentStatusOptions" [(ngModel)]="filterStatus" (ngModelChange)="applyFilters()" placeholder="All"></app-custom-select>
+            <app-custom-select
+              [options]="paymentStatusOptions"
+              [(ngModel)]="filterStatus"
+              (ngModelChange)="applyFilters()"
+              placeholder="All"
+            ></app-custom-select>
           </div>
           <div class="filter-group">
             <label class="filter-label">From</label>
-            <app-date-picker [(ngModel)]="filterStartDate" (ngModelChange)="applyFilters()"></app-date-picker>
+            <app-date-picker
+              [(ngModel)]="filterStartDate"
+              (ngModelChange)="applyFilters()"
+            ></app-date-picker>
           </div>
           <div class="filter-group">
             <label class="filter-label">To</label>
-            <app-date-picker [(ngModel)]="filterEndDate" (ngModelChange)="applyFilters()"></app-date-picker>
+            <app-date-picker
+              [(ngModel)]="filterEndDate"
+              (ngModelChange)="applyFilters()"
+            ></app-date-picker>
           </div>
         </div>
         @if (hasActiveFilters) {
           <button class="clear-filters-btn" (click)="resetFilters()">
-            <span class="material-symbols-rounded" style="font-size:16px;">close</span> Clear all filters
+            <span class="material-symbols-rounded" style="font-size: 16px">close</span> Clear all
+            filters
           </button>
         }
       </div>
@@ -67,7 +88,9 @@
       <div class="empty-list">
         @if (hasActiveFilters) {
           No transactions match your filters.
-          <button class="btn-retry" style="margin-left:8px;" (click)="resetFilters()">Clear Filters</button>
+          <button class="btn-retry" style="margin-left: 8px" (click)="resetFilters()">
+            Clear Filters
+          </button>
         } @else {
           No payment transactions found.
         }
@@ -79,12 +102,26 @@
         <thead>
           <tr>
             <th>Transaction ID</th>
-            <th class="sortable" (click)="sortPayments('sellerName')">Seller <span class="material-symbols-rounded sort-icon">{{ sortIcon('sellerName') }}</span></th>
+            <th class="sortable" (click)="sortPayments('sellerName')">
+              Seller
+              <span class="material-symbols-rounded sort-icon">{{ sortIcon('sellerName') }}</span>
+            </th>
             <th>Package</th>
-            <th class="sortable" (click)="sortPayments('amount')">Amount <span class="material-symbols-rounded sort-icon">{{ sortIcon('amount') }}</span></th>
+            <th class="sortable" (click)="sortPayments('amount')">
+              Amount
+              <span class="material-symbols-rounded sort-icon">{{ sortIcon('amount') }}</span>
+            </th>
             <th>Method</th>
-            <th class="sortable" (click)="sortPayments('paymentStatus')">Status <span class="material-symbols-rounded sort-icon">{{ sortIcon('paymentStatus') }}</span></th>
-            <th class="sortable" (click)="sortPayments('createdAt')">Date <span class="material-symbols-rounded sort-icon">{{ sortIcon('createdAt') }}</span></th>
+            <th class="sortable" (click)="sortPayments('paymentStatus')">
+              Status
+              <span class="material-symbols-rounded sort-icon">{{
+                sortIcon('paymentStatus')
+              }}</span>
+            </th>
+            <th class="sortable" (click)="sortPayments('createdAt')">
+              Date
+              <span class="material-symbols-rounded sort-icon">{{ sortIcon('createdAt') }}</span>
+            </th>
           </tr>
         </thead>
         <tbody>
@@ -95,8 +132,12 @@
               <td>{{ tx.packageName }}</td>
               <td class="price-cell">{{ tx.currency }} {{ tx.amount | number }}</td>
               <td class="method-cell">{{ tx.paymentMethod }}</td>
-              <td><span class="payment-status" [attr.data-status]="tx.paymentStatus">{{ tx.paymentStatus }}</span></td>
-              <td>{{ tx.createdAt | date:'medium' }}</td>
+              <td>
+                <span class="payment-status" [attr.data-status]="tx.paymentStatus">{{
+                  tx.paymentStatus
+                }}</span>
+              </td>
+              <td>{{ tx.createdAt | date: 'medium' }}</td>
             </tr>
           }
         </tbody>
@@ -107,7 +148,9 @@
       <div class="pagination">
         <button class="btn-secondary" (click)="prevPage()" [disabled]="page <= 1">← Prev</button>
         <span class="page-info">Page {{ page }} of {{ totalPages }}</span>
-        <button class="btn-secondary" (click)="nextPage()" [disabled]="page >= totalPages">Next →</button>
+        <button class="btn-secondary" (click)="nextPage()" [disabled]="page >= totalPages">
+          Next →
+        </button>
       </div>
     }
   }

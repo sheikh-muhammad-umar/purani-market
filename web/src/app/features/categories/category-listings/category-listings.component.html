@@ -9,7 +9,9 @@
           } @else if (crumb.slug === '') {
             <a class="breadcrumb-link" routerLink="/categories">{{ crumb.label }}</a>
           } @else {
-            <a class="breadcrumb-link" [routerLink]="['/categories', crumb.slug]">{{ crumb.label }}</a>
+            <a class="breadcrumb-link" [routerLink]="['/categories', crumb.slug]">{{
+              crumb.label
+            }}</a>
           }
           @if (!last) {
             <span class="breadcrumb-separator" aria-hidden="true">›</span>
@@ -47,11 +49,7 @@
       <section class="subcategories-section" aria-label="Subcategories">
         <div class="subcategories-scroll" role="list">
           @for (sub of subcategories(); track sub._id) {
-            <a
-              class="subcategory-chip"
-              [routerLink]="['/categories', sub.slug]"
-              role="listitem"
-            >
+            <a class="subcategory-chip" [routerLink]="['/categories', sub.slug]" role="listitem">
               {{ sub.name }}
             </a>
           }
@@ -63,16 +61,15 @@
     <section class="listings-section" aria-label="Category listings">
       <!-- Sort bar -->
       <div class="listings-toolbar">
-        <span class="results-count">{{ totalListings() }} result{{ totalListings() !== 1 ? 's' : '' }}</span>
-        <app-sort-dropdown
-          [selected]="currentSort()"
-          (sortChanged)="onSortChange($event)"
-        />
+        <span class="results-count"
+          >{{ totalListings() }} result{{ totalListings() !== 1 ? 's' : '' }}</span
+        >
+        <app-sort-dropdown [selected]="currentSort()" (sortChanged)="onSortChange($event)" />
       </div>
 
       @if (loadingListings()) {
         <div class="listings-grid">
-          @for (i of [1,2,3,4,5,6,7,8]; track i) {
+          @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
             <div class="listing-card-skeleton">
               <div class="skeleton img-skeleton"></div>
               <div class="skeleton text-skeleton title-sk"></div>
@@ -90,18 +87,16 @@
               role="listitem"
             >
               <div class="listing-img-wrap">
-                <img
-                  [src]="getListingImage(listing)"
-                  [alt]="listing.title"
-                  loading="lazy"
-                />
+                <img [src]="getListingImage(listing)" [alt]="listing.title" loading="lazy" />
                 @if (listing.isFeatured) {
                   <span class="badge badge-featured">Featured</span>
                 }
               </div>
               <div class="listing-info">
-                <h3 class="listing-title">{{ listing.title | truncateText:50 }}</h3>
-                <p class="listing-price price">{{ listing.price.amount | priceFormat:listing.price.currency }}</p>
+                <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
+                <p class="listing-price price">
+                  {{ listing.price.amount | priceFormat: listing.price.currency }}
+                </p>
                 <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
               </div>
             </a>
@@ -119,9 +114,7 @@
             >
               ← Previous
             </button>
-            <span class="pagination-info">
-              Page {{ currentPage() }} of {{ totalPages }}
-            </span>
+            <span class="pagination-info"> Page {{ currentPage() }} of {{ totalPages }} </span>
             <button
               class="btn btn-outline pagination-btn"
               [disabled]="currentPage() >= totalPages"

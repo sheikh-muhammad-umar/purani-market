@@ -35,7 +35,15 @@ describe('CategoriesService', () => {
       level: 2,
       isActive: true,
       sortOrder: 0,
-      attributes: [{ name: 'Brand', key: 'brand', type: 'select', options: ['Apple', 'Samsung'], required: true }],
+      attributes: [
+        {
+          name: 'Brand',
+          key: 'brand',
+          type: 'select',
+          options: ['Apple', 'Samsung'],
+          required: true,
+        },
+      ],
       features: [],
     },
     {
@@ -93,7 +101,9 @@ describe('CategoriesService', () => {
 
   describe('getCategoryTree', () => {
     it('should return cached tree when available', async () => {
-      const cachedTree = [{ _id: rootId.toString(), name: 'Electronics', children: [] }];
+      const cachedTree = [
+        { _id: rootId.toString(), name: 'Electronics', children: [] },
+      ];
       mockRedis.get.mockResolvedValue(JSON.stringify(cachedTree));
 
       const result = await service.getCategoryTree();
@@ -130,12 +140,16 @@ describe('CategoriesService', () => {
     it('should return a category by id', async () => {
       const result = await service.findById(childId.toString());
 
-      expect(mockCategoryModel.findById).toHaveBeenCalledWith(childId.toString());
+      expect(mockCategoryModel.findById).toHaveBeenCalledWith(
+        childId.toString(),
+      );
       expect(result).toBe(mockCategories[1]);
     });
 
     it('should throw NotFoundException for invalid ObjectId', async () => {
-      await expect(service.findById('invalid-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findById('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException when category not found', async () => {
@@ -143,7 +157,9 @@ describe('CategoriesService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      await expect(service.findById(new Types.ObjectId().toString())).rejects.toThrow(NotFoundException);
+      await expect(
+        service.findById(new Types.ObjectId().toString()),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -254,7 +270,10 @@ describe('CategoriesService', () => {
         exec: jest.fn().mockResolvedValue(categoryDoc),
       });
 
-      const result = await service.update(childId.toString(), { name: 'Phones', sortOrder: 5 });
+      const result = await service.update(childId.toString(), {
+        name: 'Phones',
+        sortOrder: 5,
+      });
 
       expect(result.name).toBe('Phones');
       expect(result.sortOrder).toBe(5);
@@ -290,7 +309,9 @@ describe('CategoriesService', () => {
 
       await service.delete(grandchildId.toString());
 
-      expect(mockCategoryModel.deleteOne).toHaveBeenCalledWith({ _id: grandchildId });
+      expect(mockCategoryModel.deleteOne).toHaveBeenCalledWith({
+        _id: grandchildId,
+      });
       expect(mockRedis.del).toHaveBeenCalledWith('categories:tree');
     });
 
@@ -308,7 +329,9 @@ describe('CategoriesService', () => {
         exec: jest.fn().mockResolvedValue([{ _id: childId }]),
       });
 
-      await expect(service.delete(rootId.toString())).rejects.toThrow(BadRequestException);
+      await expect(service.delete(rootId.toString())).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 
@@ -327,10 +350,19 @@ describe('CategoriesService', () => {
       });
 
       const newAttrs = [
-        { name: 'Brand', key: 'brand', type: 'select' as const, options: ['Apple', 'Samsung'], required: true },
+        {
+          name: 'Brand',
+          key: 'brand',
+          type: 'select' as const,
+          options: ['Apple', 'Samsung'],
+          required: true,
+        },
       ];
 
-      const result = await service.updateAttributes(childId.toString(), newAttrs as any);
+      const result = await service.updateAttributes(
+        childId.toString(),
+        newAttrs as any,
+      );
 
       expect(result.attributes).toEqual(newAttrs);
       expect(saveMock).toHaveBeenCalled();
@@ -351,13 +383,41 @@ describe('CategoriesService', () => {
       });
 
       const newAttrs = [
-        { name: 'Brand', key: 'brand', type: 'select' as const, options: ['Apple', 'Samsung'], required: true },
-        { name: 'Storage', key: 'storage', type: 'select' as const, options: ['64GB', '128GB', '256GB'], required: false },
-        { name: 'Mileage', key: 'mileage', type: 'number' as const, options: [], required: false, unit: 'km' },
-        { name: 'Description', key: 'description', type: 'text' as const, options: [], required: false },
+        {
+          name: 'Brand',
+          key: 'brand',
+          type: 'select' as const,
+          options: ['Apple', 'Samsung'],
+          required: true,
+        },
+        {
+          name: 'Storage',
+          key: 'storage',
+          type: 'select' as const,
+          options: ['64GB', '128GB', '256GB'],
+          required: false,
+        },
+        {
+          name: 'Mileage',
+          key: 'mileage',
+          type: 'number' as const,
+          options: [],
+          required: false,
+          unit: 'km',
+        },
+        {
+          name: 'Description',
+          key: 'description',
+          type: 'text' as const,
+          options: [],
+          required: false,
+        },
       ];
 
-      const result = await service.updateAttributes(childId.toString(), newAttrs as any);
+      const result = await service.updateAttributes(
+        childId.toString(),
+        newAttrs as any,
+      );
 
       expect(result.attributes).toHaveLength(4);
       expect(result.attributes).toEqual(newAttrs);
@@ -380,7 +440,10 @@ describe('CategoriesService', () => {
 
       const newFeatures = ['ABS', 'Air Bags', 'Power Windows'];
 
-      const result = await service.updateFeatures(childId.toString(), newFeatures);
+      const result = await service.updateFeatures(
+        childId.toString(),
+        newFeatures,
+      );
 
       expect(result.features).toEqual(newFeatures);
       expect(saveMock).toHaveBeenCalled();

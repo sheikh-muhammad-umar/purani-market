@@ -41,7 +41,10 @@ describe('MessagingService', () => {
       expect(res).toEqual(mockResponse);
     });
 
-    expect(apiMock.get).toHaveBeenCalledWith('/conversations/conv1/messages', { page: 2, limit: 20 });
+    expect(apiMock.get).toHaveBeenCalledWith('/conversations/conv1/messages', {
+      page: 2,
+      limit: 20,
+    });
   });
 
   it('should default to page 1 for getMessages', () => {
@@ -49,7 +52,10 @@ describe('MessagingService', () => {
 
     service.getMessages('conv1').subscribe();
 
-    expect(apiMock.get).toHaveBeenCalledWith('/conversations/conv1/messages', { page: 1, limit: 20 });
+    expect(apiMock.get).toHaveBeenCalledWith('/conversations/conv1/messages', {
+      page: 1,
+      limit: 20,
+    });
   });
 
   it('should call POST /conversations for startConversation', () => {

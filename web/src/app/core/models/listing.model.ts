@@ -1,7 +1,14 @@
 import { GeoPoint } from './user.model';
 
 export type ListingCondition = 'new' | 'used' | 'refurbished';
-export type ListingStatus = 'active' | 'inactive' | 'pending_review' | 'rejected' | 'sold' | 'reserved' | 'deleted';
+export type ListingStatus =
+  | 'active'
+  | 'inactive'
+  | 'pending_review'
+  | 'rejected'
+  | 'sold'
+  | 'reserved'
+  | 'deleted';
 
 export interface ListingPrice {
   amount: number;

@@ -29,7 +29,13 @@ describe('SearchService', () => {
   });
 
   it('should call /search with cleaned params', () => {
-    const params: SearchParams = { q: 'phone', category: 'cat1', sort: 'price_asc', page: 1, limit: 20 };
+    const params: SearchParams = {
+      q: 'phone',
+      category: 'cat1',
+      sort: 'price_asc',
+      page: 1,
+      limit: 20,
+    };
     service.search(params).subscribe();
     expect(apiMock.get).toHaveBeenCalledWith('/search', {
       q: 'phone',
@@ -51,7 +57,13 @@ describe('SearchService', () => {
   });
 
   it('should include price range params', () => {
-    const params: SearchParams = { q: 'laptop', minPrice: 1000, maxPrice: 5000, page: 1, limit: 20 };
+    const params: SearchParams = {
+      q: 'laptop',
+      minPrice: 1000,
+      maxPrice: 5000,
+      page: 1,
+      limit: 20,
+    };
     service.search(params).subscribe();
     expect(apiMock.get).toHaveBeenCalledWith('/search', {
       q: 'laptop',
@@ -69,14 +81,21 @@ describe('SearchService', () => {
     ];
     apiMock.get = vi.fn().mockReturnValue(of(mockSuggestions));
 
-    service.getSuggestions('iphone').subscribe(result => {
+    service.getSuggestions('iphone').subscribe((result) => {
       expect(result).toEqual(mockSuggestions);
     });
     expect(apiMock.get).toHaveBeenCalledWith('/search/suggestions', { q: 'iphone' });
   });
 
   it('should pass dynamic filter params through', () => {
-    const params: SearchParams = { q: 'car', category: 'vehicles', make: 'Toyota', model: 'Corolla', page: 1, limit: 20 };
+    const params: SearchParams = {
+      q: 'car',
+      category: 'vehicles',
+      make: 'Toyota',
+      model: 'Corolla',
+      page: 1,
+      limit: 20,
+    };
     service.search(params).subscribe();
     expect(apiMock.get).toHaveBeenCalledWith('/search', {
       q: 'car',

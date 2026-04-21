@@ -52,7 +52,9 @@ describe('LoginComponent form logic', () => {
     const form = createLoginForm();
     // Simulate switching to phone mode
     form.get('email')?.clearValidators();
-    form.get('phone')?.setValidators([Validators.required, Validators.pattern(/^\+?[1-9]\d{6,14}$/)]);
+    form
+      .get('phone')
+      ?.setValidators([Validators.required, Validators.pattern(/^\+?[1-9]\d{6,14}$/)]);
     form.get('email')?.updateValueAndValidity();
     form.get('phone')?.updateValueAndValidity();
 
@@ -63,7 +65,9 @@ describe('LoginComponent form logic', () => {
   it('should accept valid phone number', () => {
     const form = createLoginForm();
     form.get('email')?.clearValidators();
-    form.get('phone')?.setValidators([Validators.required, Validators.pattern(/^\+?[1-9]\d{6,14}$/)]);
+    form
+      .get('phone')
+      ?.setValidators([Validators.required, Validators.pattern(/^\+?[1-9]\d{6,14}$/)]);
     form.get('phone')?.updateValueAndValidity();
 
     form.get('phone')?.setValue('+923001234567');

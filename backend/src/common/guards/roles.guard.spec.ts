@@ -43,7 +43,9 @@ describe('RolesGuard', () => {
   });
 
   it('should allow access when user role matches one of multiple required roles', () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['admin', 'seller']);
+    jest
+      .spyOn(reflector, 'getAllAndOverride')
+      .mockReturnValue(['admin', 'seller']);
     const context = createMockContext({ role: 'seller' });
     expect(guard.canActivate(context)).toBe(true);
   });
@@ -69,7 +71,9 @@ describe('RolesGuard', () => {
   });
 
   it('should use reflector with correct metadata key, handler, and class', () => {
-    const spy = jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(undefined);
+    const spy = jest
+      .spyOn(reflector, 'getAllAndOverride')
+      .mockReturnValue(undefined);
     const context = createMockContext();
     guard.canActivate(context);
     expect(spy).toHaveBeenCalledWith(ROLES_KEY, [

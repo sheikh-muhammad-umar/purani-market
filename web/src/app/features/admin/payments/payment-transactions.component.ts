@@ -7,9 +7,15 @@ import {
   PaymentTransaction,
 } from '../../../core/services/admin.service';
 import { PaymentMethod, PaymentStatus } from '../../../core/models';
-import { PAYMENT_METHOD_OPTIONS, PAYMENT_STATUS_OPTIONS } from '../../../core/constants/select-options';
+import {
+  PAYMENT_METHOD_OPTIONS,
+  PAYMENT_STATUS_OPTIONS,
+} from '../../../core/constants/select-options';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
-import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
+import {
+  CustomSelectComponent,
+  SelectOption,
+} from '../../../shared/components/custom-select/custom-select.component';
 
 @Component({
   selector: 'app-payment-transactions',
@@ -38,7 +44,12 @@ export class PaymentTransactionsComponent implements OnInit {
   readonly paymentStatusOptions: SelectOption[] = PAYMENT_STATUS_OPTIONS;
 
   get hasActiveFilters(): boolean {
-    return !!(this.filterStartDate || this.filterEndDate || this.filterPaymentMethod || this.filterStatus);
+    return !!(
+      this.filterStartDate ||
+      this.filterEndDate ||
+      this.filterPaymentMethod ||
+      this.filterStatus
+    );
   }
 
   get activeFilterCount(): number {
@@ -120,11 +131,14 @@ export class PaymentTransactionsComponent implements OnInit {
       this.sortDir = 'asc';
     }
     const dir = this.sortDir === 'asc' ? 1 : -1;
-    this.payments.update(list => [...list].sort((a: any, b: any) => {
-      const va = a[col]; const vb = b[col];
-      if (typeof va === 'string') return (va || '').localeCompare(vb || '') * dir;
-      return ((va ?? 0) - (vb ?? 0)) * dir;
-    }));
+    this.payments.update((list) =>
+      [...list].sort((a: any, b: any) => {
+        const va = a[col];
+        const vb = b[col];
+        if (typeof va === 'string') return (va || '').localeCompare(vb || '') * dir;
+        return ((va ?? 0) - (vb ?? 0)) * dir;
+      }),
+    );
   }
 
   sortIcon(col: string): string {

@@ -9,16 +9,14 @@
     </div>
 
     <div class="tab-bar">
-      <button
-        class="tab-btn"
-        [class.active]="activeTab() === 'active'"
-        (click)="setTab('active')">
+      <button class="tab-btn" [class.active]="activeTab() === 'active'" (click)="setTab('active')">
         Active ({{ activePurchases().length }})
       </button>
       <button
         class="tab-btn"
         [class.active]="activeTab() === 'history'"
-        (click)="setTab('history')">
+        (click)="setTab('history')"
+      >
         History ({{ historyPurchases().length }})
       </button>
     </div>
@@ -45,22 +43,30 @@
             @for (purchase of activePurchases(); track purchase._id) {
               <div class="purchase-card card active-card">
                 <div class="card-header">
-                  <span class="badge" [class.badge-featured]="purchase.type === 'featured_ads'" [class.badge-success]="purchase.type === 'ad_slots'">
+                  <span
+                    class="badge"
+                    [class.badge-featured]="purchase.type === 'featured_ads'"
+                    [class.badge-success]="purchase.type === 'ad_slots'"
+                  >
                     {{ getTypeLabel(purchase.type) }}
                   </span>
-                  <span class="remaining-days">{{ getRemainingDays(purchase.expiresAt) }} days left</span>
+                  <span class="remaining-days"
+                    >{{ getRemainingDays(purchase.expiresAt) }} days left</span
+                  >
                 </div>
                 <div class="card-body-content">
                   <div class="slots-meter">
                     <div class="meter-label">
                       <span>Remaining</span>
-                      <span class="meter-value">{{ purchase.remainingQuantity }} / {{ purchase.quantity }}</span>
+                      <span class="meter-value"
+                        >{{ purchase.remainingQuantity }} / {{ purchase.quantity }}</span
+                      >
                     </div>
                     <div class="meter-bar">
                       <div
                         class="meter-fill"
-                        [style.width.%]="(purchase.remainingQuantity / purchase.quantity) * 100">
-                      </div>
+                        [style.width.%]="(purchase.remainingQuantity / purchase.quantity) * 100"
+                      ></div>
                     </div>
                   </div>
                   <div class="detail-rows">

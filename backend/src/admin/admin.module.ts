@@ -9,10 +9,7 @@ import { MessagingModule } from '../messaging/messaging.module.js';
 import { NotificationsModule } from '../notifications/notifications.module.js';
 import { CategoriesModule } from '../categories/categories.module.js';
 import { AiModule } from '../ai/ai.module.js';
-import {
-  Review,
-  ReviewSchema,
-} from '../reviews/schemas/review.schema.js';
+import { Review, ReviewSchema } from '../reviews/schemas/review.schema.js';
 import {
   PackagePurchase,
   PackagePurchaseSchema,

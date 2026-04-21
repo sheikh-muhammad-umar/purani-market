@@ -33,10 +33,10 @@ describe('HmsProvider', () => {
 
   describe('sendToMultipleDevices', () => {
     it('should send to all tokens and return true', async () => {
-      const result = await provider.sendToMultipleDevices(
-        ['hms-1', 'hms-2'],
-        { title: 'Test', body: 'Body' },
-      );
+      const result = await provider.sendToMultipleDevices(['hms-1', 'hms-2'], {
+        title: 'Test',
+        body: 'Body',
+      });
       expect(result).toBe(true);
     });
   });

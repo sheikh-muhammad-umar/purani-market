@@ -42,12 +42,14 @@ export class AuthService {
   private readonly currentUser = signal<User | null>(null);
   readonly user = this.currentUser.asReadonly();
   readonly isAuthenticated = computed(() => !!this.currentUser() || !!this.getAccessToken());
-  readonly isAdmin = computed(() => this.currentUser()?.role === 'admin' || this.currentUser()?.role === 'super_admin');
+  readonly isAdmin = computed(
+    () => this.currentUser()?.role === 'admin' || this.currentUser()?.role === 'super_admin',
+  );
   readonly isSuperAdmin = computed(() => this.currentUser()?.role === 'super_admin');
 
   constructor(
     private readonly http: HttpClient,
-    private readonly router: Router
+    private readonly router: Router,
   ) {}
 
   // --- Authentication ---
@@ -118,7 +120,9 @@ export class AuthService {
   // --- Phone Management ---
 
   addPhone(phone: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/change-phone`, { newPhone: phone });
+    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/change-phone`, {
+      newPhone: phone,
+    });
   }
 
   verifyPhoneChange(otp: string): Observable<{ message: string }> {
@@ -150,9 +154,9 @@ export class AuthService {
   }
 
   fetchCurrentUser(): Observable<User> {
-    return this.http.get<User>(`${this.apiUrl}/users/me`).pipe(
-      tap(user => this.currentUser.set(user))
-    );
+    return this.http
+      .get<User>(`${this.apiUrl}/users/me`)
+      .pipe(tap((user) => this.currentUser.set(user)));
   }
 
   isMfaResponse(response: LoginResponse): response is MfaRequiredResponse {

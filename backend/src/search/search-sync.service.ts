@@ -1,8 +1,16 @@
-import { Injectable, Logger, OnModuleInit, OnModuleDestroy } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  OnModuleInit,
+  OnModuleDestroy,
+} from '@nestjs/common';
 import { InjectConnection } from '@nestjs/mongoose';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { Connection } from 'mongoose';
-import { LISTINGS_INDEX, FEATURED_BOOST_FACTOR } from './search-index.service.js';
+import {
+  LISTINGS_INDEX,
+  FEATURED_BOOST_FACTOR,
+} from './search-index.service.js';
 
 export interface ListingDocument {
   _id: string;
@@ -13,7 +21,12 @@ export interface ListingDocument {
   categoryPath: string[];
   condition: string;
   categoryAttributes: Record<string, any>;
-  location?: { type: string; coordinates: number[]; city?: string; area?: string };
+  location?: {
+    type: string;
+    coordinates: number[];
+    city?: string;
+    area?: string;
+  };
   isFeatured: boolean;
   status: string;
   sellerId: string;
@@ -41,7 +54,9 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
   startChangeStream(): void {
     try {
       const collection = this.connection.collection('product_listings');
-      this.changeStream = collection.watch([], { fullDocument: 'updateLookup' });
+      this.changeStream = collection.watch([], {
+        fullDocument: 'updateLookup',
+      });
 
       this.changeStream.on('change', async (change: any) => {
         try {
@@ -54,8 +69,13 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
       });
 
       this.changeStream.on('error', (error: Error) => {
-        if (error.message?.includes('replica set') || error.message?.includes('$changeStream')) {
-          this.logger.warn('Change streams require a replica set — skipping real-time sync. Listings will not auto-sync to Elasticsearch.');
+        if (
+          error.message?.includes('replica set') ||
+          error.message?.includes('$changeStream')
+        ) {
+          this.logger.warn(
+            'Change streams require a replica set — skipping real-time sync. Listings will not auto-sync to Elasticsearch.',
+          );
           this.stopChangeStream();
           return;
         }
@@ -66,7 +86,9 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
     } catch (error) {
       const msg = (error as Error).message || '';
       if (msg.includes('replica set') || msg.includes('$changeStream')) {
-        this.logger.warn('Change streams not supported (standalone MongoDB) — skipping real-time ES sync.');
+        this.logger.warn(
+          'Change streams not supported (standalone MongoDB) — skipping real-time ES sync.',
+        );
       } else {
         this.logger.error(`Failed to start change stream: ${msg}`);
       }
@@ -185,9 +207,7 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
     return esDoc;
   }
 
-  private transformCategoryAttributes(
-    attrs: any,
-  ): Record<string, any> {
+  private transformCategoryAttributes(attrs: any): Record<string, any> {
     if (!attrs) return {};
 
     if (attrs instanceof Map) {

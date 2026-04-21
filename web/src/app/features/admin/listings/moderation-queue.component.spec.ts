@@ -1,7 +1,11 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { ModerationQueueComponent } from './moderation-queue.component';
-import { AdminService, PendingListing, PendingListingsResponse } from '../../../core/services/admin.service';
+import {
+  AdminService,
+  PendingListing,
+  PendingListingsResponse,
+} from '../../../core/services/admin.service';
 
 const mockListings: PendingListing[] = [
   {
@@ -12,7 +16,9 @@ const mockListings: PendingListing[] = [
     categoryId: 'c1',
     categoryName: 'Mobile Phones',
     condition: 'new',
-    images: [{ url: 'https://img.test/1.jpg', thumbnailUrl: 'https://img.test/1_thumb.jpg', sortOrder: 0 }],
+    images: [
+      { url: 'https://img.test/1.jpg', thumbnailUrl: 'https://img.test/1_thumb.jpg', sortOrder: 0 },
+    ],
     status: 'pending_review',
     sellerId: 's1',
     sellerName: 'Ali Khan',

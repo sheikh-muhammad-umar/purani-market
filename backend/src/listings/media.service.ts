@@ -80,10 +80,7 @@ export class MediaService {
     }
   }
 
-  validateMediaLimits(
-    listing: ProductListingDocument,
-    type: MediaType,
-  ): void {
+  validateMediaLimits(listing: ProductListingDocument, type: MediaType): void {
     if (
       type === MediaType.IMAGE &&
       listing.images.length >= MAX_IMAGES_PER_LISTING
@@ -188,9 +185,7 @@ export class MediaService {
     sellerId: string,
   ): void {
     if (listing.sellerId.toString() !== sellerId) {
-      throw new ForbiddenException(
-        'Not authorized to upload to this listing',
-      );
+      throw new ForbiddenException('Not authorized to upload to this listing');
     }
   }
 }

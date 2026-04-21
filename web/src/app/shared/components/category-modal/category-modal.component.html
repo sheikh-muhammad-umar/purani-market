@@ -1,47 +1,57 @@
 @if (currentParent(); as parent) {
-<div class="modal-overlay" (click)="onOverlayClick($event)" role="dialog" aria-modal="true" [attr.aria-label]="'Subcategories of ' + parent.name">
-  <div class="modal-panel">
-    <!-- Header -->
-    <div class="modal-header">
-      <div class="breadcrumb">
-        @for (crumb of breadcrumb(); track crumb._id; let i = $index; let last = $last) {
-          @if (!last) {
-            <button class="breadcrumb-btn" (click)="goToBreadcrumb(i)">{{ crumb.name }}</button>
-            <span class="breadcrumb-sep">›</span>
-          } @else {
-            <span class="breadcrumb-current">{{ crumb.name }}</span>
+  <div
+    class="modal-overlay"
+    (click)="onOverlayClick($event)"
+    role="dialog"
+    aria-modal="true"
+    [attr.aria-label]="'Subcategories of ' + parent.name"
+  >
+    <div class="modal-panel">
+      <!-- Header -->
+      <div class="modal-header">
+        <div class="breadcrumb">
+          @for (crumb of breadcrumb(); track crumb._id; let i = $index; let last = $last) {
+            @if (!last) {
+              <button class="breadcrumb-btn" (click)="goToBreadcrumb(i)">{{ crumb.name }}</button>
+              <span class="breadcrumb-sep">›</span>
+            } @else {
+              <span class="breadcrumb-current">{{ crumb.name }}</span>
+            }
           }
+        </div>
+        <button class="close-btn" (click)="close()" aria-label="Close">✕</button>
+      </div>
+
+      <!-- View all listings for current category -->
+      <button class="view-all-btn" (click)="navigateTo(parent)">
+        View all in <span class="view-all-name">{{ parent.name }}</span>
+        <span class="view-all-arrow">→</span>
+      </button>
+
+      <!-- Subcategory list -->
+      <div class="subcategory-list" role="list">
+        @for (cat of currentChildren(); track cat._id) {
+          <div class="subcategory-item" role="listitem">
+            <button class="subcategory-name" (click)="navigateTo(cat)">
+              {{ cat.name }}
+            </button>
+            @if (hasChildren(cat._id)) {
+              <button
+                class="drill-btn"
+                (click)="drillInto(cat)"
+                [attr.aria-label]="'Show subcategories of ' + cat.name"
+              >
+                ›
+              </button>
+            }
+          </div>
+        }
+        @if (currentChildren().length === 0) {
+          <div class="empty-subs">
+            <p>No subcategories. View all listings instead.</p>
+          </div>
         }
       </div>
-      <button class="close-btn" (click)="close()" aria-label="Close">✕</button>
-    </div>
-
-    <!-- View all listings for current category -->
-    <button class="view-all-btn" (click)="navigateTo(parent)">
-      View all in <span class="view-all-name">{{ parent.name }}</span>
-      <span class="view-all-arrow">→</span>
-    </button>
-
-    <!-- Subcategory list -->
-    <div class="subcategory-list" role="list">
-      @for (cat of currentChildren(); track cat._id) {
-        <div class="subcategory-item" role="listitem">
-          <button class="subcategory-name" (click)="navigateTo(cat)">
-            {{ cat.name }}
-          </button>
-          @if (hasChildren(cat._id)) {
-            <button class="drill-btn" (click)="drillInto(cat)" [attr.aria-label]="'Show subcategories of ' + cat.name">
-              ›
-            </button>
-          }
-        </div>
-      }
-      @if (currentChildren().length === 0) {
-        <div class="empty-subs">
-          <p>No subcategories. View all listings instead.</p>
-        </div>
-      }
     </div>
   </div>
-</div>
 }

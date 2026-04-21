@@ -89,7 +89,9 @@ export class ListingContactInfo {
   email?: string;
 }
 
-@Schema({ timestamps: true, collection: 'product_listings',
+@Schema({
+  timestamps: true,
+  collection: 'product_listings',
   toJSON: {
     transform: (_doc: any, ret: any) => {
       delete ret.__v;
@@ -127,7 +129,11 @@ export class ProductListing {
   @Prop({ type: String, enum: ListingCondition, required: true })
   condition!: ListingCondition;
 
-  @Prop({ type: MongooseSchema.Types.Map, of: MongooseSchema.Types.Mixed, default: () => new Map() })
+  @Prop({
+    type: MongooseSchema.Types.Map,
+    of: MongooseSchema.Types.Mixed,
+    default: () => new Map(),
+  })
   categoryAttributes!: Map<string, any>;
 
   @Prop({ type: [String], default: [] })

@@ -26,14 +26,23 @@ const CATEGORY_IMAGES: Record<string, string> = {
 };
 
 const CATEGORY_ICONS: Record<string, string> = {
-  cars: '🚗', vehicles: '🚗',
-  phones: '📱', 'mobile phones': '📱', electronics: '📱',
-  property: '🏠', 'real estate': '🏠',
-  fashion: '👗', clothing: '👗',
-  furniture: '🪑', 'home & garden': '🪑',
-  jobs: '💼', services: '🔧',
-  kids: '🧸', sports: '⚽',
-  animals: '🐾', pets: '🐾',
+  cars: '🚗',
+  vehicles: '🚗',
+  phones: '📱',
+  'mobile phones': '📱',
+  electronics: '📱',
+  property: '🏠',
+  'real estate': '🏠',
+  fashion: '👗',
+  clothing: '👗',
+  furniture: '🪑',
+  'home & garden': '🪑',
+  jobs: '💼',
+  services: '🔧',
+  kids: '🧸',
+  sports: '⚽',
+  animals: '🐾',
+  pets: '🐾',
   books: '📚',
 };
 
@@ -50,8 +59,8 @@ export class CategoryBrowseComponent implements OnInit {
 
   readonly topLevelCategories = computed(() =>
     this.allCategories()
-      .filter(c => c.level === 1 && c.isActive)
-      .sort((a, b) => a.sortOrder - b.sortOrder)
+      .filter((c) => c.level === 1 && c.isActive)
+      .sort((a, b) => a.sortOrder - b.sortOrder),
   );
 
   readonly selectedCategory = signal<Category | null>(null);
@@ -79,7 +88,7 @@ export class CategoryBrowseComponent implements OnInit {
   }
 
   getSubcategoryCount(categoryId: string): number {
-    return this.allCategories().filter(c => c.parentId === categoryId && c.isActive).length;
+    return this.allCategories().filter((c) => c.parentId === categoryId && c.isActive).length;
   }
 
   openCategoryModal(category: Category): void {

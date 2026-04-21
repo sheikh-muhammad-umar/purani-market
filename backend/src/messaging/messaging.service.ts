@@ -6,7 +6,10 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Conversation, ConversationDocument } from './schemas/conversation.schema.js';
+import {
+  Conversation,
+  ConversationDocument,
+} from './schemas/conversation.schema.js';
 import { Message, MessageDocument } from './schemas/message.schema.js';
 import {
   ProductListing,
@@ -28,7 +31,10 @@ export class MessagingService {
   async createConversation(
     userId: string,
     dto: CreateConversationDto,
-  ): Promise<{ conversation: ConversationDocument; message?: MessageDocument }> {
+  ): Promise<{
+    conversation: ConversationDocument;
+    message?: MessageDocument;
+  }> {
     const { productListingId, message } = dto;
 
     if (!Types.ObjectId.isValid(productListingId)) {
@@ -41,7 +47,9 @@ export class MessagingService {
     }
 
     if (listing.sellerId.toString() === userId) {
-      throw new BadRequestException('You cannot start a conversation on your own listing');
+      throw new BadRequestException(
+        'You cannot start a conversation on your own listing',
+      );
     }
 
     const buyerId = new Types.ObjectId(userId);
@@ -98,7 +106,12 @@ export class MessagingService {
     conversationId: string,
     userId: string,
     page: number = 1,
-  ): Promise<{ messages: MessageDocument[]; total: number; page: number; totalPages: number }> {
+  ): Promise<{
+    messages: MessageDocument[];
+    total: number;
+    page: number;
+    totalPages: number;
+  }> {
     if (!Types.ObjectId.isValid(conversationId)) {
       throw new NotFoundException('Conversation not found');
     }
@@ -117,7 +130,9 @@ export class MessagingService {
       conversation.buyerId.toString() !== userObjectId &&
       conversation.sellerId.toString() !== userObjectId
     ) {
-      throw new ForbiddenException('You are not a participant in this conversation');
+      throw new ForbiddenException(
+        'You are not a participant in this conversation',
+      );
     }
 
     const limit = 20;
@@ -126,12 +141,17 @@ export class MessagingService {
     const [messages, total] = await Promise.all([
       this.messageModel
         .find({ conversationId: conversation._id })
-        .populate('senderId', 'profile.firstName profile.lastName profile.avatar')
+        .populate(
+          'senderId',
+          'profile.firstName profile.lastName profile.avatar',
+        )
         .sort({ createdAt: -1 })
         .skip(skip)
         .limit(limit)
         .exec(),
-      this.messageModel.countDocuments({ conversationId: conversation._id }).exec(),
+      this.messageModel
+        .countDocuments({ conversationId: conversation._id })
+        .exec(),
     ]);
 
     return {
@@ -151,7 +171,9 @@ export class MessagingService {
       throw new NotFoundException('Conversation not found');
     }
 
-    const conversation = await this.conversationModel.findById(conversationId).exec();
+    const conversation = await this.conversationModel
+      .findById(conversationId)
+      .exec();
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
     }
@@ -160,7 +182,9 @@ export class MessagingService {
       conversation.buyerId.toString() !== userId &&
       conversation.sellerId.toString() !== userId
     ) {
-      throw new ForbiddenException('You are not a participant in this conversation');
+      throw new ForbiddenException(
+        'You are not a participant in this conversation',
+      );
     }
 
     const message = new this.messageModel({
@@ -170,7 +194,8 @@ export class MessagingService {
     });
     const saved = await message.save();
 
-    const preview = content.length > 100 ? content.substring(0, 100) + '...' : content;
+    const preview =
+      content.length > 100 ? content.substring(0, 100) + '...' : content;
     await this.conversationModel.findByIdAndUpdate(conversationId, {
       lastMessageAt: saved.createdAt,
       lastMessagePreview: preview,
@@ -186,28 +211,37 @@ export class MessagingService {
       .find({ $or: [{ buyerId: userObjectId }, { sellerId: userObjectId }] })
       .select('_id')
       .exec();
-    const conversationIds = conversations.map(c => c._id);
+    const conversationIds = conversations.map((c) => c._id);
 
     // Count unread messages not sent by this user
-    const count = await this.messageModel.countDocuments({
-      conversationId: { $in: conversationIds },
-      senderId: { $ne: userObjectId },
-      isRead: false,
-    }).exec();
+    const count = await this.messageModel
+      .countDocuments({
+        conversationId: { $in: conversationIds },
+        senderId: { $ne: userObjectId },
+        isRead: false,
+      })
+      .exec();
 
     return { count };
   }
 
-  async getConversationById(conversationId: string): Promise<ConversationDocument | null> {
+  async getConversationById(
+    conversationId: string,
+  ): Promise<ConversationDocument | null> {
     if (!Types.ObjectId.isValid(conversationId)) return null;
     return this.conversationModel.findById(conversationId).exec();
   }
 
-  async markConversationRead(conversationId: string, userId: string): Promise<{ marked: number }> {
+  async markConversationRead(
+    conversationId: string,
+    userId: string,
+  ): Promise<{ marked: number }> {
     if (!Types.ObjectId.isValid(conversationId)) {
       throw new NotFoundException('Conversation not found');
     }
-    const conversation = await this.conversationModel.findById(conversationId).exec();
+    const conversation = await this.conversationModel
+      .findById(conversationId)
+      .exec();
     if (!conversation) {
       throw new NotFoundException('Conversation not found');
     }
@@ -215,22 +249,28 @@ export class MessagingService {
       conversation.buyerId.toString() !== userId &&
       conversation.sellerId.toString() !== userId
     ) {
-      throw new ForbiddenException('You are not a participant in this conversation');
+      throw new ForbiddenException(
+        'You are not a participant in this conversation',
+      );
     }
 
-    const result = await this.messageModel.updateMany(
-      {
-        conversationId: conversation._id,
-        senderId: { $ne: new Types.ObjectId(userId) },
-        isRead: false,
-      },
-      { $set: { isRead: true } },
-    ).exec();
+    const result = await this.messageModel
+      .updateMany(
+        {
+          conversationId: conversation._id,
+          senderId: { $ne: new Types.ObjectId(userId) },
+          isRead: false,
+        },
+        { $set: { isRead: true } },
+      )
+      .exec();
 
     return { marked: result.modifiedCount };
   }
 
-  async getUnreadPerConversation(userId: string): Promise<Record<string, number>> {
+  async getUnreadPerConversation(
+    userId: string,
+  ): Promise<Record<string, number>> {
     const userObjectId = new Types.ObjectId(userId);
     const conversations = await this.conversationModel
       .find({ $or: [{ buyerId: userObjectId }, { sellerId: userObjectId }] })
@@ -239,11 +279,13 @@ export class MessagingService {
 
     const counts: Record<string, number> = {};
     for (const conv of conversations) {
-      const count = await this.messageModel.countDocuments({
-        conversationId: conv._id,
-        senderId: { $ne: userObjectId },
-        isRead: false,
-      }).exec();
+      const count = await this.messageModel
+        .countDocuments({
+          conversationId: conv._id,
+          senderId: { $ne: userObjectId },
+          isRead: false,
+        })
+        .exec();
       if (count > 0) {
         counts[conv._id.toString()] = count;
       }

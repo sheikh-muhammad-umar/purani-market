@@ -28,15 +28,29 @@ describe('CreateListingComponent', () => {
   let categoriesService: { getAll: ReturnType<typeof vi.fn> };
   let listingsService: { create: ReturnType<typeof vi.fn> };
   let router: { navigate: ReturnType<typeof vi.fn> };
-  let authService: { fetchCurrentUser: ReturnType<typeof vi.fn>; user: ReturnType<typeof vi.fn>; verifyPhone: ReturnType<typeof vi.fn>; resendVerification: ReturnType<typeof vi.fn>; addPhone: ReturnType<typeof vi.fn>; verifyPhoneChange: ReturnType<typeof vi.fn> };
+  let authService: {
+    fetchCurrentUser: ReturnType<typeof vi.fn>;
+    user: ReturnType<typeof vi.fn>;
+    verifyPhone: ReturnType<typeof vi.fn>;
+    resendVerification: ReturnType<typeof vi.fn>;
+    addPhone: ReturnType<typeof vi.fn>;
+    verifyPhoneChange: ReturnType<typeof vi.fn>;
+  };
 
   const mockCategories: Category[] = [
     makeCategory({ _id: 'c1', name: 'Vehicles', slug: 'vehicles', level: 1 }),
     makeCategory({ _id: 'c2', name: 'Electronics', slug: 'electronics', level: 1 }),
-    makeCategory({ _id: 'c3', name: 'Cars', slug: 'cars', level: 2, parentId: 'c1', attributes: [
-      { name: 'Make', key: 'make', type: 'select', options: ['Toyota', 'Honda'], required: true },
-      { name: 'Mileage', key: 'mileage', type: 'number', required: false, unit: 'km' },
-    ] as CategoryAttribute[] }),
+    makeCategory({
+      _id: 'c3',
+      name: 'Cars',
+      slug: 'cars',
+      level: 2,
+      parentId: 'c1',
+      attributes: [
+        { name: 'Make', key: 'make', type: 'select', options: ['Toyota', 'Honda'], required: true },
+        { name: 'Mileage', key: 'mileage', type: 'number', required: false, unit: 'km' },
+      ] as CategoryAttribute[],
+    }),
     makeCategory({ _id: 'c4', name: 'Sedans', slug: 'sedans', level: 3, parentId: 'c3' }),
     makeCategory({ _id: 'c5', name: 'Inactive', slug: 'inactive', level: 1, isActive: false }),
   ];
@@ -80,7 +94,7 @@ describe('CreateListingComponent', () => {
   it('should filter level 1 active categories', () => {
     const l1 = component.level1Categories();
     expect(l1.length).toBe(2);
-    expect(l1.map(c => c.name)).toEqual(['Vehicles', 'Electronics']);
+    expect(l1.map((c) => c.name)).toEqual(['Vehicles', 'Electronics']);
   });
 
   // --- Category Step ---
@@ -283,7 +297,9 @@ describe('CreateListingComponent', () => {
   });
 
   it('should handle submit error', () => {
-    listingsService.create = vi.fn().mockReturnValue(throwError(() => ({ error: { message: 'Ad limit reached' } })));
+    listingsService.create = vi
+      .fn()
+      .mockReturnValue(throwError(() => ({ error: { message: 'Ad limit reached' } })));
     component.selectLevel1(mockCategories[0]);
     component.detailsForm.patchValue({
       title: 'Test',
@@ -302,7 +318,9 @@ describe('CreateListingComponent', () => {
   it('should not submit while already submitting', () => {
     component.selectLevel1(mockCategories[0]);
     component.detailsForm.patchValue({
-      title: 'Test', description: 'Desc', price: 1000,
+      title: 'Test',
+      description: 'Desc',
+      price: 1000,
       condition: 'new',
     });
     component.locationForm.patchValue({ city: 'Lahore', area: 'DHA' });

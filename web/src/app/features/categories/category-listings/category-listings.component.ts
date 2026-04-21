@@ -7,7 +7,10 @@ import { ListingsService, ListingsResponse } from '../../../core/services/listin
 import { PriceFormatPipe } from '../../../shared/pipes/price-format.pipe';
 import { TruncateTextPipe } from '../../../shared/pipes/truncate-text.pipe';
 import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
-import { SortDropdownComponent, SortOption } from '../../../shared/components/sort-dropdown/sort-dropdown.component';
+import {
+  SortDropdownComponent,
+  SortOption,
+} from '../../../shared/components/sort-dropdown/sort-dropdown.component';
 import { Category, Listing } from '../../../core/models';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 
@@ -20,7 +23,14 @@ export interface BreadcrumbItem {
 @Component({
   selector: 'app-category-listings',
   standalone: true,
-  imports: [CommonModule, RouterLink, PriceFormatPipe, TruncateTextPipe, SortDropdownComponent, ListingUrlPipe],
+  imports: [
+    CommonModule,
+    RouterLink,
+    PriceFormatPipe,
+    TruncateTextPipe,
+    SortDropdownComponent,
+    ListingUrlPipe,
+  ],
   templateUrl: './category-listings.component.html',
   styleUrls: ['./category-listings.component.scss'],
 })
@@ -54,14 +64,12 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.route.paramMap
-      .pipe(takeUntil(this.destroy$))
-      .subscribe(params => {
-        const slug = params.get('slug');
-        if (slug) {
-          this.loadCategoryData(slug);
-        }
-      });
+    this.route.paramMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
+      const slug = params.get('slug');
+      if (slug) {
+        this.loadCategoryData(slug);
+      }
+    });
   }
 
   ngOnDestroy(): void {
@@ -70,7 +78,9 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
   }
 
   getListingImage(listing: Listing): string {
-    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png';
+    return (
+      listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png'
+    );
   }
 
   loadPage(page: number): void {
@@ -99,7 +109,8 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
     this.loadingListings.set(true);
     this.currentPage.set(1);
 
-    this.categoriesService.getAll()
+    this.categoriesService
+      .getAll()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (categories) => {
@@ -120,8 +131,8 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
           });
           this.subcategories.set(
             categories
-              .filter(c => c.parentId === category._id && c.isActive)
-              .sort((a, b) => a.sortOrder - b.sortOrder)
+              .filter((c) => c.parentId === category._id && c.isActive)
+              .sort((a, b) => a.sortOrder - b.sortOrder),
           );
           this.loadingCategory.set(false);
           const sort = this.currentSort();
@@ -135,9 +146,15 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
       });
   }
 
-  private loadListings(categoryId: string, page: number, sort?: string, order?: 'asc' | 'desc'): void {
+  private loadListings(
+    categoryId: string,
+    page: number,
+    sort?: string,
+    order?: 'asc' | 'desc',
+  ): void {
     this.loadingListings.set(true);
-    this.listingsService.getByCategory(categoryId, page, this.pageSize, sort, order)
+    this.listingsService
+      .getByCategory(categoryId, page, this.pageSize, sort, order)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res: ListingsResponse) => {
@@ -153,11 +170,12 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
   }
 
   private loadFeaturedAds(categoryId: string): void {
-    this.listingsService.getFeaturedFiltered({ category: categoryId, limit: 10 })
+    this.listingsService
+      .getFeaturedFiltered({ category: categoryId, limit: 10 })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res: any) => {
-          const data = Array.isArray(res) ? res : res.data ?? [];
+          const data = Array.isArray(res) ? res : (res.data ?? []);
           this.featuredAds.set(data);
         },
         error: () => this.featuredAds.set([]),

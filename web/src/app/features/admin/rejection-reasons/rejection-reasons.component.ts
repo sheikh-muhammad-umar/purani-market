@@ -2,7 +2,10 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../../core/services/admin.service';
-import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
+import {
+  CustomSelectComponent,
+  SelectOption,
+} from '../../../shared/components/custom-select/custom-select.component';
 
 interface RejectionReason {
   _id: string;
@@ -62,14 +65,16 @@ export class RejectionReasonsComponent implements OnInit {
     // Search
     const q = this.searchQuery.toLowerCase().trim();
     if (q) {
-      result = result.filter(r => r.title.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q));
+      result = result.filter(
+        (r) => r.title.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q),
+      );
     }
 
     // Status filter
     if (this.filterStatus === 'active') {
-      result = result.filter(r => r.isActive);
+      result = result.filter((r) => r.isActive);
     } else if (this.filterStatus === 'inactive') {
-      result = result.filter(r => !r.isActive);
+      result = result.filter((r) => !r.isActive);
     }
 
     // Sort
@@ -89,7 +94,9 @@ export class RejectionReasonsComponent implements OnInit {
         this.reasons.set(res);
         this.loading.set(false);
       },
-      error: () => { this.loading.set(false); },
+      error: () => {
+        this.loading.set(false);
+      },
     });
   }
 
@@ -106,14 +113,21 @@ export class RejectionReasonsComponent implements OnInit {
   saveNew(): void {
     if (!this.newTitle.trim()) return;
     this.saving.set(true);
-    this.adminService.createRejectionReason({ title: this.newTitle.trim(), description: this.newDescription.trim() || undefined }).subscribe({
-      next: () => {
-        this.showAddForm = false;
-        this.saving.set(false);
-        this.loadReasons();
-      },
-      error: () => { this.saving.set(false); },
-    });
+    this.adminService
+      .createRejectionReason({
+        title: this.newTitle.trim(),
+        description: this.newDescription.trim() || undefined,
+      })
+      .subscribe({
+        next: () => {
+          this.showAddForm = false;
+          this.saving.set(false);
+          this.loadReasons();
+        },
+        error: () => {
+          this.saving.set(false);
+        },
+      });
   }
 
   startEdit(reason: RejectionReason): void {
@@ -129,19 +143,28 @@ export class RejectionReasonsComponent implements OnInit {
   saveEdit(): void {
     if (!this.editingId || !this.editTitle.trim()) return;
     this.saving.set(true);
-    this.adminService.updateRejectionReason(this.editingId, { title: this.editTitle.trim(), description: this.editDescription.trim() || undefined }).subscribe({
-      next: () => {
-        this.editingId = null;
-        this.saving.set(false);
-        this.loadReasons();
-      },
-      error: () => { this.saving.set(false); },
-    });
+    this.adminService
+      .updateRejectionReason(this.editingId, {
+        title: this.editTitle.trim(),
+        description: this.editDescription.trim() || undefined,
+      })
+      .subscribe({
+        next: () => {
+          this.editingId = null;
+          this.saving.set(false);
+          this.loadReasons();
+        },
+        error: () => {
+          this.saving.set(false);
+        },
+      });
   }
 
   toggleActive(reason: RejectionReason): void {
     this.adminService.updateRejectionReason(reason._id, { isActive: !reason.isActive }).subscribe({
-      next: () => { this.loadReasons(); },
+      next: () => {
+        this.loadReasons();
+      },
     });
   }
 

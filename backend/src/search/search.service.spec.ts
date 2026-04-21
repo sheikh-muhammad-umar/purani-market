@@ -54,8 +54,16 @@ describe('SearchService', () => {
         hits: {
           total: { value: 2 },
           hits: [
-            { _id: '1', _score: 5.0, _source: { title: 'iPhone 15', status: 'active' } },
-            { _id: '2', _score: 3.0, _source: { title: 'Samsung S24', status: 'active' } },
+            {
+              _id: '1',
+              _score: 5.0,
+              _source: { title: 'iPhone 15', status: 'active' },
+            },
+            {
+              _id: '2',
+              _score: 3.0,
+              _source: { title: 'Samsung S24', status: 'active' },
+            },
           ],
         },
       });
@@ -162,11 +170,7 @@ describe('SearchService', () => {
 
       // Give async tracking time to execute
       await new Promise((r) => setTimeout(r, 50));
-      expect(redis.zincrby).toHaveBeenCalledWith(
-        'search:popular',
-        1,
-        'laptop',
-      );
+      expect(redis.zincrby).toHaveBeenCalledWith('search:popular', 1, 'laptop');
     });
   });
 
@@ -186,9 +190,7 @@ describe('SearchService', () => {
 
     it('should add category filter', async () => {
       const query = await service.buildSearchQuery({ category: 'cat123' });
-      const catFilter = query.bool.filter.find(
-        (f: any) => f.bool?.should,
-      );
+      const catFilter = query.bool.filter.find((f: any) => f.bool?.should);
       expect(catFilter).toBeDefined();
       expect(catFilter.bool.should).toContainEqual({
         term: { categoryId: 'cat123' },
@@ -199,7 +201,10 @@ describe('SearchService', () => {
     });
 
     it('should add price range filter', async () => {
-      const query = await service.buildSearchQuery({ priceMin: 100, priceMax: 500 });
+      const query = await service.buildSearchQuery({
+        priceMin: 100,
+        priceMax: 500,
+      });
       const priceFilter = query.bool.filter.find(
         (f: any) => f.range?.['price.amount'],
       );
@@ -239,9 +244,7 @@ describe('SearchService', () => {
         lng: 74.3587,
         radius: 50,
       });
-      const geoFilter = query.bool.filter.find(
-        (f: any) => f.geo_distance,
-      );
+      const geoFilter = query.bool.filter.find((f: any) => f.geo_distance);
       expect(geoFilter).toBeDefined();
       expect(geoFilter.geo_distance.distance).toBe('50km');
       expect(geoFilter.geo_distance.location.lat).toBe(31.5204);
@@ -250,17 +253,13 @@ describe('SearchService', () => {
 
     it('should default radius to 25km', async () => {
       const query = await service.buildSearchQuery({ lat: 31.5, lng: 74.3 });
-      const geoFilter = query.bool.filter.find(
-        (f: any) => f.geo_distance,
-      );
+      const geoFilter = query.bool.filter.find((f: any) => f.geo_distance);
       expect(geoFilter.geo_distance.distance).toBe('25km');
     });
 
     it('should add dateFrom filter', async () => {
       const query = await service.buildSearchQuery({ dateFrom: '2024-01-01' });
-      const dateFilter = query.bool.filter.find(
-        (f: any) => f.range?.createdAt,
-      );
+      const dateFilter = query.bool.filter.find((f: any) => f.range?.createdAt);
       expect(dateFilter).toBeDefined();
       expect(dateFilter.range.createdAt.gte).toBe('2024-01-01');
     });
@@ -282,7 +281,13 @@ describe('SearchService', () => {
     it('should build range filter for category filter type RANGE', async () => {
       (categoriesService.findById as jest.Mock).mockResolvedValue({
         attributes: [
-          { name: 'Mileage', key: 'mileage', type: AttributeType.RANGE, rangeMin: 0, rangeMax: 500000 },
+          {
+            name: 'Mileage',
+            key: 'mileage',
+            type: AttributeType.RANGE,
+            rangeMin: 0,
+            rangeMax: 500000,
+          },
         ],
       });
 
@@ -299,7 +304,12 @@ describe('SearchService', () => {
     it('should build term filter for category filter type SELECT', async () => {
       (categoriesService.findById as jest.Mock).mockResolvedValue({
         attributes: [
-          { name: 'Brand', key: 'brand', type: AttributeType.SELECT, options: ['Apple', 'Samsung'] },
+          {
+            name: 'Brand',
+            key: 'brand',
+            type: AttributeType.SELECT,
+            options: ['Apple', 'Samsung'],
+          },
         ],
       });
 
@@ -316,7 +326,12 @@ describe('SearchService', () => {
     it('should build terms filter for category filter type MULTISELECT', async () => {
       (categoriesService.findById as jest.Mock).mockResolvedValue({
         attributes: [
-          { name: 'Color', key: 'color', type: AttributeType.MULTISELECT, options: ['Red', 'Blue', 'Black'] },
+          {
+            name: 'Color',
+            key: 'color',
+            type: AttributeType.MULTISELECT,
+            options: ['Red', 'Blue', 'Black'],
+          },
         ],
       });
 
@@ -333,7 +348,12 @@ describe('SearchService', () => {
     it('should wrap single value in array for MULTISELECT', async () => {
       (categoriesService.findById as jest.Mock).mockResolvedValue({
         attributes: [
-          { name: 'Color', key: 'color', type: AttributeType.MULTISELECT, options: ['Red', 'Blue'] },
+          {
+            name: 'Color',
+            key: 'color',
+            type: AttributeType.MULTISELECT,
+            options: ['Red', 'Blue'],
+          },
         ],
       });
 
@@ -349,7 +369,11 @@ describe('SearchService', () => {
     it('should build boolean filter for category filter type BOOLEAN', async () => {
       (categoriesService.findById as jest.Mock).mockResolvedValue({
         attributes: [
-          { name: 'Negotiable', key: 'negotiable', type: AttributeType.BOOLEAN },
+          {
+            name: 'Negotiable',
+            key: 'negotiable',
+            type: AttributeType.BOOLEAN,
+          },
         ],
       });
 
@@ -366,7 +390,11 @@ describe('SearchService', () => {
     it('should handle string "true" for BOOLEAN filter', async () => {
       (categoriesService.findById as jest.Mock).mockResolvedValue({
         attributes: [
-          { name: 'Negotiable', key: 'negotiable', type: AttributeType.BOOLEAN },
+          {
+            name: 'Negotiable',
+            key: 'negotiable',
+            type: AttributeType.BOOLEAN,
+          },
         ],
       });
 
@@ -382,7 +410,12 @@ describe('SearchService', () => {
     it('should skip filters with undefined or null values', async () => {
       (categoriesService.findById as jest.Mock).mockResolvedValue({
         attributes: [
-          { name: 'Brand', key: 'brand', type: AttributeType.SELECT, options: ['Apple'] },
+          {
+            name: 'Brand',
+            key: 'brand',
+            type: AttributeType.SELECT,
+            options: ['Apple'],
+          },
           { name: 'Mileage', key: 'mileage', type: AttributeType.RANGE },
         ],
       });
@@ -398,7 +431,12 @@ describe('SearchService', () => {
     it('should only apply filters matching category filter definitions', async () => {
       (categoriesService.findById as jest.Mock).mockResolvedValue({
         attributes: [
-          { name: 'Brand', key: 'brand', type: AttributeType.SELECT, options: ['Apple'] },
+          {
+            name: 'Brand',
+            key: 'brand',
+            type: AttributeType.SELECT,
+            options: ['Apple'],
+          },
         ],
       });
 
@@ -416,8 +454,19 @@ describe('SearchService', () => {
     it('should handle multiple category filters simultaneously', async () => {
       (categoriesService.findById as jest.Mock).mockResolvedValue({
         attributes: [
-          { name: 'Brand', key: 'brand', type: AttributeType.SELECT, options: ['Toyota', 'Honda'] },
-          { name: 'Mileage', key: 'mileage', type: AttributeType.RANGE, rangeMin: 0, rangeMax: 500000 },
+          {
+            name: 'Brand',
+            key: 'brand',
+            type: AttributeType.SELECT,
+            options: ['Toyota', 'Honda'],
+          },
+          {
+            name: 'Mileage',
+            key: 'mileage',
+            type: AttributeType.RANGE,
+            rangeMin: 0,
+            rangeMax: 500000,
+          },
           { name: 'Automatic', key: 'automatic', type: AttributeType.BOOLEAN },
         ],
       });
@@ -436,7 +485,9 @@ describe('SearchService', () => {
         new Error('Category not found'),
       );
 
-      const filters = await service.buildCategoryFilters('invalid', { brand: 'Apple' });
+      const filters = await service.buildCategoryFilters('invalid', {
+        brand: 'Apple',
+      });
 
       expect(filters).toHaveLength(0);
     });
@@ -446,7 +497,9 @@ describe('SearchService', () => {
         attributes: [],
       });
 
-      const filters = await service.buildCategoryFilters('cat1', { brand: 'Apple' });
+      const filters = await service.buildCategoryFilters('cat1', {
+        brand: 'Apple',
+      });
 
       expect(filters).toHaveLength(0);
     });
@@ -456,7 +509,12 @@ describe('SearchService', () => {
     it('should include category-specific filters when category and filters provided', async () => {
       (categoriesService.findById as jest.Mock).mockResolvedValue({
         attributes: [
-          { name: 'Brand', key: 'brand', type: AttributeType.SELECT, options: ['Apple', 'Samsung'] },
+          {
+            name: 'Brand',
+            key: 'brand',
+            type: AttributeType.SELECT,
+            options: ['Apple', 'Samsung'],
+          },
         ],
       });
 
@@ -584,7 +642,11 @@ describe('SearchService', () => {
           hits: [{ _id: '1', _source: { title: 'iPhone 15' } }],
         },
       });
-      redis.zrevrange.mockResolvedValue(['iphone deals', 'iphone cases', 'samsung']);
+      redis.zrevrange.mockResolvedValue([
+        'iphone deals',
+        'iphone cases',
+        'samsung',
+      ]);
 
       const result = await service.suggestions({ q: 'iph' });
 
@@ -611,11 +673,7 @@ describe('SearchService', () => {
     it('should increment search term score in Redis', async () => {
       await service.trackSearchTerm('iPhone');
 
-      expect(redis.zincrby).toHaveBeenCalledWith(
-        'search:popular',
-        1,
-        'iphone',
-      );
+      expect(redis.zincrby).toHaveBeenCalledWith('search:popular', 1, 'iphone');
     });
 
     it('should set TTL on first tracking', async () => {

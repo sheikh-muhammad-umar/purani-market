@@ -32,12 +32,14 @@ export class LoginComponent {
   }
 
   toggleLoginMethod(): void {
-    this.usePhone.update(v => !v);
+    this.usePhone.update((v) => !v);
     this.loginForm.reset();
     this.errorMessage.set('');
     if (this.usePhone()) {
       this.loginForm.get('email')?.clearValidators();
-      this.loginForm.get('phone')?.setValidators([Validators.required, Validators.pattern(/^\+?[1-9]\d{6,14}$/)]);
+      this.loginForm
+        .get('phone')
+        ?.setValidators([Validators.required, Validators.pattern(/^\+?[1-9]\d{6,14}$/)]);
     } else {
       this.loginForm.get('phone')?.clearValidators();
       this.loginForm.get('email')?.setValidators([Validators.required, Validators.email]);
@@ -60,7 +62,7 @@ export class LoginComponent {
       : { email: this.loginForm.value.email, password: this.loginForm.value.password };
 
     this.authService.login(credentials).subscribe({
-      next: response => {
+      next: (response) => {
         this.loading.set(false);
         if (this.authService.isMfaResponse(response)) {
           this.router.navigate(['/auth/mfa'], {
@@ -77,11 +79,9 @@ export class LoginComponent {
           });
         }
       },
-      error: err => {
+      error: (err) => {
         this.loading.set(false);
-        this.errorMessage.set(
-          err.error?.message || 'Invalid credentials. Please try again.'
-        );
+        this.errorMessage.set(err.error?.message || 'Invalid credentials. Please try again.');
       },
     });
   }

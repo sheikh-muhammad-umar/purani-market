@@ -108,11 +108,16 @@ describe('FavoritesController', () => {
 
     it('should propagate ForbiddenException for non-owner', async () => {
       mockFavoritesService.removeFavorite!.mockRejectedValue(
-        new ForbiddenException('You are not authorized to remove this favorite'),
+        new ForbiddenException(
+          'You are not authorized to remove this favorite',
+        ),
       );
 
       await expect(
-        controller.removeFavorite(favoriteId.toString(), otherUserId.toString()),
+        controller.removeFavorite(
+          favoriteId.toString(),
+          otherUserId.toString(),
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
 

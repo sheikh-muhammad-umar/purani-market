@@ -22,7 +22,8 @@ describe('PaymentsService', () => {
             name: 'jazzcash',
             initiatePayment: jest.fn().mockResolvedValue({
               transactionId: 'JC-123',
-              redirectUrl: 'https://sandbox.jazzcash.com.pk/checkout?txn=JC-123',
+              redirectUrl:
+                'https://sandbox.jazzcash.com.pk/checkout?txn=JC-123',
               status: 'initiated',
             }),
             verifyCallback: jest.fn().mockResolvedValue({
@@ -37,7 +38,8 @@ describe('PaymentsService', () => {
             name: 'easypaisa',
             initiatePayment: jest.fn().mockResolvedValue({
               transactionId: 'EP-123',
-              redirectUrl: 'https://sandbox.easypaisa.com.pk/checkout?txn=EP-123',
+              redirectUrl:
+                'https://sandbox.easypaisa.com.pk/checkout?txn=EP-123',
               status: 'initiated',
             }),
             verifyCallback: jest.fn().mockResolvedValue({

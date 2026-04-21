@@ -20,8 +20,7 @@ async function bootstrap() {
   app.useStaticAssets(join(process.cwd(), 'uploads'), { prefix: '/uploads' });
 
   // CORS
-  const allowedOrigins =
-    configService.get<string>('cors.allowedOrigins') || '';
+  const allowedOrigins = configService.get<string>('cors.allowedOrigins') || '';
   const origins = allowedOrigins
     .split(',')
     .map((o) => o.trim())

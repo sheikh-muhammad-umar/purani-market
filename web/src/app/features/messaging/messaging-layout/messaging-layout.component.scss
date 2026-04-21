@@ -23,7 +23,11 @@
   padding: var(--space-2) var(--space-2);
   border-bottom: 1px solid var(--border);
 
-  h2 { font-size: var(--text-lg); font-weight: 700; margin: 0; }
+  h2 {
+    font-size: var(--text-lg);
+    font-weight: 700;
+    margin: 0;
+  }
 }
 
 .msg-search {
@@ -36,7 +40,10 @@
   border: 1px solid var(--border);
   border-radius: 100px;
 
-  .material-symbols-rounded { font-size: 18px; color: var(--text-muted); }
+  .material-symbols-rounded {
+    font-size: 18px;
+    color: var(--text-muted);
+  }
 
   input {
     flex: 1;
@@ -46,7 +53,9 @@
     font-size: 13px;
     font-family: inherit;
     color: var(--text-primary);
-    &::placeholder { color: var(--text-muted); }
+    &::placeholder {
+      color: var(--text-muted);
+    }
   }
 }
 
@@ -70,9 +79,22 @@
   border-left: 3px solid transparent;
   position: relative;
 
-  &:hover { background: var(--background); }
-  &.active { background: rgba(13, 165, 195, 0.06); border-left-color: var(--primary); }
-  &.unread { .msg-item-name { font-weight: 700; } .msg-item-preview { font-weight: 600; color: var(--text-primary); } }
+  &:hover {
+    background: var(--background);
+  }
+  &.active {
+    background: rgba(13, 165, 195, 0.06);
+    border-left-color: var(--primary);
+  }
+  &.unread {
+    .msg-item-name {
+      font-weight: 700;
+    }
+    .msg-item-preview {
+      font-weight: 600;
+      color: var(--text-primary);
+    }
+  }
 }
 
 .msg-avatar {
@@ -168,8 +190,13 @@
   gap: var(--space-1);
   color: var(--text-muted);
 
-  h3 { font-size: var(--text-lg); color: var(--text-secondary); }
-  p { font-size: var(--text-sm); }
+  h3 {
+    font-size: var(--text-lg);
+    color: var(--text-secondary);
+  }
+  p {
+    font-size: var(--text-sm);
+  }
 }
 
 /* Make chat window fill the area */

@@ -8,7 +8,10 @@
         <a routerLink="/profile/notifications" class="nav-link">Notifications</a>
         @if (authService.isAdmin()) {
           <a routerLink="/admin" class="nav-link admin-link">
-            <span class="material-symbols-rounded" style="font-size:16px;vertical-align:middle;">admin_panel_settings</span> Admin
+            <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
+              >admin_panel_settings</span
+            >
+            Admin
           </a>
         }
       </div>
@@ -36,9 +39,19 @@
             }
             @if (editing()) {
               <label class="avatar-upload-btn" for="avatarInput" aria-label="Change avatar">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
-                  <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
-                  <circle cx="12" cy="13" r="4"/>
+                <svg
+                  width="16"
+                  height="16"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                  aria-hidden="true"
+                >
+                  <path
+                    d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"
+                  />
+                  <circle cx="12" cy="13" r="4" />
                 </svg>
               </label>
               <input
@@ -51,8 +64,14 @@
             }
           </div>
           <div class="user-info">
-            <h2 class="user-name">{{ user()?.profile?.firstName }} {{ user()?.profile?.lastName }}</h2>
-            <span class="user-role badge" [class.badge-featured]="user()?.role === 'admin'" [class.badge-success]="user()?.role === 'user'">
+            <h2 class="user-name">
+              {{ user()?.profile?.firstName }} {{ user()?.profile?.lastName }}
+            </h2>
+            <span
+              class="user-role badge"
+              [class.badge-featured]="user()?.role === 'admin'"
+              [class.badge-success]="user()?.role === 'user'"
+            >
               {{ user()?.role | titlecase }}
             </span>
             @if (user()?.email) {
@@ -86,7 +105,9 @@
                   placeholder="First name"
                   autocomplete="given-name"
                 />
-                @if (profileForm.get('firstName')?.touched && profileForm.get('firstName')?.errors) {
+                @if (
+                  profileForm.get('firstName')?.touched && profileForm.get('firstName')?.errors
+                ) {
                   <span class="form-error">
                     @if (profileForm.get('firstName')?.errors?.['required']) {
                       First name is required
@@ -181,7 +202,7 @@
           </div>
           <div class="detail-item">
             <span class="detail-label">Member Since</span>
-            <span class="detail-value">{{ user()?.createdAt | date:'mediumDate' }}</span>
+            <span class="detail-value">{{ user()?.createdAt | date: 'mediumDate' }}</span>
           </div>
           <div class="detail-item">
             <span class="detail-label">MFA</span>

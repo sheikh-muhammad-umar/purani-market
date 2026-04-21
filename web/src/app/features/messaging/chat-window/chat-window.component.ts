@@ -1,4 +1,16 @@
-import { Component, OnInit, OnDestroy, OnChanges, SimpleChanges, signal, computed, input, output, ViewChild, ElementRef } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  OnChanges,
+  SimpleChanges,
+  signal,
+  computed,
+  input,
+  output,
+  ViewChild,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, RouterLink } from '@angular/router';
@@ -82,7 +94,6 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   private initChat(): void {
-
     // Ensure user is loaded, then connect socket with userId
     const user = this.authService.user();
     if (user?._id) {
@@ -131,7 +142,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
     this.messagingService.sendMessage(this.conversationId, text).subscribe({
       next: (saved) => {
         this.messages.update((msgs) =>
-          msgs.map((m) => m._id === optimisticMsg._id ? { ...saved } as any : m)
+          msgs.map((m) => (m._id === optimisticMsg._id ? ({ ...saved } as any) : m)),
         );
         this.sending.set(false);
         this.tracker.track('message_sent', {
@@ -163,7 +174,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
 
     this.messagingService.getMessages(this.conversationId, nextPage).subscribe({
       next: (res: any) => {
-        const msgs = Array.isArray(res) ? res : res.messages ?? res.data ?? [];
+        const msgs = Array.isArray(res) ? res : (res.messages ?? res.data ?? []);
         this.messages.update((existing) => [...[...msgs].reverse(), ...existing]);
         this.currentPage.set(nextPage);
         this.hasMore.set(msgs.length === 20);
@@ -174,9 +185,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
   }
 
   isSentByMe(message: Message): boolean {
-    const senderId = typeof message.senderId === 'object'
-      ? (message.senderId as any)?._id
-      : message.senderId;
+    const senderId =
+      typeof message.senderId === 'object' ? (message.senderId as any)?._id : message.senderId;
     return senderId === this.currentUserId();
   }
 
@@ -193,7 +203,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
   private loadMessages(): void {
     this.messagingService.getMessages(this.conversationId, 1).subscribe({
       next: (res: any) => {
-        const msgs = Array.isArray(res) ? res : res.messages ?? res.data ?? [];
+        const msgs = Array.isArray(res) ? res : (res.messages ?? res.data ?? []);
         this.messages.set([...msgs].reverse());
         this.hasMore.set(msgs.length === 20);
         this.loading.set(false);
@@ -211,7 +221,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
   private loadConversationListing(): void {
     this.messagingService.getConversations().subscribe({
       next: (res: any) => {
-        const conversations = Array.isArray(res) ? res : res.data ?? [];
+        const conversations = Array.isArray(res) ? res : (res.data ?? []);
         const conv = conversations.find((c: any) => c._id === this.conversationId);
         const listingId = conv?.productListingId?._id || conv?.productListingId;
         if (listingId) {
@@ -233,7 +243,12 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
           if (exists) return msgs;
           // Remove temp message with same content if it exists
           const filtered = msgs.filter(
-            (m) => !(m._id.startsWith('temp-') && m.content === msg.content && m.senderId === msg.senderId),
+            (m) =>
+              !(
+                m._id.startsWith('temp-') &&
+                m.content === msg.content &&
+                m.senderId === msg.senderId
+              ),
           );
           return [...filtered, msg];
         });
@@ -245,7 +260,10 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
 
     const typingSub = this.wsService.on('userTyping').subscribe((data) => {
       const typingData = data as { conversationId: string; userId: string };
-      if (typingData.conversationId === this.conversationId && typingData.userId !== this.currentUserId()) {
+      if (
+        typingData.conversationId === this.conversationId &&
+        typingData.userId !== this.currentUserId()
+      ) {
         this.typingIndicator.set(true);
         if (this.typingTimeout) clearTimeout(this.typingTimeout);
         this.typingTimeout = setTimeout(() => this.typingIndicator.set(false), 3000);

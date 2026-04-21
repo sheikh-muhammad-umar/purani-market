@@ -26,15 +26,25 @@ describe('ConversationListComponent', () => {
   let wsSubject: Subject<unknown>;
 
   const mockConversations: Conversation[] = [
-    makeConversation({ _id: 'c1', lastMessagePreview: 'Is this available?', lastMessageAt: new Date('2024-01-15T10:00:00Z') }),
-    makeConversation({ _id: 'c2', lastMessagePreview: 'What price?', lastMessageAt: new Date('2024-01-15T12:00:00Z') }),
+    makeConversation({
+      _id: 'c1',
+      lastMessagePreview: 'Is this available?',
+      lastMessageAt: new Date('2024-01-15T10:00:00Z'),
+    }),
+    makeConversation({
+      _id: 'c2',
+      lastMessagePreview: 'What price?',
+      lastMessageAt: new Date('2024-01-15T12:00:00Z'),
+    }),
   ];
 
   beforeEach(() => {
     wsSubject = new Subject();
 
     messagingServiceMock = {
-      getConversations: vi.fn().mockReturnValue(of({ data: mockConversations, total: 2 } as ConversationsResponse)),
+      getConversations: vi
+        .fn()
+        .mockReturnValue(of({ data: mockConversations, total: 2 } as ConversationsResponse)),
     };
 
     wsServiceMock = {
@@ -83,7 +93,9 @@ describe('ConversationListComponent', () => {
   });
 
   it('should set error on load failure', () => {
-    messagingServiceMock.getConversations = vi.fn().mockReturnValue(throwError(() => new Error('fail')));
+    messagingServiceMock.getConversations = vi
+      .fn()
+      .mockReturnValue(throwError(() => new Error('fail')));
     component = new ConversationListComponent(
       messagingServiceMock as unknown as MessagingService,
       wsServiceMock as unknown as WebSocketService,
@@ -96,7 +108,11 @@ describe('ConversationListComponent', () => {
 
   it('should update conversation on new_message event', () => {
     component.ngOnInit();
-    wsSubject.next({ conversationId: 'c1', content: 'New message!', createdAt: new Date().toISOString() });
+    wsSubject.next({
+      conversationId: 'c1',
+      content: 'New message!',
+      createdAt: new Date().toISOString(),
+    });
     const updated = component.conversations().find((c) => c._id === 'c1');
     expect(updated?.lastMessagePreview).toBe('New message!');
   });
@@ -104,7 +120,11 @@ describe('ConversationListComponent', () => {
   it('should sort conversations by lastMessageAt after new message', () => {
     component.ngOnInit();
     // c1 was older, send new message to c1 to make it most recent
-    wsSubject.next({ conversationId: 'c1', content: 'Latest!', createdAt: new Date().toISOString() });
+    wsSubject.next({
+      conversationId: 'c1',
+      content: 'Latest!',
+      createdAt: new Date().toISOString(),
+    });
     expect(component.conversations()[0]._id).toBe('c1');
   });
 

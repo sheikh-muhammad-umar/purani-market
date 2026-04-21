@@ -6,7 +6,9 @@ export enum SocialProvider {
 }
 
 export class SocialLoginDto {
-  @IsEnum(SocialProvider, { message: 'Provider must be "google" or "facebook"' })
+  @IsEnum(SocialProvider, {
+    message: 'Provider must be "google" or "facebook"',
+  })
   provider!: SocialProvider;
 
   @IsString({ message: 'Token is required' })

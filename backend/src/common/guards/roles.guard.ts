@@ -24,7 +24,10 @@ export class RolesGuard implements CanActivate {
     );
 
     // No role or permission requirement — allow
-    if ((!requiredRoles || requiredRoles.length === 0) && (!requiredPermissions || requiredPermissions.length === 0)) {
+    if (
+      (!requiredRoles || requiredRoles.length === 0) &&
+      (!requiredPermissions || requiredPermissions.length === 0)
+    ) {
       return true;
     }
 
@@ -56,9 +59,13 @@ export class RolesGuard implements CanActivate {
     // Check permission requirement (for admin users with granular permissions)
     if (requiredPermissions && requiredPermissions.length > 0) {
       const userPermissions: string[] = user.permissions || [];
-      const hasAll = requiredPermissions.every(p => userPermissions.includes(p));
+      const hasAll = requiredPermissions.every((p) =>
+        userPermissions.includes(p),
+      );
       if (!hasAll) {
-        throw new ForbiddenException('Access denied: missing required permissions');
+        throw new ForbiddenException(
+          'Access denied: missing required permissions',
+        );
       }
     }
 

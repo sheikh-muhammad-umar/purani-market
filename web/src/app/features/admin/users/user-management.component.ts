@@ -1,15 +1,18 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import {
-  AdminService,
-  AdminUser,
-  GetUsersParams,
-} from '../../../core/services/admin.service';
+import { AdminService, AdminUser, GetUsersParams } from '../../../core/services/admin.service';
 import { UserRole, UserStatus } from '../../../core/models/user.model';
 import { UserStatus as UserStatusEnum } from '../../../core/constants/enums';
-import { ROLE_OPTIONS, ROLE_CHANGE_OPTIONS, STATUS_OPTIONS } from '../../../core/constants/select-options';
-import { CustomSelectComponent, SelectOption } from '../../../shared/components/custom-select/custom-select.component';
+import {
+  ROLE_OPTIONS,
+  ROLE_CHANGE_OPTIONS,
+  STATUS_OPTIONS,
+} from '../../../core/constants/select-options';
+import {
+  CustomSelectComponent,
+  SelectOption,
+} from '../../../shared/components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 import { VerificationBadgesComponent } from '../../../shared/components/verification-badges/verification-badges.component';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -17,7 +20,13 @@ import { AuthService } from '../../../core/auth/auth.service';
 @Component({
   selector: 'app-user-management',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent, DatePickerComponent, VerificationBadgesComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CustomSelectComponent,
+    DatePickerComponent,
+    VerificationBadgesComponent,
+  ],
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.scss'],
 })
@@ -50,12 +59,13 @@ export class UserManagementComponent implements OnInit {
   permissionsUserName = '';
   allPermissions: { key: string; value: string; group: string; action: string }[] = [];
   selectedPermissions: Set<string> = new Set();
-  permissionGroups: { group: string; permissions: { key: string; value: string; action: string }[] }[] = [];
+  permissionGroups: {
+    group: string;
+    permissions: { key: string; value: string; action: string }[];
+  }[] = [];
   savingPermissions = false;
 
-  readonly totalPages = computed(() =>
-    Math.max(1, Math.ceil(this.totalUsers() / this.pageSize()))
-  );
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalUsers() / this.pageSize())));
 
   readonly pages = computed(() => {
     const total = this.totalPages();
@@ -145,11 +155,13 @@ export class UserManagementComponent implements OnInit {
     this.adminService.updateUserStatus(user._id, newStatus).subscribe({
       next: () => {
         this.users.update((list) =>
-          list.map((u) => (u._id === user._id ? { ...u, status: newStatus } : u))
+          list.map((u) => (u._id === user._id ? { ...u, status: newStatus } : u)),
         );
         this.actionLoading.set(null);
       },
-      error: () => { this.actionLoading.set(null); },
+      error: () => {
+        this.actionLoading.set(null);
+      },
     });
   }
 
@@ -158,12 +170,12 @@ export class UserManagementComponent implements OnInit {
     this.actionLoading.set(user._id);
     this.adminService.updateUserRole(user._id, role).subscribe({
       next: () => {
-        this.users.update((list) =>
-          list.map((u) => (u._id === user._id ? { ...u, role } : u))
-        );
+        this.users.update((list) => list.map((u) => (u._id === user._id ? { ...u, role } : u)));
         this.actionLoading.set(null);
       },
-      error: () => { this.actionLoading.set(null); },
+      error: () => {
+        this.actionLoading.set(null);
+      },
     });
   }
 
@@ -174,11 +186,13 @@ export class UserManagementComponent implements OnInit {
     this.adminService.updateAdLimit(user._id, limit).subscribe({
       next: () => {
         this.users.update((list) =>
-          list.map((u) => (u._id === user._id ? { ...u, adLimit: limit } : u))
+          list.map((u) => (u._id === user._id ? { ...u, adLimit: limit } : u)),
         );
         this.actionLoading.set(null);
       },
-      error: () => { this.actionLoading.set(null); },
+      error: () => {
+        this.actionLoading.set(null);
+      },
     });
   }
 
@@ -198,8 +212,11 @@ export class UserManagementComponent implements OnInit {
 
   formatDateTime(dateStr: string): string {
     return new Date(dateStr).toLocaleString('en-PK', {
-      month: 'short', day: 'numeric', year: 'numeric',
-      hour: '2-digit', minute: '2-digit',
+      month: 'short',
+      day: 'numeric',
+      year: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
     });
   }
 
@@ -211,11 +228,14 @@ export class UserManagementComponent implements OnInit {
       this.sortDir = 'asc';
     }
     const dir = this.sortDir === 'asc' ? 1 : -1;
-    this.users.update(list => [...list].sort((a: any, b: any) => {
-      const va = a[col]; const vb = b[col];
-      if (typeof va === 'string') return (va || '').localeCompare(vb || '') * dir;
-      return ((va ?? 0) - (vb ?? 0)) * dir;
-    }));
+    this.users.update((list) =>
+      [...list].sort((a: any, b: any) => {
+        const va = a[col];
+        const vb = b[col];
+        if (typeof va === 'string') return (va || '').localeCompare(vb || '') * dir;
+        return ((va ?? 0) - (vb ?? 0)) * dir;
+      }),
+    );
   }
 
   sortIcon(col: string): string {
@@ -252,23 +272,43 @@ export class UserManagementComponent implements OnInit {
           { key: 'USERS_DELETE', value: 'users:delete', group: 'users', action: 'delete' },
           { key: 'USERS_SUSPEND', value: 'users:suspend', group: 'users', action: 'suspend' },
           { key: 'LISTINGS_VIEW', value: 'listings:view', group: 'listings', action: 'view' },
-          { key: 'LISTINGS_APPROVE', value: 'listings:approve', group: 'listings', action: 'approve' },
+          {
+            key: 'LISTINGS_APPROVE',
+            value: 'listings:approve',
+            group: 'listings',
+            action: 'approve',
+          },
           { key: 'LISTINGS_REJECT', value: 'listings:reject', group: 'listings', action: 'reject' },
           { key: 'LISTINGS_DELETE', value: 'listings:delete', group: 'listings', action: 'delete' },
           { key: 'CATEGORIES_VIEW', value: 'categories:view', group: 'categories', action: 'view' },
           { key: 'CATEGORIES_ADD', value: 'categories:add', group: 'categories', action: 'add' },
           { key: 'CATEGORIES_EDIT', value: 'categories:edit', group: 'categories', action: 'edit' },
-          { key: 'CATEGORIES_DELETE', value: 'categories:delete', group: 'categories', action: 'delete' },
+          {
+            key: 'CATEGORIES_DELETE',
+            value: 'categories:delete',
+            group: 'categories',
+            action: 'delete',
+          },
           { key: 'LOCATIONS_VIEW', value: 'locations:view', group: 'locations', action: 'view' },
           { key: 'LOCATIONS_ADD', value: 'locations:add', group: 'locations', action: 'add' },
           { key: 'LOCATIONS_EDIT', value: 'locations:edit', group: 'locations', action: 'edit' },
-          { key: 'LOCATIONS_DELETE', value: 'locations:delete', group: 'locations', action: 'delete' },
+          {
+            key: 'LOCATIONS_DELETE',
+            value: 'locations:delete',
+            group: 'locations',
+            action: 'delete',
+          },
           { key: 'PACKAGES_VIEW', value: 'packages:view', group: 'packages', action: 'view' },
           { key: 'PACKAGES_ADD', value: 'packages:add', group: 'packages', action: 'add' },
           { key: 'PACKAGES_EDIT', value: 'packages:edit', group: 'packages', action: 'edit' },
           { key: 'PAYMENTS_VIEW', value: 'payments:view', group: 'payments', action: 'view' },
           { key: 'ANALYTICS_VIEW', value: 'analytics:view', group: 'analytics', action: 'view' },
-          { key: 'ANALYTICS_EXPORT', value: 'analytics:export', group: 'analytics', action: 'export' },
+          {
+            key: 'ANALYTICS_EXPORT',
+            value: 'analytics:export',
+            group: 'analytics',
+            action: 'export',
+          },
           { key: 'ACTIVITY_VIEW', value: 'activity:view', group: 'activity', action: 'view' },
           { key: 'ROLES_MANAGE', value: 'roles:manage', group: 'roles', action: 'manage' },
         ];
@@ -283,7 +323,10 @@ export class UserManagementComponent implements OnInit {
       if (!groupMap.has(p.group)) groupMap.set(p.group, []);
       groupMap.get(p.group)!.push({ key: p.key, value: p.value, action: p.action });
     }
-    this.permissionGroups = Array.from(groupMap.entries()).map(([group, permissions]) => ({ group, permissions }));
+    this.permissionGroups = Array.from(groupMap.entries()).map(([group, permissions]) => ({
+      group,
+      permissions,
+    }));
   }
 
   togglePermission(value: string): void {
@@ -296,8 +339,8 @@ export class UserManagementComponent implements OnInit {
   }
 
   toggleGroupAll(group: string): void {
-    const groupPerms = this.allPermissions.filter(p => p.group === group);
-    const allSelected = groupPerms.every(p => this.selectedPermissions.has(p.value));
+    const groupPerms = this.allPermissions.filter((p) => p.group === group);
+    const allSelected = groupPerms.every((p) => this.selectedPermissions.has(p.value));
     for (const p of groupPerms) {
       if (allSelected) {
         this.selectedPermissions.delete(p.value);
@@ -309,8 +352,8 @@ export class UserManagementComponent implements OnInit {
   }
 
   isGroupAllSelected(group: string): boolean {
-    const groupPerms = this.allPermissions.filter(p => p.group === group);
-    return groupPerms.length > 0 && groupPerms.every(p => this.selectedPermissions.has(p.value));
+    const groupPerms = this.allPermissions.filter((p) => p.group === group);
+    return groupPerms.length > 0 && groupPerms.every((p) => this.selectedPermissions.has(p.value));
   }
 
   savePermissions(): void {
@@ -319,13 +362,15 @@ export class UserManagementComponent implements OnInit {
     const perms = Array.from(this.selectedPermissions);
     this.adminService.updatePermissions(this.permissionsUserId, perms).subscribe({
       next: () => {
-        this.users.update(list =>
-          list.map(u => u._id === this.permissionsUserId ? { ...u, permissions: perms } : u)
+        this.users.update((list) =>
+          list.map((u) => (u._id === this.permissionsUserId ? { ...u, permissions: perms } : u)),
         );
         this.savingPermissions = false;
         this.permissionsUserId = null;
       },
-      error: () => { this.savingPermissions = false; },
+      error: () => {
+        this.savingPermissions = false;
+      },
     });
   }
 

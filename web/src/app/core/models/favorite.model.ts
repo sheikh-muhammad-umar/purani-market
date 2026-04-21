@@ -1,4 +1,10 @@
-import { ListingImage, ListingLocation, ListingPrice, ListingStatus, ListingCondition } from './listing.model';
+import {
+  ListingImage,
+  ListingLocation,
+  ListingPrice,
+  ListingStatus,
+  ListingCondition,
+} from './listing.model';
 
 export interface FavoriteListingPopulated {
   _id: string;

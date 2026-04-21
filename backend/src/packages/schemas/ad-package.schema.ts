@@ -37,7 +37,9 @@ export class AdPackage {
   defaultPrice!: number;
 
   @Prop({
-    type: [{ categoryId: { type: Types.ObjectId, ref: 'Category' }, price: Number }],
+    type: [
+      { categoryId: { type: Types.ObjectId, ref: 'Category' }, price: Number },
+    ],
     default: [],
   })
   categoryPricing!: CategoryPricing[];

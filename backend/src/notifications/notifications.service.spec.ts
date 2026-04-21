@@ -168,13 +168,21 @@ describe('NotificationsService', () => {
 
     it('should return false when preference is disabled', () => {
       const user = createMockUser({
-        notificationPreferences: { messages: false, offers: true, productUpdates: true, promotions: true, packageAlerts: true },
+        notificationPreferences: {
+          messages: false,
+          offers: true,
+          productUpdates: true,
+          promotions: true,
+          packageAlerts: true,
+        },
       }) as any;
       expect(service.isNotificationEnabled(user, 'messages')).toBe(false);
     });
 
     it('should default to true when preferences are missing', () => {
-      const user = createMockUser({ notificationPreferences: undefined }) as any;
+      const user = createMockUser({
+        notificationPreferences: undefined,
+      }) as any;
       expect(service.isNotificationEnabled(user, 'messages')).toBe(true);
     });
   });
@@ -183,7 +191,10 @@ describe('NotificationsService', () => {
     it('should send with correct payload', async () => {
       const spy = jest.spyOn(service, 'sendToUser');
       await service.sendNewMessageNotification(
-        userId.toString(), 'John', 'Hello!', 'conv-123',
+        userId.toString(),
+        'John',
+        'Hello!',
+        'conv-123',
       );
 
       expect(spy).toHaveBeenCalledWith(userId.toString(), 'messages', {
@@ -198,7 +209,11 @@ describe('NotificationsService', () => {
     it('should send with correct payload', async () => {
       const spy = jest.spyOn(service, 'sendToUser');
       await service.sendPriceDropNotification(
-        userId.toString(), 'iPhone 15', 150000, 120000, listingId.toString(),
+        userId.toString(),
+        'iPhone 15',
+        150000,
+        120000,
+        listingId.toString(),
       );
 
       expect(spy).toHaveBeenCalledWith(userId.toString(), 'productUpdates', {
@@ -213,13 +228,20 @@ describe('NotificationsService', () => {
     it('should send with correct payload', async () => {
       const spy = jest.spyOn(service, 'sendToUser');
       await service.sendStatusChangeNotification(
-        userId.toString(), 'iPhone 15', 'sold', listingId.toString(),
+        userId.toString(),
+        'iPhone 15',
+        'sold',
+        listingId.toString(),
       );
 
       expect(spy).toHaveBeenCalledWith(userId.toString(), 'productUpdates', {
         title: 'Listing status updated',
         body: 'iPhone 15 is now sold',
-        data: { type: 'status_change', listingId: listingId.toString(), status: 'sold' },
+        data: {
+          type: 'status_change',
+          listingId: listingId.toString(),
+          status: 'sold',
+        },
       });
     });
   });
@@ -228,7 +250,10 @@ describe('NotificationsService', () => {
     it('should send with correct payload', async () => {
       const spy = jest.spyOn(service, 'sendToUser');
       await service.sendNewOfferNotification(
-        userId.toString(), 'Jane', 'MacBook Pro', listingId.toString(),
+        userId.toString(),
+        'Jane',
+        'MacBook Pro',
+        listingId.toString(),
       );
 
       expect(spy).toHaveBeenCalledWith(userId.toString(), 'offers', {
@@ -243,7 +268,9 @@ describe('NotificationsService', () => {
     it('should send with correct payload', async () => {
       const spy = jest.spyOn(service, 'sendToUser');
       await service.sendPaymentSuccessNotification(
-        userId.toString(), 'Featured 30-day', 5000,
+        userId.toString(),
+        'Featured 30-day',
+        5000,
       );
 
       expect(spy).toHaveBeenCalledWith(userId.toString(), 'packageAlerts', {
@@ -271,13 +298,18 @@ describe('NotificationsService', () => {
     it('should send with correct payload', async () => {
       const spy = jest.spyOn(service, 'sendToUser');
       await service.sendFeaturedAdNotification(
-        userId.toString(), 'My Car', listingId.toString(),
+        userId.toString(),
+        'My Car',
+        listingId.toString(),
       );
 
       expect(spy).toHaveBeenCalledWith(userId.toString(), 'packageAlerts', {
         title: 'Your ad is now featured!',
         body: '"My Car" is now a featured ad and will appear at the top of search results',
-        data: { type: 'featured_ad_activated', listingId: listingId.toString() },
+        data: {
+          type: 'featured_ad_activated',
+          listingId: listingId.toString(),
+        },
       });
     });
   });
@@ -286,7 +318,10 @@ describe('NotificationsService', () => {
     it('should send with correct payload', async () => {
       const spy = jest.spyOn(service, 'sendToUser');
       await service.sendFeaturedAdExpirationReminder(
-        userId.toString(), 'My Car', listingId.toString(), 3,
+        userId.toString(),
+        'My Car',
+        listingId.toString(),
+        3,
       );
 
       expect(spy).toHaveBeenCalledWith(userId.toString(), 'packageAlerts', {
@@ -322,7 +357,9 @@ describe('NotificationsService', () => {
       });
 
       await expect(
-        service.updateNotificationPreferences(userId.toString(), { messages: false }),
+        service.updateNotificationPreferences(userId.toString(), {
+          messages: false,
+        }),
       ).rejects.toThrow('User not found');
     });
   });
@@ -338,18 +375,31 @@ describe('NotificationsService', () => {
         ]),
       });
 
-      const spy = jest.spyOn(service, 'sendPriceDropNotification').mockResolvedValue(true);
+      const spy = jest
+        .spyOn(service, 'sendPriceDropNotification')
+        .mockResolvedValue(true);
 
       await service.notifyFavoritedListingPriceChange(
-        listingId.toString(), 'iPhone 15', 150000, 120000,
+        listingId.toString(),
+        'iPhone 15',
+        150000,
+        120000,
       );
 
       expect(spy).toHaveBeenCalledTimes(2);
       expect(spy).toHaveBeenCalledWith(
-        favUser1.toString(), 'iPhone 15', 150000, 120000, listingId.toString(),
+        favUser1.toString(),
+        'iPhone 15',
+        150000,
+        120000,
+        listingId.toString(),
       );
       expect(spy).toHaveBeenCalledWith(
-        favUser2.toString(), 'iPhone 15', 150000, 120000, listingId.toString(),
+        favUser2.toString(),
+        'iPhone 15',
+        150000,
+        120000,
+        listingId.toString(),
       );
     });
 
@@ -357,7 +407,10 @@ describe('NotificationsService', () => {
       const spy = jest.spyOn(service, 'sendPriceDropNotification');
 
       await service.notifyFavoritedListingPriceChange(
-        listingId.toString(), 'iPhone 15', 100000, 150000,
+        listingId.toString(),
+        'iPhone 15',
+        100000,
+        150000,
       );
 
       expect(mockFavoriteModel.find).not.toHaveBeenCalled();
@@ -372,7 +425,10 @@ describe('NotificationsService', () => {
       const spy = jest.spyOn(service, 'sendPriceDropNotification');
 
       await service.notifyFavoritedListingPriceChange(
-        listingId.toString(), 'iPhone 15', 150000, 120000,
+        listingId.toString(),
+        'iPhone 15',
+        150000,
+        120000,
       );
 
       expect(spy).not.toHaveBeenCalled();
@@ -383,19 +439,28 @@ describe('NotificationsService', () => {
     it('should notify all users who favorited the listing', async () => {
       const favUser1 = new Types.ObjectId();
       mockFavoriteModel.find.mockReturnValue({
-        exec: jest.fn().mockResolvedValue([
-          { userId: favUser1, productListingId: listingId },
-        ]),
+        exec: jest
+          .fn()
+          .mockResolvedValue([
+            { userId: favUser1, productListingId: listingId },
+          ]),
       });
 
-      const spy = jest.spyOn(service, 'sendStatusChangeNotification').mockResolvedValue(true);
+      const spy = jest
+        .spyOn(service, 'sendStatusChangeNotification')
+        .mockResolvedValue(true);
 
       await service.notifyFavoritedListingStatusChange(
-        listingId.toString(), 'iPhone 15', 'sold',
+        listingId.toString(),
+        'iPhone 15',
+        'sold',
       );
 
       expect(spy).toHaveBeenCalledWith(
-        favUser1.toString(), 'iPhone 15', 'sold', listingId.toString(),
+        favUser1.toString(),
+        'iPhone 15',
+        'sold',
+        listingId.toString(),
       );
     });
   });

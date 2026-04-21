@@ -1,7 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { UserActivity, UserActivityDocument, UserAction } from './schemas/user-activity.schema.js';
+import {
+  UserActivity,
+  UserActivityDocument,
+  UserAction,
+} from './schemas/user-activity.schema.js';
 
 @Injectable()
 export class AdminTrackerService {
@@ -16,7 +20,8 @@ export class AdminTrackerService {
     metadata: Record<string, any> = {},
     req?: any,
   ): Promise<void> {
-    const ip = req?.headers?.['x-forwarded-for']?.split(',')[0]?.trim() || req?.ip;
+    const ip =
+      req?.headers?.['x-forwarded-for']?.split(',')[0]?.trim() || req?.ip;
     const userAgent = req?.headers?.['user-agent'];
 
     await new this.activityModel({

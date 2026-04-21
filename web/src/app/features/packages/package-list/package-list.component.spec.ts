@@ -24,9 +24,31 @@ describe('PackageListComponent', () => {
   let packagesService: { getAll: ReturnType<typeof vi.fn> };
 
   const mockPackages: AdPackage[] = [
-    makePackage({ _id: 'p1', name: '5 Featured Ads', type: 'featured_ads', duration: 7, quantity: 5, defaultPrice: 500 }),
-    makePackage({ _id: 'p2', name: '10 Ad Slots', type: 'ad_slots', duration: 15, quantity: 10, defaultPrice: 2000 }),
-    makePackage({ _id: 'p3', name: '10 Featured Ads', type: 'featured_ads', duration: 30, quantity: 10, defaultPrice: 3400, categoryPricing: [{ categoryId: 'cat1', price: 3800 }] }),
+    makePackage({
+      _id: 'p1',
+      name: '5 Featured Ads',
+      type: 'featured_ads',
+      duration: 7,
+      quantity: 5,
+      defaultPrice: 500,
+    }),
+    makePackage({
+      _id: 'p2',
+      name: '10 Ad Slots',
+      type: 'ad_slots',
+      duration: 15,
+      quantity: 10,
+      defaultPrice: 2000,
+    }),
+    makePackage({
+      _id: 'p3',
+      name: '10 Featured Ads',
+      type: 'featured_ads',
+      duration: 30,
+      quantity: 10,
+      defaultPrice: 3400,
+      categoryPricing: [{ categoryId: 'cat1', price: 3800 }],
+    }),
   ];
 
   beforeEach(() => {
@@ -59,7 +81,7 @@ describe('PackageListComponent', () => {
     component.ngOnInit();
     component.setType('featured_ads');
     expect(component.filteredPackages().length).toBe(2);
-    expect(component.filteredPackages().every(p => p.type === 'featured_ads')).toBe(true);
+    expect(component.filteredPackages().every((p) => p.type === 'featured_ads')).toBe(true);
   });
 
   it('should filter by ad_slots type', () => {

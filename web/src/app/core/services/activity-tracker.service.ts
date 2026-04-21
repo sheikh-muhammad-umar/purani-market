@@ -3,14 +3,29 @@ import { ApiService } from './api.service';
 import { AuthService } from '../auth/auth.service';
 
 export type UserAction =
-  | 'view' | 'search' | 'category_browse' | 'page_view'
-  | 'favorite' | 'unfavorite' | 'contact' | 'share'
-  | 'listing_create' | 'listing_edit' | 'listing_delete' | 'listing_status_change' | 'listing_feature'
-  | 'login' | 'register' | 'logout'
-  | 'message_sent' | 'conversation_start'
-  | 'package_purchase' | 'payment_attempt'
+  | 'view'
+  | 'search'
+  | 'category_browse'
+  | 'page_view'
+  | 'favorite'
+  | 'unfavorite'
+  | 'contact'
+  | 'share'
+  | 'listing_create'
+  | 'listing_edit'
+  | 'listing_delete'
+  | 'listing_status_change'
+  | 'listing_feature'
+  | 'login'
+  | 'register'
+  | 'logout'
+  | 'message_sent'
+  | 'conversation_start'
+  | 'package_purchase'
+  | 'payment_attempt'
   | 'location_change'
-  | 'dismiss' | 'recommendation_click';
+  | 'dismiss'
+  | 'recommendation_click';
 
 @Injectable({ providedIn: 'root' })
 export class ActivityTrackerService {
@@ -19,12 +34,15 @@ export class ActivityTrackerService {
     private readonly auth: AuthService,
   ) {}
 
-  track(action: UserAction, data?: {
-    productListingId?: string;
-    searchQuery?: string;
-    categoryId?: string;
-    metadata?: Record<string, any>;
-  }): void {
+  track(
+    action: UserAction,
+    data?: {
+      productListingId?: string;
+      searchQuery?: string;
+      categoryId?: string;
+      metadata?: Record<string, any>;
+    },
+  ): void {
     // Only track for authenticated users
     if (!this.auth.isAuthenticated()) return;
 
@@ -65,7 +83,9 @@ export class ActivityTrackerService {
         if (parsed.city?.name) info['locationCity'] = parsed.city.name;
         if (parsed.area?.name) info['locationArea'] = parsed.area.name;
       }
-    } catch { /* ignore */ }
+    } catch {
+      /* ignore */
+    }
 
     return info;
   }
@@ -77,24 +97,30 @@ export class ActivityTrackerService {
     if ('geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
-          this.api.post('/track', {
-            action: 'login' as UserAction,
-            metadata: {
-              ...metadata,
-              geoLat: pos.coords.latitude,
-              geoLng: pos.coords.longitude,
-              geoAccuracy: pos.coords.accuracy,
-            },
-          }).subscribe({ error: () => {} });
+          this.api
+            .post('/track', {
+              action: 'login' as UserAction,
+              metadata: {
+                ...metadata,
+                geoLat: pos.coords.latitude,
+                geoLng: pos.coords.longitude,
+                geoAccuracy: pos.coords.accuracy,
+              },
+            })
+            .subscribe({ error: () => {} });
         },
         () => {
           // Permission denied or error — track without geo
-          this.api.post('/track', { action: 'login' as UserAction, metadata }).subscribe({ error: () => {} });
+          this.api
+            .post('/track', { action: 'login' as UserAction, metadata })
+            .subscribe({ error: () => {} });
         },
         { timeout: 5000, maximumAge: 300000 },
       );
     } else {
-      this.api.post('/track', { action: 'login' as UserAction, metadata }).subscribe({ error: () => {} });
+      this.api
+        .post('/track', { action: 'login' as UserAction, metadata })
+        .subscribe({ error: () => {} });
     }
   }
 }

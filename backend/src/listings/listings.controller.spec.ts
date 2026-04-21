@@ -6,7 +6,10 @@ import { ListingsController } from './listings.controller';
 import { ListingsService } from './listings.service';
 import { MediaService } from './media.service';
 import { PackagesService } from '../packages/packages.service';
-import { ListingCondition, ListingStatus } from './schemas/product-listing.schema';
+import {
+  ListingCondition,
+  ListingStatus,
+} from './schemas/product-listing.schema';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { MediaType } from './dto/upload-media.dto';
 import { AllowedStatusTransition } from './dto/update-status.dto';
@@ -60,11 +63,17 @@ describe('ListingsController', () => {
     mockListingsService = {
       findAll: jest.fn().mockResolvedValue(mockPaginatedResult),
       findById: jest.fn().mockResolvedValue(mockListing),
-      findByIdAndIncrementViews: jest.fn().mockResolvedValue({ ...mockListing, viewCount: 11 }),
+      findByIdAndIncrementViews: jest
+        .fn()
+        .mockResolvedValue({ ...mockListing, viewCount: 11 }),
       create: jest.fn().mockResolvedValue(mockListing),
       update: jest.fn().mockResolvedValue({ ...mockListing, title: 'Updated' }),
-      updateStatus: jest.fn().mockResolvedValue({ ...mockListing, status: ListingStatus.SOLD }),
-      softDelete: jest.fn().mockResolvedValue({ ...mockListing, status: ListingStatus.DELETED }),
+      updateStatus: jest
+        .fn()
+        .mockResolvedValue({ ...mockListing, status: ListingStatus.SOLD }),
+      softDelete: jest
+        .fn()
+        .mockResolvedValue({ ...mockListing, status: ListingStatus.DELETED }),
     };
 
     mockMediaService = {
@@ -92,20 +101,32 @@ describe('ListingsController', () => {
   describe('getListings', () => {
     it('should return paginated listings with default params', async () => {
       const result = await controller.getListings();
-      expect(mockListingsService.findAll).toHaveBeenCalledWith(1, 20, 'createdAt', 'desc');
+      expect(mockListingsService.findAll).toHaveBeenCalledWith(
+        1,
+        20,
+        'createdAt',
+        'desc',
+      );
       expect(result).toBe(mockPaginatedResult);
     });
 
     it('should pass query params to service', async () => {
       await controller.getListings('2', '10', 'price', 'asc');
-      expect(mockListingsService.findAll).toHaveBeenCalledWith(2, 10, 'price', 'asc');
+      expect(mockListingsService.findAll).toHaveBeenCalledWith(
+        2,
+        10,
+        'price',
+        'asc',
+      );
     });
   });
 
   describe('getListingById', () => {
     it('should return a listing and increment views', async () => {
       const result = await controller.getListingById(listingId.toString());
-      expect(mockListingsService.findByIdAndIncrementViews).toHaveBeenCalledWith(listingId.toString());
+      expect(
+        mockListingsService.findByIdAndIncrementViews,
+      ).toHaveBeenCalledWith(listingId.toString());
       expect(result.viewCount).toBe(11);
     });
 
@@ -121,8 +142,14 @@ describe('ListingsController', () => {
 
   describe('createListing', () => {
     it('should create a listing and return it', async () => {
-      const result = await controller.createListing(sellerId.toString(), validCreateDto);
-      expect(mockListingsService.create).toHaveBeenCalledWith(sellerId.toString(), validCreateDto);
+      const result = await controller.createListing(
+        sellerId.toString(),
+        validCreateDto,
+      );
+      expect(mockListingsService.create).toHaveBeenCalledWith(
+        sellerId.toString(),
+        validCreateDto,
+      );
       expect(result).toBe(mockListing);
     });
 
@@ -156,7 +183,9 @@ describe('ListingsController', () => {
         new ForbiddenException('You are not authorized to modify this listing'),
       );
       await expect(
-        controller.updateListing(listingId.toString(), otherUserId.toString(), { title: 'Hack' }),
+        controller.updateListing(listingId.toString(), otherUserId.toString(), {
+          title: 'Hack',
+        }),
       ).rejects.toThrow(ForbiddenException);
     });
   });
@@ -223,7 +252,11 @@ describe('ListingsController', () => {
         new ForbiddenException('You are not authorized to delete this listing'),
       );
       await expect(
-        controller.deleteListing(listingId.toString(), otherUserId.toString(), 'seller'),
+        controller.deleteListing(
+          listingId.toString(),
+          otherUserId.toString(),
+          'seller',
+        ),
       ).rejects.toThrow(ForbiddenException);
     });
   });

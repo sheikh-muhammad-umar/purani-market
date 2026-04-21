@@ -10,7 +10,15 @@ const mockCategories: Category[] = [
     name: 'Electronics',
     slug: 'electronics',
     level: 1,
-    attributes: [{ name: 'Brand', key: 'brand', type: 'select', options: ['Apple', 'Samsung'], required: true }],
+    attributes: [
+      {
+        name: 'Brand',
+        key: 'brand',
+        type: 'select',
+        options: ['Apple', 'Samsung'],
+        required: true,
+      },
+    ],
     features: [],
     isActive: true,
     sortOrder: 0,
@@ -165,7 +173,7 @@ describe('CategoryManagerComponent', () => {
         slug: 'fashion',
         level: 1,
         isActive: true,
-      })
+      }),
     );
     expect(component.saving()).toBe(false);
     expect(component.activePanel).toBe('none');
@@ -184,7 +192,7 @@ describe('CategoryManagerComponent', () => {
         slug: 'laptops',
         level: 2,
         parentId: 'c1',
-      })
+      }),
     );
   });
 
@@ -340,7 +348,9 @@ describe('CategoryManagerComponent', () => {
     expect(component.editingAttributes[0].name).toBe('Brand');
     // Verify it's a copy, not the same reference
     expect(component.editingAttributes[0]).not.toBe(mockCategories[0].attributes[0]);
-    expect(component.editingAttributes[0].options).not.toBe(mockCategories[0].attributes[0].options);
+    expect(component.editingAttributes[0].options).not.toBe(
+      mockCategories[0].attributes[0].options,
+    );
   });
 
   it('should add a new attribute', () => {
@@ -366,7 +376,13 @@ describe('CategoryManagerComponent', () => {
   });
 
   it('should add and remove attribute options', () => {
-    const attr: CategoryAttribute = { name: 'Color', key: 'color', type: 'select', required: false, options: ['Red'] };
+    const attr: CategoryAttribute = {
+      name: 'Color',
+      key: 'color',
+      type: 'select',
+      required: false,
+      options: ['Red'],
+    };
     component.addAttributeOption(attr);
     expect(attr.options!.length).toBe(2);
     component.removeAttributeOption(attr, 0);

@@ -83,29 +83,31 @@ export class PurchaseFlowComponent implements OnInit {
     this.purchasing.set(true);
     this.purchaseError.set(null);
 
-    this.packagesService.purchase({
-      packageId: this.packageId,
-      paymentMethod: method,
-    }).subscribe({
-      next: (res) => {
-        this.purchasing.set(false);
-        this.tracker.track('package_purchase', {
-          metadata: {
-            packageId: this.packageId,
-            packageName: this.pkg()?.name,
-            amount: this.pkg()?.defaultPrice,
-            paymentMethod: method,
-          },
-        });
-        if (res.redirectUrl) {
-          window.location.href = res.redirectUrl;
-        }
-      },
-      error: () => {
-        this.purchaseError.set('Payment initiation failed. Please try again.');
-        this.purchasing.set(false);
-      },
-    });
+    this.packagesService
+      .purchase({
+        packageId: this.packageId,
+        paymentMethod: method,
+      })
+      .subscribe({
+        next: (res) => {
+          this.purchasing.set(false);
+          this.tracker.track('package_purchase', {
+            metadata: {
+              packageId: this.packageId,
+              packageName: this.pkg()?.name,
+              amount: this.pkg()?.defaultPrice,
+              paymentMethod: method,
+            },
+          });
+          if (res.redirectUrl) {
+            window.location.href = res.redirectUrl;
+          }
+        },
+        error: () => {
+          this.purchaseError.set('Payment initiation failed. Please try again.');
+          this.purchasing.set(false);
+        },
+      });
   }
 
   formatPrice(price: number): string {
@@ -118,25 +120,34 @@ export class PurchaseFlowComponent implements OnInit {
 
   getPaymentMethodLabel(method: PaymentMethod): string {
     switch (method) {
-      case 'jazzcash': return 'JazzCash';
-      case 'easypaisa': return 'EasyPaisa';
-      case 'card': return 'Credit/Debit Card';
+      case 'jazzcash':
+        return 'JazzCash';
+      case 'easypaisa':
+        return 'EasyPaisa';
+      case 'card':
+        return 'Credit/Debit Card';
     }
   }
 
   getPaymentMethodIcon(method: PaymentMethod): string {
     switch (method) {
-      case 'jazzcash': return '📱';
-      case 'easypaisa': return '📲';
-      case 'card': return '💳';
+      case 'jazzcash':
+        return '📱';
+      case 'easypaisa':
+        return '📲';
+      case 'card':
+        return '💳';
     }
   }
 
   getStepNumber(): number {
     switch (this.step()) {
-      case 'details': return 1;
-      case 'payment': return 2;
-      case 'confirm': return 3;
+      case 'details':
+        return 1;
+      case 'payment':
+        return 2;
+      case 'confirm':
+        return 3;
     }
   }
 }

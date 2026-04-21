@@ -9,7 +9,9 @@ describe('ChatbotWidgetComponent', () => {
 
   beforeEach(() => {
     chatbotService = {
-      sendMessage: vi.fn().mockReturnValue(of({ reply: 'Hello!', escalate: false } as ChatbotResponse)),
+      sendMessage: vi
+        .fn()
+        .mockReturnValue(of({ reply: 'Hello!', escalate: false } as ChatbotResponse)),
     };
 
     component = new ChatbotWidgetComponent(chatbotService as unknown as ChatbotService);

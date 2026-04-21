@@ -28,7 +28,10 @@
   border-radius: 100px;
   padding: 8px 14px;
 
-  .material-symbols-rounded { font-size: 20px; color: var(--text-muted); }
+  .material-symbols-rounded {
+    font-size: 20px;
+    color: var(--text-muted);
+  }
 
   input {
     flex: 1;
@@ -38,7 +41,9 @@
     font-size: 14px;
     font-family: inherit;
     color: var(--text-primary);
-    &::placeholder { color: var(--text-muted); }
+    &::placeholder {
+      color: var(--text-muted);
+    }
   }
 }
 
@@ -68,8 +73,12 @@
   height: 12px;
   border-radius: 6px;
   background: var(--border);
-  &.short { width: 40%; }
-  &.long { width: 80%; }
+  &.short {
+    width: 40%;
+  }
+  &.long {
+    width: 80%;
+  }
 }
 
 .skeleton-avatar {
@@ -94,20 +103,34 @@
 }
 
 @keyframes shimmer {
-  0% { background-position: 200% 0; }
-  100% { background-position: -200% 0; }
+  0% {
+    background-position: 200% 0;
+  }
+  100% {
+    background-position: -200% 0;
+  }
 }
 
-.error-state, .empty-state {
+.error-state,
+.empty-state {
   text-align: center;
   padding: var(--space-6) var(--space-2);
   color: var(--text-secondary);
 
-  .empty-icon, .error-icon { font-size: 48px; display: block; margin-bottom: var(--space-2); }
-  h2 { font-size: var(--text-lg); margin-bottom: 8px; }
+  .empty-icon,
+  .error-icon {
+    font-size: 48px;
+    display: block;
+    margin-bottom: var(--space-2);
+  }
+  h2 {
+    font-size: var(--text-lg);
+    margin-bottom: 8px;
+  }
 }
 
-.retry-btn, .browse-btn {
+.retry-btn,
+.browse-btn {
   background: var(--primary);
   color: #fff;
   border: none;
@@ -140,7 +163,9 @@
   cursor: pointer;
   border-left: 3px solid transparent;
 
-  &:hover { background: var(--background); }
+  &:hover {
+    background: var(--background);
+  }
 }
 
 .conversation-avatar {
@@ -151,7 +176,11 @@
   flex-shrink: 0;
   background: var(--background);
 
-  .avatar-img { width: 100%; height: 100%; object-fit: cover; }
+  .avatar-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
 }
 
 .conversation-content {
@@ -210,8 +239,13 @@
   background: rgba(13, 165, 195, 0.04);
   border-left-color: var(--primary);
 
-  .conversation-title { font-weight: 700; }
-  .conversation-preview { font-weight: 600; color: var(--text-primary); }
+  .conversation-title {
+    font-weight: 700;
+  }
+  .conversation-preview {
+    font-weight: 600;
+    color: var(--text-primary);
+  }
 }
 
 .unread-badge {
@@ -241,8 +275,18 @@
     gap: 10px;
   }
 
-  .conversation-avatar { width: 44px; height: 44px; }
-  .conversation-title { font-size: 13px; max-width: 140px; }
-  .conversation-preview { font-size: 12px; }
-  .conversation-time { font-size: 10px; }
+  .conversation-avatar {
+    width: 44px;
+    height: 44px;
+  }
+  .conversation-title {
+    font-size: 13px;
+    max-width: 140px;
+  }
+  .conversation-preview {
+    font-size: 12px;
+  }
+  .conversation-time {
+    font-size: 10px;
+  }
 }

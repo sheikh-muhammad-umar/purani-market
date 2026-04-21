@@ -2,7 +2,7 @@
   <!-- Back button -->
   <div class="chat-top-bar">
     <button class="back-link" (click)="back.emit()">
-      <span class="material-symbols-rounded" style="font-size:18px;">arrow_back</span> Messages
+      <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span> Messages
     </button>
   </div>
 
@@ -10,11 +10,7 @@
   @if (listing()) {
     <div class="product-card">
       <a [routerLink]="['/listings', listing()! | listingUrl]" class="product-card-link">
-        <img
-          [src]="getListingImage()"
-          [alt]="listing()!.title"
-          class="product-thumb"
-        />
+        <img [src]="getListingImage()" [alt]="listing()!.title" class="product-thumb" />
         <div class="product-info">
           <span class="product-title">{{ listing()!.title }}</span>
           <span class="product-price">
@@ -34,7 +30,11 @@
       <div class="messages-skeleton">
         @for (i of [1, 2, 3, 4, 5]; track i) {
           <div class="skeleton-bubble" [class.sent]="i % 2 === 0">
-            <div class="skeleton" [style.width]="(120 + i * 30) + 'px'" style="height: 36px; border-radius: 16px;"></div>
+            <div
+              class="skeleton"
+              [style.width]="120 + i * 30 + 'px'"
+              style="height: 36px; border-radius: 16px"
+            ></div>
           </div>
         }
       </div>
@@ -42,11 +42,7 @@
 
     @if (!loading()) {
       @if (hasMore()) {
-        <button
-          class="load-more-btn"
-          (click)="loadOlderMessages()"
-          [disabled]="loadingMore()"
-        >
+        <button class="load-more-btn" (click)="loadOlderMessages()" [disabled]="loadingMore()">
           {{ loadingMore() ? 'Loading...' : 'Load older messages' }}
         </button>
       }
@@ -99,7 +95,7 @@
   <!-- Input area -->
   @if (chatDisabled()) {
     <div class="input-area chat-disabled-bar">
-      <span class="material-symbols-rounded" style="font-size:18px;">block</span>
+      <span class="material-symbols-rounded" style="font-size: 18px">block</span>
       This ad is no longer active. You can't send new messages.
     </div>
   } @else {
@@ -120,7 +116,7 @@
         [attr.aria-label]="'Send message'"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor"/>
+          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor" />
         </svg>
       </button>
     </div>

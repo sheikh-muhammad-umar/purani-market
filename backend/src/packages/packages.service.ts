@@ -7,7 +7,11 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
-import { AdPackage, AdPackageDocument, AdPackageType } from './schemas/ad-package.schema.js';
+import {
+  AdPackage,
+  AdPackageDocument,
+  AdPackageType,
+} from './schemas/ad-package.schema.js';
 import {
   PackagePurchase,
   PackagePurchaseDocument,
@@ -70,7 +74,10 @@ export class PackagesService {
     return pkg.save();
   }
 
-  async updatePackage(id: string, dto: UpdatePackageDto): Promise<AdPackageDocument> {
+  async updatePackage(
+    id: string,
+    dto: UpdatePackageDto,
+  ): Promise<AdPackageDocument> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException('Package not found');
     }
@@ -122,7 +129,10 @@ export class PackagesService {
       .exec();
   }
 
-  async purchasePackages(sellerId: string, dto: PurchasePackageDto): Promise<PurchaseResult> {
+  async purchasePackages(
+    sellerId: string,
+    dto: PurchasePackageDto,
+  ): Promise<PurchaseResult> {
     if (!dto.items || dto.items.length === 0) {
       throw new BadRequestException('At least one package item is required');
     }
@@ -138,33 +148,53 @@ export class PackagesService {
         const catPricing = pkg.categoryPricing.find(
           (cp) => cp.categoryId.toString() === item.categoryId,
         );
-        if (catPricing) { price = catPricing.price; }
+        if (catPricing) {
+          price = catPricing.price;
+        }
       }
       totalAmount += price;
       const purchase = new this.packagePurchaseModel({
         sellerId: new Types.ObjectId(sellerId),
         packageId: pkg._id,
-        categoryId: item.categoryId ? new Types.ObjectId(item.categoryId) : undefined,
-        type: pkg.type, quantity: pkg.quantity, remainingQuantity: pkg.quantity,
-        duration: pkg.duration, price,
-        paymentMethod: dto.paymentMethod, paymentStatus: PaymentStatus.PENDING,
+        categoryId: item.categoryId
+          ? new Types.ObjectId(item.categoryId)
+          : undefined,
+        type: pkg.type,
+        quantity: pkg.quantity,
+        remainingQuantity: pkg.quantity,
+        duration: pkg.duration,
+        price,
+        paymentMethod: dto.paymentMethod,
+        paymentStatus: PaymentStatus.PENDING,
       });
       const saved = await purchase.save();
       purchases.push(saved);
     }
     const purchaseIds = purchases.map((p) => p._id.toString());
-    const paymentResult = await this.paymentsService.initiatePayment(dto.paymentMethod, {
-      amount: totalAmount, currency: 'PKR', purchaseIds, sellerId,
-      callbackUrl: '/api/packages/payment-callback',
-    });
+    const paymentResult = await this.paymentsService.initiatePayment(
+      dto.paymentMethod,
+      {
+        amount: totalAmount,
+        currency: 'PKR',
+        purchaseIds,
+        sellerId,
+        callbackUrl: '/api/packages/payment-callback',
+      },
+    );
     await this.packagePurchaseModel.updateMany(
       { _id: { $in: purchases.map((p) => p._id) } },
       { $set: { paymentTransactionId: paymentResult.transactionId } },
     );
-    return { purchases, redirectUrl: paymentResult.redirectUrl, transactionId: paymentResult.transactionId };
+    return {
+      purchases,
+      redirectUrl: paymentResult.redirectUrl,
+      transactionId: paymentResult.transactionId,
+    };
   }
 
-  async handlePaymentCallback(payload: Record<string, any>): Promise<{ status: string; message: string }> {
+  async handlePaymentCallback(
+    payload: Record<string, any>,
+  ): Promise<{ status: string; message: string }> {
     const { transactionId, paymentMethod } = payload;
     if (!transactionId) {
       throw new BadRequestException('Transaction ID is required');
@@ -178,12 +208,17 @@ export class PackagesService {
       throw new NotFoundException('No purchases found for this transaction');
     }
 
-    const verification = await this.paymentsService.verifyCallback(paymentMethod, payload);
+    const verification = await this.paymentsService.verifyCallback(
+      paymentMethod,
+      payload,
+    );
 
     if (verification.status === 'completed') {
       const now = new Date();
       for (const purchase of purchases) {
-        const expiresAt = new Date(now.getTime() + purchase.duration * 24 * 60 * 60 * 1000);
+        const expiresAt = new Date(
+          now.getTime() + purchase.duration * 24 * 60 * 60 * 1000,
+        );
         await this.packagePurchaseModel.updateOne(
           { _id: purchase._id },
           {
@@ -209,10 +244,16 @@ export class PackagesService {
       { paymentTransactionId: transactionId },
       { $set: { paymentStatus: PaymentStatus.FAILED } },
     );
-    return { status: 'failed', message: verification.reason || 'Payment failed' };
+    return {
+      status: 'failed',
+      message: verification.reason || 'Payment failed',
+    };
   }
 
-  async featureListing(listingId: string, sellerId: string): Promise<ProductListingDocument> {
+  async featureListing(
+    listingId: string,
+    sellerId: string,
+  ): Promise<ProductListingDocument> {
     if (!Types.ObjectId.isValid(listingId)) {
       throw new NotFoundException('Listing not found');
     }
@@ -231,16 +272,20 @@ export class PackagesService {
     }
 
     const now = new Date();
-    const activePurchase = await this.packagePurchaseModel.findOne({
-      sellerId: new Types.ObjectId(sellerId),
-      type: AdPackageType.FEATURED_ADS,
-      paymentStatus: PaymentStatus.COMPLETED,
-      remainingQuantity: { $gt: 0 },
-      expiresAt: { $gt: now },
-    }).exec();
+    const activePurchase = await this.packagePurchaseModel
+      .findOne({
+        sellerId: new Types.ObjectId(sellerId),
+        type: AdPackageType.FEATURED_ADS,
+        paymentStatus: PaymentStatus.COMPLETED,
+        remainingQuantity: { $gt: 0 },
+        expiresAt: { $gt: now },
+      })
+      .exec();
 
     if (!activePurchase) {
-      throw new BadRequestException('No active featured ad package available. Please purchase a featured ads package.');
+      throw new BadRequestException(
+        'No active featured ad package available. Please purchase a featured ads package.',
+      );
     }
 
     await this.packagePurchaseModel.updateOne(
@@ -248,16 +293,18 @@ export class PackagesService {
       { $inc: { remainingQuantity: -1 } },
     );
 
-    const updated = await this.listingModel.findByIdAndUpdate(
-      listingId,
-      {
-        $set: {
-          isFeatured: true,
-          featuredUntil: activePurchase.expiresAt,
+    const updated = await this.listingModel
+      .findByIdAndUpdate(
+        listingId,
+        {
+          $set: {
+            isFeatured: true,
+            featuredUntil: activePurchase.expiresAt,
+          },
         },
-      },
-      { new: true },
-    ).exec();
+        { new: true },
+      )
+      .exec();
 
     return updated!;
   }

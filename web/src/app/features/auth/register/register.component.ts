@@ -28,7 +28,7 @@ export class RegisterComponent {
   constructor(
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
-    private readonly router: Router
+    private readonly router: Router,
   ) {
     this.registerForm = this.fb.group(
       {
@@ -39,7 +39,7 @@ export class RegisterComponent {
         password: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', [Validators.required]],
       },
-      { validators: this.passwordMatchValidator }
+      { validators: this.passwordMatchValidator },
     );
   }
 
@@ -54,7 +54,7 @@ export class RegisterComponent {
   }
 
   toggleRegistrationMethod(): void {
-    this.usePhone.update(v => !v);
+    this.usePhone.update((v) => !v);
     this.registerForm.get('email')?.reset();
     this.registerForm.get('phone')?.reset();
     this.errorMessage.set('');
@@ -91,16 +91,16 @@ export class RegisterComponent {
     };
 
     this.authService.register(data).subscribe({
-      next: response => {
+      next: (response) => {
         this.loading.set(false);
         this.successMessage.set(
           response.message ||
             (this.usePhone()
               ? 'Registration successful! Please verify your phone number.'
-              : 'Registration successful! Please check your email for verification.')
+              : 'Registration successful! Please check your email for verification.'),
         );
       },
-      error: err => {
+      error: (err) => {
         this.loading.set(false);
         this.errorMessage.set(err.error?.message || 'Registration failed. Please try again.');
       },

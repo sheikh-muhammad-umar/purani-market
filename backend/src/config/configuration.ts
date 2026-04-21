@@ -32,8 +32,7 @@ export default () => ({
   },
 
   cors: {
-    allowedOrigins:
-      process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:4200',
+    allowedOrigins: process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:4200',
   },
 
   google: {

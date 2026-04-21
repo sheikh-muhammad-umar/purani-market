@@ -51,7 +51,11 @@
           [routerLink]="['/messaging', conversation._id]"
         >
           <div class="conversation-avatar">
-            <img [src]="getListingImage(conversation)" [alt]="getListingTitle(conversation)" class="avatar-img" />
+            <img
+              [src]="getListingImage(conversation)"
+              [alt]="getListingTitle(conversation)"
+              class="avatar-img"
+            />
           </div>
           <div class="conversation-content">
             <div class="conversation-header">
@@ -63,7 +67,9 @@
               </div>
               <span class="conversation-time">{{ getTimeAgo(conversation.lastMessageAt) }}</span>
             </div>
-            <p class="conversation-preview">{{ conversation.lastMessagePreview || 'No messages yet' }}</p>
+            <p class="conversation-preview">
+              {{ conversation.lastMessagePreview || 'No messages yet' }}
+            </p>
           </div>
           @if (getUnreadCount(conversation._id) > 0) {
             <span class="unread-badge">{{ getUnreadCount(conversation._id) }}</span>

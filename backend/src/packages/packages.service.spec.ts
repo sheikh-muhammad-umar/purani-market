@@ -73,12 +73,16 @@ describe('PackagesService', () => {
       ...mockPackage,
       save: jest.fn().mockResolvedValue(mockPackage),
     };
-    mockAdPackageModel.constructor = jest.fn().mockImplementation(() => mockCreatedPackage);
+    mockAdPackageModel.constructor = jest
+      .fn()
+      .mockImplementation(() => mockCreatedPackage);
     // For createPackage - the service uses `new this.adPackageModel(...)` which is the model itself as constructor
     // We need to make the model callable as a constructor
     const originalFind = mockAdPackageModel.find;
     const originalFindById = mockAdPackageModel.findById;
-    const constructorFn: any = jest.fn().mockImplementation(() => mockCreatedPackage);
+    const constructorFn: any = jest
+      .fn()
+      .mockImplementation(() => mockCreatedPackage);
     constructorFn.find = originalFind;
     constructorFn.findById = originalFindById;
     mockAdPackageModel = constructorFn;
@@ -108,7 +112,9 @@ describe('PackagesService', () => {
       }),
     };
 
-    mockPackagePurchaseModel = jest.fn().mockImplementation(() => mockSavedPurchase);
+    mockPackagePurchaseModel = jest
+      .fn()
+      .mockImplementation(() => mockSavedPurchase);
     mockPackagePurchaseModel.find = jest.fn().mockReturnValue({
       sort: jest.fn().mockReturnValue({
         populate: jest.fn().mockReturnValue({
@@ -120,8 +126,12 @@ describe('PackagesService', () => {
     mockPackagePurchaseModel.findOne = jest.fn().mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     });
-    mockPackagePurchaseModel.updateMany = jest.fn().mockResolvedValue({ modifiedCount: 1 });
-    mockPackagePurchaseModel.updateOne = jest.fn().mockResolvedValue({ modifiedCount: 1 });
+    mockPackagePurchaseModel.updateMany = jest
+      .fn()
+      .mockResolvedValue({ modifiedCount: 1 });
+    mockPackagePurchaseModel.updateOne = jest
+      .fn()
+      .mockResolvedValue({ modifiedCount: 1 });
 
     mockUserModel = {
       findById: jest.fn().mockReturnValue({
@@ -170,10 +180,19 @@ describe('PackagesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PackagesService,
-        { provide: getModelToken(AdPackage.name), useValue: mockAdPackageModel },
-        { provide: getModelToken(PackagePurchase.name), useValue: mockPackagePurchaseModel },
+        {
+          provide: getModelToken(AdPackage.name),
+          useValue: mockAdPackageModel,
+        },
+        {
+          provide: getModelToken(PackagePurchase.name),
+          useValue: mockPackagePurchaseModel,
+        },
         { provide: getModelToken(User.name), useValue: mockUserModel },
-        { provide: getModelToken(ProductListing.name), useValue: mockListingModel },
+        {
+          provide: getModelToken(ProductListing.name),
+          useValue: mockListingModel,
+        },
         { provide: PaymentsService, useValue: mockPaymentsService },
       ],
     }).compile();
@@ -196,16 +215,18 @@ describe('PackagesService', () => {
     });
 
     it('should throw NotFoundException for invalid id', async () => {
-      await expect(service.findById('invalid-id')).rejects.toThrow(NotFoundException);
+      await expect(service.findById('invalid-id')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw NotFoundException when package does not exist', async () => {
       mockAdPackageModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       });
-      await expect(service.findById(new Types.ObjectId().toString())).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.findById(new Types.ObjectId().toString()),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -252,9 +273,13 @@ describe('PackagesService', () => {
       const pkg2Id = new Types.ObjectId();
       let callCount = 0;
       mockAdPackageModel.findById.mockImplementation(() => ({
-        exec: jest.fn().mockResolvedValue(
-          callCount++ === 0 ? mockPackage : { ...mockAdSlotsPackage, _id: pkg2Id },
-        ),
+        exec: jest
+          .fn()
+          .mockResolvedValue(
+            callCount++ === 0
+              ? mockPackage
+              : { ...mockAdSlotsPackage, _id: pkg2Id },
+          ),
       }));
 
       const dto = {
@@ -345,7 +370,9 @@ describe('PackagesService', () => {
 
     it('should throw BadRequestException for missing transactionId', async () => {
       await expect(
-        service.handlePaymentCallback({ paymentMethod: PaymentMethod.JAZZCASH }),
+        service.handlePaymentCallback({
+          paymentMethod: PaymentMethod.JAZZCASH,
+        }),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -378,7 +405,10 @@ describe('PackagesService', () => {
         }),
       });
 
-      const result = await service.featureListing(listingId.toString(), sellerId.toString());
+      const result = await service.featureListing(
+        listingId.toString(),
+        sellerId.toString(),
+      );
 
       expect(result.isFeatured).toBe(true);
       expect(mockPackagePurchaseModel.updateOne).toHaveBeenCalledWith(
@@ -516,7 +546,9 @@ describe('PackagesService', () => {
 
   describe('updatePackage', () => {
     it('should update package fields', async () => {
-      const saveMock = jest.fn().mockResolvedValue({ ...mockPackage, defaultPrice: 600 });
+      const saveMock = jest
+        .fn()
+        .mockResolvedValue({ ...mockPackage, defaultPrice: 600 });
       mockAdPackageModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue({
           ...mockPackage,
@@ -524,7 +556,9 @@ describe('PackagesService', () => {
         }),
       });
 
-      const result = await service.updatePackage(packageId.toString(), { defaultPrice: 600 });
+      const result = await service.updatePackage(packageId.toString(), {
+        defaultPrice: 600,
+      });
 
       expect(saveMock).toHaveBeenCalled();
     });
@@ -541,7 +575,9 @@ describe('PackagesService', () => {
       });
 
       await expect(
-        service.updatePackage(new Types.ObjectId().toString(), { defaultPrice: 600 }),
+        service.updatePackage(new Types.ObjectId().toString(), {
+          defaultPrice: 600,
+        }),
       ).rejects.toThrow(NotFoundException);
     });
 

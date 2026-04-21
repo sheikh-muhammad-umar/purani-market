@@ -91,16 +91,20 @@ export class AiController {
 
     const enrichedMetadata: Record<string, any> = {
       ...dto.metadata,
-      browser: browser.name ? `${browser.name} ${browser.version || ''}`.trim() : undefined,
+      browser: browser.name
+        ? `${browser.name} ${browser.version || ''}`.trim()
+        : undefined,
       os: os.name ? `${os.name} ${os.version || ''}`.trim() : undefined,
       deviceType: device.type || 'desktop',
       deviceVendor: device.vendor || undefined,
       deviceModel: device.model || undefined,
-      engine: engine.name ? `${engine.name} ${engine.version || ''}`.trim() : undefined,
+      engine: engine.name
+        ? `${engine.name} ${engine.version || ''}`.trim()
+        : undefined,
     };
 
     // Remove undefined values
-    Object.keys(enrichedMetadata).forEach(k => {
+    Object.keys(enrichedMetadata).forEach((k) => {
       if (enrichedMetadata[k] === undefined) delete enrichedMetadata[k];
     });
 

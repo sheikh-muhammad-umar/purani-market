@@ -59,7 +59,13 @@ describe('MessagingService', () => {
       ...data,
       _id: conversationId,
       createdAt: new Date(),
-      save: jest.fn().mockResolvedValue({ ...data, _id: conversationId, createdAt: new Date() }),
+      save: jest
+        .fn()
+        .mockResolvedValue({
+          ...data,
+          _id: conversationId,
+          createdAt: new Date(),
+        }),
     }));
     mockConversationModel.findOne = jest.fn().mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
@@ -78,7 +84,13 @@ describe('MessagingService', () => {
       ...data,
       _id: new Types.ObjectId(),
       createdAt: new Date(),
-      save: jest.fn().mockResolvedValue({ ...data, _id: new Types.ObjectId(), createdAt: new Date() }),
+      save: jest
+        .fn()
+        .mockResolvedValue({
+          ...data,
+          _id: new Types.ObjectId(),
+          createdAt: new Date(),
+        }),
     }));
     mockMessageModel.find = jest.fn().mockReturnValue({
       populate: jest.fn().mockReturnThis(),
@@ -101,9 +113,15 @@ describe('MessagingService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         MessagingService,
-        { provide: getModelToken(Conversation.name), useValue: mockConversationModel },
+        {
+          provide: getModelToken(Conversation.name),
+          useValue: mockConversationModel,
+        },
         { provide: getModelToken(Message.name), useValue: mockMessageModel },
-        { provide: getModelToken(ProductListing.name), useValue: mockListingModel },
+        {
+          provide: getModelToken(ProductListing.name),
+          useValue: mockListingModel,
+        },
       ],
     }).compile();
 
@@ -117,7 +135,9 @@ describe('MessagingService', () => {
       });
 
       expect(result.conversation).toBeDefined();
-      expect(mockListingModel.findById).toHaveBeenCalledWith(listingId.toString());
+      expect(mockListingModel.findById).toHaveBeenCalledWith(
+        listingId.toString(),
+      );
     });
 
     it('should return existing conversation if one already exists', async () => {

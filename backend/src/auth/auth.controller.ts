@@ -70,7 +70,12 @@ export class AuthController {
     @Body() dto: LoginDto,
     @Headers('user-agent') userAgent?: string,
   ) {
-    return this.authService.login(dto.email, dto.phone, dto.password, userAgent);
+    return this.authService.login(
+      dto.email,
+      dto.phone,
+      dto.password,
+      userAgent,
+    );
   }
 
   @Post('social-login')
@@ -116,10 +121,7 @@ export class AuthController {
   @Post('logout')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  async logout(
-    @Req() req: any,
-    @CurrentUser() user: AuthUser,
-  ) {
+  async logout(@Req() req: any, @CurrentUser() user: AuthUser) {
     const authHeader = req.headers.authorization as string;
     const token = authHeader?.replace('Bearer ', '');
     return this.authService.logout(token, user.sub);

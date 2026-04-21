@@ -34,7 +34,9 @@
   color: var(--text-secondary);
   text-decoration: none;
 
-  &:hover { color: var(--primary); }
+  &:hover {
+    color: var(--primary);
+  }
 }
 
 .footer-brand {
@@ -83,7 +85,9 @@
 }
 
 @media (max-width: 767px) {
-  .app-footer { display: none; }
+  .app-footer {
+    display: none;
+  }
 }
 
 @media (min-width: 768px) and (max-width: 1023px) {

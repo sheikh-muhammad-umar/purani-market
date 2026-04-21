@@ -29,7 +29,7 @@ export class UserProfileComponent implements OnInit {
   constructor(
     private readonly fb: FormBuilder,
     public readonly authService: AuthService,
-    private readonly http: HttpClient
+    private readonly http: HttpClient,
   ) {
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.maxLength(50)]],
