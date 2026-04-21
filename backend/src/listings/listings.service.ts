@@ -255,7 +255,7 @@ export class ListingsService {
     return updated;
   }
 
-  async softDelete(id: string, userId: string, userRole: string): Promise<ProductListingDocument> {
+  async softDelete(id: string, userId: string, userRole: string, deletionReason?: string): Promise<ProductListingDocument> {
     const listing = await this.findById(id);
     const isOwner = listing.sellerId.toString() === userId;
     const isAdmin = userRole === 'admin' || userRole === 'super_admin';
@@ -265,10 +265,14 @@ export class ListingsService {
     if (listing.status === ListingStatus.DELETED) {
       throw new BadRequestException('Listing is already deleted');
     }
+    const updateData: Record<string, any> = {
+      status: ListingStatus.DELETED,
+      deletedAt: new Date(),
+      updatedAt: new Date(),
+    };
+    if (deletionReason) updateData.deletionReason = deletionReason;
     const updated = await this.listingModel
-      .findByIdAndUpdate(id, {
-        $set: { status: ListingStatus.DELETED, deletedAt: new Date(), updatedAt: new Date() },
-      }, { new: true })
+      .findByIdAndUpdate(id, { $set: updateData }, { new: true })
       .exec();
     if (!updated) {
       throw new NotFoundException('Listing not found');

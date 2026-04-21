@@ -27,7 +27,7 @@ export interface ListingLocation {
   areaId?: string;
   province?: string;
   city: string;
-  area: string;
+  area?: string;
   blockPhase?: string;
 }
 

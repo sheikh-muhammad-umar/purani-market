@@ -129,6 +129,8 @@ export class AdminService {
     private readonly activityModel: Model<UserActivityDocument>,
     @InjectModel('RejectionReason')
     private readonly rejectionReasonModel: Model<any>,
+    @InjectModel('DeletionReason')
+    private readonly deletionReasonModel: Model<any>,
     private readonly authService: AuthService,
     private readonly notificationsService: NotificationsService,
   ) {}
@@ -715,5 +717,27 @@ export class AdminService {
   async deleteRejectionReason(id: string): Promise<void> {
     const result = await this.rejectionReasonModel.findByIdAndDelete(id).exec();
     if (!result) throw new NotFoundException('Rejection reason not found');
+  }
+
+  // ── Deletion Reasons CRUD ───────────────────────────────────────
+
+  async getDeletionReasons(activeOnly = false): Promise<any[]> {
+    const filter = activeOnly ? { isActive: true } : {};
+    return this.deletionReasonModel.find(filter).sort({ createdAt: 1 }).lean().exec();
+  }
+
+  async createDeletionReason(data: { title: string; description?: string; isActive?: boolean }): Promise<any> {
+    return new this.deletionReasonModel(data).save();
+  }
+
+  async updateDeletionReason(id: string, data: Partial<{ title: string; description: string; isActive: boolean }>): Promise<any> {
+    const reason = await this.deletionReasonModel.findByIdAndUpdate(id, { $set: data }, { new: true }).exec();
+    if (!reason) throw new NotFoundException('Deletion reason not found');
+    return reason;
+  }
+
+  async deleteDeletionReason(id: string): Promise<void> {
+    const result = await this.deletionReasonModel.findByIdAndDelete(id).exec();
+    if (!result) throw new NotFoundException('Deletion reason not found');
   }
 }

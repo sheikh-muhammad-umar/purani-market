@@ -1,0 +1,90 @@
+<div class="dr-page">
+  <div class="page-header">
+    <h1>Deletion Reasons</h1>
+    <button class="btn-add" (click)="startAdd()">
+      <span class="material-symbols-rounded" style="font-size:18px;">add</span> Add Reason
+    </button>
+  </div>
+
+  @if (showAddForm) {
+    <div class="dr-form">
+      <input type="text" class="dr-input" placeholder="Reason title..." [(ngModel)]="newTitle" (keyup.enter)="saveNew()" />
+      <input type="text" class="dr-input dr-input-desc" placeholder="Description (optional)..." [(ngModel)]="newDescription" />
+      <div class="dr-form-actions">
+        <button class="btn-save" [disabled]="saving() || !newTitle.trim()" (click)="saveNew()">Save</button>
+        <button class="btn-cancel" (click)="cancelAdd()">Cancel</button>
+      </div>
+    </div>
+  }
+
+  <div class="admin-toolbar">
+    <div class="admin-search">
+      <input type="text" placeholder="Search reasons..." [(ngModel)]="searchQuery" />
+    </div>
+    <div class="dr-toolbar-actions">
+      <app-custom-select [options]="statusOptions" [(ngModel)]="filterStatus" placeholder="All"></app-custom-select>
+      <app-custom-select [options]="sortOptions" [(ngModel)]="sortBy" placeholder="Sort"></app-custom-select>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  }
+
+  @if (!loading()) {
+    <div class="dr-list">
+      @for (reason of filteredReasons; track reason._id) {
+        <div class="dr-item" [class.inactive]="!reason.isActive">
+          @if (editingId === reason._id) {
+            <div class="dr-edit-form">
+              <input type="text" class="dr-input" [(ngModel)]="editTitle" (keyup.enter)="saveEdit()" />
+              <input type="text" class="dr-input dr-input-desc" placeholder="Description..." [(ngModel)]="editDescription" />
+              <div class="dr-form-actions">
+                <button class="btn-save" [disabled]="saving() || !editTitle.trim()" (click)="saveEdit()">Save</button>
+                <button class="btn-cancel" (click)="cancelEdit()">Cancel</button>
+              </div>
+            </div>
+          } @else {
+            <div class="dr-content">
+              <div class="dr-text">
+                <span class="dr-title">{{ reason.title }}</span>
+                @if (reason.description) { <span class="dr-desc">{{ reason.description }}</span> }
+                @if (!reason.isActive) { <span class="dr-inactive-badge">Inactive</span> }
+              </div>
+              <div class="dr-actions">
+                <button class="dr-action-btn" (click)="toggleActive(reason)" [title]="reason.isActive ? 'Deactivate' : 'Activate'">
+                  <span class="material-symbols-rounded">{{ reason.isActive ? 'toggle_on' : 'toggle_off' }}</span>
+                </button>
+                <button class="dr-action-btn" (click)="startEdit(reason)" title="Edit">
+                  <span class="material-symbols-rounded">edit</span>
+                </button>
+                <button class="dr-action-btn dr-delete" (click)="deleteReason(reason)" title="Delete">
+                  <span class="material-symbols-rounded">delete</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      } @empty {
+        <div class="empty-state">
+          @if (searchQuery || filterStatus) { No reasons match your search. }
+          @else { No deletion reasons yet. Add one to get started. }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (deletingId) {
+  <div class="modal-overlay" (click)="cancelDelete()">
+    <div class="modal-box" (click)="$event.stopPropagation()">
+      <div class="modal-icon"><span class="material-symbols-rounded">warning</span></div>
+      <h3>Delete this reason?</h3>
+      <p>This action cannot be undone.</p>
+      <div class="modal-actions">
+        <button class="btn-cancel" (click)="cancelDelete()">Cancel</button>
+        <button class="btn-delete" (click)="confirmDelete()">Delete</button>
+      </div>
+    </div>
+  </div>
+}

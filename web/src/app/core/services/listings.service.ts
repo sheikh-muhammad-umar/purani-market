@@ -130,8 +130,8 @@ export class ListingsService {
     return this.api.post<Listing>(`/listings/${id}/feature`, {});
   }
 
-  deleteListing(id: string): Observable<void> {
-    return this.api.delete<void>(`/listings/${id}`);
+  deleteListing(id: string, reason?: string): Observable<void> {
+    return this.api.delete<void>(`/listings/${id}`, { body: { reason } });
   }
 
   updateStatus(id: string, status: string): Observable<Listing> {

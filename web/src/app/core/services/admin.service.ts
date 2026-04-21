@@ -276,6 +276,26 @@ export class AdminService {
     return this.http.delete<any>(`${this.baseUrl}/admin/rejection-reasons/${id}`);
   }
 
+  // ── Deletion Reasons ───────────────────────────────────────────
+  getDeletionReasons(all = false): Observable<any[]> {
+    const params = all ? '?all=true' : '';
+    return this.http.get<any>(`${this.baseUrl}/admin/deletion-reasons${params}`).pipe(
+      map(res => (res && res.data && res.statusCode) ? res.data : res),
+    );
+  }
+
+  createDeletionReason(data: { title: string; description?: string }): Observable<any> {
+    return this.http.post<any>(`${this.baseUrl}/admin/deletion-reasons`, data);
+  }
+
+  updateDeletionReason(id: string, data: { title?: string; description?: string; isActive?: boolean }): Observable<any> {
+    return this.http.patch<any>(`${this.baseUrl}/admin/deletion-reasons/${id}`, data);
+  }
+
+  deleteDeletionReason(id: string): Observable<any> {
+    return this.http.delete<any>(`${this.baseUrl}/admin/deletion-reasons/${id}`);
+  }
+
   getPendingListings(): Observable<PendingListingsResponse> {
     return this.http.get<PendingListingsResponse>(`${this.baseUrl}/admin/listings/pending`);
   }

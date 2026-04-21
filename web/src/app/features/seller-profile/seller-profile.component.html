@@ -37,7 +37,7 @@
       @for (listing of listings(); track listing._id) {
         <a class="sp-listing-card" [routerLink]="listing | listingUrl">
           <div class="sp-listing-img">
-            @if (listing.images?.length) {
+            @if (listing.images.length) {
               <img [src]="listing.images[0].thumbnailUrl || listing.images[0].url" [alt]="listing.title" />
             } @else {
               <div class="sp-no-img">No Image</div>
@@ -46,7 +46,7 @@
           <div class="sp-listing-info">
             <span class="sp-listing-title">{{ listing.title }}</span>
             <span class="sp-listing-price">{{ listing.price.currency }} {{ listing.price.amount | number }}</span>
-            <span class="sp-listing-location">{{ listing.location?.area ? (listing.location.area + ', ') : '' }}{{ listing.location?.city || '' }}</span>
+            <span class="sp-listing-location">{{ listing.location?.area ? (listing.location.area + ', ') : '' }}{{ listing.location.city || '' }}</span>
           </div>
         </a>
       }

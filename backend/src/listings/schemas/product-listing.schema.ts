@@ -185,6 +185,9 @@ export class ProductListing {
   @Prop({ type: Date })
   deletedAt?: Date;
 
+  @Prop({ type: String })
+  deletionReason?: string;
+
   createdAt!: Date;
   updatedAt!: Date;
 }

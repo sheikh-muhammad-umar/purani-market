@@ -145,8 +145,9 @@ export class ListingsController {
     @Param('id') id: string,
     @CurrentUser('sub') userId: string,
     @CurrentUser('role') userRole: string,
+    @Body() body?: { reason?: string },
   ) {
-    return this.listingsService.softDelete(id, userId, userRole);
+    return this.listingsService.softDelete(id, userId, userRole, body?.reason);
   }
 
   @Post(':id/feature')

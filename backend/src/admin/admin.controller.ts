@@ -239,6 +239,50 @@ export class AdminController {
 
   // ── Permission Management (super_admin or roles:manage) ──────────
 
+  @Get('deletion-reasons')
+  async getDeletionReasons(@Query('all') all?: string) {
+    return this.adminService.getDeletionReasons(all !== 'true');
+  }
+
+  @Post('deletion-reasons')
+  @Roles(UserRole.SUPER_ADMIN)
+  async createDeletionReason(
+    @Body() dto: CreateRejectionReasonDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
+    const reason = await this.adminService.createDeletionReason(dto);
+    this.tracker.track(adminId, UserAction.ADMIN_REJECTION_REASON_CREATE, { type: 'deletion_reason', title: dto.title }, req);
+    return reason;
+  }
+
+  @Patch('deletion-reasons/:id')
+  @Roles(UserRole.SUPER_ADMIN)
+  async updateDeletionReason(
+    @Param('id') id: string,
+    @Body() dto: UpdateRejectionReasonDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
+    const reason = await this.adminService.updateDeletionReason(id, dto);
+    this.tracker.track(adminId, UserAction.ADMIN_REJECTION_REASON_UPDATE, { type: 'deletion_reason', id }, req);
+    return reason;
+  }
+
+  @Delete('deletion-reasons/:id')
+  @Roles(UserRole.SUPER_ADMIN)
+  async deleteDeletionReason(
+    @Param('id') id: string,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
+    await this.adminService.deleteDeletionReason(id);
+    this.tracker.track(adminId, UserAction.ADMIN_REJECTION_REASON_DELETE, { type: 'deletion_reason', id }, req);
+    return { deleted: true };
+  }
+
+  // ── Permission Management (super_admin or roles:manage) ──────────
+
   @Get('permissions')
   @Roles(UserRole.SUPER_ADMIN)
   async listPermissions() {

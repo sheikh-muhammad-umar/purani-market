@@ -26,6 +26,7 @@ export class AdminLayoutComponent {
     { label: 'Locations', icon: 'location_on', path: '/admin/locations' },
     { label: 'Activity', icon: 'timeline', path: '/admin/activity' },
     { label: 'Rejection Reasons', icon: 'rule', path: '/admin/rejection-reasons' },
+    { label: 'Deletion Reasons', icon: 'delete_sweep', path: '/admin/deletion-reasons' },
   ];
 
   sidebarCollapsed = false;

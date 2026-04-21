@@ -25,6 +25,10 @@ import {
   RejectionReason,
   RejectionReasonSchema,
 } from './schemas/rejection-reason.schema.js';
+import {
+  DeletionReason,
+  DeletionReasonSchema,
+} from './schemas/deletion-reason.schema.js';
 
 @Module({
   imports: [
@@ -40,6 +44,7 @@ import {
       { name: PackagePurchase.name, schema: PackagePurchaseSchema },
       { name: UserActivity.name, schema: UserActivitySchema },
       { name: RejectionReason.name, schema: RejectionReasonSchema },
+      { name: DeletionReason.name, schema: DeletionReasonSchema },
     ]),
   ],
   controllers: [AdminController],

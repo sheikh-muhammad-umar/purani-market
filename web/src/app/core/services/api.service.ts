@@ -39,7 +39,7 @@ export class ApiService {
     return this.http.patch<any>(`${this.baseUrl}${path}`, body).pipe(map(unwrap<T>));
   }
 
-  delete<T>(path: string): Observable<T> {
-    return this.http.delete<any>(`${this.baseUrl}${path}`).pipe(map(unwrap<T>));
+  delete<T>(path: string, options?: { body?: any }): Observable<T> {
+    return this.http.delete<any>(`${this.baseUrl}${path}`, options ? { body: options.body } : undefined).pipe(map(unwrap<T>));
   }
 }
