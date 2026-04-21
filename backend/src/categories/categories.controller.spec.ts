@@ -116,7 +116,7 @@ describe('CategoriesController', () => {
   describe('POST /api/categories', () => {
     it('should create a new category', async () => {
       const dto = { name: 'Vehicles' };
-      const result = await controller.createCategory(dto);
+      const result = await controller.createCategory(dto, 'admin-id', {});
       expect(categoriesService.create).toHaveBeenCalledWith(dto);
       expect(result).toEqual(mockCategory);
     });
@@ -125,14 +125,19 @@ describe('CategoriesController', () => {
   describe('PATCH /api/categories/:id', () => {
     it('should update a category', async () => {
       const dto = { name: 'Updated Name' };
-      const result = await controller.updateCategory(childId, dto);
+      const result = await controller.updateCategory(
+        childId,
+        dto,
+        'admin-id',
+        {},
+      );
       expect(categoriesService.update).toHaveBeenCalledWith(childId, dto);
     });
   });
 
   describe('DELETE /api/categories/:id', () => {
     it('should delete a category', async () => {
-      await controller.deleteCategory(childId);
+      await controller.deleteCategory(childId, 'admin-id', {});
       expect(categoriesService.delete).toHaveBeenCalledWith(childId);
     });
   });
@@ -150,7 +155,12 @@ describe('CategoriesController', () => {
           },
         ],
       };
-      const result = await controller.updateAttributes(childId, dto as any);
+      const result = await controller.updateAttributes(
+        childId,
+        dto as any,
+        'admin-id',
+        {},
+      );
       expect(categoriesService.updateAttributes).toHaveBeenCalledWith(
         childId,
         dto.attributes,
@@ -161,7 +171,12 @@ describe('CategoriesController', () => {
   describe('PATCH /api/categories/:id/features', () => {
     it('should update category features', async () => {
       const dto = { features: ['ABS', 'Air Bags'] };
-      const result = await controller.updateFeatures(childId, dto as any);
+      const result = await controller.updateFeatures(
+        childId,
+        dto as any,
+        'admin-id',
+        {},
+      );
       expect(categoriesService.updateFeatures).toHaveBeenCalledWith(
         childId,
         dto.features,

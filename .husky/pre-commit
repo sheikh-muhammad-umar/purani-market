@@ -1,0 +1,28 @@
+#!/bin/sh
+
+# Run lint-staged (prettier formatting on staged files)
+npx lint-staged
+
+# Type-check backend if any backend files changed
+if git diff --cached --name-only | grep -q "^backend/"; then
+  echo "🔍 Type-checking backend..."
+  cd backend && npx tsc --noEmit
+  if [ $? -ne 0 ]; then
+    echo "❌ Backend type-check failed. Fix errors before committing."
+    exit 1
+  fi
+  echo "✅ Backend type-check passed"
+  cd ..
+fi
+
+# Build-check frontend if any web files changed
+if git diff --cached --name-only | grep -q "^web/"; then
+  echo "🔍 Building frontend..."
+  cd web && npx ng build --configuration=development 2>&1 | grep -q "Output location"
+  if [ $? -ne 0 ]; then
+    echo "❌ Frontend build failed. Fix errors before committing."
+    exit 1
+  fi
+  echo "✅ Frontend build passed"
+  cd ..
+fi

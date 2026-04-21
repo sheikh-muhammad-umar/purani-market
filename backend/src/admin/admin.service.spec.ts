@@ -33,7 +33,7 @@ describe('AdminService', () => {
   const mockUser = {
     _id: new Types.ObjectId(mockUserId),
     email: 'test@example.com',
-    role: UserRole.BUYER,
+    role: UserRole.USER,
     status: UserStatus.ACTIVE,
     adLimit: 10,
     save: jest.fn().mockResolvedValue(undefined),
@@ -199,10 +199,10 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue(0),
       });
 
-      await service.listUsers({ role: UserRole.SELLER });
+      await service.listUsers({ role: UserRole.USER });
 
       const filterArg = userModel.find.mock.calls[0][0];
-      expect(filterArg.role).toBe(UserRole.SELLER);
+      expect(filterArg.role).toBe(UserRole.USER);
     });
 
     it('should apply status filter', async () => {
@@ -352,9 +352,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue(user),
       });
 
-      await service.updateUserRole(mockUserId, UserRole.SELLER);
+      await service.updateUserRole(mockUserId, UserRole.USER);
 
-      expect(user.role).toBe(UserRole.SELLER);
+      expect(user.role).toBe(UserRole.USER);
       expect(user.save).toHaveBeenCalled();
       expect(authService.invalidateAllSessions).toHaveBeenCalledWith(
         mockUserId,
@@ -499,6 +499,7 @@ describe('AdminService', () => {
 
       const result = await service.rejectListing(
         mockListing._id.toString(),
+        ['reason-1'],
         'Inappropriate content',
       );
 
@@ -522,7 +523,11 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue(mockListing),
       });
 
-      await service.rejectListing(listingId.toString(), 'Policy violation');
+      await service.rejectListing(
+        listingId.toString(),
+        ['reason-1'],
+        'Policy violation',
+      );
 
       expect(notificationsService.sendToUser).toHaveBeenCalledWith(
         sellerId.toString(),
@@ -540,7 +545,7 @@ describe('AdminService', () => {
       });
 
       await expect(
-        service.rejectListing('nonexistent', 'reason'),
+        service.rejectListing('nonexistent', ['reason-1'], 'reason'),
       ).rejects.toThrow(NotFoundException);
     });
   });

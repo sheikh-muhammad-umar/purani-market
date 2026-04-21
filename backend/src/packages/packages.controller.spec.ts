@@ -138,7 +138,7 @@ describe('PackagesController', () => {
         defaultPrice: 500,
       };
 
-      const result = await controller.createPackage(dto);
+      const result = await controller.createPackage(dto, 'admin-id', {});
 
       expect(result).toEqual(mockPackage);
       expect(service.createPackage).toHaveBeenCalledWith(dto);
@@ -149,7 +149,12 @@ describe('PackagesController', () => {
     it('should update an existing package (admin only)', async () => {
       const dto = { defaultPrice: 600 };
 
-      const result = await controller.updatePackage(packageId.toString(), dto);
+      const result = await controller.updatePackage(
+        packageId.toString(),
+        dto,
+        'admin-id',
+        {},
+      );
 
       expect(result).toEqual(mockPackage);
       expect(service.updatePackage).toHaveBeenCalledWith(

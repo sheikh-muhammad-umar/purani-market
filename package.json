@@ -1,0 +1,26 @@
+{
+  "name": "marketplace",
+  "private": true,
+  "scripts": {
+    "prepare": "husky",
+    "lint:backend": "cd backend && npx eslint --max-warnings=0",
+    "lint:web": "cd web && npx ng build --configuration=development",
+    "typecheck:backend": "cd backend && npx tsc --noEmit"
+  },
+  "devDependencies": {
+    "husky": "^9.1.7",
+    "lint-staged": "^15.2.0",
+    "prettier": "^3.8.3"
+  },
+  "lint-staged": {
+    "backend/src/**/*.ts": [
+      "prettier --write"
+    ],
+    "web/src/**/*.ts": [
+      "prettier --write"
+    ],
+    "web/src/**/*.{html,scss}": [
+      "prettier --write"
+    ]
+  }
+}

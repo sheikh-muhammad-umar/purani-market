@@ -78,7 +78,7 @@ describe('AdminController', () => {
         totalPages: 0,
       });
 
-      const query = { page: 2, limit: 10, role: UserRole.SELLER };
+      const query = { page: 2, limit: 10, role: UserRole.USER };
       await controller.listUsers(query);
 
       expect(adminService.listUsers).toHaveBeenCalledWith(query);
@@ -107,9 +107,14 @@ describe('AdminController', () => {
         status: UserStatus.SUSPENDED,
       });
 
-      const result = await controller.updateUserStatus(mockUserId, {
-        status: UserStatus.SUSPENDED,
-      });
+      const result = await controller.updateUserStatus(
+        mockUserId,
+        {
+          status: UserStatus.SUSPENDED,
+        },
+        'admin-id',
+        {},
+      );
 
       expect(result.message).toContain('suspended');
       expect(adminService.updateUserStatus).toHaveBeenCalledWith(
@@ -124,9 +129,14 @@ describe('AdminController', () => {
         status: UserStatus.ACTIVE,
       });
 
-      const result = await controller.updateUserStatus(mockUserId, {
-        status: UserStatus.ACTIVE,
-      });
+      const result = await controller.updateUserStatus(
+        mockUserId,
+        {
+          status: UserStatus.ACTIVE,
+        },
+        'admin-id',
+        {},
+      );
 
       expect(result.message).toContain('active');
     });
@@ -136,17 +146,22 @@ describe('AdminController', () => {
     it('should change user role', async () => {
       adminService.updateUserRole.mockResolvedValue({
         _id: new Types.ObjectId(mockUserId),
-        role: UserRole.SELLER,
+        role: UserRole.USER,
       });
 
-      const result = await controller.updateUserRole(mockUserId, {
-        role: UserRole.SELLER,
-      });
+      const result = await controller.updateUserRole(
+        mockUserId,
+        {
+          role: UserRole.USER,
+        },
+        'admin-id',
+        {},
+      );
 
-      expect(result.message).toContain('seller');
+      expect(result.message).toContain('user');
       expect(adminService.updateUserRole).toHaveBeenCalledWith(
         mockUserId,
-        UserRole.SELLER,
+        UserRole.USER,
       );
     });
   });
@@ -158,9 +173,14 @@ describe('AdminController', () => {
         adLimit: 25,
       });
 
-      const result = await controller.updateAdLimit(mockUserId, {
-        adLimit: 25,
-      });
+      const result = await controller.updateAdLimit(
+        mockUserId,
+        {
+          adLimit: 25,
+        },
+        'admin-id',
+        {},
+      );
 
       expect(result.message).toContain('25');
       expect(result.adLimit).toBe(25);
@@ -205,10 +225,15 @@ describe('AdminController', () => {
       const listingId = new Types.ObjectId();
       adminService.approveListing.mockResolvedValue({
         _id: listingId,
+        title: 'Test',
         status: ListingStatus.ACTIVE,
       });
 
-      const result = await controller.approveListing(listingId.toString());
+      const result = await controller.approveListing(
+        listingId.toString(),
+        'admin-id',
+        {},
+      );
 
       expect(result.message).toBe('Listing approved');
       expect(result.status).toBe(ListingStatus.ACTIVE);
@@ -219,23 +244,30 @@ describe('AdminController', () => {
   });
 
   describe('rejectListing', () => {
-    it('should reject a listing with reason', async () => {
+    it('should reject a listing with reasons', async () => {
       const listingId = new Types.ObjectId();
       adminService.rejectListing.mockResolvedValue({
         _id: listingId,
+        title: 'Test',
         status: ListingStatus.REJECTED,
         rejectionReason: 'Inappropriate content',
       });
 
-      const result = await controller.rejectListing(listingId.toString(), {
-        rejectionReason: 'Inappropriate content',
-      });
+      const result = await controller.rejectListing(
+        listingId.toString(),
+        {
+          rejectionReasonIds: ['reason-1'],
+          customNote: 'Inappropriate content',
+        },
+        'admin-id',
+        {},
+      );
 
       expect(result.message).toBe('Listing rejected');
       expect(result.status).toBe(ListingStatus.REJECTED);
-      expect(result.rejectionReason).toBe('Inappropriate content');
       expect(adminService.rejectListing).toHaveBeenCalledWith(
         listingId.toString(),
+        ['reason-1'],
         'Inappropriate content',
       );
     });
