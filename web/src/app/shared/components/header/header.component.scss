@@ -6,6 +6,13 @@
   z-index: 100;
 }
 
+@media (max-width: 767px) {
+  :host {
+    position: sticky;
+    top: 0;
+  }
+}
+
 .app-header {
   background: var(--surface);
   border-bottom: 1px solid var(--border);
@@ -539,6 +546,16 @@
 @media (max-width: 767px) {
   .app-header {
     padding: 10px var(--space-2);
+    transition:
+      padding 0.2s ease,
+      max-height 0.2s ease;
+    overflow: hidden;
+  }
+
+  .app-header.header-scrolled {
+    max-height: 0;
+    padding: 0 var(--space-2);
+    border-bottom: none;
   }
 
   .header-container {
@@ -567,12 +584,13 @@
     display: none;
   }
 
-  /* Mobile search — full width second row */
+  /* Mobile search — full width */
   .mobile-search {
     display: block;
     width: 100%;
-    order: 3;
-    padding: 0;
+    padding: 8px var(--space-2) 10px;
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
   }
 
   .mobile-search-row {

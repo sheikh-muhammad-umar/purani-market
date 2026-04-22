@@ -10,12 +10,13 @@ import { LocationService } from '../../../core/services/location.service';
 import { RecentSearchesService } from '../../../core/services/recent-searches.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { LoginModalService } from '../login-modal/login-modal.service';
+import { AppBannerComponent } from '../app-banner/app-banner.component';
 import { Province, City, Area } from '../../../core/models';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink],
+  imports: [RouterLink, AppBannerComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
@@ -23,6 +24,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   mobileMenuOpen = signal(false);
   accountMenuOpen = signal(false);
   unreadCount = signal(0);
+  scrolled = signal(false);
   private subs: Subscription[] = [];
 
   // Location selector state
@@ -179,6 +181,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.searchPlaceholder.set(
       window.innerWidth < 1024 ? 'Search...' : 'Find cars, phones, furniture...',
     );
+  }
+
+  @HostListener('window:scroll')
+  onScroll(): void {
+    this.scrolled.set(window.scrollY > 10);
   }
 
   @HostListener('document:click', ['$event'])
