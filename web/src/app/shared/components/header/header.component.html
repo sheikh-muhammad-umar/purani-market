@@ -223,7 +223,7 @@
         </div>
 
         <a routerLink="/listings/create" class="post-ad-btn">
-          <span class="material-symbols-rounded" style="font-size: 18px">add_circle</span>
+          <span class="material-symbols-rounded" style="font-size: 18px">storefront</span>
           Post Ad
         </a>
       } @else if (!isAuthPage) {
@@ -423,12 +423,12 @@
       (click)="!authService.isAuthenticated() && loginModal.open('/listings/create')"
       class="bottom-nav-item sell-item"
     >
-      <span class="sell-circle"
-        ><span class="material-symbols-rounded" style="font-size: 26px; color: #fff"
-          >add</span
-        ></span
-      >
-      <span class="bottom-label">Sell</span>
+      <span class="sell-btn">
+        <span class="sell-btn-inner">
+          <span class="material-symbols-rounded sell-icon">storefront</span>
+        </span>
+      </span>
+      <span class="bottom-label sell-label">Sell</span>
     </a>
     <a
       [routerLink]="authService.isAuthenticated() ? '/listings/my' : null"
