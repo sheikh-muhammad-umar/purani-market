@@ -1,5 +1,10 @@
 <app-banner />
-<header class="app-header" [class.header-scrolled]="scrolled()">
+<header
+  class="app-header"
+  [class.header-scrolled]="
+    scrolled() && !isAuthPage && !isMessagingPage && !isProfilePage && !isAdminPage
+  "
+>
   <div class="header-container">
     <!-- Logo -->
     <a routerLink="/" class="logo">
