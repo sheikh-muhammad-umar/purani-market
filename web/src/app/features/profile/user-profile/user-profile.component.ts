@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { User } from '../../../core/models/user.model';
 import { HttpClient } from '@angular/common/http';
@@ -30,6 +30,7 @@ export class UserProfileComponent implements OnInit {
     private readonly fb: FormBuilder,
     public readonly authService: AuthService,
     private readonly http: HttpClient,
+    private readonly router: Router,
   ) {
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.maxLength(50)]],
@@ -142,5 +143,10 @@ export class UserProfileComponent implements OnInit {
     return (
       (u.profile.firstName?.charAt(0) || '') + (u.profile.lastName?.charAt(0) || '')
     ).toUpperCase();
+  }
+
+  logout(): void {
+    this.authService.logout();
+    this.router.navigate(['/']);
   }
 }
