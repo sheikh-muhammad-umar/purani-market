@@ -538,7 +538,12 @@
 /* ============ MOBILE ============ */
 @media (max-width: 767px) {
   .app-header {
-    padding: 8px var(--space-2);
+    padding: 10px var(--space-2);
+  }
+
+  .header-container {
+    flex-wrap: wrap;
+    gap: 8px;
   }
 
   .logo-mark {
@@ -562,42 +567,48 @@
     display: none;
   }
 
-  /* Mobile search */
+  /* Mobile search — full width second row */
   .mobile-search {
     display: block;
-    padding: 0 var(--space-2) 12px;
+    width: 100%;
+    order: 3;
+    padding: 0;
   }
 
   .mobile-search-row {
     display: flex;
     align-items: center;
-    gap: 8px;
+    gap: 0;
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 0 4px 0 0;
+    height: 42px;
+    overflow: visible;
+    position: relative;
   }
 
   .mobile-location-btn {
     display: flex;
     align-items: center;
-    gap: 3px;
-    padding: 0 10px;
-    height: 38px;
-    background: var(--background);
-    border: 1px solid var(--border);
-    border-radius: 100px;
+    gap: 2px;
+    padding: 0 8px 0 12px;
+    height: 100%;
+    background: none;
+    border: none;
+    border-right: 1px solid var(--border);
     color: var(--text-secondary);
     font-size: 12px;
-    font-weight: 500;
+    font-weight: 600;
     font-family: inherit;
     cursor: pointer;
     flex-shrink: 0;
     white-space: nowrap;
-    transition: border-color 0.15s;
     position: relative;
 
     .material-symbols-rounded {
       color: var(--primary);
-    }
-    &:hover {
-      border-color: var(--primary);
+      font-size: 16px;
     }
   }
 
@@ -606,12 +617,12 @@
     top: auto;
     left: var(--space-2);
     right: var(--space-2);
-    top: 90px;
+    top: 100px;
     min-width: unset;
   }
 
   .mobile-location-text {
-    max-width: 60px;
+    max-width: 55px;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
@@ -622,35 +633,42 @@
     align-items: center;
     flex: 1;
     min-width: 0;
-    background: var(--background);
-    border: 1px solid var(--border);
-    border-radius: 100px;
-    padding: 0 4px 0 14px;
-    height: 38px;
+    background: none;
+    border: none;
+    border-radius: 0;
+    padding: 0 0 0 10px;
+    height: 100%;
     gap: 6px;
-    transition: border-color 0.15s;
     position: relative;
-
-    &:focus-within {
-      border-color: var(--primary);
-    }
   }
 
   .mobile-recent {
     border-radius: 8px;
-    top: calc(100% + 6px);
+    top: calc(100% + 10px);
+    left: calc(-1 * var(--space-2));
+    right: calc(-1 * var(--space-2));
+    width: auto;
   }
 
   .mobile-search-wrap .search-input {
     font-size: 14px;
     padding: 0;
     min-width: 0;
+    background: none;
+    border: none;
+    color: var(--text-primary);
+    &::placeholder {
+      color: var(--text-muted);
+    }
+    &:focus {
+      outline: none;
+    }
   }
 
   .mobile-search-btn {
-    width: 30px;
-    height: 30px;
-    border-radius: 50%;
+    width: 32px;
+    height: 32px;
+    border-radius: 10px;
     background: var(--primary);
     color: #fff;
     border: none;
@@ -659,11 +677,6 @@
     justify-content: center;
     cursor: pointer;
     flex-shrink: 0;
-    transition: background 0.15s;
-
-    &:hover {
-      background: var(--primary-dark);
-    }
   }
 
   /* Bottom Nav */
