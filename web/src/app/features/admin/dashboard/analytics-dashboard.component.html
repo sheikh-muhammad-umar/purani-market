@@ -49,6 +49,71 @@
       </div>
     </section>
 
+    <!-- App Banner Stats -->
+    <section class="banner-section">
+      <h2>App Download Banner</h2>
+      @if (bannerStats(); as bs) {
+        <div class="banner-card">
+          <div class="banner-summary">
+            <div class="banner-stat">
+              <span class="banner-stat-value">{{ bs.shown | number }}</span>
+              <span class="banner-stat-label">Impressions</span>
+            </div>
+            <div class="banner-divider"></div>
+            <div class="banner-stat">
+              <span class="banner-stat-value">{{ bs.clicks | number }}</span>
+              <span class="banner-stat-label">Clicks ({{ bs.clickRate }}%)</span>
+            </div>
+            <div class="banner-divider"></div>
+            <div class="banner-stat">
+              <span class="banner-stat-value">{{ bs.dismissals | number }}</span>
+              <span class="banner-stat-label">Dismissed ({{ bs.dismissRate }}%)</span>
+            </div>
+          </div>
+          @if (bs.byPlatform.length > 0) {
+            <div class="banner-platforms">
+              <div class="platform-row platform-header">
+                <span class="platform-name">Platform</span>
+                <span class="platform-stat">Shown</span>
+                <span class="platform-stat">Clicks</span>
+                <span class="platform-stat">Dismissed</span>
+              </div>
+              @for (p of bs.byPlatform; track p.platform) {
+                <div class="platform-row">
+                  <span class="platform-name">
+                    @switch (p.platform) {
+                      @case ('ios') {
+                        <span class="platform-badge ios">iOS</span>
+                      }
+                      @case ('android') {
+                        <span class="platform-badge android">Android</span>
+                      }
+                      @case ('huawei') {
+                        <span class="platform-badge huawei">Huawei</span>
+                      }
+                      @default {
+                        <span class="platform-badge">{{ p.platform | titlecase }}</span>
+                      }
+                    }
+                  </span>
+                  <span class="platform-stat">{{ p.shown | number }}</span>
+                  <span class="platform-stat">{{ p.clicks | number }}</span>
+                  <span class="platform-stat">{{ p.dismissals | number }}</span>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      } @else {
+        <div class="banner-card">
+          <p class="no-data">
+            No banner data yet. Stats will appear once users interact with the app download banner
+            on mobile.
+          </p>
+        </div>
+      }
+    </section>
+
     <!-- Time Series Charts -->
     @if (timeSeries(); as ts) {
       <section class="charts-section">

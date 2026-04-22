@@ -295,6 +295,115 @@
   padding: 24px 0;
 }
 
+/* App Banner Stats */
+.banner-section {
+  margin-bottom: 24px;
+  h2 {
+    font-size: 17px;
+    font-weight: 700;
+    margin-bottom: 14px;
+  }
+}
+
+.banner-card {
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.banner-summary {
+  display: flex;
+  align-items: center;
+  padding: 20px;
+}
+
+.banner-stat {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+
+.banner-stat-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.banner-stat-label {
+  font-size: 12px;
+  color: var(--text-muted);
+  font-weight: 500;
+}
+
+.banner-divider {
+  width: 1px;
+  height: 36px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.banner-platforms {
+  border-top: 1px solid var(--border);
+}
+
+.platform-row {
+  display: grid;
+  grid-template-columns: 1fr repeat(3, 80px);
+  align-items: center;
+  padding: 10px 20px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+  &:last-child {
+    border-bottom: none;
+  }
+  &.platform-header {
+    background: var(--surface);
+    font-weight: 600;
+    font-size: 11px;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.4px;
+    padding: 8px 20px;
+  }
+}
+
+.platform-name {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.platform-badge {
+  display: inline-flex;
+  padding: 2px 10px;
+  border-radius: 100px;
+  font-size: 12px;
+  font-weight: 600;
+  background: var(--surface);
+  color: var(--text-secondary);
+  &.ios {
+    background: rgba(0, 122, 255, 0.1);
+    color: #007aff;
+  }
+  &.android {
+    background: rgba(61, 220, 132, 0.1);
+    color: #34a853;
+  }
+  &.huawei {
+    background: rgba(206, 25, 55, 0.1);
+    color: #ce1937;
+  }
+}
+
+.platform-stat {
+  text-align: center;
+  color: var(--text-secondary);
+  font-variant-numeric: tabular-nums;
+}
+
 /* Category Analytics */
 .category-section {
   h2 {

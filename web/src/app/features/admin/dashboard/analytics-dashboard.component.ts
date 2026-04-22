@@ -9,6 +9,7 @@ import {
   TimeSeriesPoint,
   CategoryAnalytics,
   DateRange,
+  AppBannerStats,
 } from '../../../core/services/admin.service';
 
 export interface MetricCard {
@@ -37,6 +38,7 @@ export class AnalyticsDashboardComponent implements OnInit {
     purchases: TimeSeriesPoint[];
   } | null>(null);
   readonly categoryAnalytics = signal<CategoryAnalytics[]>([]);
+  readonly bannerStats = signal<AppBannerStats | null>(null);
 
   startDate = '';
   endDate = '';
@@ -73,6 +75,7 @@ export class AnalyticsDashboardComponent implements OnInit {
     this.startDate = this.formatDateInput(thirtyDaysAgo);
     this.endDate = this.formatDateInput(now);
     this.loadAnalytics();
+    this.loadBannerStats();
   }
 
   loadAnalytics(): void {
@@ -115,6 +118,13 @@ export class AnalyticsDashboardComponent implements OnInit {
 
   applyDateRange(): void {
     this.loadAnalytics();
+  }
+
+  private loadBannerStats(): void {
+    this.adminService.getAppBannerStats().subscribe({
+      next: (stats) => this.bannerStats.set(stats),
+      error: () => {},
+    });
   }
 
   exportReport(): void {

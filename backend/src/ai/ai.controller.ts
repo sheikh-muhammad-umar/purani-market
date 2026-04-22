@@ -10,6 +10,7 @@ import {
 import { RecommendationService } from './recommendation.service.js';
 import { ChatbotService } from './chatbot.service.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
+import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { DismissRecommendationDto } from './dto/dismiss-recommendation.dto.js';
 import { ChatbotMessageDto } from './dto/chatbot-message.dto.js';
@@ -67,9 +68,9 @@ export class AiController {
   }
 
   @Post('track')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   async trackActivity(
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('sub') userId: string | undefined,
     @Body() dto: TrackActivityDto,
     @Req() req: any,
   ) {

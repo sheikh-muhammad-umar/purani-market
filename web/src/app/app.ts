@@ -4,6 +4,7 @@ import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { LoginModalComponent } from './shared/components/login-modal/login-modal.component';
 import { ConfirmModalComponent } from './shared/components/confirm-modal/confirm-modal.component';
+import { AppBannerComponent } from './shared/components/app-banner/app-banner.component';
 
 @Component({
   selector: 'app-root',
@@ -14,6 +15,7 @@ import { ConfirmModalComponent } from './shared/components/confirm-modal/confirm
     FooterComponent,
     LoginModalComponent,
     ConfirmModalComponent,
+    AppBannerComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',

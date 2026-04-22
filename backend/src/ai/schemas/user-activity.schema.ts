@@ -10,8 +10,8 @@ export type UserActivityDocument = HydratedDocument<UserActivity>;
 export class UserActivity {
   _id!: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'User', required: true })
-  userId!: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'User' })
+  userId?: Types.ObjectId;
 
   @Prop({ type: String, enum: UserAction, required: true })
   action!: UserAction;

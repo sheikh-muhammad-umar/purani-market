@@ -25,7 +25,10 @@ export type UserAction =
   | 'payment_attempt'
   | 'location_change'
   | 'dismiss'
-  | 'recommendation_click';
+  | 'recommendation_click'
+  | 'app_banner_shown'
+  | 'app_banner_click'
+  | 'app_banner_dismiss';
 
 @Injectable({ providedIn: 'root' })
 export class ActivityTrackerService {
@@ -48,6 +51,13 @@ export class ActivityTrackerService {
 
     this.api.post('/track', { action, ...data }).subscribe({
       error: () => {}, // silently fail — tracking should never block UX
+    });
+  }
+
+  /** Track events for all users (authenticated or not) — used for conversion funnels */
+  trackAnonymous(action: UserAction, metadata?: Record<string, any>): void {
+    this.api.post('/track', { action, metadata }).subscribe({
+      error: () => {},
     });
   }
 

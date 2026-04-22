@@ -983,6 +983,86 @@ export class AdminService {
     if (!result) throw new NotFoundException('Rejection reason not found');
   }
 
+  // ── App Banner Stats ─────────────────────────────────────────────
+
+  async getAppBannerStats(): Promise<{
+    shown: number;
+    clicks: number;
+    dismissals: number;
+    clickRate: number;
+    dismissRate: number;
+    byPlatform: {
+      platform: string;
+      shown: number;
+      clicks: number;
+      dismissals: number;
+    }[];
+  }> {
+    const [shown, clicks, dismissals, platformBreakdown] = await Promise.all([
+      this.activityModel.countDocuments({ action: 'app_banner_shown' }).exec(),
+      this.activityModel.countDocuments({ action: 'app_banner_click' }).exec(),
+      this.activityModel
+        .countDocuments({ action: 'app_banner_dismiss' })
+        .exec(),
+      this.activityModel
+        .aggregate([
+          {
+            $match: {
+              action: {
+                $in: [
+                  'app_banner_shown',
+                  'app_banner_click',
+                  'app_banner_dismiss',
+                ],
+              },
+            },
+          },
+          {
+            $group: {
+              _id: {
+                platform: { $ifNull: ['$metadata.platform', 'unknown'] },
+                action: '$action',
+              },
+              count: { $sum: 1 },
+            },
+          },
+        ])
+        .exec(),
+    ]);
+
+    // Build platform breakdown
+    const platformMap = new Map<
+      string,
+      { shown: number; clicks: number; dismissals: number }
+    >();
+    for (const row of platformBreakdown) {
+      const platform = row._id.platform;
+      if (!platformMap.has(platform)) {
+        platformMap.set(platform, { shown: 0, clicks: 0, dismissals: 0 });
+      }
+      const entry = platformMap.get(platform)!;
+      if (row._id.action === 'app_banner_shown') entry.shown = row.count;
+      else if (row._id.action === 'app_banner_click') entry.clicks = row.count;
+      else if (row._id.action === 'app_banner_dismiss')
+        entry.dismissals = row.count;
+    }
+
+    return {
+      shown,
+      clicks,
+      dismissals,
+      clickRate: shown > 0 ? Math.round((clicks / shown) * 10000) / 100 : 0,
+      dismissRate:
+        shown > 0 ? Math.round((dismissals / shown) * 10000) / 100 : 0,
+      byPlatform: Array.from(platformMap.entries()).map(
+        ([platform, stats]) => ({
+          platform,
+          ...stats,
+        }),
+      ),
+    };
+  }
+
   // ── Deletion Reasons CRUD ───────────────────────────────────────
 
   async getDeletionReasons(activeOnly = false): Promise<any[]> {

@@ -101,6 +101,15 @@ export interface DateRange {
   endDate: string;
 }
 
+export interface AppBannerStats {
+  shown: number;
+  clicks: number;
+  dismissals: number;
+  clickRate: number;
+  dismissRate: number;
+  byPlatform: { platform: string; shown: number; clicks: number; dismissals: number }[];
+}
+
 export interface PendingListing {
   _id: string;
   title: string;
@@ -224,6 +233,12 @@ export class AdminService {
       params,
       responseType: 'blob',
     });
+  }
+
+  getAppBannerStats(): Observable<AppBannerStats> {
+    return this.http
+      .get<any>(`${this.baseUrl}/admin/analytics/app-banner`)
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 
   getUsers(params: GetUsersParams = {}): Observable<UsersResponse> {

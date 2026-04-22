@@ -38,6 +38,11 @@ export enum UserAction {
   DISMISS = 'dismiss',
   RECOMMENDATION_CLICK = 'recommendation_click',
 
+  // App Banner
+  APP_BANNER_SHOWN = 'app_banner_shown',
+  APP_BANNER_CLICK = 'app_banner_click',
+  APP_BANNER_DISMISS = 'app_banner_dismiss',
+
   // Admin actions
   ADMIN_USER_STATUS_CHANGE = 'admin_user_status_change',
   ADMIN_USER_ROLE_CHANGE = 'admin_user_role_change',

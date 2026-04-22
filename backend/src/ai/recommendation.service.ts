@@ -25,7 +25,7 @@ export class RecommendationService {
   ) {}
 
   async trackActivity(
-    userId: string,
+    userId: string | undefined,
     action: UserAction,
     data: {
       productListingId?: string;
@@ -37,7 +37,7 @@ export class RecommendationService {
     },
   ): Promise<UserActivityDocument> {
     const activity = new this.activityModel({
-      userId: new Types.ObjectId(userId),
+      userId: userId ? new Types.ObjectId(userId) : undefined,
       action,
       productListingId: data.productListingId
         ? new Types.ObjectId(data.productListingId)
