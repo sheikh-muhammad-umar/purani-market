@@ -1,34 +1,10 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { AuthService } from '../auth/auth.service';
+import { UserAction } from '../enums/tracking-events';
+import { STORAGE_SELECTED_LOCATION } from '../constants/storage-keys';
 
-export type UserAction =
-  | 'view'
-  | 'search'
-  | 'category_browse'
-  | 'page_view'
-  | 'favorite'
-  | 'unfavorite'
-  | 'contact'
-  | 'share'
-  | 'listing_create'
-  | 'listing_edit'
-  | 'listing_delete'
-  | 'listing_status_change'
-  | 'listing_feature'
-  | 'login'
-  | 'register'
-  | 'logout'
-  | 'message_sent'
-  | 'conversation_start'
-  | 'package_purchase'
-  | 'payment_attempt'
-  | 'location_change'
-  | 'dismiss'
-  | 'recommendation_click'
-  | 'app_banner_shown'
-  | 'app_banner_click'
-  | 'app_banner_dismiss';
+export type { UserAction } from '../enums/tracking-events';
 
 @Injectable({ providedIn: 'root' })
 export class ActivityTrackerService {
@@ -86,7 +62,7 @@ export class ActivityTrackerService {
 
     // Selected location from localStorage (flattened to avoid [object Object])
     try {
-      const stored = localStorage.getItem('selected_location');
+      const stored = localStorage.getItem(STORAGE_SELECTED_LOCATION);
       if (stored) {
         const parsed = JSON.parse(stored);
         if (parsed.province?.name) info['locationProvince'] = parsed.province.name;

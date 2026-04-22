@@ -1,43 +1,9 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
+import { Brand, VehicleBrand, VehicleModel, VehicleVariant } from '../models/brand.model';
 
-export interface Brand {
-  _id: string;
-  name: string;
-  categoryId: string | { _id: string; name: string };
-  logo?: string;
-  isActive: boolean;
-}
-
-export interface VehicleModel {
-  _id: string;
-  name: string;
-  brandId: string | { _id: string; name: string };
-  categoryId: string;
-  vehicleType: 'car' | 'bike';
-  isActive: boolean;
-}
-
-export interface VehicleVariant {
-  _id: string;
-  name: string;
-  modelId: string | { _id: string; name: string };
-  brandId: string | { _id: string; name: string };
-  categoryId: string;
-  vehicleType: 'car' | 'bike';
-  isActive: boolean;
-}
-
-export interface VehicleBrand {
-  _id: string;
-  name: string;
-  categoryId: string | { _id: string; name: string };
-  vehicleType: 'car' | 'bike';
-  logo?: string;
-  isActive: boolean;
-}
-
+export type { Brand, VehicleBrand, VehicleModel, VehicleVariant } from '../models/brand.model';
 @Injectable({ providedIn: 'root' })
 export class BrandsService {
   constructor(private readonly api: ApiService) {}

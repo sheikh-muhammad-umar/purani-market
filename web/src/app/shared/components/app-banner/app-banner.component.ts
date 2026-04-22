@@ -2,6 +2,10 @@ import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { environment } from '../../../../environments/environment';
+import {
+  STORAGE_APP_BANNER_DISMISSED,
+  STORAGE_APP_BANNER_SHOWN,
+} from '../../../core/constants/storage-keys';
 
 @Component({
   selector: 'app-banner',
@@ -122,15 +126,12 @@ export class AppBannerComponent {
 
   private readonly tracker = inject(ActivityTrackerService);
 
-  private readonly DISMISS_KEY = 'app_banner_dismissed';
-  private readonly SHOWN_KEY = 'app_banner_shown_session';
-
   storeLink = '';
   platform = '';
 
   constructor() {
     if (typeof window !== 'undefined') {
-      const dismissed = localStorage.getItem(this.DISMISS_KEY);
+      const dismissed = localStorage.getItem(STORAGE_APP_BANNER_DISMISSED);
       if (
         dismissed &&
         Date.now() - Number(dismissed) < environment.appBannerDismissDays * 86400000
@@ -147,8 +148,8 @@ export class AppBannerComponent {
         this.visible.set(true);
 
         // Track impression once per session
-        if (!sessionStorage.getItem(this.SHOWN_KEY)) {
-          sessionStorage.setItem(this.SHOWN_KEY, '1');
+        if (!sessionStorage.getItem(STORAGE_APP_BANNER_SHOWN)) {
+          sessionStorage.setItem(STORAGE_APP_BANNER_SHOWN, '1');
           this.tracker.trackAnonymous('app_banner_shown', { platform: this.platform });
         }
       }
@@ -164,7 +165,7 @@ export class AppBannerComponent {
 
   dismiss(): void {
     this.visible.set(false);
-    localStorage.setItem(this.DISMISS_KEY, String(Date.now()));
+    localStorage.setItem(STORAGE_APP_BANNER_DISMISSED, String(Date.now()));
     this.tracker.trackAnonymous('app_banner_dismiss', { platform: this.platform });
   }
 

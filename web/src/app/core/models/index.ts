@@ -6,3 +6,5 @@ export * from './message.model';
 export * from './review.model';
 export * from './favorite.model';
 export * from './location.model';
+export * from './brand.model';
+export * from './analytics.model';
