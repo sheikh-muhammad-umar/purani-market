@@ -84,7 +84,7 @@
 
     <!-- Breadcrumb -->
     <div class="detail-top-bar">
-      <a routerLink="/" class="back-link">Home</a>
+      <a [routerLink]="ROUTES.HOME" class="back-link">Home</a>
       <span class="breadcrumb-sep">›</span>
       <span class="breadcrumb-current">{{ l.title | slice: 0 : 40 }}</span>
     </div>
@@ -174,7 +174,11 @@
           </div>
           <div class="detail-meta">
             <span
-              >📍
+              ><span
+                class="material-symbols-rounded"
+                style="font-size: 16px; vertical-align: middle"
+                >location_on</span
+              >
               @if (l.location.area) {
                 {{ l.location.area }}
                 @if (l.location.blockPhase) {
@@ -242,7 +246,9 @@
         <div class="detail-section">
           <h3>Location</h3>
           <p class="location-label">
-            📍
+            <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
+              >location_on</span
+            >
             @if (l.location.area) {
               {{ l.location.area }}
               @if (l.location.blockPhase) {
@@ -253,17 +259,7 @@
             {{ l.location.city }}
           </p>
           <div class="map-container">
-            @if (getMapUrl(); as safeUrl) {
-              <iframe
-                [src]="safeUrl"
-                class="map-embed"
-                title="Map"
-                loading="lazy"
-                allowfullscreen
-              ></iframe>
-            } @else {
-              <div class="map-placeholder"><p>Map View Unavailable</p></div>
-            }
+            <div class="map-placeholder"><p>Map View Unavailable</p></div>
           </div>
         </div>
 
@@ -287,7 +283,14 @@
                   <div class="similar-info">
                     <span class="similar-price">PKR {{ item.price.amount | number }}</span>
                     <span class="similar-title">{{ item.title }}</span>
-                    <span class="similar-location">📍 {{ item.location.city }}</span>
+                    <span class="similar-location"
+                      ><span
+                        class="material-symbols-rounded"
+                        style="font-size: 16px; vertical-align: middle"
+                        >location_on</span
+                      >
+                      {{ item.location.city }}</span
+                    >
                   </div>
                 </a>
               }
@@ -357,10 +360,17 @@
               <span class="seller-name">Seller</span>
               @if (totalReviews() > 0) {
                 <span class="seller-rating"
-                  >⭐ {{ averageRating().toFixed(1) }} ({{ totalReviews() }} reviews)</span
+                  ><span
+                    class="material-symbols-rounded"
+                    style="font-size: 14px; vertical-align: middle"
+                    >star</span
+                  >
+                  {{ averageRating().toFixed(1) }} ({{ totalReviews() }} reviews)</span
                 >
               }
-              <span class="seller-since">Member since {{ sellerMemberSince() }}</span>
+              <span class="seller-since"
+                >Member since {{ listing()?.createdAt | date: 'yyyy' }}</span
+              >
               <app-verification-badges
                 [emailVerified]="listing()?.sellerEmailVerified ?? false"
                 [phoneVerified]="listing()?.sellerPhoneVerified ?? false"

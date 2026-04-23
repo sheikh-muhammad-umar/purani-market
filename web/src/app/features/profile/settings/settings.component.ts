@@ -7,6 +7,7 @@ import { ThemeService } from '../../../core/services/theme.service';
 import { User } from '../../../core/models/user.model';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-settings',
@@ -16,6 +17,7 @@ import { environment } from '../../../../environments/environment';
   styleUrl: './settings.component.scss',
 })
 export class SettingsComponent implements OnInit {
+  readonly ROUTES = ROUTES;
   user = signal<User | null>(null);
   loading = signal(false);
   successMessage = signal('');

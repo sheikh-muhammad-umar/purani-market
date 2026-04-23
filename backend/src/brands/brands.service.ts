@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Brand, BrandDocument } from './schemas/brand.schema.js';
 import { CreateBrandDto, UpdateBrandDto } from './dto/create-brand.dto.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 @Injectable()
 export class BrandsService {
@@ -34,7 +35,7 @@ export class BrandsService {
 
   async findById(id: string): Promise<BrandDocument> {
     const brand = await this.brandModel.findById(id).lean().exec();
-    if (!brand) throw new NotFoundException('Brand not found');
+    if (!brand) throw new NotFoundException(ERROR.BRAND_NOT_FOUND);
     return brand;
   }
 
@@ -51,12 +52,12 @@ export class BrandsService {
     const brand = await this.brandModel
       .findByIdAndUpdate(id, { $set: dto }, { new: true })
       .exec();
-    if (!brand) throw new NotFoundException('Brand not found');
+    if (!brand) throw new NotFoundException(ERROR.BRAND_NOT_FOUND);
     return brand;
   }
 
   async delete(id: string): Promise<void> {
     const result = await this.brandModel.findByIdAndDelete(id).exec();
-    if (!result) throw new NotFoundException('Brand not found');
+    if (!result) throw new NotFoundException(ERROR.BRAND_NOT_FOUND);
   }
 }

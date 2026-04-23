@@ -4,6 +4,9 @@ import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { User } from '../models';
 import { environment } from '../../../environments/environment';
+import { ROUTES } from '../constants/routes';
+import { API } from '../constants/api-endpoints';
+import { STORAGE_ACCESS_TOKEN, STORAGE_REFRESH_TOKEN } from '../constants/storage-keys';
 
 export interface LoginRequest {
   email?: string;
@@ -55,41 +58,47 @@ export class AuthService {
   // --- Authentication ---
 
   login(credentials: LoginRequest): Observable<LoginResponse> {
-    return this.http.post<LoginResponse>(`${this.apiUrl}/auth/login`, credentials);
+    return this.http.post<LoginResponse>(`${this.apiUrl}${API.AUTH_LOGIN}`, credentials);
   }
 
   register(data: RegisterRequest): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/register`, data);
+    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_REGISTER}`, data);
   }
 
   socialLogin(provider: 'google' | 'facebook', token: string): Observable<AuthTokens> {
-    return this.http.post<AuthTokens>(`${this.apiUrl}/auth/social-login`, { provider, token });
+    return this.http.post<AuthTokens>(`${this.apiUrl}${API.AUTH_SOCIAL_LOGIN}`, {
+      provider,
+      token,
+    });
   }
 
   refreshToken(): Observable<AuthTokens> {
     const refreshToken = this.getRefreshToken();
-    return this.http.post<AuthTokens>(`${this.apiUrl}/auth/refresh-token`, { refreshToken });
+    return this.http.post<AuthTokens>(`${this.apiUrl}${API.AUTH_REFRESH_TOKEN}`, { refreshToken });
   }
 
   logout(): void {
-    this.http.post(`${this.apiUrl}/auth/logout`, {}).subscribe();
+    this.http.post(`${this.apiUrl}${API.AUTH_LOGOUT}`, {}).subscribe();
     this.clearTokens();
     this.currentUser.set(null);
-    this.router.navigate(['/auth/login']);
+    this.router.navigate([ROUTES.AUTH_LOGIN]);
   }
 
   // --- Verification ---
 
   verifyEmail(token: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/verify-email`, { token });
+    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_VERIFY_EMAIL}`, { token });
   }
 
   verifyPhone(phone: string, code: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/verify-phone`, { phone, code });
+    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_VERIFY_PHONE}`, {
+      phone,
+      code,
+    });
   }
 
   resendVerification(emailOrPhone: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/resend-verification`, {
+    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_RESEND_VERIFICATION}`, {
       emailOrPhone,
     });
   }
@@ -97,11 +106,13 @@ export class AuthService {
   // --- Password Recovery ---
 
   forgotPassword(email: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/forgot-password`, { email });
+    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_FORGOT_PASSWORD}`, {
+      email,
+    });
   }
 
   resetPassword(token: string, newPassword: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/reset-password`, {
+    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_RESET_PASSWORD}`, {
       token,
       newPassword,
     });
@@ -110,43 +121,45 @@ export class AuthService {
   // --- MFA ---
 
   enableMfa(): Observable<MfaEnableResponse> {
-    return this.http.post<MfaEnableResponse>(`${this.apiUrl}/auth/mfa/enable`, {});
+    return this.http.post<MfaEnableResponse>(`${this.apiUrl}${API.AUTH_MFA_ENABLE}`, {});
   }
 
   verifyMfa(mfaToken: string, code: string): Observable<AuthTokens> {
-    return this.http.post<AuthTokens>(`${this.apiUrl}/auth/mfa/verify`, { mfaToken, code });
+    return this.http.post<AuthTokens>(`${this.apiUrl}${API.AUTH_MFA_VERIFY}`, { mfaToken, code });
   }
 
   // --- Phone Management ---
 
   addPhone(phone: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/change-phone`, {
+    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_CHANGE_PHONE}`, {
       newPhone: phone,
     });
   }
 
   verifyPhoneChange(otp: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}/auth/change-phone/verify`, { otp });
+    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_CHANGE_PHONE_VERIFY}`, {
+      otp,
+    });
   }
 
   // --- Token Management ---
 
   getAccessToken(): string | null {
-    return localStorage.getItem('access_token');
+    return localStorage.getItem(STORAGE_ACCESS_TOKEN);
   }
 
   getRefreshToken(): string | null {
-    return localStorage.getItem('refresh_token');
+    return localStorage.getItem(STORAGE_REFRESH_TOKEN);
   }
 
   storeTokens(tokens: AuthTokens): void {
-    localStorage.setItem('access_token', tokens.accessToken);
-    localStorage.setItem('refresh_token', tokens.refreshToken);
+    localStorage.setItem(STORAGE_ACCESS_TOKEN, tokens.accessToken);
+    localStorage.setItem(STORAGE_REFRESH_TOKEN, tokens.refreshToken);
   }
 
   clearTokens(): void {
-    localStorage.removeItem('access_token');
-    localStorage.removeItem('refresh_token');
+    localStorage.removeItem(STORAGE_ACCESS_TOKEN);
+    localStorage.removeItem(STORAGE_REFRESH_TOKEN);
   }
 
   setUser(user: User): void {
@@ -155,7 +168,7 @@ export class AuthService {
 
   fetchCurrentUser(): Observable<User> {
     return this.http
-      .get<User>(`${this.apiUrl}/users/me`)
+      .get<User>(`${this.apiUrl}${API.USERS_ME}`)
       .pipe(tap((user) => this.currentUser.set(user)));
   }
 

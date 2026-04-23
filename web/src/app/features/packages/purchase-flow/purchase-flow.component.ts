@@ -4,6 +4,14 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PackagesService } from '../../../core/services/packages.service';
 import { AdPackage, PaymentMethod } from '../../../core/models';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
+import {
+  PAYMENT_METHOD_CONFIG,
+  CURRENCY_SYMBOL,
+  PACKAGE_TYPE_LABELS,
+} from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
+import { PackageType } from '../../../core/constants/enums';
 
 export type PurchaseStep = 'details' | 'payment' | 'confirm';
 
@@ -15,6 +23,7 @@ export type PurchaseStep = 'details' | 'payment' | 'confirm';
   styleUrls: ['./purchase-flow.component.scss'],
 })
 export class PurchaseFlowComponent implements OnInit {
+  readonly ROUTES = ROUTES;
   readonly pkg = signal<AdPackage | null>(null);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -91,7 +100,7 @@ export class PurchaseFlowComponent implements OnInit {
       .subscribe({
         next: (res) => {
           this.purchasing.set(false);
-          this.tracker.track('package_purchase', {
+          this.tracker.track(TrackingEvent.PACKAGE_PURCHASE, {
             metadata: {
               packageId: this.packageId,
               packageName: this.pkg()?.name,
@@ -111,33 +120,19 @@ export class PurchaseFlowComponent implements OnInit {
   }
 
   formatPrice(price: number): string {
-    return `Rs ${price.toLocaleString()}`;
+    return `${CURRENCY_SYMBOL} ${price.toLocaleString()}`;
   }
 
   getTypeLabel(type: string): string {
-    return type === 'featured_ads' ? 'Featured Ads' : 'Ad Slots';
+    return PACKAGE_TYPE_LABELS[type] ?? type;
   }
 
   getPaymentMethodLabel(method: PaymentMethod): string {
-    switch (method) {
-      case 'jazzcash':
-        return 'JazzCash';
-      case 'easypaisa':
-        return 'EasyPaisa';
-      case 'card':
-        return 'Credit/Debit Card';
-    }
+    return PAYMENT_METHOD_CONFIG[method]?.label ?? method;
   }
 
   getPaymentMethodIcon(method: PaymentMethod): string {
-    switch (method) {
-      case 'jazzcash':
-        return '📱';
-      case 'easypaisa':
-        return '📲';
-      case 'card':
-        return '💳';
-    }
+    return PAYMENT_METHOD_CONFIG[method]?.icon ?? 'payments';
   }
 
   getStepNumber(): number {

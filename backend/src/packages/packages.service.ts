@@ -7,6 +7,7 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { DEFAULT_CURRENCY } from '../common/constants/index.js';
 import {
   AdPackage,
   AdPackageDocument,
@@ -27,6 +28,7 @@ import { PaymentsService } from '../payments/payments.service.js';
 import { PurchasePackageDto } from './dto/purchase-package.dto.js';
 import { CreatePackageDto } from './dto/create-package.dto.js';
 import { UpdatePackageDto } from './dto/update-package.dto.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 export interface PurchaseResult {
   purchases: PackagePurchaseDocument[];
@@ -79,12 +81,12 @@ export class PackagesService {
     dto: UpdatePackageDto,
   ): Promise<AdPackageDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('Package not found');
+      throw new NotFoundException(ERROR.PACKAGE_NOT_FOUND);
     }
 
     const pkg = await this.adPackageModel.findById(id).exec();
     if (!pkg) {
-      throw new NotFoundException('Package not found');
+      throw new NotFoundException(ERROR.PACKAGE_NOT_FOUND);
     }
 
     if (dto.name !== undefined) pkg.name = dto.name;
@@ -112,11 +114,11 @@ export class PackagesService {
 
   async findById(id: string): Promise<AdPackageDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('Package not found');
+      throw new NotFoundException(ERROR.PACKAGE_NOT_FOUND);
     }
     const pkg = await this.adPackageModel.findById(id).exec();
     if (!pkg) {
-      throw new NotFoundException('Package not found');
+      throw new NotFoundException(ERROR.PACKAGE_NOT_FOUND);
     }
     return pkg;
   }
@@ -175,7 +177,7 @@ export class PackagesService {
       dto.paymentMethod,
       {
         amount: totalAmount,
-        currency: 'PKR',
+        currency: DEFAULT_CURRENCY,
         purchaseIds,
         sellerId,
         callbackUrl: '/api/packages/payment-callback',
@@ -255,12 +257,12 @@ export class PackagesService {
     sellerId: string,
   ): Promise<ProductListingDocument> {
     if (!Types.ObjectId.isValid(listingId)) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     const listing = await this.listingModel.findById(listingId).exec();
     if (!listing) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     if (listing.sellerId.toString() !== sellerId) {
@@ -312,7 +314,7 @@ export class PackagesService {
   async checkAdLimit(sellerId: string): Promise<AdLimitCheck> {
     const user = await this.userModel.findById(sellerId).exec();
     if (!user) {
-      throw new NotFoundException('Seller not found');
+      throw new NotFoundException(ERROR.SELLER_NOT_FOUND);
     }
 
     const canPost = user.activeAdCount < user.adLimit;

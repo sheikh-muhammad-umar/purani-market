@@ -9,6 +9,10 @@ import {
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import {
+  CONDITION_FILTER_OPTIONS,
+  REVIEW_COUNT_OPTIONS,
+} from '../../../core/constants/select-options';
 
 @Component({
   selector: 'app-moderation-queue',
@@ -43,19 +47,9 @@ export class ModerationQueueComponent implements OnInit {
   filterReviewCount = '';
   filtersOpen = false;
 
-  conditionOptions: SelectOption[] = [
-    { value: '', label: 'All Conditions' },
-    { value: 'new', label: 'New' },
-    { value: 'used', label: 'Used' },
-    { value: 'refurbished', label: 'Refurbished' },
-  ];
+  conditionOptions = CONDITION_FILTER_OPTIONS;
 
-  reviewCountOptions: SelectOption[] = [
-    { value: '', label: 'All' },
-    { value: '0', label: 'First review' },
-    { value: '1', label: 'Resubmitted (2nd)' },
-    { value: '2', label: 'Resubmitted (3rd)' },
-  ];
+  reviewCountOptions = REVIEW_COUNT_OPTIONS;
 
   categoryOptions: SelectOption[] = [{ value: '', label: 'All Categories' }];
 

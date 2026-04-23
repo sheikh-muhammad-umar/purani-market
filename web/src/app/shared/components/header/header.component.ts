@@ -9,9 +9,13 @@ import { ThemeService } from '../../../core/services/theme.service';
 import { LocationService } from '../../../core/services/location.service';
 import { RecentSearchesService } from '../../../core/services/recent-searches.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { LoginModalService } from '../login-modal/login-modal.service';
 import { AppBannerComponent } from '../app-banner/app-banner.component';
 import { Province, City, Area } from '../../../core/models';
+import { STORAGE_SELECTED_LOCATION } from '../../../core/constants/storage-keys';
+import { DEFAULT_COUNTRY } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-header',
@@ -25,6 +29,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   accountMenuOpen = signal(false);
   unreadCount = signal(0);
   scrolled = signal(false);
+  readonly defaultCountry = DEFAULT_COUNTRY;
+  readonly ROUTES = ROUTES;
   private subs: Subscription[] = [];
 
   // Location selector state
@@ -39,7 +45,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   selectedProvince = signal<Province | null>(null);
   selectedCity = signal<City | null>(null);
   selectedArea = signal<Area | null>(null);
-  locationLabel = signal('Pakistan');
+  locationLabel = signal(DEFAULT_COUNTRY);
   locationSearch = signal('');
 
   filteredProvinces = computed(() => {
@@ -104,19 +110,19 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   get isAuthPage(): boolean {
-    return this.router.url.startsWith('/auth/');
+    return this.router.url.startsWith(ROUTES.AUTH);
   }
 
   get isMessagingPage(): boolean {
-    return this.router.url.startsWith('/messaging');
+    return this.router.url.startsWith(ROUTES.MESSAGING);
   }
 
   get isProfilePage(): boolean {
-    return this.router.url.startsWith('/profile');
+    return this.router.url.startsWith(ROUTES.PROFILE);
   }
 
   get isAdminPage(): boolean {
-    return this.router.url.startsWith('/admin');
+    return this.router.url.startsWith(ROUTES.ADMIN);
   }
 
   toggleMenu(): void {
@@ -140,7 +146,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     if (q) {
       this.recentSearches.add(q);
       this.searchDropdownOpen.set(false);
-      this.router.navigate(['/search'], { queryParams: { q } });
+      this.router.navigate([ROUTES.SEARCH], { queryParams: { q } });
     }
   }
 
@@ -283,7 +289,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.selectedArea.set(null);
     this.cities.set([]);
     this.areas.set([]);
-    this.applyLocation('Pakistan', 'Pakistan');
+    this.applyLocation(DEFAULT_COUNTRY, DEFAULT_COUNTRY);
   }
 
   /** "All <Province>" */
@@ -312,7 +318,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.locationLabel.set(fullLabel);
     this.locationDropdownOpen.set(false);
     this.saveLocationToStorage();
-    this.tracker.track('location_change', {
+    this.tracker.track(TrackingEvent.LOCATION_CHANGE, {
       metadata: { previousLocation, newLocation: fullLabel },
     });
     this.reloadCurrentPage();
@@ -328,7 +334,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.selectedArea.set(null);
     this.cities.set([]);
     this.areas.set([]);
-    this.locationLabel.set('Pakistan');
+    this.locationLabel.set(DEFAULT_COUNTRY);
     this.locationSearch.set('');
   }
 
@@ -336,13 +342,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.selectedCity.set(null);
     this.selectedArea.set(null);
     this.areas.set([]);
-    this.locationLabel.set(this.selectedProvince()?.name ?? 'Pakistan');
+    this.locationLabel.set(this.selectedProvince()?.name ?? DEFAULT_COUNTRY);
     this.locationSearch.set('');
   }
 
   goBackToAreas(): void {
     this.selectedArea.set(null);
-    this.locationLabel.set(this.selectedCity()?.name ?? 'Pakistan');
+    this.locationLabel.set(this.selectedCity()?.name ?? DEFAULT_COUNTRY);
     this.locationSearch.set('');
   }
 
@@ -357,7 +363,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
       city: this.selectedCity(),
       area: this.selectedArea(),
     };
-    localStorage.setItem('selected_location', JSON.stringify(state));
+    localStorage.setItem(STORAGE_SELECTED_LOCATION, JSON.stringify(state));
   }
 
   private reloadCurrentPage(): void {
@@ -370,7 +376,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private restoreLocationFromStorage(): void {
     try {
-      const raw = localStorage.getItem('selected_location');
+      const raw = localStorage.getItem(STORAGE_SELECTED_LOCATION);
       if (!raw) return;
       const state = JSON.parse(raw);
       if (state.label) this.locationLabel.set(state.label);
@@ -404,7 +410,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.closeMenu();
     this.closeAccountMenu();
     this.recentSearches.searches();
-    this.tracker.track('logout', { metadata: this.tracker.getDeviceInfo() });
+    this.tracker.track(TrackingEvent.LOGOUT, { metadata: this.tracker.getDeviceInfo() });
     // Small delay to let the track request fire before tokens are cleared
     setTimeout(() => {
       this.authService.logout();

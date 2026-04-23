@@ -15,6 +15,7 @@ import { LISTINGS_INDEX } from './search-index.service.js';
 import { SearchSyncService } from './search-sync.service.js';
 import { SearchQueryDto, SearchSortOption } from './dto/search-query.dto.js';
 import { SuggestionQueryDto } from './dto/suggestion-query.dto.js';
+import { CACHE_TTL_POPULAR_SEARCHES } from '../common/constants/index.js';
 
 export interface SearchResult {
   items: any[];
@@ -31,7 +32,6 @@ export interface SuggestionResult {
 }
 
 const POPULAR_SEARCHES_KEY = 'search:popular';
-const POPULAR_SEARCHES_TTL = 3600; // 1 hour
 
 @Injectable()
 export class SearchService {
@@ -585,7 +585,7 @@ export class SearchService {
     // Set TTL if key is new
     const ttl = await this.redis.ttl(POPULAR_SEARCHES_KEY);
     if (ttl === -1) {
-      await this.redis.expire(POPULAR_SEARCHES_KEY, POPULAR_SEARCHES_TTL);
+      await this.redis.expire(POPULAR_SEARCHES_KEY, CACHE_TTL_POPULAR_SEARCHES);
     }
   }
 

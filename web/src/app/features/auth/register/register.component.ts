@@ -10,6 +10,7 @@ import {
 } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-register',
@@ -19,6 +20,7 @@ import { AuthService } from '../../../core/auth/auth.service';
   styleUrl: './register.component.scss',
 })
 export class RegisterComponent {
+  readonly ROUTES = ROUTES;
   registerForm: FormGroup;
   usePhone = signal(false);
   loading = signal(false);

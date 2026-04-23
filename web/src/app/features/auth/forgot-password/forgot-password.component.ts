@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-forgot-password',
@@ -12,6 +13,7 @@ import { AuthService } from '../../../core/auth/auth.service';
   styleUrl: './forgot-password.component.scss',
 })
 export class ForgotPasswordComponent {
+  readonly ROUTES = ROUTES;
   forgotForm: FormGroup;
   loading = signal(false);
   errorMessage = signal('');

@@ -11,6 +11,7 @@ import {
   Favorite,
   FavoriteDocument,
 } from '../favorites/schemas/favorite.schema.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 export type NotificationType =
   | 'messages'
@@ -224,7 +225,7 @@ export class NotificationsService {
       .exec();
 
     if (!user) {
-      throw new Error('User not found');
+      throw new Error(ERROR.USER_NOT_FOUND);
     }
     return user;
   }

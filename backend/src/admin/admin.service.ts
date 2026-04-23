@@ -37,6 +37,7 @@ import {
   UserActivity,
   UserActivityDocument,
 } from '../ai/schemas/user-activity.schema.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 export interface PaginatedUsers {
   data: Record<string, unknown>[];
@@ -371,7 +372,7 @@ export class AdminService {
   ): Promise<UserDocument> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR.USER_NOT_FOUND);
     }
 
     user.status = status;
@@ -387,7 +388,7 @@ export class AdminService {
   async updateUserRole(userId: string, role: UserRole): Promise<UserDocument> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR.USER_NOT_FOUND);
     }
 
     user.role = role;
@@ -405,7 +406,7 @@ export class AdminService {
       .exec();
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR.USER_NOT_FOUND);
     }
 
     return user;
@@ -417,7 +418,7 @@ export class AdminService {
   ): Promise<UserDocument> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR.USER_NOT_FOUND);
     }
     if (user.role === UserRole.USER) {
       throw new ForbiddenException(
@@ -565,7 +566,7 @@ export class AdminService {
   async approveListing(listingId: string): Promise<ProductListingDocument> {
     const listing = await this.listingModel.findById(listingId).exec();
     if (!listing) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     listing.status = ListingStatus.ACTIVE;
@@ -581,7 +582,7 @@ export class AdminService {
   ): Promise<ProductListingDocument> {
     const listing = await this.listingModel.findById(listingId).exec();
     if (!listing) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     // Fetch reason titles for notification
@@ -778,7 +779,7 @@ export class AdminService {
   async getSellerAdInfo(sellerId: string): Promise<SellerAdInfo> {
     const user = await this.userModel.findById(sellerId).exec();
     if (!user) {
-      throw new NotFoundException('Seller not found');
+      throw new NotFoundException(ERROR.SELLER_NOT_FOUND);
     }
 
     const now = new Date();
@@ -974,13 +975,13 @@ export class AdminService {
     const reason = await this.rejectionReasonModel
       .findByIdAndUpdate(id, { $set: data }, { new: true })
       .exec();
-    if (!reason) throw new NotFoundException('Rejection reason not found');
+    if (!reason) throw new NotFoundException(ERROR.REJECTION_REASON_NOT_FOUND);
     return reason;
   }
 
   async deleteRejectionReason(id: string): Promise<void> {
     const result = await this.rejectionReasonModel.findByIdAndDelete(id).exec();
-    if (!result) throw new NotFoundException('Rejection reason not found');
+    if (!result) throw new NotFoundException(ERROR.REJECTION_REASON_NOT_FOUND);
   }
 
   // ── App Banner Stats ─────────────────────────────────────────────
@@ -1089,12 +1090,12 @@ export class AdminService {
     const reason = await this.deletionReasonModel
       .findByIdAndUpdate(id, { $set: data }, { new: true })
       .exec();
-    if (!reason) throw new NotFoundException('Deletion reason not found');
+    if (!reason) throw new NotFoundException(ERROR.DELETION_REASON_NOT_FOUND);
     return reason;
   }
 
   async deleteDeletionReason(id: string): Promise<void> {
     const result = await this.deletionReasonModel.findByIdAndDelete(id).exec();
-    if (!result) throw new NotFoundException('Deletion reason not found');
+    if (!result) throw new NotFoundException(ERROR.DELETION_REASON_NOT_FOUND);
   }
 }

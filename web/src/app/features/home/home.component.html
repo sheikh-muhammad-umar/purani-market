@@ -8,8 +8,10 @@
         way to discover what you need.
       </p>
       <div class="hero-actions">
-        <a routerLink="/search" class="btn btn-primary hero-btn">Browse Listings</a>
-        <a routerLink="/categories" class="btn btn-outline hero-btn-outline">Learn How It Works</a>
+        <a [routerLink]="ROUTES.SEARCH" class="btn btn-primary hero-btn">Browse Listings</a>
+        <a [routerLink]="ROUTES.CATEGORIES" class="btn btn-outline hero-btn-outline"
+          >Learn How It Works</a
+        >
       </div>
     </div>
   </section>
@@ -51,7 +53,7 @@
         >
         Featured Ads
       </h2>
-      <a routerLink="/search" [queryParams]="{ featured: true }" class="see-all-link">
+      <a [routerLink]="ROUTES.SEARCH" [queryParams]="{ featured: true }" class="see-all-link">
         See all →
       </a>
     </div>
@@ -85,7 +87,14 @@
                 {{ listing.price.amount | priceFormat: listing.price.currency }}
               </p>
               <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
-              <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
+              <p class="listing-location">
+                <span
+                  class="material-symbols-rounded"
+                  style="font-size: 16px; vertical-align: middle"
+                  >location_on</span
+                >
+                {{ listing.location.city || 'Unknown' }}
+              </p>
             </div>
           </a>
         }
@@ -107,7 +116,7 @@
         >
         Recommended for You
       </h2>
-      <a routerLink="/search" class="see-all-link">See all →</a>
+      <a [routerLink]="ROUTES.SEARCH" class="see-all-link">See all →</a>
     </div>
     @if (loadingRecommendations()) {
       <div class="masonry-grid">
@@ -138,7 +147,14 @@
                 {{ listing.price.amount | priceFormat: listing.price.currency }}
               </p>
               <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
-              <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
+              <p class="listing-location">
+                <span
+                  class="material-symbols-rounded"
+                  style="font-size: 16px; vertical-align: middle"
+                  >location_on</span
+                >
+                {{ listing.location.city || 'Unknown' }}
+              </p>
             </div>
           </a>
         }
@@ -165,7 +181,9 @@
           <span class="city-label">({{ userCity() }})</span>
         }
       </h2>
-      <a routerLink="/search" [queryParams]="{ nearby: true }" class="see-all-link"> See all → </a>
+      <a [routerLink]="ROUTES.SEARCH" [queryParams]="{ nearby: true }" class="see-all-link">
+        See all →
+      </a>
     </div>
     @if (loadingNearby()) {
       <div class="carousel-scroll">
@@ -195,7 +213,12 @@
               </p>
               <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
               <p class="listing-location">
-                📍 {{ listing.location.city || 'Unknown' }}, {{ listing.location.area || '' }}
+                <span
+                  class="material-symbols-rounded"
+                  style="font-size: 16px; vertical-align: middle"
+                  >location_on</span
+                >
+                {{ listing.location.city || 'Unknown' }}, {{ listing.location.area || '' }}
               </p>
             </div>
           </a>
@@ -211,7 +234,7 @@
 
   <!-- Floating Post Ad Button -->
   @if (authService.isAuthenticated()) {
-    <a routerLink="/listings/create" class="fab-post-ad" aria-label="Post a new ad">
+    <a [routerLink]="ROUTES.LISTINGS_CREATE" class="fab-post-ad" aria-label="Post a new ad">
       <span aria-hidden="true">+</span>
     </a>
   }

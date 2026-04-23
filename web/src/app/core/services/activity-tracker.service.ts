@@ -1,8 +1,9 @@
 import { Injectable } from '@angular/core';
 import { ApiService } from './api.service';
 import { AuthService } from '../auth/auth.service';
-import { UserAction } from '../enums/tracking-events';
+import { UserAction, ANONYMOUS_TRACKED_ACTIONS, TrackingEvent } from '../enums/tracking-events';
 import { STORAGE_SELECTED_LOCATION } from '../constants/storage-keys';
+import { API } from '../constants/api-endpoints';
 
 export type { UserAction } from '../enums/tracking-events';
 
@@ -22,17 +23,20 @@ export class ActivityTrackerService {
       metadata?: Record<string, any>;
     },
   ): void {
-    // Only track for authenticated users
-    if (!this.auth.isAuthenticated()) return;
+    // Always track for authenticated users
+    // For anonymous users, only track key browsing actions
+    if (!this.auth.isAuthenticated() && !ANONYMOUS_TRACKED_ACTIONS.has(action)) {
+      return;
+    }
 
-    this.api.post('/track', { action, ...data }).subscribe({
+    this.api.post(API.TRACK, { action, ...data }).subscribe({
       error: () => {}, // silently fail — tracking should never block UX
     });
   }
 
   /** Track events for all users (authenticated or not) — used for conversion funnels */
   trackAnonymous(action: UserAction, metadata?: Record<string, any>): void {
-    this.api.post('/track', { action, metadata }).subscribe({
+    this.api.post(API.TRACK, { action, metadata }).subscribe({
       error: () => {},
     });
   }
@@ -84,8 +88,8 @@ export class ActivityTrackerService {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           this.api
-            .post('/track', {
-              action: 'login' as UserAction,
+            .post(API.TRACK, {
+              action: TrackingEvent.LOGIN as UserAction,
               metadata: {
                 ...metadata,
                 geoLat: pos.coords.latitude,
@@ -98,14 +102,14 @@ export class ActivityTrackerService {
         () => {
           // Permission denied or error — track without geo
           this.api
-            .post('/track', { action: 'login' as UserAction, metadata })
+            .post(API.TRACK, { action: TrackingEvent.LOGIN as UserAction, metadata })
             .subscribe({ error: () => {} });
         },
         { timeout: 5000, maximumAge: 300000 },
       );
     } else {
       this.api
-        .post('/track', { action: 'login' as UserAction, metadata })
+        .post(API.TRACK, { action: TrackingEvent.LOGIN as UserAction, metadata })
         .subscribe({ error: () => {} });
     }
   }

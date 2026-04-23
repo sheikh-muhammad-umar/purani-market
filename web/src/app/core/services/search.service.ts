@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { Listing } from '../models';
+import { API } from '../constants/api-endpoints';
 
 export interface SearchParams {
   q?: string;
@@ -43,10 +44,10 @@ export class SearchService {
         cleanParams[key] = value;
       }
     });
-    return this.api.get<SearchResponse>('/search', cleanParams);
+    return this.api.get<SearchResponse>(API.SEARCH, cleanParams);
   }
 
   getSuggestions(query: string): Observable<SearchSuggestion[]> {
-    return this.api.get<SearchSuggestion[]>('/search/suggestions', { q: query });
+    return this.api.get<SearchSuggestion[]>(API.SEARCH_SUGGESTIONS, { q: query });
   }
 }

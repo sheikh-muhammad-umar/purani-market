@@ -13,6 +13,7 @@ import {
 } from './schemas/product-listing.schema.js';
 import { StorageService, UploadResult } from './storage.service.js';
 import { MediaType } from './dto/upload-media.dto.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 export const ALLOWED_IMAGE_MIMETYPES = [
   'image/jpeg',
@@ -171,11 +172,11 @@ export class MediaService {
     listingId: string,
   ): Promise<ProductListingDocument> {
     if (!Types.ObjectId.isValid(listingId)) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
     const listing = await this.listingModel.findById(listingId).exec();
     if (!listing) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
     return listing;
   }

@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { AuthService, MfaEnableResponse } from '../../../core/auth/auth.service';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-mfa',
@@ -12,6 +13,7 @@ import { AuthService, MfaEnableResponse } from '../../../core/auth/auth.service'
   styleUrl: './mfa.component.scss',
 })
 export class MfaComponent implements OnInit {
+  readonly ROUTES = ROUTES;
   mfaForm: FormGroup;
   loading = signal(false);
   errorMessage = signal('');
@@ -75,7 +77,7 @@ export class MfaComponent implements OnInit {
         this.loading.set(false);
         this.authService.storeTokens(tokens);
         this.authService.fetchCurrentUser().subscribe(() => {
-          this.router.navigate(['/']);
+          this.router.navigate([ROUTES.HOME]);
         });
       },
       error: (err) => {

@@ -131,9 +131,9 @@
               <div class="form-group">
                 <label class="form-label" for="condition">Condition *</label>
                 <select id="condition" class="form-input" formControlName="condition">
-                  <option value="new">New</option>
-                  <option value="used">Used</option>
-                  <option value="refurbished">Refurbished</option>
+                  @for (opt of conditionOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
                 </select>
               </div>
             </div>
@@ -275,7 +275,14 @@
               <label class="checkbox-label feature-toggle">
                 <input type="checkbox" [checked]="featureAd()" (change)="toggleFeatureAd()" />
                 <div>
-                  <strong>⭐ Feature this ad</strong>
+                  <strong
+                    ><span
+                      class="material-symbols-rounded"
+                      style="font-size: 14px; vertical-align: middle"
+                      >star</span
+                    >
+                    Feature this ad</strong
+                  >
                   <p class="feature-desc">Featured ads appear at the top of search results</p>
                 </div>
               </label>

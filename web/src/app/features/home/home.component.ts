@@ -10,6 +10,14 @@ import { TruncateTextPipe } from '../../shared/pipes/truncate-text.pipe';
 import { ListingUrlPipe } from '../../shared/pipes/listing-url.pipe';
 import { CategoryModalComponent } from '../../shared/components/category-modal/category-modal.component';
 import { Category, Listing } from '../../core/models';
+import { STORAGE_SELECTED_LOCATION } from '../../core/constants/storage-keys';
+import {
+  DEFAULT_COUNTRY,
+  PLACEHOLDER_IMAGE,
+  CATEGORY_ICONS_PATH,
+  DEFAULT_CATEGORY_ICON,
+} from '../../core/constants/app';
+import { ROUTES } from '../../core/constants/routes';
 
 interface CategoryChip {
   id: string;
@@ -33,6 +41,7 @@ interface CategoryChip {
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit {
+  readonly ROUTES = ROUTES;
   readonly categories = signal<Category[]>([]);
   readonly featuredListings = signal<Listing[]>([]);
   readonly recommendations = signal<Listing[]>([]);
@@ -53,7 +62,7 @@ export class HomeComponent implements OnInit {
       .map((c) => ({
         id: c._id,
         name: c.name,
-        iconUrl: c.icon ? `assets/category-icons/${c.icon}` : 'assets/category-icons/default.jpg',
+        iconUrl: c.icon ? `${CATEGORY_ICONS_PATH}/${c.icon}` : DEFAULT_CATEGORY_ICON,
         slug: c.slug,
       })),
   );
@@ -73,9 +82,7 @@ export class HomeComponent implements OnInit {
   }
 
   getListingImage(listing: Listing): string {
-    return (
-      listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png'
-    );
+    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || PLACEHOLDER_IMAGE;
   }
 
   openCategoryModal(chip: CategoryChip): void {
@@ -103,10 +110,10 @@ export class HomeComponent implements OnInit {
     // Get city from selected location for filtering
     let city: string | undefined;
     try {
-      const locRaw = localStorage.getItem('selected_location');
+      const locRaw = localStorage.getItem(STORAGE_SELECTED_LOCATION);
       if (locRaw) {
         const loc = JSON.parse(locRaw);
-        if (loc.label && loc.label !== 'Pakistan') {
+        if (loc.label && loc.label !== DEFAULT_COUNTRY) {
           city = loc.city?.name;
         }
       }
@@ -162,10 +169,10 @@ export class HomeComponent implements OnInit {
   private loadNearby(): void {
     // Use selected location from localStorage
     try {
-      const locRaw = localStorage.getItem('selected_location');
+      const locRaw = localStorage.getItem(STORAGE_SELECTED_LOCATION);
       if (locRaw) {
         const loc = JSON.parse(locRaw);
-        if (loc.label && loc.label !== 'Pakistan') {
+        if (loc.label && loc.label !== DEFAULT_COUNTRY) {
           if (loc.city?.name) this.userCity.set(loc.city.name);
           this.listingsService
             .getNearby({

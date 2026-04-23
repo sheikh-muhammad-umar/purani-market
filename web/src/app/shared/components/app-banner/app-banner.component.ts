@@ -1,11 +1,20 @@
 import { Component, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { environment } from '../../../../environments/environment';
 import {
   STORAGE_APP_BANNER_DISMISSED,
   STORAGE_APP_BANNER_SHOWN,
 } from '../../../core/constants/storage-keys';
+import {
+  UA_MOBILE_PATTERN,
+  UA_HUAWEI_PATTERN,
+  UA_IOS_PATTERN,
+  PLATFORM_IOS,
+  PLATFORM_ANDROID,
+  PLATFORM_HUAWEI,
+} from '../../../core/constants/app';
 
 @Component({
   selector: 'app-banner',
@@ -140,7 +149,7 @@ export class AppBannerComponent {
       }
 
       const ua = navigator.userAgent.toLowerCase();
-      const isMobile = /android|iphone|ipad|ipod/i.test(ua);
+      const isMobile = UA_MOBILE_PATTERN.test(ua);
 
       if (isMobile) {
         this.platform = this.detectPlatform(ua);
@@ -150,14 +159,14 @@ export class AppBannerComponent {
         // Track impression once per session
         if (!sessionStorage.getItem(STORAGE_APP_BANNER_SHOWN)) {
           sessionStorage.setItem(STORAGE_APP_BANNER_SHOWN, '1');
-          this.tracker.trackAnonymous('app_banner_shown', { platform: this.platform });
+          this.tracker.trackAnonymous(TrackingEvent.APP_BANNER_SHOWN, { platform: this.platform });
         }
       }
     }
   }
 
   onStoreClick(): void {
-    this.tracker.trackAnonymous('app_banner_click', {
+    this.tracker.trackAnonymous(TrackingEvent.APP_BANNER_CLICK, {
       platform: this.platform,
       store: this.storeLink,
     });
@@ -166,18 +175,18 @@ export class AppBannerComponent {
   dismiss(): void {
     this.visible.set(false);
     localStorage.setItem(STORAGE_APP_BANNER_DISMISSED, String(Date.now()));
-    this.tracker.trackAnonymous('app_banner_dismiss', { platform: this.platform });
+    this.tracker.trackAnonymous(TrackingEvent.APP_BANNER_DISMISS, { platform: this.platform });
   }
 
   private detectPlatform(ua: string): string {
-    if (/huawei|hmscore/i.test(ua)) return 'huawei';
-    if (/iphone|ipad|ipod/i.test(ua)) return 'ios';
-    return 'android';
+    if (UA_HUAWEI_PATTERN.test(ua)) return PLATFORM_HUAWEI;
+    if (UA_IOS_PATTERN.test(ua)) return PLATFORM_IOS;
+    return PLATFORM_ANDROID;
   }
 
   private getStoreLink(platform: string): string {
-    if (platform === 'huawei') return environment.appGalleryUrl;
-    if (platform === 'ios') return environment.appStoreUrl;
+    if (platform === PLATFORM_HUAWEI) return environment.appGalleryUrl;
+    if (platform === PLATFORM_IOS) return environment.appStoreUrl;
     return environment.playStoreUrl;
   }
 }

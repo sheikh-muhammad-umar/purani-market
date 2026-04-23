@@ -4,6 +4,10 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { Router } from '@angular/router';
 import { AuthService, AuthTokens } from '../../../core/auth/auth.service';
 import { LoginModalService } from './login-modal.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
+import { ROUTES } from '../../../core/constants/routes';
+import { LOGIN_METHOD_EMAIL } from '../../../core/constants/app';
 
 @Component({
   selector: 'app-login-modal',
@@ -22,6 +26,7 @@ export class LoginModalComponent {
     private readonly authService: AuthService,
     readonly modalService: LoginModalService,
     private readonly router: Router,
+    private readonly tracker: ActivityTrackerService,
   ) {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
@@ -63,18 +68,27 @@ export class LoginModalComponent {
       },
       error: (err) => {
         this.loading.set(false);
-        this.errorMessage.set(err.error?.message || 'Invalid credentials. Please try again.');
+        const message = err.error?.message || 'Invalid credentials. Please try again.';
+        this.errorMessage.set(message);
+        this.tracker.trackAnonymous(TrackingEvent.LOGIN_FAILED, {
+          method: LOGIN_METHOD_EMAIL,
+          identifier: this.loginForm.value.email,
+          errorMessage: message,
+          statusCode: err.status,
+          ...this.tracker.getDeviceInfo(),
+          timestamp: new Date().toISOString(),
+        });
       },
     });
   }
 
   goToRegister(): void {
     this.close();
-    this.router.navigate(['/auth/register']);
+    this.router.navigate([ROUTES.AUTH_REGISTER]);
   }
 
   goToForgotPassword(): void {
     this.close();
-    this.router.navigate(['/auth/forgot-password']);
+    this.router.navigate([ROUTES.AUTH_FORGOT_PASSWORD]);
   }
 }

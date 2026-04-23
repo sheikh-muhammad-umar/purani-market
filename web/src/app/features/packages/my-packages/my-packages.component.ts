@@ -8,6 +8,8 @@ import {
   PackageType as PackageTypeEnum,
   PaymentMethod as PaymentMethodEnum,
 } from '../../../core/constants/enums';
+import { CURRENCY_SYMBOL, PAYMENT_METHOD_CONFIG } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-my-packages',
@@ -17,6 +19,7 @@ import {
   styleUrls: ['./my-packages.component.scss'],
 })
 export class MyPackagesComponent implements OnInit {
+  readonly ROUTES = ROUTES;
   readonly purchases = signal<PackagePurchase[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -89,7 +92,7 @@ export class MyPackagesComponent implements OnInit {
   }
 
   formatPrice(price: number): string {
-    return `Rs ${price.toLocaleString()}`;
+    return `${CURRENCY_SYMBOL} ${price.toLocaleString()}`;
   }
 
   formatDate(date: Date | string | undefined): string {
@@ -108,15 +111,6 @@ export class MyPackagesComponent implements OnInit {
   }
 
   getPaymentMethodLabel(method: string): string {
-    switch (method) {
-      case PaymentMethodEnum.JAZZCASH:
-        return 'JazzCash';
-      case PaymentMethodEnum.EASYPAISA:
-        return 'EasyPaisa';
-      case PaymentMethodEnum.CARD:
-        return 'Card';
-      default:
-        return method;
-    }
+    return PAYMENT_METHOD_CONFIG[method]?.label ?? method;
   }
 }

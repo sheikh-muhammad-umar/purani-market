@@ -19,7 +19,7 @@
       </div>
     } @else if (error()) {
       <div class="error-state">
-        <span class="error-icon">⚠️</span>
+        <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
         <p>{{ error() }}</p>
         <button class="btn btn-primary" (click)="loadFavorites()">Retry</button>
       </div>
@@ -28,7 +28,7 @@
         <span class="empty-icon">💜</span>
         <h3>No favorites yet</h3>
         <p>Browse listings and tap the heart icon to save your favorites here</p>
-        <a routerLink="/search" class="btn btn-primary">Browse Listings</a>
+        <a [routerLink]="ROUTES.SEARCH" class="btn btn-primary">Browse Listings</a>
       </div>
     } @else {
       <div class="favorites-grid grid">
@@ -52,7 +52,7 @@
                   @if (removingId() === favorite._id) {
                     <span class="spinner"></span>
                   } @else {
-                    ❤️
+                    <span class="material-symbols-rounded">favorite</span>
                   }
                 </button>
               </div>
@@ -63,7 +63,14 @@
                 <span class="card-price price">{{ formatPrice(listing) }}</span>
                 <div class="card-meta">
                   @if (listing.location.city) {
-                    <span class="card-location">📍 {{ listing.location.city }}</span>
+                    <span class="card-location"
+                      ><span
+                        class="material-symbols-rounded"
+                        style="font-size: 16px; vertical-align: middle"
+                        >location_on</span
+                      >
+                      {{ listing.location.city }}</span
+                    >
                   }
                   <span class="card-condition">{{ listing.condition }}</span>
                 </div>

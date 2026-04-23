@@ -28,13 +28,13 @@
       <div class="loading-center"><div class="spinner spinner-lg"></div></div>
     } @else if (error()) {
       <div class="error-state">
-        <span class="error-icon">⚠️</span>
+        <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
         <p>{{ error() }}</p>
         <button class="btn btn-primary" (click)="loadReviews()">Retry</button>
       </div>
     } @else if (reviews().length === 0) {
       <div class="empty-state">
-        <span class="empty-icon">⭐</span>
+        <span class="empty-icon"><span class="material-symbols-rounded">star</span></span>
         <h3>No reviews yet</h3>
         <p>Be the first to leave a review</p>
       </div>

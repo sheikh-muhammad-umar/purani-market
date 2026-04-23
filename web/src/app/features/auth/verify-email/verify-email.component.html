@@ -11,7 +11,7 @@
       <div class="alert alert-success" role="alert">Your email has been verified successfully!</div>
       <p class="info-text">You now have full access to the marketplace.</p>
       <a
-        routerLink="/auth/login"
+        [routerLink]="ROUTES.AUTH_LOGIN"
         class="btn btn-primary btn-full"
         style="margin-top: var(--space-2); text-align: center; display: block"
       >
@@ -40,7 +40,7 @@
     }
 
     <p class="auth-footer">
-      <a routerLink="/auth/login">Back to Sign In</a>
+      <a [routerLink]="ROUTES.AUTH_LOGIN">Back to Sign In</a>
     </p>
   </div>
 </div>

@@ -11,6 +11,12 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { createHash } from 'crypto';
 import {
+  DEFAULT_CURRENCY,
+  VIEW_DEDUP_PREFIX,
+  VIEW_DEDUP_WINDOW_SECONDS,
+} from '../common/constants/index.js';
+import { ERROR } from '../common/constants/error-messages.js';
+import {
   ProductListing,
   ProductListingDocument,
   ListingStatus,
@@ -182,16 +188,16 @@ export class ListingsService {
 
   async findById(id: string | Types.ObjectId): Promise<ProductListingDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
     const listing = await this.listingModel.findById(id).exec();
     if (!listing) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
     return listing;
   }
 
-  private static readonly VIEW_WINDOW_SECONDS = 1800; // 30 minutes
+  private static readonly VIEW_WINDOW_SECONDS = VIEW_DEDUP_WINDOW_SECONDS; // 30 minutes
 
   async findByIdAndIncrementViews(
     id: string,
@@ -200,16 +206,16 @@ export class ListingsService {
     req?: any,
   ): Promise<ProductListingDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
     const listing = await this.listingModel.findById(id).exec();
     if (!listing) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     // Deleted listings are never visible
     if (listing.status === ListingStatus.DELETED) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     // Only active/sold listings are publicly visible
@@ -222,13 +228,13 @@ export class ListingsService {
       !isOwner &&
       !isAdmin
     ) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     // Increment views only for active listings, deduplicated per visitor
     if (listing.status === ListingStatus.ACTIVE && !isOwner && !isAdmin) {
       const visitorId = this.getVisitorId(requesterId, req);
-      const viewKey = `view:${id}:${visitorId}`;
+      const viewKey = `${VIEW_DEDUP_PREFIX}:${id}:${visitorId}`;
 
       try {
         // SET NX = only set if key doesn't exist, EX = expire after window
@@ -320,7 +326,7 @@ export class ListingsService {
     if (dto.price !== undefined) {
       updateFields.price = {
         amount: dto.price.amount,
-        currency: dto.price.currency ?? 'PKR',
+        currency: dto.price.currency ?? DEFAULT_CURRENCY,
       };
     }
     if (dto.images !== undefined) {
@@ -379,7 +385,7 @@ export class ListingsService {
       .findByIdAndUpdate(id, { $set: updateFields }, { new: true })
       .exec();
     if (!updated) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
     this.syncToEs(updated);
     return updated;
@@ -405,7 +411,7 @@ export class ListingsService {
       )
       .exec();
     if (!updated) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
     this.syncToEs(updated);
     return updated;
@@ -438,7 +444,7 @@ export class ListingsService {
       .findByIdAndUpdate(id, { $set: updateData }, { new: true })
       .exec();
     if (!updated) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
     await this.userModel
       .updateOne({ _id: listing.sellerId }, { $inc: { activeAdCount: -1 } })
@@ -483,7 +489,7 @@ export class ListingsService {
       )
       .exec();
     if (!updated) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
     return updated;
   }
@@ -495,17 +501,17 @@ export class ListingsService {
   ): Promise<ProductListingDocument> {
     this.validateNoPhoneNumbers(dto.title, dto.description);
     if (!Types.ObjectId.isValid(dto.categoryId)) {
-      throw new BadRequestException('Invalid category ID');
+      throw new BadRequestException(ERROR.INVALID_CATEGORY_ID);
     }
     const category = await this.categoryModel.findById(dto.categoryId).exec();
     if (!category) {
-      throw new BadRequestException('Category not found');
+      throw new BadRequestException(ERROR.CATEGORY_NOT_FOUND);
     }
     this.validateCategoryAttributes(dto.categoryAttributes ?? {}, category);
     const categoryPath = await this.buildCategoryPath(category);
     const seller = await this.userModel.findById(sellerId).exec();
     if (!seller) {
-      throw new NotFoundException('Seller not found');
+      throw new NotFoundException(ERROR.SELLER_NOT_FOUND);
     }
     if (seller.activeAdCount >= seller.adLimit) {
       throw new ForbiddenException(
@@ -526,7 +532,7 @@ export class ListingsService {
       description: dto.description,
       price: {
         amount: dto.price.amount,
-        currency: dto.price.currency ?? 'PKR',
+        currency: dto.price.currency ?? DEFAULT_CURRENCY,
       },
       categoryId: new Types.ObjectId(dto.categoryId),
       categoryPath,

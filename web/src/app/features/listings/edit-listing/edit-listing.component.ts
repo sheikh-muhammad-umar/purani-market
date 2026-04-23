@@ -13,6 +13,11 @@ import { ListingsService, CreateListingPayload } from '../../../core/services/li
 import { Category, CategoryAttribute, Listing } from '../../../core/models';
 import { extractIdFromSlug, listingSlug } from '../../../core/utils/slug';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
+import { DEFAULT_CURRENCY } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
+import { ListingCondition } from '../../../core/constants';
+import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
 
 @Component({
   selector: 'app-edit-listing',
@@ -22,6 +27,8 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
   styleUrls: ['../create-listing/create-listing.component.scss'],
 })
 export class EditListingComponent implements OnInit {
+  readonly conditionOptions = CONDITION_OPTIONS;
+
   listingId = '';
   listing = signal<Listing | null>(null);
   loading = signal(true);
@@ -68,7 +75,7 @@ export class EditListingComponent implements OnInit {
       title: ['', [Validators.required, Validators.maxLength(150)]],
       description: ['', [Validators.required, Validators.maxLength(5000)]],
       price: [null, [Validators.required, Validators.min(1)]],
-      condition: ['used', Validators.required],
+      condition: [ListingCondition.USED, Validators.required],
     });
 
     this.locationForm = this.fb.group({
@@ -287,7 +294,7 @@ export class EditListingComponent implements OnInit {
     const payload: Partial<CreateListingPayload> = {
       title: details.title,
       description: details.description,
-      price: { amount: details.price, currency: 'PKR' },
+      price: { amount: details.price, currency: DEFAULT_CURRENCY },
       categoryId: cat._id,
       categoryPath: this.buildCategoryPathIds(),
       condition: details.condition,
@@ -309,12 +316,12 @@ export class EditListingComponent implements OnInit {
           changes['condition'] = { from: original?.condition, to: details.condition };
         if (original?.location?.city !== loc.city)
           changes['city'] = { from: original?.location?.city, to: loc.city };
-        this.tracker.track('listing_edit', {
+        this.tracker.track(TrackingEvent.LISTING_EDIT, {
           productListingId: this.listingId,
           metadata: { title: details.title, changes },
         });
         const title = this.detailsForm.get('title')?.value ?? '';
-        this.router.navigate(['/listings', listingSlug({ _id: this.listingId, title })]);
+        this.router.navigate([ROUTES.LISTINGS, listingSlug({ _id: this.listingId, title })]);
       },
       error: (err) => {
         this.submitting.set(false);

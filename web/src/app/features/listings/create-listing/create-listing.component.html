@@ -9,7 +9,9 @@
   <div class="wizard-page">
     <div class="wizard-container">
       <div class="phone-verify-card">
-        <div class="phone-verify-icon">📱</div>
+        <div class="phone-verify-icon">
+          <span class="material-symbols-rounded">smartphone</span>
+        </div>
         <h2>Verify Your Phone Number</h2>
         <p class="phone-verify-desc">
           A verified phone number is required to post ads. Your phone number will be shown to buyers
@@ -294,14 +296,14 @@
                   </button>
                   @if (openDropdown() === 'condition') {
                     <div class="custom-select-dropdown">
-                      @for (opt of ['new', 'used', 'refurbished']; track opt) {
+                      @for (opt of conditionOptions; track opt.value) {
                         <button
                           type="button"
                           class="custom-select-option"
-                          [class.active]="detailsForm.get('condition')?.value === opt"
-                          (click)="selectCondition(opt)"
+                          [class.active]="detailsForm.get('condition')?.value === opt.value"
+                          (click)="selectCondition(opt.value.toString())"
                         >
-                          {{ opt | titlecase }}
+                          {{ opt.label }}
                         </button>
                       }
                     </div>
@@ -878,7 +880,14 @@
                   [disabled]="featuredSlotsRemaining() <= 0"
                 />
                 <div>
-                  <strong>⭐ Feature this ad</strong>
+                  <strong
+                    ><span
+                      class="material-symbols-rounded"
+                      style="font-size: 14px; vertical-align: middle"
+                      >star</span
+                    >
+                    Feature this ad</strong
+                  >
                   @if (featuredSlotsRemaining() > 0) {
                     <p class="feature-desc">
                       Featured ads appear at the top of search results and get more visibility ({{
@@ -888,8 +897,8 @@
                     </p>
                   } @else {
                     <p class="feature-desc feature-no-slots">
-                      You have no featured ad slots. <a routerLink="/packages">Buy a package</a> to
-                      feature your ads.
+                      You have no featured ad slots.
+                      <a [routerLink]="ROUTES.PACKAGES">Buy a package</a> to feature your ads.
                     </p>
                   }
                 </div>

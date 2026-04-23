@@ -5,7 +5,7 @@
         <h1>Ad Packages</h1>
         <p class="subtitle">Boost your listings with featured ads or get more ad slots</p>
       </div>
-      <a routerLink="/packages/my" class="btn btn-outline">My Packages</a>
+      <a [routerLink]="ROUTES.PACKAGES_MY" class="btn btn-outline">My Packages</a>
     </div>
 
     <div class="filter-bar">
@@ -22,14 +22,20 @@
           [class.active]="selectedType() === 'featured_ads'"
           (click)="setType('featured_ads')"
         >
-          ⭐ Featured Ads
+          <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle"
+            >star</span
+          >
+          Featured Ads
         </button>
         <button
           class="filter-chip"
           [class.active]="selectedType() === 'ad_slots'"
           (click)="setType('ad_slots')"
         >
-          📦 Ad Slots
+          <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
+            >inventory_2</span
+          >
+          Ad Slots
         </button>
       </div>
       <div class="duration-filters">
@@ -81,13 +87,13 @@
       </div>
     } @else if (error()) {
       <div class="error-state">
-        <span class="error-icon">⚠️</span>
+        <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
         <p>{{ error() }}</p>
         <button class="btn btn-primary" (click)="loadPackages()">Retry</button>
       </div>
     } @else if (filteredPackages().length === 0) {
       <div class="empty-state">
-        <span class="empty-icon">📦</span>
+        <span class="empty-icon"><span class="material-symbols-rounded">inventory_2</span></span>
         <h3>No packages available</h3>
         <p>Check back later for new package offerings</p>
       </div>
@@ -101,7 +107,12 @@
                 [class.badge-featured]="pkg.type === 'featured_ads'"
                 [class.badge-success]="pkg.type === 'ad_slots'"
               >
-                {{ getTypeIcon(pkg.type) }} {{ getTypeLabel(pkg.type) }}
+                <span
+                  class="material-symbols-rounded"
+                  style="font-size: 16px; vertical-align: middle"
+                  >{{ getTypeIcon(pkg.type) }}</span
+                >
+                {{ getTypeLabel(pkg.type) }}
               </span>
             </div>
             <h3 class="package-name">{{ pkg.name }}</h3>

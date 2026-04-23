@@ -13,6 +13,9 @@ import {
 } from '../../../shared/components/sort-dropdown/sort-dropdown.component';
 import { Category, Listing } from '../../../core/models';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
+import { PLACEHOLDER_IMAGE } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
 
 export interface BreadcrumbItem {
   label: string;
@@ -36,6 +39,7 @@ export interface BreadcrumbItem {
 })
 export class CategoryListingsComponent implements OnInit, OnDestroy {
   readonly allCategories = signal<Category[]>([]);
+  readonly ROUTES = ROUTES;
   readonly currentCategory = signal<Category | null>(null);
   readonly subcategories = signal<Category[]>([]);
   readonly listings = signal<Listing[]>([]);
@@ -78,9 +82,7 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
   }
 
   getListingImage(listing: Listing): string {
-    return (
-      listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png'
-    );
+    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || PLACEHOLDER_IMAGE;
   }
 
   loadPage(page: number): void {
@@ -125,7 +127,7 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
 
           this.currentCategory.set(category);
           this.breadcrumbs.set(this.buildBreadcrumbs(categories, category));
-          this.tracker.track('category_browse', {
+          this.tracker.track(TrackingEvent.CATEGORY_BROWSE, {
             categoryId: category._id,
             metadata: { name: category.name, level: category.level },
           });

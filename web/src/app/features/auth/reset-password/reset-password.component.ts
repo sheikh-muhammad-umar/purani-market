@@ -10,6 +10,7 @@ import {
 } from '@angular/forms';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-reset-password',
@@ -19,6 +20,7 @@ import { AuthService } from '../../../core/auth/auth.service';
   styleUrl: './reset-password.component.scss',
 })
 export class ResetPasswordComponent implements OnInit {
+  readonly ROUTES = ROUTES;
   resetForm: FormGroup;
   loading = signal(false);
   errorMessage = signal('');

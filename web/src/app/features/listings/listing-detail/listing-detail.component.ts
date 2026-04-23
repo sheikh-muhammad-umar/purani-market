@@ -1,7 +1,6 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
-import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ListingsService, ListingsResponse } from '../../../core/services/listings.service';
 import { ReviewsService, ReviewsResponse } from '../../../core/services/reviews.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
@@ -12,6 +11,9 @@ import { VerificationBadgesComponent } from '../../../shared/components/verifica
 import { extractIdFromSlug } from '../../../core/utils/slug';
 import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
+import { PLACEHOLDER_IMAGE } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-listing-detail',
@@ -21,6 +23,7 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
   styleUrls: ['./listing-detail.component.scss'],
 })
 export class ListingDetailComponent implements OnInit {
+  readonly ROUTES = ROUTES;
   listing = signal<Listing | null>(null);
   loading = signal(true);
   error = signal('');
@@ -46,15 +49,6 @@ export class ListingDetailComponent implements OnInit {
   // Similar listings
   similarListings = signal<Listing[]>([]);
 
-  // Seller info (derived from listing)
-  sellerTrustScore = computed(() => this.averageRating());
-  sellerResponseTime = signal('Within 1 hour');
-  sellerVerified = signal(true);
-  sellerMemberSince = signal('2024');
-
-  // Map
-  mapUrl = signal<SafeResourceUrl | null>(null);
-
   // Touch swipe
   private touchStartX = 0;
   private touchEndX = 0;
@@ -66,7 +60,6 @@ export class ListingDetailComponent implements OnInit {
     private readonly reviewsService: ReviewsService,
     private readonly favoritesService: FavoritesService,
     public readonly authService: AuthService,
-    private readonly sanitizer: DomSanitizer,
     public readonly loginModal: LoginModalService,
     public readonly tracker: ActivityTrackerService,
   ) {}
@@ -84,11 +77,10 @@ export class ListingDetailComponent implements OnInit {
       next: (listing) => {
         this.listing.set(listing);
         this.loading.set(false);
-        this.buildMapUrl(listing);
         this.loadReviews(listing._id);
         this.loadSimilarListings(listing.categoryId);
         this.checkFavoriteStatus(listing._id);
-        this.tracker.track('view', {
+        this.tracker.track(TrackingEvent.VIEW, {
           productListingId: listing._id,
           categoryId: listing.categoryId,
           metadata: { title: listing.title, city: listing.location?.city },
@@ -161,7 +153,7 @@ export class ListingDetailComponent implements OnInit {
           next: () => {
             this.isFavorited.set(false);
             this.favoriteId.set(null);
-            this.tracker.track('unfavorite', {
+            this.tracker.track(TrackingEvent.UNFAVORITE, {
               productListingId: listing._id,
               metadata: { previousState: 'favorited', newState: 'unfavorited' },
             });
@@ -181,7 +173,7 @@ export class ListingDetailComponent implements OnInit {
         next: (fav) => {
           this.isFavorited.set(true);
           this.favoriteId.set(fav._id);
-          this.tracker.track('favorite', {
+          this.tracker.track(TrackingEvent.FAVORITE, {
             productListingId: listing._id,
             metadata: { title: listing.title, previousState: 'unfavorited', newState: 'favorited' },
           });
@@ -224,7 +216,7 @@ export class ListingDetailComponent implements OnInit {
 
   getCurrentImage(): string {
     const images = this.listing()?.images ?? [];
-    return images[this.currentImageIndex()]?.url ?? 'assets/placeholder.png';
+    return images[this.currentImageIndex()]?.url ?? PLACEHOLDER_IMAGE;
   }
 
   // Details/Features helpers
@@ -249,38 +241,14 @@ export class ListingDetailComponent implements OnInit {
     return tags;
   }
 
-  getStarArray(rating: number): string[] {
-    const stars: string[] = [];
-    const rounded = Math.round(rating * 2) / 2;
-    for (let i = 1; i <= 5; i++) {
-      if (i <= rounded) {
-        stars.push('full');
-      } else if (i - 0.5 === rounded) {
-        stars.push('half');
-      } else {
-        stars.push('empty');
-      }
-    }
-    return stars;
-  }
-
-  getReviewStars(rating: number): string {
-    return '⭐'.repeat(rating) + '☆'.repeat(5 - rating);
-  }
-
-  getMapUrl(): SafeResourceUrl | null {
-    return null;
-  }
-
-  private buildMapUrl(_listing: Listing): void {
-    // Coordinates removed — map not available
-  }
-
   async shareListing(): Promise<void> {
     const l = this.listing();
     if (!l) return;
 
-    this.tracker.track('share', { productListingId: l._id, metadata: { title: l.title } });
+    this.tracker.track(TrackingEvent.SHARE, {
+      productListingId: l._id,
+      metadata: { title: l.title },
+    });
 
     // On mobile with native share API, use it directly
     if (navigator.share) {

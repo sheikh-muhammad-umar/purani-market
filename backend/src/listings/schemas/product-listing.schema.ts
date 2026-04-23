@@ -1,5 +1,6 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types, Schema as MongooseSchema } from 'mongoose';
+import { DEFAULT_CURRENCY } from '../../common/constants/index.js';
 
 export type ProductListingDocument = HydratedDocument<ProductListing>;
 
@@ -24,7 +25,7 @@ export class ListingPrice {
   @Prop({ type: Number, required: true })
   amount!: number;
 
-  @Prop({ type: String, default: 'PKR' })
+  @Prop({ type: String, default: DEFAULT_CURRENCY })
   currency!: string;
 }
 

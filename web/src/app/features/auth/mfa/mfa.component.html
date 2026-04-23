@@ -64,9 +64,9 @@
 
     <p class="auth-footer">
       @if (!isSetupMode()) {
-        <a routerLink="/auth/login">Back to Sign In</a>
+        <a [routerLink]="ROUTES.AUTH_LOGIN">Back to Sign In</a>
       } @else {
-        <a routerLink="/profile">Back to Settings</a>
+        <a [routerLink]="ROUTES.PROFILE">Back to Settings</a>
       }
     </p>
   </div>

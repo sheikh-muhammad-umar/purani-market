@@ -11,6 +11,7 @@ import {
   ProductListing,
   ProductListingDocument,
 } from '../listings/schemas/product-listing.schema.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 @Injectable()
 export class FavoritesService {
@@ -26,12 +27,12 @@ export class FavoritesService {
     productListingId: string,
   ): Promise<FavoriteDocument> {
     if (!Types.ObjectId.isValid(productListingId)) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     const listing = await this.listingModel.findById(productListingId).exec();
     if (!listing) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     try {
@@ -73,12 +74,12 @@ export class FavoritesService {
 
   async removeFavorite(favoriteId: string, userId: string): Promise<void> {
     if (!Types.ObjectId.isValid(favoriteId)) {
-      throw new NotFoundException('Favorite not found');
+      throw new NotFoundException(ERROR.FAVORITE_NOT_FOUND);
     }
 
     const favorite = await this.favoriteModel.findById(favoriteId).exec();
     if (!favorite) {
-      throw new NotFoundException('Favorite not found');
+      throw new NotFoundException(ERROR.FAVORITE_NOT_FOUND);
     }
 
     if (favorite.userId.toString() !== userId) {

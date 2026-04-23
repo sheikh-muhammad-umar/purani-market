@@ -8,6 +8,7 @@ import {
   CategoryAttributeType,
   SearchSortOption,
 } from './enums';
+import { PAYMENT_METHOD_CONFIG } from './app';
 
 export interface SelectOption {
   value: string | number;
@@ -41,6 +42,11 @@ export const CONDITION_OPTIONS: SelectOption[] = [
   { value: ListingCondition.REFURBISHED, label: 'Refurbished' },
 ];
 
+export const CONDITION_FILTER_OPTIONS: SelectOption[] = [
+  { value: '', label: 'Any' },
+  ...CONDITION_OPTIONS,
+];
+
 // ─── Package ─────────────────────────────────────────────
 export const PACKAGE_TYPE_OPTIONS: SelectOption[] = [
   { value: PackageType.FEATURED_ADS, label: 'Featured Ads' },
@@ -61,9 +67,9 @@ export const DURATION_OPTIONS: SelectOption[] = [
 // ─── Payment ─────────────────────────────────────────────
 export const PAYMENT_METHOD_OPTIONS: SelectOption[] = [
   { value: '', label: 'All' },
-  { value: PaymentMethod.JAZZCASH, label: 'JazzCash' },
-  { value: PaymentMethod.EASYPAISA, label: 'EasyPaisa' },
-  { value: PaymentMethod.CARD, label: 'Card' },
+  { value: PaymentMethod.JAZZCASH, label: PAYMENT_METHOD_CONFIG[PaymentMethod.JAZZCASH].label },
+  { value: PaymentMethod.EASYPAISA, label: PAYMENT_METHOD_CONFIG[PaymentMethod.EASYPAISA].label },
+  { value: PaymentMethod.CARD, label: PAYMENT_METHOD_CONFIG[PaymentMethod.CARD].label },
 ];
 
 export const PAYMENT_STATUS_OPTIONS: SelectOption[] = [
@@ -92,4 +98,12 @@ export const SORT_OPTIONS: { value: SearchSortOption; label: string }[] = [
   { value: SearchSortOption.PRICE_ASC, label: 'Price: Low to High' },
   { value: SearchSortOption.PRICE_DESC, label: 'Price: High to Low' },
   { value: SearchSortOption.NEWEST, label: 'Newest First' },
+];
+
+// ─── Moderation ──────────────────────────────────────────
+export const REVIEW_COUNT_OPTIONS: SelectOption[] = [
+  { value: '', label: 'All' },
+  { value: '0', label: 'First review' },
+  { value: '1', label: 'Resubmitted (2nd)' },
+  { value: '2', label: 'Resubmitted (3rd)' },
 ];

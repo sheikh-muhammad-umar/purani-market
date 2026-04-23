@@ -20,6 +20,7 @@ export enum UserAction {
 
   // Auth
   LOGIN = 'login',
+  LOGIN_FAILED = 'login_failed',
   REGISTER = 'register',
   LOGOUT = 'logout',
 

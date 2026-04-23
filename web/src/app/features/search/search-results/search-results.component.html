@@ -413,7 +413,14 @@
                     <p class="listing-price price">
                       {{ ad.price.amount | priceFormat: ad.price.currency }}
                     </p>
-                    <p class="listing-location">📍 {{ ad.location.city || 'Unknown' }}</p>
+                    <p class="listing-location">
+                      <span
+                        class="material-symbols-rounded"
+                        style="font-size: 16px; vertical-align: middle"
+                        >location_on</span
+                      >
+                      {{ ad.location.city || 'Unknown' }}
+                    </p>
                   </div>
                 </a>
               }
@@ -440,7 +447,14 @@
                 <p class="listing-price price">
                   {{ listing.price.amount | priceFormat: listing.price.currency }}
                 </p>
-                <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
+                <p class="listing-location">
+                  <span
+                    class="material-symbols-rounded"
+                    style="font-size: 16px; vertical-align: middle"
+                    >location_on</span
+                  >
+                  {{ listing.location.city || 'Unknown' }}
+                </p>
               </div>
             </a>
           }
@@ -471,7 +485,9 @@
       } @else {
         <!-- No Results State -->
         <div class="no-results">
-          <div class="no-results-icon" aria-hidden="true">🔍</div>
+          <div class="no-results-icon" aria-hidden="true">
+            <span class="material-symbols-rounded" style="font-size: 48px">search</span>
+          </div>
           <h2 class="no-results-title">No results found</h2>
           <p class="no-results-text">
             @if (query()) {
@@ -508,7 +524,7 @@
             </div>
           }
 
-          <a routerLink="/" class="btn btn-primary no-results-btn">Back to Home</a>
+          <a [routerLink]="ROUTES.HOME" class="btn btn-primary no-results-btn">Back to Home</a>
         </div>
       }
     </main>

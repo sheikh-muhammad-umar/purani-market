@@ -3,6 +3,9 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { PackagesService } from '../../../core/services/packages.service';
 import { AdPackage, PackageType } from '../../../core/models';
+import { CURRENCY_SYMBOL, PACKAGE_TYPE_LABELS } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
+import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
 
 @Component({
   selector: 'app-package-list',
@@ -12,6 +15,7 @@ import { AdPackage, PackageType } from '../../../core/models';
   styleUrls: ['./package-list.component.scss'],
 })
 export class PackageListComponent implements OnInit {
+  readonly ROUTES = ROUTES;
   readonly packages = signal<AdPackage[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -62,15 +66,15 @@ export class PackageListComponent implements OnInit {
   }
 
   formatPrice(price: number): string {
-    return `Rs ${price.toLocaleString()}`;
+    return `${CURRENCY_SYMBOL} ${price.toLocaleString()}`;
   }
 
   getTypeLabel(type: PackageType): string {
-    return type === 'featured_ads' ? 'Featured Ads' : 'Ad Slots';
+    return PACKAGE_TYPE_LABELS[type] ?? type;
   }
 
   getTypeIcon(type: PackageType): string {
-    return type === 'featured_ads' ? '⭐' : '📦';
+    return type === PackageTypeEnum.FEATURED_ADS ? 'star' : 'inventory_2';
   }
 
   getDurationLabel(duration: number): string {

@@ -1,45 +1,58 @@
-/** All user activity tracking event types */
-export type UserAction =
+/** All user activity tracking event constants */
+export const TrackingEvent = {
   // Browsing
-  | 'view'
-  | 'search'
-  | 'category_browse'
-  | 'page_view'
+  VIEW: 'view',
+  SEARCH: 'search',
+  CATEGORY_BROWSE: 'category_browse',
+  PAGE_VIEW: 'page_view',
 
   // Engagement
-  | 'favorite'
-  | 'unfavorite'
-  | 'contact'
-  | 'share'
+  FAVORITE: 'favorite',
+  UNFAVORITE: 'unfavorite',
+  CONTACT: 'contact',
+  SHARE: 'share',
 
   // Listing actions
-  | 'listing_create'
-  | 'listing_edit'
-  | 'listing_delete'
-  | 'listing_status_change'
-  | 'listing_feature'
+  LISTING_CREATE: 'listing_create',
+  LISTING_EDIT: 'listing_edit',
+  LISTING_DELETE: 'listing_delete',
+  LISTING_STATUS_CHANGE: 'listing_status_change',
+  LISTING_FEATURE: 'listing_feature',
 
   // Auth
-  | 'login'
-  | 'register'
-  | 'logout'
+  LOGIN: 'login',
+  LOGIN_FAILED: 'login_failed',
+  REGISTER: 'register',
+  LOGOUT: 'logout',
 
   // Messaging
-  | 'message_sent'
-  | 'conversation_start'
+  MESSAGE_SENT: 'message_sent',
+  CONVERSATION_START: 'conversation_start',
 
   // Payments
-  | 'package_purchase'
-  | 'payment_attempt'
+  PACKAGE_PURCHASE: 'package_purchase',
+  PAYMENT_ATTEMPT: 'payment_attempt',
 
   // Location
-  | 'location_change'
+  LOCATION_CHANGE: 'location_change',
 
   // AI / Recommendations
-  | 'dismiss'
-  | 'recommendation_click'
+  DISMISS: 'dismiss',
+  RECOMMENDATION_CLICK: 'recommendation_click',
 
   // App Banner
-  | 'app_banner_shown'
-  | 'app_banner_click'
-  | 'app_banner_dismiss';
+  APP_BANNER_SHOWN: 'app_banner_shown',
+  APP_BANNER_CLICK: 'app_banner_click',
+  APP_BANNER_DISMISS: 'app_banner_dismiss',
+} as const;
+
+/** Union type derived from the const object */
+export type UserAction = (typeof TrackingEvent)[keyof typeof TrackingEvent];
+
+/** Actions that should be tracked for anonymous/guest users */
+export const ANONYMOUS_TRACKED_ACTIONS = new Set<UserAction>([
+  TrackingEvent.VIEW,
+  TrackingEvent.SEARCH,
+  TrackingEvent.CATEGORY_BROWSE,
+  TrackingEvent.PAGE_VIEW,
+]);

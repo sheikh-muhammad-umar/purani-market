@@ -7,7 +7,7 @@
 >
   <div class="header-container">
     <!-- Logo -->
-    <a routerLink="/" class="logo">
+    <a [routerLink]="ROUTES.HOME" class="logo">
       <span class="logo-mark">M</span>
       <span class="logo-text">Marketplace</span>
       <span class="logo-text-mobile">Marketplace</span>
@@ -45,7 +45,9 @@
                 <span class="location-dropdown-title">Select Location</span>
               }
               @if (!selectedProvince()) {
-                <button class="location-clear-btn" (click)="seeAllPakistan()">All Pakistan</button>
+                <button class="location-clear-btn" (click)="seeAllPakistan()">
+                  All {{ defaultCountry }}
+                </button>
               } @else if (selectedProvince() && !selectedCity()) {
                 <button class="location-clear-btn" (click)="seeAllInProvince()">
                   All {{ selectedProvince()!.name }}
@@ -175,13 +177,13 @@
     <!-- Desktop nav -->
     <nav class="desktop-nav">
       @if (authService.isAuthenticated()) {
-        <a routerLink="/messaging" class="nav-icon" title="Messages">
+        <a [routerLink]="ROUTES.MESSAGING" class="nav-icon" title="Messages">
           <span class="material-symbols-rounded">chat_bubble_outline</span>
           @if (unreadCount() > 0) {
             <span class="icon-badge">{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
           }
         </a>
-        <a routerLink="/favorites" class="nav-icon" title="Favorites">
+        <a [routerLink]="ROUTES.FAVORITES" class="nav-icon" title="Favorites">
           <span class="material-symbols-rounded">favorite_border</span>
         </a>
         <button
@@ -203,20 +205,20 @@
           </button>
           @if (accountMenuOpen()) {
             <div class="account-dropdown" (click)="closeAccountMenu()">
-              <a routerLink="/profile" class="dropdown-item">
+              <a [routerLink]="ROUTES.PROFILE" class="dropdown-item">
                 <span class="material-symbols-rounded">person</span> Profile
               </a>
-              <a routerLink="/listings/my" class="dropdown-item">
+              <a [routerLink]="ROUTES.LISTINGS_MY" class="dropdown-item">
                 <span class="material-symbols-rounded">list_alt</span> My Ads
               </a>
-              <a routerLink="/favorites" class="dropdown-item">
+              <a [routerLink]="ROUTES.FAVORITES" class="dropdown-item">
                 <span class="material-symbols-rounded">favorite</span> Favourites
               </a>
-              <a routerLink="/packages" class="dropdown-item">
+              <a [routerLink]="ROUTES.PACKAGES" class="dropdown-item">
                 <span class="material-symbols-rounded">inventory_2</span> Packages
               </a>
               @if (authService.isAdmin()) {
-                <a routerLink="/admin" class="dropdown-item">
+                <a [routerLink]="ROUTES.ADMIN" class="dropdown-item">
                   <span class="material-symbols-rounded">admin_panel_settings</span> Admin Panel
                 </a>
               }
@@ -228,7 +230,7 @@
           }
         </div>
 
-        <a routerLink="/listings/create" class="post-ad-btn">
+        <a [routerLink]="ROUTES.LISTINGS_CREATE" class="post-ad-btn">
           <span class="material-symbols-rounded" style="font-size: 18px">storefront</span>
           Post Ad
         </a>
@@ -238,8 +240,8 @@
             themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'
           }}</span>
         </button>
-        <a routerLink="/auth/login" class="nav-text-link">Login</a>
-        <a routerLink="/auth/register" class="post-ad-btn">Register</a>
+        <a [routerLink]="ROUTES.AUTH_LOGIN" class="nav-text-link">Login</a>
+        <a [routerLink]="ROUTES.AUTH_REGISTER" class="post-ad-btn">Register</a>
       }
     </nav>
   </div>
@@ -275,7 +277,9 @@
               <span class="location-dropdown-title">Select Location</span>
             }
             @if (!selectedProvince()) {
-              <button class="location-clear-btn" (click)="seeAllPakistan()">All Pakistan</button>
+              <button class="location-clear-btn" (click)="seeAllPakistan()">
+                All {{ defaultCountry }}
+              </button>
             } @else if (selectedProvince() && !selectedCity()) {
               <button class="location-clear-btn" (click)="seeAllInProvince()">
                 All {{ selectedProvince()!.name }}
@@ -407,7 +411,7 @@
 <!-- Mobile Bottom Navigation -->
 @if (!isAuthPage) {
   <nav class="mobile-bottom-nav">
-    <a routerLink="/" class="bottom-nav-item">
+    <a [routerLink]="ROUTES.HOME" class="bottom-nav-item">
       <span class="material-symbols-rounded bottom-icon">home</span>
       <span class="bottom-label">Home</span>
     </a>

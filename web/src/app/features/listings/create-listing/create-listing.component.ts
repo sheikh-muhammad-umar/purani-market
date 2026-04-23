@@ -15,10 +15,13 @@ import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LocationService } from '../../../core/services/location.service';
 import { Category, CategoryAttribute, User, Province, City, Area } from '../../../core/models';
-import { ListingCondition } from '../../../core/constants/enums';
+import { ListingCondition, PackageType, PaymentStatus } from '../../../core/constants/enums';
 import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
 import { listingSlug } from '../../../core/utils/slug';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
+import { DEFAULT_CURRENCY } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
 
 export interface MediaItem {
   file: File;
@@ -34,6 +37,9 @@ export interface MediaItem {
   styleUrls: ['./create-listing.component.scss'],
 })
 export class CreateListingComponent implements OnInit {
+  readonly conditionOptions = CONDITION_OPTIONS;
+  readonly ROUTES = ROUTES;
+
   // Phone verification state
   phoneVerified = signal(false);
   phoneCheckLoading = signal(true);
@@ -83,11 +89,6 @@ export class CreateListingComponent implements OnInit {
   openDropdown = signal<string | null>(null);
 
   // Year options for year-type attributes (current year down to 1970)
-  readonly yearOptions: number[] = Array.from(
-    { length: new Date().getFullYear() - 1969 },
-    (_, i) => new Date().getFullYear() - i,
-  );
-
   getYearOptions(attr: { rangeMin?: number; rangeMax?: number }): number[] {
     const max = attr.rangeMax ?? new Date().getFullYear();
     const min = attr.rangeMin ?? 1970;
@@ -271,8 +272,8 @@ export class CreateListingComponent implements OnInit {
         const remaining = purchases
           .filter(
             (p: any) =>
-              p.type === 'featured_ads' &&
-              p.paymentStatus === 'completed' &&
+              p.type === PackageType.FEATURED_ADS &&
+              p.paymentStatus === PaymentStatus.COMPLETED &&
               p.expiresAt &&
               new Date(p.expiresAt) > now,
           )
@@ -637,7 +638,7 @@ export class CreateListingComponent implements OnInit {
     const payload: CreateListingPayload = {
       title: details.title,
       description: details.description,
-      price: { amount: details.price, currency: 'PKR' },
+      price: { amount: details.price, currency: DEFAULT_CURRENCY },
       categoryId: cat._id,
       categoryPath: this.buildCategoryPathIds(),
       condition: details.condition,
@@ -658,7 +659,7 @@ export class CreateListingComponent implements OnInit {
     this.listingsService.create(payload).subscribe({
       next: (listing) => {
         // Upload images sequentially after listing is created
-        this.tracker.track('listing_create', {
+        this.tracker.track(TrackingEvent.LISTING_CREATE, {
           productListingId: listing._id,
           categoryId: cat._id,
           metadata: { title: details.title, price: details.price, city: loc.city },
@@ -675,7 +676,7 @@ export class CreateListingComponent implements OnInit {
   private navigateToListing(listingId: string): void {
     const title = this.detailsForm.get('title')?.value ?? '';
     const slug = listingSlug({ _id: listingId, title });
-    this.router.navigate(['/listings', slug]);
+    this.router.navigate([ROUTES.LISTINGS, slug]);
   }
 
   private uploadImages(listingId: string, index: number): void {

@@ -21,6 +21,7 @@ import {
   CreateVehicleModelDto,
   UpdateVehicleModelDto,
 } from './dto/vehicle-model.dto.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 @Injectable()
 export class VehicleModelService {
@@ -38,7 +39,7 @@ export class VehicleModelService {
     activeOnly = true,
   ): Promise<VehicleModelDocument[]> {
     if (!Types.ObjectId.isValid(brandId)) {
-      throw new BadRequestException('Invalid brand ID');
+      throw new BadRequestException(ERROR.INVALID_BRAND_ID);
     }
     const filter: Record<string, any> = {
       brandId: new Types.ObjectId(brandId),
@@ -52,7 +53,7 @@ export class VehicleModelService {
     activeOnly = true,
   ): Promise<VehicleModelDocument[]> {
     if (!Types.ObjectId.isValid(categoryId)) {
-      throw new BadRequestException('Invalid category ID');
+      throw new BadRequestException(ERROR.INVALID_CATEGORY_ID);
     }
     const filter: Record<string, any> = {
       categoryId: new Types.ObjectId(categoryId),
@@ -68,21 +69,21 @@ export class VehicleModelService {
 
   async findById(id: string): Promise<VehicleModelDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('Vehicle model not found');
+      throw new NotFoundException(ERROR.VEHICLE_MODEL_NOT_FOUND);
     }
     const model = await this.vehicleModelModel
       .findById(id)
       .populate('brandId', 'name')
       .lean()
       .exec();
-    if (!model) throw new NotFoundException('Vehicle model not found');
+    if (!model) throw new NotFoundException(ERROR.VEHICLE_MODEL_NOT_FOUND);
     return model;
   }
 
   async create(dto: CreateVehicleModelDto): Promise<VehicleModelDocument> {
     // Validate brand exists
     const brand = await this.brandModel.findById(dto.brandId).exec();
-    if (!brand) throw new BadRequestException('Brand not found');
+    if (!brand) throw new BadRequestException(ERROR.BRAND_NOT_FOUND);
 
     return await new this.vehicleModelModel({
       name: dto.name,
@@ -100,7 +101,7 @@ export class VehicleModelService {
     const model = await this.vehicleModelModel
       .findByIdAndUpdate(id, { $set: dto }, { new: true })
       .exec();
-    if (!model) throw new NotFoundException('Vehicle model not found');
+    if (!model) throw new NotFoundException(ERROR.VEHICLE_MODEL_NOT_FOUND);
     return model;
   }
 
@@ -115,7 +116,7 @@ export class VehicleModelService {
       );
     }
     const result = await this.vehicleModelModel.findByIdAndDelete(id).exec();
-    if (!result) throw new NotFoundException('Vehicle model not found');
+    if (!result) throw new NotFoundException(ERROR.VEHICLE_MODEL_NOT_FOUND);
   }
 
   async bulkCreate(

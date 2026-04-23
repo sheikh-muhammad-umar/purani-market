@@ -6,6 +6,8 @@ import { MessagingService } from '../../../core/services/messaging.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/auth';
 import { Conversation } from '../../../core/models';
+import { CURRENCY_SYMBOL, PLACEHOLDER_IMAGE } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-conversation-list',
@@ -15,6 +17,8 @@ import { Conversation } from '../../../core/models';
   styleUrls: ['./conversation-list.component.scss'],
 })
 export class ConversationListComponent implements OnInit, OnDestroy {
+  readonly ROUTES = ROUTES;
+
   readonly conversations = signal<Conversation[]>([]);
   readonly unreadCounts = signal<Record<string, number>>({});
   readonly loading = signal(true);
@@ -55,7 +59,7 @@ export class ConversationListComponent implements OnInit, OnDestroy {
           return pid === listingId;
         });
         if (existing) {
-          this.router.navigate(['/messaging', existing._id]);
+          this.router.navigate([ROUTES.MESSAGING, existing._id]);
         } else {
           this.messagingService
             .startConversation({
@@ -65,7 +69,7 @@ export class ConversationListComponent implements OnInit, OnDestroy {
             .subscribe({
               next: (conversation: any) => {
                 const convId = conversation?.conversation?._id || conversation?._id;
-                this.router.navigate(['/messaging', convId]);
+                this.router.navigate([ROUTES.MESSAGING, convId]);
               },
               error: () => {
                 this.error.set('Failed to start conversation');
@@ -96,7 +100,7 @@ export class ConversationListComponent implements OnInit, OnDestroy {
   getListingPrice(conversation: any): string {
     const pid = conversation.productListingId;
     if (typeof pid === 'object' && pid?.price) {
-      return (pid.price.currency || 'PKR') + ' ' + Number(pid.price.amount).toLocaleString();
+      return CURRENCY_SYMBOL + ' ' + Number(pid.price.amount).toLocaleString();
     }
     return '';
   }
@@ -104,9 +108,9 @@ export class ConversationListComponent implements OnInit, OnDestroy {
   getListingImage(conversation: any): string {
     const pid = conversation.productListingId;
     if (typeof pid === 'object' && pid?.images?.length) {
-      return pid.images[0].thumbnailUrl || pid.images[0].url || 'assets/placeholder.png';
+      return pid.images[0].thumbnailUrl || pid.images[0].url || PLACEHOLDER_IMAGE;
     }
-    return 'assets/placeholder.png';
+    return PLACEHOLDER_IMAGE;
   }
 
   getTimeAgo(date: Date): string {

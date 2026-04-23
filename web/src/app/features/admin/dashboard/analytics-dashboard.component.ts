@@ -2,6 +2,7 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { CURRENCY_SYMBOL } from '../../../core/constants/app';
 import {
   AdminService,
   AnalyticsData,
@@ -148,7 +149,7 @@ export class AnalyticsDashboardComponent implements OnInit {
 
   formatValue(value: number, format: 'number' | 'currency'): string {
     if (format === 'currency') {
-      return `Rs ${value.toLocaleString()}`;
+      return `${CURRENCY_SYMBOL} ${value.toLocaleString()}`;
     }
     return value.toLocaleString();
   }

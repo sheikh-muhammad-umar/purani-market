@@ -1,12 +1,12 @@
 <div class="purchase-page">
   <div class="container">
-    <a routerLink="/packages" class="back-link">← Back to Packages</a>
+    <a [routerLink]="ROUTES.PACKAGES" class="back-link">← Back to Packages</a>
 
     @if (loading()) {
       <div class="loading-center"><div class="spinner spinner-lg"></div></div>
     } @else if (error()) {
       <div class="error-state">
-        <span class="error-icon">⚠️</span>
+        <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
         <p>{{ error() }}</p>
         <button class="btn btn-primary" (click)="loadPackage()">Retry</button>
       </div>
@@ -96,7 +96,9 @@
                   [class.selected]="selectedPaymentMethod() === method"
                   (click)="selectPaymentMethod($any(method))"
                 >
-                  <span class="payment-icon">{{ getPaymentMethodIcon($any(method)) }}</span>
+                  <span class="payment-icon material-symbols-rounded">{{
+                    getPaymentMethodIcon($any(method))
+                  }}</span>
                   <span class="payment-label">{{ getPaymentMethodLabel($any(method)) }}</span>
                   @if (selectedPaymentMethod() === method) {
                     <span class="check-mark">✓</span>

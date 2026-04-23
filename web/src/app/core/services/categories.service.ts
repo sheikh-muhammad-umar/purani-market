@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable, map } from 'rxjs';
 import { ApiService } from './api.service';
 import { Category, CategoryAttribute } from '../models';
+import { API } from '../constants/api-endpoints';
 
 export interface CreateCategoryPayload {
   name: string;
@@ -29,16 +30,16 @@ export class CategoriesService {
 
   getAll(): Observable<Category[]> {
     return this.api
-      .get<Category[]>('/categories')
+      .get<Category[]>(API.CATEGORIES)
       .pipe(map((tree) => this.flattenTree(Array.isArray(tree) ? tree : [])));
   }
 
   getTree(): Observable<Category[]> {
-    return this.api.get<Category[]>('/categories');
+    return this.api.get<Category[]>(API.CATEGORIES);
   }
 
   getById(id: string): Observable<Category> {
-    return this.api.get<Category>(`/categories/${id}`);
+    return this.api.get<Category>(API.CATEGORY_BY_ID(id));
   }
 
   getBySlug(slug: string): Observable<Category | undefined> {
@@ -52,31 +53,31 @@ export class CategoriesService {
   }
 
   create(payload: CreateCategoryPayload): Observable<Category> {
-    return this.api.post<Category>('/categories', payload);
+    return this.api.post<Category>(API.CATEGORIES, payload);
   }
 
   update(id: string, payload: UpdateCategoryPayload): Observable<Category> {
-    return this.api.patch<Category>(`/categories/${id}`, payload);
+    return this.api.patch<Category>(API.CATEGORY_BY_ID(id), payload);
   }
 
   remove(id: string): Observable<void> {
-    return this.api.delete<void>(`/categories/${id}`);
+    return this.api.delete<void>(API.CATEGORY_BY_ID(id));
   }
 
   getInheritedAttributes(
     categoryId: string,
   ): Observable<{ attributes: CategoryAttribute[]; features: string[] }> {
     return this.api.get<{ attributes: CategoryAttribute[]; features: string[] }>(
-      `/categories/${categoryId}/inherited-attributes`,
+      API.CATEGORY_INHERITED_ATTRS(categoryId),
     );
   }
 
   updateAttributes(id: string, attributes: CategoryAttribute[]): Observable<Category> {
-    return this.api.patch<Category>(`/categories/${id}/attributes`, { attributes });
+    return this.api.patch<Category>(API.CATEGORY_ATTRIBUTES(id), { attributes });
   }
 
   updateFeatures(id: string, features: string[]): Observable<Category> {
-    return this.api.patch<Category>(`/categories/${id}/features`, { features });
+    return this.api.patch<Category>(API.CATEGORY_FEATURES(id), { features });
   }
 
   buildBreadcrumb(categories: Category[], targetId: string): Category[] {

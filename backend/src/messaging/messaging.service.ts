@@ -16,6 +16,7 @@ import {
   ProductListingDocument,
 } from '../listings/schemas/product-listing.schema.js';
 import { CreateConversationDto } from './dto/create-conversation.dto.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 @Injectable()
 export class MessagingService {
@@ -38,12 +39,12 @@ export class MessagingService {
     const { productListingId, message } = dto;
 
     if (!Types.ObjectId.isValid(productListingId)) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     const listing = await this.listingModel.findById(productListingId).exec();
     if (!listing) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     if (listing.sellerId.toString() === userId) {
@@ -113,7 +114,7 @@ export class MessagingService {
     totalPages: number;
   }> {
     if (!Types.ObjectId.isValid(conversationId)) {
-      throw new NotFoundException('Conversation not found');
+      throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
     }
 
     const conversation = await this.conversationModel
@@ -121,7 +122,7 @@ export class MessagingService {
       .exec();
 
     if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+      throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
     }
 
     // Verify user is a participant
@@ -168,14 +169,14 @@ export class MessagingService {
     content: string,
   ): Promise<MessageDocument> {
     if (!Types.ObjectId.isValid(conversationId)) {
-      throw new NotFoundException('Conversation not found');
+      throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
     }
 
     const conversation = await this.conversationModel
       .findById(conversationId)
       .exec();
     if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+      throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
     }
 
     if (
@@ -237,13 +238,13 @@ export class MessagingService {
     userId: string,
   ): Promise<{ marked: number }> {
     if (!Types.ObjectId.isValid(conversationId)) {
-      throw new NotFoundException('Conversation not found');
+      throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
     }
     const conversation = await this.conversationModel
       .findById(conversationId)
       .exec();
     if (!conversation) {
-      throw new NotFoundException('Conversation not found');
+      throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
     }
     if (
       conversation.buyerId.toString() !== userId &&

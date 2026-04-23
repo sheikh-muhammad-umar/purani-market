@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-verify-phone',
@@ -12,6 +13,7 @@ import { AuthService } from '../../../core/auth/auth.service';
   styleUrl: './verify-phone.component.scss',
 })
 export class VerifyPhoneComponent {
+  readonly ROUTES = ROUTES;
   verifyForm: FormGroup;
   loading = signal(false);
   success = signal(false);

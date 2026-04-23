@@ -2,6 +2,7 @@ import { Component, signal, computed, output, input } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { Router } from '@angular/router';
 import { Category } from '../../../core/models';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-category-modal',
@@ -49,7 +50,7 @@ export class CategoryModalComponent {
 
   navigateTo(category: Category): void {
     this.closed.emit();
-    this.router.navigate(['/categories', category.slug]);
+    this.router.navigate([ROUTES.CATEGORIES, category.slug]);
   }
 
   goToBreadcrumb(index: number): void {

@@ -14,9 +14,11 @@ import {
 } from './schemas/category.schema.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
-
-const CACHE_KEY_TREE = 'categories:tree';
-const CACHE_TTL_SECONDS = 3600; // 1 hour
+import {
+  CACHE_KEY_CATEGORY_TREE,
+  CACHE_TTL_CATEGORY_TREE,
+} from '../common/constants/index.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 export interface CategoryTreeNode {
   _id: string;
@@ -42,7 +44,7 @@ export class CategoriesService {
   ) {}
 
   async getCategoryTree(): Promise<CategoryTreeNode[]> {
-    const cached = await this.redis.get(CACHE_KEY_TREE);
+    const cached = await this.redis.get(CACHE_KEY_CATEGORY_TREE);
     if (cached) {
       return JSON.parse(cached) as CategoryTreeNode[];
     }
@@ -55,21 +57,21 @@ export class CategoriesService {
 
     const tree = this.buildTree(categories);
     await this.redis.set(
-      CACHE_KEY_TREE,
+      CACHE_KEY_CATEGORY_TREE,
       JSON.stringify(tree),
       'EX',
-      CACHE_TTL_SECONDS,
+      CACHE_TTL_CATEGORY_TREE,
     );
     return tree;
   }
 
   async findById(id: string): Promise<CategoryDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('Category not found');
+      throw new NotFoundException(ERROR.CATEGORY_NOT_FOUND);
     }
     const category = await this.categoryModel.findById(id).exec();
     if (!category) {
-      throw new NotFoundException('Category not found');
+      throw new NotFoundException(ERROR.CATEGORY_NOT_FOUND);
     }
     return category;
   }
@@ -157,7 +159,7 @@ export class CategoriesService {
   }
 
   async invalidateCache(): Promise<void> {
-    await this.redis.del(CACHE_KEY_TREE);
+    await this.redis.del(CACHE_KEY_CATEGORY_TREE);
   }
 
   /**

@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { CategoryModalComponent } from '../../../shared/components/category-modal/category-modal.component';
 import { Category } from '../../../core/models';
-
-const DEFAULT_ICON = 'assets/category-icons/default.jpg';
+import { CATEGORY_ICONS_PATH, DEFAULT_CATEGORY_ICON } from '../../../core/constants/app';
 
 @Component({
   selector: 'app-category-browse',
@@ -32,8 +31,8 @@ export class CategoryBrowseComponent implements OnInit {
   }
 
   getCategoryImage(category: Category): string {
-    if (category.icon) return `assets/category-icons/${category.icon}`;
-    return DEFAULT_ICON;
+    if (category.icon) return `${CATEGORY_ICONS_PATH}/${category.icon}`;
+    return DEFAULT_CATEGORY_ICON;
   }
 
   getSubcategoryCount(categoryId: string): number {

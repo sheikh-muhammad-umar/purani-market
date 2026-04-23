@@ -7,7 +7,7 @@
           @if (crumb.isActive) {
             <span class="breadcrumb-current" aria-current="page">{{ crumb.label }}</span>
           } @else if (crumb.slug === '') {
-            <a class="breadcrumb-link" routerLink="/categories">{{ crumb.label }}</a>
+            <a class="breadcrumb-link" [routerLink]="ROUTES.CATEGORIES">{{ crumb.label }}</a>
           } @else {
             <a class="breadcrumb-link" [routerLink]="['/categories', crumb.slug]">{{
               crumb.label
@@ -30,7 +30,7 @@
     <div class="empty-state">
       <h2>Category not found</h2>
       <p>The category you're looking for doesn't exist or has been removed.</p>
-      <a routerLink="/categories" class="btn btn-primary">Browse All Categories</a>
+      <a [routerLink]="ROUTES.CATEGORIES" class="btn btn-primary">Browse All Categories</a>
     </div>
   } @else {
     <!-- Category Header -->
@@ -97,7 +97,14 @@
                 <p class="listing-price price">
                   {{ listing.price.amount | priceFormat: listing.price.currency }}
                 </p>
-                <p class="listing-location">📍 {{ listing.location.city || 'Unknown' }}</p>
+                <p class="listing-location">
+                  <span
+                    class="material-symbols-rounded"
+                    style="font-size: 16px; vertical-align: middle"
+                    >location_on</span
+                  >
+                  {{ listing.location.city || 'Unknown' }}
+                </p>
               </div>
             </a>
           }
@@ -128,7 +135,7 @@
       } @else {
         <div class="empty-state">
           <p>No listings found in this category yet.</p>
-          <a routerLink="/categories" class="btn btn-outline">Browse Other Categories</a>
+          <a [routerLink]="ROUTES.CATEGORIES" class="btn btn-outline">Browse Other Categories</a>
         </div>
       }
     </section>

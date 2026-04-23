@@ -27,7 +27,7 @@
 
   @if (error()) {
     <div class="error-state">
-      <span class="error-icon">⚠️</span>
+      <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
       <p>{{ error() }}</p>
       <button class="retry-btn" (click)="ngOnInit()">Try again</button>
     </div>
@@ -38,7 +38,7 @@
       <span class="empty-icon">💬</span>
       <h2>No conversations yet</h2>
       <p>Start a conversation by messaging a seller on any listing.</p>
-      <a routerLink="/" class="browse-btn">Browse listings</a>
+      <a [routerLink]="ROUTES.HOME" class="browse-btn">Browse listings</a>
     </div>
   }
 

@@ -6,6 +6,7 @@ import { MessagingService } from '../../../core/services/messaging.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/auth';
 import { Conversation } from '../../../core/models';
+import { PLACEHOLDER_IMAGE, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ChatWindowComponent } from '../chat-window/chat-window.component';
 
 @Component({
@@ -82,15 +83,15 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
   getListingImage(conversation: any): string {
     const pid = conversation.productListingId;
     if (typeof pid === 'object' && pid?.images?.length) {
-      return pid.images[0].thumbnailUrl || pid.images[0].url || 'assets/placeholder.png';
+      return pid.images[0].thumbnailUrl || pid.images[0].url || PLACEHOLDER_IMAGE;
     }
-    return 'assets/placeholder.png';
+    return PLACEHOLDER_IMAGE;
   }
 
   getListingPrice(conversation: any): string {
     const pid = conversation.productListingId;
     if (typeof pid === 'object' && pid?.price) {
-      return 'PKR ' + Number(pid.price.amount).toLocaleString();
+      return CURRENCY_SYMBOL + ' ' + Number(pid.price.amount).toLocaleString();
     }
     return '';
   }

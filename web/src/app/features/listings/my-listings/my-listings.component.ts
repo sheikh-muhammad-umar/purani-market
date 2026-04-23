@@ -7,6 +7,10 @@ import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth';
 import { Listing, PackagePurchase, User } from '../../../core/models';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
+import { ListingStatus, PackageType, PaymentStatus } from '../../../core/constants/enums';
+import { PLACEHOLDER_IMAGE } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
 
 interface AnalyticsCard {
   label: string;
@@ -28,6 +32,9 @@ interface FeaturedAdInfo {
   styleUrls: ['./my-listings.component.scss'],
 })
 export class MyListingsComponent implements OnInit {
+  readonly ListingStatus = ListingStatus;
+  readonly ROUTES = ROUTES;
+
   listings = signal<Listing[]>([]);
   loading = signal(true);
   total = signal(0);
@@ -43,17 +50,17 @@ export class MyListingsComponent implements OnInit {
       {
         label: 'Total Views',
         value: items.reduce((s, l) => s + (l.viewCount || 0), 0),
-        icon: '👁',
+        icon: 'visibility',
       },
       {
         label: 'Total Favorites',
         value: items.reduce((s, l) => s + (l.favoriteCount || 0), 0),
-        icon: '❤️',
+        icon: 'favorite',
       },
       {
         label: 'Active Listings',
-        value: items.filter((l) => l.status === 'active').length,
-        icon: '📦',
+        value: items.filter((l) => l.status === ListingStatus.ACTIVE).length,
+        icon: 'inventory_2',
       },
     ];
   });
@@ -66,8 +73,8 @@ export class MyListingsComponent implements OnInit {
     return this.purchases()
       .filter(
         (p) =>
-          p.type === 'ad_slots' &&
-          p.paymentStatus === 'completed' &&
+          p.type === PackageType.AD_SLOTS &&
+          p.paymentStatus === PaymentStatus.COMPLETED &&
           p.expiresAt &&
           new Date(p.expiresAt) > now,
       )
@@ -93,8 +100,8 @@ export class MyListingsComponent implements OnInit {
     return this.purchases()
       .filter(
         (p) =>
-          p.type === 'featured_ads' &&
-          p.paymentStatus === 'completed' &&
+          p.type === PackageType.FEATURED_ADS &&
+          p.paymentStatus === PaymentStatus.COMPLETED &&
           p.expiresAt &&
           new Date(p.expiresAt) > now,
       )
@@ -168,9 +175,7 @@ export class MyListingsComponent implements OnInit {
   }
 
   getImage(listing: Listing): string {
-    return (
-      listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png'
-    );
+    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || PLACEHOLDER_IMAGE;
   }
 
   formatDate(date: Date | string): string {
@@ -186,12 +191,12 @@ export class MyListingsComponent implements OnInit {
     return Math.max(0, Math.ceil(diff / (1000 * 60 * 60 * 24)));
   }
 
-  markStatus(listing: Listing, status: 'sold' | 'reserved' | 'inactive' | 'active'): void {
+  markStatus(listing: Listing, status: ListingStatus): void {
     this.actionLoading.set(listing._id);
     this.listingsService.updateStatus(listing._id, status).subscribe({
       next: () => {
         this.actionLoading.set(null);
-        this.tracker.track('listing_status_change', {
+        this.tracker.track(TrackingEvent.LISTING_STATUS_CHANGE, {
           productListingId: listing._id,
           metadata: { previousStatus: listing.status, newStatus: status, title: listing.title },
         });
@@ -206,7 +211,7 @@ export class MyListingsComponent implements OnInit {
     this.listingsService.featureListing(listing._id).subscribe({
       next: () => {
         this.actionLoading.set(null);
-        this.tracker.track('listing_feature', {
+        this.tracker.track(TrackingEvent.LISTING_FEATURE, {
           productListingId: listing._id,
           metadata: { title: listing.title, previousFeatured: false, newFeatured: true },
         });
@@ -230,7 +235,7 @@ export class MyListingsComponent implements OnInit {
     this.listingsService.deleteListing(listingId).subscribe({
       next: () => {
         this.actionLoading.set(null);
-        this.tracker.track('listing_delete', {
+        this.tracker.track(TrackingEvent.LISTING_DELETE, {
           productListingId: listingId,
           metadata: { previousStatus: this.listings().find((l) => l._id === listingId)?.status },
         });

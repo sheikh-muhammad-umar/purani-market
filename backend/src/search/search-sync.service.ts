@@ -11,6 +11,7 @@ import {
   LISTINGS_INDEX,
   FEATURED_BOOST_FACTOR,
 } from './search-index.service.js';
+import { DEFAULT_CURRENCY } from '../common/constants/index.js';
 
 export interface ListingDocument {
   _id: string;
@@ -180,7 +181,7 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
       description: doc.description,
       price: {
         amount: doc.price?.amount,
-        currency: doc.price?.currency || 'PKR',
+        currency: doc.price?.currency || DEFAULT_CURRENCY,
       },
       categoryId: doc.categoryId?.toString(),
       categoryPath: (doc.categoryPath || []).map((id: any) => id.toString()),

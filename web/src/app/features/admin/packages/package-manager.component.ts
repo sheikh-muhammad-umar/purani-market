@@ -27,6 +27,7 @@ import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
+import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
 
 @Component({
   selector: 'app-package-manager',
@@ -60,7 +61,7 @@ export class PackageManagerComponent implements OnInit {
 
   // Form fields
   formName = '';
-  formType: PackageType = 'featured_ads';
+  formType: PackageType = PackageTypeEnum.FEATURED_ADS;
   formDuration: 7 | 15 | 30 = 7;
   formQuantity = 5;
   formDefaultPrice = 500;
@@ -376,7 +377,7 @@ export class PackageManagerComponent implements OnInit {
   private resetForm(): void {
     this.editingPackage = null;
     this.formName = '';
-    this.formType = 'featured_ads';
+    this.formType = PackageTypeEnum.FEATURED_ADS;
     this.formDuration = 7;
     this.formQuantity = 5;
     this.formDefaultPrice = 500;

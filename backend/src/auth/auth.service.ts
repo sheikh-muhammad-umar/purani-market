@@ -33,6 +33,7 @@ import { EmailService } from './services/email.service.js';
 import { SmsService } from './services/sms.service.js';
 import { JwtPayload } from './strategies/jwt.strategy.js';
 import { OAuth2Client } from 'google-auth-library';
+import { ERROR } from '../common/constants/error-messages.js';
 
 const BCRYPT_COST_FACTOR = 12;
 const EMAIL_TOKEN_EXPIRY_HOURS = 24;
@@ -168,7 +169,7 @@ export class AuthService {
   async verifyPhone(phone: string, otp: string): Promise<{ message: string }> {
     const user = await this.userModel.findOne({ phone }).exec();
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR.USER_NOT_FOUND);
     }
 
     const record = await this.verificationTokenModel
@@ -224,7 +225,7 @@ export class AuthService {
     }
 
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR.USER_NOT_FOUND);
     }
 
     // Check if already verified
@@ -553,7 +554,7 @@ export class AuthService {
     // Find user
     const user = await this.userModel.findById(payload.sub).exec();
     if (!user) {
-      throw new UnauthorizedException('User not found');
+      throw new UnauthorizedException(ERROR.USER_NOT_FOUND);
     }
 
     // Invalidate old refresh token
@@ -612,7 +613,7 @@ export class AuthService {
   ): Promise<{ secret: string; qrCodeUrl: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR.USER_NOT_FOUND);
     }
 
     if (user.mfa?.enabled) {
@@ -848,7 +849,7 @@ export class AuthService {
   ): Promise<{ message: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR.USER_NOT_FOUND);
     }
 
     // Check if new email is already in use
@@ -941,7 +942,7 @@ export class AuthService {
   ): Promise<{ message: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
-      throw new NotFoundException('User not found');
+      throw new NotFoundException(ERROR.USER_NOT_FOUND);
     }
 
     // Check if new phone is already in use

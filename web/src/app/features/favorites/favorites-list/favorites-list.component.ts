@@ -4,6 +4,8 @@ import { RouterLink } from '@angular/router';
 import { FavoritesService } from '../../../core/services/favorites.service';
 import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { Favorite, FavoriteListingPopulated } from '../../../core/models';
+import { PLACEHOLDER_IMAGE } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-favorites-list',
@@ -13,6 +15,7 @@ import { Favorite, FavoriteListingPopulated } from '../../../core/models';
   styleUrls: ['./favorites-list.component.scss'],
 })
 export class FavoritesListComponent implements OnInit {
+  readonly ROUTES = ROUTES;
   readonly favorites = signal<Favorite[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
@@ -49,10 +52,8 @@ export class FavoritesListComponent implements OnInit {
 
   getImage(favorite: Favorite): string {
     const listing = this.getListing(favorite);
-    if (!listing) return 'assets/placeholder.png';
-    return (
-      listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png'
-    );
+    if (!listing) return PLACEHOLDER_IMAGE;
+    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || PLACEHOLDER_IMAGE;
   }
 
   getStatusBadgeClass(status: string): string {

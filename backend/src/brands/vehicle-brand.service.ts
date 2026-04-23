@@ -17,6 +17,7 @@ import {
   CreateVehicleBrandDto,
   UpdateVehicleBrandDto,
 } from './dto/vehicle-brand.dto.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 @Injectable()
 export class VehicleBrandService {
@@ -32,7 +33,7 @@ export class VehicleBrandService {
     activeOnly = true,
   ): Promise<VehicleBrandDocument[]> {
     if (!Types.ObjectId.isValid(categoryId)) {
-      throw new BadRequestException('Invalid category ID');
+      throw new BadRequestException(ERROR.INVALID_CATEGORY_ID);
     }
     const filter: Record<string, any> = {
       categoryId: new Types.ObjectId(categoryId),
@@ -62,10 +63,10 @@ export class VehicleBrandService {
 
   async findById(id: string): Promise<VehicleBrandDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException('Vehicle brand not found');
+      throw new NotFoundException(ERROR.VEHICLE_BRAND_NOT_FOUND);
     }
     const brand = await this.vehicleBrandModel.findById(id).lean().exec();
-    if (!brand) throw new NotFoundException('Vehicle brand not found');
+    if (!brand) throw new NotFoundException(ERROR.VEHICLE_BRAND_NOT_FOUND);
     return brand;
   }
 
@@ -86,7 +87,7 @@ export class VehicleBrandService {
     const brand = await this.vehicleBrandModel
       .findByIdAndUpdate(id, { $set: dto }, { new: true })
       .exec();
-    if (!brand) throw new NotFoundException('Vehicle brand not found');
+    if (!brand) throw new NotFoundException(ERROR.VEHICLE_BRAND_NOT_FOUND);
     return brand;
   }
 
@@ -101,6 +102,6 @@ export class VehicleBrandService {
       );
     }
     const result = await this.vehicleBrandModel.findByIdAndDelete(id).exec();
-    if (!result) throw new NotFoundException('Vehicle brand not found');
+    if (!result) throw new NotFoundException(ERROR.VEHICLE_BRAND_NOT_FOUND);
   }
 }

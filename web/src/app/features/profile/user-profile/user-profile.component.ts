@@ -6,6 +6,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { User } from '../../../core/models/user.model';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-user-profile',
@@ -15,6 +16,7 @@ import { environment } from '../../../../environments/environment';
   styleUrl: './user-profile.component.scss',
 })
 export class UserProfileComponent implements OnInit {
+  readonly ROUTES = ROUTES;
   profileForm: FormGroup;
   user = signal<User | null>(null);
   loading = signal(false);
@@ -147,6 +149,6 @@ export class UserProfileComponent implements OnInit {
 
   logout(): void {
     this.authService.logout();
-    this.router.navigate(['/']);
+    this.router.navigate([ROUTES.HOME]);
   }
 }

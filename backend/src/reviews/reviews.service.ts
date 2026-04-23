@@ -17,6 +17,7 @@ import {
   ProductListingDocument,
 } from '../listings/schemas/product-listing.schema.js';
 import { CreateReviewDto } from './dto/create-review.dto.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 const PROHIBITED_WORDS = [
   'spam',
@@ -47,12 +48,12 @@ export class ReviewsService {
     const { productListingId, rating, text } = dto;
 
     if (!Types.ObjectId.isValid(productListingId)) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     const listing = await this.listingModel.findById(productListingId).exec();
     if (!listing) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     if (listing.sellerId.toString() === reviewerId) {
@@ -99,7 +100,7 @@ export class ReviewsService {
 
   async getReviewsByListing(listingId: string): Promise<ReviewDocument[]> {
     if (!Types.ObjectId.isValid(listingId)) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
 
     return this.reviewModel
@@ -121,7 +122,7 @@ export class ReviewsService {
     totalReviews: number;
   }> {
     if (!Types.ObjectId.isValid(sellerId)) {
-      throw new NotFoundException('Seller not found');
+      throw new NotFoundException(ERROR.SELLER_NOT_FOUND);
     }
 
     const reviews = await this.reviewModel

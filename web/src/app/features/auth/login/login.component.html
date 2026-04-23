@@ -28,8 +28,8 @@
     <!-- Login Form -->
     <div class="auth-form-panel">
       <div class="auth-tabs">
-        <a routerLink="/auth/login" class="auth-tab active">Log In</a>
-        <a routerLink="/auth/register" class="auth-tab">Sign Up</a>
+        <a [routerLink]="ROUTES.AUTH_LOGIN" class="auth-tab active">Log In</a>
+        <a [routerLink]="ROUTES.AUTH_REGISTER" class="auth-tab">Sign Up</a>
       </div>
 
       @if (errorMessage()) {
@@ -52,7 +52,7 @@
         <div class="form-group">
           <div class="label-row">
             <label for="password" class="form-label">Password</label>
-            <a routerLink="/auth/forgot-password" class="forgot-link">Forgot password?</a>
+            <a [routerLink]="ROUTES.AUTH_FORGOT_PASSWORD" class="forgot-link">Forgot password?</a>
           </div>
           <input
             id="password"
@@ -108,7 +108,7 @@
       </div>
 
       <p class="auth-footer">
-        Don't have an account? <a routerLink="/auth/register">Create one</a>
+        Don't have an account? <a [routerLink]="ROUTES.AUTH_REGISTER">Create one</a>
       </p>
     </div>
   </div>

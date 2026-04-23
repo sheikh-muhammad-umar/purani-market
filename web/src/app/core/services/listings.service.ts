@@ -2,6 +2,9 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { Listing } from '../models';
+import { STORAGE_SELECTED_LOCATION } from '../constants/storage-keys';
+import { DEFAULT_COUNTRY } from '../constants/app';
+import { API } from '../constants/api-endpoints';
 
 export interface ListingsResponse {
   data: Listing[];
@@ -43,7 +46,7 @@ export class ListingsService {
   constructor(private readonly api: ApiService) {}
 
   getFeatured(limit: number = 10): Observable<ListingsResponse> {
-    return this.api.get<ListingsResponse>('/listings/featured', { limit });
+    return this.api.get<ListingsResponse>(API.LISTINGS_FEATURED, { limit });
   }
 
   getFeaturedFiltered(
@@ -55,10 +58,10 @@ export class ListingsService {
 
     // Add location from header selection
     try {
-      const locRaw = localStorage.getItem('selected_location');
+      const locRaw = localStorage.getItem(STORAGE_SELECTED_LOCATION);
       if (locRaw) {
         const loc = JSON.parse(locRaw);
-        if (loc.label && loc.label !== 'Pakistan') {
+        if (loc.label && loc.label !== DEFAULT_COUNTRY) {
           if (loc.province?._id) clean['provinceId'] = loc.province._id;
           if (loc.city?._id) clean['cityId'] = loc.city._id;
           if (loc.area?._id) clean['areaId'] = loc.area._id;
@@ -69,7 +72,7 @@ export class ListingsService {
     // Fallback to city name if passed directly
     if (!clean['cityId'] && params.city) clean['city'] = params.city;
 
-    return this.api.get<ListingsResponse>('/listings/featured', clean);
+    return this.api.get<ListingsResponse>(API.LISTINGS_FEATURED, clean);
   }
 
   getNearby(
@@ -85,7 +88,7 @@ export class ListingsService {
     if (params.cityId) query['cityId'] = params.cityId;
     if (params.areaId) query['areaId'] = params.areaId;
     if (params.limit) query['limit'] = params.limit;
-    return this.api.get<ListingsResponse>('/location/nearby', query);
+    return this.api.get<ListingsResponse>(API.LOCATION_NEARBY, query);
   }
 
   getByCategory(
@@ -105,10 +108,10 @@ export class ListingsService {
 
     // Add location from header selection (only if user selected something specific)
     try {
-      const locRaw = localStorage.getItem('selected_location');
+      const locRaw = localStorage.getItem(STORAGE_SELECTED_LOCATION);
       if (locRaw) {
         const loc = JSON.parse(locRaw);
-        if (loc.label && loc.label !== 'Pakistan') {
+        if (loc.label && loc.label !== DEFAULT_COUNTRY) {
           if (loc.province?._id) params['provinceId'] = loc.province._id;
           if (loc.city?._id) params['cityId'] = loc.city._id;
           if (loc.area?._id) params['areaId'] = loc.area._id;
@@ -116,15 +119,15 @@ export class ListingsService {
       }
     } catch {}
 
-    return this.api.get<ListingsResponse>('/listings', params);
+    return this.api.get<ListingsResponse>(API.LISTINGS, params);
   }
 
   getById(id: string): Observable<Listing> {
-    return this.api.get<Listing>(`/listings/${id}`);
+    return this.api.get<Listing>(API.LISTING_BY_ID(id));
   }
 
   getMyListings(page: number = 1, limit: number = 20): Observable<ListingsResponse> {
-    return this.api.get<ListingsResponse>('/listings', {
+    return this.api.get<ListingsResponse>(API.LISTINGS, {
       mine: true,
       page,
       limit,
@@ -134,35 +137,35 @@ export class ListingsService {
   }
 
   create(payload: CreateListingPayload): Observable<Listing> {
-    return this.api.post<Listing>('/listings', payload);
+    return this.api.post<Listing>(API.LISTINGS, payload);
   }
 
   update(id: string, payload: Partial<CreateListingPayload>): Observable<Listing> {
-    return this.api.patch<Listing>(`/listings/${id}`, payload);
+    return this.api.patch<Listing>(API.LISTING_BY_ID(id), payload);
   }
 
   uploadMedia(listingId: string, formData: FormData): Observable<MediaUploadResponse> {
-    return this.api.post<MediaUploadResponse>(`/listings/${listingId}/media`, formData);
+    return this.api.post<MediaUploadResponse>(API.LISTING_MEDIA(listingId), formData);
   }
 
   featureListing(id: string): Observable<Listing> {
-    return this.api.post<Listing>(`/listings/${id}/feature`, {});
+    return this.api.post<Listing>(API.LISTING_FEATURE(id), {});
   }
 
   deleteListing(id: string, reason?: string): Observable<void> {
-    return this.api.delete<void>(`/listings/${id}`, { body: { reason } });
+    return this.api.delete<void>(API.LISTING_BY_ID(id), { body: { reason } });
   }
 
   updateStatus(id: string, status: string): Observable<Listing> {
-    return this.api.patch<Listing>(`/listings/${id}/status`, { status });
+    return this.api.patch<Listing>(API.LISTING_STATUS(id), { status });
   }
 
   resubmitForReview(id: string): Observable<Listing> {
-    return this.api.post<Listing>(`/listings/${id}/resubmit`, {});
+    return this.api.post<Listing>(API.LISTING_RESUBMIT(id), {});
   }
 
   getBySeller(sellerId: string, page = 1, limit = 50): Observable<ListingsResponse> {
-    return this.api.get<ListingsResponse>('/listings', {
+    return this.api.get<ListingsResponse>(API.LISTINGS, {
       sellerId,
       page,
       limit,

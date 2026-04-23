@@ -22,6 +22,8 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/auth';
 import { Message, Listing } from '../../../core/models';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
+import { QUICK_REPLIES, PLACEHOLDER_IMAGE } from '../../../core/constants/app';
 
 @Component({
   selector: 'app-chat-window',
@@ -53,12 +55,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
   messageText = '';
   conversationId = '';
 
-  readonly quickReplies: string[] = [
-    'Is this still available?',
-    "What's your best price?",
-    'Can I see it today?',
-    'Is the price negotiable?',
-  ];
+  readonly quickReplies = QUICK_REPLIES;
 
   readonly currentUserId = computed(() => this.authService.user()?._id ?? '');
 
@@ -145,7 +142,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
           msgs.map((m) => (m._id === optimisticMsg._id ? ({ ...saved } as any) : m)),
         );
         this.sending.set(false);
-        this.tracker.track('message_sent', {
+        this.tracker.track(TrackingEvent.MESSAGE_SENT, {
           productListingId: this.listing()?._id,
           metadata: { conversationId: this.conversationId },
         });
@@ -197,7 +194,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
 
   getListingImage(): string {
     const l = this.listing();
-    return l?.images?.[0]?.thumbnailUrl || l?.images?.[0]?.url || 'assets/placeholder.png';
+    return l?.images?.[0]?.thumbnailUrl || l?.images?.[0]?.url || PLACEHOLDER_IMAGE;
   }
 
   private loadMessages(): void {

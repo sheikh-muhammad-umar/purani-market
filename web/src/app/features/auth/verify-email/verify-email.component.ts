@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
+import { ROUTES } from '../../../core/constants/routes';
 
 @Component({
   selector: 'app-verify-email',
@@ -11,6 +12,7 @@ import { AuthService } from '../../../core/auth/auth.service';
   styleUrl: './verify-email.component.scss',
 })
 export class VerifyEmailComponent implements OnInit {
+  readonly ROUTES = ROUTES;
   loading = signal(true);
   success = signal(false);
   errorMessage = signal('');

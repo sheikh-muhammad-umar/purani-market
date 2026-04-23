@@ -4,6 +4,9 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { RouterLink, Router } from '@angular/router';
 import { AuthService, AuthTokens } from '../../../core/auth/auth.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
+import { ROUTES } from '../../../core/constants/routes';
+import { LOGIN_METHOD_EMAIL, LOGIN_METHOD_PHONE } from '../../../core/constants/app';
 
 @Component({
   selector: 'app-login',
@@ -13,6 +16,7 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
   styleUrl: './login.component.scss',
 })
 export class LoginComponent {
+  readonly ROUTES = ROUTES;
   loginForm: FormGroup;
   usePhone = signal(false);
   loading = signal(false);
@@ -65,23 +69,32 @@ export class LoginComponent {
       next: (response) => {
         this.loading.set(false);
         if (this.authService.isMfaResponse(response)) {
-          this.router.navigate(['/auth/mfa'], {
+          this.router.navigate([ROUTES.AUTH_MFA], {
             queryParams: { token: response.mfaToken },
           });
         } else {
           this.authService.storeTokens(response as AuthTokens);
           this.authService.fetchCurrentUser().subscribe(() => {
             this.tracker.trackLoginWithLocation({
-              method: this.usePhone() ? 'phone' : 'email',
+              method: this.usePhone() ? LOGIN_METHOD_PHONE : LOGIN_METHOD_EMAIL,
               ...this.tracker.getDeviceInfo(),
             });
-            this.router.navigate(['/']);
+            this.router.navigate([ROUTES.HOME]);
           });
         }
       },
       error: (err) => {
         this.loading.set(false);
-        this.errorMessage.set(err.error?.message || 'Invalid credentials. Please try again.');
+        const message = err.error?.message || 'Invalid credentials. Please try again.';
+        this.errorMessage.set(message);
+        this.tracker.trackAnonymous(TrackingEvent.LOGIN_FAILED, {
+          method: this.usePhone() ? LOGIN_METHOD_PHONE : LOGIN_METHOD_EMAIL,
+          identifier: this.usePhone() ? this.loginForm.value.phone : this.loginForm.value.email,
+          errorMessage: message,
+          statusCode: err.status,
+          ...this.tracker.getDeviceInfo(),
+          timestamp: new Date().toISOString(),
+        });
       },
     });
   }

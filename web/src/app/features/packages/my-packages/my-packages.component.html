@@ -5,7 +5,7 @@
         <h1>My Packages</h1>
         <p class="subtitle">Manage your purchased ad packages</p>
       </div>
-      <a routerLink="/packages" class="btn btn-primary">Browse Packages</a>
+      <a [routerLink]="ROUTES.PACKAGES" class="btn btn-primary">Browse Packages</a>
     </div>
 
     <div class="tab-bar">
@@ -25,7 +25,7 @@
       <div class="loading-center"><div class="spinner spinner-lg"></div></div>
     } @else if (error()) {
       <div class="error-state">
-        <span class="error-icon">⚠️</span>
+        <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
         <p>{{ error() }}</p>
         <button class="btn btn-primary" (click)="loadPurchases()">Retry</button>
       </div>
@@ -33,10 +33,12 @@
       @if (activeTab() === 'active') {
         @if (activePurchases().length === 0) {
           <div class="empty-state">
-            <span class="empty-icon">📦</span>
+            <span class="empty-icon"
+              ><span class="material-symbols-rounded">inventory_2</span></span
+            >
             <h3>No active packages</h3>
             <p>Purchase a package to boost your listings</p>
-            <a routerLink="/packages" class="btn btn-primary">Browse Packages</a>
+            <a [routerLink]="ROUTES.PACKAGES" class="btn btn-primary">Browse Packages</a>
           </div>
         } @else {
           <div class="purchases-grid">

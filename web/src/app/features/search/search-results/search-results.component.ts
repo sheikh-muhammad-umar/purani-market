@@ -17,7 +17,11 @@ import {
 } from '../../../shared/components/custom-select/custom-select.component';
 import { RecentSearchesService } from '../../../core/services/recent-searches.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
-import { SORT_OPTIONS } from '../../../core/constants/select-options';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
+import { STORAGE_SELECTED_LOCATION } from '../../../core/constants/storage-keys';
+import { DEFAULT_COUNTRY, CURRENCY_SYMBOL, PLACEHOLDER_IMAGE } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
+import { SORT_OPTIONS, CONDITION_FILTER_OPTIONS } from '../../../core/constants/select-options';
 import { SearchSortOption } from '../../../core/constants/enums';
 import { PriceFormatPipe } from '../../../shared/pipes/price-format.pipe';
 import { TruncateTextPipe } from '../../../shared/pipes/truncate-text.pipe';
@@ -49,6 +53,8 @@ export interface ActiveFilter {
   styleUrls: ['./search-results.component.scss'],
 })
 export class SearchResultsComponent implements OnInit, OnDestroy {
+  readonly ROUTES = ROUTES;
+
   readonly query = signal('');
   readonly results = signal<Listing[]>([]);
   readonly featuredAds = signal<Listing[]>([]);
@@ -128,34 +134,14 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     ];
   }
 
-  readonly conditionOptions: SelectOption[] = [
-    { value: '', label: 'Any' },
-    { value: 'new', label: 'New' },
-    { value: 'used', label: 'Used' },
-    { value: 'refurbished', label: 'Refurbished' },
-  ];
-  readonly popularCities = [
-    'Lahore',
-    'Karachi',
-    'Islamabad',
-    'Rawalpindi',
-    'Faisalabad',
-    'Multan',
-    'Peshawar',
-    'Quetta',
-  ];
-  readonly yearRange: number[] = Array.from(
-    { length: new Date().getFullYear() - 1969 },
-    (_, i) => new Date().getFullYear() - i,
-  );
+  readonly conditionOptions = CONDITION_FILTER_OPTIONS;
+  readonly sortOptions = SORT_OPTIONS;
 
   getYearRange(filter: { rangeMin?: number; rangeMax?: number }): number[] {
     const max = filter.rangeMax ?? new Date().getFullYear();
     const min = filter.rangeMin ?? 1970;
     return Array.from({ length: max - min + 1 }, (_, i) => max - i);
   }
-
-  readonly sortOptions = SORT_OPTIONS;
 
   private readonly destroy$ = new Subject<void>();
   private readonly searchInput$ = new Subject<string>();
@@ -391,9 +377,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   }
 
   getListingImage(listing: Listing): string {
-    return (
-      listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || 'assets/placeholder.png'
-    );
+    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || PLACEHOLDER_IMAGE;
   }
 
   buildActiveFilters(): ActiveFilter[] {
@@ -423,7 +407,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
         key: 'minPrice',
         label: 'Min Price',
         value: String(min),
-        displayValue: `Min: PKR ${min}`,
+        displayValue: `Min: ${CURRENCY_SYMBOL} ${min}`,
       });
     }
     const max = this.maxPrice();
@@ -432,7 +416,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
         key: 'maxPrice',
         label: 'Max Price',
         value: String(max),
-        displayValue: `Max: PKR ${max}`,
+        displayValue: `Max: ${CURRENCY_SYMBOL} ${max}`,
       });
     }
     const dynamic = this.filterValues();
@@ -557,10 +541,10 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
     // Location from header selection (persisted in localStorage)
     try {
-      const locRaw = localStorage.getItem('selected_location');
+      const locRaw = localStorage.getItem(STORAGE_SELECTED_LOCATION);
       if (locRaw) {
         const loc = JSON.parse(locRaw);
-        if (loc.label && loc.label !== 'Pakistan') {
+        if (loc.label && loc.label !== DEFAULT_COUNTRY) {
           if (loc.province?._id) params['provinceId'] = loc.province._id;
           if (loc.city?._id) params['cityId'] = loc.city._id;
           if (loc.area?._id) params['areaId'] = loc.area._id;
@@ -589,7 +573,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.activeFilters.set(this.buildActiveFilters());
 
     if (params.q) {
-      this.tracker.track('search', {
+      this.tracker.track(TrackingEvent.SEARCH, {
         searchQuery: params.q,
         categoryId: params.category as string | undefined,
         metadata: { sort: params.sort, page: params.page },

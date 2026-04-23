@@ -5,6 +5,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { User, NotificationPreferences } from '../../../core/models/user.model';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
+import { ROUTES } from '../../../core/constants/routes';
 
 interface NotificationToggle {
   key: keyof NotificationPreferences;
@@ -20,6 +21,7 @@ interface NotificationToggle {
   styleUrl: './notification-prefs.component.scss',
 })
 export class NotificationPrefsComponent implements OnInit {
+  readonly ROUTES = ROUTES;
   user = signal<User | null>(null);
   loading = signal(false);
   saving = signal<string | null>(null);

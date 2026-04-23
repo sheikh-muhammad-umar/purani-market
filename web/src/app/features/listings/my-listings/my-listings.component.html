@@ -2,14 +2,14 @@
   <div class="container">
     <div class="page-header">
       <h1>My Listings</h1>
-      <a routerLink="/listings/create" class="btn btn-primary">+ Post New Ad</a>
+      <a [routerLink]="ROUTES.LISTINGS_CREATE" class="btn btn-primary">+ Post New Ad</a>
     </div>
 
     <!-- Analytics Cards -->
     <div class="analytics-row">
       @for (card of analytics(); track card.label) {
         <div class="analytics-card card">
-          <span class="analytics-icon">{{ card.icon }}</span>
+          <span class="analytics-icon material-symbols-rounded">{{ card.icon }}</span>
           <div class="analytics-data">
             <span class="analytics-value">{{ card.value | number }}</span>
             <span class="analytics-label">{{ card.label }}</span>
@@ -110,10 +110,10 @@
       </div>
     } @else if (listings().length === 0) {
       <div class="empty-state">
-        <span class="empty-icon">📦</span>
+        <span class="empty-icon"><span class="material-symbols-rounded">inventory_2</span></span>
         <h3>No listings yet</h3>
         <p>Start selling by posting your first ad</p>
-        <a routerLink="/listings/create" class="btn btn-primary">Post Your First Ad</a>
+        <a [routerLink]="ROUTES.LISTINGS_CREATE" class="btn btn-primary">Post Your First Ad</a>
       </div>
     } @else {
       <div class="listings-table-wrapper">
@@ -131,9 +131,9 @@
           <tbody>
             @for (listing of listings(); track listing._id) {
               <tr
-                [class.row-sold]="listing.status === 'sold'"
-                [class.row-rejected]="listing.status === 'rejected'"
-                [class.row-inactive]="listing.status === 'inactive'"
+                [class.row-sold]="listing.status === ListingStatus.SOLD"
+                [class.row-rejected]="listing.status === ListingStatus.REJECTED"
+                [class.row-inactive]="listing.status === ListingStatus.INACTIVE"
               >
                 <td class="listing-cell">
                   <img [src]="getImage(listing)" [alt]="listing.title" class="listing-thumb" />
@@ -151,7 +151,14 @@
                     listing.status
                   }}</span>
                   @if (listing.isFeatured) {
-                    <span class="badge badge-featured">⭐ Featured</span>
+                    <span class="badge badge-featured"
+                      ><span
+                        class="material-symbols-rounded"
+                        style="font-size: 14px; vertical-align: middle"
+                        >star</span
+                      >
+                      Featured</span
+                    >
                   }
                 </td>
                 <td class="stat-cell">{{ listing.viewCount | number }}</td>
@@ -169,42 +176,42 @@
                         >Edit</a
                       >
 
-                      @if (listing.status === 'active') {
+                      @if (listing.status === ListingStatus.ACTIVE) {
                         <button
                           class="btn btn-outline btn-sm"
                           title="Mark as sold"
-                          (click)="markStatus(listing, 'sold')"
+                          (click)="markStatus(listing, ListingStatus.SOLD)"
                         >
                           Sold
                         </button>
                         <button
                           class="btn btn-outline btn-sm"
                           title="Mark as reserved"
-                          (click)="markStatus(listing, 'reserved')"
+                          (click)="markStatus(listing, ListingStatus.RESERVED)"
                         >
                           Reserved
                         </button>
                         <button
                           class="btn btn-outline btn-sm"
                           title="Disable this ad"
-                          (click)="markStatus(listing, 'inactive')"
+                          (click)="markStatus(listing, ListingStatus.INACTIVE)"
                         >
                           Disable
                         </button>
                       }
 
-                      @if (listing.status === 'inactive') {
+                      @if (listing.status === ListingStatus.INACTIVE) {
                         <button
                           class="btn btn-outline btn-sm btn-success"
                           title="Re-activate this ad"
-                          (click)="markStatus(listing, 'active')"
+                          (click)="markStatus(listing, ListingStatus.ACTIVE)"
                         >
                           Activate
                         </button>
                       }
 
                       @if (
-                        listing.status === 'active' &&
+                        listing.status === ListingStatus.ACTIVE &&
                         !listing.isFeatured &&
                         featuredSlotsRemaining() > 0
                       ) {
@@ -213,7 +220,12 @@
                           title="Feature this ad"
                           (click)="featureListing(listing)"
                         >
-                          ⭐ Feature
+                          <span
+                            class="material-symbols-rounded"
+                            style="font-size: 14px; vertical-align: middle"
+                            >star</span
+                          >
+                          Feature
                         </button>
                       }
 

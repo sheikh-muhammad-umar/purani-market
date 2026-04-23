@@ -62,7 +62,7 @@
         Your phone number has been verified successfully!
       </div>
       <a
-        routerLink="/auth/login"
+        [routerLink]="ROUTES.AUTH_LOGIN"
         class="btn btn-primary btn-full"
         style="margin-top: var(--space-2); text-align: center; display: block"
       >
@@ -71,7 +71,7 @@
     }
 
     <p class="auth-footer">
-      <a routerLink="/auth/login">Back to Sign In</a>
+      <a [routerLink]="ROUTES.AUTH_LOGIN">Back to Sign In</a>
     </p>
   </div>
 </div>
