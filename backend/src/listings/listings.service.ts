@@ -374,11 +374,15 @@ export class ListingsService {
           'This listing has reached the maximum number of review attempts. Unfortunately, it cannot be resubmitted. You may delete it and create a new listing.',
         );
       }
-      updateFields.status = ListingStatus.PENDING_REVIEW;
       updateFields.rejectionReason = undefined;
       updateFields.rejectionReasonIds = [];
       updateFields.rejectionNote = undefined;
       updateFields.rejectedAt = undefined;
+    }
+
+    // All edited listings go back to pending review
+    if (listing.status !== ListingStatus.PENDING_REVIEW) {
+      updateFields.status = ListingStatus.PENDING_REVIEW;
     }
 
     const updated = await this.listingModel
