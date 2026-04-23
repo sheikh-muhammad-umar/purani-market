@@ -22,6 +22,7 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { DEFAULT_CURRENCY } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
+import { saveState, loadState, clearState } from '../../../core/utils/state-persistence';
 
 export interface MediaItem {
   file: File;
@@ -130,6 +131,7 @@ export class CreateListingComponent implements OnInit {
   // Submission
   submitting = signal(false);
   error = signal('');
+  draftMediaWarning = signal(false);
 
   constructor(
     private readonly fb: FormBuilder,
@@ -141,6 +143,115 @@ export class CreateListingComponent implements OnInit {
     private readonly locationService: LocationService,
     private readonly tracker: ActivityTrackerService,
   ) {}
+
+  private readonly DRAFT_KEY = 'create-listing-draft';
+
+  private saveDraft(): void {
+    const draft: Record<string, any> = {
+      currentStep: this.currentStep(),
+      selectedLevel1Id: this.selectedLevel1()?._id,
+      selectedLevel2Id: this.selectedLevel2()?._id,
+      selectedLevel3Id: this.selectedLevel3()?._id,
+      selectedFeatures: this.selectedFeatures(),
+      detailsForm: this.detailsForm?.value,
+      locationForm: this.locationForm?.value,
+      featureAd: this.featureAd(),
+      selectedProvinceId: this.selectedProvince()?._id,
+      selectedCityId: this.selectedCityObj()?._id,
+      selectedAreaId: this.selectedAreaObj()?._id,
+      selectedBlockPhase: this.selectedBlockPhase(),
+    };
+    // Include dynamic attribute values
+    for (const attr of this.categoryAttributes()) {
+      draft[`attr_${attr.key}`] = this.detailsForm?.get(attr.key)?.value;
+    }
+    saveState(this.DRAFT_KEY, draft);
+  }
+
+  private restoreDraft(): void {
+    const draft = loadState<Record<string, any>>(this.DRAFT_KEY);
+    if (!draft['currentStep']) return;
+
+    const cats = this.allCategories();
+    if (cats.length === 0) return;
+
+    // Restore categories
+    if (draft['selectedLevel1Id']) {
+      const l1 = cats.find((c) => c._id === draft['selectedLevel1Id']);
+      if (l1) {
+        this.selectLevel1(l1);
+        if (draft['selectedLevel2Id']) {
+          const l2 = cats.find((c) => c._id === draft['selectedLevel2Id']);
+          if (l2) {
+            this.selectLevel2(l2);
+            if (draft['selectedLevel3Id']) {
+              const l3 = cats.find((c) => c._id === draft['selectedLevel3Id']);
+              if (l3) this.selectLevel3(l3);
+            }
+          }
+        }
+      }
+    }
+
+    // Restore features
+    if (draft['selectedFeatures']) this.selectedFeatures.set(draft['selectedFeatures']);
+
+    // Restore details form
+    if (draft['detailsForm']) {
+      this.detailsForm.patchValue(draft['detailsForm']);
+      // Restore dynamic attributes
+      for (const attr of this.categoryAttributes()) {
+        const val = draft[`attr_${attr.key}`];
+        if (val !== undefined) this.getDynamicControl(attr.key).setValue(val);
+      }
+    }
+
+    // Restore location form
+    if (draft['locationForm']) this.locationForm.patchValue(draft['locationForm']);
+
+    // Restore location selections
+    if (draft['selectedProvinceId']) {
+      const prov = this.provinces().find((p) => p._id === draft['selectedProvinceId']);
+      if (prov) {
+        this.selectedProvince.set(prov);
+        this.locationService.getCities(prov._id).subscribe({
+          next: (cities) => {
+            this.citiesForListing.set(cities);
+            if (draft['selectedCityId']) {
+              const city = cities.find((c: any) => c._id === draft['selectedCityId']);
+              if (city) {
+                this.selectedCityObj.set(city);
+                this.locationService.getAreas(city._id).subscribe({
+                  next: (areas) => {
+                    this.areasForListing.set(areas);
+                    if (draft['selectedAreaId']) {
+                      const area = areas.find((a: any) => a._id === draft['selectedAreaId']);
+                      if (area) this.selectedAreaObj.set(area);
+                    }
+                  },
+                });
+              }
+            }
+          },
+        });
+      }
+    }
+    if (draft['selectedBlockPhase']) this.selectedBlockPhase.set(draft['selectedBlockPhase']);
+    if (draft['featureAd']) this.featureAd.set(draft['featureAd']);
+
+    // Restore step — but cap at media step if media was lost on refresh
+    const savedStep = draft['currentStep'] as number;
+    if (savedStep > 3 && this.mediaItems().length === 0) {
+      this.currentStep.set(3);
+      this.draftMediaWarning.set(true);
+    } else {
+      this.currentStep.set(savedStep);
+    }
+  }
+
+  clearDraft(): void {
+    clearState(this.DRAFT_KEY);
+  }
 
   ngOnInit(): void {
     this.phoneForm = this.fb.group({
@@ -181,7 +292,10 @@ export class CreateListingComponent implements OnInit {
     });
 
     this.categoriesService.getAll().subscribe({
-      next: (cats) => this.allCategories.set(cats),
+      next: (cats) => {
+        this.allCategories.set(cats);
+        this.restoreDraft();
+      },
       error: () => this.allCategories.set([]),
     });
 
@@ -293,6 +407,7 @@ export class CreateListingComponent implements OnInit {
     this.selectedFeatures.set([]);
     const children = this.allCategories().filter((c) => c.parentId === cat._id && c.isActive);
     this.level2Categories.set(children);
+    this.saveDraft();
   }
 
   selectLevel2(cat: Category): void {
@@ -301,11 +416,13 @@ export class CreateListingComponent implements OnInit {
     this.selectedFeatures.set([]);
     const children = this.allCategories().filter((c) => c.parentId === cat._id && c.isActive);
     this.level3Categories.set(children);
+    this.saveDraft();
   }
 
   selectLevel3(cat: Category): void {
     this.selectedLevel3.set(cat);
     this.selectedFeatures.set([]);
+    this.saveDraft();
   }
 
   isCategoryStepValid(): boolean {
@@ -416,6 +533,7 @@ export class CreateListingComponent implements OnInit {
   }
 
   processFiles(files: FileList): void {
+    this.draftMediaWarning.set(false);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.type.startsWith('image/')) {
@@ -584,11 +702,13 @@ export class CreateListingComponent implements OnInit {
 
     this.showStepErrors.set(false);
     this.currentStep.update((s) => s + 1);
+    this.saveDraft();
   }
 
   prevStep(): void {
     if (this.currentStep() > 1) {
       this.currentStep.update((s) => s - 1);
+      this.saveDraft();
     }
   }
 
@@ -659,6 +779,7 @@ export class CreateListingComponent implements OnInit {
     this.listingsService.create(payload).subscribe({
       next: (listing) => {
         // Upload images sequentially after listing is created
+        this.clearDraft();
         this.tracker.track(TrackingEvent.LISTING_CREATE, {
           productListingId: listing._id,
           categoryId: cat._id,

@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BrandsService, Brand } from '../../../core/services/brands.service';
+import { saveState, loadState } from '../../../core/utils/state-persistence';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category } from '../../../core/models';
 import {
@@ -40,6 +41,8 @@ export class BrandManagerComponent implements OnInit {
   // Delete
   deletingId: string | null = null;
 
+  private readonly stateKey = 'admin-brands';
+
   constructor(
     private readonly brandsService: BrandsService,
     private readonly categoriesService: CategoriesService,
@@ -54,8 +57,15 @@ export class BrandManagerComponent implements OnInit {
       next: (cats) => {
         const brandCats = cats.filter((c) => c.hasBrands === true);
         this.categoryOptions = brandCats.map((c) => ({ value: c._id, label: c.name }));
-        // Auto-select first if only one
-        if (this.categoryOptions.length === 1) {
+
+        // Restore saved category selection
+        const saved = loadState<{ selectedCategoryId: string }>(this.stateKey);
+        if (
+          saved.selectedCategoryId &&
+          this.categoryOptions.some((o) => o.value === saved.selectedCategoryId)
+        ) {
+          this.selectCategory(saved.selectedCategoryId);
+        } else if (this.categoryOptions.length === 1) {
           this.selectCategory(this.categoryOptions[0].value as string);
         }
       },
@@ -67,6 +77,7 @@ export class BrandManagerComponent implements OnInit {
     const opt = this.categoryOptions.find((o) => o.value === categoryId);
     this.selectedCategoryName = opt?.label || '';
     this.searchQuery = '';
+    saveState(this.stateKey, { selectedCategoryId: this.selectedCategoryId });
     this.loadBrands();
   }
 

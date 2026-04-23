@@ -469,6 +469,15 @@
       @if (currentStep() === 3) {
         <div class="wizard-step">
           <h2>Upload Media</h2>
+          @if (draftMediaWarning()) {
+            <div class="alert alert-error" role="alert" style="margin-bottom: var(--space-2)">
+              <span class="material-symbols-rounded" style="font-size: 18px; vertical-align: middle"
+                >warning</span
+              >
+              Your previous images were lost due to page refresh. Please re-upload your media to
+              continue.
+            </div>
+          }
           <p class="step-description">
             Add at least 1 image + 1 more media (image or video). Max 20 images.
           </p>

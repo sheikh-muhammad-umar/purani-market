@@ -6,6 +6,7 @@ import {
   AdminPaymentsParams,
   PaymentTransaction,
 } from '../../../core/services/admin.service';
+import { saveState, loadState } from '../../../core/utils/state-persistence';
 import { PaymentMethod, PaymentStatus } from '../../../core/models';
 import {
   PAYMENT_METHOD_OPTIONS,
@@ -62,9 +63,19 @@ export class PaymentTransactionsComponent implements OnInit {
   page = 1;
   readonly limit = 15;
 
+  private readonly stateKey = 'admin-payments';
+
   constructor(readonly adminService: AdminService) {}
 
   ngOnInit(): void {
+    const saved = loadState<{ page: number; filterStatus: string; filterPaymentMethod: string }>(
+      this.stateKey,
+    );
+    if (saved.page) this.page = saved.page;
+    if (saved.filterStatus) this.filterStatus = saved.filterStatus as PaymentStatus;
+    if (saved.filterPaymentMethod)
+      this.filterPaymentMethod = saved.filterPaymentMethod as PaymentMethod;
+
     this.loadPayments();
   }
 
@@ -93,8 +104,17 @@ export class PaymentTransactionsComponent implements OnInit {
     });
   }
 
+  private persistState(): void {
+    saveState(this.stateKey, {
+      page: this.page,
+      filterStatus: this.filterStatus,
+      filterPaymentMethod: this.filterPaymentMethod,
+    });
+  }
+
   applyFilters(): void {
     this.page = 1;
+    this.persistState();
     this.loadPayments();
   }
 
@@ -104,17 +124,20 @@ export class PaymentTransactionsComponent implements OnInit {
     this.filterPaymentMethod = '';
     this.filterStatus = '';
     this.page = 1;
+    saveState(this.stateKey, {});
     this.loadPayments();
   }
 
   nextPage(): void {
     this.page++;
+    this.persistState();
     this.loadPayments();
   }
 
   prevPage(): void {
     if (this.page > 1) {
       this.page--;
+      this.persistState();
       this.loadPayments();
     }
   }

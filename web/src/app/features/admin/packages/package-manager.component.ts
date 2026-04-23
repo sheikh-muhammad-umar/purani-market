@@ -28,6 +28,7 @@ import {
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
 import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
+import { saveState, loadState } from '../../../core/utils/state-persistence';
 
 @Component({
   selector: 'app-package-manager',
@@ -92,6 +93,10 @@ export class PackageManagerComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
+    const saved = loadState<{ activeTab: string }>('package-manager');
+    if (saved.activeTab === 'purchases') {
+      this.activeTab = 'purchases';
+    }
     this.loadPackages();
     this.loadCategories();
   }
@@ -148,6 +153,7 @@ export class PackageManagerComponent implements OnInit {
   switchTab(tab: 'packages' | 'purchases'): void {
     this.activeTab = tab;
     this.activePanel = 'none';
+    saveState('package-manager', { activeTab: tab });
     if (tab === 'purchases') {
       this.loadPurchases();
     }

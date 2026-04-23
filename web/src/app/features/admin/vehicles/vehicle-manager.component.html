@@ -24,17 +24,13 @@
 
   <!-- Tabs -->
   <div class="vm-tabs">
-    <button class="vm-tab" [class.active]="activeTab === 'brands'" (click)="activeTab = 'brands'">
+    <button class="vm-tab" [class.active]="activeTab === 'brands'" (click)="setTab('brands')">
       Brands <span class="vm-tab-count">{{ brands().length }}</span>
     </button>
-    <button class="vm-tab" [class.active]="activeTab === 'models'" (click)="activeTab = 'models'">
+    <button class="vm-tab" [class.active]="activeTab === 'models'" (click)="setTab('models')">
       Models
     </button>
-    <button
-      class="vm-tab"
-      [class.active]="activeTab === 'variants'"
-      (click)="activeTab = 'variants'"
-    >
+    <button class="vm-tab" [class.active]="activeTab === 'variants'" (click)="setTab('variants')">
       Variants
     </button>
   </div>

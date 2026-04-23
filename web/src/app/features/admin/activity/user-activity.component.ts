@@ -2,6 +2,7 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../../core/services/admin.service';
+import { saveState, loadState } from '../../../core/utils/state-persistence';
 import {
   CustomSelectComponent,
   SelectOption,
@@ -137,9 +138,16 @@ export class UserActivityComponent implements OnInit {
     'deviceMemory',
   ];
 
+  private readonly stateKey = 'admin-activity';
+
   constructor(private readonly adminService: AdminService) {}
 
   ngOnInit(): void {
+    const saved = loadState<{ sortBy: string; page: number; filterAction: string }>(this.stateKey);
+    if (saved.sortBy) this.sortBy = saved.sortBy;
+    if (saved.page) this.page = saved.page;
+    if (saved.filterAction) this.filterAction = saved.filterAction;
+
     this.loadActivity();
   }
 
@@ -177,8 +185,17 @@ export class UserActivityComponent implements OnInit {
       });
   }
 
+  private persistState(): void {
+    saveState(this.stateKey, {
+      sortBy: this.sortBy,
+      page: this.page,
+      filterAction: this.filterAction,
+    });
+  }
+
   applyFilters(): void {
     this.page = 1;
+    this.persistState();
     this.loadActivity();
   }
 
@@ -189,12 +206,14 @@ export class UserActivityComponent implements OnInit {
     this.filterDateTo = '';
     this.sortBy = 'newest';
     this.page = 1;
+    saveState(this.stateKey, {});
     this.loadActivity();
   }
 
   goToPage(p: number): void {
     if (p < 1 || p > this.totalPages()) return;
     this.page = p;
+    this.persistState();
     this.loadActivity();
   }
 

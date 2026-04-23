@@ -2,6 +2,7 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService, AdminUser, GetUsersParams } from '../../../core/services/admin.service';
+import { saveState, loadState } from '../../../core/utils/state-persistence';
 import { UserRole, UserStatus } from '../../../core/models/user.model';
 import { UserStatus as UserStatusEnum } from '../../../core/constants/enums';
 import {
@@ -89,12 +90,21 @@ export class UserManagementComponent implements OnInit {
     return c;
   }
 
+  private readonly stateKey = 'admin-users';
+
   constructor(
     private readonly adminService: AdminService,
     readonly authService: AuthService,
   ) {}
 
   ngOnInit(): void {
+    const saved = loadState<{ page: number; roleFilter: string; statusFilter: string }>(
+      this.stateKey,
+    );
+    if (saved.page) this.currentPage.set(saved.page);
+    if (saved.roleFilter) this.roleFilter = saved.roleFilter as UserRole;
+    if (saved.statusFilter) this.statusFilter = saved.statusFilter as UserStatus;
+
     this.loadUsers();
   }
 
@@ -125,8 +135,17 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
+  private persistState(): void {
+    saveState(this.stateKey, {
+      page: this.currentPage(),
+      roleFilter: this.roleFilter,
+      statusFilter: this.statusFilter,
+    });
+  }
+
   applyFilters(): void {
     this.currentPage.set(1);
+    this.persistState();
     this.loadUsers();
   }
 
@@ -140,12 +159,14 @@ export class UserManagementComponent implements OnInit {
     this.filterDateFrom = '';
     this.filterDateTo = '';
     this.searchQuery = '';
+    saveState(this.stateKey, {});
     this.applyFilters();
   }
 
   goToPage(page: number): void {
     if (page < 1 || page > this.totalPages()) return;
     this.currentPage.set(page);
+    this.persistState();
     this.loadUsers();
   }
 

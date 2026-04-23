@@ -12,6 +12,7 @@ import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
+import { saveState, loadState } from '../../../core/utils/state-persistence';
 
 type ActiveTab = 'brands' | 'models' | 'variants';
 type VehicleType = 'car' | 'bike';
@@ -48,6 +49,11 @@ export class VehicleManagerComponent implements OnInit {
 
   // Tab
   activeTab: ActiveTab = 'brands';
+
+  setTab(tab: ActiveTab): void {
+    this.activeTab = tab;
+    saveState('vehicle-manager', { vehicleType: this.vehicleType, activeTab: tab });
+  }
 
   // Models
   models = signal<VehicleModel[]>([]);
@@ -103,7 +109,12 @@ export class VehicleManagerComponent implements OnInit {
             if (!this.categoryMap.bike && name === 'bikes') this.categoryMap.bike = cat._id;
           }
         }
-        this.switchVehicleType('car');
+        this.switchVehicleType(
+          loadState<{ vehicleType: VehicleType }>('vehicle-manager').vehicleType || 'car',
+        );
+        // Restore tab
+        const saved = loadState<{ activeTab: ActiveTab }>('vehicle-manager');
+        if (saved.activeTab) this.activeTab = saved.activeTab;
       },
     });
   }
@@ -121,6 +132,7 @@ export class VehicleManagerComponent implements OnInit {
     this.brandSearch = '';
     this.modelSearch = '';
     this.variantSearch = '';
+    saveState('vehicle-manager', { vehicleType: type, activeTab: 'brands' });
     this.loadBrands();
   }
 

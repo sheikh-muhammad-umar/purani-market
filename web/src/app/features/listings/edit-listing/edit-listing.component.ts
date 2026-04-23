@@ -16,6 +16,7 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { DEFAULT_CURRENCY } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
+import { saveState, loadState, clearState } from '../../../core/utils/state-persistence';
 import { ListingCondition } from '../../../core/constants';
 import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
 
@@ -28,6 +29,7 @@ import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
 })
 export class EditListingComponent implements OnInit {
   readonly conditionOptions = CONDITION_OPTIONS;
+  private readonly DRAFT_KEY = 'edit-listing-step';
 
   listingId = '';
   listing = signal<Listing | null>(null);
@@ -108,6 +110,9 @@ export class EditListingComponent implements OnInit {
         this.listing.set(listing);
         this.populateForm(listing);
         this.loading.set(false);
+        // Restore step if saved
+        const saved = loadState<{ step: number }>(this.DRAFT_KEY);
+        if (saved.step && saved.step > 1) this.currentStep.set(saved.step);
       },
       error: () => {
         this.error.set('Failed to load listing');
@@ -243,11 +248,15 @@ export class EditListingComponent implements OnInit {
   nextStep(): void {
     if (this.currentStep() < this.totalSteps && this.isStepValid(this.currentStep())) {
       this.currentStep.update((s) => s + 1);
+      saveState(this.DRAFT_KEY, { step: this.currentStep() });
     }
   }
 
   prevStep(): void {
-    if (this.currentStep() > 1) this.currentStep.update((s) => s - 1);
+    if (this.currentStep() > 1) {
+      this.currentStep.update((s) => s - 1);
+      saveState(this.DRAFT_KEY, { step: this.currentStep() });
+    }
   }
 
   goToStep(step: number): void {
@@ -306,6 +315,7 @@ export class EditListingComponent implements OnInit {
     this.listingsService.update(this.listingId, payload).subscribe({
       next: () => {
         this.submitting.set(false);
+        clearState(this.DRAFT_KEY);
         const original = this.listing();
         const changes: Record<string, { from: any; to: any }> = {};
         if (original?.title !== details.title)

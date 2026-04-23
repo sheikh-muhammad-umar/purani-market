@@ -5,6 +5,7 @@ import { RouterLink } from '@angular/router';
 import { AdminService } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { LocationService } from '../../../core/services/location.service';
+import { saveState, loadState } from '../../../core/utils/state-persistence';
 import {
   CustomSelectComponent,
   SelectOption,
@@ -110,7 +111,14 @@ export class AllListingsComponent implements OnInit {
     private readonly locationService: LocationService,
   ) {}
 
+  private readonly stateKey = 'admin-all-listings';
+
   ngOnInit(): void {
+    const saved = loadState<{ filterStatus: string; sortBy: string; page: number }>(this.stateKey);
+    if (saved.filterStatus) this.filterStatus = saved.filterStatus;
+    if (saved.sortBy) this.sortBy = saved.sortBy;
+    if (saved.page) this.page = saved.page;
+
     this.loadListings();
     this.loadCategories();
     this.loadProvinces();
@@ -219,8 +227,17 @@ export class AllListingsComponent implements OnInit {
       });
   }
 
+  private persistState(): void {
+    saveState(this.stateKey, {
+      filterStatus: this.filterStatus,
+      sortBy: this.sortBy,
+      page: this.page,
+    });
+  }
+
   applyFilters(): void {
     this.page = 1;
+    this.persistState();
     this.loadListings();
   }
   clearFilters(): void {
@@ -236,11 +253,13 @@ export class AllListingsComponent implements OnInit {
     this.sortBy = 'newest';
     this.cityOptions = [{ value: '', label: 'All Cities' }];
     this.page = 1;
+    saveState(this.stateKey, {});
     this.loadListings();
   }
   goToPage(p: number): void {
     if (p < 1 || p > this.totalPages()) return;
     this.page = p;
+    this.persistState();
     this.loadListings();
   }
 
