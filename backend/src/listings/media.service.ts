@@ -7,11 +7,12 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import sharp from 'sharp';
+import { computeBufferHash } from '../common/utils/file-hash.js';
 import {
   ProductListing,
   ProductListingDocument,
 } from './schemas/product-listing.schema.js';
-import { StorageService, UploadResult } from './storage.service.js';
+import { StorageService } from './storage.service.js';
 import { MediaType } from './dto/upload-media.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
 
@@ -60,23 +61,21 @@ export class MediaService {
 
   validateFile(file: Express.Multer.File, type: MediaType): void {
     if (!file) {
-      throw new BadRequestException('No file provided');
+      throw new BadRequestException(ERROR.NO_FILE_PROVIDED);
     }
     if (type === MediaType.IMAGE) {
       if (!ALLOWED_IMAGE_MIMETYPES.includes(file.mimetype)) {
-        throw new BadRequestException(
-          'Invalid image format. Allowed: JPEG, PNG, WebP',
-        );
+        throw new BadRequestException(ERROR.INVALID_IMAGE_FORMAT);
       }
       if (file.size > MAX_IMAGE_SIZE) {
-        throw new BadRequestException('Image size exceeds 5MB');
+        throw new BadRequestException(ERROR.IMAGE_SIZE_EXCEEDED);
       }
     } else if (type === MediaType.VIDEO) {
       if (!ALLOWED_VIDEO_MIMETYPES.includes(file.mimetype)) {
-        throw new BadRequestException('Invalid video format. Allowed: MP4');
+        throw new BadRequestException(ERROR.INVALID_VIDEO_FORMAT);
       }
       if (file.size > MAX_VIDEO_SIZE) {
-        throw new BadRequestException('Video size exceeds 50MB');
+        throw new BadRequestException(ERROR.VIDEO_SIZE_EXCEEDED);
       }
     }
   }
@@ -92,7 +91,7 @@ export class MediaService {
     }
     if (type === MediaType.VIDEO && listing.video) {
       throw new BadRequestException(
-        `Maximum ${MAX_VIDEOS_PER_LISTING} video exceeded`,
+        `Maximum ${MAX_VIDEOS_PER_LISTING} video allowed`,
       );
     }
   }
@@ -102,6 +101,15 @@ export class MediaService {
     file: Express.Multer.File,
     sortOrder?: number,
   ): Promise<MediaUploadResult> {
+    // Reject duplicate images within the same listing
+    const fileHash = computeBufferHash(file.buffer);
+    const existingHashes = listing.images
+      .map((img) => img.hash)
+      .filter(Boolean);
+    if (existingHashes.includes(fileHash)) {
+      throw new BadRequestException(ERROR.DUPLICATE_IMAGE_DETECTED);
+    }
+
     const compressed = await sharp(file.buffer)
       .resize(1920, 1080, { fit: 'inside', withoutEnlargement: true })
       .jpeg({ quality: 80 })
@@ -136,6 +144,7 @@ export class MediaService {
             url: imgResult.fileUrl,
             thumbnailUrl: thumbResult.fileUrl,
             sortOrder: order,
+            hash: fileHash,
           },
         },
       },
@@ -186,7 +195,7 @@ export class MediaService {
     sellerId: string,
   ): void {
     if (listing.sellerId.toString() !== sellerId) {
-      throw new ForbiddenException('Not authorized to upload to this listing');
+      throw new ForbiddenException(ERROR.NOT_AUTHORIZED_UPLOAD);
     }
   }
 }

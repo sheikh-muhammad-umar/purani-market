@@ -13,6 +13,7 @@ import {
 import { User, UserDocument } from '../users/schemas/user.schema.js';
 import { StorageService } from '../listings/storage.service.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { computeBufferHash } from '../common/utils/file-hash.js';
 
 const UPLOAD_FOLDER = 'id-verification';
 
@@ -58,6 +59,17 @@ export class IdVerificationService {
     const user = await this.userModel.findById(userId).lean();
     if (user?.idVerified) {
       throw new BadRequestException(ERROR.VERIFICATION_ALREADY_VERIFIED);
+    }
+
+    // Reject duplicate images
+    const hashes = [
+      computeBufferHash(files.cnicFront.buffer),
+      computeBufferHash(files.cnicBack.buffer),
+      computeBufferHash(files.selfieFront.buffer),
+      computeBufferHash(files.selfieBack.buffer),
+    ];
+    if (new Set(hashes).size !== hashes.length) {
+      throw new BadRequestException(ERROR.DUPLICATE_IMAGE_DETECTED);
     }
 
     const [

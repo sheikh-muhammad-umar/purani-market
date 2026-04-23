@@ -39,6 +39,9 @@ export class ListingImage {
 
   @Prop({ type: Number, default: 0 })
   sortOrder!: number;
+
+  @Prop({ type: String })
+  hash?: string;
 }
 
 @Schema({ _id: false })

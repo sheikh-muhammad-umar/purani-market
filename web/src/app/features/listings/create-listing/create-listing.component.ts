@@ -23,11 +23,14 @@ import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { DEFAULT_CURRENCY } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { saveState, loadState, clearState } from '../../../core/utils/state-persistence';
+import { computeFileHash } from '../../../core/utils/file-hash';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 
 export interface MediaItem {
   file: File;
   preview: string;
   type: 'image' | 'video';
+  hash?: string;
 }
 
 @Component({
@@ -532,14 +535,20 @@ export class CreateListingComponent implements OnInit {
     if (input.files) this.processFiles(input.files);
   }
 
-  processFiles(files: FileList): void {
+  async processFiles(files: FileList): Promise<void> {
     this.draftMediaWarning.set(false);
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.type.startsWith('image/')) {
         if (this.mediaItems().length >= 20) continue;
+        const hash = await computeFileHash(file);
+        const existingHashes = this.mediaItems().map((m) => m.hash);
+        if (existingHashes.includes(hash)) {
+          this.error.set(ERROR_MSG.DUPLICATE_IMAGE);
+          continue;
+        }
         const preview = URL.createObjectURL(file);
-        this.mediaItems.update((items) => [...items, { file, preview, type: 'image' }]);
+        this.mediaItems.update((items) => [...items, { file, preview, type: 'image', hash }]);
       } else if (file.type.startsWith('video/')) {
         if (this.videoItem()) continue;
         const preview = URL.createObjectURL(file);

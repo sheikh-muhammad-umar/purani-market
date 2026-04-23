@@ -12,6 +12,8 @@ import {
   ALLOWED_IMAGE_TYPES,
   MAX_IMAGE_SIZE,
 } from '../../../core/models/id-verification.model';
+import { computeFileHash } from '../../../core/utils/file-hash';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 
 type CnicField = 'cnicFront' | 'cnicBack' | 'selfieFront' | 'selfieBack';
 
@@ -44,6 +46,13 @@ export class IdVerificationComponent implements OnInit {
   readonly selfieFrontPreview = signal('');
   readonly selfieBackPreview = signal('');
 
+  private fileHashes: Record<CnicField, string> = {
+    cnicFront: '',
+    cnicBack: '',
+    selfieFront: '',
+    selfieBack: '',
+  };
+
   constructor(
     private readonly http: HttpClient,
     private readonly authService: AuthService,
@@ -67,28 +76,40 @@ export class IdVerificationComponent implements OnInit {
           });
         },
         error: () => {
-          this.error.set('Failed to load verification status.');
+          this.error.set(ERROR_MSG.VERIFICATION_LOAD_FAILED);
           this.loading.set(false);
         },
       });
   }
 
-  onFileSelect(event: Event, field: CnicField): void {
+  async onFileSelect(event: Event, field: CnicField): Promise<void> {
     const input = event.target as HTMLInputElement;
     const file = input.files?.[0];
     if (!file) return;
 
     if (!ALLOWED_IMAGE_TYPES.includes(file.type)) {
-      this.error.set('Only JPEG and PNG images are allowed.');
+      this.error.set(ERROR_MSG.INVALID_IMAGE_TYPE);
       return;
     }
 
     if (file.size > MAX_IMAGE_SIZE) {
-      this.error.set('File size must be less than 5MB.');
+      this.error.set(ERROR_MSG.FILE_SIZE_EXCEEDED);
+      return;
+    }
+
+    // Check for duplicate images across all fields
+    const hash = await computeFileHash(file);
+    const otherHashes = Object.entries(this.fileHashes)
+      .filter(([key]) => key !== field)
+      .map(([, h]) => h)
+      .filter(Boolean);
+    if (otherHashes.includes(hash)) {
+      this.error.set(ERROR_MSG.DUPLICATE_IMAGE);
       return;
     }
 
     this.error.set('');
+    this.fileHashes[field] = hash;
     this.setFile(field, file);
 
     const reader = new FileReader();
@@ -135,7 +156,7 @@ export class IdVerificationComponent implements OnInit {
       },
       error: (err) => {
         this.submitting.set(false);
-        this.error.set(err.error?.message || 'Failed to submit verification request.');
+        this.error.set(err.error?.message || ERROR_MSG.VERIFICATION_SUBMIT_FAILED);
       },
     });
   }
@@ -143,6 +164,7 @@ export class IdVerificationComponent implements OnInit {
   removeFile(field: CnicField): void {
     this.setFile(field, null);
     this.setPreview(field, '');
+    this.fileHashes[field] = '';
   }
 
   private setFile(field: CnicField, file: File | null): void {
@@ -183,6 +205,7 @@ export class IdVerificationComponent implements OnInit {
     (['cnicFront', 'cnicBack', 'selfieFront', 'selfieBack'] as CnicField[]).forEach((f) => {
       this.setFile(f, null);
       this.setPreview(f, '');
+      this.fileHashes[f] = '';
     });
   }
 }

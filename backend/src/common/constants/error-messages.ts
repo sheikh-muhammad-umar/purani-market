@@ -24,6 +24,14 @@ export const ERROR = {
   VERIFICATION_ALL_IMAGES_REQUIRED:
     'All 4 images are required: cnicFront, cnicBack, selfieFront, selfieBack',
   VERIFICATION_INVALID_IMAGE_TYPE: 'Only JPEG and PNG images are allowed',
+  DUPLICATE_IMAGE_DETECTED:
+    'Duplicate images are not allowed. Each uploaded image must be unique.',
+  NO_FILE_PROVIDED: 'No file provided',
+  INVALID_IMAGE_FORMAT: 'Invalid image format. Allowed: JPEG, PNG, WebP',
+  IMAGE_SIZE_EXCEEDED: 'Image size exceeds 5MB',
+  INVALID_VIDEO_FORMAT: 'Invalid video format. Allowed: MP4',
+  VIDEO_SIZE_EXCEEDED: 'Video size exceeds 50MB',
+  NOT_AUTHORIZED_UPLOAD: 'Not authorized to upload to this listing',
   INVALID_CATEGORY_ID: 'Invalid category ID',
   INVALID_BRAND_ID: 'Invalid brand ID',
   INVALID_MODEL_ID: 'Invalid model ID',

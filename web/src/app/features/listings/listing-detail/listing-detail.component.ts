@@ -14,6 +14,7 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { PLACEHOLDER_IMAGE } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
+import { ListingStatus } from '../../../core/constants/enums';
 
 @Component({
   selector: 'app-listing-detail',
@@ -24,6 +25,8 @@ import { ROUTES } from '../../../core/constants/routes';
 })
 export class ListingDetailComponent implements OnInit {
   readonly ROUTES = ROUTES;
+  readonly ListingStatus = ListingStatus;
+  readonly TrackingEvent = TrackingEvent;
   listing = signal<Listing | null>(null);
   loading = signal(true);
   error = signal('');

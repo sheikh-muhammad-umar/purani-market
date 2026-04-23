@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { API } from '../../../core/constants/api-endpoints';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 import {
   IdVerificationRequest,
   IdVerificationStatus,
@@ -90,7 +91,7 @@ export class IdVerificationsComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load verification requests.');
+        this.error.set(ERROR_MSG.VERIFICATIONS_LOAD_FAILED);
         this.loading.set(false);
       },
     });
@@ -155,7 +156,7 @@ export class IdVerificationsComponent implements OnInit {
         },
         error: (err) => {
           this.actionLoading.set(null);
-          this.error.set(err.error?.message || 'Failed to approve verification.');
+          this.error.set(err.error?.message || ERROR_MSG.VERIFICATION_APPROVE_FAILED);
         },
       });
   }
@@ -189,7 +190,7 @@ export class IdVerificationsComponent implements OnInit {
         },
         error: (err) => {
           this.actionLoading.set(null);
-          this.error.set(err.error?.message || 'Failed to reject verification.');
+          this.error.set(err.error?.message || ERROR_MSG.VERIFICATION_REJECT_FAILED);
         },
       });
   }
