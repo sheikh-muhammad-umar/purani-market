@@ -49,3 +49,51 @@ export interface AppBannerStats {
     dismissals: number;
   }[];
 }
+
+export interface GuestVsAuthEntry {
+  guest: number;
+  authenticated: number;
+}
+
+export interface TopSearch {
+  term: string;
+  count: number;
+}
+
+export interface TopViewedListing {
+  _id: string;
+  title: string;
+  viewCount: number;
+  favoriteCount: number;
+  price?: { amount: number; currency: string };
+}
+
+export interface LoginFailurePoint {
+  date: string;
+  count: number;
+}
+
+export interface ActionBreakdownEntry {
+  action: string;
+  count: number;
+}
+
+export interface DeviceBreakdownEntry {
+  device: string;
+  count: number;
+}
+
+export interface HourlyActivityEntry {
+  hour: number;
+  count: number;
+}
+
+export interface EngagementAnalytics {
+  guestVsAuth: Record<string, GuestVsAuthEntry>;
+  topSearches: TopSearch[];
+  topViewedListings: TopViewedListing[];
+  loginFailures: LoginFailurePoint[];
+  actionBreakdown: ActionBreakdownEntry[];
+  deviceBreakdown: DeviceBreakdownEntry[];
+  hourlyActivity: HourlyActivityEntry[];
+}

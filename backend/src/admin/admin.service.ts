@@ -37,6 +37,7 @@ import {
   UserActivity,
   UserActivityDocument,
 } from '../ai/schemas/user-activity.schema.js';
+import { UserAction } from '../ai/enums/user-action.enum.js';
 import { ERROR } from '../common/constants/error-messages.js';
 
 export interface PaginatedUsers {
@@ -984,9 +985,229 @@ export class AdminService {
     if (!result) throw new NotFoundException(ERROR.REJECTION_REASON_NOT_FOUND);
   }
 
+  // ── Engagement Analytics ────────────────────────────────────────
+
+  private buildDateFilter(
+    dateFrom?: string,
+    dateTo?: string,
+  ): Record<string, any> {
+    const filter: Record<string, any> = {};
+    if (dateFrom || dateTo) {
+      filter.createdAt = {};
+      if (dateFrom) filter.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) {
+        const to = new Date(dateTo);
+        to.setHours(23, 59, 59, 999);
+        filter.createdAt.$lte = to;
+      }
+    }
+    return filter;
+  }
+
+  async getEngagementAnalytics(
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<Record<string, any>> {
+    const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+
+    // For login failures, use date range if provided, otherwise last 7 days
+    const loginFailureDateMatch =
+      dateFrom || dateTo
+        ? dateFilter.createdAt
+          ? { createdAt: dateFilter.createdAt }
+          : {}
+        : { createdAt: { $gte: new Date(Date.now() - 7 * 86400000) } };
+
+    // For top viewed listings, build a date filter on createdAt
+    const listingDateFilter: Record<string, any> = {
+      status: ListingStatus.ACTIVE,
+      viewCount: { $gt: 0 },
+    };
+    if (dateFilter.createdAt) {
+      listingDateFilter.createdAt = dateFilter.createdAt;
+    }
+
+    const guestVsAuthActions = [
+      UserAction.VIEW,
+      UserAction.SEARCH,
+      UserAction.CATEGORY_BROWSE,
+      UserAction.PAGE_VIEW,
+    ];
+
+    const [
+      guestVsAuth,
+      topSearches,
+      topViewedListings,
+      loginFailures,
+      actionBreakdown,
+      deviceBreakdown,
+      hourlyActivity,
+    ] = await Promise.all([
+      // Guest vs Authenticated activity counts
+      this.activityModel
+        .aggregate([
+          {
+            $match: {
+              action: { $in: guestVsAuthActions },
+              ...dateFilter,
+            },
+          },
+          {
+            $group: {
+              _id: {
+                action: '$action',
+                isGuest: {
+                  $cond: [{ $ifNull: ['$userId', false] }, false, true],
+                },
+              },
+              count: { $sum: 1 },
+            },
+          },
+        ])
+        .exec(),
+
+      // Top search terms (from activity metadata)
+      this.activityModel
+        .aggregate([
+          {
+            $match: {
+              action: UserAction.SEARCH,
+              searchQuery: { $ne: null },
+              ...dateFilter,
+            },
+          },
+          { $group: { _id: '$searchQuery', count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+          { $limit: 30 },
+        ])
+        .exec(),
+
+      // Top viewed listings
+      this.listingModel
+        .find(listingDateFilter)
+        .sort({ viewCount: -1 })
+        .limit(30)
+        .select('title viewCount favoriteCount categoryId price')
+        .lean()
+        .exec(),
+
+      // Login failures
+      this.activityModel
+        .aggregate([
+          {
+            $match: {
+              action: UserAction.LOGIN_FAILED,
+              ...loginFailureDateMatch,
+            },
+          },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+              },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .exec(),
+
+      // Action type breakdown
+      this.activityModel
+        .aggregate([
+          { $match: { ...dateFilter } },
+          { $group: { _id: '$action', count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+          { $limit: 20 },
+        ])
+        .exec(),
+
+      // Device type breakdown
+      this.activityModel
+        .aggregate([
+          {
+            $match: { 'metadata.deviceType': { $exists: true }, ...dateFilter },
+          },
+          {
+            $group: {
+              _id: '$metadata.deviceType',
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { count: -1 } },
+        ])
+        .exec(),
+
+      // Hourly activity distribution
+      this.activityModel
+        .aggregate([
+          { $match: { ...dateFilter } },
+          {
+            $group: {
+              _id: { $hour: '$createdAt' },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .exec(),
+    ]);
+
+    // Format guest vs auth
+    const guestVsAuthFormatted: Record<
+      string,
+      { guest: number; authenticated: number }
+    > = {};
+    for (const row of guestVsAuth) {
+      const action = row._id.action;
+      if (!guestVsAuthFormatted[action]) {
+        guestVsAuthFormatted[action] = { guest: 0, authenticated: 0 };
+      }
+      if (row._id.isGuest) {
+        guestVsAuthFormatted[action].guest = row.count;
+      } else {
+        guestVsAuthFormatted[action].authenticated = row.count;
+      }
+    }
+
+    return {
+      guestVsAuth: guestVsAuthFormatted,
+      topSearches: topSearches.map((s: any) => ({
+        term: s._id,
+        count: s.count,
+      })),
+      topViewedListings: topViewedListings.map((l: any) => ({
+        _id: l._id?.toString(),
+        title: l.title,
+        viewCount: l.viewCount,
+        favoriteCount: l.favoriteCount,
+        price: l.price,
+      })),
+      loginFailures: loginFailures.map((f: any) => ({
+        date: f._id,
+        count: f.count,
+      })),
+      actionBreakdown: actionBreakdown.map((a: any) => ({
+        action: a._id,
+        count: a.count,
+      })),
+      deviceBreakdown: deviceBreakdown.map((d: any) => ({
+        device: d._id || 'unknown',
+        count: d.count,
+      })),
+      hourlyActivity: hourlyActivity.map((h: any) => ({
+        hour: h._id,
+        count: h.count,
+      })),
+    };
+  }
+
   // ── App Banner Stats ─────────────────────────────────────────────
 
-  async getAppBannerStats(): Promise<{
+  async getAppBannerStats(
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<{
     shown: number;
     clicks: number;
     dismissals: number;
@@ -999,23 +1220,33 @@ export class AdminService {
       dismissals: number;
     }[];
   }> {
+    const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+
+    const bannerActions = [
+      UserAction.APP_BANNER_SHOWN,
+      UserAction.APP_BANNER_CLICK,
+      UserAction.APP_BANNER_DISMISS,
+    ];
+
     const [shown, clicks, dismissals, platformBreakdown] = await Promise.all([
-      this.activityModel.countDocuments({ action: 'app_banner_shown' }).exec(),
-      this.activityModel.countDocuments({ action: 'app_banner_click' }).exec(),
       this.activityModel
-        .countDocuments({ action: 'app_banner_dismiss' })
+        .countDocuments({ action: UserAction.APP_BANNER_SHOWN, ...dateFilter })
+        .exec(),
+      this.activityModel
+        .countDocuments({ action: UserAction.APP_BANNER_CLICK, ...dateFilter })
+        .exec(),
+      this.activityModel
+        .countDocuments({
+          action: UserAction.APP_BANNER_DISMISS,
+          ...dateFilter,
+        })
         .exec(),
       this.activityModel
         .aggregate([
           {
             $match: {
-              action: {
-                $in: [
-                  'app_banner_shown',
-                  'app_banner_click',
-                  'app_banner_dismiss',
-                ],
-              },
+              action: { $in: bannerActions },
+              ...dateFilter,
             },
           },
           {
@@ -1042,9 +1273,11 @@ export class AdminService {
         platformMap.set(platform, { shown: 0, clicks: 0, dismissals: 0 });
       }
       const entry = platformMap.get(platform)!;
-      if (row._id.action === 'app_banner_shown') entry.shown = row.count;
-      else if (row._id.action === 'app_banner_click') entry.clicks = row.count;
-      else if (row._id.action === 'app_banner_dismiss')
+      if (row._id.action === UserAction.APP_BANNER_SHOWN)
+        entry.shown = row.count;
+      else if (row._id.action === UserAction.APP_BANNER_CLICK)
+        entry.clicks = row.count;
+      else if (row._id.action === UserAction.APP_BANNER_DISMISS)
         entry.dismissals = row.count;
     }
 

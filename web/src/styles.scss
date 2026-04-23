@@ -1125,3 +1125,30 @@ select.form-input,
     'GRAD' 0,
     'opsz' 24;
 }
+
+/* ============================================
+   GLOBAL TOOLTIP
+   ============================================ */
+.app-tooltip {
+  position: fixed;
+  z-index: 9999;
+  padding: 6px 10px;
+  background: var(--text-primary);
+  color: var(--background);
+  font-size: 12px;
+  font-weight: 500;
+  line-height: 1.4;
+  border-radius: 6px;
+  max-width: 280px;
+  white-space: normal;
+  word-break: break-word;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.08s ease;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  font-family: var(--font-body);
+
+  &.visible {
+    opacity: 1;
+  }
+}

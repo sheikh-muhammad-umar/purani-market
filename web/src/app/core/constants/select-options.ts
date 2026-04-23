@@ -107,3 +107,64 @@ export const REVIEW_COUNT_OPTIONS: SelectOption[] = [
   { value: '1', label: 'Resubmitted (2nd)' },
   { value: '2', label: 'Resubmitted (3rd)' },
 ];
+
+// ─── Activity Actions ────────────────────────────────────
+export const ACTION_FILTER_OPTIONS: SelectOption[] = [
+  { value: '', label: 'All Actions' },
+  // Browsing
+  { value: 'view', label: 'View Listing' },
+  { value: 'search', label: 'Search' },
+  { value: 'category_browse', label: 'Category Browse' },
+  { value: 'page_view', label: 'Page View' },
+  // Engagement
+  { value: 'favorite', label: 'Favorite' },
+  { value: 'unfavorite', label: 'Unfavorite' },
+  { value: 'contact', label: 'Contact' },
+  { value: 'share', label: 'Share' },
+  // Listings
+  { value: 'listing_create', label: 'Listing Create' },
+  { value: 'listing_edit', label: 'Listing Edit' },
+  { value: 'listing_delete', label: 'Listing Delete' },
+  { value: 'listing_status_change', label: 'Status Change' },
+  { value: 'listing_feature', label: 'Feature Ad' },
+  // Auth
+  { value: 'login', label: 'Login' },
+  { value: 'login_failed', label: 'Login Failed' },
+  { value: 'register', label: 'Register' },
+  { value: 'logout', label: 'Logout' },
+  // Messaging
+  { value: 'message_sent', label: 'Message Sent' },
+  { value: 'conversation_start', label: 'Conversation Start' },
+  // Payments
+  { value: 'package_purchase', label: 'Package Purchase' },
+  { value: 'payment_attempt', label: 'Payment Attempt' },
+  // Location
+  { value: 'location_change', label: 'Location Change' },
+  // AI
+  { value: 'dismiss', label: 'Dismiss Recommendation' },
+  { value: 'recommendation_click', label: 'Recommendation Click' },
+  // App Banner
+  { value: 'app_banner_shown', label: 'App Banner Shown' },
+  { value: 'app_banner_click', label: 'App Banner Click' },
+  { value: 'app_banner_dismiss', label: 'App Banner Dismiss' },
+  // Admin
+  { value: 'admin_user_status_change', label: 'Admin: User Status' },
+  { value: 'admin_user_role_change', label: 'Admin: User Role' },
+  { value: 'admin_user_ad_limit_change', label: 'Admin: Ad Limit' },
+  { value: 'admin_listing_approve', label: 'Admin: Approve Listing' },
+  { value: 'admin_listing_reject', label: 'Admin: Reject Listing' },
+  { value: 'admin_category_create', label: 'Admin: Create Category' },
+  { value: 'admin_category_update', label: 'Admin: Update Category' },
+  { value: 'admin_category_delete', label: 'Admin: Delete Category' },
+  { value: 'admin_category_attributes_update', label: 'Admin: Update Attributes' },
+  { value: 'admin_category_features_update', label: 'Admin: Update Features' },
+  { value: 'admin_location_create', label: 'Admin: Create Location' },
+  { value: 'admin_location_update', label: 'Admin: Update Location' },
+  { value: 'admin_location_delete', label: 'Admin: Delete Location' },
+  { value: 'admin_package_create', label: 'Admin: Create Package' },
+  { value: 'admin_package_update', label: 'Admin: Update Package' },
+  { value: 'admin_export_report', label: 'Admin: Export Report' },
+  { value: 'admin_rejection_reason_create', label: 'Admin: Create Rejection Reason' },
+  { value: 'admin_rejection_reason_update', label: 'Admin: Update Rejection Reason' },
+  { value: 'admin_rejection_reason_delete', label: 'Admin: Delete Rejection Reason' },
+];

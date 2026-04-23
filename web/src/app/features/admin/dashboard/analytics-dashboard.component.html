@@ -1,4 +1,5 @@
 <div class="analytics-dashboard">
+  <!-- Header -->
   <div class="dashboard-header">
     <h1>Analytics Dashboard</h1>
     <div class="header-actions">
@@ -34,11 +35,15 @@
   }
 
   @if (!loading() && !error()) {
-    <!-- Key Metrics Cards -->
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- OVERVIEW                                           -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <!-- Key Metrics -->
     <section class="metrics-section">
       <div class="metrics-grid">
         @for (card of metricCards(); track $index) {
-          <div class="metric-card">
+          <div class="metric-card" [appTooltip]="getMetricTooltip(card)">
             <span class="metric-icon material-symbols-rounded">{{ card.icon }}</span>
             <div class="metric-info">
               <span class="metric-value">{{ formatValue(card.value, card.format) }}</span>
@@ -49,23 +54,524 @@
       </div>
     </section>
 
-    <!-- App Banner Stats -->
+    <!-- Trends -->
+    @if (timeSeries(); as ts) {
+      <section class="charts-section">
+        <h2>Trends</h2>
+        <div class="charts-grid">
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Registrations</h3>
+              @if (ts.registrations.length > 0) {
+                <span class="chart-total"
+                  >Total: {{ getSeriesTotal(ts.registrations) | number }}</span
+                >
+              }
+            </div>
+            @if (ts.registrations.length > 0) {
+              <div class="bar-chart-wrap">
+                <div class="y-axis">
+                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.registrations) }}</span>
+                  <span class="y-label">0</span>
+                </div>
+                <div class="bar-chart">
+                  @for (point of ts.registrations; track $index) {
+                    <div
+                      class="bar-column"
+                      [appTooltip]="point.date + ': ' + point.value + ' registrations'"
+                    >
+                      @if (point.value > 0) {
+                        <span class="bar-value">{{ point.value }}</span>
+                      }
+                      <div
+                        class="bar"
+                        [style.height.%]="
+                          getBarHeight(point.value, getMaxTimeSeriesValue(ts.registrations))
+                        "
+                      ></div>
+                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <p class="no-data">No data available</p>
+            }
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Listings</h3>
+              @if (ts.listings.length > 0) {
+                <span class="chart-total">Total: {{ getSeriesTotal(ts.listings) | number }}</span>
+              }
+            </div>
+            @if (ts.listings.length > 0) {
+              <div class="bar-chart-wrap">
+                <div class="y-axis">
+                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.listings) }}</span>
+                  <span class="y-label">0</span>
+                </div>
+                <div class="bar-chart">
+                  @for (point of ts.listings; track $index) {
+                    <div
+                      class="bar-column"
+                      [appTooltip]="point.date + ': ' + point.value + ' listings'"
+                    >
+                      @if (point.value > 0) {
+                        <span class="bar-value">{{ point.value }}</span>
+                      }
+                      <div
+                        class="bar bar-listings"
+                        [style.height.%]="
+                          getBarHeight(point.value, getMaxTimeSeriesValue(ts.listings))
+                        "
+                      ></div>
+                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <p class="no-data">No data available</p>
+            }
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Conversations</h3>
+              @if (ts.conversations.length > 0) {
+                <span class="chart-total"
+                  >Total: {{ getSeriesTotal(ts.conversations) | number }}</span
+                >
+              }
+            </div>
+            @if (ts.conversations.length > 0) {
+              <div class="bar-chart-wrap">
+                <div class="y-axis">
+                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.conversations) }}</span>
+                  <span class="y-label">0</span>
+                </div>
+                <div class="bar-chart">
+                  @for (point of ts.conversations; track $index) {
+                    <div
+                      class="bar-column"
+                      [appTooltip]="point.date + ': ' + point.value + ' conversations'"
+                    >
+                      @if (point.value > 0) {
+                        <span class="bar-value">{{ point.value }}</span>
+                      }
+                      <div
+                        class="bar bar-conversations"
+                        [style.height.%]="
+                          getBarHeight(point.value, getMaxTimeSeriesValue(ts.conversations))
+                        "
+                      ></div>
+                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <p class="no-data">No data available</p>
+            }
+          </div>
+
+          <div class="chart-card">
+            <div class="chart-header">
+              <h3>Purchases</h3>
+              @if (ts.purchases.length > 0) {
+                <span class="chart-total">Total: {{ getSeriesTotal(ts.purchases) | number }}</span>
+              }
+            </div>
+            @if (ts.purchases.length > 0) {
+              <div class="bar-chart-wrap">
+                <div class="y-axis">
+                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.purchases) }}</span>
+                  <span class="y-label">0</span>
+                </div>
+                <div class="bar-chart">
+                  @for (point of ts.purchases; track $index) {
+                    <div
+                      class="bar-column"
+                      [appTooltip]="point.date + ': ' + point.value + ' purchases'"
+                    >
+                      @if (point.value > 0) {
+                        <span class="bar-value">{{ point.value }}</span>
+                      }
+                      <div
+                        class="bar bar-purchases"
+                        [style.height.%]="
+                          getBarHeight(point.value, getMaxTimeSeriesValue(ts.purchases))
+                        "
+                      ></div>
+                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            } @else {
+              <p class="no-data">No data available</p>
+            }
+          </div>
+        </div>
+      </section>
+    }
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- USER BEHAVIOR                                      -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <h2 class="section-group-title">
+      <span class="material-symbols-rounded">people</span> User Behavior
+    </h2>
+
+    <!-- Guest vs Authenticated -->
+    @if (engagement(); as eng) {
+      @if (eng.guestVsAuth) {
+        <section class="charts-section">
+          <h2>Guest vs Authenticated</h2>
+          <div class="comparison-card">
+            <div class="comparison-totals">
+              <div
+                class="comparison-total-item guest"
+                [appTooltip]="'Total actions by anonymous/non-logged-in visitors'"
+              >
+                <span class="material-symbols-rounded">person_off</span>
+                <div class="comparison-total-info">
+                  <span class="comparison-total-value">{{
+                    getGuestVsAuthTotal(eng.guestVsAuth).guest | number
+                  }}</span>
+                  <span class="comparison-total-label">Guest</span>
+                </div>
+              </div>
+              <div
+                class="comparison-total-item auth"
+                [appTooltip]="'Total actions by logged-in users'"
+              >
+                <span class="material-symbols-rounded">verified_user</span>
+                <div class="comparison-total-info">
+                  <span class="comparison-total-value">{{
+                    getGuestVsAuthTotal(eng.guestVsAuth).auth | number
+                  }}</span>
+                  <span class="comparison-total-label">Authenticated</span>
+                </div>
+              </div>
+            </div>
+            <div class="comparison-rows">
+              @for (entry of eng.guestVsAuth | keyvalue; track entry.key) {
+                <div
+                  class="comparison-row"
+                  [appTooltip]="
+                    formatAction($any(entry.key)) +
+                    ' — Guest: ' +
+                    entry.value.guest +
+                    ' vs Auth: ' +
+                    entry.value.authenticated
+                  "
+                >
+                  <span class="comparison-action">{{ formatAction($any(entry.key)) }}</span>
+                  <div class="comparison-values">
+                    <span class="comparison-guest">{{ entry.value.guest | number }}</span>
+                    <span class="comparison-divider">|</span>
+                    <span class="comparison-auth">{{ entry.value.authenticated | number }}</span>
+                  </div>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      }
+
+      <!-- Top Searches + Top Listings side by side -->
+      <div class="charts-grid">
+        @if (eng.topSearches.length > 0) {
+          <section class="charts-section">
+            <h2>Top Searches</h2>
+            <div class="data-table-card scrollable-table">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th class="col-rank">#</th>
+                    <th class="col-term">Search Term</th>
+                    <th class="col-count">Count</th>
+                  </tr>
+                </thead>
+              </table>
+              <div class="table-scroll-body">
+                <table class="data-table">
+                  <tbody>
+                    @for (item of eng.topSearches; track $index) {
+                      <tr
+                        [appTooltip]="
+                          '#' + ($index + 1) + ' — ' + item.term + ': ' + item.count + ' searches'
+                        "
+                      >
+                        <td class="col-rank">{{ $index + 1 }}</td>
+                        <td class="col-term">{{ item.term }}</td>
+                        <td class="col-count">{{ item.count | number }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        }
+
+        @if (eng.topViewedListings.length > 0) {
+          <section class="charts-section">
+            <h2>Top Viewed Listings</h2>
+            <div class="data-table-card scrollable-table">
+              <table class="data-table">
+                <thead>
+                  <tr>
+                    <th class="col-title">Title</th>
+                    <th class="col-num">Views</th>
+                    <th class="col-num">Favs</th>
+                    <th class="col-price">Price</th>
+                  </tr>
+                </thead>
+              </table>
+              <div class="table-scroll-body">
+                <table class="data-table">
+                  <tbody>
+                    @for (item of eng.topViewedListings; track $index) {
+                      <tr
+                        [appTooltip]="
+                          item.title +
+                          ' — ' +
+                          item.viewCount +
+                          ' views, ' +
+                          item.favoriteCount +
+                          ' favs'
+                        "
+                      >
+                        <td class="col-title">{{ item.title }}</td>
+                        <td class="col-num">{{ item.viewCount | number }}</td>
+                        <td class="col-num">{{ item.favoriteCount | number }}</td>
+                        <td class="col-price">
+                          {{ CURRENCY_SYMBOL }} {{ item.price?.amount | number }}
+                        </td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        }
+      </div>
+
+      <!-- Peak Hours -->
+      @if (eng.hourlyActivity.length > 0) {
+        <section class="charts-section">
+          <h2>Peak Hours</h2>
+          <div class="chart-card">
+            <div class="mini-chart mini-chart-hours">
+              @for (item of eng.hourlyActivity; track $index) {
+                <div
+                  class="mini-chart-col"
+                  [appTooltip]="formatHour(item.hour) + ': ' + item.count + ' actions'"
+                >
+                  <span class="mini-chart-value">{{ item.count }}</span>
+                  <div
+                    class="mini-chart-bar bar-hours"
+                    [style.height.%]="
+                      getBarHeight(item.count, getMaxValue(eng.hourlyActivity, 'count'))
+                    "
+                  ></div>
+                  <span class="mini-chart-label">{{ formatHour(item.hour) }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      }
+    }
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- CONTENT & MARKETPLACE                              -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <h2 class="section-group-title">
+      <span class="material-symbols-rounded">storefront</span> Content &amp; Marketplace
+    </h2>
+
+    <!-- Listings by Category -->
+    @if (categoryAnalytics().length > 0) {
+      <section class="category-section">
+        <h2>Listings by Category</h2>
+        <div class="category-list">
+          <div class="category-row category-row-header">
+            <span class="category-name">Category</span>
+            <div class="category-bar-wrapper"></div>
+            <span class="category-pct">Share</span>
+            <span class="category-count">Count</span>
+          </div>
+          @for (cat of categoryAnalytics(); track $index) {
+            <div
+              class="category-row"
+              [appTooltip]="
+                cat.categoryName +
+                ': ' +
+                cat.listingCount +
+                ' listings (' +
+                getCategoryPercent(cat.listingCount) +
+                '%)'
+              "
+            >
+              <span class="category-name">{{ cat.categoryName }}</span>
+              <div class="category-bar-wrapper">
+                <div class="category-bar" [style.width.%]="getBarWidth(cat.listingCount)"></div>
+              </div>
+              <span class="category-pct">{{ getCategoryPercent(cat.listingCount) }}%</span>
+              <span class="category-count">{{ cat.listingCount }}</span>
+            </div>
+          }
+        </div>
+      </section>
+    }
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- PLATFORM & SECURITY                                -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <h2 class="section-group-title">
+      <span class="material-symbols-rounded">security</span> Platform &amp; Security
+    </h2>
+
+    @if (engagement(); as eng) {
+      <!-- Device + Login Failures side by side -->
+      <div class="charts-grid">
+        <!-- Device Distribution -->
+        @if (eng.deviceBreakdown.length > 0) {
+          <div class="chart-card">
+            <div class="chart-header"><h3>Device Distribution</h3></div>
+            <div class="device-h-bars">
+              @for (device of getDevicePercentages(eng.deviceBreakdown); track device.device) {
+                <div
+                  class="device-h-row"
+                  [appTooltip]="
+                    (device.device | titlecase) +
+                    ': ' +
+                    device.count +
+                    ' events (' +
+                    device.pct +
+                    '%)'
+                  "
+                >
+                  <div class="device-h-icon" [class]="'device-color-bg-' + device.device">
+                    <span class="material-symbols-rounded">
+                      @switch (device.device) {
+                        @case ('desktop') {
+                          computer
+                        }
+                        @case ('mobile') {
+                          smartphone
+                        }
+                        @case ('tablet') {
+                          tablet
+                        }
+                        @default {
+                          devices
+                        }
+                      }
+                    </span>
+                  </div>
+                  <span class="device-h-label">{{ device.device | titlecase }}</span>
+                  <div class="device-h-track">
+                    <div
+                      class="device-h-fill"
+                      [class]="'device-color-' + device.device"
+                      [style.width.%]="device.pct"
+                    ></div>
+                  </div>
+                  <span class="device-h-count">{{ device.count | number }}</span>
+                  <span class="device-h-pct">{{ device.pct }}%</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Login Failures -->
+        @if (eng.loginFailures.length > 0) {
+          <div class="chart-card">
+            <div class="chart-header"><h3>Login Failures (7d)</h3></div>
+            <div class="mini-chart">
+              @for (item of eng.loginFailures; track $index) {
+                <div
+                  class="mini-chart-col"
+                  [appTooltip]="item.date + ': ' + item.count + ' failures'"
+                >
+                  <span class="mini-chart-value">{{ item.count }}</span>
+                  <div
+                    class="mini-chart-bar bar-failures"
+                    [style.height.%]="
+                      getBarHeight(item.count, getMaxValue(eng.loginFailures, 'count'))
+                    "
+                  ></div>
+                  <span class="mini-chart-label">{{ formatShortDate(item.date) }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Activity Breakdown -->
+      @if (eng.actionBreakdown.length > 0) {
+        <section class="charts-section">
+          <h2>Activity Breakdown</h2>
+          <div class="chart-card">
+            <div class="h-bar-chart">
+              @for (item of eng.actionBreakdown; track $index) {
+                <div
+                  class="h-bar-row"
+                  [appTooltip]="formatAction(item.action) + ': ' + item.count + ' events'"
+                >
+                  <span class="h-bar-label">{{ formatAction(item.action) }}</span>
+                  <div class="h-bar-track">
+                    <div
+                      class="h-bar-fill"
+                      [style.width.%]="getBarHeight(item.count, eng.actionBreakdown[0].count)"
+                    ></div>
+                  </div>
+                  <span class="h-bar-value">{{ item.count | number }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      }
+    }
+
+    <!-- ═══════════════════════════════════════════════════ -->
+    <!-- MARKETING                                          -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <h2 class="section-group-title">
+      <span class="material-symbols-rounded">campaign</span> Marketing
+    </h2>
+
+    <!-- App Download Banner -->
     <section class="banner-section">
       <h2>App Download Banner</h2>
       @if (bannerStats(); as bs) {
         <div class="banner-card">
           <div class="banner-summary">
-            <div class="banner-stat">
+            <div class="banner-stat" [appTooltip]="'Times the banner was shown to mobile users'">
               <span class="banner-stat-value">{{ bs.shown | number }}</span>
               <span class="banner-stat-label">Impressions</span>
             </div>
             <div class="banner-divider"></div>
-            <div class="banner-stat">
+            <div class="banner-stat" [appTooltip]="'Users who tapped Open to visit the app store'">
               <span class="banner-stat-value">{{ bs.clicks | number }}</span>
               <span class="banner-stat-label">Clicks ({{ bs.clickRate }}%)</span>
             </div>
             <div class="banner-divider"></div>
-            <div class="banner-stat">
+            <div class="banner-stat" [appTooltip]="'Users who closed the banner'">
               <span class="banner-stat-value">{{ bs.dismissals | number }}</span>
               <span class="banner-stat-label">Dismissed ({{ bs.dismissRate }}%)</span>
             </div>
@@ -106,193 +612,9 @@
         </div>
       } @else {
         <div class="banner-card">
-          <p class="no-data">
-            No banner data yet. Stats will appear once users interact with the app download banner
-            on mobile.
-          </p>
+          <p class="no-data">No banner data yet.</p>
         </div>
       }
     </section>
-
-    <!-- Time Series Charts -->
-    @if (timeSeries(); as ts) {
-      <section class="charts-section">
-        <h2>Trends</h2>
-        <div class="charts-grid">
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3>Registrations</h3>
-              @if (ts.registrations.length > 0) {
-                <span class="chart-total"
-                  >Total: {{ getSeriesTotal(ts.registrations) | number }}</span
-                >
-              }
-            </div>
-            @if (ts.registrations.length > 0) {
-              <div class="bar-chart-wrap">
-                <div class="y-axis">
-                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.registrations) }}</span>
-                  <span class="y-label">0</span>
-                </div>
-                <div class="bar-chart">
-                  @for (point of ts.registrations; track $index) {
-                    <div class="bar-column" [title]="point.date + ': ' + point.value">
-                      @if (point.value > 0) {
-                        <span class="bar-value">{{ point.value }}</span>
-                      }
-                      <div
-                        class="bar"
-                        [style.height.%]="
-                          getBarHeight(point.value, getMaxTimeSeriesValue(ts.registrations))
-                        "
-                      ></div>
-                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-            @if (ts.registrations.length === 0) {
-              <p class="no-data">No data available</p>
-            }
-          </div>
-
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3>Listings</h3>
-              @if (ts.listings.length > 0) {
-                <span class="chart-total">Total: {{ getSeriesTotal(ts.listings) | number }}</span>
-              }
-            </div>
-            @if (ts.listings.length > 0) {
-              <div class="bar-chart-wrap">
-                <div class="y-axis">
-                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.listings) }}</span>
-                  <span class="y-label">0</span>
-                </div>
-                <div class="bar-chart">
-                  @for (point of ts.listings; track $index) {
-                    <div class="bar-column" [title]="point.date + ': ' + point.value">
-                      @if (point.value > 0) {
-                        <span class="bar-value">{{ point.value }}</span>
-                      }
-                      <div
-                        class="bar bar-listings"
-                        [style.height.%]="
-                          getBarHeight(point.value, getMaxTimeSeriesValue(ts.listings))
-                        "
-                      ></div>
-                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-            @if (ts.listings.length === 0) {
-              <p class="no-data">No data available</p>
-            }
-          </div>
-
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3>Conversations</h3>
-              @if (ts.conversations.length > 0) {
-                <span class="chart-total"
-                  >Total: {{ getSeriesTotal(ts.conversations) | number }}</span
-                >
-              }
-            </div>
-            @if (ts.conversations.length > 0) {
-              <div class="bar-chart-wrap">
-                <div class="y-axis">
-                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.conversations) }}</span>
-                  <span class="y-label">0</span>
-                </div>
-                <div class="bar-chart">
-                  @for (point of ts.conversations; track $index) {
-                    <div class="bar-column" [title]="point.date + ': ' + point.value">
-                      @if (point.value > 0) {
-                        <span class="bar-value">{{ point.value }}</span>
-                      }
-                      <div
-                        class="bar bar-conversations"
-                        [style.height.%]="
-                          getBarHeight(point.value, getMaxTimeSeriesValue(ts.conversations))
-                        "
-                      ></div>
-                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-            @if (ts.conversations.length === 0) {
-              <p class="no-data">No data available</p>
-            }
-          </div>
-
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3>Purchases</h3>
-              @if (ts.purchases.length > 0) {
-                <span class="chart-total">Total: {{ getSeriesTotal(ts.purchases) | number }}</span>
-              }
-            </div>
-            @if (ts.purchases.length > 0) {
-              <div class="bar-chart-wrap">
-                <div class="y-axis">
-                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.purchases) }}</span>
-                  <span class="y-label">0</span>
-                </div>
-                <div class="bar-chart">
-                  @for (point of ts.purchases; track $index) {
-                    <div class="bar-column" [title]="point.date + ': ' + point.value">
-                      @if (point.value > 0) {
-                        <span class="bar-value">{{ point.value }}</span>
-                      }
-                      <div
-                        class="bar bar-purchases"
-                        [style.height.%]="
-                          getBarHeight(point.value, getMaxTimeSeriesValue(ts.purchases))
-                        "
-                      ></div>
-                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-            @if (ts.purchases.length === 0) {
-              <p class="no-data">No data available</p>
-            }
-          </div>
-        </div>
-      </section>
-    }
-
-    <!-- Category Analytics -->
-    @if (categoryAnalytics().length > 0) {
-      <section class="category-section">
-        <h2>Listings by Category</h2>
-        <div class="category-list">
-          <div class="category-row category-row-header">
-            <span class="category-name">Category</span>
-            <div class="category-bar-wrapper"></div>
-            <span class="category-pct">Share</span>
-            <span class="category-count">Count</span>
-          </div>
-          @for (cat of categoryAnalytics(); track $index) {
-            <div class="category-row">
-              <span class="category-name" [title]="cat.categoryName">{{ cat.categoryName }}</span>
-              <div class="category-bar-wrapper">
-                <div class="category-bar" [style.width.%]="getBarWidth(cat.listingCount)"></div>
-              </div>
-              <span class="category-pct">{{ getCategoryPercent(cat.listingCount) }}%</span>
-              <span class="category-count">{{ cat.listingCount }}</span>
-            </div>
-          }
-        </div>
-      </section>
-    }
   }
 </div>

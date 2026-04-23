@@ -19,8 +19,8 @@
 
 .sidebar-inner {
   position: sticky;
-  top: 0;
-  height: 100vh;
+  top: var(--header-height, 64px);
+  height: calc(100vh - var(--header-height, 64px));
   overflow-y: auto;
   display: flex;
   flex-direction: column;

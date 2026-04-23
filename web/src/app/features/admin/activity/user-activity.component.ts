@@ -8,6 +8,7 @@ import {
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { ACTION_FILTER_OPTIONS } from '../../../core/constants/select-options';
 
 interface ActivityEntry {
   _id: string;
@@ -56,45 +57,7 @@ export class UserActivityComponent implements OnInit {
     return c;
   }
 
-  readonly actionOptions: SelectOption[] = [
-    { value: '', label: 'All Actions' },
-    { value: 'view', label: 'View Listing' },
-    { value: 'search', label: 'Search' },
-    { value: 'category_browse', label: 'Category Browse' },
-    { value: 'page_view', label: 'Page View' },
-    { value: 'favorite', label: 'Favorite' },
-    { value: 'unfavorite', label: 'Unfavorite' },
-    { value: 'contact', label: 'Contact' },
-    { value: 'listing_create', label: 'Listing Create' },
-    { value: 'listing_edit', label: 'Listing Edit' },
-    { value: 'listing_delete', label: 'Listing Delete' },
-    { value: 'listing_status_change', label: 'Status Change' },
-    { value: 'listing_feature', label: 'Feature Ad' },
-    { value: 'login', label: 'Login' },
-    { value: 'register', label: 'Register' },
-    { value: 'logout', label: 'Logout' },
-    { value: 'message_sent', label: 'Message Sent' },
-    { value: 'conversation_start', label: 'Conversation Start' },
-    { value: 'package_purchase', label: 'Package Purchase' },
-    { value: 'payment_attempt', label: 'Payment Attempt' },
-    { value: 'location_change', label: 'Location Change' },
-    { value: 'admin_user_status_change', label: 'Admin: User Status' },
-    { value: 'admin_user_role_change', label: 'Admin: User Role' },
-    { value: 'admin_user_ad_limit_change', label: 'Admin: Ad Limit' },
-    { value: 'admin_listing_approve', label: 'Admin: Approve Listing' },
-    { value: 'admin_listing_reject', label: 'Admin: Reject Listing' },
-    { value: 'admin_category_create', label: 'Admin: Create Category' },
-    { value: 'admin_category_update', label: 'Admin: Update Category' },
-    { value: 'admin_category_delete', label: 'Admin: Delete Category' },
-    { value: 'admin_category_attributes_update', label: 'Admin: Update Attributes' },
-    { value: 'admin_category_features_update', label: 'Admin: Update Features' },
-    { value: 'admin_location_create', label: 'Admin: Create Location' },
-    { value: 'admin_location_update', label: 'Admin: Update Location' },
-    { value: 'admin_location_delete', label: 'Admin: Delete Location' },
-    { value: 'admin_package_create', label: 'Admin: Create Package' },
-    { value: 'admin_package_update', label: 'Admin: Update Package' },
-    { value: 'admin_export_report', label: 'Admin: Export Report' },
-  ];
+  readonly actionOptions = ACTION_FILTER_OPTIONS;
 
   readonly sortOptions: SelectOption[] = [
     { value: 'newest', label: 'Newest First' },

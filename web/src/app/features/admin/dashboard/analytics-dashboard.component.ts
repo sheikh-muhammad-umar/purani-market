@@ -2,16 +2,18 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 import { CURRENCY_SYMBOL } from '../../../core/constants/app';
 import {
   AdminService,
-  AnalyticsData,
   MetricsSummary,
   TimeSeriesPoint,
   CategoryAnalytics,
   DateRange,
   AppBannerStats,
+  EngagementAnalytics,
 } from '../../../core/services/admin.service';
+import { GuestVsAuthEntry, DeviceBreakdownEntry } from '../../../core/models/analytics.model';
 
 export interface MetricCard {
   label: string;
@@ -23,7 +25,7 @@ export interface MetricCard {
 @Component({
   selector: 'app-analytics-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePickerComponent],
+  imports: [CommonModule, FormsModule, DatePickerComponent, TooltipDirective],
   templateUrl: './analytics-dashboard.component.html',
   styleUrls: ['./analytics-dashboard.component.scss'],
 })
@@ -40,6 +42,7 @@ export class AnalyticsDashboardComponent implements OnInit {
   } | null>(null);
   readonly categoryAnalytics = signal<CategoryAnalytics[]>([]);
   readonly bannerStats = signal<AppBannerStats | null>(null);
+  readonly engagement = signal<EngagementAnalytics | null>(null);
 
   startDate = '';
   endDate = '';
@@ -77,6 +80,7 @@ export class AnalyticsDashboardComponent implements OnInit {
     this.endDate = this.formatDateInput(now);
     this.loadAnalytics();
     this.loadBannerStats();
+    this.loadEngagement();
   }
 
   loadAnalytics(): void {
@@ -119,11 +123,28 @@ export class AnalyticsDashboardComponent implements OnInit {
 
   applyDateRange(): void {
     this.loadAnalytics();
+    this.loadBannerStats();
+    this.loadEngagement();
   }
 
   private loadBannerStats(): void {
-    this.adminService.getAppBannerStats().subscribe({
+    const dateRange: DateRange | undefined =
+      this.startDate && this.endDate
+        ? { startDate: this.startDate, endDate: this.endDate }
+        : undefined;
+    this.adminService.getAppBannerStats(dateRange).subscribe({
       next: (stats) => this.bannerStats.set(stats),
+      error: () => {},
+    });
+  }
+
+  private loadEngagement(): void {
+    const dateRange: DateRange | undefined =
+      this.startDate && this.endDate
+        ? { startDate: this.startDate, endDate: this.endDate }
+        : undefined;
+    this.adminService.getEngagementAnalytics(dateRange).subscribe({
+      next: (data) => this.engagement.set(data),
       error: () => {},
     });
   }
@@ -180,6 +201,67 @@ export class AnalyticsDashboardComponent implements OnInit {
   getCategoryPercent(count: number): number {
     const total = this.categoryAnalytics().reduce((s, c) => s + c.listingCount, 0);
     return total > 0 ? Math.round((count / total) * 100) : 0;
+  }
+
+  getGuestVsAuthTotal(data: Record<string, GuestVsAuthEntry>): {
+    guest: number;
+    auth: number;
+  } {
+    let guest = 0,
+      auth = 0;
+    for (const v of Object.values(data)) {
+      guest += v.guest;
+      auth += v.authenticated;
+    }
+    return { guest, auth };
+  }
+
+  formatAction(action: string): string {
+    return action.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  formatHour(hour: number): string {
+    if (hour === 0) return '12 AM';
+    if (hour < 12) return `${hour} AM`;
+    if (hour === 12) return '12 PM';
+    return `${hour - 12} PM`;
+  }
+
+  getMaxValue(items: any[], key: string): number {
+    if (!items || items.length === 0) return 1;
+    return Math.max(...items.map((i) => i[key] ?? 0), 1);
+  }
+
+  getDevicePercentages(
+    breakdown: DeviceBreakdownEntry[],
+  ): { device: string; count: number; pct: number }[] {
+    const total = breakdown.reduce((s, d) => s + d.count, 0) || 1;
+    return breakdown.map((d) => ({
+      device: d.device,
+      count: d.count,
+      pct: Math.round((d.count / total) * 100),
+    }));
+  }
+
+  readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
+
+  getMetricTooltip(card: MetricCard): string {
+    switch (card.icon) {
+      case 'group':
+        return 'Total registered users on the platform';
+      case 'person_check':
+        return 'Users who logged in within the last 30 days';
+      case 'list_alt':
+        return 'Total listings created (all statuses)';
+      case 'chat':
+        return 'Total buyer-seller conversations started';
+      case 'shopping_cart':
+        return 'Total completed package purchases';
+      case 'account_balance_wallet':
+        return `Total revenue from package sales (${CURRENCY_SYMBOL})`;
+      default:
+        return card.label;
+    }
   }
 
   private formatDateInput(date: Date): string {

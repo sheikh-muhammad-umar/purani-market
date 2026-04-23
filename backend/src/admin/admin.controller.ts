@@ -253,8 +253,19 @@ export class AdminController {
   }
 
   @Get('analytics/app-banner')
-  async getAppBannerStats() {
-    return this.adminService.getAppBannerStats();
+  async getAppBannerStats(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.adminService.getAppBannerStats(dateFrom, dateTo);
+  }
+
+  @Get('analytics/engagement')
+  async getEngagementAnalytics(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.adminService.getEngagementAnalytics(dateFrom, dateTo);
   }
 
   @Get('analytics/export')
