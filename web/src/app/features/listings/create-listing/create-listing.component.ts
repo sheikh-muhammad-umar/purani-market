@@ -736,22 +736,24 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     }
 
     this.showStepErrors.set(false);
+    this.error.set('');
     this.currentStep.update((s) => s + 1);
     this.saveDraft();
   }
 
   prevStep(): void {
     if (this.currentStep() > 1) {
+      this.error.set('');
       this.currentStep.update((s) => s - 1);
       this.saveDraft();
     }
   }
 
   goToStep(step: number): void {
-    // Only allow going to steps that are reachable (all previous steps valid)
     for (let i = 1; i < step; i++) {
       if (!this.isStepValid(i)) return;
     }
+    this.error.set('');
     this.currentStep.set(step);
   }
 
