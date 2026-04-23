@@ -610,6 +610,18 @@
   color: var(--text-muted);
 }
 
+.own-listing-notice {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px;
+  background: rgba(13, 165, 195, 0.05);
+  border: 1px solid rgba(13, 165, 195, 0.2);
+  border-radius: var(--radius-sm);
+  font-size: 13px;
+  color: var(--primary);
+}
+
 .price-label {
   font-size: var(--text-xs);
   color: var(--text-muted);

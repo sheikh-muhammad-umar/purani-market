@@ -311,6 +311,11 @@
                 <span class="material-symbols-rounded" style="font-size: 18px">block</span>
                 This ad is no longer active. Messaging and calls are disabled.
               </div>
+            } @else if (authService.isAuthenticated() && authService.user()?._id === l.sellerId) {
+              <div class="own-listing-notice">
+                <span class="material-symbols-rounded" style="font-size: 18px">info</span>
+                This is your listing.
+              </div>
             } @else if (authService.isAuthenticated()) {
               <a
                 [routerLink]="['/messaging']"
