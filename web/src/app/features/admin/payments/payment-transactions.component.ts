@@ -33,6 +33,7 @@ export class PaymentTransactionsComponent implements OnInit {
 
   filterStartDate = '';
   filterEndDate = '';
+  readonly today = new Date().toISOString().split('T')[0];
   filterPaymentMethod: PaymentMethod | '' = '';
   filterStatus: PaymentStatus | '' = '';
   filtersOpen = false;

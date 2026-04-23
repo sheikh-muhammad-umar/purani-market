@@ -44,6 +44,7 @@ export class ModerationQueueComponent implements OnInit {
   filterCategory = '';
   filterDateFrom = '';
   filterDateTo = '';
+  readonly today = new Date().toISOString().split('T')[0];
   filterReviewCount = '';
   filtersOpen = false;
 

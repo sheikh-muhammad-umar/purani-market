@@ -5,9 +5,9 @@
     <div class="header-actions">
       <div class="date-range">
         <label>From</label>
-        <app-date-picker [(ngModel)]="startDate"></app-date-picker>
+        <app-date-picker [(ngModel)]="startDate" [max]="endDate || today"></app-date-picker>
         <label>To</label>
-        <app-date-picker [(ngModel)]="endDate"></app-date-picker>
+        <app-date-picker [(ngModel)]="endDate" [min]="startDate" [max]="today"></app-date-picker>
         <button class="btn-apply" (click)="applyDateRange()">Apply</button>
       </div>
       <button

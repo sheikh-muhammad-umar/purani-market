@@ -244,6 +244,7 @@ export class AnalyticsDashboardComponent implements OnInit {
   }
 
   readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
+  readonly today = new Date().toISOString().split('T')[0];
 
   getMetricTooltip(card: MetricCard): string {
     switch (card.icon) {

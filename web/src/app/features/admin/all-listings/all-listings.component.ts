@@ -52,6 +52,7 @@ export class AllListingsComponent implements OnInit {
   filterDeletionReason = '';
   filterDateFrom = '';
   filterDateTo = '';
+  readonly today = new Date().toISOString().split('T')[0];
   sortBy = 'newest';
   page = 1;
   filtersOpen = false;

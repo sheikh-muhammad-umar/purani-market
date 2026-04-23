@@ -1,4 +1,12 @@
-import { Component, signal, computed, forwardRef, HostListener, ElementRef } from '@angular/core';
+import {
+  Component,
+  Input,
+  signal,
+  computed,
+  forwardRef,
+  HostListener,
+  ElementRef,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
 
@@ -17,6 +25,13 @@ import { ControlValueAccessor, NG_VALUE_ACCESSOR } from '@angular/forms';
   styleUrl: './date-picker.component.scss',
 })
 export class DatePickerComponent implements ControlValueAccessor {
+  /** Minimum selectable date (YYYY-MM-DD) */
+  @Input() min = '';
+  /** Maximum selectable date (YYYY-MM-DD) — capped at today unless allowFuture is true */
+  @Input() max = '';
+  /** Set to true to allow selecting future dates (default: false) */
+  @Input() allowFuture = false;
+
   open = signal(false);
   value = signal('');
   viewDate = signal(new Date());
@@ -48,6 +63,16 @@ export class DatePickerComponent implements ControlValueAccessor {
     const daysInMonth = new Date(year, month + 1, 0).getDate();
     const today = new Date();
     const selectedStr = this.value();
+    const minStr = this.min;
+    const todayStr = this.formatDate(today.getFullYear(), today.getMonth(), today.getDate());
+
+    // Effective max: if allowFuture is false, always cap at today
+    let effectiveMax = this.max;
+    if (!this.allowFuture) {
+      if (!effectiveMax || effectiveMax > todayStr) {
+        effectiveMax = todayStr;
+      }
+    }
 
     const cells: {
       day: number;
@@ -55,7 +80,14 @@ export class DatePickerComponent implements ControlValueAccessor {
       isToday: boolean;
       isSelected: boolean;
       isCurrentMonth: boolean;
+      isDisabled: boolean;
     }[] = [];
+
+    const isDisabled = (date: string): boolean => {
+      if (minStr && date < minStr) return true;
+      if (effectiveMax && date > effectiveMax) return true;
+      return false;
+    };
 
     // Previous month padding
     const prevDays = new Date(year, month, 0).getDate();
@@ -68,6 +100,7 @@ export class DatePickerComponent implements ControlValueAccessor {
         isToday: false,
         isSelected: date === selectedStr,
         isCurrentMonth: false,
+        isDisabled: isDisabled(date),
       });
     }
 
@@ -76,7 +109,14 @@ export class DatePickerComponent implements ControlValueAccessor {
       const date = this.formatDate(year, month, day);
       const isToday =
         day === today.getDate() && month === today.getMonth() && year === today.getFullYear();
-      cells.push({ day, date, isToday, isSelected: date === selectedStr, isCurrentMonth: true });
+      cells.push({
+        day,
+        date,
+        isToday,
+        isSelected: date === selectedStr,
+        isCurrentMonth: true,
+        isDisabled: isDisabled(date),
+      });
     }
 
     // Next month padding
@@ -89,6 +129,7 @@ export class DatePickerComponent implements ControlValueAccessor {
         isToday: false,
         isSelected: date === selectedStr,
         isCurrentMonth: false,
+        isDisabled: isDisabled(date),
       });
     }
 
@@ -136,9 +177,10 @@ export class DatePickerComponent implements ControlValueAccessor {
     this.viewDate.update((d) => new Date(d.getFullYear(), d.getMonth() + 1, 1));
   }
 
-  selectDate(date: string): void {
-    this.value.set(date);
-    this.onChange(date);
+  selectDate(cell: { date: string; isDisabled: boolean }): void {
+    if (cell.isDisabled) return;
+    this.value.set(cell.date);
+    this.onChange(cell.date);
     this.onTouched();
     this.open.set(false);
   }

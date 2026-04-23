@@ -73,6 +73,7 @@ export class PackageManagerComponent implements OnInit {
   // Purchase filters
   purchaseFilterStartDate = '';
   purchaseFilterEndDate = '';
+  readonly today = new Date().toISOString().split('T')[0];
   purchaseFilterSellerId = '';
   purchaseFilterType: PackageType | '' = '';
   purchaseFilterStatus: PaymentStatus | '' = '';

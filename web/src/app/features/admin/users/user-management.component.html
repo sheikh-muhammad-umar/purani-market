@@ -58,6 +58,7 @@
           <label class="filter-label">Registered From</label>
           <app-date-picker
             [(ngModel)]="filterDateFrom"
+            [max]="filterDateTo || today"
             (ngModelChange)="applyFilters()"
           ></app-date-picker>
         </div>
@@ -65,6 +66,8 @@
           <label class="filter-label">Registered To</label>
           <app-date-picker
             [(ngModel)]="filterDateTo"
+            [min]="filterDateFrom"
+            [max]="today"
             (ngModelChange)="applyFilters()"
           ></app-date-picker>
         </div>

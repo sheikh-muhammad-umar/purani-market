@@ -45,6 +45,7 @@ export class UserManagementComponent implements OnInit {
   statusFilter: UserStatus | '' = '';
   filterDateFrom = '';
   filterDateTo = '';
+  readonly today = new Date().toISOString().split('T')[0];
   filtersOpen = false;
 
   // Sorting

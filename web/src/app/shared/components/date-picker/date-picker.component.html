@@ -35,7 +35,9 @@
             [class.today]="cell.isToday"
             [class.selected]="cell.isSelected"
             [class.other-month]="!cell.isCurrentMonth"
-            (click)="selectDate(cell.date)"
+            [class.disabled]="cell.isDisabled"
+            [disabled]="cell.isDisabled"
+            (click)="selectDate(cell)"
           >
             {{ cell.day }}
           </button>
