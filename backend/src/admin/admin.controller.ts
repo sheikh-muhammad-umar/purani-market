@@ -508,4 +508,9 @@ export class AdminController {
       permissions: user.permissions,
     };
   }
+
+  @Get('id-verification-stats')
+  async getIdVerificationStats() {
+    return this.adminService.getIdVerificationStats();
+  }
 }

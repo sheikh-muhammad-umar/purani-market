@@ -1,0 +1,262 @@
+<div class="page-container">
+  <div class="page-header">
+    <h1 class="page-title">
+      <span class="material-symbols-rounded">verified_user</span>
+      ID Verifications
+    </h1>
+    <p class="page-subtitle">Review and manage user identity verification requests</p>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <div class="search-wrap">
+      <span class="material-symbols-rounded search-icon">search</span>
+      <input
+        type="text"
+        class="form-input search-input"
+        placeholder="Search by name, email, or phone..."
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="onSearch()"
+      />
+    </div>
+    <app-custom-select
+      [options]="statusOptions"
+      [(ngModel)]="statusFilter"
+      (ngModelChange)="onFilterChange()"
+      placeholder="All Statuses"
+    ></app-custom-select>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-error" role="alert">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="loading-center">
+      <span class="spinner spinner-lg" aria-label="Loading"></span>
+    </div>
+  } @else if (verifications().length === 0) {
+    <div class="empty-state">
+      <span class="material-symbols-rounded empty-icon">verified_user</span>
+      <p class="empty-text">No verification requests found</p>
+    </div>
+  } @else {
+    <div class="table-wrap">
+      <table class="data-table" role="grid">
+        <thead>
+          <tr>
+            <th>User</th>
+            <th>Contact</th>
+            <th>Status</th>
+            <th>Submitted</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of verifications(); track v._id) {
+            <tr
+              class="table-row"
+              [class.expanded]="expandedId === v._id"
+              (click)="toggleExpand(v._id)"
+            >
+              <td>
+                <div class="user-cell">
+                  <div class="user-avatar">
+                    @if (v.user?.profile?.avatar) {
+                      <img [src]="v.user!.profile!.avatar" [alt]="getUserName(v)" />
+                    } @else {
+                      <span class="material-symbols-rounded">person</span>
+                    }
+                  </div>
+                  <span class="user-name">{{ getUserName(v) }}</span>
+                </div>
+              </td>
+              <td class="contact-cell">{{ getUserContact(v) }}</td>
+              <td>
+                <span
+                  class="status-badge"
+                  [class.status-pending]="v.status === IdVerificationStatus.PENDING"
+                  [class.status-approved]="v.status === IdVerificationStatus.APPROVED"
+                  [class.status-rejected]="v.status === IdVerificationStatus.REJECTED"
+                >
+                  {{ v.status | titlecase }}
+                </span>
+              </td>
+              <td class="date-cell">{{ formatDate(v.createdAt) }}</td>
+              <td>
+                <div class="action-btns" (click)="$event.stopPropagation()">
+                  @if (v.status === IdVerificationStatus.PENDING) {
+                    <button
+                      class="btn btn-success btn-xs"
+                      [disabled]="actionLoading() === v._id"
+                      (click)="approve(v)"
+                      title="Approve"
+                    >
+                      @if (actionLoading() === v._id) {
+                        <span class="spinner spinner-xs"></span>
+                      } @else {
+                        <span class="material-symbols-rounded">check</span>
+                      }
+                    </button>
+                    <button
+                      class="btn btn-danger btn-xs"
+                      [disabled]="actionLoading() === v._id"
+                      (click)="startReject(v)"
+                      title="Reject"
+                    >
+                      <span class="material-symbols-rounded">close</span>
+                    </button>
+                  } @else {
+                    <span class="reviewed-label">Reviewed</span>
+                  }
+                </div>
+              </td>
+            </tr>
+
+            <!-- Expanded detail row -->
+            @if (expandedId === v._id) {
+              <tr class="detail-row" (click)="$event.stopPropagation()">
+                <td colspan="5">
+                  <div class="detail-content">
+                    <div class="images-grid">
+                      <div class="image-card" (click)="openLightbox(v.cnicFront.url)">
+                        <img [src]="v.cnicFront.url" alt="CNIC Front" class="doc-img" />
+                        <span class="image-label">CNIC Front</span>
+                      </div>
+                      <div class="image-card" (click)="openLightbox(v.cnicBack.url)">
+                        <img [src]="v.cnicBack.url" alt="CNIC Back" class="doc-img" />
+                        <span class="image-label">CNIC Back</span>
+                      </div>
+                      <div class="image-card" (click)="openLightbox(v.selfieFront.url)">
+                        <img
+                          [src]="v.selfieFront.url"
+                          alt="Selfie with CNIC Front"
+                          class="doc-img"
+                        />
+                        <span class="image-label">Selfie (Front)</span>
+                      </div>
+                      <div class="image-card" (click)="openLightbox(v.selfieBack.url)">
+                        <img [src]="v.selfieBack.url" alt="Selfie with CNIC Back" class="doc-img" />
+                        <span class="image-label">Selfie (Back)</span>
+                      </div>
+                    </div>
+
+                    @if (v.status === IdVerificationStatus.REJECTED && v.rejectionReason) {
+                      <div class="rejection-info">
+                        <span class="material-symbols-rounded">info</span>
+                        <span>Rejection reason: {{ v.rejectionReason }}</span>
+                      </div>
+                    }
+
+                    <!-- Reject form -->
+                    @if (rejectingId === v._id) {
+                      <div class="reject-form" [id]="'reject-form-' + v._id">
+                        <label class="form-label">Rejection Reason</label>
+                        <textarea
+                          class="form-input reject-textarea"
+                          [(ngModel)]="rejectionReason"
+                          placeholder="Explain why this verification is being rejected..."
+                          rows="3"
+                        ></textarea>
+                        <div class="reject-actions">
+                          <button
+                            class="btn btn-danger btn-sm"
+                            [disabled]="!rejectionReason.trim() || actionLoading() === v._id"
+                            (click)="confirmReject(v)"
+                          >
+                            @if (actionLoading() === v._id) {
+                              <span class="spinner spinner-xs"></span>
+                              Rejecting...
+                            } @else {
+                              Confirm Reject
+                            }
+                          </button>
+                          <button class="btn btn-outline btn-sm" (click)="cancelReject()">
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </td>
+              </tr>
+            }
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Pagination -->
+    @if (totalPages > 1) {
+      <div class="pagination">
+        <button
+          class="btn btn-outline btn-xs"
+          [disabled]="currentPage() === 1"
+          (click)="goToPage(currentPage() - 1)"
+        >
+          ‹ Prev
+        </button>
+        @for (p of pages; track p) {
+          <button
+            class="btn btn-xs"
+            [class.btn-primary]="p === currentPage()"
+            [class.btn-outline]="p !== currentPage()"
+            (click)="goToPage(p)"
+          >
+            {{ p }}
+          </button>
+        }
+        <button
+          class="btn btn-outline btn-xs"
+          [disabled]="currentPage() === totalPages"
+          (click)="goToPage(currentPage() + 1)"
+        >
+          Next ›
+        </button>
+        <span class="pagination-info">{{ total() }} total</span>
+      </div>
+    }
+  }
+
+  <!-- Approve Confirmation Modal -->
+  @if (approvingVerification; as av) {
+    <div class="modal-overlay" (click)="cancelApprove()">
+      <div class="modal-content" (click)="$event.stopPropagation()">
+        <div class="modal-header">
+          <span class="material-symbols-rounded modal-icon modal-icon-success">check_circle</span>
+          <h3 class="modal-title">Approve Verification</h3>
+        </div>
+        <p class="modal-body">
+          Are you sure you want to approve the ID verification for
+          <strong>{{ getUserName(av) }}</strong
+          >? This will mark the user as ID verified.
+        </p>
+        <div class="modal-actions">
+          <button class="btn btn-outline btn-sm" (click)="cancelApprove()">Cancel</button>
+          <button
+            class="btn btn-success btn-sm"
+            [disabled]="actionLoading() === av._id"
+            (click)="confirmApprove()"
+          >
+            @if (actionLoading() === av._id) {
+              <span class="spinner spinner-xs"></span>
+            }
+            Yes, Approve
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Lightbox -->
+  @if (lightboxUrl) {
+    <div class="lightbox-overlay" (click)="closeLightbox()">
+      <div class="lightbox-content" (click)="$event.stopPropagation()">
+        <button class="lightbox-close" (click)="closeLightbox()" aria-label="Close">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+        <img [src]="lightboxUrl" alt="Document preview" class="lightbox-img" />
+      </div>
+    </div>
+  }
+</div>

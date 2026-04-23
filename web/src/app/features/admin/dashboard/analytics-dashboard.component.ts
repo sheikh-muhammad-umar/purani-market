@@ -19,6 +19,10 @@ import {
   DeviceBreakdownEntry,
   CategoryPriceTrend,
 } from '../../../core/models/analytics.model';
+import {
+  IdVerificationStats,
+  IdVerificationTimeSeriesEntry,
+} from '../../../core/models/id-verification.model';
 
 export interface MetricCard {
   label: string;
@@ -49,6 +53,7 @@ export class AnalyticsDashboardComponent implements OnInit {
   readonly bannerStats = signal<AppBannerStats | null>(null);
   readonly engagement = signal<EngagementAnalytics | null>(null);
   readonly priceTrends = signal<PriceTrendsData | null>(null);
+  readonly idVerificationStats = signal<IdVerificationStats | null>(null);
 
   startDate = '';
   endDate = '';
@@ -199,6 +204,7 @@ export class AnalyticsDashboardComponent implements OnInit {
     this.loadBannerStats();
     this.loadEngagement();
     this.loadPriceTrends();
+    this.loadIdVerificationStats();
   }
 
   loadAnalytics(): void {
@@ -559,5 +565,27 @@ export class AnalyticsDashboardComponent implements OnInit {
 
   private formatDateInput(date: Date): string {
     return date.toISOString().split('T')[0];
+  }
+
+  private loadIdVerificationStats(): void {
+    this.adminService.getIdVerificationStats().subscribe({
+      next: (data) => {
+        this.idVerificationStats.set(data);
+      },
+      error: () => {
+        this.idVerificationStats.set({
+          total: 0,
+          pending: 0,
+          approved: 0,
+          rejected: 0,
+          timeSeries: [],
+        });
+      },
+    });
+  }
+
+  getIdVerificationBarHeight(value: number, series: IdVerificationTimeSeriesEntry[]): number {
+    const max = Math.max(...series.map((s) => s.submitted), 1);
+    return Math.max(4, (value / max) * 100);
   }
 }

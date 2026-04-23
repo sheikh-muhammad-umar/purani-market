@@ -723,6 +723,114 @@
     }
 
     <!-- ═══════════════════════════════════════════════════ -->
+    <!-- ID VERIFICATION                                    -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <h2 class="section-group-title">
+      <span class="material-symbols-rounded">verified_user</span> ID Verification
+    </h2>
+
+    @if (idVerificationStats(); as vs) {
+      <section class="charts-section">
+        <div class="metrics-grid metrics-grid-4">
+          <div class="metric-card" [appTooltip]="'Total verification requests submitted'">
+            <span class="metric-icon material-symbols-rounded">assignment</span>
+            <div class="metric-info">
+              <span class="metric-value">{{ vs.total | number }}</span>
+              <span class="metric-label">Total Requests</span>
+            </div>
+          </div>
+          <div
+            class="metric-card metric-card-warning"
+            [appTooltip]="'Requests awaiting admin review'"
+          >
+            <span class="metric-icon material-symbols-rounded">hourglass_top</span>
+            <div class="metric-info">
+              <span class="metric-value">{{ vs.pending | number }}</span>
+              <span class="metric-label">Pending</span>
+            </div>
+          </div>
+          <div class="metric-card metric-card-success" [appTooltip]="'Approved verifications'">
+            <span class="metric-icon material-symbols-rounded">check_circle</span>
+            <div class="metric-info">
+              <span class="metric-value">{{ vs.approved | number }}</span>
+              <span class="metric-label">Approved</span>
+            </div>
+          </div>
+          <div class="metric-card metric-card-danger" [appTooltip]="'Rejected verifications'">
+            <span class="metric-icon material-symbols-rounded">cancel</span>
+            <div class="metric-info">
+              <span class="metric-value">{{ vs.rejected | number }}</span>
+              <span class="metric-label">Rejected</span>
+            </div>
+          </div>
+        </div>
+
+        @if (vs.timeSeries.length > 0) {
+          <div class="chart-card" style="margin-top: var(--space-2)">
+            <div class="chart-header">
+              <h3>Verification Requests Over Time</h3>
+            </div>
+            <div class="verification-legend">
+              <span class="legend-item"
+                ><span class="legend-dot legend-submitted"></span> Submitted</span
+              >
+              <span class="legend-item"
+                ><span class="legend-dot legend-approved"></span> Approved</span
+              >
+              <span class="legend-item"
+                ><span class="legend-dot legend-rejected"></span> Rejected</span
+              >
+            </div>
+            <div class="bar-chart-wrap">
+              <div class="bar-chart">
+                @for (point of vs.timeSeries; track point.date) {
+                  <div class="bar-column bar-column-stacked">
+                    <div class="stacked-bars">
+                      @if (point.approved > 0) {
+                        <div
+                          class="bar bar-id-approved"
+                          [style.height.px]="
+                            getIdVerificationBarHeight(point.approved, vs.timeSeries)
+                          "
+                          [title]="'Approved: ' + point.approved"
+                        ></div>
+                      }
+                      @if (point.rejected > 0) {
+                        <div
+                          class="bar bar-id-rejected"
+                          [style.height.px]="
+                            getIdVerificationBarHeight(point.rejected, vs.timeSeries)
+                          "
+                          [title]="'Rejected: ' + point.rejected"
+                        ></div>
+                      }
+                      @if (point.submitted - point.approved - point.rejected > 0) {
+                        <div
+                          class="bar bar-id-pending"
+                          [style.height.px]="
+                            getIdVerificationBarHeight(
+                              point.submitted - point.approved - point.rejected,
+                              vs.timeSeries
+                            )
+                          "
+                          [title]="
+                            'Pending: ' + (point.submitted - point.approved - point.rejected)
+                          "
+                        ></div>
+                      }
+                    </div>
+                    <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    <!-- ═══════════════════════════════════════════════════ -->
     <!-- MARKETING                                          -->
     <!-- ═══════════════════════════════════════════════════ -->
 

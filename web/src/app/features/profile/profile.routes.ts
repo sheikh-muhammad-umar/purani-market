@@ -21,4 +21,10 @@ export const PROFILE_ROUTES: Routes = [
         (m) => m.NotificationPrefsComponent,
       ),
   },
+  {
+    path: 'id-verification',
+    canActivate: [authGuard],
+    loadComponent: () =>
+      import('./id-verification/id-verification.component').then((m) => m.IdVerificationComponent),
+  },
 ];

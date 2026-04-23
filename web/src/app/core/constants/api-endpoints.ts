@@ -119,4 +119,13 @@ export const API = {
   ADMIN_PACKAGES_PURCHASES: '/admin/packages/purchases',
   ADMIN_PAYMENTS: '/admin/payments',
   ADMIN_SELLER_AD_INFO: (id: string) => `/admin/sellers/${id}/ad-info`,
+  ADMIN_ID_VERIFICATION_STATS: '/admin/id-verification-stats',
+
+  // ID Verification
+  ID_VERIFICATION_SUBMIT: '/id-verification/submit',
+  ID_VERIFICATION_MY_STATUS: '/id-verification/my-status',
+  ID_VERIFICATION_ADMIN_PENDING: '/id-verification/admin/pending',
+  ID_VERIFICATION_ADMIN_ALL: '/id-verification/admin/all',
+  ID_VERIFICATION_ADMIN_DETAIL: (id: string) => `/id-verification/admin/${id}`,
+  ID_VERIFICATION_ADMIN_REVIEW: (id: string) => `/id-verification/admin/${id}/review`,
 } as const;

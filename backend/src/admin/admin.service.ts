@@ -39,6 +39,11 @@ import {
 } from '../ai/schemas/user-activity.schema.js';
 import { UserAction } from '../ai/enums/user-action.enum.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import {
+  IdVerification,
+  IdVerificationDocument,
+  IdVerificationStatus,
+} from '../id-verification/schemas/id-verification.schema.js';
 
 export interface PaginatedUsers {
   data: Record<string, unknown>[];
@@ -137,6 +142,8 @@ export class AdminService {
     private readonly rejectionReasonModel: Model<any>,
     @InjectModel('DeletionReason')
     private readonly deletionReasonModel: Model<any>,
+    @InjectModel(IdVerification.name)
+    private readonly idVerificationModel: Model<IdVerificationDocument>,
     private readonly authService: AuthService,
     private readonly notificationsService: NotificationsService,
   ) {}
@@ -1520,5 +1527,85 @@ export class AdminService {
   async deleteDeletionReason(id: string): Promise<void> {
     const result = await this.deletionReasonModel.findByIdAndDelete(id).exec();
     if (!result) throw new NotFoundException(ERROR.DELETION_REASON_NOT_FOUND);
+  }
+
+  // ── ID Verification Analytics ──────────────────────────────────
+
+  async getIdVerificationStats(): Promise<{
+    total: number;
+    pending: number;
+    approved: number;
+    rejected: number;
+    timeSeries: {
+      date: string;
+      submitted: number;
+      approved: number;
+      rejected: number;
+    }[];
+  }> {
+    const [statusCounts, timeSeries] = await Promise.all([
+      this.idVerificationModel
+        .aggregate([{ $group: { _id: '$status', count: { $sum: 1 } } }])
+        .exec(),
+      this.idVerificationModel
+        .aggregate([
+          {
+            $group: {
+              _id: {
+                date: {
+                  $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+                },
+                status: '$status',
+              },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { '_id.date': 1 } },
+        ])
+        .exec(),
+    ]);
+
+    const counts: Record<string, number> = {};
+    for (const row of statusCounts) {
+      counts[row._id] = row.count;
+    }
+
+    // Build time series grouped by date
+    const dateMap = new Map<
+      string,
+      { submitted: number; approved: number; rejected: number }
+    >();
+    for (const row of timeSeries) {
+      const date = row._id.date;
+      if (!dateMap.has(date)) {
+        dateMap.set(date, { submitted: 0, approved: 0, rejected: 0 });
+      }
+      const entry = dateMap.get(date)!;
+      if (row._id.status === IdVerificationStatus.PENDING)
+        entry.submitted += row.count;
+      else if (row._id.status === IdVerificationStatus.APPROVED) {
+        entry.approved += row.count;
+        entry.submitted += row.count;
+      } else if (row._id.status === IdVerificationStatus.REJECTED) {
+        entry.rejected += row.count;
+        entry.submitted += row.count;
+      }
+    }
+
+    const total =
+      (counts['pending'] || 0) +
+      (counts['approved'] || 0) +
+      (counts['rejected'] || 0);
+
+    return {
+      total,
+      pending: counts['pending'] || 0,
+      approved: counts['approved'] || 0,
+      rejected: counts['rejected'] || 0,
+      timeSeries: Array.from(dateMap.entries()).map(([date, data]) => ({
+        date,
+        ...data,
+      })),
+    };
   }
 }

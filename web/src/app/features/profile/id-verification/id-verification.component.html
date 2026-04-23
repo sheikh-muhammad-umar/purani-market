@@ -1,0 +1,266 @@
+<div class="settings-page">
+  <div class="settings-container">
+    <div class="settings-header">
+      <h1 class="settings-title">ID Verification</h1>
+      <div class="profile-nav">
+        <a [routerLink]="ROUTES.PROFILE" class="nav-link">Profile</a>
+        <a [routerLink]="ROUTES.PROFILE_SETTINGS" class="nav-link">Settings</a>
+        <a [routerLink]="ROUTES.PROFILE_NOTIFICATIONS" class="nav-link">Notifications</a>
+        <a [routerLink]="ROUTES.PROFILE_ID_VERIFICATION" class="nav-link active">ID Verification</a>
+      </div>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-center">
+        <span class="spinner spinner-lg" aria-label="Loading"></span>
+      </div>
+    } @else {
+      @if (success()) {
+        <div class="alert alert-success" role="status">{{ success() }}</div>
+      }
+      @if (error()) {
+        <div class="alert alert-error" role="alert">{{ error() }}</div>
+      }
+
+      <!-- Already Verified -->
+      @if (isIdVerified()) {
+        <div class="settings-card card">
+          <div class="status-banner status-approved">
+            <span class="material-symbols-rounded status-icon">verified</span>
+            <div>
+              <h3 class="status-title">ID Verified</h3>
+              <p class="status-desc">
+                Your identity has been verified. You now have a verified badge on your profile.
+              </p>
+            </div>
+          </div>
+        </div>
+      } @else {
+        <!-- Current Status -->
+        @if (verification()?.status === IdVerificationStatus.PENDING) {
+          <div class="settings-card card">
+            <div class="status-banner status-pending">
+              <span class="material-symbols-rounded status-icon">hourglass_top</span>
+              <div>
+                <h3 class="status-title">Verification Pending</h3>
+                <p class="status-desc">
+                  Your verification request is being reviewed. This usually takes 1-2 business days.
+                </p>
+                @if (verification()?.createdAt) {
+                  <p class="status-meta">
+                    Submitted on {{ verification()?.createdAt | date: 'mediumDate' }}
+                  </p>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        @if (verification()?.status === IdVerificationStatus.REJECTED) {
+          <div class="settings-card card">
+            <div class="status-banner status-rejected">
+              <span class="material-symbols-rounded status-icon">cancel</span>
+              <div>
+                <h3 class="status-title">Verification Rejected</h3>
+                <p class="status-desc">
+                  Your previous verification request was rejected.
+                  @if (verification()?.rejectionReason) {
+                    <br />Reason: {{ verification()?.rejectionReason }}
+                  }
+                </p>
+                <p class="status-meta">You can submit a new request below.</p>
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Submission Form -->
+        @if (showForm) {
+          <div class="settings-card card">
+            <h3 class="section-title">Submit Verification</h3>
+            <p class="section-desc" style="margin-bottom: 16px">
+              To verify your identity, please upload clear photos of your CNIC (front &amp; back)
+              along with selfies holding your CNIC.
+            </p>
+
+            <div class="upload-grid">
+              <!-- CNIC Front -->
+              <div class="upload-card">
+                <div class="upload-label">
+                  <span class="material-symbols-rounded">credit_card</span>
+                  CNIC Front Side
+                </div>
+                @if (cnicFrontPreview()) {
+                  <div class="preview-wrap">
+                    <img [src]="cnicFrontPreview()" alt="CNIC Front preview" class="preview-img" />
+                    <button
+                      type="button"
+                      class="remove-btn"
+                      (click)="removeFile('cnicFront')"
+                      aria-label="Remove CNIC front"
+                    >
+                      <span class="material-symbols-rounded">close</span>
+                    </button>
+                  </div>
+                } @else {
+                  <label class="upload-dropzone" for="cnicFront">
+                    <span class="material-symbols-rounded upload-icon">cloud_upload</span>
+                    <span class="upload-text">Click to upload</span>
+                    <span class="upload-hint">JPEG or PNG, max 5MB</span>
+                    <input
+                      type="file"
+                      id="cnicFront"
+                      accept="image/jpeg,image/png"
+                      (change)="onFileSelect($event, 'cnicFront')"
+                      hidden
+                    />
+                  </label>
+                }
+              </div>
+
+              <!-- CNIC Back -->
+              <div class="upload-card">
+                <div class="upload-label">
+                  <span class="material-symbols-rounded">credit_card</span>
+                  CNIC Back Side
+                </div>
+                @if (cnicBackPreview()) {
+                  <div class="preview-wrap">
+                    <img [src]="cnicBackPreview()" alt="CNIC Back preview" class="preview-img" />
+                    <button
+                      type="button"
+                      class="remove-btn"
+                      (click)="removeFile('cnicBack')"
+                      aria-label="Remove CNIC back"
+                    >
+                      <span class="material-symbols-rounded">close</span>
+                    </button>
+                  </div>
+                } @else {
+                  <label class="upload-dropzone" for="cnicBack">
+                    <span class="material-symbols-rounded upload-icon">cloud_upload</span>
+                    <span class="upload-text">Click to upload</span>
+                    <span class="upload-hint">JPEG or PNG, max 5MB</span>
+                    <input
+                      type="file"
+                      id="cnicBack"
+                      accept="image/jpeg,image/png"
+                      (change)="onFileSelect($event, 'cnicBack')"
+                      hidden
+                    />
+                  </label>
+                }
+              </div>
+
+              <!-- Selfie with CNIC Front -->
+              <div class="upload-card">
+                <div class="upload-label">
+                  <span class="material-symbols-rounded">photo_camera</span>
+                  Selfie with CNIC (Front)
+                </div>
+                @if (selfieFrontPreview()) {
+                  <div class="preview-wrap">
+                    <img
+                      [src]="selfieFrontPreview()"
+                      alt="Selfie front preview"
+                      class="preview-img"
+                    />
+                    <button
+                      type="button"
+                      class="remove-btn"
+                      (click)="removeFile('selfieFront')"
+                      aria-label="Remove selfie front"
+                    >
+                      <span class="material-symbols-rounded">close</span>
+                    </button>
+                  </div>
+                } @else {
+                  <label class="upload-dropzone" for="selfieFront">
+                    <span class="material-symbols-rounded upload-icon">cloud_upload</span>
+                    <span class="upload-text">Click to upload</span>
+                    <span class="upload-hint">Hold CNIC front side near your face</span>
+                    <input
+                      type="file"
+                      id="selfieFront"
+                      accept="image/jpeg,image/png"
+                      (change)="onFileSelect($event, 'selfieFront')"
+                      hidden
+                    />
+                  </label>
+                }
+              </div>
+
+              <!-- Selfie with CNIC Back -->
+              <div class="upload-card">
+                <div class="upload-label">
+                  <span class="material-symbols-rounded">photo_camera</span>
+                  Selfie with CNIC (Back)
+                </div>
+                @if (selfieBackPreview()) {
+                  <div class="preview-wrap">
+                    <img
+                      [src]="selfieBackPreview()"
+                      alt="Selfie back preview"
+                      class="preview-img"
+                    />
+                    <button
+                      type="button"
+                      class="remove-btn"
+                      (click)="removeFile('selfieBack')"
+                      aria-label="Remove selfie back"
+                    >
+                      <span class="material-symbols-rounded">close</span>
+                    </button>
+                  </div>
+                } @else {
+                  <label class="upload-dropzone" for="selfieBack">
+                    <span class="material-symbols-rounded upload-icon">cloud_upload</span>
+                    <span class="upload-text">Click to upload</span>
+                    <span class="upload-hint">Hold CNIC back side near your face</span>
+                    <input
+                      type="file"
+                      id="selfieBack"
+                      accept="image/jpeg,image/png"
+                      (change)="onFileSelect($event, 'selfieBack')"
+                      hidden
+                    />
+                  </label>
+                }
+              </div>
+            </div>
+
+            <div class="submit-section">
+              <div class="guidelines">
+                <h4 class="guidelines-title">
+                  <span class="material-symbols-rounded">info</span>
+                  Guidelines
+                </h4>
+                <ul class="guidelines-list">
+                  <li>Ensure your CNIC is clearly visible and not blurry</li>
+                  <li>Your face should be clearly visible in selfie photos</li>
+                  <li>Hold the CNIC near your face in selfie photos</li>
+                  <li>Do not cover any information on the CNIC</li>
+                  <li>Photos must be well-lit and in focus</li>
+                </ul>
+              </div>
+              <button
+                type="button"
+                class="btn btn-primary"
+                [disabled]="!canSubmit"
+                (click)="onSubmit()"
+              >
+                @if (submitting()) {
+                  <span class="spinner" aria-hidden="true"></span>
+                  Submitting...
+                } @else {
+                  <span class="material-symbols-rounded">verified</span>
+                  Submit for Verification
+                }
+              </button>
+            </div>
+          </div>
+        }
+      }
+    }
+  </div>
+</div>

@@ -32,6 +32,6 @@ import { Message, MessageSchema } from '../messaging/schemas/message.schema.js';
   ],
   controllers: [ListingsController],
   providers: [ListingsService, MediaService, StorageService],
-  exports: [ListingsService, MediaService, MongooseModule],
+  exports: [ListingsService, MediaService, StorageService, MongooseModule],
 })
 export class ListingsModule {}

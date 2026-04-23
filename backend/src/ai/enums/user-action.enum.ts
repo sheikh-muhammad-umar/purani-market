@@ -65,4 +65,9 @@ export enum UserAction {
   ADMIN_REJECTION_REASON_CREATE = 'admin_rejection_reason_create',
   ADMIN_REJECTION_REASON_UPDATE = 'admin_rejection_reason_update',
   ADMIN_REJECTION_REASON_DELETE = 'admin_rejection_reason_delete',
+
+  // ID Verification
+  ID_VERIFICATION_SUBMIT = 'id_verification_submit',
+  ADMIN_ID_VERIFICATION_APPROVE = 'admin_id_verification_approve',
+  ADMIN_ID_VERIFICATION_REJECT = 'admin_id_verification_reject',
 }

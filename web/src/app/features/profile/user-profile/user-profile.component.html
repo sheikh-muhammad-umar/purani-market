@@ -6,6 +6,7 @@
         <a [routerLink]="ROUTES.PROFILE" class="nav-link active">Profile</a>
         <a [routerLink]="ROUTES.PROFILE_SETTINGS" class="nav-link">Settings</a>
         <a [routerLink]="ROUTES.PROFILE_NOTIFICATIONS" class="nav-link">Notifications</a>
+        <a [routerLink]="ROUTES.PROFILE_ID_VERIFICATION" class="nav-link">ID Verification</a>
         @if (authService.isAdmin()) {
           <a [routerLink]="ROUTES.ADMIN" class="nav-link admin-link">
             <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"

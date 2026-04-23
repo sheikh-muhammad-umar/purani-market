@@ -10,6 +10,7 @@ export const ROUTES = {
   PROFILE: '/profile',
   PROFILE_SETTINGS: '/profile/settings',
   PROFILE_NOTIFICATIONS: '/profile/notifications',
+  PROFILE_ID_VERIFICATION: '/profile/id-verification',
   ADMIN: '/admin',
   SEARCH: '/search',
   LISTINGS: '/listings',

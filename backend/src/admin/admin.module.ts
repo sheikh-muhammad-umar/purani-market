@@ -26,6 +26,10 @@ import {
   DeletionReason,
   DeletionReasonSchema,
 } from './schemas/deletion-reason.schema.js';
+import {
+  IdVerification,
+  IdVerificationSchema,
+} from '../id-verification/schemas/id-verification.schema.js';
 
 @Module({
   imports: [
@@ -42,6 +46,7 @@ import {
       { name: UserActivity.name, schema: UserActivitySchema },
       { name: RejectionReason.name, schema: RejectionReasonSchema },
       { name: DeletionReason.name, schema: DeletionReasonSchema },
+      { name: IdVerification.name, schema: IdVerificationSchema },
     ]),
   ],
   controllers: [AdminController],

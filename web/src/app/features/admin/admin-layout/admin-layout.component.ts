@@ -30,6 +30,7 @@ export class AdminLayoutComponent {
     { label: 'Activity', icon: 'timeline', path: '/admin/activity' },
     { label: 'Rejection Reasons', icon: 'rule', path: '/admin/rejection-reasons' },
     { label: 'Deletion Reasons', icon: 'delete_sweep', path: '/admin/deletion-reasons' },
+    { label: 'ID Verifications', icon: 'verified_user', path: '/admin/id-verifications' },
   ];
 
   sidebarCollapsed = false;

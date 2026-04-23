@@ -54,6 +54,10 @@ export enum Permission {
   // Activity log
   ACTIVITY_VIEW = 'activity:view',
 
+  // ID Verification
+  ID_VERIFICATION_VIEW = 'id_verification:view',
+  ID_VERIFICATION_REVIEW = 'id_verification:review',
+
   // Role management
   ROLES_MANAGE = 'roles:manage',
 }

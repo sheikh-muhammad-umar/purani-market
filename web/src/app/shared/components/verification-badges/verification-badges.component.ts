@@ -1,16 +1,17 @@
 import { Component, Input } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TooltipDirective } from '../../directives/tooltip.directive';
 
 @Component({
   selector: 'app-verification-badges',
   standalone: true,
-  imports: [CommonModule],
+  imports: [CommonModule, TooltipDirective],
   template: `
     <div class="vb-wrap" [class.vb-compact]="compact">
       <span
         class="vb-badge"
         [class.verified]="emailVerified"
-        [title]="emailVerified ? 'Email verified' : 'Email not verified'"
+        [appTooltip]="emailVerified ? 'Email verified' : 'Email not verified'"
       >
         <span class="material-symbols-rounded vb-icon">mail</span>
         @if (!compact) {
@@ -20,7 +21,7 @@ import { CommonModule } from '@angular/common';
       <span
         class="vb-badge"
         [class.verified]="phoneVerified"
-        [title]="phoneVerified ? 'Phone verified' : 'Phone not verified'"
+        [appTooltip]="phoneVerified ? 'Phone verified' : 'Phone not verified'"
       >
         <span class="material-symbols-rounded vb-icon">phone</span>
         @if (!compact) {
@@ -31,7 +32,7 @@ import { CommonModule } from '@angular/common';
         class="vb-badge"
         [class.verified]="idVerified"
         [class.vb-future]="!idVerified"
-        [title]="idVerified ? 'ID verified' : 'ID not verified'"
+        [appTooltip]="idVerified ? 'ID verified' : 'ID not verified'"
       >
         <span class="material-symbols-rounded vb-icon">badge</span>
         @if (!compact) {

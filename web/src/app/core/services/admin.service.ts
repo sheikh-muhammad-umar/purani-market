@@ -23,6 +23,7 @@ import {
   PriceTrendsData,
 } from '../models/analytics.model';
 import { API } from '../constants/api-endpoints';
+import { IdVerificationStats } from '../models/id-verification.model';
 
 export type {
   MetricsSummary,
@@ -451,6 +452,12 @@ export class AdminService {
     if (params.order) httpParams = httpParams.set('order', params.order);
     return this.http
       .get<any>(`${this.baseUrl}${API.ADMIN_ACTIVITY}`, { params: httpParams })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
+  }
+
+  getIdVerificationStats(): Observable<IdVerificationStats> {
+    return this.http
+      .get<any>(`${this.baseUrl}${API.ADMIN_ID_VERIFICATION_STATS}`)
       .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 }

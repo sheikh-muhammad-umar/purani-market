@@ -81,6 +81,13 @@ export const ADMIN_ROUTES: Routes = [
             (m) => m.DeletionReasonsComponent,
           ),
       },
+      {
+        path: 'id-verifications',
+        loadComponent: () =>
+          import('./id-verifications/id-verifications.component').then(
+            (m) => m.IdVerificationsComponent,
+          ),
+      },
     ],
   },
 ];
