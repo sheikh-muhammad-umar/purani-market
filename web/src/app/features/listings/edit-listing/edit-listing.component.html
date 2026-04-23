@@ -216,15 +216,192 @@
       @if (currentStep() === 4) {
         <div class="wizard-step">
           <h2>Location</h2>
+          <p class="step-description">Where is this item located?</p>
+
           <form [formGroup]="locationForm" class="location-form">
+            <!-- Province -->
             <div class="form-group">
-              <label class="form-label" for="city">City *</label>
-              <input id="city" class="form-input" formControlName="city" />
+              <label class="form-label">Province *</label>
+              <div class="custom-select-wrap">
+                <button
+                  type="button"
+                  class="custom-select-trigger"
+                  [class.open]="openDropdown() === 'province'"
+                  (click)="toggleDropdown('province')"
+                >
+                  @if (selectedProvince()) {
+                    <span class="select-text">{{ selectedProvince()!.name }}</span>
+                  } @else {
+                    <span class="select-placeholder">Select Province</span>
+                  }
+                  <span class="material-symbols-rounded select-arrow">expand_more</span>
+                </button>
+                @if (openDropdown() === 'province') {
+                  <div class="custom-select-dropdown">
+                    @for (province of provinces(); track province._id) {
+                      <button
+                        type="button"
+                        class="custom-select-option"
+                        [class.active]="selectedProvince()?._id === province._id"
+                        (click)="selectLocationProvince(province); openDropdown.set(null)"
+                      >
+                        {{ province.name }}
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
             </div>
-            <div class="form-group">
-              <label class="form-label" for="area">Area *</label>
-              <input id="area" class="form-input" formControlName="area" />
-            </div>
+
+            <!-- City -->
+            @if (selectedProvince()) {
+              <div class="form-group">
+                <label class="form-label">City *</label>
+                <div class="custom-select-wrap">
+                  <button
+                    type="button"
+                    class="custom-select-trigger"
+                    [class.open]="openDropdown() === 'loc-city'"
+                    (click)="toggleDropdown('loc-city')"
+                  >
+                    @if (selectedCityObj()) {
+                      <span class="select-text">{{ selectedCityObj()!.name }}</span>
+                    } @else {
+                      <span class="select-placeholder">Select City</span>
+                    }
+                    <span class="material-symbols-rounded select-arrow">expand_more</span>
+                  </button>
+                  @if (openDropdown() === 'loc-city') {
+                    <div class="custom-select-dropdown location-dropdown-scroll">
+                      <input
+                        type="text"
+                        class="dropdown-search-input"
+                        placeholder="Search cities..."
+                        [value]="citySearch()"
+                        (input)="citySearch.set($any($event.target).value)"
+                        (click)="$event.stopPropagation()"
+                      />
+                      @for (city of filteredCities(); track city._id) {
+                        <button
+                          type="button"
+                          class="custom-select-option"
+                          [class.active]="selectedCityObj()?._id === city._id"
+                          (click)="selectLocationCity(city); openDropdown.set(null)"
+                        >
+                          {{ city.name }}
+                        </button>
+                      }
+                      @if (filteredCities().length === 0 && citiesForListing().length > 0) {
+                        <span class="custom-select-option disabled">No matches</span>
+                      }
+                      @if (citiesForListing().length === 0) {
+                        <span class="custom-select-option disabled">Loading...</span>
+                      }
+                    </div>
+                  }
+                </div>
+                @if (
+                  locationForm.get('city')?.touched &&
+                  locationForm.get('city')?.errors?.['required']
+                ) {
+                  <span class="form-error">City is required</span>
+                }
+              </div>
+            }
+
+            <!-- Area (optional) -->
+            @if (selectedCityObj() && areasForListing().length > 0) {
+              <div class="form-group">
+                <label class="form-label">Area</label>
+                <div class="custom-select-wrap">
+                  <button
+                    type="button"
+                    class="custom-select-trigger"
+                    [class.open]="openDropdown() === 'loc-area'"
+                    (click)="toggleDropdown('loc-area')"
+                  >
+                    @if (selectedAreaObj()) {
+                      <span class="select-text">{{ selectedAreaObj()!.name }}</span>
+                    } @else {
+                      <span class="select-placeholder">Select Area (optional)</span>
+                    }
+                    <span class="material-symbols-rounded select-arrow">expand_more</span>
+                  </button>
+                  @if (openDropdown() === 'loc-area') {
+                    <div class="custom-select-dropdown location-dropdown-scroll">
+                      <input
+                        type="text"
+                        class="dropdown-search-input"
+                        placeholder="Search areas..."
+                        [value]="areaSearch()"
+                        (input)="areaSearch.set($any($event.target).value)"
+                        (click)="$event.stopPropagation()"
+                      />
+                      @for (area of filteredAreas(); track area._id) {
+                        <button
+                          type="button"
+                          class="custom-select-option"
+                          [class.active]="selectedAreaObj()?._id === area._id"
+                          (click)="selectLocationArea(area); openDropdown.set(null)"
+                        >
+                          {{ area.name }}
+                        </button>
+                      }
+                      @if (filteredAreas().length === 0 && areasForListing().length > 0) {
+                        <span class="custom-select-option disabled">No matches</span>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <!-- Block / Phase (optional) -->
+            @if (selectedAreaObj() && blockPhaseOptions().length > 0) {
+              <div class="form-group">
+                <label class="form-label">Block / Phase</label>
+                <div class="custom-select-wrap">
+                  <button
+                    type="button"
+                    class="custom-select-trigger"
+                    [class.open]="openDropdown() === 'loc-block'"
+                    (click)="toggleDropdown('loc-block')"
+                  >
+                    @if (selectedBlockPhase()) {
+                      <span class="select-text">{{ selectedBlockPhase() }}</span>
+                    } @else {
+                      <span class="select-placeholder">Select Block / Phase (optional)</span>
+                    }
+                    <span class="material-symbols-rounded select-arrow">expand_more</span>
+                  </button>
+                  @if (openDropdown() === 'loc-block') {
+                    <div class="custom-select-dropdown location-dropdown-scroll">
+                      <input
+                        type="text"
+                        class="dropdown-search-input"
+                        placeholder="Search blocks / phases..."
+                        [value]="blockPhaseSearch()"
+                        (input)="blockPhaseSearch.set($any($event.target).value)"
+                        (click)="$event.stopPropagation()"
+                      />
+                      @for (bp of filteredBlockPhases(); track bp) {
+                        <button
+                          type="button"
+                          class="custom-select-option"
+                          [class.active]="selectedBlockPhase() === bp"
+                          (click)="selectBlockPhase(bp); openDropdown.set(null)"
+                        >
+                          {{ bp }}
+                        </button>
+                      }
+                      @if (filteredBlockPhases().length === 0) {
+                        <span class="custom-select-option disabled">No matches</span>
+                      }
+                    </div>
+                  }
+                </div>
+              </div>
+            }
           </form>
         </div>
       }
@@ -269,7 +446,22 @@
                 <h4>Location</h4>
                 <button class="edit-link" (click)="goToStep(4)" type="button">Edit</button>
               </div>
-              <p>{{ locationForm.get('area')?.value }}, {{ locationForm.get('city')?.value }}</p>
+              <p>
+                @if (selectedAreaObj()) {
+                  {{ selectedAreaObj()!.name }},
+                }
+                @if (selectedCityObj()) {
+                  {{ selectedCityObj()!.name }}
+                } @else {
+                  {{ locationForm.get('city')?.value }}
+                }
+                @if (selectedProvince()) {
+                  , {{ selectedProvince()!.name }}
+                }
+                @if (selectedBlockPhase()) {
+                  ({{ selectedBlockPhase() }})
+                }
+              </p>
             </div>
             <div class="review-section feature-section">
               <label class="checkbox-label feature-toggle">

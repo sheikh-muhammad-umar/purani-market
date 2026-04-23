@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed, HostListener } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -40,7 +40,7 @@ export interface MediaItem {
   templateUrl: './create-listing.component.html',
   styleUrls: ['./create-listing.component.scss'],
 })
-export class CreateListingComponent implements OnInit {
+export class CreateListingComponent implements OnInit, OnDestroy {
   readonly conditionOptions = CONDITION_OPTIONS;
   readonly ROUTES = ROUTES;
 
@@ -146,6 +146,14 @@ export class CreateListingComponent implements OnInit {
     private readonly locationService: LocationService,
     private readonly tracker: ActivityTrackerService,
   ) {}
+
+  ngOnDestroy(): void {
+    for (const item of this.mediaItems()) {
+      URL.revokeObjectURL(item.preview);
+    }
+    const video = this.videoItem();
+    if (video) URL.revokeObjectURL(video.preview);
+  }
 
   private readonly DRAFT_KEY = 'create-listing-draft';
 
@@ -463,6 +471,24 @@ export class CreateListingComponent implements OnInit {
   selectCondition(value: string): void {
     this.detailsForm.get('condition')?.setValue(value);
     this.openDropdown.set(null);
+  }
+
+  onPriceKeydown(event: KeyboardEvent): void {
+    const allowed = ['Backspace', 'Delete', 'Tab', 'ArrowLeft', 'ArrowRight', 'Home', 'End'];
+    if (allowed.includes(event.key) || event.ctrlKey || event.metaKey) return;
+    if (!/^[0-9]$/.test(event.key)) {
+      event.preventDefault();
+    }
+  }
+
+  onPriceInput(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const stripped = input.value.replace(/\D/g, '');
+    if (stripped !== input.value) {
+      input.value = stripped;
+    }
+    const numValue = stripped ? parseInt(stripped, 10) : null;
+    this.detailsForm.get('price')?.setValue(numValue, { emitEvent: true });
   }
 
   getDropdownLabel(key: string, options: string[] | undefined): string {

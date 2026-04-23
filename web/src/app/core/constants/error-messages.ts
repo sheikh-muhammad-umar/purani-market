@@ -8,4 +8,6 @@ export const ERROR_MSG = {
   VERIFICATION_APPROVE_FAILED: 'Failed to approve verification.',
   VERIFICATION_REJECT_FAILED: 'Failed to reject verification.',
   VERIFICATIONS_LOAD_FAILED: 'Failed to load verification requests.',
+  LISTING_LOAD_FAILED: 'Failed to load listing.',
+  LISTING_UPDATE_FAILED: 'Failed to update listing.',
 } as const;

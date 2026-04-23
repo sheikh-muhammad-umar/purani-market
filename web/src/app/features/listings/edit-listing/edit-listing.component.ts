@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -8,14 +8,17 @@ import {
   FormControl,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { Subject, takeUntil } from 'rxjs';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { ListingsService, CreateListingPayload } from '../../../core/services/listings.service';
-import { Category, CategoryAttribute, Listing } from '../../../core/models';
+import { LocationService } from '../../../core/services/location.service';
+import { Category, CategoryAttribute, Listing, Province, City, Area } from '../../../core/models';
 import { extractIdFromSlug, listingSlug } from '../../../core/utils/slug';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { DEFAULT_CURRENCY } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { saveState, loadState, clearState } from '../../../core/utils/state-persistence';
 import { ListingCondition } from '../../../core/constants';
 import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
@@ -27,9 +30,10 @@ import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
   templateUrl: './edit-listing.component.html',
   styleUrls: ['../create-listing/create-listing.component.scss'],
 })
-export class EditListingComponent implements OnInit {
+export class EditListingComponent implements OnInit, OnDestroy {
   readonly conditionOptions = CONDITION_OPTIONS;
   private readonly DRAFT_KEY = 'edit-listing-step';
+  private readonly destroy$ = new Subject<void>();
 
   listingId = '';
   listing = signal<Listing | null>(null);
@@ -63,14 +67,55 @@ export class EditListingComponent implements OnInit {
   submitting = signal(false);
   error = signal('');
 
+  // Custom dropdown state
+  openDropdown = signal<string | null>(null);
+
+  // Location state
+  provinces = signal<Province[]>([]);
+  citiesForListing = signal<City[]>([]);
+  areasForListing = signal<Area[]>([]);
+  selectedProvince = signal<Province | null>(null);
+  selectedCityObj = signal<City | null>(null);
+  selectedAreaObj = signal<Area | null>(null);
+  selectedBlockPhase = signal<string | null>(null);
+  citySearch = signal('');
+  areaSearch = signal('');
+  blockPhaseSearch = signal('');
+
+  filteredCities = computed(() => {
+    const q = this.citySearch().toLowerCase().trim();
+    const all = this.citiesForListing();
+    return q ? all.filter((c) => c.name.toLowerCase().includes(q)) : all;
+  });
+
+  filteredAreas = computed(() => {
+    const q = this.areaSearch().toLowerCase().trim();
+    const all = this.areasForListing();
+    return q ? all.filter((a) => a.name.toLowerCase().includes(q)) : all;
+  });
+
+  blockPhaseOptions = computed(() => this.selectedAreaObj()?.blockPhases ?? []);
+
+  filteredBlockPhases = computed(() => {
+    const q = this.blockPhaseSearch().toLowerCase().trim();
+    const all = this.blockPhaseOptions();
+    return q ? all.filter((bp) => bp.toLowerCase().includes(q)) : all;
+  });
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly route: ActivatedRoute,
     private readonly router: Router,
     private readonly categoriesService: CategoriesService,
     private readonly listingsService: ListingsService,
+    private readonly locationService: LocationService,
     private readonly tracker: ActivityTrackerService,
   ) {}
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
 
   ngOnInit(): void {
     this.detailsForm = this.fb.group({
@@ -82,21 +127,48 @@ export class EditListingComponent implements OnInit {
 
     this.locationForm = this.fb.group({
       city: ['', Validators.required],
-      area: ['', Validators.required],
+      area: [''],
+      blockPhase: [''],
     });
 
     this.listingId = extractIdFromSlug(this.route.snapshot.paramMap.get('id') ?? '');
 
-    this.categoriesService.getAll().subscribe({
-      next: (cats) => {
-        this.allCategories.set(cats);
-        this.loadListing();
-      },
-      error: () => {
-        this.allCategories.set([]);
-        this.loadListing();
-      },
-    });
+    this.locationService
+      .getProvinces()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (provinces) => {
+          this.provinces.set(provinces);
+          this.categoriesService
+            .getAll()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (cats) => {
+                this.allCategories.set(cats);
+                this.loadListing();
+              },
+              error: () => {
+                this.allCategories.set([]);
+                this.loadListing();
+              },
+            });
+        },
+        error: () => {
+          this.categoriesService
+            .getAll()
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (cats) => {
+                this.allCategories.set(cats);
+                this.loadListing();
+              },
+              error: () => {
+                this.allCategories.set([]);
+                this.loadListing();
+              },
+            });
+        },
+      });
   }
 
   private loadListing(): void {
@@ -105,20 +177,22 @@ export class EditListingComponent implements OnInit {
       return;
     }
 
-    this.listingsService.getById(this.listingId).subscribe({
-      next: (listing) => {
-        this.listing.set(listing);
-        this.populateForm(listing);
-        this.loading.set(false);
-        // Restore step if saved
-        const saved = loadState<{ step: number }>(this.DRAFT_KEY);
-        if (saved.step && saved.step > 1) this.currentStep.set(saved.step);
-      },
-      error: () => {
-        this.error.set('Failed to load listing');
-        this.loading.set(false);
-      },
-    });
+    this.listingsService
+      .getById(this.listingId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (listing) => {
+          this.listing.set(listing);
+          this.populateForm(listing);
+          this.loading.set(false);
+          const saved = loadState<{ step: number }>(this.DRAFT_KEY);
+          if (saved.step && saved.step > 1) this.currentStep.set(saved.step);
+        },
+        error: () => {
+          this.error.set(ERROR_MSG.LISTING_LOAD_FAILED);
+          this.loading.set(false);
+        },
+      });
   }
 
   private populateForm(listing: Listing): void {
@@ -129,14 +203,7 @@ export class EditListingComponent implements OnInit {
       condition: listing.condition,
     });
 
-    this.locationForm.patchValue({
-      city: listing.location.city,
-      area: listing.location.area,
-    });
-
     this.featureAd.set(listing.isFeatured);
-
-    // Restore selected features
     this.selectedFeatures.set(listing.selectedFeatures || []);
 
     // Restore category selection
@@ -164,8 +231,124 @@ export class EditListingComponent implements OnInit {
         this.getDynamicControl(key).setValue(value);
       }
     }
+
+    // Restore location selections from IDs
+    this.restoreLocation(listing);
   }
 
+  private restoreLocation(listing: Listing): void {
+    const loc = listing.location;
+
+    if (loc.provinceId) {
+      const prov = this.provinces().find((p) => p._id === loc.provinceId);
+      if (prov) {
+        this.selectedProvince.set(prov);
+        this.locationService
+          .getCities(prov._id)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (cities) => {
+              this.citiesForListing.set(cities);
+              if (loc.cityId) {
+                const city = cities.find((c) => c._id === loc.cityId);
+                if (city) {
+                  this.selectedCityObj.set(city);
+                  this.locationForm.patchValue({ city: city.name });
+                  this.locationService
+                    .getAreas(city._id)
+                    .pipe(takeUntil(this.destroy$))
+                    .subscribe({
+                      next: (areas) => {
+                        this.areasForListing.set(areas);
+                        if (loc.areaId) {
+                          const area = areas.find((a: Area) => a._id === loc.areaId);
+                          if (area) {
+                            this.selectedAreaObj.set(area);
+                            this.locationForm.patchValue({ area: area.name });
+                            if (loc.blockPhase) {
+                              this.selectedBlockPhase.set(loc.blockPhase);
+                              this.locationForm.patchValue({ blockPhase: loc.blockPhase });
+                            }
+                          }
+                        }
+                      },
+                    });
+                }
+              }
+            },
+          });
+      }
+    } else {
+      // Fallback: set text values if no IDs
+      this.locationForm.patchValue({
+        city: loc.city || '',
+        area: loc.area || '',
+      });
+    }
+  }
+
+  // --- Custom Dropdown ---
+  @HostListener('document:click', ['$event'])
+  onDocumentClick(event: Event): void {
+    const target = event.target as HTMLElement;
+    if (!target.closest('.custom-select-wrap')) {
+      this.openDropdown.set(null);
+    }
+  }
+
+  toggleDropdown(key: string): void {
+    this.openDropdown.set(this.openDropdown() === key ? null : key);
+  }
+
+  // --- Location ---
+  selectLocationProvince(province: Province): void {
+    this.selectedProvince.set(province);
+    this.selectedCityObj.set(null);
+    this.selectedAreaObj.set(null);
+    this.selectedBlockPhase.set(null);
+    this.citiesForListing.set([]);
+    this.areasForListing.set([]);
+    this.citySearch.set('');
+    this.areaSearch.set('');
+    this.blockPhaseSearch.set('');
+    this.locationForm.patchValue({ city: '', area: '', blockPhase: '' });
+    this.locationService
+      .getCities(province._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (cities) => this.citiesForListing.set(cities),
+      });
+  }
+
+  selectLocationCity(city: City): void {
+    this.selectedCityObj.set(city);
+    this.selectedAreaObj.set(null);
+    this.selectedBlockPhase.set(null);
+    this.areasForListing.set([]);
+    this.areaSearch.set('');
+    this.blockPhaseSearch.set('');
+    this.locationForm.patchValue({ city: city.name, area: '', blockPhase: '' });
+    this.locationService
+      .getAreas(city._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (areas) => this.areasForListing.set(areas),
+      });
+  }
+
+  selectLocationArea(area: Area): void {
+    this.selectedAreaObj.set(area);
+    this.selectedBlockPhase.set(null);
+    this.blockPhaseSearch.set('');
+    this.locationForm.patchValue({ area: area.name, blockPhase: '' });
+  }
+
+  selectBlockPhase(value: string): void {
+    this.selectedBlockPhase.set(value);
+    this.locationForm.patchValue({ blockPhase: value });
+  }
+
+  // --- Category ---
   selectLevel1(cat: Category): void {
     this.selectedLevel1.set(cat);
     this.selectedLevel2.set(null);
@@ -192,12 +375,9 @@ export class EditListingComponent implements OnInit {
   }
 
   toggleFeature(feature: string): void {
-    this.selectedFeatures.update((features) => {
-      if (features.includes(feature)) {
-        return features.filter((f) => f !== feature);
-      }
-      return [...features, feature];
-    });
+    this.selectedFeatures.update((features) =>
+      features.includes(feature) ? features.filter((f) => f !== feature) : [...features, feature],
+    );
   }
 
   getDynamicControl(key: string): FormControl {
@@ -225,7 +405,7 @@ export class EditListingComponent implements OnInit {
   }
 
   isLocationStepValid(): boolean {
-    return this.locationForm.valid;
+    return !!this.locationForm.get('city')?.value;
   }
 
   isStepValid(step: number): boolean {
@@ -235,7 +415,7 @@ export class EditListingComponent implements OnInit {
       case 2:
         return this.isDetailsStepValid();
       case 3:
-        return true; // Media already exists for edit
+        return true;
       case 4:
         return this.isLocationStepValid();
       case 5:
@@ -309,50 +489,59 @@ export class EditListingComponent implements OnInit {
       condition: details.condition,
       categoryAttributes: catAttrs,
       selectedFeatures: this.selectedFeatures(),
-      location: { city: loc.city, area: loc.area },
+      location: {
+        provinceId: this.selectedProvince()?._id || undefined,
+        cityId: this.selectedCityObj()?._id || undefined,
+        areaId: this.selectedAreaObj()?._id || undefined,
+        city: loc.city,
+        area: loc.area || undefined,
+        blockPhase: loc.blockPhase || undefined,
+      },
     };
 
-    this.listingsService.update(this.listingId, payload).subscribe({
-      next: () => {
-        this.submitting.set(false);
-        clearState(this.DRAFT_KEY);
-        const original = this.listing();
-        const changes: Record<string, { from: any; to: any }> = {};
-        if (original?.title !== details.title)
-          changes['title'] = { from: original?.title, to: details.title };
-        if (original?.price?.amount !== details.price)
-          changes['price'] = { from: original?.price?.amount, to: details.price };
-        if (original?.condition !== details.condition)
-          changes['condition'] = { from: original?.condition, to: details.condition };
-        if (original?.location?.city !== loc.city)
-          changes['city'] = { from: original?.location?.city, to: loc.city };
-        this.tracker.track(TrackingEvent.LISTING_EDIT, {
-          productListingId: this.listingId,
-          metadata: { title: details.title, changes },
-        });
-        // Track price change separately for analytics
-        if (original?.price?.amount !== details.price) {
-          this.tracker.track(TrackingEvent.LISTING_PRICE_CHANGE, {
+    this.listingsService
+      .update(this.listingId, payload)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.submitting.set(false);
+          clearState(this.DRAFT_KEY);
+          const original = this.listing();
+          const changes: Record<string, { from: unknown; to: unknown }> = {};
+          if (original?.title !== details.title)
+            changes['title'] = { from: original?.title, to: details.title };
+          if (original?.price?.amount !== details.price)
+            changes['price'] = { from: original?.price?.amount, to: details.price };
+          if (original?.condition !== details.condition)
+            changes['condition'] = { from: original?.condition, to: details.condition };
+          if (original?.location?.city !== loc.city)
+            changes['city'] = { from: original?.location?.city, to: loc.city };
+          this.tracker.track(TrackingEvent.LISTING_EDIT, {
             productListingId: this.listingId,
-            categoryId: cat._id,
-            metadata: {
-              title: details.title,
-              categoryName: cat.name,
-              condition: details.condition,
-              previousPrice: original?.price?.amount,
-              newPrice: details.price,
-              priceDiff: details.price - (original?.price?.amount ?? 0),
-              city: loc.city,
-            },
+            metadata: { title: details.title, changes },
           });
-        }
-        const title = this.detailsForm.get('title')?.value ?? '';
-        this.router.navigate([ROUTES.LISTINGS, listingSlug({ _id: this.listingId, title })]);
-      },
-      error: (err) => {
-        this.submitting.set(false);
-        this.error.set(err?.error?.message ?? 'Failed to update listing.');
-      },
-    });
+          if (original?.price?.amount !== details.price) {
+            this.tracker.track(TrackingEvent.LISTING_PRICE_CHANGE, {
+              productListingId: this.listingId,
+              categoryId: cat._id,
+              metadata: {
+                title: details.title,
+                categoryName: cat.name,
+                condition: details.condition,
+                previousPrice: original?.price?.amount,
+                newPrice: details.price,
+                priceDiff: details.price - (original?.price?.amount ?? 0),
+                city: loc.city,
+              },
+            });
+          }
+          const title = this.detailsForm.get('title')?.value ?? '';
+          this.router.navigate([ROUTES.LISTINGS, listingSlug({ _id: this.listingId, title })]);
+        },
+        error: (err) => {
+          this.submitting.set(false);
+          this.error.set(err?.error?.message ?? ERROR_MSG.LISTING_UPDATE_FAILED);
+        },
+      });
   }
 }

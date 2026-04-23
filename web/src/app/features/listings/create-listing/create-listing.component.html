@@ -258,10 +258,13 @@
                 <input
                   id="price"
                   class="form-input"
-                  type="number"
+                  type="text"
+                  inputmode="numeric"
+                  pattern="[0-9]*"
                   formControlName="price"
                   placeholder="Enter price"
-                  min="1"
+                  (keydown)="onPriceKeydown($event)"
+                  (input)="onPriceInput($event)"
                 />
                 @if (
                   detailsForm.get('price')?.touched &&
