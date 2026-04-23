@@ -17,8 +17,19 @@ import { SearchQueryDto, SearchSortOption } from './dto/search-query.dto.js';
 import { SuggestionQueryDto } from './dto/suggestion-query.dto.js';
 import { CACHE_TTL_POPULAR_SEARCHES } from '../common/constants/index.js';
 
+export interface SearchResultItem {
+  _id: string;
+  _score?: number;
+  _relaxed?: boolean;
+  title: string;
+  description?: string;
+  price?: { amount: number; currency: string };
+  location?: Record<string, unknown>;
+  [key: string]: unknown;
+}
+
 export interface SearchResult {
-  items: any[];
+  items: SearchResultItem[];
   total: number;
   page: number;
   limit: number;
@@ -32,6 +43,7 @@ export interface SuggestionResult {
 }
 
 const POPULAR_SEARCHES_KEY = 'search:popular';
+const DEFAULT_GEO_RADIUS_KM = 25;
 
 @Injectable()
 export class SearchService {
@@ -50,74 +62,21 @@ export class SearchService {
     const page = query.page || 1;
     const limit = query.limit || 20;
 
-    // Try Elasticsearch first, fall back to MongoDB
     try {
-      const from = (page - 1) * limit;
-      const baseQuery = await this.buildSearchQuery(query);
-      const boostedQuery =
-        this.searchSyncService.buildFeaturedBoostQuery(baseQuery);
-      const sortClause = this.buildSortClause(query.sort);
+      const result = await this.esSearch(query, page, limit);
 
-      const response = await this.esService.search({
-        index: LISTINGS_INDEX,
-        from,
-        size: limit,
-        query: boostedQuery,
-        sort: sortClause,
-      });
-
-      const hits = response.hits.hits;
-      const total =
-        typeof response.hits.total === 'number'
-          ? response.hits.total
-          : (response.hits.total?.value ?? 0);
-
-      // If ES has no data at all (index empty), fall back to MongoDB
-      if (total === 0 && !query.q) {
-        const mongoResult = await this.mongoFallbackSearch(query, page, limit);
-        if (mongoResult.total > 0) return mongoResult;
-      }
-
-      const items = hits.map((hit: any) => {
-        const source = hit._source;
-        // Merge location_text back into location for frontend compatibility
-        if (source.location_text) {
-          source.location = {
-            ...(source.location || {}),
-            ...source.location_text,
-          };
-          delete source.location_text;
-        }
-        return { _id: hit._id, _score: hit._score, ...source };
-      });
-
-      // If ES results are missing location names, fall back to MongoDB
-      const missingLocation = items.some((item: any) => !item.location?.city);
-      if (missingLocation && items.length > 0) {
-        const ids = items.map((item: any) => new Types.ObjectId(item._id));
-        const dbListings = await this.listingModel
-          .find({ _id: { $in: ids } })
-          .lean()
-          .exec();
-        const dbMap = new Map(
-          dbListings.map((l: any) => [l._id.toString(), l]),
+      // Progressive relaxation: if few results and filters can be relaxed
+      if (result.total < limit && query.q && this.hasRelaxableFilters(query)) {
+        const relaxed = await this.searchWithRelaxation(
+          query,
+          page,
+          limit,
+          result,
         );
-        for (const item of items) {
-          const dbItem = dbMap.get(item._id);
-          if (dbItem?.location) {
-            item.location = { ...item.location, ...dbItem.location };
-          }
-        }
+        return relaxed;
       }
 
-      if (query.q) {
-        this.trackSearchTerm(query.q).catch((err) =>
-          this.logger.warn(`Failed to track search term: ${err.message}`),
-        );
-      }
-
-      if (items.length === 0 && query.q) {
-        // Try MongoDB before giving up
+      if (result.items.length === 0 && query.q) {
         const mongoResult = await this.mongoFallbackSearch(query, page, limit);
         if (mongoResult.total > 0) return mongoResult;
 
@@ -133,18 +92,178 @@ export class SearchService {
         };
       }
 
-      return {
-        items,
-        total,
-        page,
-        limit,
-        totalPages: Math.ceil(total / limit),
-      };
+      return result;
     } catch (error: any) {
       this.logger.error(`Search failed: ${error.message}`);
       this.logger.warn('Falling back to MongoDB search');
       return this.mongoFallbackSearch(query, page, limit);
     }
+  }
+
+  /**
+   * Check if the query has filters that can be progressively relaxed.
+   */
+  private hasRelaxableFilters(query: SearchQueryDto): boolean {
+    return !!(
+      query.blockPhase ||
+      query.areaId ||
+      query.area ||
+      query.condition ||
+      query.priceMin ||
+      query.priceMax
+    );
+  }
+
+  /**
+   * Progressively relax filters to fill the page with results.
+   * Relaxation order: blockPhase → area → condition → price range.
+   * Original strict results come first, relaxed results fill remaining slots.
+   */
+  private async searchWithRelaxation(
+    query: SearchQueryDto,
+    page: number,
+    limit: number,
+    strictResult: SearchResult,
+  ): Promise<SearchResult> {
+    const strictIds = new Set(strictResult.items.map((i: any) => i._id));
+    const remaining = limit - strictResult.items.length;
+    if (remaining <= 0) return strictResult;
+
+    // Build relaxation levels — each removes one more filter
+    const relaxationSteps: Partial<SearchQueryDto>[] = [];
+
+    const relaxed = { ...query };
+    if (relaxed.blockPhase) {
+      relaxed.blockPhase = undefined;
+      relaxationSteps.push({ ...relaxed });
+    }
+    if (relaxed.areaId || relaxed.area) {
+      relaxed.areaId = undefined;
+      relaxed.area = undefined;
+      relaxationSteps.push({ ...relaxed });
+    }
+    if (relaxed.condition) {
+      relaxed.condition = undefined;
+      relaxationSteps.push({ ...relaxed });
+    }
+    if (relaxed.priceMin || relaxed.priceMax) {
+      relaxed.priceMin = undefined;
+      relaxed.priceMax = undefined;
+      relaxationSteps.push({ ...relaxed });
+    }
+
+    const allItems = [...strictResult.items];
+
+    for (const relaxedQuery of relaxationSteps) {
+      if (allItems.length >= limit) break;
+
+      try {
+        const slotsNeeded = limit - allItems.length;
+        const relaxedResult = await this.esSearch(
+          relaxedQuery as SearchQueryDto,
+          1,
+          slotsNeeded + strictIds.size, // fetch extra to account for dedup
+        );
+
+        for (const item of relaxedResult.items) {
+          if (allItems.length >= limit) break;
+          if (!strictIds.has(item._id)) {
+            strictIds.add(item._id);
+            allItems.push({ ...item, _relaxed: true });
+          }
+        }
+      } catch {
+        // Skip this relaxation level on error
+      }
+    }
+
+    return {
+      items: allItems,
+      total: Math.max(strictResult.total, allItems.length),
+      page,
+      limit,
+      totalPages: Math.ceil(
+        Math.max(strictResult.total, allItems.length) / limit,
+      ),
+    };
+  }
+
+  /**
+   * Core ES search with result processing.
+   */
+  private async esSearch(
+    query: SearchQueryDto,
+    page: number,
+    limit: number,
+  ): Promise<SearchResult> {
+    const from = (page - 1) * limit;
+    const baseQuery = await this.buildSearchQuery(query);
+    const boostedQuery =
+      this.searchSyncService.buildFeaturedBoostQuery(baseQuery);
+    const sortClause = this.buildSortClause(query.sort);
+
+    const response = await this.esService.search({
+      index: LISTINGS_INDEX,
+      from,
+      size: limit,
+      query: boostedQuery,
+      sort: sortClause,
+    });
+
+    const hits = response.hits.hits;
+    const total =
+      typeof response.hits.total === 'number'
+        ? response.hits.total
+        : (response.hits.total?.value ?? 0);
+
+    // If ES has no data at all (index empty), fall back to MongoDB
+    if (total === 0 && !query.q) {
+      const mongoResult = await this.mongoFallbackSearch(query, page, limit);
+      if (mongoResult.total > 0) return mongoResult;
+    }
+
+    const items = hits.map((hit: any) => {
+      const source = hit._source;
+      if (source.location_text) {
+        source.location = {
+          ...(source.location || {}),
+          ...source.location_text,
+        };
+        delete source.location_text;
+      }
+      return { _id: hit._id, _score: hit._score, ...source };
+    });
+
+    // If ES results are missing location names, enrich from MongoDB
+    const missingLocation = items.some((item: any) => !item.location?.city);
+    if (missingLocation && items.length > 0) {
+      const ids = items.map((item: any) => new Types.ObjectId(item._id));
+      const dbListings = await this.listingModel
+        .find({ _id: { $in: ids } })
+        .lean()
+        .exec();
+      const dbMap = new Map(dbListings.map((l: any) => [l._id.toString(), l]));
+      for (const item of items) {
+        const dbItem = dbMap.get(item._id);
+        if (dbItem?.location) {
+          item.location = { ...item.location, ...dbItem.location };
+        }
+      }
+    }
+
+    if (query.q) {
+      this.trackSearchTerm(query.q).catch((err) =>
+        this.logger.warn(`Failed to track search term: ${err.message}`),
+      );
+    }
+
+    return {
+      items,
+      total,
+      page,
+      limit,
+      totalPages: Math.ceil(total / limit),
+    };
   }
 
   private async mongoFallbackSearch(
@@ -165,6 +284,7 @@ export class SearchService {
         { vehicleBrandName: { $regex: query.q, $options: 'i' } },
         { modelName: { $regex: query.q, $options: 'i' } },
         { variantName: { $regex: query.q, $options: 'i' } },
+        { selectedFeatures: { $regex: query.q, $options: 'i' } },
       ];
     }
 
@@ -241,11 +361,11 @@ export class SearchService {
     }
 
     let sortObj: Record<string, 1 | -1> = { isFeatured: -1, createdAt: -1 };
-    if (query.sort === 'price_asc')
+    if (query.sort === SearchSortOption.PRICE_ASC)
       sortObj = { isFeatured: -1, 'price.amount': 1 };
-    else if (query.sort === 'price_desc')
+    else if (query.sort === SearchSortOption.PRICE_DESC)
       sortObj = { isFeatured: -1, 'price.amount': -1 };
-    else if (query.sort === 'newest')
+    else if (query.sort === SearchSortOption.NEWEST)
       sortObj = { isFeatured: -1, createdAt: -1 };
 
     const skip = (page - 1) * limit;
@@ -277,34 +397,6 @@ export class SearchService {
     }
 
     try {
-      const response = await this.esService.search({
-        index: LISTINGS_INDEX,
-        size: 0,
-        query: {
-          bool: {
-            must: [
-              {
-                prefix: {
-                  title: {
-                    value: query.q.toLowerCase(),
-                  },
-                },
-              },
-            ],
-            filter: [{ term: { status: 'active' } }],
-          },
-        },
-        aggs: {
-          title_suggestions: {
-            terms: {
-              field: 'title.keyword',
-              size: 10,
-            },
-          },
-        },
-      });
-
-      // Fallback: use match query to get titles
       const matchResponse = await this.esService.search({
         index: LISTINGS_INDEX,
         size: 10,
@@ -320,7 +412,7 @@ export class SearchService {
                 },
               },
             ],
-            filter: [{ term: { status: 'active' } }],
+            filter: [{ term: { status: ListingStatus.ACTIVE } }],
           },
         },
         _source: ['title'],
@@ -360,23 +452,45 @@ export class SearchService {
     const filter: any[] = [];
 
     // Always filter for active listings
-    filter.push({ term: { status: 'active' } });
+    filter.push({ term: { status: ListingStatus.ACTIVE } });
 
     // Full-text search on title and description
     if (query.q) {
       must.push({
-        multi_match: {
-          query: query.q,
-          fields: [
-            'title^3',
-            'description',
-            'brandName^2',
-            'vehicleBrandName^2',
-            'modelName^2',
-            'variantName',
+        bool: {
+          should: [
+            // Exact phrase match gets highest boost
+            {
+              match_phrase: {
+                title: { query: query.q, boost: 10 },
+              },
+            },
+            // Individual terms across multiple fields
+            {
+              multi_match: {
+                query: query.q,
+                fields: [
+                  'title^3',
+                  'title.keyword^5',
+                  'description',
+                  'brandName^2',
+                  'vehicleBrandName^2',
+                  'modelName^2',
+                  'variantName',
+                  'selectedFeatures^1.5',
+                ],
+                type: 'most_fields',
+                fuzziness: 'AUTO',
+              },
+            },
+            // Prefix match for partial words
+            {
+              match_phrase_prefix: {
+                title: { query: query.q, boost: 2 },
+              },
+            },
           ],
-          type: 'best_fields',
-          fuzziness: 'AUTO',
+          minimum_should_match: 1,
         },
       });
     }
@@ -442,7 +556,7 @@ export class SearchService {
 
     // Location filter (geo_distance)
     if (query.lat !== undefined && query.lng !== undefined) {
-      const radius = query.radius || 25;
+      const radius = query.radius || DEFAULT_GEO_RADIUS_KM;
       filter.push({
         geo_distance: {
           distance: `${radius}km`,

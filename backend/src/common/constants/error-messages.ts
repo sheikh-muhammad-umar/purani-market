@@ -35,4 +35,7 @@ export const ERROR = {
   INVALID_CATEGORY_ID: 'Invalid category ID',
   INVALID_BRAND_ID: 'Invalid brand ID',
   INVALID_MODEL_ID: 'Invalid model ID',
+  LISTING_CANNOT_UPDATE_DELETED: 'Cannot update a deleted listing',
+  LISTING_MAX_REJECTIONS:
+    'This listing has reached the maximum number of review attempts. Unfortunately, it cannot be resubmitted. You may delete it and create a new listing.',
 } as const;

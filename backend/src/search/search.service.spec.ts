@@ -5,6 +5,7 @@ import { CategoriesService } from '../categories/categories.service';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { SearchSortOption } from './dto/search-query.dto';
 import { AttributeType } from '../categories/schemas/category.schema';
+import { getModelToken } from '@nestjs/mongoose';
 
 describe('SearchService', () => {
   let service: SearchService;
@@ -12,6 +13,7 @@ describe('SearchService', () => {
   let syncService: jest.Mocked<Partial<SearchSyncService>>;
   let categoriesService: jest.Mocked<Partial<CategoriesService>>;
   let redis: Record<string, jest.Mock>;
+  let listingModel: Record<string, jest.Mock>;
 
   beforeEach(async () => {
     esService = {
@@ -35,6 +37,21 @@ describe('SearchService', () => {
       zrevrange: jest.fn().mockResolvedValue([]),
     };
 
+    const mockQuery = {
+      sort: jest.fn().mockReturnThis(),
+      skip: jest.fn().mockReturnThis(),
+      limit: jest.fn().mockReturnThis(),
+      lean: jest.fn().mockReturnThis(),
+      exec: jest.fn().mockResolvedValue([]),
+    };
+
+    listingModel = {
+      find: jest.fn().mockReturnValue(mockQuery),
+      countDocuments: jest
+        .fn()
+        .mockReturnValue({ exec: jest.fn().mockResolvedValue(0) }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         SearchService,
@@ -42,6 +59,7 @@ describe('SearchService', () => {
         { provide: SearchSyncService, useValue: syncService },
         { provide: CategoriesService, useValue: categoriesService },
         { provide: 'default_IORedisModuleConnectionToken', useValue: redis },
+        { provide: getModelToken('ProductListing'), useValue: listingModel },
       ],
     }).compile();
 
@@ -57,12 +75,20 @@ describe('SearchService', () => {
             {
               _id: '1',
               _score: 5.0,
-              _source: { title: 'iPhone 15', status: 'active' },
+              _source: {
+                title: 'iPhone 15',
+                status: 'active',
+                location: { city: 'Lahore' },
+              },
             },
             {
               _id: '2',
               _score: 3.0,
-              _source: { title: 'Samsung S24', status: 'active' },
+              _source: {
+                title: 'Samsung S24',
+                status: 'active',
+                location: { city: 'Karachi' },
+              },
             },
           ],
         },
@@ -124,7 +150,13 @@ describe('SearchService', () => {
       (esService.search as jest.Mock).mockResolvedValue({
         hits: {
           total: { value: 1 },
-          hits: [{ _id: '1', _score: 1, _source: { title: 'Car' } }],
+          hits: [
+            {
+              _id: '1',
+              _score: 1,
+              _source: { title: 'Car', location: { city: 'Lahore' } },
+            },
+          ],
         },
       });
 
@@ -134,21 +166,28 @@ describe('SearchService', () => {
       expect(callArgs.sort[0]).toEqual({ 'price.amount': { order: 'asc' } });
     });
 
-    it('should propagate Elasticsearch errors', async () => {
+    it('should fall back to MongoDB when Elasticsearch fails', async () => {
       (esService.search as jest.Mock).mockRejectedValue(
         new Error('ES cluster unavailable'),
       );
 
-      await expect(service.search({ q: 'test' })).rejects.toThrow(
-        'ES cluster unavailable',
-      );
+      const result = await service.search({ q: 'test' });
+
+      expect(result.items).toEqual([]);
+      expect(result.total).toBe(0);
     });
 
     it('should not track search term when no query provided', async () => {
       (esService.search as jest.Mock).mockResolvedValue({
         hits: {
           total: { value: 1 },
-          hits: [{ _id: '1', _score: 1, _source: { title: 'Test' } }],
+          hits: [
+            {
+              _id: '1',
+              _score: 1,
+              _source: { title: 'Test', location: { city: 'Lahore' } },
+            },
+          ],
         },
       });
 
@@ -162,7 +201,13 @@ describe('SearchService', () => {
       (esService.search as jest.Mock).mockResolvedValue({
         hits: {
           total: { value: 1 },
-          hits: [{ _id: '1', _score: 1, _source: { title: 'Test' } }],
+          hits: [
+            {
+              _id: '1',
+              _score: 1,
+              _source: { title: 'Test', location: { city: 'Lahore' } },
+            },
+          ],
         },
       });
 
@@ -183,9 +228,21 @@ describe('SearchService', () => {
 
     it('should build a multi_match query when q is provided', async () => {
       const query = await service.buildSearchQuery({ q: 'phone' });
-      expect(query.bool.must[0]).toHaveProperty('multi_match');
-      expect(query.bool.must[0].multi_match.query).toBe('phone');
-      expect(query.bool.must[0].multi_match.fields).toContain('title^3');
+      const mustClause = query.bool.must[0];
+      expect(mustClause).toHaveProperty('bool');
+      expect(mustClause.bool.should.length).toBeGreaterThanOrEqual(2);
+      // Should contain match_phrase for exact boost
+      const phraseMatch = mustClause.bool.should.find(
+        (s: any) => s.match_phrase?.title,
+      );
+      expect(phraseMatch).toBeDefined();
+      // Should contain multi_match with most_fields
+      const multiMatch = mustClause.bool.should.find((s: any) => s.multi_match);
+      expect(multiMatch).toBeDefined();
+      expect(multiMatch.multi_match.query).toBe('phone');
+      expect(multiMatch.multi_match.type).toBe('most_fields');
+      expect(multiMatch.multi_match.fields).toContain('title^3');
+      expect(multiMatch.multi_match.fields).toContain('selectedFeatures^1.5');
     });
 
     it('should add category filter', async () => {
@@ -273,7 +330,11 @@ describe('SearchService', () => {
       });
       // status + category + price + condition = 4 filters
       expect(query.bool.filter.length).toBe(4);
-      expect(query.bool.must[0].multi_match.query).toBe('car');
+      const mustClause = query.bool.must[0];
+      expect(
+        mustClause.bool.should.find((s: any) => s.multi_match).multi_match
+          .query,
+      ).toBe('car');
     });
   });
 
@@ -591,10 +652,6 @@ describe('SearchService', () => {
 
     it('should return title-based suggestions for a query', async () => {
       (esService.search as jest.Mock).mockResolvedValueOnce({
-        hits: { total: { value: 0 }, hits: [] },
-        aggregations: { title_suggestions: { buckets: [] } },
-      });
-      (esService.search as jest.Mock).mockResolvedValueOnce({
         hits: {
           total: { value: 2 },
           hits: [
@@ -612,10 +669,6 @@ describe('SearchService', () => {
 
     it('should deduplicate suggestions', async () => {
       (esService.search as jest.Mock).mockResolvedValueOnce({
-        hits: { total: { value: 0 }, hits: [] },
-        aggregations: { title_suggestions: { buckets: [] } },
-      });
-      (esService.search as jest.Mock).mockResolvedValueOnce({
         hits: {
           total: { value: 3 },
           hits: [
@@ -632,10 +685,6 @@ describe('SearchService', () => {
     });
 
     it('should merge popular searches when few title suggestions found', async () => {
-      (esService.search as jest.Mock).mockResolvedValueOnce({
-        hits: { total: { value: 0 }, hits: [] },
-        aggregations: { title_suggestions: { buckets: [] } },
-      });
       (esService.search as jest.Mock).mockResolvedValueOnce({
         hits: {
           total: { value: 1 },
@@ -715,6 +764,349 @@ describe('SearchService', () => {
       const result = await service.getPopularSearches();
 
       expect(result).toEqual([]);
+    });
+  });
+
+  // ═══════════════════════════════════════════════════════════════
+  // COMPREHENSIVE SEARCH SCENARIOS
+  // ═══════════════════════════════════════════════════════════════
+
+  describe('multi-word search queries', () => {
+    it('should match "iphone 14 Pro" using phrase + multi_match', async () => {
+      const query = await service.buildSearchQuery({ q: 'iphone 14 Pro' });
+      const mustClause = query.bool.must[0];
+      // Should have phrase match for exact title boost
+      const phraseMatch = mustClause.bool.should.find(
+        (s: any) => s.match_phrase?.title,
+      );
+      expect(phraseMatch.match_phrase.title.query).toBe('iphone 14 Pro');
+      expect(phraseMatch.match_phrase.title.boost).toBe(10);
+      // Should have multi_match with most_fields
+      const multiMatch = mustClause.bool.should.find((s: any) => s.multi_match);
+      expect(multiMatch.multi_match.type).toBe('most_fields');
+      // Should have prefix match for partial
+      const prefixMatch = mustClause.bool.should.find(
+        (s: any) => s.match_phrase_prefix?.title,
+      );
+      expect(prefixMatch).toBeDefined();
+    });
+
+    it('should match partial model names like "14 Pro"', async () => {
+      const query = await service.buildSearchQuery({ q: '14 Pro' });
+      const multiMatch = query.bool.must[0].bool.should.find(
+        (s: any) => s.multi_match,
+      );
+      expect(multiMatch.multi_match.fields).toContain('modelName^2');
+    });
+
+    it('should search across features', async () => {
+      const query = await service.buildSearchQuery({ q: 'bluetooth' });
+      const multiMatch = query.bool.must[0].bool.should.find(
+        (s: any) => s.multi_match,
+      );
+      expect(multiMatch.multi_match.fields).toContain('selectedFeatures^1.5');
+    });
+  });
+
+  describe('location-based search', () => {
+    it('should filter by provinceId', async () => {
+      const query = await service.buildSearchQuery({
+        provinceId: 'prov123',
+      });
+      expect(query.bool.filter).toContainEqual({
+        term: { 'location_text.provinceId': 'prov123' },
+      });
+    });
+
+    it('should filter by cityId', async () => {
+      const query = await service.buildSearchQuery({ cityId: 'city456' });
+      expect(query.bool.filter).toContainEqual({
+        term: { 'location_text.cityId': 'city456' },
+      });
+    });
+
+    it('should filter by areaId', async () => {
+      const query = await service.buildSearchQuery({ areaId: 'area789' });
+      expect(query.bool.filter).toContainEqual({
+        term: { 'location_text.areaId': 'area789' },
+      });
+    });
+
+    it('should prefer ID filters over name filters', async () => {
+      const query = await service.buildSearchQuery({
+        provinceId: 'prov123',
+        province: 'Punjab',
+      });
+      const provFilters = query.bool.filter.filter(
+        (f: any) =>
+          f.term?.['location_text.provinceId'] ||
+          f.term?.['location_text.province'],
+      );
+      expect(provFilters).toHaveLength(1);
+      expect(provFilters[0]).toEqual({
+        term: { 'location_text.provinceId': 'prov123' },
+      });
+    });
+
+    it('should fall back to name filter when no ID provided', async () => {
+      const query = await service.buildSearchQuery({ city: 'Lahore' });
+      expect(query.bool.filter).toContainEqual({
+        term: { 'location_text.city': 'Lahore' },
+      });
+    });
+
+    it('should filter by blockPhase', async () => {
+      const query = await service.buildSearchQuery({
+        blockPhase: 'Block A',
+      });
+      expect(query.bool.filter).toContainEqual({
+        term: { 'location_text.blockPhase': 'Block A' },
+      });
+    });
+
+    it('should combine text search with location filter', async () => {
+      const query = await service.buildSearchQuery({
+        q: 'car',
+        cityId: 'city456',
+      });
+      expect(query.bool.must).toHaveLength(1);
+      expect(query.bool.filter).toContainEqual({
+        term: { 'location_text.cityId': 'city456' },
+      });
+    });
+
+    it('should combine geo_distance with text location filters', async () => {
+      const query = await service.buildSearchQuery({
+        lat: 31.52,
+        lng: 74.35,
+        cityId: 'city456',
+      });
+      const geoFilter = query.bool.filter.find((f: any) => f.geo_distance);
+      const cityFilter = query.bool.filter.find(
+        (f: any) => f.term?.['location_text.cityId'],
+      );
+      expect(geoFilter).toBeDefined();
+      expect(cityFilter).toBeDefined();
+    });
+  });
+
+  describe('filter combinations', () => {
+    it('should combine text + category + price + condition + location', async () => {
+      const query = await service.buildSearchQuery({
+        q: 'honda civic',
+        category: 'cars',
+        priceMin: 500000,
+        priceMax: 2000000,
+        condition: 'used',
+        cityId: 'city123',
+      });
+      // status + category + price + condition + city = 5 filters
+      expect(query.bool.filter.length).toBe(5);
+      expect(query.bool.must).toHaveLength(1);
+    });
+
+    it('should handle price range with only min', async () => {
+      const query = await service.buildSearchQuery({ priceMin: 1000 });
+      const priceFilter = query.bool.filter.find(
+        (f: any) => f.range?.['price.amount'],
+      );
+      expect(priceFilter.range['price.amount']).toEqual({ gte: 1000 });
+    });
+
+    it('should handle price range with only max', async () => {
+      const query = await service.buildSearchQuery({ priceMax: 50000 });
+      const priceFilter = query.bool.filter.find(
+        (f: any) => f.range?.['price.amount'],
+      );
+      expect(priceFilter.range['price.amount']).toEqual({ lte: 50000 });
+    });
+
+    it('should filter by brand and model together', async () => {
+      const query = await service.buildSearchQuery({
+        vehicleBrandId: 'brand1',
+        modelId: 'model1',
+      });
+      expect(query.bool.filter).toContainEqual({
+        term: { vehicleBrandId: 'brand1' },
+      });
+      expect(query.bool.filter).toContainEqual({
+        term: { modelId: 'model1' },
+      });
+    });
+
+    it('should filter by modelName with phrase prefix', async () => {
+      const query = await service.buildSearchQuery({
+        modelName: 'Civic',
+      });
+      expect(query.bool.filter).toContainEqual({
+        match_phrase_prefix: { modelName: 'Civic' },
+      });
+    });
+
+    it('should filter by dateFrom', async () => {
+      const query = await service.buildSearchQuery({
+        dateFrom: '2025-01-01',
+      });
+      const dateFilter = query.bool.filter.find((f: any) => f.range?.createdAt);
+      expect(dateFilter.range.createdAt.gte).toBe('2025-01-01');
+    });
+  });
+
+  describe('MongoDB fallback search', () => {
+    it('should fall back to MongoDB when ES returns empty and no query', async () => {
+      (esService.search as jest.Mock).mockResolvedValue({
+        hits: { total: { value: 0 }, hits: [] },
+      });
+
+      const mockItems = [{ _id: 'id1', title: 'Test Item', status: 'active' }];
+      const mockQuery = {
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue(mockItems),
+      };
+      listingModel.find.mockReturnValue(mockQuery);
+      listingModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(1),
+      });
+
+      const result = await service.search({});
+
+      expect(listingModel.find).toHaveBeenCalled();
+      expect(result.total).toBe(1);
+    });
+
+    it('should search selectedFeatures in MongoDB fallback', async () => {
+      (esService.search as jest.Mock).mockRejectedValue(new Error('ES down'));
+
+      const mockQuery = {
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([]),
+      };
+      listingModel.find.mockReturnValue(mockQuery);
+      listingModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
+
+      await service.search({ q: 'bluetooth' });
+
+      const filterArg = listingModel.find.mock.calls[0][0];
+      const orConditions = filterArg.$or;
+      const featureCondition = orConditions.find(
+        (c: any) => c.selectedFeatures,
+      );
+      expect(featureCondition).toBeDefined();
+      expect(featureCondition.selectedFeatures.$regex).toBe('bluetooth');
+    });
+
+    it('should apply location filters in MongoDB fallback', async () => {
+      (esService.search as jest.Mock).mockRejectedValue(new Error('ES down'));
+
+      const mockQuery = {
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([]),
+      };
+      listingModel.find.mockReturnValue(mockQuery);
+      listingModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
+
+      await service.search({ cityId: '507f1f77bcf86cd799439011' });
+
+      const filterArg = listingModel.find.mock.calls[0][0];
+      expect(filterArg['location.cityId']).toBeDefined();
+    });
+
+    it('should apply sort in MongoDB fallback', async () => {
+      (esService.search as jest.Mock).mockRejectedValue(new Error('ES down'));
+
+      const mockQuery = {
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([]),
+      };
+      listingModel.find.mockReturnValue(mockQuery);
+      listingModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
+
+      await service.search({ sort: SearchSortOption.PRICE_ASC });
+
+      expect(mockQuery.sort).toHaveBeenCalledWith({
+        isFeatured: -1,
+        'price.amount': 1,
+      });
+    });
+  });
+
+  describe('search result processing', () => {
+    it('should merge location_text into location for frontend', async () => {
+      (esService.search as jest.Mock).mockResolvedValue({
+        hits: {
+          total: { value: 1 },
+          hits: [
+            {
+              _id: '1',
+              _score: 5,
+              _source: {
+                title: 'Test',
+                location_text: { city: 'Lahore', province: 'Punjab' },
+              },
+            },
+          ],
+        },
+      });
+
+      const result = await service.search({ q: 'test' });
+
+      expect((result.items[0].location as any)?.city).toBe('Lahore');
+      expect((result.items[0].location as any)?.province).toBe('Punjab');
+      expect(result.items[0].location_text).toBeUndefined();
+    });
+
+    it('should include _score in results', async () => {
+      (esService.search as jest.Mock).mockResolvedValue({
+        hits: {
+          total: { value: 1 },
+          hits: [
+            {
+              _id: '1',
+              _score: 7.5,
+              _source: { title: 'High Score', location: { city: 'Lahore' } },
+            },
+          ],
+        },
+      });
+
+      const result = await service.search({ q: 'test' });
+
+      expect(result.items[0]._score).toBe(7.5);
+    });
+
+    it('should calculate totalPages correctly', async () => {
+      (esService.search as jest.Mock).mockResolvedValue({
+        hits: {
+          total: { value: 55 },
+          hits: Array.from({ length: 20 }, (_, i) => ({
+            _id: String(i),
+            _score: 1,
+            _source: { title: `Item ${i}`, location: { city: 'Lahore' } },
+          })),
+        },
+      });
+
+      const result = await service.search({ q: 'test', limit: 20 });
+
+      expect(result.totalPages).toBe(3);
     });
   });
 });

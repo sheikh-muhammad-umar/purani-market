@@ -289,7 +289,7 @@ export class ListingsService {
     const listing = await this.findById(id);
     this.assertOwnership(listing, sellerId);
     if (listing.status === ListingStatus.DELETED) {
-      throw new BadRequestException('Cannot update a deleted listing');
+      throw new BadRequestException(ERROR.LISTING_CANNOT_UPDATE_DELETED);
     }
     const updateFields: Record<string, any> = {};
     if (dto.title !== undefined) updateFields.title = dto.title;
@@ -370,9 +370,7 @@ export class ListingsService {
     if (listing.status === ListingStatus.REJECTED) {
       const rejCount = (listing as any).rejectionCount || 0;
       if (rejCount >= 3) {
-        throw new BadRequestException(
-          'This listing has reached the maximum number of review attempts. Unfortunately, it cannot be resubmitted. You may delete it and create a new listing.',
-        );
+        throw new BadRequestException(ERROR.LISTING_MAX_REJECTIONS);
       }
       updateFields.rejectionReason = undefined;
       updateFields.rejectionReasonIds = [];

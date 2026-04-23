@@ -201,6 +201,7 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
       modelName: doc.modelName,
       variantId: doc.variantId?.toString(),
       variantName: doc.variantName,
+      selectedFeatures: doc.selectedFeatures || [],
     };
 
     if (doc.location?.coordinates?.length === 2) {

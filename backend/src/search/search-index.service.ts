@@ -56,6 +56,10 @@ export const listingsIndexMapping = {
       type: 'text' as const,
       fields: { keyword: { type: 'keyword' as const, ignore_above: 150 } },
     },
+    selectedFeatures: {
+      type: 'text' as const,
+      fields: { keyword: { type: 'keyword' as const, ignore_above: 100 } },
+    },
   },
 };
 
