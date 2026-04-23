@@ -18,6 +18,7 @@ export const TrackingEvent = {
   LISTING_DELETE: 'listing_delete',
   LISTING_STATUS_CHANGE: 'listing_status_change',
   LISTING_FEATURE: 'listing_feature',
+  LISTING_PRICE_CHANGE: 'listing_price_change',
 
   // Auth
   LOGIN: 'login',

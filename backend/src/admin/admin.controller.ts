@@ -101,11 +101,13 @@ export class AdminController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldUser = await this.adminService.findUserById(id);
+    const previousStatus = oldUser.status;
     const user = await this.adminService.updateUserStatus(id, dto.status);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_USER_STATUS_CHANGE,
-      { targetUserId: id, newStatus: dto.status },
+      { targetUserId: id, previousStatus, newStatus: dto.status },
       req,
     );
     return {
@@ -121,11 +123,13 @@ export class AdminController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldUser = await this.adminService.findUserById(id);
+    const previousRole = oldUser.role;
     const user = await this.adminService.updateUserRole(id, dto.role);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_USER_ROLE_CHANGE,
-      { targetUserId: id, newRole: dto.role },
+      { targetUserId: id, previousRole, newRole: dto.role },
       req,
     );
     return { message: `User role updated to ${dto.role}`, userId: user._id };
@@ -138,11 +142,13 @@ export class AdminController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldUser = await this.adminService.findUserById(id);
+    const previousAdLimit = oldUser.adLimit;
     const user = await this.adminService.updateAdLimit(id, dto.adLimit);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_USER_AD_LIMIT_CHANGE,
-      { targetUserId: id, newAdLimit: dto.adLimit },
+      { targetUserId: id, previousAdLimit, newAdLimit: dto.adLimit },
       req,
     );
     return {
@@ -199,11 +205,18 @@ export class AdminController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldListing = await this.adminService.findListingById(id);
+    const previousStatus = oldListing.status;
     const listing = await this.adminService.approveListing(id);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_LISTING_APPROVE,
-      { listingId: id, title: listing.title },
+      {
+        listingId: id,
+        title: listing.title,
+        previousStatus,
+        newStatus: listing.status,
+      },
       req,
     );
     return {
@@ -220,6 +233,8 @@ export class AdminController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldListing = await this.adminService.findListingById(id);
+    const previousStatus = oldListing.status;
     const listing = await this.adminService.rejectListing(
       id,
       dto.rejectionReasonIds,
@@ -231,6 +246,8 @@ export class AdminController {
       {
         listingId: id,
         title: listing.title,
+        previousStatus,
+        newStatus: listing.status,
         reasons: dto.rejectionReasonIds,
         note: dto.customNote,
       },
@@ -258,6 +275,14 @@ export class AdminController {
     @Query('dateTo') dateTo?: string,
   ) {
     return this.adminService.getAppBannerStats(dateFrom, dateTo);
+  }
+
+  @Get('analytics/price-trends')
+  async getPriceTrends(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.adminService.getCategoryPriceTrends(dateFrom, dateTo);
   }
 
   @Get('analytics/engagement')
@@ -339,11 +364,17 @@ export class AdminController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldReason = await this.adminService.findRejectionReasonById(id);
     const reason = await this.adminService.updateRejectionReason(id, dto);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_REJECTION_REASON_UPDATE,
-      { id, changes: Object.keys(dto).join(', ') },
+      {
+        id,
+        previousTitle: oldReason.title,
+        previousIsActive: oldReason.isActive,
+        changes: dto,
+      },
       req,
     );
     return reason;
@@ -356,11 +387,12 @@ export class AdminController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldReason = await this.adminService.findRejectionReasonById(id);
     await this.adminService.deleteRejectionReason(id);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_REJECTION_REASON_DELETE,
-      { id },
+      { id, title: oldReason.title },
       req,
     );
     return { deleted: true };
@@ -398,11 +430,18 @@ export class AdminController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldReason = await this.adminService.findDeletionReasonById(id);
     const reason = await this.adminService.updateDeletionReason(id, dto);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_REJECTION_REASON_UPDATE,
-      { type: 'deletion_reason', id },
+      {
+        type: 'deletion_reason',
+        id,
+        previousTitle: oldReason.title,
+        previousIsActive: oldReason.isActive,
+        changes: dto,
+      },
       req,
     );
     return reason;
@@ -415,11 +454,12 @@ export class AdminController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldReason = await this.adminService.findDeletionReasonById(id);
     await this.adminService.deleteDeletionReason(id);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_REJECTION_REASON_DELETE,
-      { type: 'deletion_reason', id },
+      { type: 'deletion_reason', id, title: oldReason.title },
       req,
     );
     return { deleted: true };
@@ -448,6 +488,8 @@ export class AdminController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldUser = await this.adminService.findUserById(id);
+    const previousPermissions = [...(oldUser.permissions ?? [])];
     const user = await this.adminService.updatePermissions(id, dto.permissions);
     this.tracker.track(
       adminId,
@@ -455,7 +497,8 @@ export class AdminController {
       {
         targetUserId: id,
         action: 'permissions_update',
-        permissions: dto.permissions.join(', '),
+        previousPermissions: previousPermissions.join(', '),
+        newPermissions: dto.permissions.join(', '),
       },
       req,
     );

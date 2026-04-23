@@ -12,8 +12,13 @@ import {
   DateRange,
   AppBannerStats,
   EngagementAnalytics,
+  PriceTrendsData,
 } from '../../../core/services/admin.service';
-import { GuestVsAuthEntry, DeviceBreakdownEntry } from '../../../core/models/analytics.model';
+import {
+  GuestVsAuthEntry,
+  DeviceBreakdownEntry,
+  CategoryPriceTrend,
+} from '../../../core/models/analytics.model';
 
 export interface MetricCard {
   label: string;
@@ -43,9 +48,25 @@ export class AnalyticsDashboardComponent implements OnInit {
   readonly categoryAnalytics = signal<CategoryAnalytics[]>([]);
   readonly bannerStats = signal<AppBannerStats | null>(null);
   readonly engagement = signal<EngagementAnalytics | null>(null);
+  readonly priceTrends = signal<PriceTrendsData | null>(null);
 
   startDate = '';
   endDate = '';
+
+  // ── Section filters/search ────────────────────────────
+  categorySearch = '';
+  categorySortBy: 'name' | 'count' | 'pct' = 'count';
+  categorySortDir: 'asc' | 'desc' = 'desc';
+
+  priceTrendSearch = '';
+  priceTrendSortBy: 'name' | 'changes' | 'diff' = 'changes';
+  priceTrendSortDir: 'asc' | 'desc' = 'desc';
+
+  recentPriceSearch = '';
+
+  activitySearch = '';
+  activitySortBy: 'name' | 'count' = 'count';
+  activitySortDir: 'asc' | 'desc' = 'desc';
 
   readonly metricCards = computed<MetricCard[]>(() => {
     const m = this.metrics();
@@ -71,6 +92,102 @@ export class AnalyticsDashboardComponent implements OnInit {
     return Math.max(...cats.map((c) => c.listingCount), 1);
   });
 
+  // ── Filtered/sorted computed lists ────────────────────
+  get filteredCategories(): CategoryAnalytics[] {
+    let items = [...this.categoryAnalytics()];
+    if (this.categorySearch) {
+      const q = this.categorySearch.toLowerCase();
+      items = items.filter((c) => c.categoryName.toLowerCase().includes(q));
+    }
+    const dir = this.categorySortDir === 'asc' ? 1 : -1;
+    items.sort((a, b) => {
+      if (this.categorySortBy === 'name') return a.categoryName.localeCompare(b.categoryName) * dir;
+      if (this.categorySortBy === 'pct')
+        return (
+          (this.getCategoryPercent(a.listingCount) - this.getCategoryPercent(b.listingCount)) * dir
+        );
+      return (a.listingCount - b.listingCount) * dir;
+    });
+    return items;
+  }
+
+  get filteredPriceTrends(): CategoryPriceTrend[] {
+    const pt = this.priceTrends();
+    if (!pt) return [];
+    let items = [...pt.categories];
+    if (this.priceTrendSearch) {
+      const q = this.priceTrendSearch.toLowerCase();
+      items = items.filter((c) => c.categoryName.toLowerCase().includes(q));
+    }
+    const dir = this.priceTrendSortDir === 'asc' ? 1 : -1;
+    items.sort((a, b) => {
+      if (this.priceTrendSortBy === 'name')
+        return a.categoryName.localeCompare(b.categoryName) * dir;
+      if (this.priceTrendSortBy === 'diff') return (a.avgDiffPct - b.avgDiffPct) * dir;
+      return (a.totalChanges - b.totalChanges) * dir;
+    });
+    return items;
+  }
+
+  get filteredRecentPriceChanges(): any[] {
+    const pt = this.priceTrends();
+    if (!pt) return [];
+    if (!this.recentPriceSearch) return pt.recentChanges;
+    const q = this.recentPriceSearch.toLowerCase();
+    return pt.recentChanges.filter(
+      (r) => r.title.toLowerCase().includes(q) || r.categoryName.toLowerCase().includes(q),
+    );
+  }
+
+  get filteredActivityBreakdown(): { action: string; count: number }[] {
+    const eng = this.engagement();
+    if (!eng?.actionBreakdown) return [];
+    let items = [...eng.actionBreakdown];
+    if (this.activitySearch) {
+      const q = this.activitySearch.toLowerCase();
+      items = items.filter((a) => this.formatAction(a.action).toLowerCase().includes(q));
+    }
+    const dir = this.activitySortDir === 'asc' ? 1 : -1;
+    items.sort((a, b) => {
+      if (this.activitySortBy === 'name')
+        return this.formatAction(a.action).localeCompare(this.formatAction(b.action)) * dir;
+      return (a.count - b.count) * dir;
+    });
+    return items;
+  }
+
+  toggleCategorySort(col: 'name' | 'count' | 'pct'): void {
+    if (this.categorySortBy === col) {
+      this.categorySortDir = this.categorySortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.categorySortBy = col;
+      this.categorySortDir = col === 'name' ? 'asc' : 'desc';
+    }
+  }
+
+  togglePriceTrendSort(col: 'name' | 'changes' | 'diff'): void {
+    if (this.priceTrendSortBy === col) {
+      this.priceTrendSortDir = this.priceTrendSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.priceTrendSortBy = col;
+      this.priceTrendSortDir = col === 'name' ? 'asc' : 'desc';
+    }
+  }
+
+  toggleActivitySort(col: 'name' | 'count'): void {
+    if (this.activitySortBy === col) {
+      this.activitySortDir = this.activitySortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.activitySortBy = col;
+      this.activitySortDir = col === 'name' ? 'asc' : 'desc';
+    }
+  }
+
+  getSortIcon(active: boolean, dir: 'asc' | 'desc'): string {
+    if (!active) return 'unfold_more';
+    return dir === 'asc' ? 'arrow_upward' : 'arrow_downward';
+  }
+
   constructor(private readonly adminService: AdminService) {}
 
   ngOnInit(): void {
@@ -81,6 +198,7 @@ export class AnalyticsDashboardComponent implements OnInit {
     this.loadAnalytics();
     this.loadBannerStats();
     this.loadEngagement();
+    this.loadPriceTrends();
   }
 
   loadAnalytics(): void {
@@ -125,6 +243,7 @@ export class AnalyticsDashboardComponent implements OnInit {
     this.loadAnalytics();
     this.loadBannerStats();
     this.loadEngagement();
+    this.loadPriceTrends();
   }
 
   private loadBannerStats(): void {
@@ -149,23 +268,196 @@ export class AnalyticsDashboardComponent implements OnInit {
     });
   }
 
+  private loadPriceTrends(): void {
+    const dateRange: DateRange | undefined =
+      this.startDate && this.endDate
+        ? { startDate: this.startDate, endDate: this.endDate }
+        : undefined;
+    this.adminService.getPriceTrends(dateRange).subscribe({
+      next: (data) => this.priceTrends.set(data),
+      error: () => {},
+    });
+  }
+
+  getMaxPriceChanges(categories: CategoryPriceTrend[]): number {
+    if (!categories.length) return 1;
+    return Math.max(...categories.map((c) => c.totalChanges), 1);
+  }
+
   exportReport(): void {
     if (!this.startDate || !this.endDate) return;
     this.exporting.set(true);
-    this.adminService.exportReport({ startDate: this.startDate, endDate: this.endDate }).subscribe({
-      next: (blob: Blob) => {
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = `analytics-report-${this.startDate}-to-${this.endDate}.csv`;
-        a.click();
-        URL.revokeObjectURL(url);
-        this.exporting.set(false);
-      },
-      error: () => {
-        this.exporting.set(false);
-      },
-    });
+
+    const lines: string[] = [];
+    const add = (...cols: (string | number)[]) => lines.push(cols.map((c) => `"${c}"`).join(','));
+    const blank = () => lines.push('');
+    const header = (title: string) => {
+      blank();
+      add(title);
+      add('');
+    };
+
+    // ── Report Header ──────────────────────────────────
+    add('ANALYTICS REPORT');
+    add('Date Range', `${this.startDate} to ${this.endDate}`);
+    add('Generated', new Date().toLocaleString());
+
+    // ── Key Metrics ────────────────────────────────────
+    const m = this.metrics();
+    if (m) {
+      header('KEY METRICS');
+      add('Metric', 'Value');
+      add('Total Users', m.totalUsers);
+      add('Active Users (30d)', m.activeUsers);
+      add('Total Listings', m.totalListings);
+      add('Conversations', m.totalConversations);
+      add('Purchases', m.totalPurchases);
+      add('Revenue', m.totalRevenue);
+    }
+
+    // ── Trends ─────────────────────────────────────────
+    const ts = this.timeSeries();
+    if (ts) {
+      const series = [
+        { name: 'Registrations', data: ts.registrations },
+        { name: 'Listings', data: ts.listings },
+        { name: 'Conversations', data: ts.conversations },
+        { name: 'Purchases', data: ts.purchases },
+      ];
+      for (const s of series) {
+        if (s.data.length > 0) {
+          header(`TRENDS - ${s.name.toUpperCase()}`);
+          add('Date', 'Count');
+          for (const p of s.data) add(p.date, p.value);
+          add(
+            'Total',
+            s.data.reduce((sum, p) => sum + p.value, 0),
+          );
+        }
+      }
+    }
+
+    // ── Guest vs Authenticated ─────────────────────────
+    const eng = this.engagement();
+    if (eng?.guestVsAuth) {
+      header('GUEST VS AUTHENTICATED');
+      add('Action', 'Guest', 'Authenticated');
+      for (const [action, val] of Object.entries(eng.guestVsAuth)) {
+        add(this.formatAction(action), val.guest, val.authenticated);
+      }
+    }
+
+    // ── Top Searches ───────────────────────────────────
+    if (eng?.topSearches?.length) {
+      header('TOP SEARCHES');
+      add('Rank', 'Search Term', 'Count');
+      eng.topSearches.forEach((s, i) => add(i + 1, s.term, s.count));
+    }
+
+    // ── Top Viewed Listings ────────────────────────────
+    if (eng?.topViewedListings?.length) {
+      header('TOP VIEWED LISTINGS');
+      add('Title', 'Views', 'Favorites', 'Price');
+      for (const l of eng.topViewedListings) {
+        add(l.title, l.viewCount, l.favoriteCount, l.price?.amount ?? 0);
+      }
+    }
+
+    // ── Peak Hours ─────────────────────────────────────
+    if (eng?.hourlyActivity?.length) {
+      header('PEAK HOURS');
+      add('Hour', 'Actions');
+      for (const h of eng.hourlyActivity) add(this.formatHour(h.hour), h.count);
+    }
+
+    // ── Listings by Category ───────────────────────────
+    const cats = this.categoryAnalytics();
+    if (cats.length > 0) {
+      header('LISTINGS BY CATEGORY');
+      add('Category', 'Listings', 'Share %');
+      for (const c of cats)
+        add(c.categoryName, c.listingCount, this.getCategoryPercent(c.listingCount));
+    }
+
+    // ── Price Trends ───────────────────────────────────
+    const pt = this.priceTrends();
+    if (pt) {
+      if (pt.categories.length > 0) {
+        header('PRICE TRENDS BY CATEGORY');
+        add('Summary', '');
+        add('Total Price Changes', pt.totalPriceChanges);
+        add('Avg Price Increase', pt.avgPriceIncrease);
+        add('Avg Price Decrease', pt.avgPriceDecrease);
+        blank();
+        add('Category', 'Edits', 'Avg Before', 'Avg After', 'Diff %', 'Direction');
+        for (const c of pt.categories) {
+          add(
+            c.categoryName,
+            c.totalChanges,
+            c.avgPreviousPrice,
+            c.avgNewPrice,
+            c.avgDiffPct,
+            c.direction,
+          );
+        }
+      }
+      if (pt.recentChanges.length > 0) {
+        header('RECENT PRICE CHANGES');
+        add('Listing', 'Category', 'Before', 'After', 'Diff', 'Date');
+        for (const r of pt.recentChanges) {
+          add(r.title, r.categoryName, r.previousPrice, r.newPrice, r.diff, r.date.split('T')[0]);
+        }
+      }
+    }
+
+    // ── Device Distribution ────────────────────────────
+    if (eng?.deviceBreakdown?.length) {
+      header('DEVICE DISTRIBUTION');
+      add('Device', 'Events', 'Percentage');
+      const devPcts = this.getDevicePercentages(eng.deviceBreakdown);
+      for (const d of devPcts) add(d.device, d.count, `${d.pct}%`);
+    }
+
+    // ── Login Failures ─────────────────────────────────
+    if (eng?.loginFailures?.length) {
+      header('LOGIN FAILURES');
+      add('Date', 'Failures');
+      for (const f of eng.loginFailures) add(f.date, f.count);
+    }
+
+    // ── Activity Breakdown ─────────────────────────────
+    if (eng?.actionBreakdown?.length) {
+      header('ACTIVITY BREAKDOWN');
+      add('Action', 'Count');
+      for (const a of eng.actionBreakdown) add(this.formatAction(a.action), a.count);
+    }
+
+    // ── App Banner ─────────────────────────────────────
+    const bs = this.bannerStats();
+    if (bs) {
+      header('APP DOWNLOAD BANNER');
+      add('Impressions', bs.shown);
+      add('Clicks', bs.clicks);
+      add('Click Rate', `${bs.clickRate}%`);
+      add('Dismissed', bs.dismissals);
+      add('Dismiss Rate', `${bs.dismissRate}%`);
+      if (bs.byPlatform.length > 0) {
+        blank();
+        add('Platform', 'Shown', 'Clicks', 'Dismissed');
+        for (const p of bs.byPlatform) add(p.platform, p.shown, p.clicks, p.dismissals);
+      }
+    }
+
+    // ── Generate file ──────────────────────────────────
+    const csv = lines.join('\n');
+    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `analytics-report-${this.startDate}-to-${this.endDate}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+    this.exporting.set(false);
   }
 
   formatValue(value: number, format: 'number' | 'currency'): string {

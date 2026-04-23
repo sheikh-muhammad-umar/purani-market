@@ -70,11 +70,16 @@ export class PackagesController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldPkg = await this.packagesService.findById(id);
+    const snapshot: Record<string, any> = {};
+    for (const key of Object.keys(dto)) {
+      snapshot[key] = { from: (oldPkg as any)[key], to: (dto as any)[key] };
+    }
     const pkg = await this.packagesService.updatePackage(id, dto);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_PACKAGE_UPDATE,
-      { packageId: id, changes: Object.keys(dto).join(', ') },
+      { packageId: id, packageName: oldPkg.name, changes: snapshot },
       req,
     );
     return pkg;

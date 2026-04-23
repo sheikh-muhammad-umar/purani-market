@@ -20,6 +20,7 @@ import {
   DateRange,
   AppBannerStats,
   EngagementAnalytics,
+  PriceTrendsData,
 } from '../models/analytics.model';
 import { API } from '../constants/api-endpoints';
 
@@ -32,6 +33,7 @@ export type {
   DateRange,
   AppBannerStats,
   EngagementAnalytics,
+  PriceTrendsData,
 } from '../models/analytics.model';
 
 export interface AdminUser {
@@ -225,6 +227,15 @@ export class AdminService {
     if (dateRange?.endDate) params = params.set('dateTo', dateRange.endDate);
     return this.http
       .get<any>(`${this.baseUrl}${API.ADMIN_ANALYTICS_ENGAGEMENT}`, { params })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
+  }
+
+  getPriceTrends(dateRange?: DateRange): Observable<PriceTrendsData> {
+    let params = new HttpParams();
+    if (dateRange?.startDate) params = params.set('dateFrom', dateRange.startDate);
+    if (dateRange?.endDate) params = params.set('dateTo', dateRange.endDate);
+    return this.http
+      .get<any>(`${this.baseUrl}${API.ADMIN_ANALYTICS_PRICE_TRENDS}`, { params })
       .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 

@@ -367,6 +367,12 @@ export class AdminService {
     };
   }
 
+  async findUserById(userId: string): Promise<UserDocument> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) throw new NotFoundException(ERROR.USER_NOT_FOUND);
+    return user;
+  }
+
   async updateUserStatus(
     userId: string,
     status: UserStatus,
@@ -562,6 +568,12 @@ export class AdminService {
       limit,
       totalPages: Math.ceil(total / limit),
     };
+  }
+
+  async findListingById(listingId: string): Promise<ProductListingDocument> {
+    const listing = await this.listingModel.findById(listingId).exec();
+    if (!listing) throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+    return listing;
   }
 
   async approveListing(listingId: string): Promise<ProductListingDocument> {
@@ -955,6 +967,12 @@ export class AdminService {
       .exec();
   }
 
+  async findRejectionReasonById(id: string): Promise<any> {
+    const reason = await this.rejectionReasonModel.findById(id).lean().exec();
+    if (!reason) throw new NotFoundException(ERROR.REJECTION_REASON_NOT_FOUND);
+    return reason;
+  }
+
   async createRejectionReason(data: {
     title: string;
     description?: string;
@@ -1297,6 +1315,172 @@ export class AdminService {
     };
   }
 
+  // ── Category Price Trends ───────────────────────────────────────
+
+  async getCategoryPriceTrends(
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<{
+    categories: {
+      categoryId: string;
+      categoryName: string;
+      totalChanges: number;
+      avgPreviousPrice: number;
+      avgNewPrice: number;
+      avgDiff: number;
+      avgDiffPct: number;
+      direction: 'up' | 'down' | 'stable';
+    }[];
+    recentChanges: {
+      listingId: string;
+      title: string;
+      categoryName: string;
+      previousPrice: number;
+      newPrice: number;
+      diff: number;
+      date: string;
+    }[];
+    totalPriceChanges: number;
+    avgPriceIncrease: number;
+    avgPriceDecrease: number;
+  }> {
+    const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+
+    const [categoryAgg, recentChanges, summaryAgg] = await Promise.all([
+      // Per-category average price change
+      this.activityModel
+        .aggregate([
+          {
+            $match: {
+              action: UserAction.LISTING_PRICE_CHANGE,
+              'metadata.previousPrice': { $exists: true },
+              'metadata.newPrice': { $exists: true },
+              categoryId: { $exists: true },
+              ...dateFilter,
+            },
+          },
+          {
+            $group: {
+              _id: '$categoryId',
+              totalChanges: { $sum: 1 },
+              avgPreviousPrice: { $avg: '$metadata.previousPrice' },
+              avgNewPrice: { $avg: '$metadata.newPrice' },
+              avgDiff: { $avg: '$metadata.priceDiff' },
+            },
+          },
+          { $sort: { totalChanges: -1 } },
+          { $limit: 20 },
+        ])
+        .exec(),
+
+      // Recent individual price changes
+      this.activityModel
+        .find({
+          action: UserAction.LISTING_PRICE_CHANGE,
+          'metadata.previousPrice': { $exists: true },
+          ...dateFilter,
+        })
+        .sort({ createdAt: -1 })
+        .limit(20)
+        .lean()
+        .exec(),
+
+      // Overall summary: avg increase vs decrease
+      this.activityModel
+        .aggregate([
+          {
+            $match: {
+              action: UserAction.LISTING_PRICE_CHANGE,
+              'metadata.priceDiff': { $exists: true },
+              ...dateFilter,
+            },
+          },
+          {
+            $group: {
+              _id: null,
+              total: { $sum: 1 },
+              avgIncrease: {
+                $avg: {
+                  $cond: [
+                    { $gt: ['$metadata.priceDiff', 0] },
+                    '$metadata.priceDiff',
+                    null,
+                  ],
+                },
+              },
+              avgDecrease: {
+                $avg: {
+                  $cond: [
+                    { $lt: ['$metadata.priceDiff', 0] },
+                    '$metadata.priceDiff',
+                    null,
+                  ],
+                },
+              },
+            },
+          },
+        ])
+        .exec(),
+    ]);
+
+    // Resolve category names
+    const categoryIds = categoryAgg.map((c: any) => c._id).filter(Boolean);
+    const categories =
+      categoryIds.length > 0
+        ? await this.categoryModel
+            .find({ _id: { $in: categoryIds } })
+            .select('name')
+            .lean()
+            .exec()
+        : [];
+    const catNameMap = new Map(
+      categories.map((c: any) => [c._id.toString(), c.name]),
+    );
+
+    const summary = summaryAgg[0] || {
+      total: 0,
+      avgIncrease: 0,
+      avgDecrease: 0,
+    };
+
+    return {
+      categories: categoryAgg.map((c: any) => {
+        const avgPrev = Math.round(c.avgPreviousPrice || 0);
+        const avgNew = Math.round(c.avgNewPrice || 0);
+        const avgDiff = Math.round(c.avgDiff || 0);
+        const avgDiffPct =
+          avgPrev > 0 ? Math.round((avgDiff / avgPrev) * 10000) / 100 : 0;
+        return {
+          categoryId: c._id?.toString() || '',
+          categoryName: catNameMap.get(c._id?.toString()) || 'Unknown',
+          totalChanges: c.totalChanges,
+          avgPreviousPrice: avgPrev,
+          avgNewPrice: avgNew,
+          avgDiff,
+          avgDiffPct,
+          direction:
+            avgDiff > 0
+              ? ('up' as const)
+              : avgDiff < 0
+                ? ('down' as const)
+                : ('stable' as const),
+        };
+      }),
+      recentChanges: recentChanges.map((r: any) => ({
+        listingId: r.productListingId?.toString() || '',
+        title: r.metadata?.title || '',
+        categoryName: r.metadata?.categoryName || '',
+        previousPrice: r.metadata?.previousPrice || 0,
+        newPrice: r.metadata?.newPrice || 0,
+        diff: r.metadata?.priceDiff || 0,
+        date: r.createdAt?.toISOString?.() || '',
+      })),
+      totalPriceChanges: summary.total,
+      avgPriceIncrease: Math.round(summary.avgIncrease || 0),
+      avgPriceDecrease: Math.round(summary.avgDecrease || 0),
+    };
+  }
+
   // ── Deletion Reasons CRUD ───────────────────────────────────────
 
   async getDeletionReasons(activeOnly = false): Promise<any[]> {
@@ -1306,6 +1490,12 @@ export class AdminService {
       .sort({ createdAt: 1 })
       .lean()
       .exec();
+  }
+
+  async findDeletionReasonById(id: string): Promise<any> {
+    const reason = await this.deletionReasonModel.findById(id).lean().exec();
+    if (!reason) throw new NotFoundException(ERROR.DELETION_REASON_NOT_FOUND);
+    return reason;
   }
 
   async createDeletionReason(data: {

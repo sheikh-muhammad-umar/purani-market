@@ -105,11 +105,17 @@ export class LocationController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldProvince = await this.locationService.findProvinceById(id);
     const result = await this.locationService.updateProvince(id, dto.name);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_LOCATION_UPDATE,
-      { type: 'province', id, newName: dto.name },
+      {
+        type: 'province',
+        id,
+        previousName: oldProvince.name,
+        newName: dto.name,
+      },
       req,
     );
     return result;
@@ -123,11 +129,12 @@ export class LocationController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldProvince = await this.locationService.findProvinceById(id);
     await this.locationService.deleteProvince(id);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_LOCATION_DELETE,
-      { type: 'province', id },
+      { type: 'province', id, name: oldProvince.name },
       req,
     );
     return { deleted: true };
@@ -165,11 +172,12 @@ export class LocationController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldCity = await this.locationService.findCityById(id);
     const result = await this.locationService.updateCity(id, dto.name);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_LOCATION_UPDATE,
-      { type: 'city', id, newName: dto.name },
+      { type: 'city', id, previousName: oldCity.name, newName: dto.name },
       req,
     );
     return result;
@@ -183,11 +191,12 @@ export class LocationController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldCity = await this.locationService.findCityById(id);
     await this.locationService.deleteCity(id);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_LOCATION_DELETE,
-      { type: 'city', id },
+      { type: 'city', id, name: oldCity.name },
       req,
     );
     return { deleted: true };
@@ -227,11 +236,16 @@ export class LocationController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldArea = await this.locationService.findAreaById(id);
+    const snapshot: Record<string, any> = {};
+    for (const key of Object.keys(dto)) {
+      snapshot[key] = { from: (oldArea as any)[key], to: (dto as any)[key] };
+    }
     const result = await this.locationService.updateArea(id, dto);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_LOCATION_UPDATE,
-      { type: 'area', id, changes: Object.keys(dto).join(', ') },
+      { type: 'area', id, name: oldArea.name, changes: snapshot },
       req,
     );
     return result;
@@ -245,11 +259,12 @@ export class LocationController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldArea = await this.locationService.findAreaById(id);
     await this.locationService.deleteArea(id);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_LOCATION_DELETE,
-      { type: 'area', id },
+      { type: 'area', id, name: oldArea.name },
       req,
     );
     return { deleted: true };

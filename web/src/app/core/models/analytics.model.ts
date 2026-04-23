@@ -97,3 +97,32 @@ export interface EngagementAnalytics {
   deviceBreakdown: DeviceBreakdownEntry[];
   hourlyActivity: HourlyActivityEntry[];
 }
+
+export interface CategoryPriceTrend {
+  categoryId: string;
+  categoryName: string;
+  totalChanges: number;
+  avgPreviousPrice: number;
+  avgNewPrice: number;
+  avgDiff: number;
+  avgDiffPct: number;
+  direction: 'up' | 'down' | 'stable';
+}
+
+export interface RecentPriceChange {
+  listingId: string;
+  title: string;
+  categoryName: string;
+  previousPrice: number;
+  newPrice: number;
+  diff: number;
+  date: string;
+}
+
+export interface PriceTrendsData {
+  categories: CategoryPriceTrend[];
+  recentChanges: RecentPriceChange[];
+  totalPriceChanges: number;
+  avgPriceIncrease: number;
+  avgPriceDecrease: number;
+}

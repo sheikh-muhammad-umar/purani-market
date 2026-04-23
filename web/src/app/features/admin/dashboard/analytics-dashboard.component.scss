@@ -123,7 +123,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-  margin-bottom: 28px;
+  margin-bottom: 32px;
 }
 
 .metric-card {
@@ -174,8 +174,8 @@
   color: var(--text-muted);
   text-transform: uppercase;
   letter-spacing: 0.8px;
-  margin: 32px 0 16px;
-  padding-bottom: 8px;
+  margin: 40px 0 20px;
+  padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
   .material-symbols-rounded {
     font-size: 18px;
@@ -183,12 +183,12 @@
 }
 
 .charts-section {
-  margin-bottom: 28px;
+  margin-bottom: 32px;
   h2 {
     font-size: 17px;
     font-weight: 700;
     color: var(--text-primary);
-    margin: 0 0 14px;
+    margin: 0 0 16px;
   }
 }
 
@@ -196,7 +196,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 24px;
 }
 
 .chart-card {
@@ -313,13 +313,125 @@
   padding: 24px 0;
 }
 
+/* Section toolbar (search + sort) */
+.section-toolbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+.search-mini {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 5px 10px;
+  flex: 1;
+  max-width: 260px;
+  .material-symbols-rounded {
+    font-size: 18px;
+    color: var(--text-muted);
+  }
+  input {
+    border: none;
+    background: none;
+    outline: none;
+    font-size: 12px;
+    font-family: inherit;
+    color: var(--text-primary);
+    width: 100%;
+    &::placeholder {
+      color: var(--text-muted);
+    }
+  }
+}
+
+.sort-toggles {
+  display: flex;
+  gap: 4px;
+}
+
+.sort-btn {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+  padding: 4px 8px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--surface);
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-family: inherit;
+  &:hover {
+    border-color: var(--primary);
+    color: var(--text-primary);
+  }
+  &.active {
+    border-color: var(--primary);
+    color: var(--primary);
+    background: rgba(13, 165, 195, 0.06);
+  }
+}
+
+.sort-icon {
+  font-size: 14px !important;
+  vertical-align: middle;
+}
+
+.sortable {
+  cursor: pointer;
+  user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  &:hover {
+    color: var(--primary);
+  }
+  .sort-icon {
+    font-size: 13px !important;
+    color: var(--text-muted);
+    opacity: 0.6;
+  }
+  &:hover .sort-icon {
+    color: var(--primary);
+    opacity: 1;
+  }
+}
+
+/* Scrollable body — shows ~10 rows, rest scrollable */
+.scroll-body {
+  max-height: 420px;
+  min-height: 420px;
+  overflow-x: hidden;
+  overflow-y: auto;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border) transparent;
+  &::-webkit-scrollbar {
+    width: 6px;
+  }
+  &::-webkit-scrollbar-track {
+    background: transparent;
+  }
+  &::-webkit-scrollbar-thumb {
+    background: var(--border);
+    border-radius: 3px;
+  }
+}
+
 /* App Banner Stats */
 .banner-section {
-  margin-bottom: 24px;
+  margin-bottom: 32px;
   h2 {
     font-size: 17px;
     font-weight: 700;
-    margin-bottom: 14px;
+    margin: 0 0 16px;
   }
 }
 
@@ -333,7 +445,7 @@
 .banner-summary {
   display: flex;
   align-items: center;
-  padding: 20px;
+  padding: 16px;
 }
 
 .banner-stat {
@@ -341,25 +453,25 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
 }
 
 .banner-stat-value {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
 }
 
 .banner-stat-label {
-  font-size: 12px;
+  font-size: 11px;
   color: var(--text-muted);
   font-weight: 500;
 }
 
 .banner-divider {
   width: 1px;
-  height: 36px;
+  height: 32px;
   background: var(--border);
   flex-shrink: 0;
 }
@@ -417,42 +529,56 @@
 }
 
 .platform-stat {
-  text-align: center;
+  text-align: left;
   color: var(--text-secondary);
   font-variant-numeric: tabular-nums;
 }
 
 /* Category Analytics */
 .category-section {
+  margin-bottom: 32px;
   h2 {
     font-size: 17px;
     font-weight: 700;
     color: var(--text-primary);
-    margin: 0 0 14px;
+    margin: 0 0 16px;
   }
 }
 
 .category-list {
   background: var(--card);
   border-radius: 12px;
-  padding: 18px;
   box-shadow: var(--shadow-card);
   border: 1px solid var(--border);
   display: flex;
   flex-direction: column;
-  gap: 10px;
+  gap: 0;
+  overflow: hidden;
+  .section-toolbar {
+    border-bottom: none;
+    padding: 12px 16px 8px;
+  }
 }
 
 .category-row {
-  display: flex;
+  display: grid;
+  grid-template-columns: minmax(0, 1.5fr) 1fr 52px 56px;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
+  padding: 8px 16px;
+  border-bottom: 1px solid var(--border);
+  &:last-child {
+    border-bottom: none;
+  }
 }
 
 .category-row-header {
-  padding-bottom: 6px;
+  background: var(--surface);
+  padding: 8px 16px;
   border-bottom: 1px solid var(--border);
-  margin-bottom: 2px;
+  position: sticky;
+  top: 0;
+  z-index: 1;
   .category-name,
   .category-pct,
   .category-count {
@@ -465,28 +591,27 @@
 }
 
 .category-name {
-  width: 140px;
   font-size: 13px;
   font-weight: 500;
   color: var(--text-primary);
-  flex-shrink: 0;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  min-width: 0;
 }
 
 .category-bar-wrapper {
-  flex: 1;
-  height: 22px;
+  height: 20px;
   background: var(--background);
-  border-radius: 11px;
+  border-radius: 10px;
   overflow: hidden;
+  min-width: 0;
 }
 
 .category-bar {
   height: 100%;
   background: linear-gradient(90deg, var(--primary), var(--primary-light));
-  border-radius: 11px;
+  border-radius: 10px;
   transition: width 0.3s ease;
   min-width: 2px;
 }
@@ -495,17 +620,197 @@
   font-size: 13px;
   font-weight: 600;
   color: var(--text-primary);
-  width: 48px;
-  text-align: right;
-  font-family: var(--font-mono);
+  text-align: left;
+  font-variant-numeric: tabular-nums;
 }
 
 .category-pct {
   font-size: 12px;
   color: var(--text-muted);
-  width: 40px;
-  text-align: right;
-  font-family: var(--font-mono);
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Price Trends */
+.price-trends-card {
+  background: var(--card);
+  border-radius: 12px;
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border);
+  overflow: hidden;
+}
+
+.price-trends-summary {
+  display: flex;
+  align-items: center;
+  gap: 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.price-summary-stat {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 14px 16px;
+  border-right: 1px solid var(--border);
+  &:last-child {
+    border-right: none;
+  }
+  .material-symbols-rounded {
+    font-size: 22px;
+    color: var(--text-muted);
+  }
+  &.up .material-symbols-rounded {
+    color: var(--success, #22c55e);
+  }
+  &.down .material-symbols-rounded {
+    color: var(--danger, #ef4444);
+  }
+}
+
+.price-summary-info {
+  display: flex;
+  flex-direction: column;
+}
+
+.price-summary-value {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
+}
+
+.price-summary-label {
+  font-size: 11px;
+  color: var(--text-muted);
+}
+
+.price-trends-table {
+  padding: 0;
+  overflow-x: auto;
+}
+
+.price-trends-card .section-toolbar {
+  padding: 10px 20px;
+}
+
+.price-trends-header,
+.price-trends-row {
+  display: grid;
+  grid-template-columns: minmax(100px, 1.5fr) 72px minmax(80px, 1fr) minmax(80px, 1fr) 64px 48px;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+  font-size: 13px;
+}
+
+.price-trends-header {
+  background: var(--surface);
+  font-weight: 600;
+  font-size: 11px;
+  color: var(--text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.4px;
+  padding: 8px 16px;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.price-trends-row:last-child {
+  border-bottom: none;
+}
+
+.pt-col-name {
+  font-weight: 500;
+  color: var(--text-primary);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  min-width: 0;
+}
+
+.pt-col-num {
+  text-align: left;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+}
+
+.pt-col-price {
+  text-align: left;
+  font-variant-numeric: tabular-nums;
+  color: var(--text-secondary);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pt-col-diff {
+  text-align: left;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  display: flex;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 4px;
+  &.up {
+    color: var(--success, #22c55e);
+  }
+  &.down {
+    color: var(--danger, #ef4444);
+  }
+}
+
+.pt-dir-icon {
+  font-size: 16px;
+}
+
+.pt-col-dir {
+  padding-left: 8px;
+}
+
+.pt-bar-track {
+  height: 8px;
+  background: var(--background);
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.pt-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  background: var(--text-muted);
+  min-width: 2px;
+  transition: width 0.3s ease;
+  &.up {
+    background: var(--success, #22c55e);
+  }
+  &.down {
+    background: var(--danger, #ef4444);
+  }
+}
+
+.text-up {
+  color: var(--success, #22c55e) !important;
+  font-weight: 600;
+}
+.text-down {
+  color: var(--danger, #ef4444) !important;
+  font-weight: 600;
+}
+
+.recent-changes-section {
+  margin-top: 32px;
+  h2 {
+    font-size: 17px;
+    font-weight: 700;
+    color: var(--text-primary);
+    margin: 0 0 16px;
+  }
 }
 
 /* Guest vs Auth Comparison */
@@ -597,7 +902,7 @@
   color: var(--text-muted);
   font-weight: 600;
   min-width: 48px;
-  text-align: right;
+  text-align: left;
 }
 
 .comparison-divider {
@@ -623,6 +928,8 @@
 .scrollable-table {
   .table-scroll-body {
     max-height: 400px;
+    min-height: 400px;
+    overflow-x: hidden;
     overflow-y: auto;
     scrollbar-width: thin;
     scrollbar-color: var(--border) transparent;
@@ -643,6 +950,12 @@
   width: 100%;
   border-collapse: collapse;
   font-size: 13px;
+
+  thead {
+    position: sticky;
+    top: 0;
+    z-index: 1;
+  }
 
   thead tr {
     background: var(--surface);
@@ -671,7 +984,7 @@
 
   .col-rank {
     width: 56px;
-    text-align: center;
+    text-align: left;
     font-weight: 600;
     color: var(--text-muted);
   }
@@ -683,7 +996,7 @@
   .col-count,
   .col-num {
     width: 80px;
-    text-align: right;
+    text-align: left;
     font-variant-numeric: tabular-nums;
     font-weight: 600;
   }
@@ -698,7 +1011,7 @@
 
   .col-price {
     width: 100px;
-    text-align: right;
+    text-align: left;
     font-variant-numeric: tabular-nums;
     font-weight: 600;
     color: var(--success);
@@ -767,6 +1080,7 @@
   display: flex;
   flex-direction: column;
   gap: 10px;
+  padding-top: 4px;
 }
 
 .h-bar-row {
@@ -807,7 +1121,7 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--text-primary);
-  text-align: right;
+  text-align: left;
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
@@ -896,7 +1210,7 @@
   font-size: 12px;
   font-weight: 600;
   color: var(--text-secondary);
-  text-align: right;
+  text-align: left;
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
@@ -906,7 +1220,7 @@
   font-size: 13px;
   font-weight: 700;
   color: var(--text-primary);
-  text-align: right;
+  text-align: left;
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
@@ -916,15 +1230,27 @@
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .comparison-totals {
-    grid-template-columns: 1fr 1fr;
+  .price-trends-header,
+  .price-trends-row {
+    grid-template-columns: minmax(90px, 1.2fr) 64px minmax(72px, 1fr) minmax(72px, 1fr) 56px 44px;
+    gap: 10px;
+    padding: 8px 12px;
+    font-size: 12px;
   }
 }
 
 @media (max-width: 768px) {
+  .analytics-dashboard {
+    padding: 0 4px;
+  }
   .dashboard-header {
     flex-direction: column;
     align-items: stretch;
+    gap: 12px;
+    margin-bottom: 20px;
+    h1 {
+      font-size: 19px;
+    }
   }
   .header-actions {
     flex-direction: column;
@@ -932,38 +1258,216 @@
   }
   .date-range {
     flex-wrap: wrap;
+    gap: 6px;
+  }
+  .btn-apply,
+  .btn-export {
+    width: 100%;
+    text-align: center;
+  }
+  .section-group-title {
+    font-size: 12px;
+    margin: 28px 0 14px;
+    padding-bottom: 8px;
+  }
+  .charts-section {
+    margin-bottom: 24px;
+    h2 {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+  }
+  .category-section {
+    margin-bottom: 24px;
+    h2 {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+  }
+  .banner-section {
+    margin-bottom: 24px;
+    h2 {
+      font-size: 15px;
+      margin-bottom: 12px;
+    }
+  }
+  .recent-changes-section {
+    margin-top: 24px;
+    h2 {
+      font-size: 15px;
+    }
   }
   .charts-grid {
     grid-template-columns: 1fr;
   }
-  .category-name {
-    width: 100px;
-    font-size: 12px;
+  .chart-card {
+    padding: 14px;
+  }
+  .metric-card {
+    padding: 14px;
+    gap: 10px;
+  }
+  .metric-icon {
+    width: 38px;
+    height: 38px;
+    font-size: 22px;
+  }
+  .metric-value {
+    font-size: 18px;
+  }
+  .metric-label {
+    font-size: 11px;
   }
   .bar-chart {
-    height: 100px;
+    height: 90px;
   }
+  .bar {
+    max-width: 20px;
+  }
+  .bar-label {
+    font-size: 8px;
+  }
+  .bar-value {
+    font-size: 7px;
+  }
+
+  /* Category */
+  .category-row {
+    grid-template-columns: minmax(0, 1.3fr) 1fr 44px 48px;
+    gap: 8px;
+    padding: 7px 12px;
+    font-size: 12px;
+  }
+  .category-row-header {
+    padding: 7px 12px;
+  }
+  .category-name {
+    font-size: 12px;
+  }
+  .category-bar-wrapper {
+    height: 16px;
+  }
+  .category-list .section-toolbar {
+    padding: 10px 12px 6px;
+  }
+
+  /* Price Trends */
+  .price-trends-summary {
+    flex-wrap: wrap;
+  }
+  .price-summary-stat {
+    padding: 10px 14px;
+    gap: 8px;
+    .material-symbols-rounded {
+      font-size: 20px;
+    }
+  }
+  .price-summary-value {
+    font-size: 15px;
+  }
+  .price-summary-label {
+    font-size: 10px;
+  }
+  .price-trends-header,
+  .price-trends-row {
+    grid-template-columns: minmax(80px, 1fr) 56px minmax(64px, 1fr) minmax(64px, 1fr) 52px;
+    gap: 10px;
+    padding: 8px 10px;
+    font-size: 11px;
+  }
+  .pt-col-dir {
+    display: none;
+  }
+  .price-trends-card .section-toolbar {
+    padding: 8px 12px;
+  }
+
+  /* Guest vs Auth */
   .comparison-totals {
     grid-template-columns: 1fr;
   }
   .comparison-total-item {
     border-bottom: 1px solid var(--border);
+    padding: 14px 16px;
     &:last-child {
       border-bottom: none;
     }
-  }
-  .data-table {
-    .col-title {
-      max-width: 160px;
+    .material-symbols-rounded {
+      width: 36px;
+      height: 36px;
+      font-size: 22px;
     }
   }
+  .comparison-total-value {
+    font-size: 18px;
+  }
+  .comparison-row {
+    padding: 8px 16px;
+  }
+  .comparison-action {
+    font-size: 12px;
+  }
+  .comparison-values {
+    font-size: 12px;
+    gap: 8px;
+  }
+  .comparison-guest,
+  .comparison-auth {
+    min-width: 36px;
+  }
+
+  /* Data Tables */
+  .data-table {
+    font-size: 12px;
+    th,
+    td {
+      padding: 8px 10px;
+    }
+    .col-title {
+      max-width: 140px;
+    }
+    .col-rank {
+      width: 40px;
+    }
+    .col-count,
+    .col-num {
+      width: 60px;
+    }
+    .col-price {
+      width: 80px;
+    }
+  }
+
+  /* Activity Breakdown */
   .h-bar-label {
-    width: 80px;
+    width: 90px;
     font-size: 11px;
   }
+  .h-bar-track {
+    height: 16px;
+  }
+  .h-bar-value {
+    width: 48px;
+    font-size: 11px;
+  }
+  .h-bar-chart {
+    gap: 8px;
+  }
+
+  /* Device Distribution */
+  .device-h-icon {
+    width: 30px;
+    height: 30px;
+    .material-symbols-rounded {
+      font-size: 18px;
+    }
+  }
   .device-h-label {
-    width: 52px;
+    width: 56px;
     font-size: 12px;
+  }
+  .device-h-track {
+    height: 18px;
   }
   .device-h-count {
     width: 44px;
@@ -973,21 +1477,92 @@
     width: 36px;
     font-size: 12px;
   }
+
+  /* Mini Charts */
+  .mini-chart {
+    height: 80px;
+  }
   .mini-chart-hours {
+    height: 90px;
     overflow-x: auto;
+  }
+  .mini-chart-bar {
+    max-width: 18px;
+  }
+
+  /* Banner */
+  .banner-summary {
+    padding: 14px;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .banner-stat-value {
+    font-size: 18px;
+  }
+  .banner-stat-label {
+    font-size: 11px;
+  }
+  .banner-divider {
+    height: 28px;
+  }
+  .platform-row {
+    grid-template-columns: 1fr repeat(3, 56px);
+    padding: 8px 12px;
+    font-size: 12px;
+    &.platform-header {
+      padding: 6px 12px;
+      font-size: 10px;
+    }
+  }
+
+  /* Toolbar */
+  .section-toolbar {
+    flex-wrap: wrap;
+    padding: 8px 12px;
+    gap: 8px;
+  }
+  .search-mini {
+    max-width: 100%;
     min-width: 0;
+  }
+  .sort-btn {
+    font-size: 10px;
+    padding: 3px 6px;
+  }
+
+  /* Scroll bodies */
+  .scroll-body {
+    max-height: 340px;
+    min-height: 340px;
+  }
+  .scrollable-table .table-scroll-body {
+    max-height: 320px;
+    min-height: 320px;
   }
 }
 
 @media (max-width: 480px) {
+  .analytics-dashboard {
+    padding: 0;
+  }
+  .dashboard-header h1 {
+    font-size: 17px;
+  }
   .metrics-grid {
     grid-template-columns: 1fr;
+    gap: 10px;
   }
   .metric-card {
-    padding: 14px;
+    padding: 12px;
+  }
+  .metric-icon {
+    width: 34px;
+    height: 34px;
+    font-size: 20px;
+    border-radius: 8px;
   }
   .metric-value {
-    font-size: 18px;
+    font-size: 16px;
   }
   .date-range {
     label {
@@ -998,21 +1573,283 @@
       min-width: 0;
     }
   }
-  .category-name {
-    width: 80px;
+  .section-group-title {
+    font-size: 11px;
+    margin: 24px 0 12px;
+    letter-spacing: 0.6px;
+    .material-symbols-rounded {
+      font-size: 16px;
+    }
   }
+  .charts-section h2,
+  .category-section h2,
+  .banner-section h2,
+  .recent-changes-section h2 {
+    font-size: 14px;
+    margin-bottom: 10px;
+  }
+
+  /* Category */
+  .category-row {
+    grid-template-columns: minmax(0, 1.2fr) 1fr 36px 44px;
+    gap: 6px;
+    padding: 6px 10px;
+  }
+  .category-row-header {
+    padding: 6px 10px;
+    .category-name,
+    .category-pct,
+    .category-count {
+      font-size: 10px;
+    }
+  }
+  .category-name {
+    font-size: 11px;
+  }
+  .category-count {
+    font-size: 11px;
+  }
+  .category-pct {
+    font-size: 10px;
+  }
+  .category-bar-wrapper {
+    height: 14px;
+    border-radius: 7px;
+  }
+  .category-bar {
+    border-radius: 7px;
+  }
+
+  /* Price Trends */
+  .price-summary-stat {
+    padding: 10px 12px;
+    gap: 8px;
+    .material-symbols-rounded {
+      font-size: 20px;
+    }
+  }
+  .price-summary-value {
+    font-size: 14px;
+  }
+  .price-summary-label {
+    font-size: 10px;
+  }
+  .price-trends-header,
+  .price-trends-row {
+    grid-template-columns: minmax(70px, 1fr) 44px minmax(56px, 1fr) minmax(56px, 1fr) 48px;
+    gap: 8px;
+    padding: 6px 8px;
+    font-size: 10px;
+  }
+  .pt-col-name {
+    font-size: 11px;
+  }
+
+  /* Data Tables */
   .data-table {
-    font-size: 12px;
+    font-size: 11px;
     th,
     td {
-      padding: 8px 10px;
+      padding: 6px 8px;
     }
     .col-title {
-      max-width: 120px;
+      max-width: 100px;
+    }
+    .col-rank {
+      width: 32px;
+      font-size: 10px;
+    }
+    .col-count,
+    .col-num {
+      width: 48px;
+    }
+    .col-price {
+      width: 64px;
+      font-size: 11px;
+    }
+    .col-term {
+      font-size: 11px;
     }
   }
+
+  /* Activity Breakdown */
   .h-bar-label {
-    width: 64px;
+    width: 72px;
+    font-size: 10px;
+  }
+  .h-bar-track {
+    height: 14px;
+  }
+  .h-bar-value {
+    width: 40px;
+    font-size: 10px;
+  }
+  .h-bar-chart {
+    gap: 6px;
+  }
+
+  /* Device */
+  .device-h-row {
+    gap: 6px;
+  }
+  .device-h-icon {
+    width: 28px;
+    height: 28px;
+    border-radius: 6px;
+    .material-symbols-rounded {
+      font-size: 16px;
+    }
+  }
+  .device-h-label {
+    width: 48px;
+    font-size: 11px;
+  }
+  .device-h-track {
+    height: 16px;
+  }
+  .device-h-count {
+    width: 36px;
+    font-size: 10px;
+  }
+  .device-h-pct {
+    width: 32px;
+    font-size: 11px;
+  }
+
+  /* Mini Charts */
+  .mini-chart {
+    height: 70px;
+    gap: 2px;
+  }
+  .mini-chart-hours {
+    height: 80px;
+  }
+  .mini-chart-bar {
+    max-width: 14px;
+  }
+  .mini-chart-value {
+    font-size: 7px;
+  }
+  .mini-chart-label {
+    font-size: 7px;
+  }
+
+  /* Banner */
+  .banner-summary {
+    padding: 10px;
+  }
+  .banner-stat {
+    gap: 2px;
+  }
+  .banner-divider {
+    height: 24px;
+  }
+  .banner-stat-value {
+    font-size: 15px;
+  }
+  .banner-stat-label {
+    font-size: 10px;
+  }
+  .platform-row {
+    grid-template-columns: 1fr repeat(3, 44px);
+    padding: 6px 10px;
+    font-size: 11px;
+  }
+  .platform-badge {
+    font-size: 10px;
+    padding: 2px 8px;
+  }
+
+  /* Guest vs Auth */
+  .comparison-total-item {
+    padding: 12px;
+    gap: 10px;
+    .material-symbols-rounded {
+      width: 32px;
+      height: 32px;
+      font-size: 20px;
+      border-radius: 8px;
+    }
+  }
+  .comparison-total-value {
+    font-size: 16px;
+  }
+  .comparison-total-label {
+    font-size: 11px;
+  }
+  .comparison-row {
+    padding: 7px 12px;
+  }
+  .comparison-action {
+    font-size: 11px;
+  }
+  .comparison-values {
+    font-size: 11px;
+    gap: 6px;
+  }
+  .comparison-guest,
+  .comparison-auth {
+    min-width: 32px;
+  }
+
+  /* Toolbar */
+  .section-toolbar {
+    padding: 8px 10px;
+  }
+  .search-mini {
+    padding: 4px 8px;
+    input {
+      font-size: 11px;
+    }
+    .material-symbols-rounded {
+      font-size: 16px;
+    }
+  }
+  .sort-btn {
+    font-size: 9px;
+    padding: 2px 5px;
+  }
+  .sort-icon {
+    font-size: 12px !important;
+  }
+
+  /* Scroll bodies */
+  .scroll-body {
+    max-height: 300px;
+    min-height: 300px;
+  }
+  .scrollable-table .table-scroll-body {
+    max-height: 280px;
+    min-height: 280px;
+  }
+
+  /* Bar charts */
+  .bar-chart {
+    height: 80px;
+    gap: 2px;
+  }
+  .bar {
+    max-width: 16px;
+    border-radius: 3px 3px 0 0;
+  }
+  .bar-label {
+    font-size: 7px;
+    margin-top: 3px;
+  }
+  .bar-value {
+    font-size: 6px;
+  }
+  .y-axis {
+    min-width: 22px;
+  }
+  .y-label {
+    font-size: 8px;
+  }
+  .chart-total {
+    font-size: 10px;
+  }
+  .chart-card h3 {
+    font-size: 12px;
   }
 }
 

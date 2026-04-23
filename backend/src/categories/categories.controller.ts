@@ -75,11 +75,16 @@ export class CategoriesController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldCat = await this.categoriesService.findById(id);
+    const snapshot: Record<string, any> = {};
+    for (const key of Object.keys(dto)) {
+      snapshot[key] = { from: (oldCat as any)[key], to: (dto as any)[key] };
+    }
     const cat = await this.categoriesService.update(id, dto);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_CATEGORY_UPDATE,
-      { categoryId: id, changes: Object.keys(dto).join(', ') },
+      { categoryId: id, name: oldCat.name, changes: snapshot },
       req,
     );
     return cat;
@@ -94,11 +99,12 @@ export class CategoriesController {
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
+    const oldCat = await this.categoriesService.findById(id);
     await this.categoriesService.delete(id);
     this.tracker.track(
       adminId,
       UserAction.ADMIN_CATEGORY_DELETE,
-      { categoryId: id },
+      { categoryId: id, name: oldCat.name },
       req,
     );
   }

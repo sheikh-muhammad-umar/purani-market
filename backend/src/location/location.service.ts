@@ -243,6 +243,26 @@ export class LocationService {
     }
   }
 
+  // ── Lookup helpers ────────────────────────────────────────────────
+
+  async findProvinceById(id: string): Promise<ProvinceDocument> {
+    const doc = await this.provinceModel.findById(id).lean().exec();
+    if (!doc) throw new NotFoundException('Province not found');
+    return doc as ProvinceDocument;
+  }
+
+  async findCityById(id: string): Promise<CityDocument> {
+    const doc = await this.cityModel.findById(id).lean().exec();
+    if (!doc) throw new NotFoundException('City not found');
+    return doc as CityDocument;
+  }
+
+  async findAreaById(id: string): Promise<AreaDocument> {
+    const doc = await this.areaModel.findById(id).lean().exec();
+    if (!doc) throw new NotFoundException('Area not found');
+    return doc as AreaDocument;
+  }
+
   // ── Admin CRUD: Provinces ─────────────────────────────────────────
 
   async createProvince(name: string): Promise<ProvinceDocument> {

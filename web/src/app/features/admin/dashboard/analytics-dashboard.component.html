@@ -76,10 +76,7 @@
                 </div>
                 <div class="bar-chart">
                   @for (point of ts.registrations; track $index) {
-                    <div
-                      class="bar-column"
-                      [appTooltip]="point.date + ': ' + point.value + ' registrations'"
-                    >
+                    <div class="bar-column">
                       @if (point.value > 0) {
                         <span class="bar-value">{{ point.value }}</span>
                       }
@@ -114,10 +111,7 @@
                 </div>
                 <div class="bar-chart">
                   @for (point of ts.listings; track $index) {
-                    <div
-                      class="bar-column"
-                      [appTooltip]="point.date + ': ' + point.value + ' listings'"
-                    >
+                    <div class="bar-column">
                       @if (point.value > 0) {
                         <span class="bar-value">{{ point.value }}</span>
                       }
@@ -154,10 +148,7 @@
                 </div>
                 <div class="bar-chart">
                   @for (point of ts.conversations; track $index) {
-                    <div
-                      class="bar-column"
-                      [appTooltip]="point.date + ': ' + point.value + ' conversations'"
-                    >
+                    <div class="bar-column">
                       @if (point.value > 0) {
                         <span class="bar-value">{{ point.value }}</span>
                       }
@@ -192,10 +183,7 @@
                 </div>
                 <div class="bar-chart">
                   @for (point of ts.purchases; track $index) {
-                    <div
-                      class="bar-column"
-                      [appTooltip]="point.date + ': ' + point.value + ' purchases'"
-                    >
+                    <div class="bar-column">
                       @if (point.value > 0) {
                         <span class="bar-value">{{ point.value }}</span>
                       }
@@ -260,16 +248,7 @@
             </div>
             <div class="comparison-rows">
               @for (entry of eng.guestVsAuth | keyvalue; track entry.key) {
-                <div
-                  class="comparison-row"
-                  [appTooltip]="
-                    formatAction($any(entry.key)) +
-                    ' — Guest: ' +
-                    entry.value.guest +
-                    ' vs Auth: ' +
-                    entry.value.authenticated
-                  "
-                >
+                <div class="comparison-row">
                   <span class="comparison-action">{{ formatAction($any(entry.key)) }}</span>
                   <div class="comparison-values">
                     <span class="comparison-guest">{{ entry.value.guest | number }}</span>
@@ -289,24 +268,18 @@
           <section class="charts-section">
             <h2>Top Searches</h2>
             <div class="data-table-card scrollable-table">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th class="col-rank">#</th>
-                    <th class="col-term">Search Term</th>
-                    <th class="col-count">Count</th>
-                  </tr>
-                </thead>
-              </table>
               <div class="table-scroll-body">
                 <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th class="col-rank">#</th>
+                      <th class="col-term">Search Term</th>
+                      <th class="col-count">Count</th>
+                    </tr>
+                  </thead>
                   <tbody>
                     @for (item of eng.topSearches; track $index) {
-                      <tr
-                        [appTooltip]="
-                          '#' + ($index + 1) + ' — ' + item.term + ': ' + item.count + ' searches'
-                        "
-                      >
+                      <tr>
                         <td class="col-rank">{{ $index + 1 }}</td>
                         <td class="col-term">{{ item.term }}</td>
                         <td class="col-count">{{ item.count | number }}</td>
@@ -323,35 +296,24 @@
           <section class="charts-section">
             <h2>Top Viewed Listings</h2>
             <div class="data-table-card scrollable-table">
-              <table class="data-table">
-                <thead>
-                  <tr>
-                    <th class="col-title">Title</th>
-                    <th class="col-num">Views</th>
-                    <th class="col-num">Favs</th>
-                    <th class="col-price">Price</th>
-                  </tr>
-                </thead>
-              </table>
               <div class="table-scroll-body">
                 <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th class="col-title">Title</th>
+                      <th class="col-num">Views</th>
+                      <th class="col-num">Favs</th>
+                      <th class="col-price">Price</th>
+                    </tr>
+                  </thead>
                   <tbody>
                     @for (item of eng.topViewedListings; track $index) {
-                      <tr
-                        [appTooltip]="
-                          item.title +
-                          ' — ' +
-                          item.viewCount +
-                          ' views, ' +
-                          item.favoriteCount +
-                          ' favs'
-                        "
-                      >
+                      <tr>
                         <td class="col-title">{{ item.title }}</td>
                         <td class="col-num">{{ item.viewCount | number }}</td>
                         <td class="col-num">{{ item.favoriteCount | number }}</td>
                         <td class="col-price">
-                          {{ CURRENCY_SYMBOL }} {{ item.price?.amount | number }}
+                          {{ item.price?.amount | number }}
                         </td>
                       </tr>
                     }
@@ -370,10 +332,7 @@
           <div class="chart-card">
             <div class="mini-chart mini-chart-hours">
               @for (item of eng.hourlyActivity; track $index) {
-                <div
-                  class="mini-chart-col"
-                  [appTooltip]="formatHour(item.hour) + ': ' + item.count + ' actions'"
-                >
+                <div class="mini-chart-col">
                   <span class="mini-chart-value">{{ item.count }}</span>
                   <div
                     class="mini-chart-bar bar-hours"
@@ -403,35 +362,234 @@
       <section class="category-section">
         <h2>Listings by Category</h2>
         <div class="category-list">
-          <div class="category-row category-row-header">
-            <span class="category-name">Category</span>
-            <div class="category-bar-wrapper"></div>
-            <span class="category-pct">Share</span>
-            <span class="category-count">Count</span>
-          </div>
-          @for (cat of categoryAnalytics(); track $index) {
-            <div
-              class="category-row"
-              [appTooltip]="
-                cat.categoryName +
-                ': ' +
-                cat.listingCount +
-                ' listings (' +
-                getCategoryPercent(cat.listingCount) +
-                '%)'
-              "
-            >
-              <span class="category-name">{{ cat.categoryName }}</span>
-              <div class="category-bar-wrapper">
-                <div class="category-bar" [style.width.%]="getBarWidth(cat.listingCount)"></div>
-              </div>
-              <span class="category-pct">{{ getCategoryPercent(cat.listingCount) }}%</span>
-              <span class="category-count">{{ cat.listingCount }}</span>
+          <div class="section-toolbar">
+            <div class="search-mini">
+              <span class="material-symbols-rounded">search</span>
+              <input type="text" placeholder="Search categories..." [(ngModel)]="categorySearch" />
             </div>
-          }
+          </div>
+          <div class="scroll-body">
+            <div class="category-row category-row-header">
+              <span class="category-name sortable" (click)="toggleCategorySort('name')">
+                Category
+                <span class="material-symbols-rounded sort-icon">{{
+                  getSortIcon(categorySortBy === 'name', categorySortDir)
+                }}</span>
+              </span>
+              <div class="category-bar-wrapper"></div>
+              <span class="category-pct sortable" (click)="toggleCategorySort('pct')">
+                Share
+                <span class="material-symbols-rounded sort-icon">{{
+                  getSortIcon(categorySortBy === 'pct', categorySortDir)
+                }}</span>
+              </span>
+              <span class="category-count sortable" (click)="toggleCategorySort('count')">
+                Count
+                <span class="material-symbols-rounded sort-icon">{{
+                  getSortIcon(categorySortBy === 'count', categorySortDir)
+                }}</span>
+              </span>
+            </div>
+            @for (cat of filteredCategories; track $index) {
+              <div class="category-row">
+                <span class="category-name">{{ cat.categoryName }}</span>
+                <div class="category-bar-wrapper">
+                  <div class="category-bar" [style.width.%]="getBarWidth(cat.listingCount)"></div>
+                </div>
+                <span class="category-pct">{{ getCategoryPercent(cat.listingCount) }}%</span>
+                <span class="category-count">{{ cat.listingCount }}</span>
+              </div>
+            }
+            @if (filteredCategories.length === 0) {
+              <p class="no-data">No matching categories</p>
+            }
+          </div>
         </div>
       </section>
     }
+
+    <!-- Price Trends by Category -->
+    <section class="charts-section">
+      <h2>Price Trends by Category</h2>
+      @if (priceTrends(); as pt) {
+        @if (pt.categories.length > 0 || pt.recentChanges.length > 0) {
+          <div class="price-trends-card">
+            <div class="price-trends-summary">
+              <div
+                class="price-summary-stat"
+                [appTooltip]="'Total price changes tracked in the selected period'"
+              >
+                <span class="material-symbols-rounded">swap_vert</span>
+                <div class="price-summary-info">
+                  <span class="price-summary-value">{{ pt.totalPriceChanges | number }}</span>
+                  <span class="price-summary-label">Price Changes</span>
+                </div>
+              </div>
+              @if (pt.avgPriceIncrease > 0) {
+                <div
+                  class="price-summary-stat up"
+                  [appTooltip]="'Average amount when sellers increase prices'"
+                >
+                  <div class="price-summary-info">
+                    <span class="price-summary-value"
+                      >{{ CURRENCY_SYMBOL }} {{ pt.avgPriceIncrease | number }}</span
+                    >
+                    <span class="price-summary-label">Avg Increase</span>
+                  </div>
+                </div>
+              }
+              @if (pt.avgPriceDecrease < 0) {
+                <div
+                  class="price-summary-stat down"
+                  [appTooltip]="'Average amount when sellers decrease prices'"
+                >
+                  <div class="price-summary-info">
+                    <span class="price-summary-value"
+                      >{{ CURRENCY_SYMBOL }} {{ pt.avgPriceDecrease | number }}</span
+                    >
+                    <span class="price-summary-label">Avg Decrease</span>
+                  </div>
+                </div>
+              }
+            </div>
+            @if (pt.categories.length > 0) {
+              <div class="section-toolbar">
+                <div class="search-mini">
+                  <span class="material-symbols-rounded">search</span>
+                  <input
+                    type="text"
+                    placeholder="Search categories..."
+                    [(ngModel)]="priceTrendSearch"
+                  />
+                </div>
+              </div>
+              <div class="price-trends-table">
+                <div class="scroll-body">
+                  <div class="price-trends-header">
+                    <span class="pt-col-name sortable" (click)="togglePriceTrendSort('name')">
+                      Category
+                      <span class="material-symbols-rounded sort-icon">{{
+                        getSortIcon(priceTrendSortBy === 'name', priceTrendSortDir)
+                      }}</span>
+                    </span>
+                    <span class="pt-col-num sortable" (click)="togglePriceTrendSort('changes')">
+                      Edits
+                      <span class="material-symbols-rounded sort-icon">{{
+                        getSortIcon(priceTrendSortBy === 'changes', priceTrendSortDir)
+                      }}</span>
+                    </span>
+                    <span class="pt-col-price">Before</span>
+                    <span class="pt-col-price">After</span>
+                    <span class="pt-col-diff sortable" (click)="togglePriceTrendSort('diff')">
+                      Diff%
+                      <span class="material-symbols-rounded sort-icon">{{
+                        getSortIcon(priceTrendSortBy === 'diff', priceTrendSortDir)
+                      }}</span>
+                    </span>
+                    <span class="pt-col-dir">Trend</span>
+                  </div>
+                  @for (cat of filteredPriceTrends; track cat.categoryId) {
+                    <div class="price-trends-row">
+                      <span class="pt-col-name">{{ cat.categoryName }}</span>
+                      <span class="pt-col-num">{{ cat.totalChanges | number }}</span>
+                      <span class="pt-col-price">{{ cat.avgPreviousPrice | number }}</span>
+                      <span class="pt-col-price">{{ cat.avgNewPrice | number }}</span>
+                      <span
+                        class="pt-col-diff"
+                        [class.up]="cat.direction === 'up'"
+                        [class.down]="cat.direction === 'down'"
+                      >
+                        {{ cat.avgDiffPct }}%
+                      </span>
+                      <span class="pt-col-dir">
+                        <div class="pt-bar-track">
+                          <div
+                            class="pt-bar-fill"
+                            [class.up]="cat.direction === 'up'"
+                            [class.down]="cat.direction === 'down'"
+                            [style.width.%]="
+                              getBarHeight(cat.totalChanges, getMaxPriceChanges(pt.categories))
+                            "
+                          ></div>
+                        </div>
+                      </span>
+                    </div>
+                  }
+                  @if (filteredPriceTrends.length === 0) {
+                    <p class="no-data">No matching categories</p>
+                  }
+                </div>
+              </div>
+            }
+          </div>
+        } @else {
+          <div class="chart-card">
+            <p class="no-data">
+              No price changes tracked yet. Data will appear when sellers update listing prices.
+            </p>
+          </div>
+        }
+
+        @if (pt.recentChanges.length > 0) {
+          <div class="recent-changes-section">
+            <h2>Recent Price Changes</h2>
+            <div class="data-table-card scrollable-table">
+              <div class="section-toolbar">
+                <div class="search-mini">
+                  <span class="material-symbols-rounded">search</span>
+                  <input
+                    type="text"
+                    placeholder="Search by listing or category..."
+                    [(ngModel)]="recentPriceSearch"
+                  />
+                </div>
+              </div>
+              <div class="table-scroll-body">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th class="col-title">Listing</th>
+                      <th class="col-term">Category</th>
+                      <th class="col-price">Before</th>
+                      <th class="col-price">After</th>
+                      <th class="col-num">Diff</th>
+                      <th class="col-count">Date</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of filteredRecentPriceChanges; track $index) {
+                      <tr>
+                        <td class="col-title">{{ item.title }}</td>
+                        <td class="col-term">{{ item.categoryName }}</td>
+                        <td class="col-price">{{ item.previousPrice | number }}</td>
+                        <td class="col-price">{{ item.newPrice | number }}</td>
+                        <td
+                          class="col-num"
+                          [class.text-up]="item.diff > 0"
+                          [class.text-down]="item.diff < 0"
+                        >
+                          {{ item.diff > 0 ? '+' : '' }}{{ item.diff | number }}
+                        </td>
+                        <td class="col-count">{{ formatShortDate(item.date) }}</td>
+                      </tr>
+                    }
+                    @if (filteredRecentPriceChanges.length === 0) {
+                      <tr>
+                        <td colspan="6" class="no-data">No matching results</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </div>
+        }
+      } @else {
+        <div class="chart-card">
+          <p class="no-data">Loading price trend data...</p>
+        </div>
+      }
+    </section>
 
     <!-- ═══════════════════════════════════════════════════ -->
     <!-- PLATFORM & SECURITY                                -->
@@ -450,17 +608,7 @@
             <div class="chart-header"><h3>Device Distribution</h3></div>
             <div class="device-h-bars">
               @for (device of getDevicePercentages(eng.deviceBreakdown); track device.device) {
-                <div
-                  class="device-h-row"
-                  [appTooltip]="
-                    (device.device | titlecase) +
-                    ': ' +
-                    device.count +
-                    ' events (' +
-                    device.pct +
-                    '%)'
-                  "
-                >
+                <div class="device-h-row">
                   <div class="device-h-icon" [class]="'device-color-bg-' + device.device">
                     <span class="material-symbols-rounded">
                       @switch (device.device) {
@@ -501,10 +649,7 @@
             <div class="chart-header"><h3>Login Failures (7d)</h3></div>
             <div class="mini-chart">
               @for (item of eng.loginFailures; track $index) {
-                <div
-                  class="mini-chart-col"
-                  [appTooltip]="item.date + ': ' + item.count + ' failures'"
-                >
+                <div class="mini-chart-col">
                   <span class="mini-chart-value">{{ item.count }}</span>
                   <div
                     class="mini-chart-bar bar-failures"
@@ -525,22 +670,52 @@
         <section class="charts-section">
           <h2>Activity Breakdown</h2>
           <div class="chart-card">
-            <div class="h-bar-chart">
-              @for (item of eng.actionBreakdown; track $index) {
-                <div
-                  class="h-bar-row"
-                  [appTooltip]="formatAction(item.action) + ': ' + item.count + ' events'"
+            <div class="section-toolbar">
+              <div class="search-mini">
+                <span class="material-symbols-rounded">search</span>
+                <input type="text" placeholder="Search actions..." [(ngModel)]="activitySearch" />
+              </div>
+              <div class="sort-toggles">
+                <button
+                  class="sort-btn"
+                  [class.active]="activitySortBy === 'name'"
+                  (click)="toggleActivitySort('name')"
                 >
-                  <span class="h-bar-label">{{ formatAction(item.action) }}</span>
-                  <div class="h-bar-track">
-                    <div
-                      class="h-bar-fill"
-                      [style.width.%]="getBarHeight(item.count, eng.actionBreakdown[0].count)"
-                    ></div>
+                  Name
+                  <span class="material-symbols-rounded sort-icon">{{
+                    getSortIcon(activitySortBy === 'name', activitySortDir)
+                  }}</span>
+                </button>
+                <button
+                  class="sort-btn"
+                  [class.active]="activitySortBy === 'count'"
+                  (click)="toggleActivitySort('count')"
+                >
+                  Count
+                  <span class="material-symbols-rounded sort-icon">{{
+                    getSortIcon(activitySortBy === 'count', activitySortDir)
+                  }}</span>
+                </button>
+              </div>
+            </div>
+            <div class="scroll-body">
+              <div class="h-bar-chart">
+                @for (item of filteredActivityBreakdown; track $index) {
+                  <div class="h-bar-row">
+                    <span class="h-bar-label">{{ formatAction(item.action) }}</span>
+                    <div class="h-bar-track">
+                      <div
+                        class="h-bar-fill"
+                        [style.width.%]="getBarHeight(item.count, eng.actionBreakdown[0].count)"
+                      ></div>
+                    </div>
+                    <span class="h-bar-value">{{ item.count | number }}</span>
                   </div>
-                  <span class="h-bar-value">{{ item.count | number }}</span>
-                </div>
-              }
+                }
+                @if (filteredActivityBreakdown.length === 0) {
+                  <p class="no-data">No matching actions</p>
+                }
+              </div>
             </div>
           </div>
         </section>

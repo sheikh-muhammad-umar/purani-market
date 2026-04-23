@@ -330,6 +330,22 @@ export class EditListingComponent implements OnInit {
           productListingId: this.listingId,
           metadata: { title: details.title, changes },
         });
+        // Track price change separately for analytics
+        if (original?.price?.amount !== details.price) {
+          this.tracker.track(TrackingEvent.LISTING_PRICE_CHANGE, {
+            productListingId: this.listingId,
+            categoryId: cat._id,
+            metadata: {
+              title: details.title,
+              categoryName: cat.name,
+              condition: details.condition,
+              previousPrice: original?.price?.amount,
+              newPrice: details.price,
+              priceDiff: details.price - (original?.price?.amount ?? 0),
+              city: loc.city,
+            },
+          });
+        }
         const title = this.detailsForm.get('title')?.value ?? '';
         this.router.navigate([ROUTES.LISTINGS, listingSlug({ _id: this.listingId, title })]);
       },
