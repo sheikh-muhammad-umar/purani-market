@@ -57,10 +57,8 @@ export class EditListingComponent implements OnInit, OnDestroy {
   selectedCategory = computed(
     () => this.selectedLevel3() ?? this.selectedLevel2() ?? this.selectedLevel1(),
   );
-  categoryAttributes = computed<CategoryAttribute[]>(
-    () => this.selectedCategory()?.attributes ?? [],
-  );
-  categoryFeatures = computed<string[]>(() => this.selectedCategory()?.features ?? []);
+  categoryAttributes = signal<CategoryAttribute[]>([]);
+  categoryFeatures = signal<string[]>([]);
   selectedFeatures = signal<string[]>([]);
 
   detailsForm!: FormGroup;
@@ -365,6 +363,7 @@ export class EditListingComponent implements OnInit, OnDestroy {
     this.level2Categories.set(
       this.allCategories().filter((c) => c.parentId === cat._id && c.isActive),
     );
+    this.loadInheritedAttributes(cat._id);
   }
 
   selectLevel2(cat: Category): void {
@@ -374,11 +373,13 @@ export class EditListingComponent implements OnInit, OnDestroy {
     this.level3Categories.set(
       this.allCategories().filter((c) => c.parentId === cat._id && c.isActive),
     );
+    this.loadInheritedAttributes(cat._id);
   }
 
   selectLevel3(cat: Category): void {
     this.selectedLevel3.set(cat);
     this.selectedFeatures.set([]);
+    this.loadInheritedAttributes(cat._id);
   }
 
   toggleFeature(feature: string): void {
@@ -392,6 +393,22 @@ export class EditListingComponent implements OnInit, OnDestroy {
       this.detailsForm.addControl(key, new FormControl(''));
     }
     return this.detailsForm.get(key) as FormControl;
+  }
+
+  private loadInheritedAttributes(categoryId: string): void {
+    this.categoriesService
+      .getInheritedAttributes(categoryId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ attributes, features }) => {
+          this.categoryAttributes.set(attributes ?? []);
+          this.categoryFeatures.set(features ?? []);
+        },
+        error: () => {
+          this.categoryAttributes.set([]);
+          this.categoryFeatures.set([]);
+        },
+      });
   }
 
   isCategoryStepValid(): boolean {

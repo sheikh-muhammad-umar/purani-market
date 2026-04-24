@@ -622,8 +622,8 @@ export class SearchService {
     const esFilters: any[] = [];
 
     try {
-      const category = await this.categoriesService.findById(categoryId);
-      const filterDefs = category.attributes || [];
+      const filterDefs =
+        await this.categoriesService.getInheritedAttributes(categoryId);
 
       for (const filterDef of filterDefs) {
         const value = filters[filterDef.key];

@@ -140,27 +140,30 @@
           <div class="config-card">
             <h3>Attributes — {{ selectedCategory()!.name }}</h3>
             <p class="panel-hint">
-              Define fields sellers fill in when posting. These also serve as search filters for
-              buyers.
+              Pick attributes from the global registry. These serve as listing fields and search
+              filters.
             </p>
             <p class="panel-count">
-              <strong>{{ editingAttributes.length }}</strong> attribute{{
-                editingAttributes.length !== 1 ? 's' : ''
+              <strong>{{ assignedAttributes.length }}</strong> attribute{{
+                assignedAttributes.length !== 1 ? 's' : ''
               }}
-              configured.
+              assigned.
             </p>
 
+            <!-- Assigned attributes list -->
             <div class="attr-list">
-              @for (attr of editingAttributes; track $index) {
+              @for (item of assignedAttributes; track item.definition.key) {
                 <div class="attr-item">
                   <div class="attr-item-header">
                     <span class="attr-number">#{{ $index + 1 }}</span>
-                    @if (attr.key) {
-                      <span class="attr-badge">{{ attr.key }}</span>
+                    <span class="attr-badge">{{ item.definition.key }}</span>
+                    <span class="attr-type-badge">{{ item.definition.type }}</span>
+                    @if (item.definition.unit) {
+                      <span class="attr-unit-badge">{{ item.definition.unit }}</span>
                     }
                     <button
                       class="btn-remove"
-                      (click)="removeAttribute($index)"
+                      (click)="removeAssigned($index)"
                       title="Remove attribute"
                     >
                       ✕
@@ -169,77 +172,67 @@
                   <div class="attr-row">
                     <div class="form-group compact">
                       <label>Name</label>
-                      <input
-                        type="text"
-                        [(ngModel)]="attr.name"
-                        (ngModelChange)="generateAttributeKey(attr)"
-                        placeholder="e.g. Brand"
-                      />
+                      <input type="text" [value]="item.definition.name" disabled />
                     </div>
                     <div class="form-group compact">
                       <label>Key</label>
-                      <input type="text" [(ngModel)]="attr.key" placeholder="e.g. brand" />
+                      <input type="text" [value]="item.definition.key" disabled />
                     </div>
                     <div class="form-group compact">
                       <label>Type</label>
-                      <app-custom-select
-                        [options]="attributeTypeOptions"
-                        [(ngModel)]="attr.type"
-                        placeholder="Select type"
-                      ></app-custom-select>
+                      <input type="text" [value]="item.definition.type" disabled />
                     </div>
                     <div class="form-group compact">
                       <label>Unit</label>
-                      <input type="text" [(ngModel)]="attr.unit" placeholder="e.g. km" />
+                      <input type="text" [(ngModel)]="item.unit" placeholder="e.g. km" />
                     </div>
                     <div class="attr-actions-col">
                       <label class="attr-spacer-label">&nbsp;</label>
                       <div class="attr-checks-row">
-                        <label class="required-check"
-                          ><input type="checkbox" [(ngModel)]="attr.required" /> Required</label
-                        >
-                        @if (attr.type === 'select' || attr.type === 'multiselect') {
-                          <label class="required-check"
-                            ><input type="checkbox" [(ngModel)]="attr.allowOther" /> Allow
-                            Other</label
-                          >
+                        <label class="required-check">
+                          <input type="checkbox" [(ngModel)]="item.required" /> Required
+                        </label>
+                        @if (
+                          item.definition.type === 'select' ||
+                          item.definition.type === 'multiselect'
+                        ) {
+                          <label class="required-check">
+                            <input type="checkbox" [(ngModel)]="item.allowOther" /> Allow Other
+                          </label>
                         }
                       </div>
                     </div>
                   </div>
-                  <!-- Range min/max -->
-                  @if (attr.type === 'range') {
+                  @if (item.definition.type === 'range') {
                     <div class="range-section">
                       <div class="form-group compact">
                         <label>Min</label>
-                        <input type="number" [(ngModel)]="attr.rangeMin" placeholder="0" />
+                        <input type="number" [(ngModel)]="item.rangeMin" placeholder="0" />
                       </div>
                       <div class="form-group compact">
                         <label>Max</label>
-                        <input type="number" [(ngModel)]="attr.rangeMax" placeholder="100000" />
+                        <input type="number" [(ngModel)]="item.rangeMax" placeholder="100000" />
                       </div>
                     </div>
                   }
-                  <!-- Options for select/multiselect -->
-                  @if (attr.type === 'select' || attr.type === 'multiselect') {
+                  @if (
+                    item.definition.type === 'select' || item.definition.type === 'multiselect'
+                  ) {
                     <div class="options-section">
-                      <label class="options-label">Options</label>
-                      @for (opt of attr.options; track $index) {
+                      <label class="options-label">Options for this category</label>
+                      @for (opt of item.options; track $index) {
                         <div class="option-row">
                           <input
                             type="text"
-                            [(ngModel)]="attr.options![$index]"
+                            [(ngModel)]="item.options[$index]"
                             placeholder="Option value"
                           />
-                          <button
-                            class="btn-remove-sm"
-                            (click)="removeAttributeOption(attr, $index)"
-                          >
+                          <button class="btn-remove-sm" (click)="item.options.splice($index, 1)">
                             ✕
                           </button>
                         </div>
                       }
-                      <button class="btn-add-option" (click)="addAttributeOption(attr)">
+                      <button class="btn-add-option" (click)="item.options.push('')">
                         + Add Option
                       </button>
                     </div>
@@ -248,7 +241,138 @@
               }
             </div>
 
-            <button class="btn-add-item" (click)="addAttribute()">+ Add Attribute</button>
+            <!-- Attribute picker -->
+            <button class="btn-add-item" (click)="toggleAttrPicker()">
+              {{ showAttrPicker ? '— Close Picker' : '+ Add Attribute' }}
+            </button>
+
+            @if (showAttrPicker) {
+              <div class="attr-picker">
+                <div class="attr-picker-search">
+                  <input
+                    type="text"
+                    [(ngModel)]="attrSearchQuery"
+                    (ngModelChange)="searchDefinitions()"
+                    placeholder="Search attributes..."
+                    class="form-input"
+                  />
+                </div>
+                <div class="attr-picker-list">
+                  @for (item of filteredDefinitions(); track item.def._id) {
+                    <button
+                      type="button"
+                      class="attr-picker-item"
+                      [class.disabled]="item.disabled"
+                      [disabled]="item.disabled"
+                      (click)="pickDefinition(item.def)"
+                    >
+                      <span class="picker-label">
+                        <strong>{{ item.def.name }}</strong>
+                        <span class="suggestion-meta"
+                          >{{ item.def.key }} · {{ item.def.type }}</span
+                        >
+                      </span>
+                      @if (item.disabled) {
+                        <span class="picker-disabled-reason">{{ item.reason }}</span>
+                      }
+                    </button>
+                  }
+                  @if (filteredDefinitions().length === 0) {
+                    <div class="attr-picker-empty">No matching attributes found.</div>
+                  }
+                </div>
+                <button class="btn-add-option" (click)="openNewAttrForm()" style="margin-top: 8px">
+                  + Create New Attribute Definition
+                </button>
+              </div>
+            }
+
+            <!-- New attribute definition form -->
+            @if (showNewAttrForm) {
+              <div class="new-attr-form">
+                <h4>Create New Attribute Definition</h4>
+                <div class="attr-row">
+                  <div class="form-group compact">
+                    <label>Name *</label>
+                    <input
+                      type="text"
+                      [(ngModel)]="newAttrName"
+                      (ngModelChange)="generateNewAttrKey()"
+                      placeholder="e.g. Storage"
+                    />
+                  </div>
+                  <div class="form-group compact">
+                    <label>Key *</label>
+                    <input type="text" [(ngModel)]="newAttrKey" placeholder="e.g. storage" />
+                  </div>
+                  <div class="form-group compact">
+                    <label>Type *</label>
+                    <app-custom-select
+                      [options]="attributeTypeOptions"
+                      [(ngModel)]="newAttrType"
+                      placeholder="Select type"
+                    ></app-custom-select>
+                  </div>
+                  <div class="form-group compact">
+                    <label>Unit</label>
+                    <input type="text" [(ngModel)]="newAttrUnit" placeholder="e.g. GB" />
+                  </div>
+                </div>
+                @if (newAttrType === 'range') {
+                  <div class="range-section">
+                    <div class="form-group compact">
+                      <label>Min</label>
+                      <input type="number" [(ngModel)]="newAttrRangeMin" placeholder="0" />
+                    </div>
+                    <div class="form-group compact">
+                      <label>Max</label>
+                      <input type="number" [(ngModel)]="newAttrRangeMax" placeholder="100000" />
+                    </div>
+                  </div>
+                }
+                @if (newAttrType === 'select' || newAttrType === 'multiselect') {
+                  <div class="options-section">
+                    <label class="options-label">Options</label>
+                    @for (opt of newAttrOptions; track $index) {
+                      <div class="option-row">
+                        <input
+                          type="text"
+                          [(ngModel)]="newAttrOptions[$index]"
+                          placeholder="Option value"
+                        />
+                        <button class="btn-remove-sm" (click)="removeNewAttrOption($index)">
+                          ✕
+                        </button>
+                      </div>
+                    }
+                    <button class="btn-add-option" (click)="addNewAttrOption()">
+                      + Add Option
+                    </button>
+                  </div>
+                }
+                <div class="form-actions">
+                  <button
+                    class="btn-primary"
+                    (click)="submitNewDefinition()"
+                    [disabled]="saving() || !newAttrName.trim() || !newAttrKey.trim()"
+                  >
+                    {{ saving() ? 'Creating...' : 'Create & Add' }}
+                  </button>
+                  <button class="btn-secondary" (click)="cancelNewAttrForm()">Cancel</button>
+                </div>
+              </div>
+            }
+
+            @if (attributeWarning()) {
+              <div class="inline-warning">
+                <span
+                  class="material-symbols-rounded"
+                  style="font-size: 18px; vertical-align: middle"
+                  >warning</span
+                >
+                {{ attributeWarning() }}
+              </div>
+            }
             <div class="form-actions">
               <button class="btn-primary" (click)="saveAttributes()" [disabled]="saving()">
                 {{ saving() ? 'Saving...' : 'Save Attributes' }}

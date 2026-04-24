@@ -37,7 +37,13 @@ export const API = {
   CATEGORY_BY_ID: (id: string) => `/categories/${id}`,
   CATEGORY_INHERITED_ATTRS: (id: string) => `/categories/${id}/inherited-attributes`,
   CATEGORY_ATTRIBUTES: (id: string) => `/categories/${id}/attributes`,
+  CATEGORY_ASSIGN_ATTRIBUTES: (id: string) => `/categories/${id}/assign-attributes`,
   CATEGORY_FEATURES: (id: string) => `/categories/${id}/features`,
+
+  // Attribute Definitions
+  ATTRIBUTE_DEFINITIONS: '/attribute-definitions',
+  ATTRIBUTE_DEFINITIONS_SEARCH: '/attribute-definitions/search',
+  ATTRIBUTE_DEFINITION_BY_ID: (id: string) => `/attribute-definitions/${id}`,
 
   // Brands (mobile)
   BRANDS: '/brands',

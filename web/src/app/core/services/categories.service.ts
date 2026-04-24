@@ -76,6 +76,21 @@ export class CategoriesService {
     return this.api.patch<Category>(API.CATEGORY_ATTRIBUTES(id), { attributes });
   }
 
+  assignAttributes(
+    id: string,
+    attributes: Array<{
+      definitionId: string;
+      required: boolean;
+      options?: string[];
+      unit?: string;
+      rangeMin?: number;
+      rangeMax?: number;
+      allowOther?: boolean;
+    }>,
+  ): Observable<Category> {
+    return this.api.patch<Category>(API.CATEGORY_ASSIGN_ATTRIBUTES(id), { attributes });
+  }
+
   updateFeatures(id: string, features: string[]): Observable<Category> {
     return this.api.patch<Category>(API.CATEGORY_FEATURES(id), { features });
   }

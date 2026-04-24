@@ -787,3 +787,172 @@
   color: var(--text-muted);
   margin-top: 2px;
 }
+
+// Attribute suggestions dropdown
+.attr-suggestions {
+  position: absolute;
+  top: 100%;
+  left: 0;
+  right: 0;
+  z-index: 20;
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  max-height: 200px;
+  overflow-y: auto;
+  margin-top: 2px;
+}
+
+.attr-suggestions-header {
+  padding: 6px 10px;
+  font-size: 11px;
+  color: var(--text-secondary);
+  border-bottom: 1px solid var(--border);
+  font-weight: 600;
+}
+
+.attr-suggestion-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 8px 10px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text-primary);
+
+  &:hover {
+    background: var(--hover);
+  }
+
+  .suggestion-meta {
+    font-size: 11px;
+    color: var(--text-secondary);
+    margin-left: 8px;
+    white-space: nowrap;
+  }
+}
+
+// Inline attribute warning
+.inline-warning {
+  background: rgba(255, 171, 0, 0.12);
+  border: 1px solid rgba(255, 171, 0, 0.4);
+  color: #ffab00;
+  border-radius: 8px;
+  padding: 10px 14px;
+  margin: 10px 0;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+// Attribute picker
+.attr-picker {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px;
+  margin: 10px 0;
+}
+
+.attr-picker-search {
+  margin-bottom: 8px;
+}
+
+.attr-picker-list {
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.attr-picker-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  width: 100%;
+  padding: 10px 12px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text-primary);
+  border-radius: 6px;
+
+  &:hover {
+    background: var(--hover);
+  }
+}
+
+.attr-picker-empty {
+  padding: 16px;
+  text-align: center;
+  color: var(--text-secondary);
+  font-size: 13px;
+}
+
+.attr-type-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(0, 188, 212, 0.15);
+  color: #00bcd4;
+  margin-left: 6px;
+}
+
+.attr-unit-badge {
+  font-size: 11px;
+  padding: 2px 8px;
+  border-radius: 4px;
+  background: rgba(156, 39, 176, 0.15);
+  color: #ce93d8;
+  margin-left: 4px;
+}
+
+.options-preview {
+  padding: 6px 12px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  border-top: 1px solid var(--border);
+  margin-top: 6px;
+}
+
+// New attribute definition form
+.new-attr-form {
+  background: var(--background);
+  border: 1px dashed var(--border);
+  border-radius: 10px;
+  padding: 16px;
+  margin: 10px 0;
+
+  h4 {
+    margin: 0 0 12px;
+    font-size: 14px;
+  }
+}
+
+// Disabled picker items
+.attr-picker-item.disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+
+  &:hover {
+    background: none;
+  }
+}
+
+.picker-disabled-reason {
+  font-size: 11px;
+  color: var(--text-secondary);
+  font-style: italic;
+  white-space: nowrap;
+}
+
+// Picker label layout
+.picker-label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}

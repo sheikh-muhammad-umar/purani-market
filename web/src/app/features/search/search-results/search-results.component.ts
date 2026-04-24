@@ -474,15 +474,25 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (cat) => {
           this.selectedCategory.set(cat);
-          this.categoryFilters.set((cat.attributes || []).filter((a: any) => a.type !== 'text'));
+        },
+        error: () => {
+          this.selectedCategory.set(null);
+        },
+      });
+
+    this.categoriesService
+      .getInheritedAttributes(categoryId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ attributes }) => {
+          this.categoryFilters.set((attributes || []).filter((a: any) => a.type !== 'text'));
           // Load provinces if any attribute is province_city type
-          if (cat.attributes?.some((a: any) => a.type === 'province_city')) {
+          if (attributes?.some((a: any) => a.type === 'province_city')) {
             this.loadProvinces();
           }
         },
         error: () => {
           this.categoryFilters.set([]);
-          this.selectedCategory.set(null);
         },
       });
   }

@@ -12,6 +12,10 @@ import {
   CategoryDocument,
   CategoryAttribute,
 } from './schemas/category.schema.js';
+import {
+  AttributeDefinition,
+  AttributeDefinitionDocument,
+} from './schemas/attribute-definition.schema.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
 import {
@@ -40,6 +44,8 @@ export class CategoriesService {
   constructor(
     @InjectModel(Category.name)
     private readonly categoryModel: Model<CategoryDocument>,
+    @InjectModel(AttributeDefinition.name)
+    private readonly attrDefModel: Model<AttributeDefinitionDocument>,
     @InjectRedis() private readonly redis: Redis,
   ) {}
 
@@ -141,6 +147,100 @@ export class CategoriesService {
     attributes: CategoryAttribute[],
   ): Promise<CategoryDocument> {
     const category = await this.findById(id);
+
+    // Reject attributes whose keys already exist in any parent category
+    if (category.parentId) {
+      const chain = await this.getCategoryChain(category.parentId.toString());
+      const parentKeys = new Set<string>();
+      for (const cat of chain) {
+        for (const attr of cat.attributes || []) {
+          parentKeys.add(attr.key);
+        }
+      }
+      const duplicates = attributes
+        .filter((a) => parentKeys.has(a.key))
+        .map((a) => a.key);
+      if (duplicates.length > 0) {
+        throw new BadRequestException(
+          `Attributes already defined in a parent category: ${duplicates.join(', ')}`,
+        );
+      }
+    }
+
+    category.attributes = attributes;
+    const saved = await category.save();
+    await this.invalidateCache();
+    return saved;
+  }
+
+  /**
+   * Assign attributes from the global registry to a category.
+   * Resolves definition IDs, checks for parent conflicts, and stores denormalized data.
+   */
+  async assignAttributes(
+    id: string,
+    assignments: Array<{
+      definitionId: string;
+      required?: boolean;
+      options?: string[];
+      unit?: string;
+      rangeMin?: number;
+      rangeMax?: number;
+      allowOther?: boolean;
+    }>,
+  ): Promise<CategoryDocument> {
+    const category = await this.findById(id);
+
+    // Resolve definitions
+    const defIds = assignments.map((a) => a.definitionId);
+    const definitions = await this.attrDefModel
+      .find({ _id: { $in: defIds } })
+      .lean()
+      .exec();
+    const defMap = new Map(definitions.map((d) => [d._id.toString(), d]));
+
+    const missing = defIds.filter((did) => !defMap.has(did));
+    if (missing.length > 0) {
+      throw new BadRequestException(
+        `Attribute definitions not found: ${missing.join(', ')}`,
+      );
+    }
+
+    // Build attributes: definition provides the base, assignment can override values
+    const attributes: CategoryAttribute[] = assignments.map((a) => {
+      const def = defMap.get(a.definitionId)!;
+      return {
+        name: def.name,
+        key: def.key,
+        type: def.type,
+        options: a.options ?? def.options ?? [],
+        required: a.required ?? false,
+        unit: a.unit ?? def.unit,
+        rangeMin: a.rangeMin ?? def.rangeMin,
+        rangeMax: a.rangeMax ?? def.rangeMax,
+        allowOther: a.allowOther ?? def.allowOther ?? false,
+      } as CategoryAttribute;
+    });
+
+    // Check for parent conflicts
+    if (category.parentId) {
+      const chain = await this.getCategoryChain(category.parentId.toString());
+      const parentKeys = new Set<string>();
+      for (const cat of chain) {
+        for (const attr of cat.attributes || []) {
+          parentKeys.add(attr.key);
+        }
+      }
+      const duplicates = attributes
+        .filter((a) => parentKeys.has(a.key))
+        .map((a) => a.key);
+      if (duplicates.length > 0) {
+        throw new BadRequestException(
+          `Attributes already defined in a parent category: ${duplicates.join(', ')}`,
+        );
+      }
+    }
+
     category.attributes = attributes;
     const saved = await category.save();
     await this.invalidateCache();

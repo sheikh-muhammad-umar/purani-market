@@ -74,10 +74,8 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   selectedCategory = computed(
     () => this.selectedLevel3() ?? this.selectedLevel2() ?? this.selectedLevel1(),
   );
-  categoryAttributes = computed<CategoryAttribute[]>(
-    () => this.selectedCategory()?.attributes ?? [],
-  );
-  categoryFeatures = computed<string[]>(() => this.selectedCategory()?.features ?? []);
+  categoryAttributes = signal<CategoryAttribute[]>([]);
+  categoryFeatures = signal<string[]>([]);
   selectedFeatures = signal<string[]>([]);
 
   // Media state
@@ -434,6 +432,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     this.selectedFeatures.set([]);
     const children = this.allCategories().filter((c) => c.parentId === cat._id && c.isActive);
     this.level2Categories.set(children);
+    this.loadInheritedAttributes(cat._id);
     this.saveDraft();
   }
 
@@ -443,13 +442,31 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     this.selectedFeatures.set([]);
     const children = this.allCategories().filter((c) => c.parentId === cat._id && c.isActive);
     this.level3Categories.set(children);
+    this.loadInheritedAttributes(cat._id);
     this.saveDraft();
   }
 
   selectLevel3(cat: Category): void {
     this.selectedLevel3.set(cat);
     this.selectedFeatures.set([]);
+    this.loadInheritedAttributes(cat._id);
     this.saveDraft();
+  }
+
+  private loadInheritedAttributes(categoryId: string): void {
+    this.categoriesService
+      .getInheritedAttributes(categoryId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: ({ attributes, features }) => {
+          this.categoryAttributes.set(attributes ?? []);
+          this.categoryFeatures.set(features ?? []);
+        },
+        error: () => {
+          this.categoryAttributes.set([]);
+          this.categoryFeatures.set([]);
+        },
+      });
   }
 
   isCategoryStepValid(): boolean {

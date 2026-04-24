@@ -20,6 +20,18 @@ export interface CategoryAttribute {
   allowOther?: boolean;
 }
 
+export interface AttributeDefinition {
+  _id: string;
+  name: string;
+  key: string;
+  type: CategoryAttributeType;
+  options?: string[];
+  unit?: string;
+  rangeMin?: number;
+  rangeMax?: number;
+  allowOther?: boolean;
+}
+
 export interface Category {
   _id: string;
   name: string;

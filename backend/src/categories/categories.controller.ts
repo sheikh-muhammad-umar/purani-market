@@ -21,6 +21,7 @@ import { UserAction } from '../ai/schemas/user-activity.schema.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
 import { UpdateAttributesDto } from './dto/update-attributes.dto.js';
+import { AssignAttributesDto } from './dto/assign-attributes.dto.js';
 import { UpdateFeaturesDto } from './dto/update-features.dto.js';
 
 @Controller('api/categories')
@@ -121,6 +122,28 @@ export class CategoriesController {
     const result = await this.categoriesService.updateAttributes(
       id,
       dto.attributes as any,
+    );
+    this.tracker.track(
+      adminId,
+      UserAction.ADMIN_CATEGORY_ATTRIBUTES_UPDATE,
+      { categoryId: id, attributeCount: dto.attributes?.length },
+      req,
+    );
+    return result;
+  }
+
+  @Patch(':id/assign-attributes')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles('admin')
+  async assignAttributes(
+    @Param('id') id: string,
+    @Body() dto: AssignAttributesDto,
+    @CurrentUser('sub') adminId: string,
+    @Req() req: any,
+  ) {
+    const result = await this.categoriesService.assignAttributes(
+      id,
+      dto.attributes,
     );
     this.tracker.track(
       adminId,
