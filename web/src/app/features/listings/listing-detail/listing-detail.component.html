@@ -373,12 +373,14 @@
               </button>
             }
           </div>
-          <p class="safety-note">
-            <span class="material-symbols-rounded" style="font-size: 16px; color: var(--accent)"
-              >warning</span
-            >
-            <strong>Stay safe.</strong> Never pay in advance, and always meet in public places.
-          </p>
+          @if (!isOwner()) {
+            <p class="safety-note">
+              <span class="material-symbols-rounded" style="font-size: 16px; color: var(--accent)"
+                >warning</span
+              >
+              <strong>Stay safe.</strong> Never pay in advance, and always meet in public places.
+            </p>
+          }
         </div>
 
         <!-- Seller Card -->

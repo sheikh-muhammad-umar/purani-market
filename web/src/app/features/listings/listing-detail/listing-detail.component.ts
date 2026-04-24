@@ -80,6 +80,12 @@ export class ListingDetailComponent implements OnInit {
     );
   });
 
+  isOwner = computed(() => {
+    const user = this.authService.user();
+    const listing = this.listing();
+    return !!user && !!listing && user._id === listing.sellerId;
+  });
+
   ngOnInit(): void {
     const rawId = this.route.snapshot.paramMap.get('id');
     if (!rawId) {
