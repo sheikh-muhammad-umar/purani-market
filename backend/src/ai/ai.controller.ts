@@ -26,9 +26,9 @@ export class AiController {
   ) {}
 
   @Get('recommendations')
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(OptionalJwtAuthGuard)
   async getRecommendations(
-    @CurrentUser('sub') userId: string,
+    @CurrentUser('sub') userId: string | undefined,
     @Query('limit') limit?: string,
   ) {
     const parsedLimit = limit ? parseInt(limit, 10) : undefined;

@@ -56,10 +56,14 @@ export class RecommendationService {
   }
 
   async getRecommendations(
-    userId: string,
+    userId: string | undefined,
     limit: number = 20,
   ): Promise<ProductListingDocument[]> {
     const safeLimit = Math.min(Math.max(1, limit), 20);
+
+    if (!userId) {
+      return this.getColdStartRecommendations(safeLimit);
+    }
 
     const activityCount = await this.activityModel
       .countDocuments({ userId: new Types.ObjectId(userId) })
