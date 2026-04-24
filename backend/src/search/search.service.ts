@@ -462,6 +462,12 @@ export class SearchService {
                 title: { query: query.q, boost: 10 },
               },
             },
+            // Word-delimiter match handles "14pro" → "14 pro"
+            {
+              match: {
+                'title.delimited': { query: query.q, boost: 6 },
+              },
+            },
             // Individual terms across multiple fields
             {
               multi_match: {
@@ -478,6 +484,12 @@ export class SearchService {
                 ],
                 type: 'most_fields',
                 fuzziness: 'AUTO',
+              },
+            },
+            // Edge-ngram for partial / type-ahead matching
+            {
+              match: {
+                'title.edge_ngram': { query: query.q, boost: 1.5 },
               },
             },
             // Prefix match for partial words

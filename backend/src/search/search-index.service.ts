@@ -5,12 +5,66 @@ export const LISTINGS_INDEX = 'product_listings';
 
 export const FEATURED_BOOST_FACTOR = 5;
 
+export const listingsIndexSettings = {
+  analysis: {
+    analyzer: {
+      // Splits concatenated tokens like "14pro" → ["14", "pro"]
+      word_delimiter_analyzer: {
+        type: 'custom' as const,
+        tokenizer: 'standard',
+        filter: ['lowercase', 'word_delimiter_filter'],
+      },
+      // Edge-ngram for type-ahead / partial matching
+      edge_ngram_analyzer: {
+        type: 'custom' as const,
+        tokenizer: 'edge_ngram_tokenizer',
+        filter: ['lowercase'],
+      },
+      // Used at search time for edge-ngram field (avoid double n-gramming)
+      edge_ngram_search_analyzer: {
+        type: 'custom' as const,
+        tokenizer: 'standard',
+        filter: ['lowercase'],
+      },
+    },
+    tokenizer: {
+      edge_ngram_tokenizer: {
+        type: 'edge_ngram' as const,
+        min_gram: 2,
+        max_gram: 15,
+        token_chars: ['letter' as const, 'digit' as const],
+      },
+    },
+    filter: {
+      word_delimiter_filter: {
+        type: 'word_delimiter_graph' as const,
+        split_on_numerics: true,
+        split_on_case_change: true,
+        generate_word_parts: true,
+        generate_number_parts: true,
+        preserve_original: true,
+      },
+    },
+  },
+};
+
 export const listingsIndexMapping = {
   properties: {
     title: {
       type: 'text' as const,
       analyzer: 'standard',
-      fields: { keyword: { type: 'keyword' as const, ignore_above: 256 } },
+      fields: {
+        keyword: { type: 'keyword' as const, ignore_above: 256 },
+        delimited: {
+          type: 'text' as const,
+          analyzer: 'word_delimiter_analyzer',
+        },
+        edge_ngram: {
+          type: 'text' as const,
+          analyzer: 'edge_ngram_analyzer',
+          search_analyzer: 'edge_ngram_search_analyzer',
+        },
+      },
     },
     description: { type: 'text' as const, analyzer: 'standard' },
     'price.amount': { type: 'float' as const },
@@ -97,6 +151,7 @@ export class SearchIndexService implements OnModuleInit {
   async createIndex(): Promise<void> {
     await this.esService.indices.create({
       index: LISTINGS_INDEX,
+      settings: listingsIndexSettings,
       mappings: listingsIndexMapping,
     });
   }
