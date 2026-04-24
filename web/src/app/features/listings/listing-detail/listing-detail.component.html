@@ -96,7 +96,7 @@
         <div class="gallery" (touchstart)="onTouchStart($event)" (touchend)="onTouchEnd($event)">
           <div class="gallery-main">
             <img
-              [src]="getCurrentImage()"
+              [src]="currentImage()"
               [alt]="l.title"
               (click)="openLightbox()"
               style="cursor: zoom-in"
@@ -333,7 +333,7 @@
                 <span class="material-symbols-rounded" style="font-size: 18px">block</span>
                 This ad is no longer active. Messaging and calls are disabled.
               </div>
-            } @else if (authService.isAuthenticated() && authService.user()?._id === l.sellerId) {
+            } @else if (authService.isAuthenticated() && isOwner()) {
               <div class="own-listing-notice">
                 <span class="material-symbols-rounded" style="font-size: 18px">info</span>
                 This is your listing.
@@ -397,7 +397,7 @@
                     style="font-size: 14px; vertical-align: middle"
                     >star</span
                   >
-                  {{ averageRating().toFixed(1) }} ({{ totalReviews() }} reviews)</span
+                  {{ formattedRating() }} ({{ totalReviews() }} reviews)</span
                 >
               }
               <span class="seller-since"
@@ -513,7 +513,7 @@
           <span class="material-symbols-rounded">close</span>
         </button>
         <div class="lightbox-content" (click)="$event.stopPropagation()">
-          <img [src]="getCurrentImage()" [alt]="l.title" />
+          <img [src]="currentImage()" [alt]="l.title" />
           @if ((l.images.length || 0) > 1) {
             <button
               class="lightbox-nav prev"

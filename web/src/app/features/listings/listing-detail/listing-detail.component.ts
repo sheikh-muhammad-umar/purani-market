@@ -86,6 +86,15 @@ export class ListingDetailComponent implements OnInit {
     return !!user && !!listing && user._id === listing.sellerId;
   });
 
+  currentImage = computed(() => {
+    const images = this.listing()?.images ?? [];
+    return images[this.currentImageIndex()]?.url ?? PLACEHOLDER_IMAGE;
+  });
+
+  formattedRating = computed(() => {
+    return this.averageRating().toFixed(1);
+  });
+
   ngOnInit(): void {
     const rawId = this.route.snapshot.paramMap.get('id');
     if (!rawId) {
