@@ -77,9 +77,6 @@ export class SearchService {
       }
 
       if (result.items.length === 0 && query.q) {
-        const mongoResult = await this.mongoFallbackSearch(query, page, limit);
-        if (mongoResult.total > 0) return mongoResult;
-
         const alternatives = await this.getNoResultsAlternatives(query.q);
         return {
           items: [],
@@ -216,8 +213,8 @@ export class SearchService {
         ? response.hits.total
         : (response.hits.total?.value ?? 0);
 
-    // If ES has no data at all (index empty), fall back to MongoDB
-    if (total === 0 && !query.q) {
+    // If ES returned no results, fall back to MongoDB
+    if (total === 0) {
       const mongoResult = await this.mongoFallbackSearch(query, page, limit);
       if (mongoResult.total > 0) return mongoResult;
     }
