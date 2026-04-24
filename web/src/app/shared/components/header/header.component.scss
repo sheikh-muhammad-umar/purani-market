@@ -553,9 +553,7 @@
   }
 
   .app-header.header-scrolled {
-    max-height: 0;
-    padding: 0 var(--space-2);
-    border-bottom: none;
+    /* Keep header visible on mobile — sticky like the search bar */
   }
 
   .header-container {
