@@ -143,6 +143,21 @@
               Pick attributes from the global registry. These serve as listing fields and search
               filters.
             </p>
+
+            @if (selectedCategory()!.parentId && inheritedAttributes().length) {
+              <div class="inherited-section compact">
+                <div class="inherited-header">
+                  <span class="material-symbols-rounded">account_tree</span>
+                  <span>Inherited from parent categories</span>
+                </div>
+                <div class="inherited-chips">
+                  @for (attr of inheritedAttributes(); track attr.key) {
+                    <span class="inherited-chip">{{ attr.name }}</span>
+                  }
+                </div>
+              </div>
+            }
+
             <p class="panel-count">
               <strong>{{ assignedAttributes.length }}</strong> attribute{{
                 assignedAttributes.length !== 1 ? 's' : ''
@@ -464,17 +479,35 @@
               {{ selectedCategory()!.features.length || 0 }}
             </div>
 
-            @if (selectedCategory()!.parentId) {
-              <div class="info-row inherited-info">
-                <span class="info-label"
-                  ><span
-                    class="material-symbols-rounded"
-                    style="font-size: 16px; vertical-align: middle"
-                    >lightbulb</span
-                  >
-                  Tip:</span
-                >
-                This category also inherits attributes and features from its parent categories.
+            @if (
+              selectedCategory()!.parentId &&
+              (inheritedAttributes().length || inheritedFeatures().length)
+            ) {
+              <div class="inherited-section">
+                <div class="inherited-header">
+                  <span class="material-symbols-rounded">account_tree</span>
+                  <span>Inherited from parent categories</span>
+                </div>
+                @if (inheritedAttributes().length) {
+                  <div class="inherited-group">
+                    <span class="inherited-label">Attributes:</span>
+                    <div class="inherited-chips">
+                      @for (attr of inheritedAttributes(); track attr.key) {
+                        <span class="inherited-chip">{{ attr.name }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+                @if (inheritedFeatures().length) {
+                  <div class="inherited-group">
+                    <span class="inherited-label">Features:</span>
+                    <div class="inherited-chips">
+                      @for (f of inheritedFeatures(); track f) {
+                        <span class="inherited-chip inherited-chip-feature">{{ f }}</span>
+                      }
+                    </div>
+                  </div>
+                }
               </div>
             }
 
@@ -522,23 +555,35 @@
             }
 
             <div class="detail-actions">
-              <button class="btn-primary" (click)="openEditForm(selectedCategory()!)">Edit</button>
-              <button class="btn-secondary" (click)="openAttributes(selectedCategory()!)">
-                Attributes
-              </button>
-              <button class="btn-secondary" (click)="openFeatures(selectedCategory()!)">
-                Features
-              </button>
-              @if (selectedCategory()!.level < 3) {
-                <button class="btn-primary" (click)="openAddForm(selectedCategory()!._id)">
-                  + Add Child
+              <div class="detail-actions-group">
+                <button class="action-btn" (click)="openEditForm(selectedCategory()!)">
+                  <span class="material-symbols-rounded">edit</span>
+                  Edit
                 </button>
-              }
+                <button class="action-btn" (click)="openAttributes(selectedCategory()!)">
+                  <span class="material-symbols-rounded">tune</span>
+                  Attributes
+                </button>
+                <button class="action-btn" (click)="openFeatures(selectedCategory()!)">
+                  <span class="material-symbols-rounded">checklist</span>
+                  Features
+                </button>
+                @if (selectedCategory()!.level < 3) {
+                  <button
+                    class="action-btn action-btn-accent"
+                    (click)="openAddForm(selectedCategory()!._id)"
+                  >
+                    <span class="material-symbols-rounded">add</span>
+                    Add Child
+                  </button>
+                }
+              </div>
               <button
-                class="btn-danger"
+                class="action-btn action-btn-danger"
                 (click)="deleteCategory(selectedCategory()!)"
                 [disabled]="saving() || hasChildren(selectedCategory()!)"
               >
+                <span class="material-symbols-rounded">delete</span>
                 Delete
               </button>
             </div>

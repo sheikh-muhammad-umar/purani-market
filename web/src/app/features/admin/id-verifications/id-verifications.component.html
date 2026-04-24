@@ -41,7 +41,8 @@
       <p class="empty-text">No verification requests found</p>
     </div>
   } @else {
-    <div class="table-wrap">
+    <!-- Desktop table view -->
+    <div class="table-wrap desktop-only">
       <table class="data-table" role="grid">
         <thead>
           <tr>
@@ -63,15 +64,15 @@
                 <div class="user-cell">
                   <div class="user-avatar">
                     @if (v.user?.profile?.avatar) {
-                      <img [src]="v.user!.profile!.avatar" [alt]="getUserName(v)" />
+                      <img [src]="v.user!.profile!.avatar" [alt]="userNames().get(v._id)" />
                     } @else {
                       <span class="material-symbols-rounded">person</span>
                     }
                   </div>
-                  <span class="user-name">{{ getUserName(v) }}</span>
+                  <span class="user-name">{{ userNames().get(v._id) }}</span>
                 </div>
               </td>
-              <td class="contact-cell">{{ getUserContact(v) }}</td>
+              <td class="contact-cell">{{ userContacts().get(v._id) }}</td>
               <td>
                 <span
                   class="status-badge"
@@ -82,7 +83,7 @@
                   {{ v.status | titlecase }}
                 </span>
               </td>
-              <td class="date-cell">{{ formatDate(v.createdAt) }}</td>
+              <td class="date-cell">{{ formattedDates().get(v._id) }}</td>
               <td>
                 <div class="action-btns" (click)="$event.stopPropagation()">
                   @if (v.status === IdVerificationStatus.PENDING) {
@@ -113,71 +114,12 @@
               </td>
             </tr>
 
-            <!-- Expanded detail row -->
             @if (expandedId === v._id) {
               <tr class="detail-row" (click)="$event.stopPropagation()">
                 <td colspan="5">
-                  <div class="detail-content">
-                    <div class="images-grid">
-                      <div class="image-card" (click)="openLightbox(v.cnicFront.url)">
-                        <img [src]="v.cnicFront.url" alt="CNIC Front" class="doc-img" />
-                        <span class="image-label">CNIC Front</span>
-                      </div>
-                      <div class="image-card" (click)="openLightbox(v.cnicBack.url)">
-                        <img [src]="v.cnicBack.url" alt="CNIC Back" class="doc-img" />
-                        <span class="image-label">CNIC Back</span>
-                      </div>
-                      <div class="image-card" (click)="openLightbox(v.selfieFront.url)">
-                        <img
-                          [src]="v.selfieFront.url"
-                          alt="Selfie with CNIC Front"
-                          class="doc-img"
-                        />
-                        <span class="image-label">Selfie (Front)</span>
-                      </div>
-                      <div class="image-card" (click)="openLightbox(v.selfieBack.url)">
-                        <img [src]="v.selfieBack.url" alt="Selfie with CNIC Back" class="doc-img" />
-                        <span class="image-label">Selfie (Back)</span>
-                      </div>
-                    </div>
-
-                    @if (v.status === IdVerificationStatus.REJECTED && v.rejectionReason) {
-                      <div class="rejection-info">
-                        <span class="material-symbols-rounded">info</span>
-                        <span>Rejection reason: {{ v.rejectionReason }}</span>
-                      </div>
-                    }
-
-                    <!-- Reject form -->
-                    @if (rejectingId === v._id) {
-                      <div class="reject-form" [id]="'reject-form-' + v._id">
-                        <label class="form-label">Rejection Reason</label>
-                        <textarea
-                          class="form-input reject-textarea"
-                          [(ngModel)]="rejectionReason"
-                          placeholder="Explain why this verification is being rejected..."
-                          rows="3"
-                        ></textarea>
-                        <div class="reject-actions">
-                          <button
-                            class="btn btn-danger btn-sm"
-                            [disabled]="!rejectionReason.trim() || actionLoading() === v._id"
-                            (click)="confirmReject(v)"
-                          >
-                            @if (actionLoading() === v._id) {
-                              <span class="spinner spinner-xs"></span>
-                              Rejecting...
-                            } @else {
-                              Confirm Reject
-                            }
-                          </button>
-                          <button class="btn btn-outline btn-sm" (click)="cancelReject()">
-                            Cancel
-                          </button>
-                        </div>
-                      </div>
-                    }
-                  </div>
+                  <ng-container
+                    *ngTemplateOutlet="detailTpl; context: { $implicit: v }"
+                  ></ng-container>
                 </td>
               </tr>
             }
@@ -186,8 +128,133 @@
       </table>
     </div>
 
+    <!-- Mobile card view -->
+    <div class="mobile-cards mobile-only">
+      @for (v of verifications(); track v._id) {
+        <div class="v-card" [class.expanded]="expandedId === v._id" (click)="toggleExpand(v._id)">
+          <div class="v-card-header">
+            <div class="user-cell">
+              <div class="user-avatar">
+                @if (v.user?.profile?.avatar) {
+                  <img [src]="v.user!.profile!.avatar" [alt]="userNames().get(v._id)" />
+                } @else {
+                  <span class="material-symbols-rounded">person</span>
+                }
+              </div>
+              <div class="v-card-user-info">
+                <span class="user-name">{{ userNames().get(v._id) }}</span>
+                <span class="v-card-contact">{{ userContacts().get(v._id) }}</span>
+              </div>
+            </div>
+            <span
+              class="status-badge"
+              [class.status-pending]="v.status === IdVerificationStatus.PENDING"
+              [class.status-approved]="v.status === IdVerificationStatus.APPROVED"
+              [class.status-rejected]="v.status === IdVerificationStatus.REJECTED"
+            >
+              {{ v.status | titlecase }}
+            </span>
+          </div>
+
+          <div class="v-card-meta">
+            <span class="v-card-date">{{ formattedDates().get(v._id) }}</span>
+            <div class="action-btns" (click)="$event.stopPropagation()">
+              @if (v.status === IdVerificationStatus.PENDING) {
+                <button
+                  class="btn btn-success btn-xs"
+                  [disabled]="actionLoading() === v._id"
+                  (click)="approve(v)"
+                >
+                  @if (actionLoading() === v._id) {
+                    <span class="spinner spinner-xs"></span>
+                  } @else {
+                    <span class="material-symbols-rounded">check</span>
+                    Approve
+                  }
+                </button>
+                <button
+                  class="btn btn-danger btn-xs"
+                  [disabled]="actionLoading() === v._id"
+                  (click)="startReject(v)"
+                >
+                  <span class="material-symbols-rounded">close</span>
+                  Reject
+                </button>
+              } @else {
+                <span class="reviewed-label">Reviewed</span>
+              }
+            </div>
+          </div>
+
+          @if (expandedId === v._id) {
+            <div class="v-card-detail" (click)="$event.stopPropagation()">
+              <ng-container *ngTemplateOutlet="detailTpl; context: { $implicit: v }"></ng-container>
+            </div>
+          }
+        </div>
+      }
+    </div>
+
+    <!-- Shared detail template -->
+    <ng-template #detailTpl let-v>
+      <div class="detail-content">
+        <div class="images-grid">
+          <div class="image-card" (click)="openLightbox(v.cnicFront.url)">
+            <img [src]="v.cnicFront.url" alt="CNIC Front" class="doc-img" />
+            <span class="image-label">CNIC Front</span>
+          </div>
+          <div class="image-card" (click)="openLightbox(v.cnicBack.url)">
+            <img [src]="v.cnicBack.url" alt="CNIC Back" class="doc-img" />
+            <span class="image-label">CNIC Back</span>
+          </div>
+          <div class="image-card" (click)="openLightbox(v.selfieFront.url)">
+            <img [src]="v.selfieFront.url" alt="Selfie with CNIC Front" class="doc-img" />
+            <span class="image-label">Selfie (Front)</span>
+          </div>
+          <div class="image-card" (click)="openLightbox(v.selfieBack.url)">
+            <img [src]="v.selfieBack.url" alt="Selfie with CNIC Back" class="doc-img" />
+            <span class="image-label">Selfie (Back)</span>
+          </div>
+        </div>
+
+        @if (v.status === IdVerificationStatus.REJECTED && v.rejectionReason) {
+          <div class="rejection-info">
+            <span class="material-symbols-rounded">info</span>
+            <span>Rejection reason: {{ v.rejectionReason }}</span>
+          </div>
+        }
+
+        @if (rejectingId === v._id) {
+          <div class="reject-form" [id]="'reject-form-' + v._id">
+            <label class="form-label">Rejection Reason</label>
+            <textarea
+              class="form-input reject-textarea"
+              [(ngModel)]="rejectionReason"
+              placeholder="Explain why this verification is being rejected..."
+              rows="3"
+            ></textarea>
+            <div class="reject-actions">
+              <button
+                class="btn btn-danger btn-sm"
+                [disabled]="!rejectionReason.trim() || actionLoading() === v._id"
+                (click)="confirmReject(v)"
+              >
+                @if (actionLoading() === v._id) {
+                  <span class="spinner spinner-xs"></span>
+                  Rejecting...
+                } @else {
+                  Confirm Reject
+                }
+              </button>
+              <button class="btn btn-outline btn-sm" (click)="cancelReject()">Cancel</button>
+            </div>
+          </div>
+        }
+      </div>
+    </ng-template>
+
     <!-- Pagination -->
-    @if (totalPages > 1) {
+    @if (totalPages() > 1) {
       <div class="pagination">
         <button
           class="btn btn-outline btn-xs"
@@ -196,7 +263,7 @@
         >
           ‹ Prev
         </button>
-        @for (p of pages; track p) {
+        @for (p of pages(); track p) {
           <button
             class="btn btn-xs"
             [class.btn-primary]="p === currentPage()"
@@ -208,7 +275,7 @@
         }
         <button
           class="btn btn-outline btn-xs"
-          [disabled]="currentPage() === totalPages"
+          [disabled]="currentPage() === totalPages()"
           (click)="goToPage(currentPage() + 1)"
         >
           Next ›
@@ -228,7 +295,7 @@
         </div>
         <p class="modal-body">
           Are you sure you want to approve the ID verification for
-          <strong>{{ getUserName(av) }}</strong
+          <strong>{{ userNames().get(av._id) }}</strong
           >? This will mark the user as ID verified.
         </p>
         <div class="modal-actions">

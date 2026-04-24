@@ -1,8 +1,9 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { ROUTES } from '../../../core/constants/routes';
 
-export interface NavItem {
+interface NavItem {
   label: string;
   icon: string;
   path: string;
@@ -16,21 +17,23 @@ export interface NavItem {
   styleUrls: ['./admin-layout.component.scss'],
 })
 export class AdminLayoutComponent {
+  readonly ROUTES = ROUTES;
+
   readonly navItems: NavItem[] = [
-    { label: 'Dashboard', icon: 'dashboard', path: '/admin' },
-    { label: 'Users', icon: 'group', path: '/admin/users' },
-    { label: 'Listings', icon: 'list_alt', path: '/admin/listings' },
-    { label: 'Moderation', icon: 'gavel', path: '/admin/moderation' },
-    { label: 'Categories', icon: 'category', path: '/admin/categories' },
-    { label: 'Brands', icon: 'branding_watermark', path: '/admin/brands' },
-    { label: 'Vehicles', icon: 'directions_car', path: '/admin/vehicles' },
-    { label: 'Packages', icon: 'inventory_2', path: '/admin/packages' },
-    { label: 'Payments', icon: 'payments', path: '/admin/payments' },
-    { label: 'Locations', icon: 'location_on', path: '/admin/locations' },
-    { label: 'Activity', icon: 'timeline', path: '/admin/activity' },
-    { label: 'Rejection Reasons', icon: 'rule', path: '/admin/rejection-reasons' },
-    { label: 'Deletion Reasons', icon: 'delete_sweep', path: '/admin/deletion-reasons' },
-    { label: 'ID Verifications', icon: 'verified_user', path: '/admin/id-verifications' },
+    { label: 'Dashboard', icon: 'dashboard', path: ROUTES.ADMIN },
+    { label: 'Users', icon: 'group', path: `${ROUTES.ADMIN}/users` },
+    { label: 'Listings', icon: 'list_alt', path: `${ROUTES.ADMIN}/listings` },
+    { label: 'Moderation', icon: 'gavel', path: `${ROUTES.ADMIN}/moderation` },
+    { label: 'Categories', icon: 'category', path: `${ROUTES.ADMIN}/categories` },
+    { label: 'Brands', icon: 'branding_watermark', path: `${ROUTES.ADMIN}/brands` },
+    { label: 'Vehicles', icon: 'directions_car', path: `${ROUTES.ADMIN}/vehicles` },
+    { label: 'Packages', icon: 'inventory_2', path: `${ROUTES.ADMIN}/packages` },
+    { label: 'Payments', icon: 'payments', path: `${ROUTES.ADMIN}/payments` },
+    { label: 'Locations', icon: 'location_on', path: `${ROUTES.ADMIN}/locations` },
+    { label: 'Activity', icon: 'timeline', path: `${ROUTES.ADMIN}/activity` },
+    { label: 'Rejection Reasons', icon: 'rule', path: `${ROUTES.ADMIN}/rejection-reasons` },
+    { label: 'Deletion Reasons', icon: 'delete_sweep', path: `${ROUTES.ADMIN}/deletion-reasons` },
+    { label: 'ID Verifications', icon: 'verified_user', path: `${ROUTES.ADMIN}/id-verifications` },
   ];
 
   sidebarCollapsed = false;

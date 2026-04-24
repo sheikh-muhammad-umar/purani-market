@@ -339,12 +339,76 @@
   margin-right: 4px;
 }
 
-/* Detail action buttons — always flex-wrap, never full-width */
+/* Detail action buttons */
 .detail-actions {
   display: flex;
-  gap: 6px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
   margin-top: 16px;
   flex-wrap: wrap;
+}
+
+.detail-actions-group {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.action-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: 13px;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+
+  .material-symbols-rounded {
+    font-size: 16px;
+  }
+
+  &:hover:not(:disabled) {
+    background: var(--hover);
+    border-color: var(--text-muted);
+  }
+
+  &:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+  }
+}
+
+.action-btn-accent {
+  background: rgba(var(--primary-rgb, 0, 188, 212), 0.1);
+  border-color: rgba(var(--primary-rgb, 0, 188, 212), 0.25);
+  color: var(--primary);
+
+  &:hover:not(:disabled) {
+    background: rgba(var(--primary-rgb, 0, 188, 212), 0.18);
+    border-color: var(--primary);
+  }
+}
+
+.action-btn-danger {
+  background: transparent;
+  border-color: transparent;
+  color: var(--text-muted);
+
+  &:hover:not(:disabled) {
+    background: rgba(214, 48, 49, 0.08);
+    border-color: rgba(214, 48, 49, 0.2);
+    color: #e74c3c;
+  }
 }
 
 /* --- Attribute Items --- */
@@ -758,15 +822,13 @@
     font-size: 16px; /* prevent iOS zoom */
   }
 
-  .btn-primary,
-  .btn-secondary,
-  .btn-danger {
-    padding: 6px 10px;
-    font-size: 12px;
+  .detail-actions {
+    gap: 6px;
   }
 
-  .detail-actions {
-    gap: 4px;
+  .action-btn {
+    padding: 6px 10px;
+    font-size: 12px;
   }
   .form-actions {
     gap: 4px;
@@ -955,4 +1017,69 @@
   display: flex;
   align-items: center;
   gap: 8px;
+}
+
+// Inherited attributes/features section
+.inherited-section {
+  background: rgba(var(--primary-rgb, 0, 188, 212), 0.05);
+  border: 1px solid rgba(var(--primary-rgb, 0, 188, 212), 0.15);
+  border-radius: 10px;
+  padding: 12px 14px;
+  margin: 12px 0;
+
+  &.compact {
+    margin: 0 0 12px;
+    padding: 10px 12px;
+  }
+}
+
+.inherited-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--primary);
+  margin-bottom: 8px;
+
+  .material-symbols-rounded {
+    font-size: 18px;
+  }
+}
+
+.inherited-group {
+  margin-top: 6px;
+}
+
+.inherited-label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text-secondary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  display: block;
+  margin-bottom: 4px;
+}
+
+.inherited-chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.inherited-chip {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 500;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  color: var(--text-primary);
+}
+
+.inherited-chip-feature {
+  background: rgba(156, 39, 176, 0.08);
+  border-color: rgba(156, 39, 176, 0.2);
+  color: #ce93d8;
 }

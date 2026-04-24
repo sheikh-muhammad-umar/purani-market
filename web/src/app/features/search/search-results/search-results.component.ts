@@ -485,9 +485,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ attributes }) => {
-          this.categoryFilters.set((attributes || []).filter((a: any) => a.type !== 'text'));
-          // Load provinces if any attribute is province_city type
-          if (attributes?.some((a: any) => a.type === 'province_city')) {
+          this.categoryFilters.set((attributes || []).filter((a) => a.type !== 'text'));
+          if (attributes?.some((a) => a.type === 'province_city')) {
             this.loadProvinces();
           }
         },

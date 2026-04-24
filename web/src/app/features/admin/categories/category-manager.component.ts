@@ -89,6 +89,8 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
   readonly filteredDefinitions = signal<PickerItem[]>([]);
   assignedAttributes: AssignedAttribute[] = [];
   parentAttributeKeys = new Set<string>();
+  readonly inheritedAttributes = signal<CategoryAttribute[]>([]);
+  readonly inheritedFeatures = signal<string[]>([]);
   readonly attributeWarning = signal<string | null>(null);
   attrSearchQuery = '';
   showAttrPicker = false;
@@ -204,6 +206,28 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
   selectCategory(cat: Category): void {
     this.selectedCategory.set(cat);
     this.activePanel = 'none';
+    this.loadInheritedInfo(cat);
+  }
+
+  private loadInheritedInfo(cat: Category): void {
+    if (cat.parentId) {
+      this.categoriesService
+        .getInheritedAttributes(cat.parentId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: ({ attributes, features }) => {
+            this.inheritedAttributes.set(attributes ?? []);
+            this.inheritedFeatures.set(features ?? []);
+          },
+          error: () => {
+            this.inheritedAttributes.set([]);
+            this.inheritedFeatures.set([]);
+          },
+        });
+    } else {
+      this.inheritedAttributes.set([]);
+      this.inheritedFeatures.set([]);
+    }
   }
 
   // --- ADD ---
@@ -669,7 +693,13 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
     return ids;
   }
 
+  readonly hasChildrenMap = computed(() => {
+    const cats = this.flatCategories();
+    const parentIds = new Set(cats.filter((c) => c.parentId).map((c) => c.parentId!));
+    return parentIds;
+  });
+
   hasChildren(cat: Category): boolean {
-    return this.flatCategories().some((c) => c.parentId === cat._id);
+    return this.hasChildrenMap().has(cat._id);
   }
 }

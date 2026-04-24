@@ -37,7 +37,7 @@
             class="nav-item"
             [routerLink]="item.path"
             routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: item.path === '/admin' }"
+            [routerLinkActiveOptions]="{ exact: item.path === ROUTES.ADMIN }"
             [attr.aria-label]="item.label"
             (click)="closeMobileMenu()"
           >

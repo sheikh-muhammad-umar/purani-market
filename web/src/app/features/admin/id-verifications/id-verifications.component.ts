@@ -1,7 +1,8 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { HttpClient, HttpParams } from '@angular/common/http';
+import { Subject, takeUntil } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { API } from '../../../core/constants/api-endpoints';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
@@ -14,6 +15,18 @@ import {
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
 
+const FALLBACK_USER = 'Unknown User';
+const FALLBACK_VALUE = '—';
+const PAGE_WINDOW = 2;
+
+const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
+  year: 'numeric',
+  month: 'short',
+  day: 'numeric',
+  hour: '2-digit',
+  minute: '2-digit',
+};
+
 @Component({
   selector: 'app-id-verifications',
   standalone: true,
@@ -21,8 +34,9 @@ import {
   templateUrl: './id-verifications.component.html',
   styleUrl: './id-verifications.component.scss',
 })
-export class IdVerificationsComponent implements OnInit {
+export class IdVerificationsComponent implements OnInit, OnDestroy {
   private readonly apiUrl = environment.apiUrl;
+  private readonly destroy$ = new Subject<void>();
 
   readonly loading = signal(true);
   readonly error = signal('');
@@ -50,24 +64,62 @@ export class IdVerificationsComponent implements OnInit {
     { value: IdVerificationStatus.REJECTED, label: 'Rejected' },
   ];
 
-  get totalPages(): number {
-    return Math.max(1, Math.ceil(this.total() / this.pageSize()));
-  }
+  /** Precomputed maps to avoid template method calls on every CD cycle */
+  readonly userNames = computed(() => {
+    const map = new Map<string, string>();
+    for (const v of this.verifications()) {
+      const p = v.user?.profile;
+      const name =
+        p?.firstName || p?.lastName
+          ? `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim()
+          : v.user?.email || v.user?.phone || FALLBACK_USER;
+      map.set(v._id, name);
+    }
+    return map;
+  });
 
-  get pages(): number[] {
-    const total = this.totalPages;
+  readonly userContacts = computed(() => {
+    const map = new Map<string, string>();
+    for (const v of this.verifications()) {
+      map.set(v._id, v.user?.email || v.user?.phone || FALLBACK_VALUE);
+    }
+    return map;
+  });
+
+  readonly formattedDates = computed(() => {
+    const map = new Map<string, string>();
+    for (const v of this.verifications()) {
+      map.set(
+        v._id,
+        v.createdAt
+          ? new Date(v.createdAt).toLocaleDateString('en-US', DATE_FORMAT_OPTIONS)
+          : FALLBACK_VALUE,
+      );
+    }
+    return map;
+  });
+
+  readonly totalPages = computed(() => Math.max(1, Math.ceil(this.total() / this.pageSize())));
+
+  readonly pages = computed(() => {
+    const total = this.totalPages();
     const current = this.currentPage();
     const pages: number[] = [];
-    const start = Math.max(1, current - 2);
-    const end = Math.min(total, current + 2);
+    const start = Math.max(1, current - PAGE_WINDOW);
+    const end = Math.min(total, current + PAGE_WINDOW);
     for (let i = start; i <= end; i++) pages.push(i);
     return pages;
-  }
+  });
 
   constructor(private readonly http: HttpClient) {}
 
   ngOnInit(): void {
     this.loadVerifications();
+  }
+
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
   }
 
   loadVerifications(): void {
@@ -81,20 +133,23 @@ export class IdVerificationsComponent implements OnInit {
     if (this.statusFilter) params = params.set('status', this.statusFilter);
     if (this.searchQuery.trim()) params = params.set('search', this.searchQuery.trim());
 
-    this.http.get<any>(`${this.apiUrl}${API.ID_VERIFICATION_ADMIN_ALL}`, { params }).subscribe({
-      next: (res) => {
-        const payload = res && res.statusCode ? res.data : res;
-        const items = Array.isArray(payload) ? payload : (payload?.data ?? []);
-        const total = Array.isArray(payload) ? payload.length : (payload?.total ?? 0);
-        this.verifications.set(items);
-        this.total.set(total);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set(ERROR_MSG.VERIFICATIONS_LOAD_FAILED);
-        this.loading.set(false);
-      },
-    });
+    this.http
+      .get<any>(`${this.apiUrl}${API.ID_VERIFICATION_ADMIN_ALL}`, { params })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          const payload = res && res.statusCode ? res.data : res;
+          const items = Array.isArray(payload) ? payload : (payload?.data ?? []);
+          const total = Array.isArray(payload) ? payload.length : (payload?.total ?? 0);
+          this.verifications.set(items);
+          this.total.set(total);
+          this.loading.set(false);
+        },
+        error: () => {
+          this.error.set(ERROR_MSG.VERIFICATIONS_LOAD_FAILED);
+          this.loading.set(false);
+        },
+      });
   }
 
   onSearch(): void {
@@ -108,7 +163,7 @@ export class IdVerificationsComponent implements OnInit {
   }
 
   goToPage(page: number): void {
-    if (page < 1 || page > this.totalPages) return;
+    if (page < 1 || page > this.totalPages()) return;
     this.currentPage.set(page);
     this.loadVerifications();
   }
@@ -117,18 +172,6 @@ export class IdVerificationsComponent implements OnInit {
     this.expandedId = this.expandedId === id ? null : id;
     this.rejectingId = null;
     this.rejectionReason = '';
-  }
-
-  getUserName(v: IdVerificationRequest): string {
-    const p = v.user?.profile;
-    if (p?.firstName || p?.lastName) {
-      return `${p.firstName ?? ''} ${p.lastName ?? ''}`.trim();
-    }
-    return v.user?.email || v.user?.phone || 'Unknown User';
-  }
-
-  getUserContact(v: IdVerificationRequest): string {
-    return v.user?.email || v.user?.phone || '—';
   }
 
   approve(v: IdVerificationRequest): void {
@@ -149,6 +192,7 @@ export class IdVerificationsComponent implements OnInit {
       .patch(`${this.apiUrl}${API.ID_VERIFICATION_ADMIN_REVIEW(v._id)}`, {
         status: IdVerificationStatus.APPROVED,
       })
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
           this.actionLoading.set(null);
@@ -181,6 +225,7 @@ export class IdVerificationsComponent implements OnInit {
         status: IdVerificationStatus.REJECTED,
         rejectionReason: this.rejectionReason.trim(),
       })
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
           this.actionLoading.set(null);
@@ -201,16 +246,5 @@ export class IdVerificationsComponent implements OnInit {
 
   closeLightbox(): void {
     this.lightboxUrl = null;
-  }
-
-  formatDate(dateStr: string): string {
-    if (!dateStr) return '—';
-    return new Date(dateStr).toLocaleDateString('en-US', {
-      year: 'numeric',
-      month: 'short',
-      day: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit',
-    });
   }
 }

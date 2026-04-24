@@ -48,7 +48,8 @@
       <input
         type="text"
         class="search-input"
-        [(ngModel)]="provinceSearch"
+        [ngModel]="provinceSearch()"
+        (ngModelChange)="provinceSearch.set($event)"
         placeholder="Search provinces..."
       />
 
@@ -133,7 +134,8 @@
         <input
           type="text"
           class="search-input"
-          [(ngModel)]="citySearch"
+          [ngModel]="citySearch()"
+          (ngModelChange)="citySearch.set($event)"
           placeholder="Search cities..."
         />
       }
@@ -219,7 +221,8 @@
         <input
           type="text"
           class="search-input"
-          [(ngModel)]="areaSearch"
+          [ngModel]="areaSearch()"
+          (ngModelChange)="areaSearch.set($event)"
           placeholder="Search areas..."
         />
       }

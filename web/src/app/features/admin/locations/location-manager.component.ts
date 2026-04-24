@@ -1,7 +1,9 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { Subject, takeUntil } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
+import { API } from '../../../core/constants/api-endpoints';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 
 interface Province {
@@ -26,6 +28,13 @@ interface Stats {
   areas: number;
 }
 
+const ERR_ADD_PROVINCE = 'Failed to add province';
+const ERR_ADD_CITY = 'Failed to add city';
+const ERR_ADD_AREA = 'Failed to add area';
+const ERR_RENAME = 'Failed to rename';
+const ERR_DELETE = 'Failed to delete';
+const ERR_UPDATE_AREA = 'Failed to update area';
+
 @Component({
   selector: 'app-location-manager',
   standalone: true,
@@ -33,7 +42,8 @@ interface Stats {
   templateUrl: './location-manager.component.html',
   styleUrls: ['./location-manager.component.scss'],
 })
-export class LocationManagerComponent implements OnInit {
+export class LocationManagerComponent implements OnInit, OnDestroy {
+  private readonly destroy$ = new Subject<void>();
   readonly loading = signal(false);
   readonly stats = signal<Stats>({ provinces: 0, cities: 0, areas: 0 });
 
@@ -45,9 +55,9 @@ export class LocationManagerComponent implements OnInit {
   readonly selectedCity = signal<City | null>(null);
   readonly selectedArea = signal<Area | null>(null);
 
-  provinceSearch = '';
-  citySearch = '';
-  areaSearch = '';
+  provinceSearch = signal('');
+  citySearch = signal('');
+  areaSearch = signal('');
 
   editingId = signal<string | null>(null);
   editingName = '';
@@ -65,17 +75,17 @@ export class LocationManagerComponent implements OnInit {
   actionError = signal<string | null>(null);
 
   readonly filteredProvinces = computed(() => {
-    const q = this.provinceSearch.toLowerCase();
+    const q = this.provinceSearch().toLowerCase();
     return q ? this.provinces().filter((p) => p.name.toLowerCase().includes(q)) : this.provinces();
   });
 
   readonly filteredCities = computed(() => {
-    const q = this.citySearch.toLowerCase();
+    const q = this.citySearch().toLowerCase();
     return q ? this.cities().filter((c) => c.name.toLowerCase().includes(q)) : this.cities();
   });
 
   readonly filteredAreas = computed(() => {
-    const q = this.areaSearch.toLowerCase();
+    const q = this.areaSearch().toLowerCase();
     return q ? this.areas().filter((a) => a.name.toLowerCase().includes(q)) : this.areas();
   });
 
@@ -89,19 +99,30 @@ export class LocationManagerComponent implements OnInit {
     this.loadStats();
   }
 
+  ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
+  }
+
   loadStats(): void {
-    this.api.get<Stats>('/location/stats').subscribe((s) => this.stats.set(s));
+    this.api
+      .get<Stats>('/location/stats')
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((s) => this.stats.set(s));
   }
 
   loadProvinces(): void {
     this.loading.set(true);
-    this.api.get<Province[]>('/location/provinces').subscribe({
-      next: (data) => {
-        this.provinces.set(data);
-        this.loading.set(false);
-      },
-      error: () => this.loading.set(false),
-    });
+    this.api
+      .get<Province[]>(API.LOCATION_PROVINCES)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (data) => {
+          this.provinces.set(data);
+          this.loading.set(false);
+        },
+        error: () => this.loading.set(false),
+      });
   }
 
   selectProvince(p: Province): void {
@@ -110,10 +131,11 @@ export class LocationManagerComponent implements OnInit {
     this.selectedArea.set(null);
     this.cities.set([]);
     this.areas.set([]);
-    this.citySearch = '';
-    this.areaSearch = '';
+    this.citySearch.set('');
+    this.areaSearch.set('');
     this.api
-      .get<City[]>(`/location/provinces/${p._id}/cities`)
+      .get<City[]>(API.LOCATION_CITIES(p._id))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((data) => this.cities.set(data));
   }
 
@@ -121,9 +143,10 @@ export class LocationManagerComponent implements OnInit {
     this.selectedCity.set(c);
     this.selectedArea.set(null);
     this.areas.set([]);
-    this.areaSearch = '';
+    this.areaSearch.set('');
     this.api
-      .get<Area[]>(`/location/cities/${c._id}/areas`)
+      .get<Area[]>(API.LOCATION_AREAS(c._id))
+      .pipe(takeUntil(this.destroy$))
       .subscribe((data) => this.areas.set(data));
   }
 
@@ -135,7 +158,8 @@ export class LocationManagerComponent implements OnInit {
     if (!this.newProvinceName.trim()) return;
     this.actionError.set(null);
     this.api
-      .post<Province>('/location/provinces', { name: this.newProvinceName.trim() })
+      .post<Province>(API.LOCATION_PROVINCES, { name: this.newProvinceName.trim() })
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (p) => {
           this.provinces.update((list) =>
@@ -145,7 +169,7 @@ export class LocationManagerComponent implements OnInit {
           this.showAddProvince = false;
           this.loadStats();
         },
-        error: (e) => this.actionError.set(e?.error?.message || 'Failed to add province'),
+        error: (e) => this.actionError.set(e?.error?.message || ERR_ADD_PROVINCE),
       });
   }
 
@@ -155,6 +179,7 @@ export class LocationManagerComponent implements OnInit {
     this.actionError.set(null);
     this.api
       .post<City>('/location/cities', { name: this.newCityName.trim(), provinceId: prov._id })
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (c) => {
           this.cities.update((list) => [...list, c].sort((a, b) => a.name.localeCompare(b.name)));
@@ -162,7 +187,7 @@ export class LocationManagerComponent implements OnInit {
           this.showAddCity = false;
           this.loadStats();
         },
-        error: (e) => this.actionError.set(e?.error?.message || 'Failed to add city'),
+        error: (e) => this.actionError.set(e?.error?.message || ERR_ADD_CITY),
       });
   }
 
@@ -172,6 +197,7 @@ export class LocationManagerComponent implements OnInit {
     this.actionError.set(null);
     this.api
       .post<Area>('/location/areas', { name: this.newAreaName.trim(), cityId: city._id })
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (a) => {
           this.areas.update((list) => [...list, a].sort((x, y) => x.name.localeCompare(y.name)));
@@ -179,7 +205,7 @@ export class LocationManagerComponent implements OnInit {
           this.showAddArea = false;
           this.loadStats();
         },
-        error: (e) => this.actionError.set(e?.error?.message || 'Failed to add area'),
+        error: (e) => this.actionError.set(e?.error?.message || ERR_ADD_AREA),
       });
   }
 
@@ -197,38 +223,45 @@ export class LocationManagerComponent implements OnInit {
     if (!this.editingName.trim()) return;
     this.api
       .patch<Province>(`/location/provinces/${p._id}`, { name: this.editingName.trim() })
+      .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (updated) => {
           this.provinces.update((list) => list.map((x) => (x._id === updated._id ? updated : x)));
           if (this.selectedProvince()?._id === updated._id) this.selectedProvince.set(updated);
           this.cancelEdit();
         },
-        error: (e) => this.actionError.set(e?.error?.message || 'Failed to rename'),
+        error: (e) => this.actionError.set(e?.error?.message || ERR_RENAME),
       });
   }
 
   saveCityName(c: City): void {
     if (!this.editingName.trim()) return;
-    this.api.patch<City>(`/location/cities/${c._id}`, { name: this.editingName.trim() }).subscribe({
-      next: (updated) => {
-        this.cities.update((list) => list.map((x) => (x._id === updated._id ? updated : x)));
-        if (this.selectedCity()?._id === updated._id) this.selectedCity.set(updated);
-        this.cancelEdit();
-      },
-      error: (e) => this.actionError.set(e?.error?.message || 'Failed to rename'),
-    });
+    this.api
+      .patch<City>(`/location/cities/${c._id}`, { name: this.editingName.trim() })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updated) => {
+          this.cities.update((list) => list.map((x) => (x._id === updated._id ? updated : x)));
+          if (this.selectedCity()?._id === updated._id) this.selectedCity.set(updated);
+          this.cancelEdit();
+        },
+        error: (e) => this.actionError.set(e?.error?.message || ERR_RENAME),
+      });
   }
 
   saveAreaName(a: Area): void {
     if (!this.editingName.trim()) return;
-    this.api.patch<Area>(`/location/areas/${a._id}`, { name: this.editingName.trim() }).subscribe({
-      next: (updated) => {
-        this.areas.update((list) => list.map((x) => (x._id === updated._id ? updated : x)));
-        if (this.selectedArea()?._id === updated._id) this.selectedArea.set(updated);
-        this.cancelEdit();
-      },
-      error: (e) => this.actionError.set(e?.error?.message || 'Failed to rename'),
-    });
+    this.api
+      .patch<Area>(`/location/areas/${a._id}`, { name: this.editingName.trim() })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updated) => {
+          this.areas.update((list) => list.map((x) => (x._id === updated._id ? updated : x)));
+          if (this.selectedArea()?._id === updated._id) this.selectedArea.set(updated);
+          this.cancelEdit();
+        },
+        error: (e) => this.actionError.set(e?.error?.message || ERR_RENAME),
+      });
   }
 
   async deleteProvince(p: Province): Promise<void> {
@@ -239,20 +272,23 @@ export class LocationManagerComponent implements OnInit {
       variant: 'danger',
     });
     if (!ok) return;
-    this.api.delete(`/location/provinces/${p._id}`).subscribe({
-      next: () => {
-        this.provinces.update((list) => list.filter((x) => x._id !== p._id));
-        if (this.selectedProvince()?._id === p._id) {
-          this.selectedProvince.set(null);
-          this.cities.set([]);
-          this.areas.set([]);
-          this.selectedCity.set(null);
-          this.selectedArea.set(null);
-        }
-        this.loadStats();
-      },
-      error: (e) => this.actionError.set(e?.error?.message || 'Failed to delete'),
-    });
+    this.api
+      .delete(`/location/provinces/${p._id}`)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.provinces.update((list) => list.filter((x) => x._id !== p._id));
+          if (this.selectedProvince()?._id === p._id) {
+            this.selectedProvince.set(null);
+            this.cities.set([]);
+            this.areas.set([]);
+            this.selectedCity.set(null);
+            this.selectedArea.set(null);
+          }
+          this.loadStats();
+        },
+        error: (e) => this.actionError.set(e?.error?.message || ERR_DELETE),
+      });
   }
 
   async deleteCity(c: City): Promise<void> {
@@ -263,18 +299,21 @@ export class LocationManagerComponent implements OnInit {
       variant: 'danger',
     });
     if (!ok) return;
-    this.api.delete(`/location/cities/${c._id}`).subscribe({
-      next: () => {
-        this.cities.update((list) => list.filter((x) => x._id !== c._id));
-        if (this.selectedCity()?._id === c._id) {
-          this.selectedCity.set(null);
-          this.areas.set([]);
-          this.selectedArea.set(null);
-        }
-        this.loadStats();
-      },
-      error: (e) => this.actionError.set(e?.error?.message || 'Failed to delete'),
-    });
+    this.api
+      .delete(`/location/cities/${c._id}`)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.cities.update((list) => list.filter((x) => x._id !== c._id));
+          if (this.selectedCity()?._id === c._id) {
+            this.selectedCity.set(null);
+            this.areas.set([]);
+            this.selectedArea.set(null);
+          }
+          this.loadStats();
+        },
+        error: (e) => this.actionError.set(e?.error?.message || ERR_DELETE),
+      });
   }
 
   async deleteArea(a: Area): Promise<void> {
@@ -285,14 +324,17 @@ export class LocationManagerComponent implements OnInit {
       variant: 'danger',
     });
     if (!ok) return;
-    this.api.delete(`/location/areas/${a._id}`).subscribe({
-      next: () => {
-        this.areas.update((list) => list.filter((x) => x._id !== a._id));
-        if (this.selectedArea()?._id === a._id) this.selectedArea.set(null);
-        this.loadStats();
-      },
-      error: (e) => this.actionError.set(e?.error?.message || 'Failed to delete'),
-    });
+    this.api
+      .delete(`/location/areas/${a._id}`)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.areas.update((list) => list.filter((x) => x._id !== a._id));
+          if (this.selectedArea()?._id === a._id) this.selectedArea.set(null);
+          this.loadStats();
+        },
+        error: (e) => this.actionError.set(e?.error?.message || ERR_DELETE),
+      });
   }
 
   addSubarea(): void {
@@ -325,16 +367,19 @@ export class LocationManagerComponent implements OnInit {
 
   private saveAreaDetail(area: Area, patch: Partial<Area>): void {
     this.savingArea.set(true);
-    this.api.patch<Area>(`/location/areas/${area._id}`, patch).subscribe({
-      next: (updated) => {
-        this.areas.update((list) => list.map((x) => (x._id === updated._id ? updated : x)));
-        this.selectedArea.set(updated);
-        this.savingArea.set(false);
-      },
-      error: (e) => {
-        this.actionError.set(e?.error?.message || 'Failed to update area');
-        this.savingArea.set(false);
-      },
-    });
+    this.api
+      .patch<Area>(`/location/areas/${area._id}`, patch)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (updated) => {
+          this.areas.update((list) => list.map((x) => (x._id === updated._id ? updated : x)));
+          this.selectedArea.set(updated);
+          this.savingArea.set(false);
+        },
+        error: (e) => {
+          this.actionError.set(e?.error?.message || ERR_UPDATE_AREA);
+          this.savingArea.set(false);
+        },
+      });
   }
 }

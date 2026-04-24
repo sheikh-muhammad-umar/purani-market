@@ -389,8 +389,21 @@
   border-radius: var(--radius-md);
 }
 
+// Visibility toggles
+.mobile-only {
+  display: none;
+}
+
 // Responsive
 @media (max-width: 768px) {
+  .mobile-only {
+    display: flex;
+  }
+
+  .desktop-only {
+    display: none;
+  }
+
   .images-grid {
     grid-template-columns: repeat(2, 1fr);
   }
@@ -409,12 +422,115 @@
   .page-title {
     font-size: var(--text-xl);
   }
+
+  .desktop-only {
+    display: none;
+  }
+
+  .pagination {
+    justify-content: center;
+  }
+
+  .pagination-info {
+    margin-left: 0;
+    width: 100%;
+    text-align: center;
+    margin-top: 4px;
+  }
 }
 
 @media (max-width: 480px) {
   .images-grid {
     grid-template-columns: 1fr;
   }
+
+  .v-card-meta {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .action-btns {
+    width: 100%;
+
+    .btn {
+      flex: 1;
+    }
+  }
+}
+
+// Mobile card view
+.mobile-cards {
+  flex-direction: column;
+  gap: var(--space-2);
+}
+
+.v-card {
+  background: var(--background);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  padding: var(--space-2);
+  cursor: pointer;
+  transition: border-color 0.15s;
+
+  &:active {
+    background: var(--surface);
+  }
+
+  &.expanded {
+    border-color: var(--primary);
+  }
+}
+
+.v-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  margin-bottom: var(--space-1);
+}
+
+.v-card-user-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+
+  .user-name {
+    font-weight: 500;
+    font-size: var(--text-sm);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+}
+
+.v-card-contact {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.v-card-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  padding-top: var(--space-1);
+  border-top: 1px solid var(--border);
+}
+
+.v-card-date {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.v-card-detail {
+  margin-top: var(--space-2);
+  padding-top: var(--space-2);
+  border-top: 1px solid var(--border);
+  cursor: default;
 }
 
 // Confirmation modal
