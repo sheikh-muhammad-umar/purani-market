@@ -10,4 +10,8 @@ export const ERROR_MSG = {
   VERIFICATIONS_LOAD_FAILED: 'Failed to load verification requests.',
   LISTING_LOAD_FAILED: 'Failed to load listing.',
   LISTING_UPDATE_FAILED: 'Failed to update listing.',
+  LISTING_NOT_FOUND: 'Listing not found.',
+  LISTING_CREATE_FAILED: 'Failed to create listing. Please try again.',
+  PENDING_LISTINGS_LOAD_FAILED: 'Failed to load pending listings. Please try again.',
+  INVALID_MAP_LINK: 'Please enter a valid Google Maps or Apple Maps link (https only)',
 } as const;

@@ -31,6 +31,7 @@ export interface CreateListingPayload {
     area?: string;
     blockPhase?: string;
     coordinates?: [number, number];
+    mapLink?: string;
   };
   contactInfo?: { phone: string; email: string };
   isFeatured?: boolean;

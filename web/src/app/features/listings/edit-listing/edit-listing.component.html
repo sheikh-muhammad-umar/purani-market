@@ -402,6 +402,26 @@
                 </div>
               </div>
             }
+
+            <!-- Map Link (optional) -->
+            <div class="form-group" style="margin-top: var(--space-3)">
+              <label class="form-label">Map Location Link</label>
+              <p class="field-hint">
+                Paste a Google Maps or Apple Maps link to show your exact location on the listing
+              </p>
+              <input
+                type="url"
+                class="form-input"
+                formControlName="mapLink"
+                placeholder="https://maps.google.com/... or https://maps.apple.com/..."
+              />
+              @if (
+                locationForm.get('mapLink')?.touched &&
+                locationForm.get('mapLink')?.errors?.['invalidMapLink']
+              ) {
+                <span class="form-error">{{ ERROR_MSG.INVALID_MAP_LINK }}</span>
+              }
+            </div>
           </form>
         </div>
       }
@@ -462,6 +482,16 @@
                   ({{ selectedBlockPhase() }})
                 }
               </p>
+              @if (locationForm.get('mapLink')?.value) {
+                <p style="margin-top: 4px; font-size: 0.85em">
+                  <span
+                    class="material-symbols-rounded"
+                    style="font-size: 14px; vertical-align: middle"
+                    >map</span
+                  >
+                  Map link added
+                </p>
+              }
             </div>
             <div class="review-section feature-section">
               <label class="checkbox-label feature-toggle">

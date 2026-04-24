@@ -371,6 +371,12 @@
   }
 }
 
+.field-hint {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+  margin: 2px 0 8px;
+}
+
 .unit {
   font-weight: 400;
   color: var(--text-muted);

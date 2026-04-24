@@ -104,7 +104,7 @@ export interface PendingListing {
   createdAt: string;
   categoryAttributes?: Record<string, any>;
   selectedFeatures?: string[];
-  location?: { city?: string; area?: string };
+  location?: { city?: string; area?: string; mapLink?: string };
   contactInfo?: { phone?: string; email?: string };
   rejectionCount?: number;
 }

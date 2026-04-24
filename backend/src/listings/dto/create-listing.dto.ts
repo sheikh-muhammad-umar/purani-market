@@ -9,8 +9,8 @@ import {
   ValidateNested,
   IsOptional,
   IsObject,
-  IsBoolean,
   Min,
+  Matches,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { ListingCondition } from '../schemas/product-listing.schema.js';
@@ -78,6 +78,18 @@ export class CreateListingLocationDto {
   @IsString()
   @IsOptional()
   area?: string;
+
+  @IsString()
+  @IsOptional()
+  @MaxLength(2000)
+  @Matches(
+    /^https:\/\/(www\.)?(google\.[a-z.]+\/(maps|maps\/place|maps\/dir|maps\/search|maps\/@)|maps\.google\.[a-z.]+|goo\.gl\/maps|maps\.app\.goo\.gl|maps\.apple\.com)/,
+    {
+      message:
+        'mapLink must be a valid Google Maps or Apple Maps URL (https only)',
+    },
+  )
+  mapLink?: string;
 }
 
 export class CreateListingContactInfoDto {

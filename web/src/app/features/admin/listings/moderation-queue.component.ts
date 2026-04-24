@@ -1,6 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AdminService, PendingListing } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category } from '../../../core/models/category.model';
@@ -13,6 +14,8 @@ import {
   CONDITION_FILTER_OPTIONS,
   REVIEW_COUNT_OPTIONS,
 } from '../../../core/constants/select-options';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
+import { buildMapEmbedUrl } from '../../../core/utils/map-link';
 
 @Component({
   selector: 'app-moderation-queue',
@@ -57,6 +60,7 @@ export class ModerationQueueComponent implements OnInit {
   constructor(
     private readonly adminService: AdminService,
     private readonly categoriesService: CategoriesService,
+    private readonly sanitizer: DomSanitizer,
   ) {}
 
   toggleExpand(id: string): void {
@@ -103,7 +107,7 @@ export class ModerationQueueComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load pending listings. Please try again.');
+        this.error.set(ERROR_MSG.PENDING_LISTINGS_LOAD_FAILED);
         this.loading.set(false);
       },
     });
@@ -201,6 +205,17 @@ export class ModerationQueueComponent implements OnInit {
 
   formatAttrKey(key: string): string {
     return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  private mapEmbedCache = new Map<string, SafeResourceUrl>();
+
+  getMapEmbedUrl(mapLink: string): SafeResourceUrl {
+    const cached = this.mapEmbedCache.get(mapLink);
+    if (cached) return cached;
+
+    const safe = this.sanitizer.bypassSecurityTrustResourceUrl(buildMapEmbedUrl(mapLink));
+    this.mapEmbedCache.set(mapLink, safe);
+    return safe;
   }
 
   sortListings(col: string): void {

@@ -32,6 +32,7 @@ export interface ListingLocation {
   city: string;
   area?: string;
   blockPhase?: string;
+  mapLink?: string;
 }
 
 export interface ListingContactInfo {

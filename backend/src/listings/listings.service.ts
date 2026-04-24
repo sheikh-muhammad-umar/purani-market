@@ -344,10 +344,20 @@ export class ListingsService {
     }
     if (dto.location !== undefined) {
       updateFields.location = {
+        provinceId: dto.location.provinceId
+          ? new Types.ObjectId(dto.location.provinceId)
+          : undefined,
+        cityId: dto.location.cityId
+          ? new Types.ObjectId(dto.location.cityId)
+          : undefined,
+        areaId: dto.location.areaId
+          ? new Types.ObjectId(dto.location.areaId)
+          : undefined,
         city: dto.location.city,
         area: dto.location.area,
         province: dto.location.province,
         blockPhase: dto.location.blockPhase,
+        mapLink: dto.location.mapLink,
       };
     }
     if (dto.contactInfo !== undefined) {
@@ -561,10 +571,20 @@ export class ListingsService {
         ? { url: dto.video.url, thumbnailUrl: dto.video.thumbnailUrl }
         : undefined,
       location: {
+        provinceId: dto.location.provinceId
+          ? new Types.ObjectId(dto.location.provinceId)
+          : undefined,
+        cityId: dto.location.cityId
+          ? new Types.ObjectId(dto.location.cityId)
+          : undefined,
+        areaId: dto.location.areaId
+          ? new Types.ObjectId(dto.location.areaId)
+          : undefined,
         city: dto.location.city,
         area: dto.location.area,
         province: dto.location.province,
         blockPhase: dto.location.blockPhase,
+        mapLink: dto.location.mapLink,
       },
       contactInfo: {
         phone: dto.contactInfo?.phone || seller.phone || '',

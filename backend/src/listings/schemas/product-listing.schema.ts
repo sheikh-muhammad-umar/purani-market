@@ -76,6 +76,9 @@ export class ListingLocation {
 
   @Prop({ type: String })
   area?: string;
+
+  @Prop({ type: String })
+  mapLink?: string;
 }
 
 @Schema({ _id: false })

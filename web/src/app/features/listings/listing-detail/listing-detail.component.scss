@@ -482,6 +482,7 @@
 }
 
 .map-container {
+  position: relative;
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--background);
@@ -502,6 +503,45 @@
   font-size: var(--text-sm);
   background: var(--background);
   border-radius: var(--radius-sm);
+}
+
+.map-open-btn {
+  position: absolute;
+  bottom: 12px;
+  right: 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1a73e8;
+  background: #fff;
+  border: none;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.18);
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    box-shadow 0.15s,
+    transform 0.1s;
+  z-index: 1;
+
+  .material-symbols-rounded {
+    font-size: 18px;
+  }
+
+  &:hover {
+    background: #f0f6ff;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.22);
+    transform: translateY(-1px);
+  }
+
+  &:active {
+    transform: translateY(0);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+  }
 }
 
 /* Similar Items Carousel */

@@ -1,6 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { ListingsService, ListingsResponse } from '../../../core/services/listings.service';
 import { ReviewsService, ReviewsResponse } from '../../../core/services/reviews.service';
 import { FavoritesService } from '../../../core/services/favorites.service';
@@ -15,6 +16,8 @@ import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { PLACEHOLDER_IMAGE } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { ListingStatus } from '../../../core/constants/enums';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
+import { buildMapEmbedUrl } from '../../../core/utils/map-link';
 
 @Component({
   selector: 'app-listing-detail',
@@ -62,15 +65,25 @@ export class ListingDetailComponent implements OnInit {
     private readonly listingsService: ListingsService,
     private readonly reviewsService: ReviewsService,
     private readonly favoritesService: FavoritesService,
+    private readonly sanitizer: DomSanitizer,
     public readonly authService: AuthService,
     public readonly loginModal: LoginModalService,
     public readonly tracker: ActivityTrackerService,
   ) {}
 
+  mapEmbedUrl = computed<SafeResourceUrl | null>(() => {
+    const l = this.listing();
+    if (!l?.location?.mapLink) return null;
+    const fallback = l.location.area ? `${l.location.area}, ${l.location.city}` : l.location.city;
+    return this.sanitizer.bypassSecurityTrustResourceUrl(
+      buildMapEmbedUrl(l.location.mapLink, fallback),
+    );
+  });
+
   ngOnInit(): void {
     const rawId = this.route.snapshot.paramMap.get('id');
     if (!rawId) {
-      this.error.set('Listing not found');
+      this.error.set(ERROR_MSG.LISTING_NOT_FOUND);
       this.loading.set(false);
       return;
     }
@@ -90,7 +103,7 @@ export class ListingDetailComponent implements OnInit {
         });
       },
       error: () => {
-        this.error.set('Failed to load listing');
+        this.error.set(ERROR_MSG.LISTING_LOAD_FAILED);
         this.loading.set(false);
       },
     });

@@ -6,7 +6,6 @@ import {
   FormGroup,
   Validators,
   FormControl,
-  FormArray,
 } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { CategoriesService } from '../../../core/services/categories.service';
@@ -14,7 +13,7 @@ import { ListingsService, CreateListingPayload } from '../../../core/services/li
 import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LocationService } from '../../../core/services/location.service';
-import { Category, CategoryAttribute, User, Province, City, Area } from '../../../core/models';
+import { Category, CategoryAttribute, Province, City, Area } from '../../../core/models';
 import { ListingCondition, PackageType, PaymentStatus } from '../../../core/constants/enums';
 import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
 import { listingSlug } from '../../../core/utils/slug';
@@ -25,6 +24,8 @@ import { ROUTES } from '../../../core/constants/routes';
 import { saveState, loadState, clearState } from '../../../core/utils/state-persistence';
 import { computeFileHash } from '../../../core/utils/file-hash';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
+import { mapLinkValidator } from '../../../core/utils/map-link';
+import { Subject, takeUntil } from 'rxjs';
 
 export interface MediaItem {
   file: File;
@@ -43,6 +44,7 @@ export interface MediaItem {
 export class CreateListingComponent implements OnInit, OnDestroy {
   readonly conditionOptions = CONDITION_OPTIONS;
   readonly ROUTES = ROUTES;
+  readonly ERROR_MSG = ERROR_MSG;
 
   // Phone verification state
   phoneVerified = signal(false);
@@ -136,6 +138,8 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   error = signal('');
   draftMediaWarning = signal(false);
 
+  private readonly destroy$ = new Subject<void>();
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly router: Router,
@@ -148,6 +152,8 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnDestroy(): void {
+    this.destroy$.next();
+    this.destroy$.complete();
     for (const item of this.mediaItems()) {
       URL.revokeObjectURL(item.preview);
     }
@@ -284,36 +290,46 @@ export class CreateListingComponent implements OnInit, OnDestroy {
       city: ['', Validators.required],
       area: [''],
       blockPhase: [''],
+      mapLink: ['', mapLinkValidator()],
     });
 
     // Check if user has a verified phone
-    this.authService.fetchCurrentUser().subscribe({
-      next: (user) => {
-        if (user.phone && user.phoneVerified) {
-          this.phoneVerified.set(true);
-          this.loadFeaturedSlots();
-        } else if (user.phone && !user.phoneVerified) {
-          // Has phone but not verified — go straight to OTP step
-          this.pendingPhone.set(user.phone);
-          this.phoneStep.set('verify');
-        }
-        this.phoneCheckLoading.set(false);
-      },
-      error: () => this.phoneCheckLoading.set(false),
-    });
+    this.authService
+      .fetchCurrentUser()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (user) => {
+          if (user.phone && user.phoneVerified) {
+            this.phoneVerified.set(true);
+            this.loadFeaturedSlots();
+          } else if (user.phone && !user.phoneVerified) {
+            // Has phone but not verified — go straight to OTP step
+            this.pendingPhone.set(user.phone);
+            this.phoneStep.set('verify');
+          }
+          this.phoneCheckLoading.set(false);
+        },
+        error: () => this.phoneCheckLoading.set(false),
+      });
 
-    this.categoriesService.getAll().subscribe({
-      next: (cats) => {
-        this.allCategories.set(cats);
-        this.restoreDraft();
-      },
-      error: () => this.allCategories.set([]),
-    });
+    this.categoriesService
+      .getAll()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (cats) => {
+          this.allCategories.set(cats);
+          this.restoreDraft();
+        },
+        error: () => this.allCategories.set([]),
+      });
 
-    this.locationService.getProvinces().subscribe({
-      next: (provinces) => this.provinces.set(provinces),
-      error: () => {},
-    });
+    this.locationService
+      .getProvinces()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (provinces) => this.provinces.set(provinces),
+        error: () => {},
+      });
   }
 
   // --- Phone Verification ---
@@ -625,10 +641,13 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     this.areaSearch.set('');
     this.blockPhaseSearch.set('');
     this.locationForm.patchValue({ city: '', area: '', blockPhase: '' });
-    this.locationService.getCities(province._id).subscribe({
-      next: (cities) => this.citiesForListing.set(cities),
-      error: () => {},
-    });
+    this.locationService
+      .getCities(province._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (cities) => this.citiesForListing.set(cities),
+        error: () => {},
+      });
   }
 
   selectLocationCity(city: City): void {
@@ -639,10 +658,13 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     this.areaSearch.set('');
     this.blockPhaseSearch.set('');
     this.locationForm.patchValue({ city: city.name, area: '', blockPhase: '' });
-    this.locationService.getAreas(city._id).subscribe({
-      next: (areas) => this.areasForListing.set(areas),
-      error: () => {},
-    });
+    this.locationService
+      .getAreas(city._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (areas) => this.areasForListing.set(areas),
+        error: () => {},
+      });
   }
 
   selectLocationArea(area: Area): void {
@@ -809,6 +831,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
         city: loc.city,
         area: loc.area || undefined,
         blockPhase: loc.blockPhase || undefined,
+        mapLink: loc.mapLink?.trim() || undefined,
       },
       isFeatured: this.featureAd(),
     };
@@ -826,7 +849,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.submitting.set(false);
-        this.error.set(err?.error?.message ?? 'Failed to create listing. Please try again.');
+        this.error.set(err?.error?.message ?? ERROR_MSG.LISTING_CREATE_FAILED);
       },
     });
   }

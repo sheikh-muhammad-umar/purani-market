@@ -22,6 +22,7 @@ import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { saveState, loadState, clearState } from '../../../core/utils/state-persistence';
 import { ListingCondition } from '../../../core/constants';
 import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
+import { mapLinkValidator } from '../../../core/utils/map-link';
 
 @Component({
   selector: 'app-edit-listing',
@@ -32,6 +33,7 @@ import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
 })
 export class EditListingComponent implements OnInit, OnDestroy {
   readonly conditionOptions = CONDITION_OPTIONS;
+  readonly ERROR_MSG = ERROR_MSG;
   private readonly DRAFT_KEY = 'edit-listing-step';
   private readonly destroy$ = new Subject<void>();
 
@@ -129,6 +131,7 @@ export class EditListingComponent implements OnInit, OnDestroy {
       city: ['', Validators.required],
       area: [''],
       blockPhase: [''],
+      mapLink: ['', mapLinkValidator()],
     });
 
     this.listingId = extractIdFromSlug(this.route.snapshot.paramMap.get('id') ?? '');
@@ -285,6 +288,10 @@ export class EditListingComponent implements OnInit, OnDestroy {
         area: loc.area || '',
       });
     }
+    // Restore mapLink regardless of ID-based or text-based restore
+    if (loc.mapLink) {
+      this.locationForm.patchValue({ mapLink: loc.mapLink });
+    }
   }
 
   // --- Custom Dropdown ---
@@ -405,7 +412,7 @@ export class EditListingComponent implements OnInit, OnDestroy {
   }
 
   isLocationStepValid(): boolean {
-    return !!this.locationForm.get('city')?.value;
+    return !!this.locationForm.get('city')?.value && this.locationForm.valid;
   }
 
   isStepValid(step: number): boolean {
@@ -496,6 +503,7 @@ export class EditListingComponent implements OnInit, OnDestroy {
         city: loc.city,
         area: loc.area || undefined,
         blockPhase: loc.blockPhase || undefined,
+        mapLink: loc.mapLink?.trim() || undefined,
       },
     };
 

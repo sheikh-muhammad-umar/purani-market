@@ -259,7 +259,29 @@
             {{ l.location.city }}
           </p>
           <div class="map-container">
-            <div class="map-placeholder"><p>Map View Unavailable</p></div>
+            @if (mapEmbedUrl()) {
+              <iframe
+                [src]="mapEmbedUrl()!"
+                width="100%"
+                height="300"
+                style="border: 0"
+                allowfullscreen
+                loading="lazy"
+                referrerpolicy="no-referrer-when-downgrade"
+                title="Location map"
+              ></iframe>
+              <a
+                [href]="l.location.mapLink"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="map-open-btn"
+              >
+                <span class="material-symbols-rounded">open_in_new</span>
+                Open in Maps
+              </a>
+            } @else {
+              <div class="map-placeholder"><p>Map View Unavailable</p></div>
+            }
           </div>
         </div>
 

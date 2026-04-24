@@ -175,8 +175,21 @@
                   ><span class="meta-label">Location</span
                   ><span class="meta-value"
                     >{{ listing.location?.area ? listing.location?.area + ', ' : ''
-                    }}{{ listing.location?.city || '—' }}</span
-                  ></span
+                    }}{{ listing.location?.city || '—' }}
+                    @if (listing.location?.mapLink) {
+                      <span
+                        class="material-symbols-rounded"
+                        style="
+                          font-size: 14px;
+                          vertical-align: middle;
+                          margin-left: 4px;
+                          color: var(--primary);
+                        "
+                        title="Has map link"
+                        >map</span
+                      >
+                    }
+                  </span></span
                 >
                 <span class="meta-cell"
                   ><span class="meta-label">Submitted</span
@@ -287,6 +300,38 @@
                     {{ listing.location?.area ? listing.location?.area + ', ' : ''
                     }}{{ listing.location?.city || '—' }}
                   </p>
+                  @if (listing.location?.mapLink) {
+                    <a
+                      [href]="listing.location!.mapLink!"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="map-link-badge"
+                    >
+                      <span
+                        class="material-symbols-rounded"
+                        style="font-size: 16px; vertical-align: middle"
+                        >map</span
+                      >
+                      View on Maps
+                      <span
+                        class="material-symbols-rounded"
+                        style="font-size: 14px; vertical-align: middle"
+                        >open_in_new</span
+                      >
+                    </a>
+                    <div class="map-embed-container">
+                      <iframe
+                        [src]="getMapEmbedUrl(listing.location!.mapLink!)"
+                        width="100%"
+                        height="200"
+                        style="border: 0; border-radius: 8px"
+                        allowfullscreen
+                        loading="lazy"
+                        referrerpolicy="no-referrer-when-downgrade"
+                        title="Location map"
+                      ></iframe>
+                    </div>
+                  }
                 </div>
                 <div>
                   <h4>Seller Contact</h4>
