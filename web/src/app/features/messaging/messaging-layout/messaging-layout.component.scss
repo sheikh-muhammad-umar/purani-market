@@ -1,6 +1,25 @@
+/*
+ * Desktop: negate .app-main padding, fill viewport below header.
+ * Mobile list: fixed height so only .msg-list scrolls, header stays pinned.
+ * Mobile chat: fixed fullscreen overlay.
+ */
+:host {
+  display: block;
+  overflow: hidden;
+}
+
+/* Desktop (large screens only — tablets get mobile-style single-panel view) */
+@media (min-width: 1025px) {
+  :host {
+    margin: calc(-1 * var(--space-3));
+    height: calc(100vh - var(--header-height));
+    height: calc(100dvh - var(--header-height));
+  }
+}
+
 .messaging-split {
   display: flex;
-  height: calc(100vh - var(--header-height));
+  height: 100%;
   max-width: 1100px;
   margin: 0 auto;
   background: var(--card);
@@ -17,10 +36,12 @@
   flex-direction: column;
   border-right: 1px solid var(--border);
   background: var(--surface);
+  min-height: 0;
 }
 
 .msg-sidebar-header {
-  padding: var(--space-2) var(--space-2);
+  flex-shrink: 0;
+  padding: var(--space-2);
   border-bottom: 1px solid var(--border);
 
   h2 {
@@ -31,6 +52,7 @@
 }
 
 .msg-search {
+  flex-shrink: 0;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -62,6 +84,7 @@
 .msg-list {
   flex: 1;
   overflow-y: auto;
+  min-height: 0;
 }
 
 .msg-item {
@@ -179,6 +202,7 @@
   flex: 1;
   display: flex;
   min-width: 0;
+  min-height: 0;
 }
 
 .msg-no-chat {
@@ -204,6 +228,7 @@
   display: flex;
   flex: 1;
   min-width: 0;
+  min-height: 0;
 }
 
 :host ::ng-deep .chat-window {
@@ -211,12 +236,52 @@
   height: 100%;
   border-left: none;
   flex: 1;
+  min-height: 0;
 }
 
-/* Mobile */
-@media (max-width: 767px) {
+/* ===== Mobile + Tablet ===== */
+@media (max-width: 1024px) {
+  /*
+   * Conversation list view: pin to viewport so only .msg-list scrolls.
+   * The header, search stay visible.
+   */
+  :host {
+    position: fixed;
+    top: var(--header-height);
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: 0;
+    z-index: 50;
+    background: var(--background);
+  }
+
+  /* On phones, leave room for the bottom nav (70px) */
+  @media (max-width: 767px) {
+    :host {
+      bottom: 70px;
+    }
+  }
+
+  /*
+   * Chat open: cover the area below header.
+   * On tablets the app header stays visible.
+   */
+  :host.chat-open {
+    top: var(--header-height);
+    bottom: 0;
+    z-index: 100;
+  }
+
+  /* On phones: go full-screen, cover the header too */
+  @media (max-width: 767px) {
+    :host.chat-open {
+      top: 0;
+    }
+  }
+
   .messaging-split {
-    height: calc(100vh - 56px - 60px);
+    height: 100%;
     border: none;
     border-radius: 0;
   }
@@ -235,6 +300,6 @@
   }
 
   :host ::ng-deep .chat-window {
-    height: calc(100vh - 56px - 60px);
+    height: 100%;
   }
 }

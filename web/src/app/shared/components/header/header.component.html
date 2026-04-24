@@ -409,15 +409,15 @@
 }
 
 <!-- Mobile Bottom Navigation -->
-@if (!isAuthPage) {
+@if (!isAuthPage && !isChatOpen) {
   <nav class="mobile-bottom-nav">
     <a [routerLink]="ROUTES.HOME" class="bottom-nav-item">
       <span class="material-symbols-rounded bottom-icon">home</span>
       <span class="bottom-label">Home</span>
     </a>
     <a
-      [routerLink]="authService.isAuthenticated() ? '/messaging' : null"
-      (click)="!authService.isAuthenticated() && loginModal.open('/messaging')"
+      [routerLink]="authService.isAuthenticated() ? ROUTES.MESSAGING : null"
+      (click)="!authService.isAuthenticated() && loginModal.open(ROUTES.MESSAGING)"
       class="bottom-nav-item"
     >
       <span class="material-symbols-rounded bottom-icon" style="position: relative">
@@ -429,8 +429,8 @@
       <span class="bottom-label">Chat</span>
     </a>
     <a
-      [routerLink]="authService.isAuthenticated() ? '/listings/create' : null"
-      (click)="!authService.isAuthenticated() && loginModal.open('/listings/create')"
+      [routerLink]="authService.isAuthenticated() ? ROUTES.LISTINGS_CREATE : null"
+      (click)="!authService.isAuthenticated() && loginModal.open(ROUTES.LISTINGS_CREATE)"
       class="bottom-nav-item sell-item"
     >
       <span class="sell-btn">
@@ -441,16 +441,16 @@
       <span class="bottom-label sell-label">Sell</span>
     </a>
     <a
-      [routerLink]="authService.isAuthenticated() ? '/listings/my' : null"
-      (click)="!authService.isAuthenticated() && loginModal.open('/listings/my')"
+      [routerLink]="authService.isAuthenticated() ? ROUTES.LISTINGS_MY : null"
+      (click)="!authService.isAuthenticated() && loginModal.open(ROUTES.LISTINGS_MY)"
       class="bottom-nav-item"
     >
       <span class="material-symbols-rounded bottom-icon">list_alt</span>
       <span class="bottom-label">My Ads</span>
     </a>
     <a
-      [routerLink]="authService.isAuthenticated() ? '/profile' : null"
-      (click)="!authService.isAuthenticated() && loginModal.open('/profile')"
+      [routerLink]="authService.isAuthenticated() ? ROUTES.PROFILE : null"
+      (click)="!authService.isAuthenticated() && loginModal.open(ROUTES.PROFILE)"
       class="bottom-nav-item"
     >
       <span class="material-symbols-rounded bottom-icon">person_outline</span>

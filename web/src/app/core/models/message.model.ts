@@ -16,11 +16,32 @@ export interface Conversation {
   createdAt: Date;
 }
 
+export type MessageType = 'text' | 'image' | 'voice' | 'location';
+
+export interface MediaPayload {
+  url: string;
+  thumbnailUrl?: string;
+  duration?: number;
+  mimeType?: string;
+  fileSize?: number;
+}
+
+export interface LocationPayload {
+  latitude: number;
+  longitude: number;
+  address?: string;
+  isLive?: boolean;
+  expiresAt?: string;
+}
+
 export interface Message {
   _id: string;
   conversationId: string;
   senderId: string;
+  type?: MessageType;
   content: string;
+  media?: MediaPayload;
+  location?: LocationPayload;
   isRead: boolean;
   createdAt: Date;
 }

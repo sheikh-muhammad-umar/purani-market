@@ -14,7 +14,11 @@ import {
   Conversation,
   ConversationDocument,
 } from './schemas/conversation.schema.js';
-import { Message, MessageDocument } from './schemas/message.schema.js';
+import {
+  Message,
+  MessageDocument,
+  MessageType,
+} from './schemas/message.schema.js';
 import { User, UserDocument } from '../users/schemas/user.schema.js';
 
 const PROHIBITED_WORDS = [
@@ -28,9 +32,45 @@ const PROHIBITED_WORDS = [
   'abuse',
 ];
 
+/** Preview labels shown in conversation list for non-text messages. */
+const MESSAGE_PREVIEW: Record<string, string> = {
+  [MessageType.IMAGE]: '📷 Photo',
+  [MessageType.VOICE]: '🎤 Voice message',
+  [MessageType.LOCATION]: '📍 Location',
+};
+
+const PREVIEW_MAX_LENGTH = 100;
+
+/** Gateway error messages. */
+const GW_ERROR = {
+  NOT_AUTHENTICATED: 'Not authenticated',
+  INVALID_CONVERSATION_ID: 'Invalid conversation ID',
+  CONTENT_REQUIRED: 'Message content is required',
+  CONVERSATION_NOT_FOUND: 'Conversation not found',
+  NOT_PARTICIPANT: 'You are not a participant in this conversation',
+  PROHIBITED_CONTENT: 'Message contains prohibited content',
+  NO_MESSAGE_IDS: 'No message IDs provided',
+  NO_VALID_IDS: 'No valid message IDs',
+} as const;
+
 export interface SendMessagePayload {
   conversationId: string;
   content: string;
+  type?: string;
+  media?: {
+    url: string;
+    thumbnailUrl?: string;
+    duration?: number;
+    mimeType?: string;
+    fileSize?: number;
+  };
+  location?: {
+    latitude: number;
+    longitude: number;
+    address?: string;
+    isLive?: boolean;
+    liveDurationMinutes?: number;
+  };
 }
 
 export interface TypingPayload {
@@ -112,17 +152,22 @@ export class MessagingGateway
   ): Promise<{ success: boolean; message?: MessageDocument; error?: string }> {
     const userId = this.socketUsers.get(client.id);
     if (!userId) {
-      return { success: false, error: 'Not authenticated' };
+      return { success: false, error: GW_ERROR.NOT_AUTHENTICATED };
     }
 
     const { conversationId, content } = payload;
 
     if (!conversationId || !Types.ObjectId.isValid(conversationId)) {
-      return { success: false, error: 'Invalid conversation ID' };
+      return { success: false, error: GW_ERROR.INVALID_CONVERSATION_ID };
     }
 
-    if (!content || content.trim().length === 0) {
-      return { success: false, error: 'Message content is required' };
+    const msgType = payload.type || MessageType.TEXT;
+
+    if (
+      msgType === MessageType.TEXT &&
+      (!content || content.trim().length === 0)
+    ) {
+      return { success: false, error: GW_ERROR.CONTENT_REQUIRED };
     }
 
     // Verify conversation exists and user is a participant
@@ -130,7 +175,7 @@ export class MessagingGateway
       .findById(conversationId)
       .exec();
     if (!conversation) {
-      return { success: false, error: 'Conversation not found' };
+      return { success: false, error: GW_ERROR.CONVERSATION_NOT_FOUND };
     }
 
     if (
@@ -139,30 +184,54 @@ export class MessagingGateway
     ) {
       return {
         success: false,
-        error: 'You are not a participant in this conversation',
+        error: GW_ERROR.NOT_PARTICIPANT,
       };
     }
 
     // Check prohibited content
-    if (this.containsProhibitedContent(content)) {
+    if (content && this.containsProhibitedContent(content)) {
       client.emit('messageBlocked', {
         conversationId,
         reason: 'Your message contains prohibited content and was not sent.',
       });
-      return { success: false, error: 'Message contains prohibited content' };
+      return { success: false, error: GW_ERROR.PROHIBITED_CONTENT };
     }
 
     // Persist message to MongoDB
-    const message = new this.messageModel({
+    const messageData: Record<string, any> = {
       conversationId: conversation._id,
       senderId: new Types.ObjectId(userId),
-      content: content.trim(),
-    });
+      type: msgType,
+      content: (content || '').trim(),
+    };
+
+    if (payload.media) {
+      messageData.media = payload.media;
+    }
+
+    if (payload.location) {
+      messageData.location = {
+        latitude: payload.location.latitude,
+        longitude: payload.location.longitude,
+        address: payload.location.address,
+        isLive: payload.location.isLive || false,
+        expiresAt:
+          payload.location.isLive && payload.location.liveDurationMinutes
+            ? new Date(
+                Date.now() + payload.location.liveDurationMinutes * 60 * 1000,
+              )
+            : undefined,
+      };
+    }
+
+    const message = new this.messageModel(messageData);
     const savedMessage = await message.save();
 
     // Update conversation with last message info
-    const preview =
-      content.length > 100 ? content.substring(0, 100) + '...' : content;
+    let preview = MESSAGE_PREVIEW[msgType] ?? content ?? '';
+    if (preview.length > PREVIEW_MAX_LENGTH) {
+      preview = preview.substring(0, PREVIEW_MAX_LENGTH) + '...';
+    }
     await this.conversationModel.findByIdAndUpdate(conversationId, {
       lastMessageAt: savedMessage.createdAt,
       lastMessagePreview: preview,
@@ -215,17 +284,17 @@ export class MessagingGateway
   ): Promise<{ success: boolean; error?: string }> {
     const userId = this.socketUsers.get(client.id);
     if (!userId) {
-      return { success: false, error: 'Not authenticated' };
+      return { success: false, error: GW_ERROR.NOT_AUTHENTICATED };
     }
 
     const { conversationId, messageIds } = payload;
 
     if (!conversationId || !Types.ObjectId.isValid(conversationId)) {
-      return { success: false, error: 'Invalid conversation ID' };
+      return { success: false, error: GW_ERROR.INVALID_CONVERSATION_ID };
     }
 
     if (!Array.isArray(messageIds) || messageIds.length === 0) {
-      return { success: false, error: 'No message IDs provided' };
+      return { success: false, error: GW_ERROR.NO_MESSAGE_IDS };
     }
 
     // Verify user is a participant
@@ -233,7 +302,7 @@ export class MessagingGateway
       .findById(conversationId)
       .exec();
     if (!conversation) {
-      return { success: false, error: 'Conversation not found' };
+      return { success: false, error: GW_ERROR.CONVERSATION_NOT_FOUND };
     }
 
     if (
@@ -242,7 +311,7 @@ export class MessagingGateway
     ) {
       return {
         success: false,
-        error: 'You are not a participant in this conversation',
+        error: GW_ERROR.NOT_PARTICIPANT,
       };
     }
 
@@ -251,7 +320,7 @@ export class MessagingGateway
       .map((id) => new Types.ObjectId(id));
 
     if (validIds.length === 0) {
-      return { success: false, error: 'No valid message IDs' };
+      return { success: false, error: GW_ERROR.NO_VALID_IDS };
     }
 
     // Mark messages as read (only messages NOT sent by the current user)

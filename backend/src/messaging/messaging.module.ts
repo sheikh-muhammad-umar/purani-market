@@ -9,6 +9,7 @@ import { User, UserSchema } from '../users/schemas/user.schema.js';
 import { MessagingService } from './messaging.service.js';
 import { MessagingController } from './messaging.controller.js';
 import { MessagingGateway } from './messaging.gateway.js';
+import { ChatMediaService } from './chat-media.service.js';
 import { ListingsModule } from '../listings/listings.module.js';
 
 @Module({
@@ -21,7 +22,7 @@ import { ListingsModule } from '../listings/listings.module.js';
     ListingsModule,
   ],
   controllers: [MessagingController],
-  providers: [MessagingService, MessagingGateway],
+  providers: [MessagingService, MessagingGateway, ChatMediaService],
   exports: [MessagingService, MessagingGateway, MongooseModule],
 })
 export class MessagingModule {}

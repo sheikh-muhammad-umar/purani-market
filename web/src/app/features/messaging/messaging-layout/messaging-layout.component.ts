@@ -1,13 +1,30 @@
-import { Component, OnInit, OnDestroy, signal } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  signal,
+  computed,
+  ChangeDetectionStrategy,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { Router, ActivatedRoute, NavigationEnd } from '@angular/router';
-import { Subscription, filter } from 'rxjs';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Subscription } from 'rxjs';
 import { MessagingService } from '../../../core/services/messaging.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/auth';
-import { Conversation } from '../../../core/models';
+import { Conversation, ConversationListing } from '../../../core/models';
 import { PLACEHOLDER_IMAGE, CURRENCY_SYMBOL } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
+import { SKELETON_ITEMS } from '../messaging.constants';
 import { ChatWindowComponent } from '../chat-window/chat-window.component';
+
+/** Precomputed view data for a single conversation row. */
+interface ConversationView {
+  title: string;
+  image: string;
+  price: string;
+  timeAgo: string;
+}
 
 @Component({
   selector: 'app-messaging-layout',
@@ -15,12 +32,35 @@ import { ChatWindowComponent } from '../chat-window/chat-window.component';
   imports: [CommonModule, ChatWindowComponent],
   templateUrl: './messaging-layout.component.html',
   styleUrls: ['./messaging-layout.component.scss'],
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '[class.chat-open]': 'selectedConversationId()',
+  },
 })
 export class MessagingLayoutComponent implements OnInit, OnDestroy {
   conversations = signal<Conversation[]>([]);
   unreadCounts = signal<Record<string, number>>({});
   loading = signal(true);
   selectedConversationId = signal<string | null>(null);
+  readonly SKELETON_ITEMS = SKELETON_ITEMS;
+
+  /**
+   * Precomputed view map — recalculated only when conversations signal changes,
+   * NOT on every change detection cycle like template method calls would.
+   */
+  readonly conversationViews = computed<Record<string, ConversationView>>(() => {
+    const convs = this.conversations();
+    const views: Record<string, ConversationView> = {};
+    for (const conv of convs) {
+      views[conv._id] = {
+        title: this.extractListingTitle(conv),
+        image: this.extractListingImage(conv),
+        price: this.extractListingPrice(conv),
+        timeAgo: this.computeTimeAgo(conv.lastMessageAt),
+      };
+    }
+    return views;
+  });
 
   private subs: Subscription[] = [];
 
@@ -44,24 +84,12 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
       }),
     );
 
-    // Check if a conversation ID is in the URL
+    // React to route param changes (handles initial load, navigation, and browser back/forward)
     this.subs.push(
-      this.router.events
-        .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-        .subscribe((e) => {
-          const match = e.url.match(/\/messaging\/([a-f0-9]+)/);
-          if (match) {
-            this.selectedConversationId.set(match[1]);
-          }
-        }),
+      this.route.paramMap.subscribe((params) => {
+        this.selectedConversationId.set(params.get('id'));
+      }),
     );
-
-    // Initial check
-    const url = this.router.url;
-    const match = url.match(/\/messaging\/([a-f0-9]+)/);
-    if (match) {
-      this.selectedConversationId.set(match[1]);
-    }
   }
 
   ngOnDestroy(): void {
@@ -70,33 +98,48 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
 
   selectConversation(id: string): void {
     this.selectedConversationId.set(id);
-    // Mark as read
+    this.router.navigateByUrl(ROUTES.MESSAGING_CHAT(id), { replaceUrl: true });
     this.messagingService.markAsRead(id).subscribe();
   }
 
-  getListingTitle(conversation: any): string {
+  deselectConversation(): void {
+    this.selectedConversationId.set(null);
+    this.router.navigateByUrl(ROUTES.MESSAGING, { replaceUrl: true });
+  }
+
+  // --- Private extraction helpers (called only from computed, not template) ---
+
+  private extractListingTitle(conversation: Conversation): string {
     const pid = conversation.productListingId;
-    if (typeof pid === 'object' && pid?.title) return pid.title;
+    if (typeof pid === 'object' && (pid as ConversationListing)?.title) {
+      return (pid as ConversationListing).title;
+    }
     return 'Listing';
   }
 
-  getListingImage(conversation: any): string {
+  private extractListingImage(conversation: Conversation): string {
     const pid = conversation.productListingId;
-    if (typeof pid === 'object' && pid?.images?.length) {
-      return pid.images[0].thumbnailUrl || pid.images[0].url || PLACEHOLDER_IMAGE;
+    if (typeof pid === 'object') {
+      const listing = pid as ConversationListing;
+      if (listing?.images?.length) {
+        return listing.images[0].thumbnailUrl || listing.images[0].url || PLACEHOLDER_IMAGE;
+      }
     }
     return PLACEHOLDER_IMAGE;
   }
 
-  getListingPrice(conversation: any): string {
+  private extractListingPrice(conversation: Conversation): string {
     const pid = conversation.productListingId;
-    if (typeof pid === 'object' && pid?.price) {
-      return CURRENCY_SYMBOL + ' ' + Number(pid.price.amount).toLocaleString();
+    if (typeof pid === 'object') {
+      const listing = pid as ConversationListing;
+      if (listing?.price) {
+        return CURRENCY_SYMBOL + ' ' + Number(listing.price.amount).toLocaleString();
+      }
     }
     return '';
   }
 
-  getTimeAgo(date: Date): string {
+  private computeTimeAgo(date: Date): string {
     const now = new Date();
     const d = new Date(date);
     const diffMs = now.getTime() - d.getTime();
@@ -108,10 +151,6 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
     const diffDays = Math.floor(diffHours / 24);
     if (diffDays < 7) return `${diffDays}d`;
     return d.toLocaleDateString();
-  }
-
-  getUnreadCount(id: string): number {
-    return this.unreadCounts()[id] || 0;
   }
 
   private loadConversations(): void {

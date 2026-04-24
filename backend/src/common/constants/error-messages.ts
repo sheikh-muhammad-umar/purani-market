@@ -38,4 +38,18 @@ export const ERROR = {
   LISTING_CANNOT_UPDATE_DELETED: 'Cannot update a deleted listing',
   LISTING_MAX_REJECTIONS:
     'This listing has reached the maximum number of review attempts. Unfortunately, it cannot be resubmitted. You may delete it and create a new listing.',
+
+  // Chat / Messaging
+  NO_IMAGE_FILE: 'No image file provided',
+  NO_AUDIO_FILE: 'No audio file provided',
+  INVALID_CHAT_IMAGE_FORMAT: 'Invalid image format. Allowed: JPEG, PNG, WebP',
+  CHAT_IMAGE_SIZE_EXCEEDED: 'Image must be under 10MB',
+  INVALID_CHAT_AUDIO_FORMAT:
+    'Invalid audio format. Allowed: WebM, OGG, MP4, MP3, WAV, AAC',
+  CHAT_VOICE_SIZE_EXCEEDED: 'Voice note must be under 5MB',
+  CHAT_VOICE_DURATION_EXCEEDED: 'Voice note must be under 5 minutes',
+  CANNOT_MESSAGE_OWN_LISTING:
+    'You cannot start a conversation on your own listing',
+  NOT_CONVERSATION_PARTICIPANT:
+    'You are not a participant in this conversation',
 } as const;

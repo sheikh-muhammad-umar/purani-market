@@ -82,6 +82,8 @@ export const API = {
   CONVERSATIONS_UNREAD_COUNT: '/conversations/unread-count',
   CONVERSATIONS_UNREAD_PER: '/conversations/unread-per-conversation',
   CONVERSATION_MESSAGES: (id: string) => `/conversations/${id}/messages`,
+  CONVERSATION_MESSAGES_IMAGE: (id: string) => `/conversations/${id}/messages/image`,
+  CONVERSATION_MESSAGES_VOICE: (id: string) => `/conversations/${id}/messages/voice`,
   CONVERSATION_READ: (id: string) => `/conversations/${id}/read`,
 
   // Reviews

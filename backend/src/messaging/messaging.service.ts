@@ -10,13 +10,41 @@ import {
   Conversation,
   ConversationDocument,
 } from './schemas/conversation.schema.js';
-import { Message, MessageDocument } from './schemas/message.schema.js';
+import {
+  Message,
+  MessageDocument,
+  MessageType,
+  MediaPayload,
+} from './schemas/message.schema.js';
 import {
   ProductListing,
   ProductListingDocument,
 } from '../listings/schemas/product-listing.schema.js';
 import { CreateConversationDto } from './dto/create-conversation.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
+
+/** Options for sending a rich message (image, voice, location). */
+export interface SendMessageOptions {
+  type?: MessageType;
+  media?: MediaPayload;
+  location?: {
+    latitude: number;
+    longitude: number;
+    address?: string;
+    isLive?: boolean;
+    liveDurationMinutes?: number;
+  };
+}
+
+/** Preview labels shown in conversation list for non-text messages. */
+const MESSAGE_PREVIEW: Record<string, string> = {
+  [MessageType.IMAGE]: '📷 Photo',
+  [MessageType.VOICE]: '🎤 Voice message',
+  [MessageType.LOCATION]: '📍 Location',
+};
+
+const PREVIEW_MAX_LENGTH = 100;
+const MESSAGES_PER_PAGE = 20;
 
 @Injectable()
 export class MessagingService {
@@ -48,9 +76,7 @@ export class MessagingService {
     }
 
     if (listing.sellerId.toString() === userId) {
-      throw new BadRequestException(
-        'You cannot start a conversation on your own listing',
-      );
+      throw new BadRequestException(ERROR.CANNOT_MESSAGE_OWN_LISTING);
     }
 
     const buyerId = new Types.ObjectId(userId);
@@ -83,7 +109,9 @@ export class MessagingService {
       // Update conversation with last message info
       conversation.lastMessageAt = savedMessage.createdAt;
       conversation.lastMessagePreview =
-        message.length > 100 ? message.substring(0, 100) + '...' : message;
+        message.length > PREVIEW_MAX_LENGTH
+          ? message.substring(0, PREVIEW_MAX_LENGTH) + '...'
+          : message;
       await conversation.save();
     }
 
@@ -131,12 +159,10 @@ export class MessagingService {
       conversation.buyerId.toString() !== userObjectId &&
       conversation.sellerId.toString() !== userObjectId
     ) {
-      throw new ForbiddenException(
-        'You are not a participant in this conversation',
-      );
+      throw new ForbiddenException(ERROR.NOT_CONVERSATION_PARTICIPANT);
     }
 
-    const limit = 20;
+    const limit = MESSAGES_PER_PAGE;
     const skip = (page - 1) * limit;
 
     const [messages, total] = await Promise.all([
@@ -167,6 +193,7 @@ export class MessagingService {
     conversationId: string,
     userId: string,
     content: string,
+    options?: SendMessageOptions,
   ): Promise<MessageDocument> {
     if (!Types.ObjectId.isValid(conversationId)) {
       throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
@@ -183,20 +210,45 @@ export class MessagingService {
       conversation.buyerId.toString() !== userId &&
       conversation.sellerId.toString() !== userId
     ) {
-      throw new ForbiddenException(
-        'You are not a participant in this conversation',
-      );
+      throw new ForbiddenException(ERROR.NOT_CONVERSATION_PARTICIPANT);
     }
 
-    const message = new this.messageModel({
+    const msgType = options?.type || MessageType.TEXT;
+
+    const messageData: Record<string, any> = {
       conversationId: conversation._id,
       senderId: new Types.ObjectId(userId),
-      content: content.trim(),
-    });
+      type: msgType,
+      content: (content || '').trim(),
+    };
+
+    if (options?.media) {
+      messageData.media = options.media;
+    }
+
+    if (options?.location) {
+      messageData.location = {
+        latitude: options.location.latitude,
+        longitude: options.location.longitude,
+        address: options.location.address,
+        isLive: options.location.isLive || false,
+        expiresAt:
+          options.location.isLive && options.location.liveDurationMinutes
+            ? new Date(
+                Date.now() + options.location.liveDurationMinutes * 60 * 1000,
+              )
+            : undefined,
+      };
+    }
+
+    const message = new this.messageModel(messageData);
     const saved = await message.save();
 
-    const preview =
-      content.length > 100 ? content.substring(0, 100) + '...' : content;
+    let preview = MESSAGE_PREVIEW[msgType] ?? content ?? '';
+    if (preview.length > PREVIEW_MAX_LENGTH) {
+      preview = preview.substring(0, PREVIEW_MAX_LENGTH) + '...';
+    }
+
     await this.conversationModel.findByIdAndUpdate(conversationId, {
       lastMessageAt: saved.createdAt,
       lastMessagePreview: preview,
@@ -250,9 +302,7 @@ export class MessagingService {
       conversation.buyerId.toString() !== userId &&
       conversation.sellerId.toString() !== userId
     ) {
-      throw new ForbiddenException(
-        'You are not a participant in this conversation',
-      );
+      throw new ForbiddenException(ERROR.NOT_CONVERSATION_PARTICIPANT);
     }
 
     const result = await this.messageModel

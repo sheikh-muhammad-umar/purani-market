@@ -117,6 +117,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return this.router.url.startsWith(ROUTES.MESSAGING);
   }
 
+  /** True when a specific conversation is open (e.g. /messaging/abc123). */
+  get isChatOpen(): boolean {
+    const url = this.router.url.split('?')[0];
+    return url !== ROUTES.MESSAGING && url.startsWith(ROUTES.MESSAGING + '/');
+  }
+
   get isProfilePage(): boolean {
     return this.router.url.startsWith(ROUTES.PROFILE);
   }
@@ -313,7 +319,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.applyLocation(a.name, this.buildLabel(this.selectedCity()?.name, a.name));
   }
 
-  private applyLocation(label: string, fullLabel: string): void {
+  private applyLocation(_label: string, fullLabel: string): void {
     const previousLocation = this.locationLabel();
     this.locationLabel.set(fullLabel);
     this.locationDropdownOpen.set(false);

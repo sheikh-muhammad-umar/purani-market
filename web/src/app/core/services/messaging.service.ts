@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { Conversation, Message } from '../models';
+import { Conversation, Message, MessageType } from '../models';
 import { API } from '../constants/api-endpoints';
 
 export interface ConversationsResponse {
@@ -19,6 +19,18 @@ export interface MessagesResponse {
 export interface StartConversationPayload {
   productListingId: string;
   message: string;
+}
+
+export interface SendMessagePayload {
+  content?: string;
+  type?: MessageType;
+  location?: {
+    latitude: number;
+    longitude: number;
+    address?: string;
+    isLive?: boolean;
+    liveDurationMinutes?: number;
+  };
 }
 
 @Injectable({ providedIn: 'root' })
@@ -42,6 +54,23 @@ export class MessagingService {
 
   sendMessage(conversationId: string, content: string): Observable<Message> {
     return this.api.post<Message>(API.CONVERSATION_MESSAGES(conversationId), { content });
+  }
+
+  sendRichMessage(conversationId: string, payload: SendMessagePayload): Observable<Message> {
+    return this.api.post<Message>(API.CONVERSATION_MESSAGES(conversationId), payload);
+  }
+
+  sendImageMessage(conversationId: string, file: File): Observable<Message> {
+    const formData = new FormData();
+    formData.append('file', file);
+    return this.api.post<Message>(API.CONVERSATION_MESSAGES_IMAGE(conversationId), formData);
+  }
+
+  sendVoiceMessage(conversationId: string, blob: Blob, duration: number): Observable<Message> {
+    const formData = new FormData();
+    formData.append('file', blob, `voice-${Date.now()}.webm`);
+    formData.append('duration', duration.toString());
+    return this.api.post<Message>(API.CONVERSATION_MESSAGES_VOICE(conversationId), formData);
   }
 
   getUnreadCount(): Observable<{ count: number }> {

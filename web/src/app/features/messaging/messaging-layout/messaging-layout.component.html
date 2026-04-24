@@ -11,7 +11,7 @@
 
     <div class="msg-list">
       @if (loading()) {
-        @for (i of [1, 2, 3, 4, 5]; track i) {
+        @for (i of SKELETON_ITEMS; track i) {
           <div class="msg-item-skeleton">
             <div
               class="skeleton"
@@ -28,19 +28,19 @@
           <button
             class="msg-item"
             [class.active]="selectedConversationId() === conv._id"
-            [class.unread]="getUnreadCount(conv._id) > 0"
+            [class.unread]="(unreadCounts()[conv._id] || 0) > 0"
             (click)="selectConversation(conv._id)"
           >
-            <img [src]="getListingImage(conv)" class="msg-avatar" alt="" />
+            <img [src]="conversationViews()[conv._id]?.image" class="msg-avatar" alt="" />
             <div class="msg-item-content">
               <div class="msg-item-top">
-                <span class="msg-item-name">{{ getListingTitle(conv) }}</span>
-                <span class="msg-item-time">{{ getTimeAgo(conv.lastMessageAt) }}</span>
+                <span class="msg-item-name">{{ conversationViews()[conv._id]?.title }}</span>
+                <span class="msg-item-time">{{ conversationViews()[conv._id]?.timeAgo }}</span>
               </div>
-              <span class="msg-item-price">{{ getListingPrice(conv) }}</span>
+              <span class="msg-item-price">{{ conversationViews()[conv._id]?.price }}</span>
               <p class="msg-item-preview">{{ conv.lastMessagePreview || 'No messages yet' }}</p>
             </div>
-            @if (getUnreadCount(conv._id) > 0) {
+            @if ((unreadCounts()[conv._id] || 0) > 0) {
               <span class="msg-unread-dot"></span>
             }
           </button>
@@ -63,7 +63,7 @@
     @if (selectedConversationId()) {
       <app-chat-window
         [conversationIdInput]="selectedConversationId()!"
-        (back)="selectedConversationId.set(null)"
+        (back)="deselectConversation()"
       />
     } @else {
       <div class="msg-no-chat">

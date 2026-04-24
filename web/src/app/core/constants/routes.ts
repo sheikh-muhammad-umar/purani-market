@@ -7,6 +7,7 @@ export const ROUTES = {
   AUTH_FORGOT_PASSWORD: '/auth/forgot-password',
   AUTH_MFA: '/auth/mfa',
   MESSAGING: '/messaging',
+  MESSAGING_CHAT: (id: string) => `/messaging/${id}`,
   PROFILE: '/profile',
   PROFILE_SETTINGS: '/profile/settings',
   PROFILE_NOTIFICATIONS: '/profile/notifications',

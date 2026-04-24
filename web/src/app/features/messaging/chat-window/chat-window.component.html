@@ -1,5 +1,22 @@
-<div class="chat-window">
-  <!-- Back button -->
+<div class="chat-window" (click)="closeOverlays()">
+  <!-- Hidden file inputs -->
+  <input
+    type="file"
+    #fileInput
+    [accept]="ACCEPTED_IMAGE_TYPES"
+    (change)="onFileSelected($event)"
+    style="display: none"
+  />
+  <input
+    type="file"
+    #cameraInput
+    accept="image/*"
+    capture="environment"
+    (change)="onFileSelected($event)"
+    style="display: none"
+  />
+
+  <!-- Back button (mobile) -->
   <div class="chat-top-bar">
     <button class="back-link" (click)="back.emit()">
       <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span> Messages
@@ -9,8 +26,8 @@
   <!-- Product card at top -->
   @if (listing()) {
     <div class="product-card">
-      <a [routerLink]="['/listings', listing()! | listingUrl]" class="product-card-link">
-        <img [src]="getListingImage()" [alt]="listing()!.title" class="product-thumb" />
+      <a [routerLink]="[ROUTES.LISTINGS, listing()! | listingUrl]" class="product-card-link">
+        <img [src]="listingImage()" [alt]="listing()!.title" class="product-thumb" />
         <div class="product-info">
           <span class="product-title">{{ listing()!.title }}</span>
           <span class="product-price">
@@ -28,7 +45,7 @@
   <div class="messages-container" #messagesContainer>
     @if (loading()) {
       <div class="messages-skeleton">
-        @for (i of [1, 2, 3, 4, 5]; track i) {
+        @for (i of SKELETON_ITEMS; track i) {
           <div class="skeleton-bubble" [class.sent]="i % 2 === 0">
             <div
               class="skeleton"
@@ -53,8 +70,76 @@
           [class.sent]="isSentByMe(message)"
           [class.received]="!isSentByMe(message)"
         >
-          <div class="bubble-content">
-            <p class="bubble-text">{{ message.content }}</p>
+          <div class="bubble-content" [class.media-bubble]="message.type === 'image'">
+            <!-- Text message -->
+            @if (!message.type || message.type === 'text') {
+              <p class="bubble-text">{{ message.content }}</p>
+            }
+
+            <!-- Image message -->
+            @if (message.type === 'image' && message.media) {
+              <div class="bubble-image-wrap">
+                <img
+                  [src]="message.media.thumbnailUrl || message.media.url"
+                  alt="Shared image"
+                  class="bubble-image"
+                  (click)="$event.stopPropagation()"
+                  loading="lazy"
+                />
+              </div>
+            }
+
+            <!-- Voice message -->
+            @if (message.type === 'voice' && message.media) {
+              <div class="bubble-voice">
+                <button
+                  class="voice-play-btn"
+                  (click)="$event.stopPropagation()"
+                  [attr.aria-label]="'Play voice message'"
+                >
+                  <span class="material-symbols-rounded">play_arrow</span>
+                </button>
+                <div class="voice-waveform">
+                  @for (i of WAVEFORM_BARS; track i) {
+                    <span class="wave-bar" [style.height]="12 + ((i * 7) % 20) + 'px'"></span>
+                  }
+                </div>
+                <span class="voice-duration">
+                  {{ formatDurationValue(message.media.duration || 0) }}
+                </span>
+              </div>
+            }
+
+            <!-- Location message -->
+            @if (message.type === 'location' && message.location) {
+              <div
+                class="bubble-location"
+                (click)="
+                  openLocationInMaps(message.location.latitude, message.location.longitude);
+                  $event.stopPropagation()
+                "
+              >
+                <div class="location-map-placeholder">
+                  <span class="material-symbols-rounded location-pin">location_on</span>
+                  @if (message.location.isLive) {
+                    <span class="live-badge">LIVE</span>
+                  }
+                </div>
+                <div class="location-info">
+                  <span class="location-label">
+                    {{ message.location.isLive ? 'Live Location' : 'Shared Location' }}
+                  </span>
+                  @if (message.location.address) {
+                    <span class="location-address">{{ message.location.address }}</span>
+                  }
+                  <span class="location-coords">
+                    {{ message.location.latitude.toFixed(4) }},
+                    {{ message.location.longitude.toFixed(4) }}
+                  </span>
+                </div>
+              </div>
+            }
+
             <div class="bubble-meta">
               <span class="bubble-time">{{ formatTime(message.createdAt) }}</span>
               @if (isSentByMe(message)) {
@@ -81,14 +166,38 @@
     }
   </div>
 
-  <!-- Quick replies -->
-  @if (messages().length === 0 && !loading()) {
-    <div class="quick-replies">
-      @for (reply of quickReplies; track reply) {
-        <button class="quick-reply-btn" (click)="sendQuickReply(reply)">
-          {{ reply }}
+  <!-- Image preview overlay -->
+  @if (imagePreview()) {
+    <div class="image-preview-overlay">
+      <div class="image-preview-card">
+        <img [src]="imagePreview()!" alt="Preview" class="preview-img" />
+        <div class="preview-actions">
+          <button class="preview-cancel" (click)="cancelImagePreview()">Cancel</button>
+          <button class="preview-send" (click)="sendImage()" [disabled]="sending()">
+            <span class="material-symbols-rounded">send</span>
+            Send
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Quick reply suggestions (expandable) -->
+  @if (showSuggestions()) {
+    <div class="suggestions-panel" (click)="$event.stopPropagation()">
+      <div class="suggestions-header">
+        <span>Quick Replies</span>
+        <button class="suggestions-close" (click)="showSuggestions.set(false)">
+          <span class="material-symbols-rounded">close</span>
         </button>
-      }
+      </div>
+      <div class="suggestions-grid">
+        @for (reply of quickReplies; track reply) {
+          <button class="suggestion-chip" (click)="sendQuickReply(reply)">
+            {{ reply }}
+          </button>
+        }
+      </div>
     </div>
   }
 
@@ -99,26 +208,91 @@
       This ad is no longer active. You can't send new messages.
     </div>
   } @else {
-    <div class="input-area">
-      <input
-        type="text"
-        class="message-input"
-        placeholder="Type a message..."
-        [(ngModel)]="messageText"
-        (keyup.enter)="sendMessage()"
-        (input)="onTyping()"
-        [disabled]="sending()"
-      />
-      <button
-        class="send-btn"
-        (click)="sendMessage()"
-        [disabled]="!messageText.trim() || sending()"
-        [attr.aria-label]="'Send message'"
-      >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none">
-          <path d="M2.01 21L23 12 2.01 3 2 10l15 2-15 2z" fill="currentColor" />
-        </svg>
-      </button>
-    </div>
+    <!-- Recording state -->
+    @if (isRecording()) {
+      <div class="input-area recording-bar">
+        <div class="recording-indicator">
+          <span class="rec-dot"></span>
+          <span class="rec-time">{{ formattedRecordingDuration() }}</span>
+        </div>
+        <button class="rec-cancel-btn" (click)="cancelRecording()" aria-label="Cancel recording">
+          <span class="material-symbols-rounded">delete</span>
+        </button>
+        <button class="rec-send-btn" (click)="toggleRecording()" aria-label="Send voice note">
+          <span class="material-symbols-rounded">send</span>
+        </button>
+      </div>
+    } @else {
+      <div class="input-area" (click)="$event.stopPropagation()">
+        <!-- Attachment button -->
+        <div class="attach-wrapper">
+          <button
+            class="icon-btn attach-btn"
+            (click)="toggleAttachMenu(); $event.stopPropagation()"
+            aria-label="Attach file"
+          >
+            <span class="material-symbols-rounded">add</span>
+          </button>
+
+          <!-- Attachment menu popup -->
+          @if (showAttachMenu()) {
+            <div class="attach-menu" (click)="$event.stopPropagation()">
+              <button class="attach-option" (click)="openCamera()">
+                <span class="material-symbols-rounded attach-icon camera">photo_camera</span>
+                <span>Camera</span>
+              </button>
+              <button class="attach-option" (click)="openFilePicker()">
+                <span class="material-symbols-rounded attach-icon gallery">image</span>
+                <span>Gallery</span>
+              </button>
+              <button class="attach-option" (click)="shareLocation()">
+                <span class="material-symbols-rounded attach-icon location">location_on</span>
+                <span>Location</span>
+              </button>
+              <button class="attach-option" (click)="shareLiveLocation()">
+                <span class="material-symbols-rounded attach-icon live">share_location</span>
+                <span>Live Location</span>
+              </button>
+            </div>
+          }
+        </div>
+
+        <!-- Suggestions toggle -->
+        <button
+          class="icon-btn suggest-btn"
+          (click)="toggleSuggestions(); $event.stopPropagation()"
+          aria-label="Quick replies"
+        >
+          <span class="material-symbols-rounded">lightbulb</span>
+        </button>
+
+        <!-- Text input -->
+        <input
+          type="text"
+          class="message-input"
+          placeholder="Type a message..."
+          [(ngModel)]="messageText"
+          (keyup.enter)="sendMessage()"
+          (input)="onTyping()"
+          [disabled]="sending()"
+        />
+
+        <!-- Send or Mic button -->
+        @if (messageText.trim()) {
+          <button
+            class="send-btn"
+            (click)="sendMessage()"
+            [disabled]="sending()"
+            aria-label="Send message"
+          >
+            <span class="material-symbols-rounded">send</span>
+          </button>
+        } @else {
+          <button class="mic-btn" (click)="toggleRecording()" aria-label="Record voice note">
+            <span class="material-symbols-rounded">mic</span>
+          </button>
+        }
+      </div>
+    }
   }
 </div>

@@ -26,6 +26,10 @@ export const QUICK_REPLIES = [
   "What's your best price?",
   'Can I see it today?',
   'Is the price negotiable?',
+  'Can you share more photos?',
+  'Where is the pickup location?',
+  "I'm interested, let's discuss",
+  'What condition is it in?',
 ];
 
 /** Asset paths */
