@@ -1,10 +1,22 @@
 import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
-import { Brand, VehicleBrand, VehicleModel, VehicleVariant } from '../models/brand.model';
+import {
+  Brand,
+  VehicleBrand,
+  VehicleModel,
+  VehicleVariant,
+  VehicleType,
+} from '../models/brand.model';
 import { API } from '../constants/api-endpoints';
 
-export type { Brand, VehicleBrand, VehicleModel, VehicleVariant } from '../models/brand.model';
+export type {
+  Brand,
+  VehicleBrand,
+  VehicleModel,
+  VehicleVariant,
+  VehicleType,
+} from '../models/brand.model';
 @Injectable({ providedIn: 'root' })
 export class BrandsService {
   constructor(private readonly api: ApiService) {}
@@ -54,10 +66,16 @@ export class BrandsService {
     return this.api.get<VehicleBrand>(API.VEHICLE_BRAND_BY_ID(id));
   }
 
+  checkVehicleCategory(categoryId: string): Observable<{ hasVehicleBrands: boolean }> {
+    return this.api.get<{ hasVehicleBrands: boolean }>(
+      API.VEHICLE_BRAND_CHECK_CATEGORY(categoryId),
+    );
+  }
+
   createVehicleBrand(data: {
     name: string;
     categoryId: string;
-    vehicleType: 'car' | 'bike';
+    vehicleType: VehicleType;
   }): Observable<VehicleBrand> {
     return this.api.post<VehicleBrand>(API.VEHICLE_BRANDS, data);
   }
@@ -93,7 +111,7 @@ export class BrandsService {
     name: string;
     brandId: string;
     categoryId: string;
-    vehicleType: 'car' | 'bike';
+    vehicleType: VehicleType;
   }): Observable<VehicleModel> {
     return this.api.post<VehicleModel>(API.VEHICLE_MODELS, data);
   }
@@ -136,7 +154,7 @@ export class BrandsService {
     modelId: string;
     brandId: string;
     categoryId: string;
-    vehicleType: 'car' | 'bike';
+    vehicleType: VehicleType;
   }): Observable<VehicleVariant> {
     return this.api.post<VehicleVariant>(API.VEHICLE_VARIANTS, data);
   }

@@ -12,6 +12,7 @@ import { UsersModule } from '../users/users.module.js';
 import { CategoriesModule } from '../categories/categories.module.js';
 import { PackagesModule } from '../packages/packages.module.js';
 import { SearchModule } from '../search/search.module.js';
+import { BrandsModule } from '../brands/brands.module.js';
 import {
   Conversation,
   ConversationSchema,
@@ -29,6 +30,7 @@ import { Message, MessageSchema } from '../messaging/schemas/message.schema.js';
     forwardRef(() => CategoriesModule),
     forwardRef(() => PackagesModule),
     SearchModule,
+    BrandsModule,
   ],
   controllers: [ListingsController],
   providers: [ListingsService, MediaService, StorageService],

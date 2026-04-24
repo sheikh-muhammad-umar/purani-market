@@ -42,6 +42,13 @@ export class VehicleBrandService {
     return this.vehicleBrandModel.find(filter).sort({ name: 1 }).lean().exec();
   }
 
+  async countByCategory(categoryId: string): Promise<number> {
+    if (!Types.ObjectId.isValid(categoryId)) return 0;
+    return this.vehicleBrandModel
+      .countDocuments({ categoryId: new Types.ObjectId(categoryId) })
+      .exec();
+  }
+
   async findAll(activeOnly = false): Promise<VehicleBrandDocument[]> {
     const filter = activeOnly ? { isActive: true } : {};
     return this.vehicleBrandModel

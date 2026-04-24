@@ -137,6 +137,206 @@
                 </select>
               </div>
             </div>
+            @if (hasBrands()) {
+              <div class="dynamic-attributes">
+                <h4>Brand & Model</h4>
+                <div class="form-group">
+                  <label class="form-label">Brand *</label>
+                  <div class="custom-select-wrap">
+                    <button
+                      type="button"
+                      class="custom-select-trigger"
+                      [class.open]="openDropdown() === 'brand'"
+                      (click)="toggleDropdown('brand')"
+                    >
+                      @if (selectedBrandId()) {
+                        <span class="select-text">{{
+                          selectedBrandId() === OTHER_ID ? 'Other' : selectedBrandName()
+                        }}</span>
+                      } @else {
+                        <span class="select-placeholder">Select Brand</span>
+                      }
+                      <span class="material-symbols-rounded select-arrow">expand_more</span>
+                    </button>
+                    @if (openDropdown() === 'brand') {
+                      <div class="custom-select-dropdown location-dropdown-scroll">
+                        <input
+                          type="text"
+                          class="dropdown-search-input"
+                          placeholder="Search brands..."
+                          [value]="brandSearch()"
+                          (input)="brandSearch.set($any($event.target).value)"
+                          (click)="$event.stopPropagation()"
+                        />
+                        @for (brand of filteredBrands(); track brand._id) {
+                          <button
+                            type="button"
+                            class="custom-select-option"
+                            [class.active]="selectedBrandId() === brand._id"
+                            (click)="selectBrand(brand._id, brand.name)"
+                          >
+                            {{ brand.name }}
+                          </button>
+                        }
+                        <button
+                          type="button"
+                          class="custom-select-option other-option"
+                          [class.active]="selectedBrandId() === OTHER_ID"
+                          (click)="selectBrand(OTHER_ID, 'Other')"
+                        >
+                          Other
+                        </button>
+                      </div>
+                    }
+                  </div>
+                </div>
+                @if (selectedBrandId() === OTHER_ID) {
+                  <div class="form-group">
+                    <label class="form-label">Brand Name *</label>
+                    <input
+                      class="form-input"
+                      type="text"
+                      placeholder="Enter brand name"
+                      [value]="otherBrandName()"
+                      (input)="otherBrandName.set($any($event.target).value)"
+                    />
+                  </div>
+                }
+                @if (isVehicleCategory() && selectedBrandId() && selectedBrandId() !== OTHER_ID) {
+                  <div class="form-group">
+                    <label class="form-label">Model *</label>
+                    <div class="custom-select-wrap">
+                      <button
+                        type="button"
+                        class="custom-select-trigger"
+                        [class.open]="openDropdown() === 'model'"
+                        (click)="toggleDropdown('model')"
+                      >
+                        @if (selectedModelId()) {
+                          <span class="select-text">{{
+                            selectedModelId() === OTHER_ID ? 'Other' : selectedModelName()
+                          }}</span>
+                        } @else {
+                          <span class="select-placeholder">Select Model</span>
+                        }
+                        <span class="material-symbols-rounded select-arrow">expand_more</span>
+                      </button>
+                      @if (openDropdown() === 'model') {
+                        <div class="custom-select-dropdown location-dropdown-scroll">
+                          <input
+                            type="text"
+                            class="dropdown-search-input"
+                            placeholder="Search models..."
+                            [value]="modelSearch()"
+                            (input)="modelSearch.set($any($event.target).value)"
+                            (click)="$event.stopPropagation()"
+                          />
+                          @for (model of filteredModels(); track model._id) {
+                            <button
+                              type="button"
+                              class="custom-select-option"
+                              [class.active]="selectedModelId() === model._id"
+                              (click)="selectModel(model._id, model.name)"
+                            >
+                              {{ model.name }}
+                            </button>
+                          }
+                          <button
+                            type="button"
+                            class="custom-select-option other-option"
+                            [class.active]="selectedModelId() === OTHER_ID"
+                            (click)="selectModel(OTHER_ID, 'Other')"
+                          >
+                            Other
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                  @if (selectedModelId() === OTHER_ID) {
+                    <div class="form-group">
+                      <label class="form-label">Model Name *</label>
+                      <input
+                        class="form-input"
+                        type="text"
+                        placeholder="Enter model name"
+                        [value]="otherModelName()"
+                        (input)="otherModelName.set($any($event.target).value)"
+                      />
+                    </div>
+                  }
+                }
+                @if (
+                  isVehicleCategory() &&
+                  selectedModelId() &&
+                  selectedModelId() !== OTHER_ID &&
+                  availableVariants().length > 0
+                ) {
+                  <div class="form-group">
+                    <label class="form-label">Variant</label>
+                    <div class="custom-select-wrap">
+                      <button
+                        type="button"
+                        class="custom-select-trigger"
+                        [class.open]="openDropdown() === 'variant'"
+                        (click)="toggleDropdown('variant')"
+                      >
+                        @if (selectedVariantId()) {
+                          <span class="select-text">{{
+                            selectedVariantId() === OTHER_ID ? 'Other' : selectedVariantName()
+                          }}</span>
+                        } @else {
+                          <span class="select-placeholder">Select Variant (optional)</span>
+                        }
+                        <span class="material-symbols-rounded select-arrow">expand_more</span>
+                      </button>
+                      @if (openDropdown() === 'variant') {
+                        <div class="custom-select-dropdown location-dropdown-scroll">
+                          <input
+                            type="text"
+                            class="dropdown-search-input"
+                            placeholder="Search variants..."
+                            [value]="variantSearch()"
+                            (input)="variantSearch.set($any($event.target).value)"
+                            (click)="$event.stopPropagation()"
+                          />
+                          @for (variant of filteredVariants(); track variant._id) {
+                            <button
+                              type="button"
+                              class="custom-select-option"
+                              [class.active]="selectedVariantId() === variant._id"
+                              (click)="selectVariant(variant._id, variant.name)"
+                            >
+                              {{ variant.name }}
+                            </button>
+                          }
+                          <button
+                            type="button"
+                            class="custom-select-option other-option"
+                            [class.active]="selectedVariantId() === OTHER_ID"
+                            (click)="selectVariant(OTHER_ID, 'Other')"
+                          >
+                            Other
+                          </button>
+                        </div>
+                      }
+                    </div>
+                  </div>
+                  @if (selectedVariantId() === OTHER_ID) {
+                    <div class="form-group">
+                      <label class="form-label">Variant Name</label>
+                      <input
+                        class="form-input"
+                        type="text"
+                        placeholder="Enter variant name"
+                        [value]="otherVariantName()"
+                        (input)="otherVariantName.set($any($event.target).value)"
+                      />
+                    </div>
+                  }
+                }
+              </div>
+            }
             @if (categoryAttributes().length > 0) {
               <div class="dynamic-attributes">
                 <h4>Category-Specific Details</h4>

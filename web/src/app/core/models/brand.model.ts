@@ -1,3 +1,14 @@
+/** Sentinel value for the "Other" option in brand/model/variant pickers */
+export const OTHER_OPTION_ID = 'other';
+
+/** Lightweight brand option used in dropdowns */
+export interface BrandOption {
+  _id: string;
+  name: string;
+}
+
+export type VehicleType = 'car' | 'motorcycle';
+
 export interface Brand {
   _id: string;
   name: string;
@@ -10,7 +21,7 @@ export interface VehicleBrand {
   _id: string;
   name: string;
   categoryId: string | { _id: string; name: string };
-  vehicleType: 'car' | 'bike';
+  vehicleType: VehicleType;
   logo?: string;
   isActive: boolean;
 }
@@ -20,7 +31,7 @@ export interface VehicleModel {
   name: string;
   brandId: string | { _id: string; name: string };
   categoryId: string;
-  vehicleType: 'car' | 'bike';
+  vehicleType: VehicleType;
   isActive: boolean;
 }
 
@@ -30,6 +41,6 @@ export interface VehicleVariant {
   modelId: string | { _id: string; name: string };
   brandId: string | { _id: string; name: string };
   categoryId: string;
-  vehicleType: 'car' | 'bike';
+  vehicleType: VehicleType;
   isActive: boolean;
 }

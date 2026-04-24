@@ -29,7 +29,7 @@ const brands = [
 async function main() {
   await mongoose.connect(process.env.MONGODB_URI);
   const db = mongoose.connection.db;
-  const col = db.collection('mobile_brands');
+  const col = db.collection('brands');
 
   let added = 0;
   let skipped = 0;

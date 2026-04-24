@@ -2,7 +2,16 @@ import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
+import {
+  Subject,
+  takeUntil,
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  of,
+  forkJoin,
+} from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import {
   SearchService,
   SearchParams,
@@ -27,6 +36,8 @@ import { PriceFormatPipe } from '../../../shared/pipes/price-format.pipe';
 import { TruncateTextPipe } from '../../../shared/pipes/truncate-text.pipe';
 import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { Listing, Category, CategoryAttribute } from '../../../core/models';
+import { VehicleModel, VehicleVariant, BrandOption } from '../../../core/models/brand.model';
+import { BrandsService } from '../../../core/services/brands.service';
 
 export type SortOption = SearchSortOption;
 
@@ -101,6 +112,31 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly provinces = signal<{ _id: string; name: string }[]>([]);
   readonly provinceCities = signal<Record<string, { _id: string; name: string }[]>>({});
 
+  // Brand / Model / Variant filters
+  readonly hasBrandsFilter = signal(false);
+  readonly isVehicleCategoryFilter = signal(false);
+  readonly filterBrands = signal<BrandOption[]>([]);
+  readonly filterModels = signal<VehicleModel[]>([]);
+  readonly filterVariants = signal<VehicleVariant[]>([]);
+  readonly selectedFilterBrandId = signal<string>('');
+  readonly selectedFilterModelId = signal<string>('');
+  readonly selectedFilterVariantId = signal<string>('');
+
+  readonly brandFilterOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'All Brands' },
+    ...this.filterBrands().map((b) => ({ value: b._id, label: b.name })),
+  ]);
+
+  readonly modelFilterOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'All Models' },
+    ...this.filterModels().map((m) => ({ value: m._id, label: m.name })),
+  ]);
+
+  readonly variantFilterOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'All Variants' },
+    ...this.filterVariants().map((v) => ({ value: v._id, label: v.name })),
+  ]);
+
   getProvinceOptions(): SelectOption[] {
     return [
       { value: '', label: 'All Provinces' },
@@ -155,6 +191,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     private readonly locationService: LocationService,
     private readonly recentSearches: RecentSearchesService,
     private readonly tracker: ActivityTrackerService,
+    private readonly brandsService: BrandsService,
   ) {}
 
   ngOnInit(): void {
@@ -257,6 +294,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     } else {
       this.categoryFilters.set([]);
       this.selectedCategory.set(null);
+      this.clearBrandFilters();
     }
     this.updateUrlAndSearch();
   }
@@ -294,6 +332,12 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       if (filter.key === 'maxPrice') this.maxPrice.set(null);
       this.currentPage.set(1);
       this.updateUrlAndSearch();
+    } else if (filter.key === 'brandFilter') {
+      this.onBrandFilterChange('');
+    } else if (filter.key === 'modelFilter') {
+      this.onModelFilterChange('');
+    } else if (filter.key === 'variantFilter') {
+      this.onVariantFilterChange('');
     } else {
       this.onDynamicFilterChange(filter.key, '');
     }
@@ -308,6 +352,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.filterValues.set({});
     this.categoryFilters.set([]);
     this.selectedCategory.set(null);
+    this.clearBrandFilters();
     this.currentPage.set(1);
     this.updateUrlAndSearch();
   }
@@ -431,6 +476,39 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
         });
       }
     });
+
+    // Brand / Model / Variant active filters
+    const brandId = this.selectedFilterBrandId();
+    if (brandId) {
+      const brand = this.filterBrands().find((b) => b._id === brandId);
+      filters.push({
+        key: 'brandFilter',
+        label: 'Brand',
+        value: brandId,
+        displayValue: `Brand: ${brand?.name || brandId}`,
+      });
+    }
+    const modelId = this.selectedFilterModelId();
+    if (modelId) {
+      const model = this.filterModels().find((m) => m._id === modelId);
+      filters.push({
+        key: 'modelFilter',
+        label: 'Model',
+        value: modelId,
+        displayValue: `Model: ${model?.name || modelId}`,
+      });
+    }
+    const variantId = this.selectedFilterVariantId();
+    if (variantId) {
+      const variant = this.filterVariants().find((v) => v._id === variantId);
+      filters.push({
+        key: 'variantFilter',
+        label: 'Variant',
+        value: variantId,
+        displayValue: `Variant: ${variant?.name || variantId}`,
+      });
+    }
+
     return filters;
   }
 
@@ -474,9 +552,11 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: (cat) => {
           this.selectedCategory.set(cat);
+          this.loadBrandsForFilter(cat);
         },
         error: () => {
           this.selectedCategory.set(null);
+          this.clearBrandFilters();
         },
       });
 
@@ -494,6 +574,140 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
           this.categoryFilters.set([]);
         },
       });
+  }
+
+  private loadBrandsForFilter(cat: Category): void {
+    // Walk up the category tree to find the hasBrands ancestor
+    const allCats = this.categories();
+    let current: Category | undefined = cat;
+    let brandCat: Category | undefined;
+    while (current) {
+      if (current.hasBrands) {
+        brandCat = current;
+        break;
+      }
+      current = current.parentId ? allCats.find((c) => c._id === current!.parentId) : undefined;
+    }
+    if (!brandCat) {
+      this.clearBrandFilters();
+      return;
+    }
+    this.hasBrandsFilter.set(true);
+
+    // Build category path for vehicle brand check
+    const catPath: string[] = [];
+    let walk: Category | undefined = cat;
+    while (walk) {
+      catPath.push(walk._id);
+      walk = walk.parentId ? allCats.find((c) => c._id === walk!.parentId) : undefined;
+    }
+
+    // Check each category in the path for vehicle brands (data-driven)
+    let checked = 0;
+    let found = false;
+    const finalBrandCat = brandCat;
+    for (const catId of catPath) {
+      this.brandsService
+        .checkVehicleCategory(catId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (result) => {
+            checked++;
+            if (result.hasVehicleBrands && !found) {
+              found = true;
+              this.isVehicleCategoryFilter.set(true);
+              this.brandsService
+                .getVehicleBrandsByCategory(catId)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: (brands) =>
+                    this.filterBrands.set(brands.map((b) => ({ _id: b._id, name: b.name }))),
+                  error: () => this.filterBrands.set([]),
+                });
+            }
+            if (checked === catPath.length && !found) {
+              this.isVehicleCategoryFilter.set(false);
+              this.brandsService
+                .getByCategory(finalBrandCat._id)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: (brands) =>
+                    this.filterBrands.set(brands.map((b) => ({ _id: b._id, name: b.name }))),
+                  error: () => this.filterBrands.set([]),
+                });
+            }
+          },
+          error: () => {
+            checked++;
+            if (checked === catPath.length && !found) {
+              this.isVehicleCategoryFilter.set(false);
+              this.brandsService
+                .getByCategory(finalBrandCat._id)
+                .pipe(takeUntil(this.destroy$))
+                .subscribe({
+                  next: (brands) =>
+                    this.filterBrands.set(brands.map((b) => ({ _id: b._id, name: b.name }))),
+                  error: () => this.filterBrands.set([]),
+                });
+            }
+          },
+        });
+    }
+  }
+
+  private clearBrandFilters(): void {
+    this.hasBrandsFilter.set(false);
+    this.isVehicleCategoryFilter.set(false);
+    this.filterBrands.set([]);
+    this.filterModels.set([]);
+    this.filterVariants.set([]);
+    this.selectedFilterBrandId.set('');
+    this.selectedFilterModelId.set('');
+    this.selectedFilterVariantId.set('');
+  }
+
+  onBrandFilterChange(brandId: string): void {
+    this.selectedFilterBrandId.set(brandId);
+    this.selectedFilterModelId.set('');
+    this.selectedFilterVariantId.set('');
+    this.filterModels.set([]);
+    this.filterVariants.set([]);
+
+    if (brandId && this.isVehicleCategoryFilter()) {
+      this.brandsService
+        .getModelsByBrand(brandId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (models) => this.filterModels.set(models),
+          error: () => this.filterModels.set([]),
+        });
+    }
+    this.currentPage.set(1);
+    this.updateUrlAndSearch();
+  }
+
+  onModelFilterChange(modelId: string): void {
+    this.selectedFilterModelId.set(modelId);
+    this.selectedFilterVariantId.set('');
+    this.filterVariants.set([]);
+
+    if (modelId) {
+      this.brandsService
+        .getVariantsByModel(modelId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (variants) => this.filterVariants.set(variants),
+          error: () => this.filterVariants.set([]),
+        });
+    }
+    this.currentPage.set(1);
+    this.updateUrlAndSearch();
+  }
+
+  onVariantFilterChange(variantId: string): void {
+    this.selectedFilterVariantId.set(variantId);
+    this.currentPage.set(1);
+    this.updateUrlAndSearch();
   }
 
   loadProvinces(): void {
@@ -568,6 +782,20 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
         params[key] = value;
       }
     });
+
+    // Brand / Model / Variant filters
+    const brandId = this.selectedFilterBrandId();
+    if (brandId) {
+      if (this.isVehicleCategoryFilter()) {
+        params['vehicleBrandId'] = brandId;
+      } else {
+        params['brandId'] = brandId;
+      }
+    }
+    const modelId = this.selectedFilterModelId();
+    if (modelId) params['modelId'] = modelId;
+    const variantId = this.selectedFilterVariantId();
+    if (variantId) params['variantId'] = variantId;
 
     return params;
   }

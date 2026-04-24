@@ -7,6 +7,7 @@ import {
   VehicleModel,
   VehicleVariant,
 } from '../../../core/services/brands.service';
+import { VehicleType } from '../../../core/models/brand.model';
 import { CategoriesService } from '../../../core/services/categories.service';
 import {
   CustomSelectComponent,
@@ -15,7 +16,6 @@ import {
 import { saveState, loadState } from '../../../core/utils/state-persistence';
 
 type ActiveTab = 'brands' | 'models' | 'variants';
-type VehicleType = 'car' | 'bike';
 
 @Component({
   selector: 'app-vehicle-manager',
@@ -30,7 +30,7 @@ export class VehicleManagerComponent implements OnInit {
 
   // Vehicle type toggle
   vehicleType: VehicleType = 'car';
-  categoryMap: Record<VehicleType, string> = { car: '', bike: '' };
+  categoryMap: Record<VehicleType, string> = { car: '', motorcycle: '' };
 
   // Brands
   brands = signal<VehicleBrand[]>([]);
@@ -91,7 +91,7 @@ export class VehicleManagerComponent implements OnInit {
     return this.categoryMap[this.vehicleType];
   }
 
-  // ── Category loading (cars & bikes only) ──
+  // ── Category loading (cars & motorcycles only) ──
 
   loadCategories(): void {
     this.categoriesService.getAll().subscribe({
@@ -99,14 +99,15 @@ export class VehicleManagerComponent implements OnInit {
         for (const cat of cats) {
           const slug = (cat.slug || '').toLowerCase();
           if (slug === 'cars') this.categoryMap.car = cat._id;
-          else if (slug === 'bikes') this.categoryMap.bike = cat._id;
+          else if (slug === 'motorcycles') this.categoryMap.motorcycle = cat._id;
         }
         // Fallback: match by name if slug didn't work
-        if (!this.categoryMap.car || !this.categoryMap.bike) {
+        if (!this.categoryMap.car || !this.categoryMap.motorcycle) {
           for (const cat of cats) {
             const name = (cat.name || '').toLowerCase();
             if (!this.categoryMap.car && name === 'cars') this.categoryMap.car = cat._id;
-            if (!this.categoryMap.bike && name === 'bikes') this.categoryMap.bike = cat._id;
+            if (!this.categoryMap.motorcycle && name === 'motorcycles')
+              this.categoryMap.motorcycle = cat._id;
           }
         }
         this.switchVehicleType(

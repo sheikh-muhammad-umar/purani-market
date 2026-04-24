@@ -215,6 +215,50 @@
             ></app-custom-select>
           </div>
 
+          <!-- Brand / Model / Variant Filters -->
+          @if (hasBrandsFilter() && filterBrands().length > 0) {
+            <div class="filter-card">
+              <h4 class="filter-card-title">Brand</h4>
+              <app-custom-select
+                [options]="brandFilterOptions()"
+                [ngModel]="selectedFilterBrandId()"
+                (ngModelChange)="onBrandFilterChange($any($event))"
+                placeholder="All Brands"
+                [searchable]="true"
+              ></app-custom-select>
+            </div>
+
+            @if (
+              isVehicleCategoryFilter() && selectedFilterBrandId() && filterModels().length > 0
+            ) {
+              <div class="filter-card">
+                <h4 class="filter-card-title">Model</h4>
+                <app-custom-select
+                  [options]="modelFilterOptions()"
+                  [ngModel]="selectedFilterModelId()"
+                  (ngModelChange)="onModelFilterChange($any($event))"
+                  placeholder="All Models"
+                  [searchable]="true"
+                ></app-custom-select>
+              </div>
+            }
+
+            @if (
+              isVehicleCategoryFilter() && selectedFilterModelId() && filterVariants().length > 0
+            ) {
+              <div class="filter-card">
+                <h4 class="filter-card-title">Variant</h4>
+                <app-custom-select
+                  [options]="variantFilterOptions()"
+                  [ngModel]="selectedFilterVariantId()"
+                  (ngModelChange)="onVariantFilterChange($any($event))"
+                  placeholder="All Variants"
+                  [searchable]="true"
+                ></app-custom-select>
+              </div>
+            }
+          }
+
           <!-- Dynamic Category-Specific Filters -->
           @for (filter of categoryFilters(); track filter.key) {
             <div class="filter-card">

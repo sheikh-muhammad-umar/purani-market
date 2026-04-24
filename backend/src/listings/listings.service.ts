@@ -39,6 +39,13 @@ import { CreateListingDto } from './dto/create-listing.dto.js';
 import { UpdateListingDto } from './dto/update-listing.dto.js';
 import { AllowedStatusTransition } from './dto/update-status.dto.js';
 import { SearchSyncService } from '../search/search-sync.service.js';
+import { BrandsService } from '../brands/brands.service.js';
+import { VehicleBrandService } from '../brands/vehicle-brand.service.js';
+import { VehicleModelService } from '../brands/vehicle-model.service.js';
+import { VehicleVariantService } from '../brands/vehicle-variant.service.js';
+
+/** Sentinel value sent by the frontend when user selects "Other" brand/model/variant */
+const OTHER_OPTION_ID = 'other';
 
 export interface PaginatedListings {
   data: ProductListingDocument[];
@@ -65,6 +72,10 @@ export class ListingsService {
     private readonly messageModel: Model<MessageDocument>,
     private readonly searchSyncService: SearchSyncService,
     @InjectRedis() private readonly redis: Redis,
+    private readonly brandsService: BrandsService,
+    private readonly vehicleBrandService: VehicleBrandService,
+    private readonly vehicleModelService: VehicleModelService,
+    private readonly vehicleVariantService: VehicleVariantService,
   ) {}
 
   async findAll(
@@ -521,6 +532,7 @@ export class ListingsService {
     }
     this.validateCategoryAttributes(dto.categoryAttributes ?? {}, category);
     const categoryPath = await this.buildCategoryPath(category);
+    await this.validateBrandFields(dto, category, categoryPath);
     const seller = await this.userModel.findById(sellerId).exec();
     if (!seller) {
       throw new NotFoundException(ERROR.SELLER_NOT_FOUND);
@@ -778,6 +790,121 @@ export class ListingsService {
           break;
       }
     }
+  }
+
+  /**
+   * Validate brand/model/variant fields for categories that have hasBrands=true.
+   * Checks the full category path (ancestors) for the hasBrands flag.
+   * Determines brand type by checking if vehicle_brands exist for the category.
+   */
+  private async validateBrandFields(
+    dto: CreateListingDto,
+    category: CategoryDocument,
+    categoryPath: Types.ObjectId[],
+  ): Promise<void> {
+    // Check if any category in the path has hasBrands
+    let brandCategory: CategoryDocument | null = null;
+    for (const catId of categoryPath) {
+      const cat = await this.categoryModel.findById(catId).lean().exec();
+      if (cat?.hasBrands) {
+        brandCategory = cat as CategoryDocument;
+        break;
+      }
+    }
+    if (!brandCategory) return; // No brand requirement
+
+    // Determine brand type by checking if vehicle_brands exist for this category
+    const isVehicle = await this.hasVehicleBrands(
+      brandCategory._id,
+      categoryPath,
+    );
+
+    if (isVehicle) {
+      // Vehicle brand is mandatory
+      if (!dto.vehicleBrandId && !dto.vehicleBrandName) {
+        throw new BadRequestException('Brand is required for this category');
+      }
+      // If "other" brand, only name is needed
+      if (dto.vehicleBrandId === OTHER_OPTION_ID) {
+        if (!dto.vehicleBrandName) {
+          throw new BadRequestException(
+            'Brand name is required when selecting "Other"',
+          );
+        }
+        dto.vehicleBrandId = undefined;
+        dto.modelId = undefined;
+        dto.variantId = undefined;
+        return;
+      }
+      if (dto.vehicleBrandId) {
+        const brand = await this.vehicleBrandService.findById(
+          dto.vehicleBrandId,
+        );
+        dto.vehicleBrandName = brand.name;
+      }
+      // Model is mandatory for vehicles (unless "other")
+      if (!dto.modelId && !dto.modelName) {
+        throw new BadRequestException('Model is required for this category');
+      }
+      if (dto.modelId === OTHER_OPTION_ID) {
+        if (!dto.modelName) {
+          throw new BadRequestException(
+            'Model name is required when selecting "Other"',
+          );
+        }
+        dto.modelId = undefined;
+        dto.variantId = undefined;
+        return;
+      }
+      if (dto.modelId) {
+        const model = await this.vehicleModelService.findById(dto.modelId);
+        dto.modelName = model.name;
+      }
+      // Variant is optional
+      if (dto.variantId && dto.variantId !== OTHER_OPTION_ID) {
+        const variant = await this.vehicleVariantService.findById(
+          dto.variantId,
+        );
+        dto.variantName = variant.name;
+      } else if (dto.variantId === OTHER_OPTION_ID) {
+        dto.variantId = undefined;
+      }
+    } else {
+      // Simple brand (mobile phones, future categories, etc.) — mandatory
+      if (!dto.brandId && !dto.brandName) {
+        throw new BadRequestException('Brand is required for this category');
+      }
+      if (dto.brandId === OTHER_OPTION_ID) {
+        if (!dto.brandName) {
+          throw new BadRequestException(
+            'Brand name is required when selecting "Other"',
+          );
+        }
+        dto.brandId = undefined;
+        return;
+      }
+      if (dto.brandId) {
+        const brand = await this.brandsService.findById(dto.brandId);
+        dto.brandName = brand.name;
+      }
+    }
+  }
+
+  /**
+   * Check if any category in the path has vehicle brands in the vehicle_brands collection.
+   */
+  private async hasVehicleBrands(
+    brandCategoryId: Types.ObjectId,
+    categoryPath: Types.ObjectId[],
+  ): Promise<boolean> {
+    // Check the brand category itself and all ancestors
+    for (const catId of categoryPath) {
+      const count = await this.vehicleBrandService.countByCategory(
+        catId.toString(),
+      );
+      if (count > 0) return true;
+    }
+    return false;
   }
 
   private async buildCategoryPath(

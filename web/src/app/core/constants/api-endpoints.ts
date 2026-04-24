@@ -52,6 +52,8 @@ export const API = {
   // Vehicle Brands
   VEHICLE_BRANDS: '/vehicle-brands',
   VEHICLE_BRAND_BY_ID: (id: string) => `/vehicle-brands/${id}`,
+  VEHICLE_BRAND_CHECK_CATEGORY: (categoryId: string) =>
+    `/vehicle-brands/check-category/${categoryId}`,
 
   // Vehicle Models
   VEHICLE_MODELS: '/vehicle-models',

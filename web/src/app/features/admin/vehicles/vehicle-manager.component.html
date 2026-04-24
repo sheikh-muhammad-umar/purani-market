@@ -1,7 +1,7 @@
 <div class="vm-page">
   <div class="page-header">
     <h1>Vehicle Management</h1>
-    <p class="page-subtitle">Manage brands, models, and variants for cars and bikes</p>
+    <p class="page-subtitle">Manage brands, models, and variants for cars and motorcycles</p>
   </div>
 
   <!-- Vehicle Type Toggle -->
@@ -15,10 +15,10 @@
     </button>
     <button
       class="vm-type-btn"
-      [class.active]="vehicleType === 'bike'"
-      (click)="switchVehicleType('bike')"
+      [class.active]="vehicleType === 'motorcycle'"
+      (click)="switchVehicleType('motorcycle')"
     >
-      <span class="material-symbols-rounded">two_wheeler</span> Bikes
+      <span class="material-symbols-rounded">two_wheeler</span> Motorcycles
     </button>
   </div>
 

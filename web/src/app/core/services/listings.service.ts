@@ -20,6 +20,14 @@ export interface CreateListingPayload {
   categoryId: string;
   categoryPath: string[];
   condition: string;
+  brandId?: string;
+  brandName?: string;
+  vehicleBrandId?: string;
+  vehicleBrandName?: string;
+  modelId?: string;
+  modelName?: string;
+  variantId?: string;
+  variantName?: string;
   categoryAttributes: Record<string, unknown>;
   selectedFeatures?: string[];
   location: {

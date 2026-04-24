@@ -8,11 +8,19 @@ import {
   FormControl,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, forkJoin, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { ListingsService, CreateListingPayload } from '../../../core/services/listings.service';
 import { LocationService } from '../../../core/services/location.service';
+import { BrandsService } from '../../../core/services/brands.service';
 import { Category, CategoryAttribute, Listing, Province, City, Area } from '../../../core/models';
+import {
+  VehicleModel,
+  VehicleVariant,
+  BrandOption,
+  OTHER_OPTION_ID,
+} from '../../../core/models/brand.model';
 import { extractIdFromSlug, listingSlug } from '../../../core/utils/slug';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
@@ -34,6 +42,7 @@ import { mapLinkValidator } from '../../../core/utils/map-link';
 export class EditListingComponent implements OnInit, OnDestroy {
   readonly conditionOptions = CONDITION_OPTIONS;
   readonly ERROR_MSG = ERROR_MSG;
+  readonly OTHER_ID = OTHER_OPTION_ID;
   private readonly DRAFT_KEY = 'edit-listing-step';
   private readonly destroy$ = new Subject<void>();
 
@@ -60,6 +69,40 @@ export class EditListingComponent implements OnInit, OnDestroy {
   categoryAttributes = signal<CategoryAttribute[]>([]);
   categoryFeatures = signal<string[]>([]);
   selectedFeatures = signal<string[]>([]);
+
+  // Brand / Model / Variant state
+  hasBrands = signal(false);
+  isVehicleCategory = signal(false);
+  availableBrands = signal<BrandOption[]>([]);
+  availableModels = signal<VehicleModel[]>([]);
+  availableVariants = signal<VehicleVariant[]>([]);
+  selectedBrandId = signal<string>('');
+  selectedBrandName = signal<string>('');
+  otherBrandName = signal<string>('');
+  selectedModelId = signal<string>('');
+  selectedModelName = signal<string>('');
+  otherModelName = signal<string>('');
+  selectedVariantId = signal<string>('');
+  selectedVariantName = signal<string>('');
+  otherVariantName = signal<string>('');
+  brandSearch = signal<string>('');
+  modelSearch = signal<string>('');
+  variantSearch = signal<string>('');
+  filteredBrands = computed(() => {
+    const q = this.brandSearch().toLowerCase().trim();
+    const all = this.availableBrands();
+    return q ? all.filter((b) => b.name.toLowerCase().includes(q)) : all;
+  });
+  filteredModels = computed(() => {
+    const q = this.modelSearch().toLowerCase().trim();
+    const all = this.availableModels();
+    return q ? all.filter((m) => m.name.toLowerCase().includes(q)) : all;
+  });
+  filteredVariants = computed(() => {
+    const q = this.variantSearch().toLowerCase().trim();
+    const all = this.availableVariants();
+    return q ? all.filter((v) => v.name.toLowerCase().includes(q)) : all;
+  });
 
   detailsForm!: FormGroup;
   locationForm!: FormGroup;
@@ -110,6 +153,7 @@ export class EditListingComponent implements OnInit, OnDestroy {
     private readonly listingsService: ListingsService,
     private readonly locationService: LocationService,
     private readonly tracker: ActivityTrackerService,
+    private readonly brandsService: BrandsService,
   ) {}
 
   ngOnDestroy(): void {
@@ -233,8 +277,64 @@ export class EditListingComponent implements OnInit, OnDestroy {
       }
     }
 
+    // Restore brand/model/variant
+    this.restoreBrandSelection(listing);
+
     // Restore location selections from IDs
     this.restoreLocation(listing);
+  }
+
+  private restoreBrandSelection(listing: Listing): void {
+    // Wait for brands to load, then restore selection
+    // Use a small delay to let loadBrandsForCategory complete
+    setTimeout(() => {
+      if (this.isVehicleCategory()) {
+        if (listing.vehicleBrandId) {
+          this.selectedBrandId.set(listing.vehicleBrandId);
+          this.selectedBrandName.set(listing.vehicleBrandName || '');
+          // Load models for this brand
+          this.brandsService
+            .getModelsByBrand(listing.vehicleBrandId)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (models) => {
+                this.availableModels.set(models);
+                if (listing.modelId) {
+                  this.selectedModelId.set(listing.modelId);
+                  this.selectedModelName.set(listing.modelName || '');
+                  // Load variants for this model
+                  this.brandsService
+                    .getVariantsByModel(listing.modelId)
+                    .pipe(takeUntil(this.destroy$))
+                    .subscribe({
+                      next: (variants) => {
+                        this.availableVariants.set(variants);
+                        if (listing.variantId) {
+                          this.selectedVariantId.set(listing.variantId);
+                          this.selectedVariantName.set(listing.variantName || '');
+                        }
+                      },
+                    });
+                } else if (listing.modelName) {
+                  this.selectedModelId.set(OTHER_OPTION_ID);
+                  this.otherModelName.set(listing.modelName);
+                }
+              },
+            });
+        } else if (listing.vehicleBrandName) {
+          this.selectedBrandId.set(OTHER_OPTION_ID);
+          this.otherBrandName.set(listing.vehicleBrandName);
+        }
+      } else {
+        if (listing.brandId) {
+          this.selectedBrandId.set(listing.brandId);
+          this.selectedBrandName.set(listing.brandName || '');
+        } else if (listing.brandName) {
+          this.selectedBrandId.set(OTHER_OPTION_ID);
+          this.otherBrandName.set(listing.brandName);
+        }
+      }
+    }, 300);
   }
 
   private restoreLocation(listing: Listing): void {
@@ -409,6 +509,110 @@ export class EditListingComponent implements OnInit, OnDestroy {
           this.categoryFeatures.set([]);
         },
       });
+    this.loadBrandsForCategory();
+  }
+
+  private loadBrandsForCategory(): void {
+    const cats = [this.selectedLevel1(), this.selectedLevel2(), this.selectedLevel3()].filter(
+      Boolean,
+    ) as Category[];
+    const brandCat = cats.find((c) => c.hasBrands);
+    if (!brandCat) {
+      this.hasBrands.set(false);
+      this.isVehicleCategory.set(false);
+      return;
+    }
+    this.hasBrands.set(true);
+
+    const checks$ = cats.map((c) =>
+      this.brandsService.checkVehicleCategory(c._id).pipe(
+        map((result) => ({ catId: c._id, hasVehicleBrands: result.hasVehicleBrands })),
+        catchError(() => of({ catId: c._id, hasVehicleBrands: false })),
+      ),
+    );
+
+    forkJoin(checks$)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((results) => {
+        const vehicleMatch = results.find((r) => r.hasVehicleBrands);
+        if (vehicleMatch) {
+          this.isVehicleCategory.set(true);
+          this.brandsService
+            .getVehicleBrandsByCategory(vehicleMatch.catId)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (brands) =>
+                this.availableBrands.set(brands.map((b) => ({ _id: b._id, name: b.name }))),
+              error: () => this.availableBrands.set([]),
+            });
+        } else {
+          this.isVehicleCategory.set(false);
+          this.brandsService
+            .getByCategory(brandCat._id)
+            .pipe(takeUntil(this.destroy$))
+            .subscribe({
+              next: (brands) =>
+                this.availableBrands.set(brands.map((b) => ({ _id: b._id, name: b.name }))),
+              error: () => this.availableBrands.set([]),
+            });
+        }
+      });
+  }
+
+  selectBrand(id: string, name: string): void {
+    this.selectedBrandId.set(id);
+    this.selectedBrandName.set(name);
+    this.otherBrandName.set('');
+    this.selectedModelId.set('');
+    this.selectedModelName.set('');
+    this.otherModelName.set('');
+    this.selectedVariantId.set('');
+    this.selectedVariantName.set('');
+    this.otherVariantName.set('');
+    this.availableModels.set([]);
+    this.availableVariants.set([]);
+    this.openDropdown.set(null);
+    this.brandSearch.set('');
+
+    if (id !== OTHER_OPTION_ID && this.isVehicleCategory()) {
+      this.brandsService
+        .getModelsByBrand(id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (models) => this.availableModels.set(models),
+          error: () => this.availableModels.set([]),
+        });
+    }
+  }
+
+  selectModel(id: string, name: string): void {
+    this.selectedModelId.set(id);
+    this.selectedModelName.set(name);
+    this.otherModelName.set('');
+    this.selectedVariantId.set('');
+    this.selectedVariantName.set('');
+    this.otherVariantName.set('');
+    this.availableVariants.set([]);
+    this.openDropdown.set(null);
+    this.modelSearch.set('');
+
+    if (id !== OTHER_OPTION_ID) {
+      this.brandsService
+        .getVariantsByModel(id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (variants) => this.availableVariants.set(variants),
+          error: () => this.availableVariants.set([]),
+        });
+    }
+  }
+
+  selectVariant(id: string, name: string): void {
+    this.selectedVariantId.set(id);
+    this.selectedVariantName.set(name);
+    this.otherVariantName.set('');
+    this.openDropdown.set(null);
+    this.variantSearch.set('');
   }
 
   isCategoryStepValid(): boolean {
@@ -424,6 +628,17 @@ export class EditListingComponent implements OnInit, OnDestroy {
     if (!base) return false;
     for (const attr of this.categoryAttributes()) {
       if (attr.required && !this.detailsForm.get(attr.key)?.value) return false;
+    }
+    // Validate brand selection
+    if (this.hasBrands()) {
+      const brandId = this.selectedBrandId();
+      if (!brandId) return false;
+      if (brandId === OTHER_OPTION_ID && !this.otherBrandName().trim()) return false;
+      if (this.isVehicleCategory()) {
+        const modelId = this.selectedModelId();
+        if (!modelId) return false;
+        if (modelId === OTHER_OPTION_ID && !this.otherModelName().trim()) return false;
+      }
     }
     return true;
   }
@@ -523,6 +738,32 @@ export class EditListingComponent implements OnInit, OnDestroy {
         mapLink: loc.mapLink?.trim() || undefined,
       },
     };
+
+    // Add brand/model/variant fields
+    if (this.hasBrands()) {
+      const brandId = this.selectedBrandId();
+      if (this.isVehicleCategory()) {
+        payload.vehicleBrandId = brandId;
+        payload.vehicleBrandName =
+          brandId === OTHER_OPTION_ID ? this.otherBrandName().trim() : this.selectedBrandName();
+        const modelId = this.selectedModelId();
+        payload.modelId = modelId;
+        payload.modelName =
+          modelId === OTHER_OPTION_ID ? this.otherModelName().trim() : this.selectedModelName();
+        const variantId = this.selectedVariantId();
+        if (variantId) {
+          payload.variantId = variantId;
+          payload.variantName =
+            variantId === OTHER_OPTION_ID
+              ? this.otherVariantName().trim()
+              : this.selectedVariantName();
+        }
+      } else {
+        payload.brandId = brandId;
+        payload.brandName =
+          brandId === OTHER_OPTION_ID ? this.otherBrandName().trim() : this.selectedBrandName();
+      }
+    }
 
     this.listingsService
       .update(this.listingId, payload)

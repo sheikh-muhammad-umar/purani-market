@@ -51,6 +51,12 @@ export class VehicleBrandController {
     return this.vehicleBrandService.findAll(all !== 'true');
   }
 
+  @Get('check-category/:categoryId')
+  async checkCategory(@Param('categoryId') categoryId: string) {
+    const count = await this.vehicleBrandService.countByCategory(categoryId);
+    return { hasVehicleBrands: count > 0 };
+  }
+
   @Get(':id')
   async getBrand(@Param('id') id: string) {
     return this.vehicleBrandService.findById(id);

@@ -317,6 +317,12 @@
   }
 }
 
+.custom-select-option.other-option {
+  border-top: 1px solid var(--border);
+  font-style: italic;
+  color: var(--text-secondary);
+}
+
 /* Fallback: style native selects similarly */
 .details-form select.form-input,
 .location-form select.form-input,

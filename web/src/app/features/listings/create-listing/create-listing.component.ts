@@ -13,7 +13,14 @@ import { ListingsService, CreateListingPayload } from '../../../core/services/li
 import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LocationService } from '../../../core/services/location.service';
+import { BrandsService } from '../../../core/services/brands.service';
 import { Category, CategoryAttribute, Province, City, Area } from '../../../core/models';
+import {
+  VehicleModel,
+  VehicleVariant,
+  BrandOption,
+  OTHER_OPTION_ID,
+} from '../../../core/models/brand.model';
 import { ListingCondition, PackageType, PaymentStatus } from '../../../core/constants/enums';
 import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
 import { listingSlug } from '../../../core/utils/slug';
@@ -25,7 +32,8 @@ import { saveState, loadState, clearState } from '../../../core/utils/state-pers
 import { computeFileHash } from '../../../core/utils/file-hash';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { mapLinkValidator } from '../../../core/utils/map-link';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, takeUntil, forkJoin, of } from 'rxjs';
+import { map, catchError } from 'rxjs/operators';
 
 export interface MediaItem {
   file: File;
@@ -45,6 +53,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   readonly conditionOptions = CONDITION_OPTIONS;
   readonly ROUTES = ROUTES;
   readonly ERROR_MSG = ERROR_MSG;
+  readonly OTHER_ID = OTHER_OPTION_ID;
 
   // Phone verification state
   phoneVerified = signal(false);
@@ -77,6 +86,40 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   categoryAttributes = signal<CategoryAttribute[]>([]);
   categoryFeatures = signal<string[]>([]);
   selectedFeatures = signal<string[]>([]);
+
+  // Brand / Model / Variant state
+  hasBrands = signal(false);
+  isVehicleCategory = signal(false);
+  availableBrands = signal<BrandOption[]>([]);
+  availableModels = signal<VehicleModel[]>([]);
+  availableVariants = signal<VehicleVariant[]>([]);
+  selectedBrandId = signal<string>('');
+  selectedBrandName = signal<string>('');
+  otherBrandName = signal<string>('');
+  selectedModelId = signal<string>('');
+  selectedModelName = signal<string>('');
+  otherModelName = signal<string>('');
+  selectedVariantId = signal<string>('');
+  selectedVariantName = signal<string>('');
+  otherVariantName = signal<string>('');
+  brandSearch = signal<string>('');
+  modelSearch = signal<string>('');
+  variantSearch = signal<string>('');
+  filteredBrands = computed(() => {
+    const q = this.brandSearch().toLowerCase().trim();
+    const all = this.availableBrands();
+    return q ? all.filter((b) => b.name.toLowerCase().includes(q)) : all;
+  });
+  filteredModels = computed(() => {
+    const q = this.modelSearch().toLowerCase().trim();
+    const all = this.availableModels();
+    return q ? all.filter((m) => m.name.toLowerCase().includes(q)) : all;
+  });
+  filteredVariants = computed(() => {
+    const q = this.variantSearch().toLowerCase().trim();
+    const all = this.availableVariants();
+    return q ? all.filter((v) => v.name.toLowerCase().includes(q)) : all;
+  });
 
   // Media state
   mediaItems = signal<MediaItem[]>([]);
@@ -147,6 +190,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     private readonly locationService: LocationService,
     private readonly tracker: ActivityTrackerService,
+    private readonly brandsService: BrandsService,
   ) {}
 
   ngOnDestroy(): void {
@@ -229,26 +273,32 @@ export class CreateListingComponent implements OnInit, OnDestroy {
       const prov = this.provinces().find((p) => p._id === draft['selectedProvinceId']);
       if (prov) {
         this.selectedProvince.set(prov);
-        this.locationService.getCities(prov._id).subscribe({
-          next: (cities) => {
-            this.citiesForListing.set(cities);
-            if (draft['selectedCityId']) {
-              const city = cities.find((c: any) => c._id === draft['selectedCityId']);
-              if (city) {
-                this.selectedCityObj.set(city);
-                this.locationService.getAreas(city._id).subscribe({
-                  next: (areas) => {
-                    this.areasForListing.set(areas);
-                    if (draft['selectedAreaId']) {
-                      const area = areas.find((a: any) => a._id === draft['selectedAreaId']);
-                      if (area) this.selectedAreaObj.set(area);
-                    }
-                  },
-                });
+        this.locationService
+          .getCities(prov._id)
+          .pipe(takeUntil(this.destroy$))
+          .subscribe({
+            next: (cities) => {
+              this.citiesForListing.set(cities);
+              if (draft['selectedCityId']) {
+                const city = cities.find((c: any) => c._id === draft['selectedCityId']);
+                if (city) {
+                  this.selectedCityObj.set(city);
+                  this.locationService
+                    .getAreas(city._id)
+                    .pipe(takeUntil(this.destroy$))
+                    .subscribe({
+                      next: (areas) => {
+                        this.areasForListing.set(areas);
+                        if (draft['selectedAreaId']) {
+                          const area = areas.find((a: any) => a._id === draft['selectedAreaId']);
+                          if (area) this.selectedAreaObj.set(area);
+                        }
+                      },
+                    });
+                }
               }
-            }
-          },
-        });
+            },
+          });
       }
     }
     if (draft['selectedBlockPhase']) this.selectedBlockPhase.set(draft['selectedBlockPhase']);
@@ -337,18 +387,21 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     this.phoneError.set('');
     const phone = this.phoneForm.get('phone')!.value;
 
-    this.authService.addPhone(phone).subscribe({
-      next: () => {
-        this.phoneSending.set(false);
-        this.pendingPhone.set(phone);
-        this.phoneStep.set('verify');
-        this.phoneSuccess.set('OTP sent to ' + phone);
-      },
-      error: (err) => {
-        this.phoneSending.set(false);
-        this.phoneError.set(err?.error?.message ?? 'Failed to send OTP. Please try again.');
-      },
-    });
+    this.authService
+      .addPhone(phone)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: () => {
+          this.phoneSending.set(false);
+          this.pendingPhone.set(phone);
+          this.phoneStep.set('verify');
+          this.phoneSuccess.set('OTP sent to ' + phone);
+        },
+        error: (err) => {
+          this.phoneSending.set(false);
+          this.phoneError.set(err?.error?.message ?? 'Failed to send OTP. Please try again.');
+        },
+      });
   }
 
   submitOtp(): void {
@@ -365,14 +418,14 @@ export class CreateListingComponent implements OnInit, OnDestroy {
         ? this.authService.verifyPhone(phone, otp)
         : this.authService.verifyPhoneChange(otp);
 
-    verify$.subscribe({
+    verify$.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.phoneSending.set(false);
         this.phoneVerified.set(true);
         this.phoneSuccess.set('Phone verified successfully!');
         this.loadFeaturedSlots();
         // Refresh user data
-        this.authService.fetchCurrentUser().subscribe();
+        this.authService.fetchCurrentUser().pipe(takeUntil(this.destroy$)).subscribe();
       },
       error: (err) => {
         this.phoneSending.set(false);
@@ -391,7 +444,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
         ? this.authService.resendVerification(phone)
         : this.authService.addPhone(phone);
 
-    resend$.subscribe({
+    resend$.pipe(takeUntil(this.destroy$)).subscribe({
       next: () => {
         this.phoneSending.set(false);
         this.phoneSuccess.set('OTP resent to ' + phone);
@@ -404,23 +457,26 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   }
 
   private loadFeaturedSlots(): void {
-    this.packagesService.getMyPurchases().subscribe({
-      next: (res) => {
-        const purchases = Array.isArray(res) ? res : (res.data ?? []);
-        const now = new Date();
-        const remaining = purchases
-          .filter(
-            (p: any) =>
-              p.type === PackageType.FEATURED_ADS &&
-              p.paymentStatus === PaymentStatus.COMPLETED &&
-              p.expiresAt &&
-              new Date(p.expiresAt) > now,
-          )
-          .reduce((sum: number, p: any) => sum + (p.remainingQuantity || 0), 0);
-        this.featuredSlotsRemaining.set(remaining);
-      },
-      error: () => this.featuredSlotsRemaining.set(0),
-    });
+    this.packagesService
+      .getMyPurchases()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => {
+          const purchases = Array.isArray(res) ? res : (res.data ?? []);
+          const now = new Date();
+          const remaining = purchases
+            .filter(
+              (p: any) =>
+                p.type === PackageType.FEATURED_ADS &&
+                p.paymentStatus === PaymentStatus.COMPLETED &&
+                p.expiresAt &&
+                new Date(p.expiresAt) > now,
+            )
+            .reduce((sum: number, p: any) => sum + (p.remainingQuantity || 0), 0);
+          this.featuredSlotsRemaining.set(remaining);
+        },
+        error: () => this.featuredSlotsRemaining.set(0),
+      });
   }
 
   // --- Category Step ---
@@ -467,6 +523,148 @@ export class CreateListingComponent implements OnInit, OnDestroy {
           this.categoryFeatures.set([]);
         },
       });
+    this.loadBrandsForCategory();
+  }
+
+  private loadBrandsForCategory(): void {
+    // Check if any selected category (or its ancestors) has hasBrands
+    const cats = [this.selectedLevel1(), this.selectedLevel2(), this.selectedLevel3()].filter(
+      Boolean,
+    ) as Category[];
+    const brandCat = cats.find((c) => c.hasBrands);
+    if (!brandCat) {
+      this.hasBrands.set(false);
+      this.isVehicleCategory.set(false);
+      this.resetBrandState();
+      return;
+    }
+    this.hasBrands.set(true);
+    this.resetBrandState();
+
+    // Check all categories in the path for vehicle brands (data-driven, not slug-based)
+    const catIds = cats.map((c) => c._id);
+    this.checkVehicleBrandsForPath(catIds, brandCat);
+  }
+
+  private checkVehicleBrandsForPath(catIds: string[], brandCat: Category): void {
+    const checks$ = catIds.map((catId) =>
+      this.brandsService.checkVehicleCategory(catId).pipe(
+        map((result) => ({ catId, hasVehicleBrands: result.hasVehicleBrands })),
+        catchError(() => of({ catId, hasVehicleBrands: false })),
+      ),
+    );
+
+    forkJoin(checks$)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((results) => {
+        const vehicleMatch = results.find((r) => r.hasVehicleBrands);
+        if (vehicleMatch) {
+          this.isVehicleCategory.set(true);
+          this.loadVehicleBrands(vehicleMatch.catId);
+        } else {
+          this.isVehicleCategory.set(false);
+          this.loadSimpleBrands(brandCat._id);
+        }
+      });
+  }
+
+  private loadVehicleBrands(categoryId: string): void {
+    this.brandsService
+      .getVehicleBrandsByCategory(categoryId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (brands) =>
+          this.availableBrands.set(brands.map((b) => ({ _id: b._id, name: b.name }))),
+        error: () => this.availableBrands.set([]),
+      });
+  }
+
+  private loadSimpleBrands(categoryId: string): void {
+    this.brandsService
+      .getByCategory(categoryId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (brands) =>
+          this.availableBrands.set(brands.map((b) => ({ _id: b._id, name: b.name }))),
+        error: () => this.availableBrands.set([]),
+      });
+  }
+
+  private resetBrandState(): void {
+    this.availableBrands.set([]);
+    this.availableModels.set([]);
+    this.availableVariants.set([]);
+    this.selectedBrandId.set('');
+    this.selectedBrandName.set('');
+    this.otherBrandName.set('');
+    this.selectedModelId.set('');
+    this.selectedModelName.set('');
+    this.otherModelName.set('');
+    this.selectedVariantId.set('');
+    this.selectedVariantName.set('');
+    this.otherVariantName.set('');
+    this.brandSearch.set('');
+    this.modelSearch.set('');
+    this.variantSearch.set('');
+  }
+
+  selectBrand(id: string, name: string): void {
+    this.selectedBrandId.set(id);
+    this.selectedBrandName.set(name);
+    this.otherBrandName.set('');
+    this.selectedModelId.set('');
+    this.selectedModelName.set('');
+    this.otherModelName.set('');
+    this.selectedVariantId.set('');
+    this.selectedVariantName.set('');
+    this.otherVariantName.set('');
+    this.availableModels.set([]);
+    this.availableVariants.set([]);
+    this.openDropdown.set(null);
+    this.brandSearch.set('');
+
+    if (id !== OTHER_OPTION_ID && this.isVehicleCategory()) {
+      this.brandsService
+        .getModelsByBrand(id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (models) => this.availableModels.set(models),
+          error: () => this.availableModels.set([]),
+        });
+    }
+    this.saveDraft();
+  }
+
+  selectModel(id: string, name: string): void {
+    this.selectedModelId.set(id);
+    this.selectedModelName.set(name);
+    this.otherModelName.set('');
+    this.selectedVariantId.set('');
+    this.selectedVariantName.set('');
+    this.otherVariantName.set('');
+    this.availableVariants.set([]);
+    this.openDropdown.set(null);
+    this.modelSearch.set('');
+
+    if (id !== OTHER_OPTION_ID) {
+      this.brandsService
+        .getVariantsByModel(id)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (variants) => this.availableVariants.set(variants),
+          error: () => this.availableVariants.set([]),
+        });
+    }
+    this.saveDraft();
+  }
+
+  selectVariant(id: string, name: string): void {
+    this.selectedVariantId.set(id);
+    this.selectedVariantName.set(name);
+    this.otherVariantName.set('');
+    this.openDropdown.set(null);
+    this.variantSearch.set('');
+    this.saveDraft();
   }
 
   isCategoryStepValid(): boolean {
@@ -524,11 +722,6 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     this.detailsForm.get('price')?.setValue(numValue, { emitEvent: true });
   }
 
-  getDropdownLabel(key: string, options: string[] | undefined): string {
-    const val = this.getDynamicControl(key).value;
-    return val || '';
-  }
-
   // --- Details Step ---
   getDynamicControl(key: string): FormControl {
     if (!this.detailsForm.contains(key)) {
@@ -569,6 +762,22 @@ export class CreateListingComponent implements OnInit, OnDestroy {
         if (!ctrl || !ctrl.value) return false;
       }
     }
+
+    // Validate brand selection for hasBrands categories
+    if (this.hasBrands()) {
+      const brandId = this.selectedBrandId();
+      if (!brandId) return false;
+      if (brandId === OTHER_OPTION_ID && !this.otherBrandName().trim()) return false;
+
+      // Vehicle categories require model
+      if (this.isVehicleCategory()) {
+        const modelId = this.selectedModelId();
+        if (!modelId) return false;
+        if (modelId === OTHER_OPTION_ID && !this.otherModelName().trim()) return false;
+        // Variant is optional — no validation needed
+      }
+    }
+
     return true;
   }
 
@@ -852,6 +1061,32 @@ export class CreateListingComponent implements OnInit, OnDestroy {
       },
       isFeatured: this.featureAd(),
     };
+
+    // Add brand/model/variant fields
+    if (this.hasBrands()) {
+      const brandId = this.selectedBrandId();
+      if (this.isVehicleCategory()) {
+        payload.vehicleBrandId = brandId;
+        payload.vehicleBrandName =
+          brandId === OTHER_OPTION_ID ? this.otherBrandName().trim() : this.selectedBrandName();
+        const modelId = this.selectedModelId();
+        payload.modelId = modelId;
+        payload.modelName =
+          modelId === OTHER_OPTION_ID ? this.otherModelName().trim() : this.selectedModelName();
+        const variantId = this.selectedVariantId();
+        if (variantId) {
+          payload.variantId = variantId;
+          payload.variantName =
+            variantId === OTHER_OPTION_ID
+              ? this.otherVariantName().trim()
+              : this.selectedVariantName();
+        }
+      } else {
+        payload.brandId = brandId;
+        payload.brandName =
+          brandId === OTHER_OPTION_ID ? this.otherBrandName().trim() : this.selectedBrandName();
+      }
+    }
 
     this.listingsService.create(payload).subscribe({
       next: (listing) => {
