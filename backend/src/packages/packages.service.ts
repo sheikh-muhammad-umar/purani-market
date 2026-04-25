@@ -29,6 +29,7 @@ import { PurchasePackageDto } from './dto/purchase-package.dto.js';
 import { CreatePackageDto } from './dto/create-package.dto.js';
 import { UpdatePackageDto } from './dto/update-package.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { PAYMENT_ROUTES } from '../payments/constants.js';
 
 export interface PurchaseResult {
   purchases: PackagePurchaseDocument[];
@@ -136,14 +137,16 @@ export class PackagesService {
     dto: PurchasePackageDto,
   ): Promise<PurchaseResult> {
     if (!dto.items || dto.items.length === 0) {
-      throw new BadRequestException('At least one package item is required');
+      throw new BadRequestException(ERROR.PAYMENT_PURCHASE_ITEM_REQUIRED);
     }
     const purchases: PackagePurchaseDocument[] = [];
     let totalAmount = 0;
     for (const item of dto.items) {
       const pkg = await this.findById(item.packageId);
       if (!pkg.isActive) {
-        throw new BadRequestException(`Package "${pkg.name}" is not available`);
+        throw new BadRequestException(
+          `${ERROR.PAYMENT_PACKAGE_UNAVAILABLE}: "${pkg.name}"`,
+        );
       }
       let price = pkg.defaultPrice;
       if (item.categoryId && Types.ObjectId.isValid(item.categoryId)) {
@@ -180,7 +183,7 @@ export class PackagesService {
         currency: DEFAULT_CURRENCY,
         purchaseIds,
         sellerId,
-        callbackUrl: '/api/packages/payment-callback',
+        callbackUrl: PAYMENT_ROUTES.PACKAGE_CALLBACK,
       },
     );
     await this.packagePurchaseModel.updateMany(
@@ -197,9 +200,15 @@ export class PackagesService {
   async handlePaymentCallback(
     payload: Record<string, any>,
   ): Promise<{ status: string; message: string }> {
-    const { transactionId, paymentMethod } = payload;
+    // Resolve transaction ID from various callback formats
+    const transactionId =
+      payload.pp_TxnRefNo || // JazzCash
+      payload.orderRefNumber || // EasyPaisa
+      payload.transactionId || // Generic / Stripe
+      payload.session_id; // Stripe redirect
+
     if (!transactionId) {
-      throw new BadRequestException('Transaction ID is required');
+      throw new BadRequestException(ERROR.PAYMENT_TXN_ID_REQUIRED);
     }
 
     const purchases = await this.packagePurchaseModel
@@ -207,12 +216,15 @@ export class PackagesService {
       .exec();
 
     if (purchases.length === 0) {
-      throw new NotFoundException('No purchases found for this transaction');
+      throw new NotFoundException(ERROR.PAYMENT_NO_PURCHASES_FOR_TXN);
     }
+
+    // Derive payment method from the stored purchase rather than the callback
+    const paymentMethod = payload.paymentMethod || purchases[0].paymentMethod;
 
     const verification = await this.paymentsService.verifyCallback(
       paymentMethod,
-      payload,
+      { ...payload, transactionId },
     );
 
     if (verification.status === 'completed') {
@@ -239,7 +251,7 @@ export class PackagesService {
           );
         }
       }
-      return { status: 'success', message: 'Packages activated successfully' };
+      return { status: 'success', message: ERROR.PAYMENT_PACKAGES_ACTIVATED };
     }
 
     await this.packagePurchaseModel.updateMany(
@@ -248,7 +260,7 @@ export class PackagesService {
     );
     return {
       status: 'failed',
-      message: verification.reason || 'Payment failed',
+      message: verification.reason ?? ERROR.PAYMENT_FAILED,
     };
   }
 
@@ -266,11 +278,11 @@ export class PackagesService {
     }
 
     if (listing.sellerId.toString() !== sellerId) {
-      throw new ForbiddenException('You can only feature your own listings');
+      throw new ForbiddenException(ERROR.PAYMENT_OWN_LISTING_ONLY);
     }
 
     if (listing.isFeatured) {
-      throw new BadRequestException('Listing is already featured');
+      throw new BadRequestException(ERROR.PAYMENT_ALREADY_FEATURED);
     }
 
     const now = new Date();
@@ -285,9 +297,7 @@ export class PackagesService {
       .exec();
 
     if (!activePurchase) {
-      throw new BadRequestException(
-        'No active featured ad package available. Please purchase a featured ads package.',
-      );
+      throw new BadRequestException(ERROR.PAYMENT_NO_FEATURED_PACKAGE);
     }
 
     await this.packagePurchaseModel.updateOne(
@@ -322,9 +332,7 @@ export class PackagesService {
       canPost,
       activeAdCount: user.activeAdCount,
       adLimit: user.adLimit,
-      message: canPost
-        ? undefined
-        : 'You have reached your ad limit. Please purchase an ad package to post more ads.',
+      message: canPost ? undefined : ERROR.PAYMENT_AD_LIMIT_REACHED,
     };
   }
 

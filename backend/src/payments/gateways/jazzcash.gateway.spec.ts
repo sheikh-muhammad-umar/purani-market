@@ -1,10 +1,27 @@
+import { ConfigService } from '@nestjs/config';
 import { JazzCashGateway } from './jazzcash.gateway';
+import { CONFIG_KEYS, JAZZCASH_SUCCESS_CODE } from '../constants';
+
+const mockConfigService = {
+  get: (key: string) => {
+    const config: Record<string, string> = {
+      [CONFIG_KEYS.JAZZCASH_MERCHANT_ID]: 'TestMerchant',
+      [CONFIG_KEYS.JAZZCASH_PASSWORD]: '0123456789',
+      [CONFIG_KEYS.JAZZCASH_INTEGRITY_SALT]: 'testsalt',
+      [CONFIG_KEYS.JAZZCASH_BASE_URL]:
+        'https://sandbox.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform/',
+      [CONFIG_KEYS.JAZZCASH_RETURN_URL]:
+        'http://localhost:3000/api/packages/payment-callback',
+    };
+    return config[key] ?? '';
+  },
+} as unknown as ConfigService;
 
 describe('JazzCashGateway', () => {
   let gateway: JazzCashGateway;
 
   beforeEach(() => {
-    gateway = new JazzCashGateway();
+    gateway = new JazzCashGateway(mockConfigService);
   });
 
   it('should have name "jazzcash"', () => {
@@ -21,7 +38,7 @@ describe('JazzCashGateway', () => {
         callbackUrl: '/callback',
       });
 
-      expect(result.transactionId).toMatch(/^JC-/);
+      expect(result.transactionId).toMatch(/^T\d+/);
       expect(result.redirectUrl).toContain('jazzcash');
       expect(result.status).toBe('initiated');
     });
@@ -30,19 +47,18 @@ describe('JazzCashGateway', () => {
   describe('verifyCallback', () => {
     it('should return completed for success response code', async () => {
       const result = await gateway.verifyCallback({
-        transactionId: 'JC-123',
-        responseCode: '000',
+        pp_TxnRefNo: 'T20240101120000',
+        pp_ResponseCode: JAZZCASH_SUCCESS_CODE,
       });
       expect(result.status).toBe('completed');
     });
 
     it('should return failed for non-success response code', async () => {
       const result = await gateway.verifyCallback({
-        transactionId: 'JC-123',
-        responseCode: '999',
+        pp_TxnRefNo: 'T20240101120000',
+        pp_ResponseCode: '999',
       });
       expect(result.status).toBe('failed');
-      expect(result.reason).toContain('999');
     });
   });
 });

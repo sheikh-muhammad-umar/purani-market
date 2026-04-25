@@ -46,4 +46,38 @@ export default () => ({
   },
 
   apiKey: process.env.API_KEY || '',
+
+  payments: {
+    jazzcash: {
+      merchantId: process.env.JAZZCASH_MERCHANT_ID || '',
+      password: process.env.JAZZCASH_PASSWORD || '',
+      integritySalt: process.env.JAZZCASH_INTEGRITY_SALT || '',
+      baseUrl:
+        process.env.JAZZCASH_BASE_URL ||
+        'https://sandbox.jazzcash.com.pk/CustomerPortal/transactionmanagement/merchantform/',
+      returnUrl:
+        process.env.JAZZCASH_RETURN_URL ||
+        'http://localhost:3000/api/packages/payment-callback',
+    },
+    easypaisa: {
+      storeId: process.env.EASYPAISA_STORE_ID || '',
+      hashKey: process.env.EASYPAISA_HASH_KEY || '',
+      baseUrl:
+        process.env.EASYPAISA_BASE_URL ||
+        'https://easypay.easypaisa.com.pk/easypay/Index.jsf',
+      returnUrl:
+        process.env.EASYPAISA_RETURN_URL ||
+        'http://localhost:3000/api/packages/payment-callback',
+    },
+    stripe: {
+      secretKey: process.env.STRIPE_SECRET_KEY || '',
+      webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
+      successUrl:
+        process.env.STRIPE_SUCCESS_URL ||
+        'http://localhost:4200/packages/success?session_id={CHECKOUT_SESSION_ID}',
+      cancelUrl:
+        process.env.STRIPE_CANCEL_URL ||
+        'http://localhost:4200/packages/cancel',
+    },
+  },
 });

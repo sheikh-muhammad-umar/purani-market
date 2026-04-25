@@ -3,55 +3,51 @@ import {
   PaymentGateway,
   PaymentInitResult,
   PaymentVerifyResult,
+  PaymentInitParams,
 } from './interfaces/payment-gateway.interface.js';
 import { JazzCashGateway } from './gateways/jazzcash.gateway.js';
 import { EasyPaisaGateway } from './gateways/easypaisa.gateway.js';
 import { CardGateway } from './gateways/card.gateway.js';
 import { PaymentMethod } from '../packages/schemas/package-purchase.schema.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 @Injectable()
 export class PaymentsService {
-  private readonly gateways: Map<string, PaymentGateway>;
+  private readonly gateways: ReadonlyMap<PaymentMethod, PaymentGateway>;
 
   constructor(
-    private readonly jazzCashGateway: JazzCashGateway,
-    private readonly easyPaisaGateway: EasyPaisaGateway,
-    private readonly cardGateway: CardGateway,
+    jazzCashGateway: JazzCashGateway,
+    easyPaisaGateway: EasyPaisaGateway,
+    cardGateway: CardGateway,
   ) {
-    this.gateways = new Map<string, PaymentGateway>([
-      [PaymentMethod.JAZZCASH, this.jazzCashGateway],
-      [PaymentMethod.EASYPAISA, this.easyPaisaGateway],
-      [PaymentMethod.CARD, this.cardGateway],
+    this.gateways = new Map<PaymentMethod, PaymentGateway>([
+      [PaymentMethod.JAZZCASH, jazzCashGateway],
+      [PaymentMethod.EASYPAISA, easyPaisaGateway],
+      [PaymentMethod.CARD, cardGateway],
     ]);
   }
 
   getGateway(method: PaymentMethod): PaymentGateway {
     const gateway = this.gateways.get(method);
     if (!gateway) {
-      throw new BadRequestException(`Unsupported payment method: ${method}`);
+      throw new BadRequestException(
+        `${ERROR.PAYMENT_UNSUPPORTED_METHOD}: ${method}`,
+      );
     }
     return gateway;
   }
 
   async initiatePayment(
     method: PaymentMethod,
-    params: {
-      amount: number;
-      currency: string;
-      purchaseIds: string[];
-      sellerId: string;
-      callbackUrl: string;
-    },
+    params: PaymentInitParams,
   ): Promise<PaymentInitResult> {
-    const gateway = this.getGateway(method);
-    return gateway.initiatePayment(params);
+    return this.getGateway(method).initiatePayment(params);
   }
 
   async verifyCallback(
     method: PaymentMethod,
-    payload: Record<string, any>,
+    payload: Record<string, unknown>,
   ): Promise<PaymentVerifyResult> {
-    const gateway = this.getGateway(method);
-    return gateway.verifyCallback(payload);
+    return this.getGateway(method).verifyCallback(payload);
   }
 }

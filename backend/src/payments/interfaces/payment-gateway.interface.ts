@@ -1,3 +1,11 @@
+export interface PaymentInitParams {
+  amount: number;
+  currency: string;
+  purchaseIds: string[];
+  sellerId: string;
+  callbackUrl: string;
+}
+
 export interface PaymentInitResult {
   transactionId: string;
   redirectUrl: string;
@@ -12,12 +20,8 @@ export interface PaymentVerifyResult {
 
 export interface PaymentGateway {
   readonly name: string;
-  initiatePayment(params: {
-    amount: number;
-    currency: string;
-    purchaseIds: string[];
-    sellerId: string;
-    callbackUrl: string;
-  }): Promise<PaymentInitResult>;
-  verifyCallback(payload: Record<string, any>): Promise<PaymentVerifyResult>;
+  initiatePayment(params: PaymentInitParams): Promise<PaymentInitResult>;
+  verifyCallback(
+    payload: Record<string, unknown>,
+  ): Promise<PaymentVerifyResult>;
 }

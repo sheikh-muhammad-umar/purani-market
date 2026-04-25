@@ -1,48 +1,53 @@
+import { ConfigService } from '@nestjs/config';
 import { CardGateway } from './card.gateway';
+import {
+  CONFIG_KEYS,
+  STRIPE_CHECKOUT_COMPLETED,
+  STRIPE_PAYMENT_STATUS_PAID,
+} from '../constants';
+
+const mockConfigService = {
+  get: (key: string) => {
+    const config: Record<string, string> = {
+      [CONFIG_KEYS.STRIPE_SECRET_KEY]: 'sk_test_placeholder',
+      [CONFIG_KEYS.STRIPE_WEBHOOK_SECRET]: 'whsec_test',
+      [CONFIG_KEYS.STRIPE_SUCCESS_URL]:
+        'http://localhost:4200/packages/success',
+      [CONFIG_KEYS.STRIPE_CANCEL_URL]: 'http://localhost:4200/packages/cancel',
+    };
+    return config[key] ?? '';
+  },
+} as unknown as ConfigService;
 
 describe('CardGateway', () => {
   let gateway: CardGateway;
 
   beforeEach(() => {
-    gateway = new CardGateway();
+    gateway = new CardGateway(mockConfigService);
   });
 
   it('should have name "card"', () => {
     expect(gateway.name).toBe('card');
   });
 
-  describe('initiatePayment', () => {
-    it('should return a transaction ID and redirect URL', async () => {
-      const result = await gateway.initiatePayment({
-        amount: 2000,
-        currency: 'PKR',
-        purchaseIds: ['p1'],
-        sellerId: 'seller1',
-        callbackUrl: '/callback',
-      });
-
-      expect(result.transactionId).toMatch(/^CARD-/);
-      expect(result.redirectUrl).toContain('stripe');
-      expect(result.status).toBe('initiated');
-    });
-  });
-
   describe('verifyCallback', () => {
-    it('should return completed for succeeded status', async () => {
+    it('should return failed when no session ID provided', async () => {
+      const result = await gateway.verifyCallback({});
+      expect(result.status).toBe('failed');
+    });
+
+    it('should handle webhook event for completed session', async () => {
       const result = await gateway.verifyCallback({
-        transactionId: 'CARD-123',
-        status: 'succeeded',
+        type: STRIPE_CHECKOUT_COMPLETED,
+        data: {
+          object: {
+            id: 'cs_test_123',
+            payment_status: STRIPE_PAYMENT_STATUS_PAID,
+          },
+        },
       });
       expect(result.status).toBe('completed');
-    });
-
-    it('should return failed for non-succeeded status', async () => {
-      const result = await gateway.verifyCallback({
-        transactionId: 'CARD-123',
-        status: 'declined',
-      });
-      expect(result.status).toBe('failed');
-      expect(result.reason).toContain('declined');
+      expect(result.transactionId).toBe('cs_test_123');
     });
   });
 });

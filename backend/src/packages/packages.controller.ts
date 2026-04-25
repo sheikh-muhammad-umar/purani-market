@@ -19,8 +19,9 @@ import { UserRole } from '../users/schemas/user.schema.js';
 import { PurchasePackageDto } from './dto/purchase-package.dto.js';
 import { CreatePackageDto } from './dto/create-package.dto.js';
 import { UpdatePackageDto } from './dto/update-package.dto.js';
+import { PACKAGE_ROUTES } from '../payments/constants.js';
 
-@Controller('api/packages')
+@Controller(PACKAGE_ROUTES.BASE)
 export class PackagesController {
   constructor(
     private readonly packagesService: PackagesService,
@@ -32,7 +33,7 @@ export class PackagesController {
     return this.packagesService.findAll();
   }
 
-  @Get('my-purchases')
+  @Get(PACKAGE_ROUTES.MY_PURCHASES)
   @UseGuards(JwtAuthGuard)
   async getMyPurchases(@CurrentUser('sub') sellerId: string) {
     return this.packagesService.getMyPurchases(sellerId);
@@ -85,7 +86,7 @@ export class PackagesController {
     return pkg;
   }
 
-  @Post('purchase')
+  @Post(PACKAGE_ROUTES.PURCHASE)
   @UseGuards(JwtAuthGuard)
   async purchasePackages(
     @CurrentUser('sub') sellerId: string,
@@ -94,7 +95,7 @@ export class PackagesController {
     return this.packagesService.purchasePackages(sellerId, dto);
   }
 
-  @Post('payment-callback')
+  @Post(PACKAGE_ROUTES.PAYMENT_CALLBACK)
   async paymentCallback(@Body() payload: Record<string, any>) {
     return this.packagesService.handlePaymentCallback(payload);
   }

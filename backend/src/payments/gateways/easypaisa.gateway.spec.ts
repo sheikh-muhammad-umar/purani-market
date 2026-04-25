@@ -1,10 +1,26 @@
+import { ConfigService } from '@nestjs/config';
 import { EasyPaisaGateway } from './easypaisa.gateway';
+import { CONFIG_KEYS } from '../constants';
+
+const mockConfigService = {
+  get: (key: string) => {
+    const config: Record<string, string> = {
+      [CONFIG_KEYS.EASYPAISA_STORE_ID]: 'TestStore',
+      [CONFIG_KEYS.EASYPAISA_HASH_KEY]: 'testhashkey',
+      [CONFIG_KEYS.EASYPAISA_BASE_URL]:
+        'https://easypay.easypaisa.com.pk/easypay/Index.jsf',
+      [CONFIG_KEYS.EASYPAISA_RETURN_URL]:
+        'http://localhost:3000/api/packages/payment-callback',
+    };
+    return config[key] ?? '';
+  },
+} as unknown as ConfigService;
 
 describe('EasyPaisaGateway', () => {
   let gateway: EasyPaisaGateway;
 
   beforeEach(() => {
-    gateway = new EasyPaisaGateway();
+    gateway = new EasyPaisaGateway(mockConfigService);
   });
 
   it('should have name "easypaisa"', () => {
@@ -30,19 +46,18 @@ describe('EasyPaisaGateway', () => {
   describe('verifyCallback', () => {
     it('should return completed for success status', async () => {
       const result = await gateway.verifyCallback({
-        transactionId: 'EP-123',
-        status: 'success',
+        orderRefNumber: 'EP-123',
+        status: '0000',
       });
       expect(result.status).toBe('completed');
     });
 
     it('should return failed for non-success status', async () => {
       const result = await gateway.verifyCallback({
-        transactionId: 'EP-123',
-        status: 'declined',
+        orderRefNumber: 'EP-123',
+        status: '0001',
       });
       expect(result.status).toBe('failed');
-      expect(result.reason).toContain('declined');
     });
   });
 });

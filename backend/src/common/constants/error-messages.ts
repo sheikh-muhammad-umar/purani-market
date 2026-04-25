@@ -52,4 +52,23 @@ export const ERROR = {
     'You cannot start a conversation on your own listing',
   NOT_CONVERSATION_PARTICIPANT:
     'You are not a participant in this conversation',
+
+  // Payments
+  PAYMENT_TXN_ID_REQUIRED: 'Transaction ID is required',
+  PAYMENT_NO_PURCHASES_FOR_TXN: 'No purchases found for this transaction',
+  PAYMENT_UNSUPPORTED_METHOD: 'Unsupported payment method',
+  PAYMENT_STRIPE_NOT_CONFIGURED:
+    'Stripe is not configured. Set STRIPE_SECRET_KEY in your environment.',
+  PAYMENT_HASH_MISMATCH: 'Secure hash verification failed',
+  PAYMENT_RAW_BODY_REQUIRED: 'Raw body required for webhook verification',
+  PAYMENT_PACKAGES_ACTIVATED: 'Packages activated successfully',
+  PAYMENT_FAILED: 'Payment failed',
+  PAYMENT_PURCHASE_ITEM_REQUIRED: 'At least one package item is required',
+  PAYMENT_PACKAGE_UNAVAILABLE: 'Package is not available',
+  PAYMENT_NO_FEATURED_PACKAGE:
+    'No active featured ad package available. Please purchase a featured ads package.',
+  PAYMENT_AD_LIMIT_REACHED:
+    'You have reached your ad limit. Please purchase an ad package to post more ads.',
+  PAYMENT_ALREADY_FEATURED: 'Listing is already featured',
+  PAYMENT_OWN_LISTING_ONLY: 'You can only feature your own listings',
 } as const;
