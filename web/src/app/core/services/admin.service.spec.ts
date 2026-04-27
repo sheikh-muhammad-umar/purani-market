@@ -177,10 +177,11 @@ describe('AdminService', () => {
 
   it('should call PATCH /admin/listings/:id/reject with reason', () => {
     httpMock.patch.mockReturnValue(of(undefined));
-    service.rejectListing('l1', 'Inappropriate content').subscribe();
+    const payload = { rejectionReasonIds: ['reason1'], customNote: 'Inappropriate content' };
+    service.rejectListing('l1', payload).subscribe();
     expect(httpMock.patch).toHaveBeenCalledWith(
       expect.stringContaining('/admin/listings/l1/reject'),
-      { reason: 'Inappropriate content' },
+      payload,
     );
   });
 

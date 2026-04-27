@@ -71,6 +71,9 @@ describe('RecommendationService', () => {
           }),
         }),
       }),
+      aggregate: jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockListings),
+      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -180,7 +183,8 @@ describe('RecommendationService', () => {
 
       const findResult = mockListingModel.find();
       const sortResult = findResult.sort();
-      expect(sortResult.limit).toHaveBeenCalledWith(20);
+      // Featured query uses Math.ceil(safeLimit / 3) = Math.ceil(20 / 3) = 7
+      expect(sortResult.limit).toHaveBeenCalledWith(7);
     });
   });
 

@@ -102,23 +102,13 @@ describe('CategoryBrowseComponent', () => {
   });
 
   it('should return correct category image for known slugs', () => {
-    expect(component.getCategoryImage('cars', 'Cars')).toContain('cars');
-    expect(component.getCategoryImage('phones', 'Phones')).toContain('phones');
-    expect(component.getCategoryImage('property', 'Property')).toContain('property');
+    const cat = { icon: 'cars.png' } as any;
+    expect(component.getCategoryImage(cat)).toContain('cars.png');
   });
 
   it('should return default image for unknown categories', () => {
-    expect(component.getCategoryImage('unknown', 'Unknown')).toBe('assets/categories/default.jpg');
-  });
-
-  it('should return correct icon for known categories', () => {
-    expect(component.getCategoryIcon('cars', 'Cars')).toBe('🚗');
-    expect(component.getCategoryIcon('phones', 'Phones')).toBe('📱');
-    expect(component.getCategoryIcon('property', 'Property')).toBe('🏠');
-  });
-
-  it('should return default icon for unknown categories', () => {
-    expect(component.getCategoryIcon('unknown', 'Unknown')).toBe('📦');
+    const cat = {} as any;
+    expect(component.getCategoryImage(cat)).toContain('default');
   });
 
   it('should count subcategories correctly', () => {

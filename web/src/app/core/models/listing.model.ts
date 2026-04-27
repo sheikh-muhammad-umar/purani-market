@@ -79,4 +79,7 @@ export interface Listing {
   sellerActiveAdsCount?: number;
   sellerResponseRate?: number;
   sellerAvgResponseTime?: string;
+  purchaseId?:
+    | string
+    | { _id: string; packageId?: { name: string; type: string }; remainingQuantity?: number };
 }

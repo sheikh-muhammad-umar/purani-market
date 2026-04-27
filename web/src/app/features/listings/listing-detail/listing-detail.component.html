@@ -189,6 +189,16 @@
               {{ l.location.city }}</span
             >
             <span class="condition-tag">{{ l.condition | titlecase }}</span>
+            @if (isOwner() && packageInfo(); as pkg) {
+              <span class="package-badge">
+                <span
+                  class="material-symbols-rounded"
+                  style="font-size: 14px; vertical-align: middle"
+                  >inventory_2</span
+                >
+                {{ pkg.name }} · {{ pkg.type === 'featured_ads' ? 'Featured' : 'Ad Slot' }}
+              </span>
+            }
           </div>
         </div>
 
@@ -338,6 +348,25 @@
                 <span class="material-symbols-rounded" style="font-size: 18px">info</span>
                 This is your listing.
               </div>
+              @if (!actionLoading()) {
+                <div class="owner-actions" style="display: flex; gap: 0.5rem; margin-top: 0.75rem">
+                  @if (l.status === ListingStatus.ACTIVE) {
+                    <button class="btn btn-outline btn-sm" (click)="deactivateListing()">
+                      Deactivate
+                    </button>
+                  }
+                  <button
+                    class="btn btn-outline btn-sm btn-danger"
+                    (click)="deleteListingFromDetail()"
+                  >
+                    Delete
+                  </button>
+                </div>
+              } @else {
+                <div style="margin-top: 0.75rem; text-align: center">
+                  <span class="spinner"></span>
+                </div>
+              }
             } @else if (authService.isAuthenticated()) {
               <a
                 [routerLink]="[ROUTES.MESSAGING]"

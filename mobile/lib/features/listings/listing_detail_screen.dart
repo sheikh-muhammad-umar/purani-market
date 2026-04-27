@@ -2,12 +2,15 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/api/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../models/listing.dart';
 import '../../models/review.dart';
+import '../../utils/constants.dart';
 import '../../widgets/loading_shimmer.dart';
+import '../../widgets/package_confirmation_dialog.dart';
 import 'listing_detail_provider.dart';
 
 /// Listing detail screen with full-bleed image gallery, seller card,
@@ -16,6 +19,140 @@ class ListingDetailScreen extends ConsumerWidget {
   final String listingId;
 
   const ListingDetailScreen({super.key, required this.listingId});
+
+  void _trackEvent(
+      WidgetRef ref, String action, Map<String, dynamic> metadata) {
+    try {
+      ref.read(apiClientProvider).post(
+        AppConstants.trackEndpoint,
+        data: {
+          'action': action,
+          'metadata': metadata,
+        },
+      );
+    } catch (_) {
+      // Tracking should never block UX
+    }
+  }
+
+  Future<void> _confirmDelete(
+      BuildContext context, WidgetRef ref, Listing listing) async {
+    if (listing.hasPackage) {
+      final packageName = listing.packageName ?? 'Unknown Package';
+      final packageType = listing.packageType ?? 'unknown';
+
+      _trackEvent(ref, AppConstants.packageConfirmModalShown, {
+        'listingId': listing.id,
+        'purchaseId': listing.purchaseIdString,
+        'packageType': packageType,
+        'actionType': 'delete',
+      });
+
+      final confirmed = await PackageConfirmationDialog.show(
+        context: context,
+        packageName: packageName,
+        packageType: packageType,
+        actionType: 'delete',
+      );
+
+      if (confirmed == true) {
+        _trackEvent(ref, AppConstants.packageConfirmModalConfirmed, {
+          'listingId': listing.id,
+          'purchaseId': listing.purchaseIdString,
+          'packageType': packageType,
+          'actionType': 'delete',
+        });
+        await ref
+            .read(listingDetailProvider(listingId).notifier)
+            .deleteListing(listing.id);
+        if (context.mounted) context.pop();
+      } else {
+        _trackEvent(ref, AppConstants.packageConfirmModalCancelled, {
+          'listingId': listing.id,
+          'purchaseId': listing.purchaseIdString,
+          'packageType': packageType,
+          'actionType': 'delete',
+        });
+      }
+      return;
+    }
+
+    // No package — show standard confirmation dialog
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (ctx) => AlertDialog(
+        title: const Text('Delete Listing'),
+        content: const Text(
+          'Are you sure you want to delete this listing?',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, false),
+            child: const Text('Cancel'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(ctx, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('Delete'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true) {
+      await ref
+          .read(listingDetailProvider(listingId).notifier)
+          .deleteListing(listing.id);
+      if (context.mounted) context.pop();
+    }
+  }
+
+  Future<void> _confirmDeactivate(
+      BuildContext context, WidgetRef ref, Listing listing) async {
+    if (listing.hasPackage) {
+      final packageName = listing.packageName ?? 'Unknown Package';
+      final packageType = listing.packageType ?? 'unknown';
+
+      _trackEvent(ref, AppConstants.packageConfirmModalShown, {
+        'listingId': listing.id,
+        'purchaseId': listing.purchaseIdString,
+        'packageType': packageType,
+        'actionType': 'deactivate',
+      });
+
+      final confirmed = await PackageConfirmationDialog.show(
+        context: context,
+        packageName: packageName,
+        packageType: packageType,
+        actionType: 'deactivate',
+      );
+
+      if (confirmed == true) {
+        _trackEvent(ref, AppConstants.packageConfirmModalConfirmed, {
+          'listingId': listing.id,
+          'purchaseId': listing.purchaseIdString,
+          'packageType': packageType,
+          'actionType': 'deactivate',
+        });
+        await ref
+            .read(listingDetailProvider(listingId).notifier)
+            .deactivateListing(listing.id);
+      } else {
+        _trackEvent(ref, AppConstants.packageConfirmModalCancelled, {
+          'listingId': listing.id,
+          'purchaseId': listing.purchaseIdString,
+          'packageType': packageType,
+          'actionType': 'deactivate',
+        });
+      }
+      return;
+    }
+
+    // No package — proceed directly with deactivation
+    await ref
+        .read(listingDetailProvider(listingId).notifier)
+        .deactivateListing(listing.id);
+  }
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -46,6 +183,41 @@ class ListingDetailScreen extends ConsumerWidget {
                     icon: const Icon(Icons.share),
                     onPressed: () {},
                   ),
+                  PopupMenuButton<String>(
+                    onSelected: (value) {
+                      if (value == 'delete') {
+                        _confirmDelete(context, ref, listing);
+                      } else if (value == 'deactivate') {
+                        _confirmDeactivate(context, ref, listing);
+                      }
+                    },
+                    itemBuilder: (context) => [
+                      if (listing.status == ListingStatus.active)
+                        const PopupMenuItem(
+                          value: 'deactivate',
+                          child: Row(
+                            children: [
+                              Icon(Icons.pause_circle_outline,
+                                  size: 18, color: AppColors.warning),
+                              SizedBox(width: 8),
+                              Text('Deactivate'),
+                            ],
+                          ),
+                        ),
+                      const PopupMenuItem(
+                        value: 'delete',
+                        child: Row(
+                          children: [
+                            Icon(Icons.delete_outline,
+                                size: 18, color: AppColors.error),
+                            SizedBox(width: 8),
+                            Text('Delete',
+                                style: TextStyle(color: AppColors.error)),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ],
                 flexibleSpace: FlexibleSpaceBar(
                   background: _ImageGallery(images: listing.images),
@@ -71,6 +243,40 @@ class ListingDetailScreen extends ConsumerWidget {
                             ),
                           ),
                           const Spacer(),
+                          if (listing.hasPackage)
+                            Container(
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 10,
+                                vertical: 4,
+                              ),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary,
+                                borderRadius: BorderRadius.circular(
+                                  AppSpacing.radiusFull,
+                                ),
+                              ),
+                              child: Row(
+                                mainAxisSize: MainAxisSize.min,
+                                children: [
+                                  const Icon(
+                                    Icons.inventory_2,
+                                    size: 14,
+                                    color: Colors.white,
+                                  ),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${listing.packageName ?? 'Package'} · ${listing.packageType ?? 'unknown'}',
+                                    style: const TextStyle(
+                                      color: Colors.white,
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          if (listing.hasPackage && listing.isFeatured)
+                            const SizedBox(width: 8),
                           if (listing.isFeatured)
                             Container(
                               padding: const EdgeInsets.symmetric(

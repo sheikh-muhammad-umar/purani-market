@@ -71,4 +71,14 @@ export const ERROR = {
     'You have reached your ad limit. Please purchase an ad package to post more ads.',
   PAYMENT_ALREADY_FEATURED: 'Listing is already featured',
   PAYMENT_OWN_LISTING_ONLY: 'You can only feature your own listings',
+
+  // Package application
+  PURCHASE_NOT_FOUND: 'Purchase not found',
+  PACKAGE_CATEGORY_MISMATCH: 'Package is not available for this category',
+  PACKAGE_FULLY_USED: 'Package is fully used — no remaining units',
+  PACKAGE_EXPIRED: 'Package has expired',
+  PACKAGE_PAYMENT_NOT_COMPLETED: 'Package payment is not completed',
+  PACKAGE_OWN_ONLY: 'You can only use your own packages',
+  INVALID_CATEGORY_ID_PARAM: 'A valid categoryId query parameter is required',
+  INVALID_CATEGORY_ID_FILTER: 'Invalid categoryId',
 } as const;

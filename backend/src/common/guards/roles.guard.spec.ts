@@ -2,6 +2,7 @@ import { RolesGuard } from './roles.guard';
 import { Reflector } from '@nestjs/core';
 import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { ROLES_KEY } from '../decorators/roles.decorator';
+import { PERMISSIONS_KEY } from '../decorators/permissions.decorator';
 
 describe('RolesGuard', () => {
   let guard: RolesGuard;
@@ -37,7 +38,12 @@ describe('RolesGuard', () => {
   });
 
   it('should allow access when user has the required role', () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['admin']);
+    jest
+      .spyOn(reflector, 'getAllAndOverride')
+      .mockImplementation((key: unknown) => {
+        if (key === ROLES_KEY) return ['admin'];
+        return undefined;
+      });
     const context = createMockContext({ role: 'admin' });
     expect(guard.canActivate(context)).toBe(true);
   });
@@ -45,7 +51,10 @@ describe('RolesGuard', () => {
   it('should allow access when user role matches one of multiple required roles', () => {
     jest
       .spyOn(reflector, 'getAllAndOverride')
-      .mockReturnValue(['admin', 'seller']);
+      .mockImplementation((key: unknown) => {
+        if (key === ROLES_KEY) return ['admin', 'seller'];
+        return undefined;
+      });
     const context = createMockContext({ role: 'seller' });
     expect(guard.canActivate(context)).toBe(true);
   });
@@ -63,10 +72,15 @@ describe('RolesGuard', () => {
   });
 
   it('should throw ForbiddenException when user role does not match required roles', () => {
-    jest.spyOn(reflector, 'getAllAndOverride').mockReturnValue(['admin']);
+    jest
+      .spyOn(reflector, 'getAllAndOverride')
+      .mockImplementation((key: unknown) => {
+        if (key === ROLES_KEY) return ['admin'];
+        return undefined;
+      });
     const context = createMockContext({ role: 'buyer' });
     expect(() => guard.canActivate(context)).toThrow(
-      'Access denied: insufficient permissions',
+      'Access denied: insufficient role',
     );
   });
 

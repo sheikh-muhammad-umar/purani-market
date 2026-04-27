@@ -1,5 +1,5 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, BadRequestException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { PackagesController } from './packages.controller';
 import { PackagesService } from './packages.service';
@@ -8,6 +8,7 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from './schemas/package-purchase.schema';
+import { AdminTrackerService } from '../ai/admin-tracker.service';
 
 describe('PackagesController', () => {
   let controller: PackagesController;
@@ -52,7 +53,10 @@ describe('PackagesController', () => {
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PackagesController],
-      providers: [{ provide: PackagesService, useValue: mockPackagesService }],
+      providers: [
+        { provide: PackagesService, useValue: mockPackagesService },
+        { provide: AdminTrackerService, useValue: { track: jest.fn() } },
+      ],
     }).compile();
 
     controller = module.get<PackagesController>(PackagesController);
@@ -109,7 +113,25 @@ describe('PackagesController', () => {
     it('should return seller purchase history', async () => {
       const result = await controller.getMyPurchases(sellerId.toString());
       expect(result).toEqual([]);
-      expect(service.getMyPurchases).toHaveBeenCalledWith(sellerId.toString());
+      expect(service.getMyPurchases).toHaveBeenCalledWith(
+        sellerId.toString(),
+        undefined,
+      );
+    });
+
+    it('should pass categoryId filter when provided', async () => {
+      const categoryId = new Types.ObjectId().toString();
+      await controller.getMyPurchases(sellerId.toString(), categoryId);
+      expect(service.getMyPurchases).toHaveBeenCalledWith(
+        sellerId.toString(),
+        categoryId,
+      );
+    });
+
+    it('should throw BadRequestException for invalid categoryId', async () => {
+      await expect(
+        controller.getMyPurchases(sellerId.toString(), 'invalid-id'),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

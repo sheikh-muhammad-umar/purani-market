@@ -32,6 +32,7 @@ import { saveState, loadState, clearState } from '../../../core/utils/state-pers
 import { computeFileHash } from '../../../core/utils/file-hash';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { mapLinkValidator } from '../../../core/utils/map-link';
+import { AvailablePackagesComponent } from './available-packages/available-packages.component';
 import { Subject, takeUntil, forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -45,7 +46,7 @@ export interface MediaItem {
 @Component({
   selector: 'app-create-listing',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, AvailablePackagesComponent],
   templateUrl: './create-listing.component.html',
   styleUrls: ['./create-listing.component.scss'],
 })
@@ -178,6 +179,10 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   submitting = signal(false);
   error = signal('');
   draftMediaWarning = signal(false);
+
+  // Package selection
+  selectedPurchaseId = signal<string>('');
+  packageCategoryId = signal<string | null>(null);
 
   private readonly destroy$ = new Subject<void>();
 
@@ -486,6 +491,8 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     this.selectedLevel3.set(null);
     this.level3Categories.set([]);
     this.selectedFeatures.set([]);
+    this.selectedPurchaseId.set('');
+    this.packageCategoryId.set(cat._id);
     const children = this.allCategories().filter((c) => c.parentId === cat._id && c.isActive);
     this.level2Categories.set(children);
     this.loadInheritedAttributes(cat._id);
@@ -496,6 +503,8 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     this.selectedLevel2.set(cat);
     this.selectedLevel3.set(null);
     this.selectedFeatures.set([]);
+    this.selectedPurchaseId.set('');
+    this.packageCategoryId.set(cat._id);
     const children = this.allCategories().filter((c) => c.parentId === cat._id && c.isActive);
     this.level3Categories.set(children);
     this.loadInheritedAttributes(cat._id);
@@ -505,6 +514,8 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   selectLevel3(cat: Category): void {
     this.selectedLevel3.set(cat);
     this.selectedFeatures.set([]);
+    this.selectedPurchaseId.set('');
+    this.packageCategoryId.set(cat._id);
     this.loadInheritedAttributes(cat._id);
     this.saveDraft();
   }
@@ -1026,6 +1037,10 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     this.featureAd.update((v) => !v);
   }
 
+  onPackageSelected(purchaseId: string): void {
+    this.selectedPurchaseId.set(purchaseId);
+  }
+
   submit(): void {
     if (this.submitting()) return;
     this.submitting.set(true);
@@ -1061,6 +1076,11 @@ export class CreateListingComponent implements OnInit, OnDestroy {
       },
       isFeatured: this.featureAd(),
     };
+
+    // Include purchaseId if a package was selected
+    if (this.selectedPurchaseId()) {
+      payload.purchaseId = this.selectedPurchaseId();
+    }
 
     // Add brand/model/variant fields
     if (this.hasBrands()) {
@@ -1101,7 +1121,21 @@ export class CreateListingComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.submitting.set(false);
-        this.error.set(err?.error?.message ?? ERROR_MSG.LISTING_CREATE_FAILED);
+        const message = err?.error?.message ?? ERROR_MSG.LISTING_CREATE_FAILED;
+        this.error.set(message);
+
+        // If the error is package-related, clear the selection and refresh available packages
+        const packageErrors = ['package', 'expired', 'fully used', 'not available'];
+        const isPackageError = packageErrors.some((keyword) =>
+          message.toLowerCase().includes(keyword),
+        );
+        if (isPackageError && this.selectedPurchaseId()) {
+          this.selectedPurchaseId.set('');
+          // Trigger AvailablePackagesComponent refresh by toggling categoryId
+          const catId = this.selectedCategory()?._id ?? null;
+          this.packageCategoryId.set(null);
+          setTimeout(() => this.packageCategoryId.set(catId), 0);
+        }
       },
     });
   }

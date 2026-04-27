@@ -34,6 +34,18 @@ export const TrackingEvent = {
   PACKAGE_PURCHASE: 'package_purchase',
   PAYMENT_ATTEMPT: 'payment_attempt',
 
+  // Category-Package Management
+  PACKAGE_APPLY: 'package_apply',
+  PACKAGE_LIST_VIEWED: 'package_list_viewed',
+  PACKAGE_CONFIRM_MODAL_SHOWN: 'package_confirm_modal_shown',
+  PACKAGE_CONFIRM_MODAL_CONFIRMED: 'package_confirm_modal_confirmed',
+  PACKAGE_CONFIRM_MODAL_CANCELLED: 'package_confirm_modal_cancelled',
+  PACKAGE_NONE_AVAILABLE: 'package_none_available',
+  PACKAGE_PURCHASE_CTA_CLICKED: 'package_purchase_cta_clicked',
+  PACKAGE_PURCHASE_INITIATED: 'package_purchase_initiated',
+  MY_PACKAGES_VIEWED: 'my_packages_viewed',
+  MY_PACKAGES_FILTER_CHANGED: 'my_packages_filter_changed',
+
   // Location
   LOCATION_CHANGE: 'location_change',
 

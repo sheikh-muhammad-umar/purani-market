@@ -10,6 +10,12 @@ export interface ConfirmOptions {
   variant?: 'danger' | 'warning' | 'info';
 }
 
+export interface PackageWarningOptions {
+  packageName: string;
+  packageType: string;
+  actionType: 'delete' | 'deactivate';
+}
+
 @Injectable({ providedIn: 'root' })
 export class ConfirmModalService {
   readonly isOpen = signal(false);
@@ -38,6 +44,19 @@ export class ConfirmModalService {
   respond(value: boolean): void {
     this.isOpen.set(false);
     this.result$.next(value);
+  }
+
+  confirmPackageWarning(options: PackageWarningOptions): Promise<boolean> {
+    const actionLabel = options.actionType === 'delete' ? 'Delete' : 'Deactivate';
+    return this.confirm({
+      title: `${actionLabel} Listing`,
+      message:
+        `This listing has the package '${options.packageName}' (${options.packageType}) applied. ` +
+        `The consumed package unit is non-recoverable and will not be restored if you ${options.actionType} this listing.`,
+      confirmText: actionLabel,
+      cancelText: 'Cancel',
+      variant: 'warning',
+    });
   }
 }
 

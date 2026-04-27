@@ -2,6 +2,8 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { Types } from 'mongoose';
 import { MessagingController } from './messaging.controller';
 import { MessagingService } from './messaging.service';
+import { MessagingGateway } from './messaging.gateway';
+import { ChatMediaService } from './chat-media.service';
 
 describe('MessagingController', () => {
   let controller: MessagingController;
@@ -46,6 +48,17 @@ describe('MessagingController', () => {
       controllers: [MessagingController],
       providers: [
         { provide: MessagingService, useValue: mockMessagingService },
+        {
+          provide: MessagingGateway,
+          useValue: {
+            server: { to: jest.fn().mockReturnValue({ emit: jest.fn() }) },
+            joinUserToRoom: jest.fn(),
+          },
+        },
+        {
+          provide: ChatMediaService,
+          useValue: { processImage: jest.fn(), processVoiceNote: jest.fn() },
+        },
       ],
     }).compile();
 

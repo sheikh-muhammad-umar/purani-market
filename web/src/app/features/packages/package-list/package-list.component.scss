@@ -235,6 +235,40 @@
   }
 }
 
+.category-filter {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+}
+
+.category-label {
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-secondary);
+  white-space: nowrap;
+}
+
+.category-select {
+  padding: var(--space-1) var(--space-2);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+  cursor: pointer;
+  min-width: 180px;
+
+  &:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 59, 130, 246), 0.15);
+  }
+}
+
+.category-price-note {
+  color: var(--success, #16a34a);
+}
+
 .package-card-skeleton {
   padding: var(--space-3);
   min-height: 180px;

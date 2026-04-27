@@ -1165,6 +1165,19 @@
               }
             </div>
 
+            <!-- Available Packages Section -->
+            @if (packageCategoryId()) {
+              <div class="review-section">
+                <div class="review-header">
+                  <h4>Package</h4>
+                </div>
+                <app-available-packages
+                  [categoryId]="packageCategoryId()"
+                  (packageSelected)="onPackageSelected($event)"
+                ></app-available-packages>
+              </div>
+            }
+
             <div
               class="review-section feature-section"
               [class.feature-disabled]="featuredSlotsRemaining() <= 0"

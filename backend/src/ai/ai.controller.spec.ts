@@ -52,8 +52,6 @@ describe('AiController', () => {
       expect(mockRecommendationService.getRecommendations).toHaveBeenCalledWith(
         userId.toString(),
         undefined,
-        undefined,
-        undefined,
       );
       expect(result).toEqual({ data: mockListings });
     });

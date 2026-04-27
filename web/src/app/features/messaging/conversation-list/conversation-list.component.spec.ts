@@ -4,6 +4,7 @@ import { ConversationListComponent } from './conversation-list.component';
 import { MessagingService, ConversationsResponse } from '../../../core/services/messaging.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/auth';
+import { ActivatedRoute, Router } from '@angular/router';
 import { Conversation } from '../../../core/models';
 
 function makeConversation(overrides: Partial<Conversation> = {}): Conversation {
@@ -23,6 +24,8 @@ describe('ConversationListComponent', () => {
   let messagingServiceMock: { getConversations: ReturnType<typeof vi.fn> };
   let wsServiceMock: { connect: ReturnType<typeof vi.fn>; on: ReturnType<typeof vi.fn> };
   let authServiceMock: { user: ReturnType<typeof vi.fn> };
+  let routeMock: any;
+  let routerMock: any;
   let wsSubject: Subject<unknown>;
 
   const mockConversations: Conversation[] = [
@@ -45,6 +48,7 @@ describe('ConversationListComponent', () => {
       getConversations: vi
         .fn()
         .mockReturnValue(of({ data: mockConversations, total: 2 } as ConversationsResponse)),
+      getUnreadPerConversation: vi.fn().mockReturnValue(of({})),
     };
 
     wsServiceMock = {
@@ -56,9 +60,14 @@ describe('ConversationListComponent', () => {
       user: vi.fn().mockReturnValue({ _id: 'user1' }),
     };
 
+    routeMock = { snapshot: { queryParamMap: { get: () => null } } };
+    routerMock = { navigate: vi.fn() };
+
     component = new ConversationListComponent(
       messagingServiceMock as unknown as MessagingService,
       wsServiceMock as unknown as WebSocketService,
+      routeMock as unknown as ActivatedRoute,
+      routerMock as unknown as Router,
       authServiceMock as unknown as AuthService,
     );
   });
@@ -89,7 +98,7 @@ describe('ConversationListComponent', () => {
 
   it('should listen for new_message events', () => {
     component.ngOnInit();
-    expect(wsServiceMock.on).toHaveBeenCalledWith('new_message');
+    expect(wsServiceMock.on).toHaveBeenCalledWith('newMessage');
   });
 
   it('should set error on load failure', () => {
@@ -99,6 +108,8 @@ describe('ConversationListComponent', () => {
     component = new ConversationListComponent(
       messagingServiceMock as unknown as MessagingService,
       wsServiceMock as unknown as WebSocketService,
+      routeMock as unknown as ActivatedRoute,
+      routerMock as unknown as Router,
       authServiceMock as unknown as AuthService,
     );
     component.ngOnInit();

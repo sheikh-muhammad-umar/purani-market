@@ -213,6 +213,9 @@ export class ProductListing {
   @Prop({ type: Number, default: 0 })
   favoriteCount!: number;
 
+  @Prop({ type: Types.ObjectId, ref: 'PackagePurchase', default: null })
+  purchaseId?: Types.ObjectId;
+
   @Prop({ type: Date })
   deletedAt?: Date;
 
@@ -240,3 +243,4 @@ ProductListingSchema.index({ brandId: 1 });
 ProductListingSchema.index({ vehicleBrandId: 1 });
 ProductListingSchema.index({ modelId: 1 });
 ProductListingSchema.index({ vehicleBrandId: 1, modelId: 1 });
+ProductListingSchema.index({ purchaseId: 1 });

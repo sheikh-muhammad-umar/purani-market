@@ -1,5 +1,6 @@
 import 'dart:io';
 
+import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../core/api/api_client.dart';
@@ -25,6 +26,7 @@ class ListingDraft {
   final double? longitude;
   final String city;
   final String area;
+  final String? purchaseId;
 
   const ListingDraft({
     this.categoryId,
@@ -42,6 +44,7 @@ class ListingDraft {
     this.longitude,
     this.city = '',
     this.area = '',
+    this.purchaseId,
   });
 
   ListingDraft copyWith({
@@ -61,6 +64,8 @@ class ListingDraft {
     String? city,
     String? area,
     bool clearVideo = false,
+    String? purchaseId,
+    bool clearPurchaseId = false,
   }) {
     return ListingDraft(
       categoryId: categoryId ?? this.categoryId,
@@ -78,6 +83,7 @@ class ListingDraft {
       longitude: longitude ?? this.longitude,
       city: city ?? this.city,
       area: area ?? this.area,
+      purchaseId: clearPurchaseId ? null : (purchaseId ?? this.purchaseId),
     );
   }
 }
@@ -168,6 +174,7 @@ class CreateListingNotifier extends StateNotifier<CreateListingState> {
           'city': draft.city,
           'area': draft.area,
         },
+        if (draft.purchaseId != null) 'purchaseId': draft.purchaseId,
       };
 
       final response = await _api.post('/listings', data: data);
@@ -191,7 +198,15 @@ class CreateListingNotifier extends StateNotifier<CreateListingState> {
 
       state = state.copyWith(isSubmitting: false, isComplete: true);
     } catch (e) {
-      state = state.copyWith(isSubmitting: false, error: e.toString());
+      String errorMessage = e.toString();
+      // Surface package-related API error messages
+      if (e is DioException && e.response?.data != null) {
+        final data = e.response!.data;
+        if (data is Map<String, dynamic> && data['message'] != null) {
+          errorMessage = data['message'].toString();
+        }
+      }
+      state = state.copyWith(isSubmitting: false, error: errorMessage);
     }
   }
 

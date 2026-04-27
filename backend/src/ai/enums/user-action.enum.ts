@@ -70,4 +70,14 @@ export enum UserAction {
   ID_VERIFICATION_SUBMIT = 'id_verification_submit',
   ADMIN_ID_VERIFICATION_APPROVE = 'admin_id_verification_approve',
   ADMIN_ID_VERIFICATION_REJECT = 'admin_id_verification_reject',
+
+  // Package application
+  PACKAGE_APPLY_SUCCESS = 'package_apply_success',
+  PACKAGE_APPLY_FAILED = 'package_apply_failed',
+  PACKAGE_EXPIRED = 'package_expired',
+
+  // Packaged listing lifecycle
+  PACKAGED_LISTING_DELETED = 'packaged_listing_deleted',
+  PACKAGED_LISTING_DEACTIVATED = 'packaged_listing_deactivated',
+  PACKAGED_LISTING_SOLD = 'packaged_listing_sold',
 }

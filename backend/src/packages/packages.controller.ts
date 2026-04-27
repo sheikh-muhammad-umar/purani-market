@@ -5,9 +5,12 @@ import {
   Patch,
   Param,
   Body,
+  Query,
   Req,
   UseGuards,
+  BadRequestException,
 } from '@nestjs/common';
+import { Types } from 'mongoose';
 import { PackagesService } from './packages.service.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
@@ -20,6 +23,7 @@ import { PurchasePackageDto } from './dto/purchase-package.dto.js';
 import { CreatePackageDto } from './dto/create-package.dto.js';
 import { UpdatePackageDto } from './dto/update-package.dto.js';
 import { PACKAGE_ROUTES } from '../payments/constants.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 @Controller(PACKAGE_ROUTES.BASE)
 export class PackagesController {
@@ -33,10 +37,28 @@ export class PackagesController {
     return this.packagesService.findAll();
   }
 
+  @Get(PACKAGE_ROUTES.AVAILABLE)
+  @UseGuards(JwtAuthGuard)
+  async getAvailablePackages(
+    @CurrentUser('sub') sellerId: string,
+    @Query('categoryId') categoryId: string,
+  ) {
+    if (!categoryId || !Types.ObjectId.isValid(categoryId)) {
+      throw new BadRequestException(ERROR.INVALID_CATEGORY_ID_PARAM);
+    }
+    return this.packagesService.getAvailablePackages(sellerId, categoryId);
+  }
+
   @Get(PACKAGE_ROUTES.MY_PURCHASES)
   @UseGuards(JwtAuthGuard)
-  async getMyPurchases(@CurrentUser('sub') sellerId: string) {
-    return this.packagesService.getMyPurchases(sellerId);
+  async getMyPurchases(
+    @CurrentUser('sub') sellerId: string,
+    @Query('categoryId') categoryId?: string,
+  ) {
+    if (categoryId && !Types.ObjectId.isValid(categoryId)) {
+      throw new BadRequestException(ERROR.INVALID_CATEGORY_ID_FILTER);
+    }
+    return this.packagesService.getMyPurchases(sellerId, categoryId);
   }
 
   @Get(':id')

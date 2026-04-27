@@ -92,6 +92,15 @@ describe('CategoriesService', () => {
       providers: [
         CategoriesService,
         { provide: getModelToken(Category.name), useValue: mockCategoryModel },
+        {
+          provide: getModelToken('AttributeDefinition'),
+          useValue: {
+            find: jest.fn().mockReturnValue({
+              lean: jest.fn().mockReturnThis(),
+              exec: jest.fn().mockResolvedValue([]),
+            }),
+          },
+        },
         { provide: getRedisConnectionToken(), useValue: mockRedis },
       ],
     }).compile();
@@ -115,7 +124,7 @@ describe('CategoriesService', () => {
     it('should build tree from database when cache is empty', async () => {
       const result = await service.getCategoryTree();
 
-      expect(mockCategoryModel.find).toHaveBeenCalledWith({ isActive: true });
+      expect(mockCategoryModel.find).toHaveBeenCalledWith({});
       expect(result).toHaveLength(1);
       expect(result[0].name).toBe('Electronics');
       expect(result[0].children).toHaveLength(1);

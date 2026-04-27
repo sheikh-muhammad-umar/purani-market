@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { MyPackagesComponent } from './my-packages.component';
 import { PackagesService } from '../../../core/services/packages.service';
+import { CategoriesService } from '../../../core/services/categories.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { PackagePurchase } from '../../../core/models';
 
 function makePurchase(overrides: Partial<PackagePurchase> = {}): PackagePurchase {
@@ -19,7 +21,7 @@ function makePurchase(overrides: Partial<PackagePurchase> = {}): PackagePurchase
     paymentStatus: overrides.paymentStatus ?? 'completed',
     paymentTransactionId: overrides.paymentTransactionId ?? 'txn1',
     activatedAt: overrides.activatedAt ?? new Date('2024-06-01'),
-    expiresAt: overrides.expiresAt ?? new Date(Date.now() + 5 * 24 * 60 * 60 * 1000), // 5 days from now
+    expiresAt: overrides.expiresAt ?? new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
     createdAt: overrides.createdAt ?? new Date('2024-06-01'),
     updatedAt: overrides.updatedAt ?? new Date('2024-06-01'),
   };
@@ -28,6 +30,8 @@ function makePurchase(overrides: Partial<PackagePurchase> = {}): PackagePurchase
 describe('MyPackagesComponent', () => {
   let component: MyPackagesComponent;
   let packagesService: { getMyPurchases: ReturnType<typeof vi.fn> };
+  let categoriesService: { getAll: ReturnType<typeof vi.fn> };
+  let tracker: { track: ReturnType<typeof vi.fn> };
 
   const activePurchase = makePurchase({ _id: 'active1', remainingQuantity: 3 });
   const expiredPurchase = makePurchase({
@@ -48,7 +52,17 @@ describe('MyPackagesComponent', () => {
     packagesService = {
       getMyPurchases: vi.fn().mockReturnValue(of({ data: mockPurchases, total: 3 })),
     };
-    component = new MyPackagesComponent(packagesService as unknown as PackagesService);
+    categoriesService = {
+      getAll: vi.fn().mockReturnValue(of([{ _id: 'cat1', name: 'Electronics' }])),
+    };
+    tracker = {
+      track: vi.fn(),
+    };
+    component = new MyPackagesComponent(
+      packagesService as unknown as PackagesService,
+      categoriesService as unknown as CategoriesService,
+      tracker as unknown as ActivityTrackerService,
+    );
   });
 
   it('should create', () => {
@@ -61,6 +75,19 @@ describe('MyPackagesComponent', () => {
     expect(component.purchases().length).toBe(3);
     expect(component.loading()).toBe(false);
     expect(component.error()).toBeNull();
+  });
+
+  it('should load categories on init', () => {
+    component.ngOnInit();
+    expect(categoriesService.getAll).toHaveBeenCalled();
+    expect(component.categories().length).toBe(1);
+  });
+
+  it('should fire MY_PACKAGES_VIEWED event on load', () => {
+    component.ngOnInit();
+    expect(tracker.track).toHaveBeenCalledWith('my_packages_viewed', {
+      metadata: { categoryId: 'all' },
+    });
   });
 
   it('should handle load error', () => {
@@ -91,6 +118,32 @@ describe('MyPackagesComponent', () => {
     expect(component.activeTab()).toBe('history');
     component.setTab('active');
     expect(component.activeTab()).toBe('active');
+  });
+
+  it('should pass categoryId to getMyPurchases when filter is set', () => {
+    component.onCategoryFilterChange('cat1');
+    expect(packagesService.getMyPurchases).toHaveBeenCalledWith('cat1');
+  });
+
+  it('should fire MY_PACKAGES_FILTER_CHANGED event on filter change', () => {
+    component.onCategoryFilterChange('cat1');
+    expect(tracker.track).toHaveBeenCalledWith('my_packages_filter_changed', {
+      metadata: { categoryId: 'cat1', resultCount: 3 },
+    });
+  });
+
+  it('should fire MY_PACKAGES_VIEWED with "all" when no filter', () => {
+    component.ngOnInit();
+    expect(tracker.track).toHaveBeenCalledWith('my_packages_viewed', {
+      metadata: { categoryId: 'all' },
+    });
+  });
+
+  it('should fire MY_PACKAGES_FILTER_CHANGED with "all" when filter cleared', () => {
+    component.onCategoryFilterChange('');
+    expect(tracker.track).toHaveBeenCalledWith('my_packages_filter_changed', {
+      metadata: { categoryId: 'all', resultCount: 3 },
+    });
   });
 
   it('should return correct status badge classes', () => {
@@ -137,7 +190,7 @@ describe('MyPackagesComponent', () => {
   it('should return correct payment method labels', () => {
     expect(component.getPaymentMethodLabel('jazzcash')).toBe('JazzCash');
     expect(component.getPaymentMethodLabel('easypaisa')).toBe('EasyPaisa');
-    expect(component.getPaymentMethodLabel('card')).toBe('Card');
+    expect(component.getPaymentMethodLabel('card')).toBe('Credit/Debit Card');
     expect(component.getPaymentMethodLabel('other')).toBe('other');
   });
 

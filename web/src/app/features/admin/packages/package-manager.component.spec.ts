@@ -169,7 +169,7 @@ describe('PackageManagerComponent', () => {
     component.ngOnInit();
     component.openCreateForm();
     component.formName = 'With Pricing';
-    component.formCategoryPricing = [{ categoryId: 'c1', price: 700 }];
+    component.formCategoryPricing = [{ categoryIds: ['c1'], price: 700 }];
     component.submitCreate();
     expect(adminService.createPackage).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -200,7 +200,7 @@ describe('PackageManagerComponent', () => {
     expect(component.formDefaultPrice).toBe(500);
     expect(component.formIsActive).toBe(true);
     expect(component.formCategoryPricing.length).toBe(1);
-    expect(component.formCategoryPricing[0].categoryId).toBe('c1');
+    expect(component.formCategoryPricing[0].categoryIds).toContain('c1');
   });
 
   it('should submit edit and reload', () => {
@@ -255,11 +255,11 @@ describe('PackageManagerComponent', () => {
   it('should add category price entry', () => {
     component.addCategoryPrice();
     expect(component.formCategoryPricing.length).toBe(1);
-    expect(component.formCategoryPricing[0]).toEqual({ categoryId: '', price: 0 });
+    expect(component.formCategoryPricing[0]).toEqual({ categoryIds: [], price: 0 });
   });
 
   it('should remove category price entry', () => {
-    component.formCategoryPricing = [{ categoryId: 'c1', price: 500 }];
+    component.formCategoryPricing = [{ categoryIds: ['c1'], price: 500 }];
     component.removeCategoryPrice(0);
     expect(component.formCategoryPricing.length).toBe(0);
   });

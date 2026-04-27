@@ -4,6 +4,7 @@ import {
   SearchIndexService,
   LISTINGS_INDEX,
   listingsIndexMapping,
+  listingsIndexSettings,
 } from './search-index.service';
 
 describe('SearchIndexService', () => {
@@ -41,6 +42,7 @@ describe('SearchIndexService', () => {
       });
       expect(mockEsService.indices.create).toHaveBeenCalledWith({
         index: LISTINGS_INDEX,
+        settings: listingsIndexSettings,
         mappings: listingsIndexMapping,
       });
     });
@@ -73,6 +75,7 @@ describe('SearchIndexService', () => {
 
       expect(mockEsService.indices.create).toHaveBeenCalledWith({
         index: LISTINGS_INDEX,
+        settings: listingsIndexSettings,
         mappings: listingsIndexMapping,
       });
     });

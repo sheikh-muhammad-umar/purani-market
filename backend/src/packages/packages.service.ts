@@ -3,6 +3,7 @@ import {
   NotFoundException,
   BadRequestException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -16,7 +17,6 @@ import {
 import {
   PackagePurchase,
   PackagePurchaseDocument,
-  PaymentMethod,
   PaymentStatus,
 } from './schemas/package-purchase.schema.js';
 import { User, UserDocument } from '../users/schemas/user.schema.js';
@@ -25,27 +25,23 @@ import {
   ProductListingDocument,
 } from '../listings/schemas/product-listing.schema.js';
 import { PaymentsService } from '../payments/payments.service.js';
+import { AdminTrackerService } from '../ai/admin-tracker.service.js';
+import { UserAction } from '../ai/enums/user-action.enum.js';
 import { PurchasePackageDto } from './dto/purchase-package.dto.js';
 import { CreatePackageDto } from './dto/create-package.dto.js';
 import { UpdatePackageDto } from './dto/update-package.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
 import { PAYMENT_ROUTES } from '../payments/constants.js';
+import { ApplyFailureReason } from './enums/apply-failure-reason.enum.js';
+import { PurchaseResult } from './interfaces/purchase-result.interface.js';
+import { AdLimitCheck } from './interfaces/ad-limit-check.interface.js';
 
-export interface PurchaseResult {
-  purchases: PackagePurchaseDocument[];
-  redirectUrl: string;
-  transactionId: string;
-}
-
-export interface AdLimitCheck {
-  canPost: boolean;
-  activeAdCount: number;
-  adLimit: number;
-  message?: string;
-}
+export type { PurchaseResult, AdLimitCheck };
 
 @Injectable()
 export class PackagesService {
+  private readonly logger = new Logger(PackagesService.name);
+
   constructor(
     @InjectModel(AdPackage.name)
     private readonly adPackageModel: Model<AdPackageDocument>,
@@ -56,6 +52,7 @@ export class PackagesService {
     @InjectModel(ProductListing.name)
     private readonly listingModel: Model<ProductListingDocument>,
     private readonly paymentsService: PaymentsService,
+    private readonly adminTrackerService: AdminTrackerService,
   ) {}
 
   async createPackage(dto: CreatePackageDto): Promise<AdPackageDocument> {
@@ -124,11 +121,157 @@ export class PackagesService {
     return pkg;
   }
 
-  async getMyPurchases(sellerId: string): Promise<PackagePurchaseDocument[]> {
+  async findPurchaseById(
+    purchaseId: string,
+  ): Promise<PackagePurchaseDocument | null> {
+    if (!Types.ObjectId.isValid(purchaseId)) return null;
+    return this.packagePurchaseModel.findById(purchaseId).exec();
+  }
+
+  async getAvailablePackages(
+    sellerId: string,
+    categoryId: string,
+  ): Promise<PackagePurchaseDocument[]> {
+    const now = new Date();
     return this.packagePurchaseModel
-      .find({ sellerId: new Types.ObjectId(sellerId) })
+      .find({
+        sellerId: new Types.ObjectId(sellerId),
+        categoryId: new Types.ObjectId(categoryId),
+        paymentStatus: PaymentStatus.COMPLETED,
+        remainingQuantity: { $gt: 0 },
+        expiresAt: { $gt: now },
+      })
+      .sort({ expiresAt: 1 })
+      .populate('packageId', 'name type')
+      .exec();
+  }
+
+  async applyPackageToListing(
+    purchaseId: string,
+    sellerId: string,
+    categoryId: string,
+    listingId?: string,
+  ): Promise<{
+    purchase: PackagePurchaseDocument;
+    packageDoc: AdPackageDocument;
+  }> {
+    const now = new Date();
+
+    // Atomic decrement — prevents concurrent over-decrement
+    const updated = await this.packagePurchaseModel
+      .findOneAndUpdate(
+        {
+          _id: new Types.ObjectId(purchaseId),
+          sellerId: new Types.ObjectId(sellerId),
+          categoryId: new Types.ObjectId(categoryId),
+          paymentStatus: PaymentStatus.COMPLETED,
+          remainingQuantity: { $gt: 0 },
+          expiresAt: { $gt: now },
+        },
+        { $inc: { remainingQuantity: -1 } },
+        { new: true },
+      )
+      .exec();
+
+    if (updated) {
+      const populated = await updated.populate<{
+        packageId: AdPackageDocument;
+      }>('packageId', 'name type');
+      const packageDoc = populated.packageId as unknown as AdPackageDocument;
+
+      // Track success
+      this.adminTrackerService
+        .track(sellerId, UserAction.PACKAGE_APPLY_SUCCESS, {
+          purchaseId,
+          packageType: packageDoc.type,
+          categoryId,
+          listingId: listingId ?? null,
+          remainingQuantityAfter: updated.remainingQuantity,
+        })
+        .catch((err) =>
+          this.logger.warn(
+            `Failed to track PACKAGE_APPLY_SUCCESS: ${(err as Error).message}`,
+          ),
+        );
+
+      return {
+        purchase: populated as unknown as PackagePurchaseDocument,
+        packageDoc,
+      };
+    }
+
+    // Atomic update returned null — determine the specific reason
+    const purchase = await this.packagePurchaseModel
+      .findById(purchaseId)
+      .exec();
+
+    if (!purchase) {
+      throw new NotFoundException(ERROR.PURCHASE_NOT_FOUND);
+    }
+
+    if (purchase.sellerId.toString() !== sellerId) {
+      throw new ForbiddenException(ERROR.PACKAGE_OWN_ONLY);
+    }
+
+    // Determine failure reason and track it
+    let reason: ApplyFailureReason = ApplyFailureReason.UNKNOWN;
+    let errorMessage: string;
+
+    if (purchase.categoryId?.toString() !== categoryId) {
+      reason = ApplyFailureReason.CATEGORY_MISMATCH;
+      errorMessage = ERROR.PACKAGE_CATEGORY_MISMATCH;
+    } else if (purchase.paymentStatus !== PaymentStatus.COMPLETED) {
+      reason = ApplyFailureReason.PAYMENT_NOT_COMPLETED;
+      errorMessage = ERROR.PACKAGE_PAYMENT_NOT_COMPLETED;
+    } else if (purchase.remainingQuantity <= 0) {
+      reason = ApplyFailureReason.FULLY_USED;
+      errorMessage = ERROR.PACKAGE_FULLY_USED;
+    } else if (!purchase.expiresAt || purchase.expiresAt <= now) {
+      reason = ApplyFailureReason.EXPIRED;
+      errorMessage = ERROR.PACKAGE_EXPIRED;
+    } else {
+      errorMessage = ERROR.PURCHASE_NOT_FOUND;
+    }
+
+    // Track failure
+    const failureMetadata: Record<string, any> = {
+      purchaseId,
+      categoryId,
+      listingId: listingId ?? null,
+      reason,
+    };
+    if (reason === ApplyFailureReason.CATEGORY_MISMATCH) {
+      failureMetadata.purchaseCategoryId =
+        purchase.categoryId?.toString() ?? null;
+      failureMetadata.listingCategoryId = categoryId;
+    }
+
+    this.adminTrackerService
+      .track(sellerId, UserAction.PACKAGE_APPLY_FAILED, failureMetadata)
+      .catch((err) =>
+        this.logger.warn(
+          `Failed to track PACKAGE_APPLY_FAILED: ${(err as Error).message}`,
+        ),
+      );
+
+    throw new BadRequestException(errorMessage);
+  }
+
+  async getMyPurchases(
+    sellerId: string,
+    categoryId?: string,
+  ): Promise<PackagePurchaseDocument[]> {
+    const filter: Record<string, any> = {
+      sellerId: new Types.ObjectId(sellerId),
+    };
+    if (categoryId) {
+      filter.categoryId = new Types.ObjectId(categoryId);
+    }
+    return this.packagePurchaseModel
+      .find(filter)
       .sort({ createdAt: -1 })
-      .populate('packageId')
+      .populate('categoryId', 'name')
+      .populate('packageId', 'name type')
       .exec();
   }
 
@@ -338,6 +481,44 @@ export class PackagesService {
 
   @Cron(CronExpression.EVERY_HOUR)
   async handleExpiredFeaturedAds(): Promise<number> {
+    // Find listings that are about to be unflagged so we can track expiry events
+    const expiredListings = await this.listingModel
+      .find({
+        isFeatured: true,
+        featuredUntil: { $lte: new Date() },
+        purchaseId: { $ne: null },
+      })
+      .select('purchaseId sellerId categoryId')
+      .exec();
+
+    // Track PACKAGE_EXPIRED for each listing with a purchaseId
+    for (const listing of expiredListings) {
+      try {
+        const purchase = await this.packagePurchaseModel
+          .findById(listing.purchaseId)
+          .populate('packageId', 'type')
+          .exec();
+        if (purchase) {
+          const packageDoc = purchase.packageId as unknown as AdPackageDocument;
+          await this.adminTrackerService.track(
+            listing.sellerId.toString(),
+            UserAction.PACKAGE_EXPIRED,
+            {
+              purchaseId: purchase._id.toString(),
+              categoryId: purchase.categoryId?.toString() ?? null,
+              packageType: packageDoc?.type ?? purchase.type,
+              sellerId: listing.sellerId.toString(),
+              remainingQuantityAtExpiry: purchase.remainingQuantity,
+            },
+          );
+        }
+      } catch (err) {
+        this.logger.warn(
+          `Failed to track PACKAGE_EXPIRED for listing ${listing._id}: ${(err as Error).message}`,
+        );
+      }
+    }
+
     const result = await this.listingModel.updateMany(
       { isFeatured: true, featuredUntil: { $lte: new Date() } },
       { $set: { isFeatured: false }, $unset: { featuredUntil: '' } },

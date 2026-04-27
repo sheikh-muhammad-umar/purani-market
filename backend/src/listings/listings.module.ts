@@ -13,6 +13,7 @@ import { CategoriesModule } from '../categories/categories.module.js';
 import { PackagesModule } from '../packages/packages.module.js';
 import { SearchModule } from '../search/search.module.js';
 import { BrandsModule } from '../brands/brands.module.js';
+import { AiModule } from '../ai/ai.module.js';
 import {
   Conversation,
   ConversationSchema,
@@ -29,6 +30,7 @@ import { Message, MessageSchema } from '../messaging/schemas/message.schema.js';
     UsersModule,
     forwardRef(() => CategoriesModule),
     forwardRef(() => PackagesModule),
+    forwardRef(() => AiModule),
     SearchModule,
     BrandsModule,
   ],

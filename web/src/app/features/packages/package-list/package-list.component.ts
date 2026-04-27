@@ -1,8 +1,11 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
+import { FormsModule } from '@angular/forms';
 import { PackagesService } from '../../../core/services/packages.service';
-import { AdPackage, PackageType } from '../../../core/models';
+import { CategoriesService } from '../../../core/services/categories.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { AdPackage, PackageType, Category } from '../../../core/models';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { CURRENCY_SYMBOL, PACKAGE_TYPE_LABELS } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
@@ -10,22 +13,29 @@ import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
 @Component({
   selector: 'app-package-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink, FormsModule],
   templateUrl: './package-list.component.html',
   styleUrls: ['./package-list.component.scss'],
 })
 export class PackageListComponent implements OnInit {
   readonly ROUTES = ROUTES;
   readonly packages = signal<AdPackage[]>([]);
+  readonly categories = signal<Category[]>([]);
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly selectedType = signal<PackageType | 'all'>('all');
   readonly selectedDuration = signal<7 | 15 | 30 | null>(null);
+  readonly selectedCategoryId = signal<string | null>(null);
 
-  constructor(private readonly packagesService: PackagesService) {}
+  constructor(
+    private readonly packagesService: PackagesService,
+    private readonly categoriesService: CategoriesService,
+    private readonly tracker: ActivityTrackerService,
+  ) {}
 
   ngOnInit(): void {
     this.loadPackages();
+    this.loadCategories();
   }
 
   loadPackages(): void {
@@ -44,7 +54,15 @@ export class PackageListComponent implements OnInit {
     });
   }
 
-  filteredPackages(): AdPackage[] {
+  loadCategories(): void {
+    this.categoriesService.getAll().subscribe({
+      next: (categories) => this.categories.set(categories),
+      error: () => {}, // silently fail — categories are optional enhancement
+    });
+  }
+
+  /** Filtered packages — recomputed only when packages, type, or duration signals change. */
+  readonly filteredPackages = computed(() => {
     let result = this.packages();
     const type = this.selectedType();
     const duration = this.selectedDuration();
@@ -55,7 +73,7 @@ export class PackageListComponent implements OnInit {
       result = result.filter((p) => p.duration === duration);
     }
     return result;
-  }
+  });
 
   setType(type: PackageType | 'all'): void {
     this.selectedType.set(type);
@@ -63,6 +81,43 @@ export class PackageListComponent implements OnInit {
 
   setDuration(duration: 7 | 15 | 30 | null): void {
     this.selectedDuration.set(duration);
+  }
+
+  onCategoryChange(categoryId: string): void {
+    this.selectedCategoryId.set(categoryId || null);
+  }
+
+  resolvePrice(pkg: AdPackage): number {
+    const categoryId = this.selectedCategoryId();
+    if (categoryId && pkg.categoryPricing?.length) {
+      const match = pkg.categoryPricing.find((cp) => cp.categoryId === categoryId);
+      if (match) {
+        return match.price;
+      }
+    }
+    return pkg.defaultPrice;
+  }
+
+  isCategoryPrice(pkg: AdPackage): boolean {
+    const categoryId = this.selectedCategoryId();
+    if (categoryId && pkg.categoryPricing?.length) {
+      return pkg.categoryPricing.some((cp) => cp.categoryId === categoryId);
+    }
+    return false;
+  }
+
+  onPurchaseClick(pkg: AdPackage): void {
+    const categoryId = this.selectedCategoryId();
+    if (categoryId) {
+      this.tracker.track(TrackingEvent.PACKAGE_PURCHASE_INITIATED, {
+        metadata: {
+          packageId: pkg._id,
+          categoryId,
+          packageType: pkg.type,
+          price: this.resolvePrice(pkg),
+        },
+      });
+    }
   }
 
   formatPrice(price: number): string {

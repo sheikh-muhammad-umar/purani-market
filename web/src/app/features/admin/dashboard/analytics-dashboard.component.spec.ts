@@ -32,12 +32,32 @@ describe('AnalyticsDashboardComponent', () => {
   let adminService: {
     getAnalytics: ReturnType<typeof vi.fn>;
     exportReport: ReturnType<typeof vi.fn>;
+    getAppBannerStats: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
     adminService = {
       getAnalytics: vi.fn().mockReturnValue(of(mockAnalytics)),
       exportReport: vi.fn().mockReturnValue(of(new Blob(['test'], { type: 'text/csv' }))),
+      getAppBannerStats: vi.fn().mockReturnValue(
+        of({
+          totalImpressions: 0,
+          totalClicks: 0,
+          banners: [],
+          dismissals: 0,
+          dismissRate: 0,
+          byPlatform: [],
+        }),
+      ),
+      getEngagementAnalytics: vi
+        .fn()
+        .mockReturnValue(of({ dailyActiveUsers: [], avgSessionDuration: 0, bounceRate: 0 })),
+      getPriceTrends: vi
+        .fn()
+        .mockReturnValue(of({ categories: [], overall: null, recentChanges: [] })),
+      getIdVerificationStats: vi
+        .fn()
+        .mockReturnValue(of({ total: 0, pending: 0, approved: 0, rejected: 0 })),
     };
     component = new AnalyticsDashboardComponent(adminService as unknown as AdminService);
   });
@@ -160,12 +180,9 @@ describe('AnalyticsDashboardComponent', () => {
 
     component.exportReport();
 
-    expect(adminService.exportReport).toHaveBeenCalledWith({
-      startDate: component.startDate,
-      endDate: component.endDate,
-    });
-    expect(component.exporting()).toBe(false);
+    // Component now generates CSV locally
     expect(mockAnchor.click).toHaveBeenCalled();
+    expect(component.exporting()).toBe(false);
   });
 
   it('should not export when dates are missing', () => {

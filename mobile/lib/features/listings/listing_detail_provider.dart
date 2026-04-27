@@ -96,6 +96,20 @@ class ListingDetailNotifier extends StateNotifier<ListingDetailState> {
       state = state.copyWith(isFavorited: wasFavorited);
     }
   }
+
+  Future<void> deleteListing(String listingId) async {
+    try {
+      await _api.delete('/listings/$listingId');
+    } catch (_) {}
+  }
+
+  Future<void> deactivateListing(String listingId) async {
+    try {
+      await _api.patch('/listings/$listingId/status',
+          data: {'status': 'inactive'});
+      await loadListing(listingId);
+    } catch (_) {}
+  }
 }
 
 final listingDetailProvider = StateNotifierProvider.family<

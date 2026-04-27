@@ -5,6 +5,7 @@ import { MessagingService, MessagesResponse } from '../../../core/services/messa
 import { ListingsService } from '../../../core/services/listings.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/auth';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { ActivatedRoute } from '@angular/router';
 import { Message, Listing, Conversation } from '../../../core/models';
 
@@ -133,6 +134,7 @@ describe('ChatWindowComponent', () => {
       listingsServiceMock as unknown as ListingsService,
       wsServiceMock as unknown as WebSocketService,
       authServiceMock as unknown as AuthService,
+      { track: vi.fn() } as unknown as ActivityTrackerService,
     );
   });
 
@@ -296,6 +298,7 @@ describe('ChatWindowComponent', () => {
       listingsServiceMock as unknown as ListingsService,
       wsServiceMock as unknown as WebSocketService,
       authServiceMock as unknown as AuthService,
+      { track: vi.fn() } as unknown as ActivityTrackerService,
     );
     component.ngOnInit();
     expect(component.hasMore()).toBe(true);
@@ -343,6 +346,7 @@ describe('ChatWindowComponent', () => {
       listingsServiceMock as unknown as ListingsService,
       wsServiceMock as unknown as WebSocketService,
       authServiceMock as unknown as AuthService,
+      { track: vi.fn() } as unknown as ActivityTrackerService,
     );
     messagingServiceMock.getMessages.mockClear();
     component.ngOnInit();

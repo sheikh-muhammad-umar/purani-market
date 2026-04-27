@@ -118,6 +118,14 @@ class SellerDashboardNotifier extends StateNotifier<SellerDashboardState> {
     } catch (_) {}
   }
 
+  Future<void> deactivateListing(String listingId) async {
+    try {
+      await _api.patch('/listings/$listingId/status',
+          data: {'status': 'inactive'});
+      await loadDashboard();
+    } catch (_) {}
+  }
+
   Future<void> featureListing(String listingId) async {
     try {
       await _api.post('/listings/$listingId/feature');

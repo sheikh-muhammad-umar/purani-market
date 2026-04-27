@@ -3,6 +3,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { LocationController } from './location.controller';
 import { LocationService } from './location.service';
+import { AdminTrackerService } from '../ai/admin-tracker.service';
 
 describe('LocationController', () => {
   let controller: LocationController;
@@ -39,6 +40,7 @@ describe('LocationController', () => {
       controllers: [LocationController],
       providers: [
         { provide: LocationService, useValue: mockLocationService },
+        { provide: AdminTrackerService, useValue: { track: jest.fn() } },
         Reflector,
       ],
     }).compile();

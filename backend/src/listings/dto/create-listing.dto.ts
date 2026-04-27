@@ -9,6 +9,7 @@ import {
   ValidateNested,
   IsOptional,
   IsObject,
+  IsMongoId,
   Min,
   Matches,
 } from 'class-validator';
@@ -192,4 +193,8 @@ export class CreateListingDto {
 
   @IsOptional()
   isFeatured?: boolean;
+
+  @IsOptional()
+  @IsMongoId()
+  purchaseId?: string;
 }

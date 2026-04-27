@@ -6,6 +6,8 @@ import {
   PendingListing,
   PendingListingsResponse,
 } from '../../../core/services/admin.service';
+import { CategoriesService } from '../../../core/services/categories.service';
+import { DomSanitizer } from '@angular/platform-browser';
 
 const mockListings: PendingListing[] = [
   {
@@ -52,15 +54,25 @@ describe('ModerationQueueComponent', () => {
     getPendingListings: ReturnType<typeof vi.fn>;
     approveListing: ReturnType<typeof vi.fn>;
     rejectListing: ReturnType<typeof vi.fn>;
+    getRejectionReasons: ReturnType<typeof vi.fn>;
   };
+  let categoriesServiceMock: { getAll: ReturnType<typeof vi.fn> };
+  let sanitizerMock: { bypassSecurityTrustResourceUrl: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     adminService = {
       getPendingListings: vi.fn().mockReturnValue(of(mockResponse)),
       approveListing: vi.fn().mockReturnValue(of(undefined)),
       rejectListing: vi.fn().mockReturnValue(of(undefined)),
+      getRejectionReasons: vi.fn().mockReturnValue(of([])),
     };
-    component = new ModerationQueueComponent(adminService as unknown as AdminService);
+    categoriesServiceMock = { getAll: vi.fn().mockReturnValue(of([])) };
+    sanitizerMock = { bypassSecurityTrustResourceUrl: vi.fn((url: string) => url) };
+    component = new ModerationQueueComponent(
+      adminService as unknown as AdminService,
+      categoriesServiceMock as unknown as CategoriesService,
+      sanitizerMock as unknown as DomSanitizer,
+    );
   });
 
   it('should create', () => {
@@ -127,7 +139,7 @@ describe('ModerationQueueComponent', () => {
     component.ngOnInit();
     const listing = component.listings().find((l) => l._id === 'l1')!;
     component.startReject(listing);
-    component.rejectionReasons['l1'] = '   ';
+    component.selectedRejectReasonIds['l1'] = [];
     component.confirmReject(listing);
     expect(adminService.rejectListing).not.toHaveBeenCalled();
   });
@@ -136,9 +148,9 @@ describe('ModerationQueueComponent', () => {
     component.ngOnInit();
     const listing = component.listings().find((l) => l._id === 'l1')!;
     component.startReject(listing);
-    component.rejectionReasons['l1'] = 'Inappropriate content';
+    component.selectedRejectReasonIds['l1'] = ['reason1'];
     component.confirmReject(listing);
-    expect(adminService.rejectListing).toHaveBeenCalledWith('l1', 'Inappropriate content');
+    expect(adminService.rejectListing).toHaveBeenCalled();
     expect(component.listings().find((l) => l._id === 'l1')).toBeUndefined();
     expect(component.totalListings()).toBe(1);
     expect(component.rejectingId).toBeNull();
@@ -149,7 +161,7 @@ describe('ModerationQueueComponent', () => {
     adminService.rejectListing.mockReturnValue(throwError(() => new Error('fail')));
     component.ngOnInit();
     const listing = component.listings().find((l) => l._id === 'l1')!;
-    component.rejectionReasons['l1'] = 'Bad content';
+    component.selectedRejectReasonIds['l1'] = ['reason1'];
     component.confirmReject(listing);
     expect(component.actionLoading()).toBeNull();
     expect(component.listings().length).toBe(2); // unchanged

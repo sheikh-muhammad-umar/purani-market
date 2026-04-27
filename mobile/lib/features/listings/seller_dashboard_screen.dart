@@ -2,10 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../core/api/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../models/listing.dart';
+import '../../utils/constants.dart';
+import '../../widgets/package_confirmation_dialog.dart';
 import 'seller_dashboard_provider.dart';
 
 /// Seller dashboard screen with analytics cards, ad slots meters,
@@ -162,7 +165,9 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
                         onMarkReserved: () => ref
                             .read(sellerDashboardProvider.notifier)
                             .markAsReserved(listing.id),
-                        onDelete: () => _confirmDelete(context, listing.id),
+                        onDelete: () => _confirmDelete(context, ref, listing),
+                        onDeactivate: () =>
+                            _confirmDeactivate(context, ref, listing),
                         onFeature: () => ref
                             .read(sellerDashboardProvider.notifier)
                             .featureListing(listing.id),
@@ -176,7 +181,60 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
     );
   }
 
-  void _confirmDelete(BuildContext context, String listingId) {
+  void _trackEvent(WidgetRef ref, String action, Map<String, dynamic> metadata) {
+    try {
+      ref.read(apiClientProvider).post(
+        AppConstants.trackEndpoint,
+        data: {
+          'action': action,
+          'metadata': metadata,
+        },
+      );
+    } catch (_) {
+      // Tracking should never block UX
+    }
+  }
+
+  Future<void> _confirmDelete(
+      BuildContext context, WidgetRef ref, Listing listing) async {
+    if (listing.hasPackage) {
+      final packageName = listing.packageName ?? 'Unknown Package';
+      final packageType = listing.packageType ?? 'unknown';
+
+      _trackEvent(ref, AppConstants.packageConfirmModalShown, {
+        'listingId': listing.id,
+        'purchaseId': listing.purchaseIdString,
+        'packageType': packageType,
+        'actionType': 'delete',
+      });
+
+      final confirmed = await PackageConfirmationDialog.show(
+        context: context,
+        packageName: packageName,
+        packageType: packageType,
+        actionType: 'delete',
+      );
+
+      if (confirmed == true) {
+        _trackEvent(ref, AppConstants.packageConfirmModalConfirmed, {
+          'listingId': listing.id,
+          'purchaseId': listing.purchaseIdString,
+          'packageType': packageType,
+          'actionType': 'delete',
+        });
+        ref.read(sellerDashboardProvider.notifier).deleteListing(listing.id);
+      } else {
+        _trackEvent(ref, AppConstants.packageConfirmModalCancelled, {
+          'listingId': listing.id,
+          'purchaseId': listing.purchaseIdString,
+          'packageType': packageType,
+          'actionType': 'delete',
+        });
+      }
+      return;
+    }
+
+    // No package — show standard confirmation dialog
     showDialog(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -194,7 +252,7 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
               Navigator.pop(ctx);
               ref
                   .read(sellerDashboardProvider.notifier)
-                  .deleteListing(listingId);
+                  .deleteListing(listing.id);
             },
             style: TextButton.styleFrom(foregroundColor: AppColors.error),
             child: const Text('Delete'),
@@ -202,6 +260,51 @@ class _SellerDashboardScreenState extends ConsumerState<SellerDashboardScreen> {
         ],
       ),
     );
+  }
+
+  Future<void> _confirmDeactivate(
+      BuildContext context, WidgetRef ref, Listing listing) async {
+    if (listing.hasPackage) {
+      final packageName = listing.packageName ?? 'Unknown Package';
+      final packageType = listing.packageType ?? 'unknown';
+
+      _trackEvent(ref, AppConstants.packageConfirmModalShown, {
+        'listingId': listing.id,
+        'purchaseId': listing.purchaseIdString,
+        'packageType': packageType,
+        'actionType': 'deactivate',
+      });
+
+      final confirmed = await PackageConfirmationDialog.show(
+        context: context,
+        packageName: packageName,
+        packageType: packageType,
+        actionType: 'deactivate',
+      );
+
+      if (confirmed == true) {
+        _trackEvent(ref, AppConstants.packageConfirmModalConfirmed, {
+          'listingId': listing.id,
+          'purchaseId': listing.purchaseIdString,
+          'packageType': packageType,
+          'actionType': 'deactivate',
+        });
+        ref
+            .read(sellerDashboardProvider.notifier)
+            .deactivateListing(listing.id);
+      } else {
+        _trackEvent(ref, AppConstants.packageConfirmModalCancelled, {
+          'listingId': listing.id,
+          'purchaseId': listing.purchaseIdString,
+          'packageType': packageType,
+          'actionType': 'deactivate',
+        });
+      }
+      return;
+    }
+
+    // No package — proceed directly with deactivation
+    ref.read(sellerDashboardProvider.notifier).deactivateListing(listing.id);
   }
 }
 
@@ -393,6 +496,7 @@ class _ListingManagementCard extends StatelessWidget {
   final VoidCallback onMarkSold;
   final VoidCallback onMarkReserved;
   final VoidCallback onDelete;
+  final VoidCallback onDeactivate;
   final VoidCallback onFeature;
   final VoidCallback onEdit;
 
@@ -401,6 +505,7 @@ class _ListingManagementCard extends StatelessWidget {
     required this.onMarkSold,
     required this.onMarkReserved,
     required this.onDelete,
+    required this.onDeactivate,
     required this.onFeature,
     required this.onEdit,
   });
@@ -571,6 +676,12 @@ class _ListingManagementCard extends StatelessWidget {
                     icon: Icons.bookmark,
                     label: 'Reserve',
                     onTap: onMarkReserved,
+                  ),
+                  _ActionButton(
+                    icon: Icons.pause_circle_outline,
+                    label: 'Deactivate',
+                    onTap: onDeactivate,
+                    color: AppColors.warning,
                   ),
                   if (!listing.isFeatured)
                     _ActionButton(

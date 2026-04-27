@@ -11,6 +11,8 @@ import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ListingStatus, PackageType, PaymentStatus } from '../../../core/constants/enums';
 import { PLACEHOLDER_IMAGE } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
+import { extractPackageDetails } from '../../../core/utils/package-details';
+import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 
 interface AnalyticsCard {
   label: string;
@@ -113,6 +115,7 @@ export class MyListingsComponent implements OnInit {
     private readonly packagesService: PackagesService,
     private readonly authService: AuthService,
     private readonly tracker: ActivityTrackerService,
+    private readonly confirmModal: ConfirmModalService,
   ) {}
 
   ngOnInit(): void {
@@ -155,23 +158,17 @@ export class MyListingsComponent implements OnInit {
     });
   }
 
+  private static readonly STATUS_BADGE_MAP: Record<string, string> = {
+    [ListingStatus.ACTIVE]: 'badge-success',
+    [ListingStatus.INACTIVE]: 'badge-inactive',
+    [ListingStatus.SOLD]: 'badge-sold',
+    [ListingStatus.RESERVED]: 'badge-warning',
+    [ListingStatus.REJECTED]: 'badge-error',
+    [ListingStatus.PENDING_REVIEW]: 'badge-pending',
+  };
+
   getStatusBadgeClass(status: string): string {
-    switch (status) {
-      case 'active':
-        return 'badge-success';
-      case 'inactive':
-        return 'badge-inactive';
-      case 'sold':
-        return 'badge-sold';
-      case 'reserved':
-        return 'badge-warning';
-      case 'rejected':
-        return 'badge-error';
-      case 'pending_review':
-        return 'badge-pending';
-      default:
-        return '';
-    }
+    return MyListingsComponent.STATUS_BADGE_MAP[status] ?? '';
   }
 
   getImage(listing: Listing): string {
@@ -192,6 +189,16 @@ export class MyListingsComponent implements OnInit {
   }
 
   markStatus(listing: Listing, status: ListingStatus): void {
+    if (status === ListingStatus.INACTIVE && listing.purchaseId) {
+      this.showPackageWarningAndProceed(listing, 'deactivate', () => {
+        this.executeMarkStatus(listing, status);
+      });
+      return;
+    }
+    this.executeMarkStatus(listing, status);
+  }
+
+  private executeMarkStatus(listing: Listing, status: ListingStatus): void {
     this.actionLoading.set(listing._id);
     this.listingsService.updateStatus(listing._id, status).subscribe({
       next: () => {
@@ -230,6 +237,17 @@ export class MyListingsComponent implements OnInit {
   }
 
   deleteListing(listingId: string): void {
+    const listing = this.listings().find((l) => l._id === listingId);
+    if (listing?.purchaseId) {
+      this.showPackageWarningAndProceed(listing, 'delete', () => {
+        this.executeDeleteListing(listingId);
+      });
+      return;
+    }
+    this.executeDeleteListing(listingId);
+  }
+
+  private executeDeleteListing(listingId: string): void {
     this.actionLoading.set(listingId);
     this.confirmDeleteId.set(null);
     this.listingsService.deleteListing(listingId).subscribe({
@@ -243,5 +261,37 @@ export class MyListingsComponent implements OnInit {
       },
       error: () => this.actionLoading.set(null),
     });
+  }
+
+  private async showPackageWarningAndProceed(
+    listing: Listing,
+    actionType: 'delete' | 'deactivate',
+    onConfirm: () => void,
+  ): Promise<void> {
+    const { purchaseId, packageName, packageType } = extractPackageDetails(listing);
+
+    this.tracker.track(TrackingEvent.PACKAGE_CONFIRM_MODAL_SHOWN, {
+      productListingId: listing._id,
+      metadata: { listingId: listing._id, purchaseId, packageType, actionType },
+    });
+
+    const confirmed = await this.confirmModal.confirmPackageWarning({
+      packageName,
+      packageType,
+      actionType,
+    });
+
+    if (confirmed) {
+      this.tracker.track(TrackingEvent.PACKAGE_CONFIRM_MODAL_CONFIRMED, {
+        productListingId: listing._id,
+        metadata: { listingId: listing._id, purchaseId, packageType, actionType },
+      });
+      onConfirm();
+    } else {
+      this.tracker.track(TrackingEvent.PACKAGE_CONFIRM_MODAL_CANCELLED, {
+        productListingId: listing._id,
+        metadata: { listingId: listing._id, purchaseId, packageType, actionType },
+      });
+    }
   }
 }

@@ -28,6 +28,7 @@ describe('SearchService', () => {
 
     categoriesService = {
       findById: jest.fn(),
+      getInheritedAttributes: jest.fn().mockResolvedValue([]),
     };
 
     redis = {
@@ -340,8 +341,8 @@ describe('SearchService', () => {
 
   describe('buildCategoryFilters', () => {
     it('should build range filter for category filter type RANGE', async () => {
-      (categoriesService.findById as jest.Mock).mockResolvedValue({
-        attributes: [
+      (categoriesService.getInheritedAttributes as jest.Mock).mockResolvedValue(
+        [
           {
             name: 'Mileage',
             key: 'mileage',
@@ -350,7 +351,7 @@ describe('SearchService', () => {
             rangeMax: 500000,
           },
         ],
-      });
+      );
 
       const filters = await service.buildCategoryFilters('cat1', {
         mileage: { min: 0, max: 50000 },
@@ -363,8 +364,8 @@ describe('SearchService', () => {
     });
 
     it('should build term filter for category filter type SELECT', async () => {
-      (categoriesService.findById as jest.Mock).mockResolvedValue({
-        attributes: [
+      (categoriesService.getInheritedAttributes as jest.Mock).mockResolvedValue(
+        [
           {
             name: 'Brand',
             key: 'brand',
@@ -372,7 +373,7 @@ describe('SearchService', () => {
             options: ['Apple', 'Samsung'],
           },
         ],
-      });
+      );
 
       const filters = await service.buildCategoryFilters('cat1', {
         brand: 'Apple',
@@ -385,8 +386,8 @@ describe('SearchService', () => {
     });
 
     it('should build terms filter for category filter type MULTISELECT', async () => {
-      (categoriesService.findById as jest.Mock).mockResolvedValue({
-        attributes: [
+      (categoriesService.getInheritedAttributes as jest.Mock).mockResolvedValue(
+        [
           {
             name: 'Color',
             key: 'color',
@@ -394,7 +395,7 @@ describe('SearchService', () => {
             options: ['Red', 'Blue', 'Black'],
           },
         ],
-      });
+      );
 
       const filters = await service.buildCategoryFilters('cat1', {
         color: ['Red', 'Blue'],
@@ -407,8 +408,8 @@ describe('SearchService', () => {
     });
 
     it('should wrap single value in array for MULTISELECT', async () => {
-      (categoriesService.findById as jest.Mock).mockResolvedValue({
-        attributes: [
+      (categoriesService.getInheritedAttributes as jest.Mock).mockResolvedValue(
+        [
           {
             name: 'Color',
             key: 'color',
@@ -416,7 +417,7 @@ describe('SearchService', () => {
             options: ['Red', 'Blue'],
           },
         ],
-      });
+      );
 
       const filters = await service.buildCategoryFilters('cat1', {
         color: 'Red',
@@ -428,15 +429,15 @@ describe('SearchService', () => {
     });
 
     it('should build boolean filter for category filter type BOOLEAN', async () => {
-      (categoriesService.findById as jest.Mock).mockResolvedValue({
-        attributes: [
+      (categoriesService.getInheritedAttributes as jest.Mock).mockResolvedValue(
+        [
           {
             name: 'Negotiable',
             key: 'negotiable',
             type: AttributeType.BOOLEAN,
           },
         ],
-      });
+      );
 
       const filters = await service.buildCategoryFilters('cat1', {
         negotiable: true,
@@ -449,15 +450,15 @@ describe('SearchService', () => {
     });
 
     it('should handle string "true" for BOOLEAN filter', async () => {
-      (categoriesService.findById as jest.Mock).mockResolvedValue({
-        attributes: [
+      (categoriesService.getInheritedAttributes as jest.Mock).mockResolvedValue(
+        [
           {
             name: 'Negotiable',
             key: 'negotiable',
             type: AttributeType.BOOLEAN,
           },
         ],
-      });
+      );
 
       const filters = await service.buildCategoryFilters('cat1', {
         negotiable: 'true',
@@ -469,8 +470,8 @@ describe('SearchService', () => {
     });
 
     it('should skip filters with undefined or null values', async () => {
-      (categoriesService.findById as jest.Mock).mockResolvedValue({
-        attributes: [
+      (categoriesService.getInheritedAttributes as jest.Mock).mockResolvedValue(
+        [
           {
             name: 'Brand',
             key: 'brand',
@@ -479,7 +480,7 @@ describe('SearchService', () => {
           },
           { name: 'Mileage', key: 'mileage', type: AttributeType.RANGE },
         ],
-      });
+      );
 
       const filters = await service.buildCategoryFilters('cat1', {
         brand: undefined,
@@ -490,8 +491,8 @@ describe('SearchService', () => {
     });
 
     it('should only apply filters matching category filter definitions', async () => {
-      (categoriesService.findById as jest.Mock).mockResolvedValue({
-        attributes: [
+      (categoriesService.getInheritedAttributes as jest.Mock).mockResolvedValue(
+        [
           {
             name: 'Brand',
             key: 'brand',
@@ -499,7 +500,7 @@ describe('SearchService', () => {
             options: ['Apple'],
           },
         ],
-      });
+      );
 
       const filters = await service.buildCategoryFilters('cat1', {
         brand: 'Apple',
@@ -513,8 +514,8 @@ describe('SearchService', () => {
     });
 
     it('should handle multiple category filters simultaneously', async () => {
-      (categoriesService.findById as jest.Mock).mockResolvedValue({
-        attributes: [
+      (categoriesService.getInheritedAttributes as jest.Mock).mockResolvedValue(
+        [
           {
             name: 'Brand',
             key: 'brand',
@@ -530,7 +531,7 @@ describe('SearchService', () => {
           },
           { name: 'Automatic', key: 'automatic', type: AttributeType.BOOLEAN },
         ],
-      });
+      );
 
       const filters = await service.buildCategoryFilters('cat1', {
         brand: 'Toyota',
@@ -542,7 +543,7 @@ describe('SearchService', () => {
     });
 
     it('should return empty array and log warning when category not found', async () => {
-      (categoriesService.findById as jest.Mock).mockRejectedValue(
+      (categoriesService.getInheritedAttributes as jest.Mock).mockRejectedValue(
         new Error('Category not found'),
       );
 
@@ -554,9 +555,9 @@ describe('SearchService', () => {
     });
 
     it('should return empty array when category has no filters', async () => {
-      (categoriesService.findById as jest.Mock).mockResolvedValue({
-        attributes: [],
-      });
+      (categoriesService.getInheritedAttributes as jest.Mock).mockResolvedValue(
+        [],
+      );
 
       const filters = await service.buildCategoryFilters('cat1', {
         brand: 'Apple',
@@ -568,8 +569,8 @@ describe('SearchService', () => {
 
   describe('buildSearchQuery with category filters', () => {
     it('should include category-specific filters when category and filters provided', async () => {
-      (categoriesService.findById as jest.Mock).mockResolvedValue({
-        attributes: [
+      (categoriesService.getInheritedAttributes as jest.Mock).mockResolvedValue(
+        [
           {
             name: 'Brand',
             key: 'brand',
@@ -577,7 +578,7 @@ describe('SearchService', () => {
             options: ['Apple', 'Samsung'],
           },
         ],
-      });
+      );
 
       const query = await service.buildSearchQuery({
         category: 'phones',
@@ -598,7 +599,7 @@ describe('SearchService', () => {
 
       // Only status filter
       expect(query.bool.filter.length).toBe(1);
-      expect(categoriesService.findById).not.toHaveBeenCalled();
+      expect(categoriesService.getInheritedAttributes).not.toHaveBeenCalled();
     });
 
     it('should not apply category filters when filters object is empty', async () => {
@@ -609,7 +610,7 @@ describe('SearchService', () => {
 
       // status + category = 2 filters
       expect(query.bool.filter.length).toBe(2);
-      expect(categoriesService.findById).not.toHaveBeenCalled();
+      expect(categoriesService.getInheritedAttributes).not.toHaveBeenCalled();
     });
   });
 

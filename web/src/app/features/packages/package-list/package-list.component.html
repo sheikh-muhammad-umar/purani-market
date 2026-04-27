@@ -68,6 +68,22 @@
           30 Days
         </button>
       </div>
+      @if (categories().length > 0) {
+        <div class="category-filter">
+          <label for="category-select" class="category-label">Category</label>
+          <select
+            id="category-select"
+            class="category-select"
+            [ngModel]="selectedCategoryId() ?? ''"
+            (ngModelChange)="onCategoryChange($event)"
+          >
+            <option value="">All Categories</option>
+            @for (cat of categories(); track cat._id) {
+              <option [value]="cat._id">{{ cat.name }}</option>
+            }
+          </select>
+        </div>
+      }
     </div>
 
     @if (loading()) {
@@ -130,12 +146,18 @@
               </div>
             </div>
             <div class="package-price">
-              <span class="price-amount">{{ formatPrice(pkg.defaultPrice) }}</span>
-              @if (pkg.categoryPricing.length > 0) {
+              <span class="price-amount">{{ formatPrice(resolvePrice(pkg)) }}</span>
+              @if (isCategoryPrice(pkg)) {
+                <span class="price-note category-price-note">Category-specific price</span>
+              } @else if (pkg.categoryPricing.length > 0 && !selectedCategoryId()) {
                 <span class="price-note">Category-specific pricing available</span>
               }
             </div>
-            <a [routerLink]="['/packages/purchase', pkg._id]" class="btn btn-primary btn-full">
+            <a
+              [routerLink]="['/packages/purchase', pkg._id]"
+              class="btn btn-primary btn-full"
+              (click)="onPurchaseClick(pkg)"
+            >
               Purchase Package
             </a>
           </div>

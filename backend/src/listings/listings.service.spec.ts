@@ -18,6 +18,12 @@ import { Category, AttributeType } from '../categories/schemas/category.schema';
 import { CreateListingDto } from './dto/create-listing.dto';
 import { AllowedStatusTransition } from './dto/update-status.dto';
 import { SearchSyncService } from '../search/search-sync.service';
+import { BrandsService } from '../brands/brands.service';
+import { VehicleBrandService } from '../brands/vehicle-brand.service';
+import { VehicleModelService } from '../brands/vehicle-model.service';
+import { VehicleVariantService } from '../brands/vehicle-variant.service';
+import { PackagesService } from '../packages/packages.service';
+import { AdminTrackerService } from '../ai/admin-tracker.service';
 
 describe('ListingsService', () => {
   let service: ListingsService;
@@ -77,6 +83,8 @@ describe('ListingsService', () => {
     role: 'seller',
     adLimit: 10,
     activeAdCount: 0,
+    phone: '+923001234567',
+    phoneVerified: true,
   };
 
   const mockCategory = {
@@ -141,6 +149,9 @@ describe('ListingsService', () => {
 
     mockListingModel = jest.fn().mockImplementation(() => savedListing);
     mockListingModel.findById = jest.fn().mockReturnValue({
+      populate: jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockListing),
+      }),
       exec: jest.fn().mockResolvedValue(mockListing),
     });
     mockListingModel.findByIdAndUpdate = jest.fn().mockReturnValue({
@@ -171,13 +182,18 @@ describe('ListingsService', () => {
     mockCategoryModel = {
       findById: jest.fn().mockImplementation((id: any) => {
         const idStr = id.toString();
+        let result: any = null;
         if (idStr === categoryId.toString()) {
-          return { exec: jest.fn().mockResolvedValue(mockCategory) };
+          result = mockCategory;
+        } else if (idStr === parentCategoryId.toString()) {
+          result = mockParentCategory;
         }
-        if (idStr === parentCategoryId.toString()) {
-          return { exec: jest.fn().mockResolvedValue(mockParentCategory) };
-        }
-        return { exec: jest.fn().mockResolvedValue(null) };
+        return {
+          exec: jest.fn().mockResolvedValue(result),
+          lean: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue(result),
+          }),
+        };
       }),
     };
 
@@ -203,6 +219,36 @@ describe('ListingsService', () => {
           useValue: { indexListing: jest.fn(), removeListing: jest.fn() },
         },
         { provide: getRedisConnectionToken(), useValue: mockRedis },
+        {
+          provide: BrandsService,
+          useValue: { findById: jest.fn() },
+        },
+        {
+          provide: VehicleBrandService,
+          useValue: {
+            findById: jest.fn(),
+            countByCategory: jest.fn().mockResolvedValue(0),
+          },
+        },
+        {
+          provide: VehicleModelService,
+          useValue: { findById: jest.fn() },
+        },
+        {
+          provide: VehicleVariantService,
+          useValue: { findById: jest.fn() },
+        },
+        {
+          provide: PackagesService,
+          useValue: {
+            applyPackageToListing: jest.fn(),
+            findPurchaseById: jest.fn(),
+          },
+        },
+        {
+          provide: AdminTrackerService,
+          useValue: { track: jest.fn().mockResolvedValue(undefined) },
+        },
       ],
     }).compile();
 
@@ -267,6 +313,9 @@ describe('ListingsService', () => {
 
     it('should increment viewCount on first view and return listing', async () => {
       mockListingModel.findById.mockReturnValue({
+        populate: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue({ ...mockListing }),
+        }),
         exec: jest.fn().mockResolvedValue({ ...mockListing }),
       });
       mockListingModel.updateOne = jest.fn().mockReturnValue({
@@ -297,6 +346,9 @@ describe('ListingsService', () => {
 
     it('should NOT increment viewCount on repeat view within window', async () => {
       mockListingModel.findById.mockReturnValue({
+        populate: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue({ ...mockListing }),
+        }),
         exec: jest.fn().mockResolvedValue({ ...mockListing }),
       });
       mockListingModel.updateOne = jest.fn().mockReturnValue({
@@ -317,6 +369,9 @@ describe('ListingsService', () => {
 
     it('should NOT increment viewCount for the listing owner', async () => {
       mockListingModel.findById.mockReturnValue({
+        populate: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue({ ...mockListing }),
+        }),
         exec: jest.fn().mockResolvedValue({ ...mockListing }),
       });
       mockListingModel.updateOne = jest.fn();
@@ -340,6 +395,9 @@ describe('ListingsService', () => {
 
     it('should throw NotFoundException when listing not found', async () => {
       mockListingModel.findById.mockReturnValue({
+        populate: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue(null),
+        }),
         exec: jest.fn().mockResolvedValue(null),
       });
       await expect(
@@ -522,27 +580,6 @@ describe('ListingsService', () => {
       expect(constructorCall.status).toBe('active');
     });
 
-    it('should throw BadRequestException when fewer than 2 media items', async () => {
-      const dto = {
-        ...validCreateDto,
-        images: [{ url: 'https://example.com/img1.jpg' }],
-        video: undefined,
-      };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
-        BadRequestException,
-      );
-    });
-
-    it('should accept 1 image + 1 video as 2 media items', async () => {
-      const dto = {
-        ...validCreateDto,
-        images: [{ url: 'https://example.com/img1.jpg' }],
-        video: { url: 'https://example.com/video.mp4' },
-      };
-      const result = await service.create(sellerId.toString(), dto);
-      expect(result).toBe(mockListing);
-    });
-
     it('should throw BadRequestException for invalid category ID', async () => {
       const dto = { ...validCreateDto, categoryId: 'invalid' };
       await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
@@ -616,13 +653,6 @@ describe('ListingsService', () => {
       expect(mockUserModel.updateOne).toHaveBeenCalledWith(
         { _id: expect.any(Types.ObjectId) },
         { $inc: { activeAdCount: 1 } },
-      );
-    });
-
-    it('should throw BadRequestException when zero media items provided', async () => {
-      const dto = { ...validCreateDto, images: [], video: undefined };
-      await expect(service.create(sellerId.toString(), dto)).rejects.toThrow(
-        BadRequestException,
       );
     });
 

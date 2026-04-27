@@ -1,9 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/api/api_client.dart';
 import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../models/ad_package.dart';
+import '../../models/category.dart';
+import '../../providers/categories_provider.dart';
+import '../../utils/constants.dart';
 import 'packages_provider.dart';
 
 /// Packages screen with tabs: Available Packages, My Packages.
@@ -58,14 +62,129 @@ class _PackagesScreenState extends ConsumerState<PackagesScreen>
   }
 }
 
-/// Available packages list.
-class _PackageListTab extends ConsumerWidget {
+/// Helper to resolve the display price for a package given a selected category.
+double _resolvePrice(AdPackage pkg, String? categoryId) {
+  if (categoryId == null) return pkg.defaultPrice;
+  for (final cp in pkg.categoryPricing) {
+    if (cp.categoryId == categoryId) return cp.price;
+  }
+  return pkg.defaultPrice;
+}
+
+/// Available packages list with optional category filter for pricing.
+class _PackageListTab extends ConsumerStatefulWidget {
   const _PackageListTab();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(packagesProvider);
+  ConsumerState<_PackageListTab> createState() => _PackageListTabState();
+}
 
+class _PackageListTabState extends ConsumerState<_PackageListTab> {
+  String? _selectedCategoryId;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(categoriesProvider.notifier).fetchCategories();
+    });
+  }
+
+  void _trackEvent(String action, Map<String, dynamic> metadata) {
+    try {
+      ref.read(apiClientProvider).post(
+        AppConstants.trackEndpoint,
+        data: {
+          'action': action,
+          'metadata': metadata,
+        },
+      );
+    } catch (_) {
+      // Tracking should never block UX
+    }
+  }
+
+  void _showPurchaseSheet(AdPackage pkg) {
+    final displayPrice = _resolvePrice(pkg, _selectedCategoryId);
+    ref.read(purchaseFlowProvider.notifier).reset();
+    ref.read(purchaseFlowProvider.notifier).selectPackage(pkg.id);
+
+    if (_selectedCategoryId != null) {
+      _trackEvent(AppConstants.packagePurchaseInitiated, {
+        'packageId': pkg.id,
+        'categoryId': _selectedCategoryId,
+        'packageType': pkg.type == PackageType.featuredAds
+            ? 'featured_ads'
+            : 'ad_slots',
+        'price': displayPrice,
+      });
+    }
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+      ),
+      builder: (_) => _PurchaseFlowSheet(
+        package: pkg,
+        displayPrice: displayPrice,
+        categoryId: _selectedCategoryId,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(packagesProvider);
+    final categoriesState = ref.watch(categoriesProvider);
+
+    return Column(
+      children: [
+        // Category dropdown for pricing
+        Padding(
+          padding: const EdgeInsets.all(AppSpacing.s2),
+          child: DropdownButtonFormField<String>(
+            value: _selectedCategoryId,
+            decoration: InputDecoration(
+              labelText: 'Select Category',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+            ),
+            isExpanded: true,
+            items: [
+              const DropdownMenuItem<String>(
+                value: null,
+                child: Text('All Categories'),
+              ),
+              ...categoriesState.categories.map(
+                (cat) => DropdownMenuItem<String>(
+                  value: cat.id,
+                  child: Text(cat.name),
+                ),
+              ),
+            ],
+            onChanged: (value) {
+              setState(() {
+                _selectedCategoryId = value;
+              });
+            },
+          ),
+        ),
+        // Package list
+        Expanded(
+          child: _buildPackageList(state),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPackageList(PackagesState state) {
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -74,39 +193,31 @@ class _PackageListTab extends ConsumerWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.s2),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s2),
       itemCount: state.packages.length,
       itemBuilder: (context, index) {
         final pkg = state.packages[index];
+        final displayPrice = _resolvePrice(pkg, _selectedCategoryId);
         return _PackageCard(
           package: pkg,
-          onPurchase: () => _showPurchaseSheet(context, ref, pkg),
+          displayPrice: displayPrice,
+          onPurchase: () => _showPurchaseSheet(pkg),
         );
       },
-    );
-  }
-
-  void _showPurchaseSheet(
-      BuildContext context, WidgetRef ref, AdPackage pkg) {
-    ref.read(purchaseFlowProvider.notifier).reset();
-    ref.read(purchaseFlowProvider.notifier).selectPackage(pkg.id);
-
-    showModalBottomSheet(
-      context: context,
-      isScrollControlled: true,
-      shape: const RoundedRectangleBorder(
-        borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-      ),
-      builder: (_) => _PurchaseFlowSheet(package: pkg),
     );
   }
 }
 
 class _PackageCard extends StatelessWidget {
   final AdPackage package;
+  final double displayPrice;
   final VoidCallback onPurchase;
 
-  const _PackageCard({required this.package, required this.onPurchase});
+  const _PackageCard({
+    required this.package,
+    required this.displayPrice,
+    required this.onPurchase,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -143,7 +254,7 @@ class _PackageCard extends StatelessWidget {
                   ),
                 ),
                 Text(
-                  'PKR ${package.defaultPrice.toStringAsFixed(0)}',
+                  'PKR ${displayPrice.toStringAsFixed(0)}',
                   style: Theme.of(context).textTheme.titleMedium?.copyWith(
                         color: AppColors.primary,
                         fontWeight: FontWeight.bold,
@@ -209,7 +320,13 @@ class _InfoChip extends StatelessWidget {
 /// Purchase flow bottom sheet with payment method selection.
 class _PurchaseFlowSheet extends ConsumerWidget {
   final AdPackage package;
-  const _PurchaseFlowSheet({required this.package});
+  final double displayPrice;
+  final String? categoryId;
+  const _PurchaseFlowSheet({
+    required this.package,
+    required this.displayPrice,
+    this.categoryId,
+  });
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
@@ -261,7 +378,7 @@ class _PurchaseFlowSheet extends ConsumerWidget {
               style: Theme.of(context).textTheme.titleLarge),
           const SizedBox(height: AppSpacing.s1),
           Text(
-            'PKR ${package.defaultPrice.toStringAsFixed(0)} · ${package.duration} days · ${package.quantity} ads',
+            'PKR ${displayPrice.toStringAsFixed(0)} · ${package.duration} days · ${package.quantity} ads',
             style: Theme.of(context)
                 .textTheme
                 .bodyMedium
@@ -365,14 +482,118 @@ class _PaymentMethodTile extends StatelessWidget {
   }
 }
 
-/// My packages tab showing purchase history.
-class _MyPackagesTab extends ConsumerWidget {
+/// My packages tab showing purchase history with category filter.
+class _MyPackagesTab extends ConsumerStatefulWidget {
   const _MyPackagesTab();
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final state = ref.watch(packagesProvider);
+  ConsumerState<_MyPackagesTab> createState() => _MyPackagesTabState();
+}
 
+class _MyPackagesTabState extends ConsumerState<_MyPackagesTab> {
+  String? _selectedCategoryId;
+  bool _hasFiredViewedEvent = false;
+  bool _pendingFilterChange = false;
+
+  @override
+  void initState() {
+    super.initState();
+    Future.microtask(() {
+      ref.read(categoriesProvider.notifier).fetchCategories();
+    });
+  }
+
+  void _trackEvent(String action, Map<String, dynamic> metadata) {
+    try {
+      ref.read(apiClientProvider).post(
+        AppConstants.trackEndpoint,
+        data: {
+          'action': action,
+          'metadata': metadata,
+        },
+      );
+    } catch (_) {
+      // Tracking should never block UX
+    }
+  }
+
+  void _onCategoryFilterChanged(String? categoryId) {
+    setState(() {
+      _selectedCategoryId = categoryId;
+      _pendingFilterChange = true;
+    });
+    ref.read(packagesProvider.notifier).setCategoryFilter(categoryId);
+    ref.read(packagesProvider.notifier).loadMyPurchases(categoryId: categoryId);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final state = ref.watch(packagesProvider);
+    final categoriesState = ref.watch(categoriesProvider);
+
+    // Fire MY_PACKAGES_VIEWED once after purchases load
+    if (!_hasFiredViewedEvent && !state.isLoading && state.error == null) {
+      _hasFiredViewedEvent = true;
+      Future.microtask(() {
+        _trackEvent(AppConstants.myPackagesViewed, {
+          'categoryId': _selectedCategoryId ?? 'all',
+        });
+      });
+    }
+
+    // Fire MY_PACKAGES_FILTER_CHANGED after filtered data loads
+    if (_pendingFilterChange && !state.isLoading && state.error == null) {
+      _pendingFilterChange = false;
+      Future.microtask(() {
+        _trackEvent(AppConstants.myPackagesFilterChanged, {
+          'categoryId': _selectedCategoryId ?? 'all',
+          'resultCount': state.myPurchases.length,
+        });
+      });
+    }
+
+    return Column(
+      children: [
+        // Category filter dropdown
+        Padding(
+          padding: const EdgeInsets.all(AppSpacing.s2),
+          child: DropdownButtonFormField<String>(
+            value: _selectedCategoryId,
+            decoration: InputDecoration(
+              labelText: 'Filter by Category',
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(AppSpacing.radiusSm),
+              ),
+              contentPadding: const EdgeInsets.symmetric(
+                horizontal: 12,
+                vertical: 8,
+              ),
+            ),
+            isExpanded: true,
+            items: [
+              const DropdownMenuItem<String>(
+                value: null,
+                child: Text('All Categories'),
+              ),
+              ...categoriesState.categories.map(
+                (cat) => DropdownMenuItem<String>(
+                  value: cat.id,
+                  child: Text(cat.name),
+                ),
+              ),
+            ],
+            onChanged: (value) => _onCategoryFilterChanged(value),
+          ),
+        ),
+        // Purchase list
+        Expanded(
+          child: _buildPurchaseList(state),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildPurchaseList(PackagesState state) {
     if (state.isLoading) {
       return const Center(child: CircularProgressIndicator());
     }
@@ -381,7 +602,7 @@ class _MyPackagesTab extends ConsumerWidget {
     }
 
     return ListView.builder(
-      padding: const EdgeInsets.all(AppSpacing.s2),
+      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.s2),
       itemCount: state.myPurchases.length,
       itemBuilder: (context, index) {
         final purchase = state.myPurchases[index];
@@ -400,6 +621,9 @@ class _PurchaseCard extends StatelessWidget {
     final isActive = purchase.paymentStatus == PaymentStatus.completed &&
         purchase.expiresAt != null &&
         purchase.expiresAt!.isAfter(DateTime.now());
+    final usageRatio = purchase.quantity > 0
+        ? purchase.remainingQuantity / purchase.quantity
+        : 0.0;
 
     return Card(
       margin: const EdgeInsets.only(bottom: AppSpacing.s2),
@@ -440,11 +664,46 @@ class _PurchaseCard extends StatelessWidget {
             ),
             const SizedBox(height: AppSpacing.s1),
             Text(
-              'PKR ${purchase.price.toStringAsFixed(0)} · ${purchase.duration} days · ${purchase.remainingQuantity}/${purchase.quantity} remaining',
+              'PKR ${purchase.price.toStringAsFixed(0)} · ${purchase.duration} days',
               style: Theme.of(context)
                   .textTheme
                   .bodySmall
                   ?.copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: AppSpacing.s1),
+            // Usage progress bar
+            Row(
+              children: [
+                Expanded(
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(4),
+                    child: LinearProgressIndicator(
+                      value: usageRatio,
+                      backgroundColor: AppColors.border,
+                      color: usageRatio > 0.3
+                          ? AppColors.success
+                          : AppColors.warning,
+                      minHeight: 6,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 8),
+                Text(
+                  '${purchase.remainingQuantity}/${purchase.quantity}',
+                  style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.textSecondary,
+                      ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 2),
+            Text(
+              '${purchase.remainingQuantity} of ${purchase.quantity} remaining',
+              style: Theme.of(context)
+                  .textTheme
+                  .labelSmall
+                  ?.copyWith(color: AppColors.textMuted),
             ),
             if (purchase.expiresAt != null) ...[
               const SizedBox(height: 4),

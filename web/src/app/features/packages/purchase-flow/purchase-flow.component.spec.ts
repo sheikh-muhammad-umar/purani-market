@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { PurchaseFlowComponent } from './purchase-flow.component';
 import { PackagesService } from '../../../core/services/packages.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { AdPackage } from '../../../core/models';
 
 function makePackage(overrides: Partial<AdPackage> = {}): AdPackage {
@@ -26,7 +27,11 @@ function createComponent(
   const route = {
     snapshot: { paramMap: { get: (key: string) => (key === 'id' ? packageId : null) } },
   } as any;
-  return new PurchaseFlowComponent(route, packagesService as unknown as PackagesService);
+  return new PurchaseFlowComponent(
+    route,
+    packagesService as unknown as PackagesService,
+    { track: vi.fn() } as unknown as ActivityTrackerService,
+  );
 }
 
 describe('PurchaseFlowComponent', () => {
@@ -166,9 +171,9 @@ describe('PurchaseFlowComponent', () => {
   });
 
   it('should return correct payment method icons', () => {
-    expect(component.getPaymentMethodIcon('jazzcash')).toBe('📱');
-    expect(component.getPaymentMethodIcon('easypaisa')).toBe('📲');
-    expect(component.getPaymentMethodIcon('card')).toBe('💳');
+    expect(component.getPaymentMethodIcon('jazzcash')).toBe('smartphone');
+    expect(component.getPaymentMethodIcon('easypaisa')).toBe('account_balance_wallet');
+    expect(component.getPaymentMethodIcon('card')).toBe('credit_card');
   });
 
   it('should return correct step numbers', () => {

@@ -1,0 +1,87 @@
+<div class="available-packages">
+  <h4 class="section-title">Apply a Package</h4>
+
+  <!-- Loading state -->
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="spinner"></span>
+      <span>Loading available packages…</span>
+    </div>
+  }
+
+  <!-- Error state -->
+  @if (error() && !loading()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!loading() && !error() && packages().length === 0 && categoryId) {
+    <div class="empty-state">
+      <p>No packages available for this category.</p>
+      <a [routerLink]="ROUTES.PACKAGES" class="purchase-link" (click)="onPurchaseLinkClick()">
+        Purchase packages
+      </a>
+    </div>
+  }
+
+  <!-- Package list -->
+  @if (!loading() && !error() && packageDisplayData().length > 0) {
+    <div class="packages-list">
+      <p class="helper-text">Select a package to apply to this listing (optional):</p>
+
+      <!-- Deselect option -->
+      @if (selectedPurchaseId()) {
+        <div
+          class="package-card deselect-option"
+          (click)="deselectPackage()"
+          (keydown.enter)="deselectPackage()"
+          tabindex="0"
+          role="button"
+          aria-label="Remove package selection"
+        >
+          <span class="deselect-label">✕ No package</span>
+        </div>
+      }
+
+      @for (item of packageDisplayData(); track item.pkg._id) {
+        <div
+          class="package-card"
+          [class.selected]="selectedPurchaseId() === item.pkg._id"
+          (click)="selectPackage(item.pkg)"
+          (keydown.enter)="selectPackage(item.pkg)"
+          tabindex="0"
+          role="button"
+          [attr.aria-label]="'Select package ' + item.name"
+          [attr.aria-pressed]="selectedPurchaseId() === item.pkg._id"
+        >
+          <div class="package-header">
+            <span class="package-name">{{ item.name }}</span>
+            <span class="package-type-badge" [class.featured]="item.isFeatured">
+              {{ item.typeLabel }}
+            </span>
+          </div>
+          <div class="package-details">
+            <span class="detail-item">
+              <span class="detail-label">Remaining:</span>
+              <span class="detail-value"
+                >{{ item.pkg.remainingQuantity }} / {{ item.pkg.quantity }}</span
+              >
+            </span>
+            <span class="detail-item">
+              <span class="detail-label">Expires:</span>
+              <span class="detail-value">{{ item.formattedDate }}</span>
+              @if (item.remainingDays <= EXPIRY_WARNING_DAYS) {
+                <span class="days-left">({{ item.remainingDays }}d left)</span>
+              }
+            </span>
+          </div>
+          @if (selectedPurchaseId() === item.pkg._id) {
+            <div class="selected-indicator">✓ Selected</div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>

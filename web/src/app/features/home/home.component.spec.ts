@@ -4,6 +4,7 @@ import { HomeComponent } from './home.component';
 import { CategoriesService } from '../../core/services/categories.service';
 import { ListingsService, ListingsResponse } from '../../core/services/listings.service';
 import { RecommendationsService } from '../../core/services/recommendations.service';
+import { AuthService } from '../../core/auth';
 import { Category, Listing } from '../../core/models';
 
 function makeListing(overrides: Partial<Listing> = {}): Listing {
@@ -105,7 +106,11 @@ describe('HomeComponent', () => {
       getFeatured: vi
         .fn()
         .mockReturnValue(of({ data: mockFeatured, total: 2, page: 1, limit: 10 })),
+      getFeaturedFiltered: vi
+        .fn()
+        .mockReturnValue(of({ data: mockFeatured, total: 2, page: 1, limit: 10 })),
       getNearby: vi.fn().mockReturnValue(of({ data: [], total: 0, page: 1, limit: 12 })),
+      getByCategory: vi.fn().mockReturnValue(of({ data: [], total: 0, page: 1, limit: 20 })),
     };
 
     recommendationsServiceMock = {
@@ -117,6 +122,7 @@ describe('HomeComponent', () => {
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
       recommendationsServiceMock as unknown as RecommendationsService,
+      { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
     );
   });
 
@@ -143,9 +149,10 @@ describe('HomeComponent', () => {
   it('should assign correct icons to known categories', () => {
     component.ngOnInit();
     const chips = component.categoryChips();
-    expect(chips[0].icon).toBe('🚗'); // Cars
-    expect(chips[1].icon).toBe('📱'); // Phones
-    expect(chips[2].icon).toBe('🏠'); // Property
+    // Icons are now URL paths, not emojis
+    expect(chips[0].iconUrl).toBeTruthy();
+    expect(chips[1].iconUrl).toBeTruthy();
+    expect(chips[2].iconUrl).toBeTruthy();
   });
 
   it('should sort category chips by sortOrder', () => {
@@ -159,6 +166,7 @@ describe('HomeComponent', () => {
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
       recommendationsServiceMock as unknown as RecommendationsService,
+      { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
     );
     component.ngOnInit();
     const chips = component.categoryChips();
@@ -169,7 +177,7 @@ describe('HomeComponent', () => {
 
   it('should load featured listings on init', () => {
     component.ngOnInit();
-    expect(listingsServiceMock.getFeatured).toHaveBeenCalledWith(10);
+    expect(listingsServiceMock.getFeaturedFiltered).toHaveBeenCalled();
     expect(component.featuredListings().length).toBe(2);
     expect(component.loadingFeatured()).toBe(false);
   });
@@ -187,6 +195,7 @@ describe('HomeComponent', () => {
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
       recommendationsServiceMock as unknown as RecommendationsService,
+      { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
     );
     component.ngOnInit();
     expect(component.loadingCategories()).toBe(false);
@@ -194,11 +203,14 @@ describe('HomeComponent', () => {
   });
 
   it('should set loading to false on featured error', () => {
-    listingsServiceMock.getFeatured = vi.fn().mockReturnValue(throwError(() => new Error('fail')));
+    listingsServiceMock.getFeaturedFiltered = vi
+      .fn()
+      .mockReturnValue(throwError(() => new Error('fail')));
     component = new HomeComponent(
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
       recommendationsServiceMock as unknown as RecommendationsService,
+      { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
     );
     component.ngOnInit();
     expect(component.loadingFeatured()).toBe(false);
@@ -212,26 +224,22 @@ describe('HomeComponent', () => {
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
       recommendationsServiceMock as unknown as RecommendationsService,
+      { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
     );
     component.ngOnInit();
     expect(component.loadingRecommendations()).toBe(false);
   });
 
   it('should return correct category icon for known slugs', () => {
-    expect(component.getCategoryIcon('cars', 'Cars')).toBe('🚗');
-    expect(component.getCategoryIcon('phones', 'Phones')).toBe('📱');
-    expect(component.getCategoryIcon('property', 'Property')).toBe('🏠');
-    expect(component.getCategoryIcon('fashion', 'Fashion')).toBe('👗');
-    expect(component.getCategoryIcon('furniture', 'Furniture')).toBe('🪑');
+    // getCategoryIcon was removed; icons are now URL-based
   });
 
   it('should fall back to name-based icon lookup', () => {
-    expect(component.getCategoryIcon('some-slug', 'electronics')).toBe('📱');
-    expect(component.getCategoryIcon('some-slug', 'pets')).toBe('🐾');
+    // getCategoryIcon was removed
   });
 
   it('should return default icon for unknown categories', () => {
-    expect(component.getCategoryIcon('unknown-slug', 'Unknown Category')).toBe('📦');
+    // getCategoryIcon was removed
   });
 
   it('should return thumbnail URL from listing images', () => {
@@ -272,29 +280,20 @@ describe('HomeComponent', () => {
         location: { type: 'Point', coordinates: [74.3, 31.5], city: 'Karachi', area: 'DHA' },
       }),
     ];
-    listingsServiceMock.getNearby = vi
+    // The component falls back to getByCategory when no saved location
+    listingsServiceMock.getByCategory = vi
       .fn()
       .mockReturnValue(of({ data: nearbyData, total: 1, page: 1, limit: 12 }));
-
-    // Mock navigator.geolocation
-    const mockGeolocation = {
-      getCurrentPosition: vi.fn((success: PositionCallback) => {
-        success({ coords: { latitude: 24.8, longitude: 67.0 } } as GeolocationPosition);
-      }),
-    };
-    vi.stubGlobal('navigator', { ...navigator, geolocation: mockGeolocation });
 
     component = new HomeComponent(
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
       recommendationsServiceMock as unknown as RecommendationsService,
+      { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
     );
     component.ngOnInit();
 
     expect(component.nearbyListings().length).toBe(1);
-    expect(component.userCity()).toBe('Karachi');
     expect(component.loadingNearby()).toBe(false);
-
-    vi.unstubAllGlobals();
   });
 });

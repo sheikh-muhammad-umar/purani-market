@@ -18,6 +18,8 @@ import { ROUTES } from '../../../core/constants/routes';
 import { ListingStatus } from '../../../core/constants/enums';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { buildMapEmbedUrl } from '../../../core/utils/map-link';
+import { extractPackageDetails } from '../../../core/utils/package-details';
+import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 
 @Component({
   selector: 'app-listing-detail',
@@ -60,6 +62,9 @@ export class ListingDetailComponent implements OnInit {
   private touchEndX = 0;
   private readonly swipeThreshold = 50;
 
+  // Owner actions
+  actionLoading = signal(false);
+
   constructor(
     private readonly route: ActivatedRoute,
     private readonly listingsService: ListingsService,
@@ -69,6 +74,7 @@ export class ListingDetailComponent implements OnInit {
     public readonly authService: AuthService,
     public readonly loginModal: LoginModalService,
     public readonly tracker: ActivityTrackerService,
+    private readonly confirmModal: ConfirmModalService,
   ) {}
 
   mapEmbedUrl = computed<SafeResourceUrl | null>(() => {
@@ -93,6 +99,14 @@ export class ListingDetailComponent implements OnInit {
 
   formattedRating = computed(() => {
     return this.averageRating().toFixed(1);
+  });
+
+  packageInfo = computed<{ name: string; type: string } | null>(() => {
+    const listing = this.listing();
+    if (!listing?.purchaseId || typeof listing.purchaseId === 'string') return null;
+    const pkg = listing.purchaseId.packageId;
+    if (!pkg) return null;
+    return { name: pkg.name, type: pkg.type };
   });
 
   ngOnInit(): void {
@@ -354,5 +368,87 @@ export class ListingDetailComponent implements OnInit {
     } else {
       this.prevImage();
     }
+  }
+
+  async deactivateListing(): Promise<void> {
+    const listing = this.listing();
+    if (!listing) return;
+
+    if (listing.purchaseId) {
+      const proceed = await this.showPackageWarningAndTrack(listing, 'deactivate');
+      if (!proceed) return;
+    }
+
+    this.actionLoading.set(true);
+    this.listingsService.updateStatus(listing._id, ListingStatus.INACTIVE).subscribe({
+      next: (updated) => {
+        this.actionLoading.set(false);
+        this.listing.set(updated);
+        this.tracker.track(TrackingEvent.LISTING_STATUS_CHANGE, {
+          productListingId: listing._id,
+          metadata: {
+            previousStatus: listing.status,
+            newStatus: ListingStatus.INACTIVE,
+            title: listing.title,
+          },
+        });
+      },
+      error: () => this.actionLoading.set(false),
+    });
+  }
+
+  async deleteListingFromDetail(): Promise<void> {
+    const listing = this.listing();
+    if (!listing) return;
+
+    if (listing.purchaseId) {
+      const proceed = await this.showPackageWarningAndTrack(listing, 'delete');
+      if (!proceed) return;
+    }
+
+    this.actionLoading.set(true);
+    this.listingsService.deleteListing(listing._id).subscribe({
+      next: () => {
+        this.actionLoading.set(false);
+        this.tracker.track(TrackingEvent.LISTING_DELETE, {
+          productListingId: listing._id,
+          metadata: { previousStatus: listing.status },
+        });
+        this.listing.set({ ...listing, status: 'deleted' as any });
+      },
+      error: () => this.actionLoading.set(false),
+    });
+  }
+
+  private async showPackageWarningAndTrack(
+    listing: Listing,
+    actionType: 'delete' | 'deactivate',
+  ): Promise<boolean> {
+    const { purchaseId, packageName, packageType } = extractPackageDetails(listing);
+
+    this.tracker.track(TrackingEvent.PACKAGE_CONFIRM_MODAL_SHOWN, {
+      productListingId: listing._id,
+      metadata: { listingId: listing._id, purchaseId, packageType, actionType },
+    });
+
+    const confirmed = await this.confirmModal.confirmPackageWarning({
+      packageName,
+      packageType,
+      actionType,
+    });
+
+    if (confirmed) {
+      this.tracker.track(TrackingEvent.PACKAGE_CONFIRM_MODAL_CONFIRMED, {
+        productListingId: listing._id,
+        metadata: { listingId: listing._id, purchaseId, packageType, actionType },
+      });
+    } else {
+      this.tracker.track(TrackingEvent.PACKAGE_CONFIRM_MODAL_CANCELLED, {
+        productListingId: listing._id,
+        metadata: { listingId: listing._id, purchaseId, packageType, actionType },
+      });
+    }
+
+    return confirmed;
   }
 }

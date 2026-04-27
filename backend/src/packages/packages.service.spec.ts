@@ -16,6 +16,7 @@ import {
 import { User } from '../users/schemas/user.schema';
 import { ProductListing } from '../listings/schemas/product-listing.schema';
 import { PaymentsService } from '../payments/payments.service';
+import { AdminTrackerService } from '../ai/admin-tracker.service';
 
 describe('PackagesService', () => {
   let service: PackagesService;
@@ -118,12 +119,21 @@ describe('PackagesService', () => {
     mockPackagePurchaseModel.find = jest.fn().mockReturnValue({
       sort: jest.fn().mockReturnValue({
         populate: jest.fn().mockReturnValue({
+          populate: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue([]),
+          }),
           exec: jest.fn().mockResolvedValue([]),
         }),
       }),
       exec: jest.fn().mockResolvedValue([]),
     });
     mockPackagePurchaseModel.findOne = jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue(null),
+    });
+    mockPackagePurchaseModel.findOneAndUpdate = jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue(null),
+    });
+    mockPackagePurchaseModel.findById = jest.fn().mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     });
     mockPackagePurchaseModel.updateMany = jest
@@ -163,6 +173,11 @@ describe('PackagesService', () => {
         }),
       }),
       updateMany: jest.fn().mockResolvedValue({ modifiedCount: 2 }),
+      find: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+      }),
     };
 
     mockPaymentsService = {
@@ -194,6 +209,10 @@ describe('PackagesService', () => {
           useValue: mockListingModel,
         },
         { provide: PaymentsService, useValue: mockPaymentsService },
+        {
+          provide: AdminTrackerService,
+          useValue: { track: jest.fn().mockResolvedValue(undefined) },
+        },
       ],
     }).compile();
 
@@ -269,6 +288,102 @@ describe('PackagesService', () => {
       ).rejects.toThrow(BadRequestException);
     });
 
+    it('should use category-specific price when categoryPricing entry matches', async () => {
+      const categoryId = new Types.ObjectId();
+      const packageWithCatPricing = {
+        ...mockPackage,
+        defaultPrice: 500,
+        categoryPricing: [
+          { categoryId, price: 750 },
+          { categoryId: new Types.ObjectId(), price: 900 },
+        ],
+      };
+      mockAdPackageModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(packageWithCatPricing),
+      });
+
+      const dto = {
+        items: [
+          {
+            packageId: packageId.toString(),
+            categoryId: categoryId.toString(),
+          },
+        ],
+        paymentMethod: PaymentMethod.JAZZCASH,
+      };
+
+      await service.purchasePackages(sellerId.toString(), dto);
+
+      expect(mockPaymentsService.initiatePayment).toHaveBeenCalledWith(
+        PaymentMethod.JAZZCASH,
+        expect.objectContaining({ amount: 750 }),
+      );
+    });
+
+    it('should use defaultPrice when no categoryPricing entry matches', async () => {
+      const unmatchedCategoryId = new Types.ObjectId();
+      const packageWithCatPricing = {
+        ...mockPackage,
+        defaultPrice: 500,
+        categoryPricing: [{ categoryId: new Types.ObjectId(), price: 750 }],
+      };
+      mockAdPackageModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(packageWithCatPricing),
+      });
+
+      const dto = {
+        items: [
+          {
+            packageId: packageId.toString(),
+            categoryId: unmatchedCategoryId.toString(),
+          },
+        ],
+        paymentMethod: PaymentMethod.JAZZCASH,
+      };
+
+      await service.purchasePackages(sellerId.toString(), dto);
+
+      expect(mockPaymentsService.initiatePayment).toHaveBeenCalledWith(
+        PaymentMethod.JAZZCASH,
+        expect.objectContaining({ amount: 500 }),
+      );
+    });
+
+    it('should use defaultPrice when no categoryId is provided', async () => {
+      const dto = {
+        items: [{ packageId: packageId.toString() }],
+        paymentMethod: PaymentMethod.JAZZCASH,
+      };
+
+      await service.purchasePackages(sellerId.toString(), dto);
+
+      expect(mockPaymentsService.initiatePayment).toHaveBeenCalledWith(
+        PaymentMethod.JAZZCASH,
+        expect.objectContaining({ amount: 500 }),
+      );
+    });
+
+    it('should store categoryId on the purchase record when provided', async () => {
+      const categoryId = new Types.ObjectId();
+      const dto = {
+        items: [
+          {
+            packageId: packageId.toString(),
+            categoryId: categoryId.toString(),
+          },
+        ],
+        paymentMethod: PaymentMethod.JAZZCASH,
+      };
+
+      await service.purchasePackages(sellerId.toString(), dto);
+
+      expect(mockPackagePurchaseModel).toHaveBeenCalledWith(
+        expect.objectContaining({
+          categoryId: expect.any(Types.ObjectId),
+        }),
+      );
+    });
+
     it('should support purchasing multiple packages simultaneously', async () => {
       const pkg2Id = new Types.ObjectId();
       let callCount = 0;
@@ -305,6 +420,15 @@ describe('PackagesService', () => {
       await service.getMyPurchases(sellerId.toString());
       expect(mockPackagePurchaseModel.find).toHaveBeenCalledWith({
         sellerId: expect.any(Types.ObjectId),
+      });
+    });
+
+    it('should filter by categoryId when provided', async () => {
+      const categoryId = new Types.ObjectId().toString();
+      await service.getMyPurchases(sellerId.toString(), categoryId);
+      expect(mockPackagePurchaseModel.find).toHaveBeenCalledWith({
+        sellerId: expect.any(Types.ObjectId),
+        categoryId: expect.any(Types.ObjectId),
       });
     });
   });
@@ -541,6 +665,201 @@ describe('PackagesService', () => {
           ]),
         }),
       );
+    });
+  });
+
+  describe('applyPackageToListing', () => {
+    const categoryId = new Types.ObjectId();
+    const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+
+    it('should atomically decrement and return purchase + packageDoc on success', async () => {
+      const updatedPurchase = {
+        _id: purchaseId,
+        sellerId,
+        categoryId,
+        packageId: {
+          _id: packageId,
+          name: '5 Featured Ads',
+          type: AdPackageType.FEATURED_ADS,
+        },
+        remainingQuantity: 4,
+        paymentStatus: PaymentStatus.COMPLETED,
+        expiresAt: futureDate,
+        populate: jest.fn().mockResolvedValue({
+          _id: purchaseId,
+          sellerId,
+          categoryId,
+          packageId: {
+            _id: packageId,
+            name: '5 Featured Ads',
+            type: AdPackageType.FEATURED_ADS,
+          },
+          remainingQuantity: 4,
+        }),
+      };
+      mockPackagePurchaseModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(updatedPurchase),
+      });
+
+      const result = await service.applyPackageToListing(
+        purchaseId.toString(),
+        sellerId.toString(),
+        categoryId.toString(),
+      );
+
+      expect(result.purchase).toBeDefined();
+      expect(mockPackagePurchaseModel.findOneAndUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          _id: expect.any(Types.ObjectId),
+          sellerId: expect.any(Types.ObjectId),
+          categoryId: expect.any(Types.ObjectId),
+          paymentStatus: PaymentStatus.COMPLETED,
+          remainingQuantity: { $gt: 0 },
+          expiresAt: { $gt: expect.any(Date) },
+        }),
+        { $inc: { remainingQuantity: -1 } },
+        { new: true },
+      );
+    });
+
+    it('should throw NotFoundException when purchase does not exist', async () => {
+      mockPackagePurchaseModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+      mockPackagePurchaseModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+
+      await expect(
+        service.applyPackageToListing(
+          new Types.ObjectId().toString(),
+          sellerId.toString(),
+          categoryId.toString(),
+        ),
+      ).rejects.toThrow(NotFoundException);
+    });
+
+    it('should throw ForbiddenException when seller does not own the purchase', async () => {
+      const otherSellerId = new Types.ObjectId();
+      mockPackagePurchaseModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+      mockPackagePurchaseModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: purchaseId,
+          sellerId: otherSellerId,
+          categoryId,
+          paymentStatus: PaymentStatus.COMPLETED,
+          remainingQuantity: 3,
+          expiresAt: futureDate,
+        }),
+      });
+
+      await expect(
+        service.applyPackageToListing(
+          purchaseId.toString(),
+          sellerId.toString(),
+          categoryId.toString(),
+        ),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('should throw BadRequestException for category mismatch', async () => {
+      const otherCategoryId = new Types.ObjectId();
+      mockPackagePurchaseModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+      mockPackagePurchaseModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: purchaseId,
+          sellerId,
+          categoryId: otherCategoryId,
+          paymentStatus: PaymentStatus.COMPLETED,
+          remainingQuantity: 3,
+          expiresAt: futureDate,
+        }),
+      });
+
+      await expect(
+        service.applyPackageToListing(
+          purchaseId.toString(),
+          sellerId.toString(),
+          categoryId.toString(),
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException when package is fully used', async () => {
+      mockPackagePurchaseModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+      mockPackagePurchaseModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: purchaseId,
+          sellerId,
+          categoryId,
+          paymentStatus: PaymentStatus.COMPLETED,
+          remainingQuantity: 0,
+          expiresAt: futureDate,
+        }),
+      });
+
+      await expect(
+        service.applyPackageToListing(
+          purchaseId.toString(),
+          sellerId.toString(),
+          categoryId.toString(),
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException when package has expired', async () => {
+      const pastDate = new Date(Date.now() - 1000);
+      mockPackagePurchaseModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+      mockPackagePurchaseModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: purchaseId,
+          sellerId,
+          categoryId,
+          paymentStatus: PaymentStatus.COMPLETED,
+          remainingQuantity: 3,
+          expiresAt: pastDate,
+        }),
+      });
+
+      await expect(
+        service.applyPackageToListing(
+          purchaseId.toString(),
+          sellerId.toString(),
+          categoryId.toString(),
+        ),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException when payment is not completed', async () => {
+      mockPackagePurchaseModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+      mockPackagePurchaseModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: purchaseId,
+          sellerId,
+          categoryId,
+          paymentStatus: PaymentStatus.PENDING,
+          remainingQuantity: 3,
+          expiresAt: futureDate,
+        }),
+      });
+
+      await expect(
+        service.applyPackageToListing(
+          purchaseId.toString(),
+          sellerId.toString(),
+          categoryId.toString(),
+        ),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 

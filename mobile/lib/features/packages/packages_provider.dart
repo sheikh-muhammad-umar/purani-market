@@ -7,12 +7,16 @@ import '../../models/ad_package.dart';
 class PackagesState {
   final List<AdPackage> packages;
   final List<PackagePurchase> myPurchases;
+  final List<PackagePurchase> availablePackages;
+  final String? categoryFilter;
   final bool isLoading;
   final String? error;
 
   const PackagesState({
     this.packages = const [],
     this.myPurchases = const [],
+    this.availablePackages = const [],
+    this.categoryFilter,
     this.isLoading = false,
     this.error,
   });
@@ -20,12 +24,18 @@ class PackagesState {
   PackagesState copyWith({
     List<AdPackage>? packages,
     List<PackagePurchase>? myPurchases,
+    List<PackagePurchase>? availablePackages,
+    String? categoryFilter,
+    bool clearCategoryFilter = false,
     bool? isLoading,
     String? error,
   }) {
     return PackagesState(
       packages: packages ?? this.packages,
       myPurchases: myPurchases ?? this.myPurchases,
+      availablePackages: availablePackages ?? this.availablePackages,
+      categoryFilter:
+          clearCategoryFilter ? null : (categoryFilter ?? this.categoryFilter),
       isLoading: isLoading ?? this.isLoading,
       error: error,
     );
@@ -52,16 +62,47 @@ class PackagesNotifier extends StateNotifier<PackagesState> {
     }
   }
 
-  Future<void> loadMyPurchases() async {
+  Future<void> loadMyPurchases({String? categoryId}) async {
     state = state.copyWith(isLoading: true, error: null);
     try {
-      final response = await _api.get('/packages/my-purchases');
+      final queryParams = <String, dynamic>{};
+      if (categoryId != null) {
+        queryParams['categoryId'] = categoryId;
+      }
+      final response = await _api.get(
+        '/packages/my-purchases',
+        queryParameters: queryParams.isNotEmpty ? queryParams : null,
+      );
       final list = (response.data as List)
           .map((e) => PackagePurchase.fromJson(e as Map<String, dynamic>))
           .toList();
       state = state.copyWith(myPurchases: list, isLoading: false);
     } catch (e) {
       state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  Future<void> loadAvailablePackages(String categoryId) async {
+    state = state.copyWith(isLoading: true, error: null);
+    try {
+      final response = await _api.get(
+        '/packages/available',
+        queryParameters: {'categoryId': categoryId},
+      );
+      final list = (response.data as List)
+          .map((e) => PackagePurchase.fromJson(e as Map<String, dynamic>))
+          .toList();
+      state = state.copyWith(availablePackages: list, isLoading: false);
+    } catch (e) {
+      state = state.copyWith(isLoading: false, error: e.toString());
+    }
+  }
+
+  void setCategoryFilter(String? categoryId) {
+    if (categoryId == null) {
+      state = state.copyWith(clearCategoryFilter: true);
+    } else {
+      state = state.copyWith(categoryFilter: categoryId);
     }
   }
 }

@@ -77,6 +77,7 @@ export const API = {
   PACKAGES: '/packages',
   PACKAGE_BY_ID: (id: string) => `/packages/${id}`,
   PACKAGES_PURCHASE: '/packages/purchase',
+  PACKAGES_AVAILABLE: '/packages/available',
   PACKAGES_MY_PURCHASES: '/packages/my-purchases',
 
   // Messaging

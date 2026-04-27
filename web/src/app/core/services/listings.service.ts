@@ -43,6 +43,7 @@ export interface CreateListingPayload {
   };
   contactInfo?: { phone: string; email: string };
   isFeatured?: boolean;
+  purchaseId?: string;
 }
 
 export interface MediaUploadResponse {

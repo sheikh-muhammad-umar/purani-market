@@ -8,6 +8,10 @@ import {
   SearchSuggestion,
 } from '../../../core/services/search.service';
 import { CategoriesService } from '../../../core/services/categories.service';
+import { LocationService } from '../../../core/services/location.service';
+import { RecentSearchesService } from '../../../core/services/recent-searches.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { BrandsService } from '../../../core/services/brands.service';
 import { Category, Listing, CategoryAttribute } from '../../../core/models';
 
 function makeListing(overrides: Partial<Listing> = {}): Listing {
@@ -66,10 +70,15 @@ describe('SearchResultsComponent', () => {
   let categoriesServiceMock: {
     getAll: ReturnType<typeof vi.fn>;
     getById: ReturnType<typeof vi.fn>;
+    getInheritedAttributes: ReturnType<typeof vi.fn>;
   };
   let routerMock: { navigate: ReturnType<typeof vi.fn> };
   let queryParamSubject: BehaviorSubject<ParamMap>;
   let routeMock: { queryParamMap: BehaviorSubject<ParamMap> };
+  let locationServiceMock: { getCities: ReturnType<typeof vi.fn> };
+  let recentSearchesMock: { add: ReturnType<typeof vi.fn>; getAll: ReturnType<typeof vi.fn> };
+  let trackerMock: { track: ReturnType<typeof vi.fn> };
+  let brandsServiceMock: { getByCategory: ReturnType<typeof vi.fn> };
 
   const mockCategories: Category[] = [
     makeCategory({ _id: 'c1', name: 'Cars', slug: 'cars' }),
@@ -122,9 +131,14 @@ describe('SearchResultsComponent', () => {
           }),
         ),
       ),
+      getInheritedAttributes: vi.fn().mockReturnValue(of([])),
     };
 
     routerMock = { navigate: vi.fn() };
+    locationServiceMock = { getCities: vi.fn().mockReturnValue(of([])) };
+    recentSearchesMock = { add: vi.fn(), getAll: vi.fn().mockReturnValue([]) };
+    trackerMock = { track: vi.fn() };
+    brandsServiceMock = { getByCategory: vi.fn().mockReturnValue(of([])) };
 
     queryParamSubject = new BehaviorSubject<ParamMap>(convertToParamMap({ q: 'car' }));
     routeMock = { queryParamMap: queryParamSubject };
@@ -134,6 +148,10 @@ describe('SearchResultsComponent', () => {
       routerMock as any,
       searchServiceMock as unknown as SearchService,
       categoriesServiceMock as unknown as CategoriesService,
+      locationServiceMock as unknown as LocationService,
+      recentSearchesMock as unknown as RecentSearchesService,
+      trackerMock as unknown as ActivityTrackerService,
+      brandsServiceMock as unknown as BrandsService,
     );
   });
 
@@ -231,8 +249,8 @@ describe('SearchResultsComponent', () => {
     expect(filters.length).toBe(5);
     expect(filters.find((f) => f.key === 'category')?.displayValue).toBe('Cars');
     expect(filters.find((f) => f.key === 'condition')?.displayValue).toBe('Used');
-    expect(filters.find((f) => f.key === 'minPrice')?.displayValue).toBe('Min: PKR 1000');
-    expect(filters.find((f) => f.key === 'maxPrice')?.displayValue).toBe('Max: PKR 50000');
+    expect(filters.find((f) => f.key === 'minPrice')?.displayValue).toBe('Min: Rs 1000');
+    expect(filters.find((f) => f.key === 'maxPrice')?.displayValue).toBe('Max: Rs 50000');
     expect(filters.find((f) => f.key === 'make')?.displayValue).toBe('Make: Toyota');
   });
 
@@ -270,14 +288,14 @@ describe('SearchResultsComponent', () => {
       key: 'minPrice',
       label: 'Min Price',
       value: '500',
-      displayValue: 'Min: PKR 500',
+      displayValue: 'Min: Rs 500',
     });
     expect(component.minPrice()).toBeNull();
     component.removeFilter({
       key: 'maxPrice',
       label: 'Max Price',
       value: '10000',
-      displayValue: 'Max: PKR 10000',
+      displayValue: 'Max: Rs 10000',
     });
     expect(component.maxPrice()).toBeNull();
   });
@@ -382,6 +400,10 @@ describe('SearchResultsComponent', () => {
       routerMock as any,
       searchServiceMock as unknown as SearchService,
       categoriesServiceMock as unknown as CategoriesService,
+      locationServiceMock as unknown as LocationService,
+      recentSearchesMock as unknown as RecentSearchesService,
+      trackerMock as unknown as ActivityTrackerService,
+      brandsServiceMock as unknown as BrandsService,
     );
     component.ngOnInit();
     expect(component.selectedCategoryId()).toBe('c1');
@@ -398,6 +420,10 @@ describe('SearchResultsComponent', () => {
       routerMock as any,
       searchServiceMock as unknown as SearchService,
       categoriesServiceMock as unknown as CategoriesService,
+      locationServiceMock as unknown as LocationService,
+      recentSearchesMock as unknown as RecentSearchesService,
+      trackerMock as unknown as ActivityTrackerService,
+      brandsServiceMock as unknown as BrandsService,
     );
     component.ngOnInit();
     expect(component.sortBy()).toBe('price_desc');
@@ -422,6 +448,10 @@ describe('SearchResultsComponent', () => {
       routerMock as any,
       searchServiceMock as unknown as SearchService,
       categoriesServiceMock as unknown as CategoriesService,
+      locationServiceMock as unknown as LocationService,
+      recentSearchesMock as unknown as RecentSearchesService,
+      trackerMock as unknown as ActivityTrackerService,
+      brandsServiceMock as unknown as BrandsService,
     );
     component.ngOnInit();
 
@@ -438,6 +468,10 @@ describe('SearchResultsComponent', () => {
       routerMock as any,
       searchServiceMock as unknown as SearchService,
       categoriesServiceMock as unknown as CategoriesService,
+      locationServiceMock as unknown as LocationService,
+      recentSearchesMock as unknown as RecentSearchesService,
+      trackerMock as unknown as ActivityTrackerService,
+      brandsServiceMock as unknown as BrandsService,
     );
     component.ngOnInit();
     expect(component.categories()).toEqual([]);
@@ -450,6 +484,10 @@ describe('SearchResultsComponent', () => {
       routerMock as any,
       searchServiceMock as unknown as SearchService,
       categoriesServiceMock as unknown as CategoriesService,
+      locationServiceMock as unknown as LocationService,
+      recentSearchesMock as unknown as RecentSearchesService,
+      trackerMock as unknown as ActivityTrackerService,
+      brandsServiceMock as unknown as BrandsService,
     );
     component.ngOnInit();
     component.onCategoryChange('c1');

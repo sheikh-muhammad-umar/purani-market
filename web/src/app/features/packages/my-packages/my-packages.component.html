@@ -8,6 +8,21 @@
       <a [routerLink]="ROUTES.PACKAGES" class="btn btn-primary">Browse Packages</a>
     </div>
 
+    <div class="filter-bar">
+      <label for="categoryFilter" class="filter-label">Filter by Category</label>
+      <select
+        id="categoryFilter"
+        class="filter-select"
+        [ngModel]="selectedCategoryId()"
+        (ngModelChange)="onCategoryFilterChange($event)"
+      >
+        <option value="">All Categories</option>
+        @for (cat of categories(); track cat._id) {
+          <option [value]="cat._id">{{ cat.name }}</option>
+        }
+      </select>
+    </div>
+
     <div class="tab-bar">
       <button class="tab-btn" [class.active]="activeTab() === 'active'" (click)="setTab('active')">
         Active ({{ activePurchases().length }})
@@ -109,7 +124,9 @@
                       {{ purchase.paymentStatus }}
                     </span>
                     <span class="history-type">{{ getTypeLabel(purchase.type) }}</span>
-                    <span class="history-qty">× {{ purchase.quantity }}</span>
+                    <span class="history-qty"
+                      >{{ purchase.remainingQuantity }} / {{ purchase.quantity }}</span
+                    >
                   </div>
                   <div class="history-meta">
                     <span>{{ getPaymentMethodLabel(purchase.paymentMethod) }}</span>

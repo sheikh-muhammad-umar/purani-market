@@ -10,6 +10,7 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/theme/app_typography.dart';
 import '../../models/category.dart';
 import '../categories/categories_provider.dart';
+import 'available_packages_widget.dart';
 import 'create_listing_provider.dart';
 
 /// 5-step listing creation wizard.
@@ -328,6 +329,22 @@ class _DetailsStepState extends ConsumerState<_DetailsStep> {
             ),
             const SizedBox(height: AppSpacing.s1),
             ...attributes.map((attr) => _buildAttributeField(attr)),
+          ],
+
+          // Available packages for the selected category
+          if (state.draft.categoryId != null) ...[
+            const SizedBox(height: AppSpacing.s3),
+            AvailablePackagesWidget(
+              categoryId: state.draft.categoryId!,
+              onPackageSelected: (purchaseId) {
+                notifier.updateDraft(
+                  state.draft.copyWith(
+                    purchaseId: purchaseId,
+                    clearPurchaseId: purchaseId == null,
+                  ),
+                );
+              },
+            ),
           ],
 
           const SizedBox(height: AppSpacing.s3),
@@ -881,6 +898,10 @@ class _ReviewStep extends ConsumerWidget {
         ),
         _ReviewRow(label: 'City', value: draft.city),
         _ReviewRow(label: 'Area', value: draft.area),
+        _ReviewRow(
+          label: 'Package',
+          value: draft.purchaseId != null ? 'Applied' : 'None',
+        ),
 
         if (draft.attributeValues.isNotEmpty) ...[
           const SizedBox(height: AppSpacing.s2),

@@ -2,7 +2,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { PackageListComponent } from './package-list.component';
 import { PackagesService } from '../../../core/services/packages.service';
-import { AdPackage } from '../../../core/models';
+import { CategoriesService } from '../../../core/services/categories.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { AdPackage, Category } from '../../../core/models';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
 
 function makePackage(overrides: Partial<AdPackage> = {}): AdPackage {
   return {
@@ -19,9 +22,32 @@ function makePackage(overrides: Partial<AdPackage> = {}): AdPackage {
   };
 }
 
+function makeCategory(overrides: Partial<Category> = {}): Category {
+  return {
+    _id: overrides._id ?? 'cat1',
+    name: overrides.name ?? 'Electronics',
+    slug: overrides.slug ?? 'electronics',
+    level: overrides.level ?? 1,
+    attributes: overrides.attributes ?? [],
+    features: overrides.features ?? [],
+    isActive: overrides.isActive ?? true,
+    hasBrands: overrides.hasBrands ?? false,
+    sortOrder: overrides.sortOrder ?? 0,
+    createdAt: overrides.createdAt ?? new Date('2024-01-01'),
+    updatedAt: overrides.updatedAt ?? new Date('2024-01-01'),
+  };
+}
+
 describe('PackageListComponent', () => {
   let component: PackageListComponent;
   let packagesService: { getAll: ReturnType<typeof vi.fn> };
+  let categoriesService: { getAll: ReturnType<typeof vi.fn> };
+  let tracker: { track: ReturnType<typeof vi.fn> };
+
+  const mockCategories: Category[] = [
+    makeCategory({ _id: 'cat1', name: 'Electronics' }),
+    makeCategory({ _id: 'cat2', name: 'Vehicles', slug: 'vehicles' }),
+  ];
 
   const mockPackages: AdPackage[] = [
     makePackage({
@@ -47,7 +73,10 @@ describe('PackageListComponent', () => {
       duration: 30,
       quantity: 10,
       defaultPrice: 3400,
-      categoryPricing: [{ categoryId: 'cat1', price: 3800 }],
+      categoryPricing: [
+        { categoryId: 'cat1', price: 3800 },
+        { categoryId: 'cat2', price: 2900 },
+      ],
     }),
   ];
 
@@ -55,7 +84,17 @@ describe('PackageListComponent', () => {
     packagesService = {
       getAll: vi.fn().mockReturnValue(of({ data: mockPackages, total: 3 })),
     };
-    component = new PackageListComponent(packagesService as unknown as PackagesService);
+    categoriesService = {
+      getAll: vi.fn().mockReturnValue(of(mockCategories)),
+    };
+    tracker = {
+      track: vi.fn(),
+    };
+    component = new PackageListComponent(
+      packagesService as unknown as PackagesService,
+      categoriesService as unknown as CategoriesService,
+      tracker as unknown as ActivityTrackerService,
+    );
   });
 
   it('should create', () => {
@@ -70,11 +109,23 @@ describe('PackageListComponent', () => {
     expect(component.error()).toBeNull();
   });
 
+  it('should load categories on init', () => {
+    component.ngOnInit();
+    expect(categoriesService.getAll).toHaveBeenCalled();
+    expect(component.categories().length).toBe(2);
+  });
+
   it('should handle load error', () => {
     packagesService.getAll.mockReturnValue(throwError(() => new Error('fail')));
     component.ngOnInit();
     expect(component.loading()).toBe(false);
     expect(component.error()).toBe('Failed to load packages. Please try again.');
+  });
+
+  it('should handle categories load error silently', () => {
+    categoriesService.getAll.mockReturnValue(throwError(() => new Error('fail')));
+    component.ngOnInit();
+    expect(component.categories().length).toBe(0);
   });
 
   it('should filter by type', () => {
@@ -131,8 +182,8 @@ describe('PackageListComponent', () => {
   });
 
   it('should return correct type icons', () => {
-    expect(component.getTypeIcon('featured_ads')).toBe('⭐');
-    expect(component.getTypeIcon('ad_slots')).toBe('📦');
+    expect(component.getTypeIcon('featured_ads')).toBe('star');
+    expect(component.getTypeIcon('ad_slots')).toBe('inventory_2');
   });
 
   it('should return correct duration label', () => {
@@ -156,5 +207,100 @@ describe('PackageListComponent', () => {
     component.loadPackages();
     expect(component.error()).toBeNull();
     expect(component.packages().length).toBe(3);
+  });
+
+  // Category-specific pricing tests
+  describe('category-specific pricing', () => {
+    beforeEach(() => {
+      component.ngOnInit();
+    });
+
+    it('should return defaultPrice when no category is selected', () => {
+      const pkg = mockPackages[2]; // has categoryPricing
+      expect(component.resolvePrice(pkg)).toBe(3400);
+    });
+
+    it('should return category-specific price when matching category is selected', () => {
+      component.onCategoryChange('cat1');
+      const pkg = mockPackages[2];
+      expect(component.resolvePrice(pkg)).toBe(3800);
+    });
+
+    it('should return different category-specific price for different category', () => {
+      component.onCategoryChange('cat2');
+      const pkg = mockPackages[2];
+      expect(component.resolvePrice(pkg)).toBe(2900);
+    });
+
+    it('should fall back to defaultPrice when selected category has no specific pricing', () => {
+      component.onCategoryChange('cat-unknown');
+      const pkg = mockPackages[2];
+      expect(component.resolvePrice(pkg)).toBe(3400);
+    });
+
+    it('should return defaultPrice for packages without categoryPricing', () => {
+      component.onCategoryChange('cat1');
+      const pkg = mockPackages[0]; // no categoryPricing
+      expect(component.resolvePrice(pkg)).toBe(500);
+    });
+
+    it('should indicate category price when matching entry exists', () => {
+      component.onCategoryChange('cat1');
+      expect(component.isCategoryPrice(mockPackages[2])).toBe(true);
+    });
+
+    it('should not indicate category price when no matching entry', () => {
+      component.onCategoryChange('cat-unknown');
+      expect(component.isCategoryPrice(mockPackages[2])).toBe(false);
+    });
+
+    it('should not indicate category price when no category selected', () => {
+      expect(component.isCategoryPrice(mockPackages[2])).toBe(false);
+    });
+
+    it('should reset to defaultPrice when category is cleared', () => {
+      component.onCategoryChange('cat1');
+      expect(component.resolvePrice(mockPackages[2])).toBe(3800);
+      component.onCategoryChange('');
+      expect(component.resolvePrice(mockPackages[2])).toBe(3400);
+    });
+  });
+
+  // PACKAGE_PURCHASE_INITIATED event tracking tests
+  describe('purchase initiated tracking', () => {
+    beforeEach(() => {
+      component.ngOnInit();
+    });
+
+    it('should fire PACKAGE_PURCHASE_INITIATED when category is selected', () => {
+      component.onCategoryChange('cat1');
+      component.onPurchaseClick(mockPackages[2]);
+      expect(tracker.track).toHaveBeenCalledWith(TrackingEvent.PACKAGE_PURCHASE_INITIATED, {
+        metadata: {
+          packageId: 'p3',
+          categoryId: 'cat1',
+          packageType: 'featured_ads',
+          price: 3800,
+        },
+      });
+    });
+
+    it('should not fire PACKAGE_PURCHASE_INITIATED when no category is selected', () => {
+      component.onPurchaseClick(mockPackages[0]);
+      expect(tracker.track).not.toHaveBeenCalled();
+    });
+
+    it('should include defaultPrice when category has no specific pricing', () => {
+      component.onCategoryChange('cat1');
+      component.onPurchaseClick(mockPackages[0]); // no categoryPricing
+      expect(tracker.track).toHaveBeenCalledWith(TrackingEvent.PACKAGE_PURCHASE_INITIATED, {
+        metadata: {
+          packageId: 'p1',
+          categoryId: 'cat1',
+          packageType: 'featured_ads',
+          price: 500,
+        },
+      });
+    });
   });
 });

@@ -4,6 +4,7 @@ import { convertToParamMap, ParamMap } from '@angular/router';
 import { CategoryListingsComponent } from './category-listings.component';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { ListingsService, ListingsResponse } from '../../../core/services/listings.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { Category, Listing } from '../../../core/models';
 
 function makeCategory(overrides: Partial<Category> = {}): Category {
@@ -119,6 +120,7 @@ describe('CategoryListingsComponent', () => {
     listingsServiceMock = {
       getByCategory: vi.fn().mockReturnValue(of(mockListingsResponse)),
       getFeatured: vi.fn(),
+      getFeaturedFiltered: vi.fn().mockReturnValue(of({ data: [], total: 0, page: 1, limit: 10 })),
       getNearby: vi.fn(),
     };
 
@@ -130,6 +132,7 @@ describe('CategoryListingsComponent', () => {
       routerMock as any,
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
+      { track: vi.fn() } as unknown as ActivityTrackerService,
     );
   });
 
@@ -147,7 +150,13 @@ describe('CategoryListingsComponent', () => {
     expect(categoriesServiceMock.getAll).toHaveBeenCalled();
     expect(component.currentCategory()?.name).toBe('Vehicles');
     expect(component.loadingCategory()).toBe(false);
-    expect(listingsServiceMock.getByCategory).toHaveBeenCalledWith('c1', 1, 20);
+    expect(listingsServiceMock.getByCategory).toHaveBeenCalledWith(
+      'c1',
+      1,
+      20,
+      undefined,
+      undefined,
+    );
     expect(component.listings().length).toBe(2);
     expect(component.loadingListings()).toBe(false);
   });
@@ -220,6 +229,7 @@ describe('CategoryListingsComponent', () => {
       routerMock as any,
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
+      { track: vi.fn() } as unknown as ActivityTrackerService,
     );
     component.ngOnInit();
     expect(component.loadingCategory()).toBe(false);
@@ -235,6 +245,7 @@ describe('CategoryListingsComponent', () => {
       routerMock as any,
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
+      { track: vi.fn() } as unknown as ActivityTrackerService,
     );
     component.ngOnInit();
     expect(component.listings().length).toBe(0);
@@ -265,6 +276,7 @@ describe('CategoryListingsComponent', () => {
       routerMock as any,
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
+      { track: vi.fn() } as unknown as ActivityTrackerService,
     );
     component.ngOnInit();
     expect(component.totalPages).toBe(3); // ceil(45/20)
@@ -275,7 +287,13 @@ describe('CategoryListingsComponent', () => {
     listingsServiceMock.getByCategory.mockClear();
     component.loadPage(2);
     expect(component.currentPage()).toBe(2);
-    expect(listingsServiceMock.getByCategory).toHaveBeenCalledWith('c1', 2, 20);
+    expect(listingsServiceMock.getByCategory).toHaveBeenCalledWith(
+      'c1',
+      2,
+      20,
+      undefined,
+      undefined,
+    );
   });
 
   it('should react to route param changes', () => {

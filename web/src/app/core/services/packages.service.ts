@@ -41,7 +41,15 @@ export class PackagesService {
     return this.api.post<PurchaseResponse>(API.PACKAGES_PURCHASE, payload);
   }
 
-  getMyPurchases(): Observable<MyPurchasesResponse> {
-    return this.api.get<MyPurchasesResponse>(API.PACKAGES_MY_PURCHASES);
+  getAvailablePackages(categoryId: string): Observable<PackagePurchase[]> {
+    return this.api.get<PackagePurchase[]>(API.PACKAGES_AVAILABLE, { categoryId });
+  }
+
+  getMyPurchases(categoryId?: string): Observable<MyPurchasesResponse> {
+    const params: Record<string, string> = {};
+    if (categoryId) {
+      params['categoryId'] = categoryId;
+    }
+    return this.api.get<MyPurchasesResponse>(API.PACKAGES_MY_PURCHASES, params);
   }
 }

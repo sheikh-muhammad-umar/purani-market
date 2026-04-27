@@ -124,6 +124,10 @@ class Listing {
   final DateTime createdAt;
   final DateTime updatedAt;
 
+  /// Populated package purchase info (when listing has an applied package).
+  /// This is an object when populated by the backend, or a plain string ID.
+  final dynamic purchaseId;
+
   const Listing({
     required this.id,
     required this.sellerId,
@@ -147,7 +151,37 @@ class Listing {
     this.deletedAt,
     required this.createdAt,
     required this.updatedAt,
+    this.purchaseId,
   });
+
+  /// Whether this listing has a package applied.
+  bool get hasPackage => purchaseId != null;
+
+  /// Extracts the purchase ID string from the purchaseId field.
+  String? get purchaseIdString {
+    if (purchaseId == null) return null;
+    if (purchaseId is String) return purchaseId as String;
+    if (purchaseId is Map) return (purchaseId as Map)['_id']?.toString();
+    return purchaseId.toString();
+  }
+
+  /// Extracts the package name from the populated purchaseId.
+  String? get packageName {
+    if (purchaseId is Map) {
+      final pkg = (purchaseId as Map)['packageId'];
+      if (pkg is Map) return pkg['name'] as String?;
+    }
+    return null;
+  }
+
+  /// Extracts the package type from the populated purchaseId.
+  String? get packageType {
+    if (purchaseId is Map) {
+      final pkg = (purchaseId as Map)['packageId'];
+      if (pkg is Map) return pkg['type'] as String?;
+    }
+    return null;
+  }
 
   factory Listing.fromJson(Map<String, dynamic> json) =>
       _$ListingFromJson(json);

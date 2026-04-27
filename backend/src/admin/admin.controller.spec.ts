@@ -5,6 +5,7 @@ import { UserRole, UserStatus } from '../users/schemas/user.schema.js';
 import { ListingStatus } from '../listings/schemas/product-listing.schema.js';
 import { Types } from 'mongoose';
 import { Reflector } from '@nestjs/core';
+import { AdminTrackerService } from '../ai/admin-tracker.service';
 
 describe('AdminController', () => {
   let controller: AdminController;
@@ -16,6 +17,9 @@ describe('AdminController', () => {
     adminService = {
       listUsers: jest.fn(),
       getUserActivitySummary: jest.fn(),
+      getUserActivePackages: jest
+        .fn()
+        .mockResolvedValue({ count: 0, packages: [] }),
       updateUserStatus: jest.fn(),
       updateUserRole: jest.fn(),
       updateAdLimit: jest.fn(),
@@ -27,11 +31,27 @@ describe('AdminController', () => {
       listPackagePurchases: jest.fn(),
       listPayments: jest.fn(),
       getSellerAdInfo: jest.fn(),
+      findUserById: jest.fn().mockResolvedValue({
+        _id: new Types.ObjectId(mockUserId),
+        status: UserStatus.ACTIVE,
+        role: UserRole.USER,
+        adLimit: 10,
+        permissions: [],
+      }),
+      findListingById: jest.fn().mockResolvedValue({
+        _id: new Types.ObjectId(),
+        status: 'pending_review',
+        title: 'Test Listing',
+      }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [AdminController],
-      providers: [{ provide: AdminService, useValue: adminService }, Reflector],
+      providers: [
+        { provide: AdminService, useValue: adminService },
+        Reflector,
+        { provide: AdminTrackerService, useValue: { track: jest.fn() } },
+      ],
     }).compile();
 
     controller = module.get<AdminController>(AdminController);

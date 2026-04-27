@@ -106,6 +106,16 @@ describe('ListingsController', () => {
         20,
         'createdAt',
         'desc',
+        undefined,
+        {
+          categoryId: undefined,
+          provinceId: undefined,
+          cityId: undefined,
+          areaId: undefined,
+          province: undefined,
+          city: undefined,
+          area: undefined,
+        },
       );
       expect(result).toBe(mockPaginatedResult);
     });
@@ -117,6 +127,16 @@ describe('ListingsController', () => {
         10,
         'price',
         'asc',
+        undefined,
+        {
+          categoryId: undefined,
+          provinceId: undefined,
+          cityId: undefined,
+          areaId: undefined,
+          province: undefined,
+          city: undefined,
+          area: undefined,
+        },
       );
     });
   });
@@ -124,6 +144,22 @@ describe('ListingsController', () => {
   describe('getListingById', () => {
     it('should return a listing and increment views', async () => {
       const mockReq = { headers: {}, ip: '127.0.0.1' };
+      const listingWithToJSON = {
+        ...mockListing,
+        viewCount: 11,
+        toJSON: () => ({ ...mockListing, viewCount: 11 }),
+      };
+      mockListingsService.findByIdAndIncrementViews!.mockResolvedValue(
+        listingWithToJSON,
+      );
+      mockListingsService.getSellerVerification = jest.fn().mockResolvedValue({
+        emailVerified: true,
+        phoneVerified: true,
+        idVerified: false,
+        activeAdsCount: 5,
+        responseRate: 80,
+        avgResponseTime: '15 min',
+      });
       const result = await controller.getListingById(
         listingId.toString(),
         mockReq,
@@ -137,6 +173,7 @@ describe('ListingsController', () => {
         mockReq,
       );
       expect(result.viewCount).toBe(11);
+      expect(result.sellerEmailVerified).toBe(true);
     });
 
     it('should propagate NotFoundException from service', async () => {
@@ -240,6 +277,7 @@ describe('ListingsController', () => {
         listingId.toString(),
         sellerId.toString(),
         'seller',
+        undefined,
       );
       expect(result.status).toBe(ListingStatus.DELETED);
     });
@@ -254,6 +292,7 @@ describe('ListingsController', () => {
         listingId.toString(),
         otherUserId.toString(),
         'admin',
+        undefined,
       );
     });
 

@@ -4,6 +4,8 @@ import { MyListingsComponent } from './my-listings.component';
 import { ListingsService } from '../../../core/services/listings.service';
 import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { Listing, User, PackagePurchase } from '../../../core/models';
 
 function makeListing(overrides: Partial<Listing> = {}): Listing {
@@ -94,6 +96,8 @@ describe('MyListingsComponent', () => {
   };
   let packagesService: { getMyPurchases: ReturnType<typeof vi.fn> };
   let authService: { fetchCurrentUser: ReturnType<typeof vi.fn> };
+  let trackerMock: { track: ReturnType<typeof vi.fn> };
+  let confirmModalMock: { confirmPackageWarning: ReturnType<typeof vi.fn> };
 
   const mockListings: Listing[] = [
     makeListing({ _id: 'l1', title: 'Car', viewCount: 100, favoriteCount: 20, status: 'active' }),
@@ -125,10 +129,20 @@ describe('MyListingsComponent', () => {
       fetchCurrentUser: vi.fn().mockReturnValue(of(makeUser())),
     };
 
+    trackerMock = {
+      track: vi.fn(),
+    };
+
+    confirmModalMock = {
+      confirmPackageWarning: vi.fn().mockResolvedValue(true),
+    };
+
     component = new MyListingsComponent(
       listingsService as unknown as ListingsService,
       packagesService as unknown as PackagesService,
       authService as unknown as AuthService,
+      trackerMock as unknown as ActivityTrackerService,
+      confirmModalMock as unknown as ConfirmModalService,
     );
     component.ngOnInit();
   });

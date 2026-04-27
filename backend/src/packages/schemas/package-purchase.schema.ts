@@ -71,3 +71,10 @@ export const PackagePurchaseSchema =
 PackagePurchaseSchema.index({ sellerId: 1 });
 PackagePurchaseSchema.index({ paymentStatus: 1 });
 PackagePurchaseSchema.index({ expiresAt: 1 });
+PackagePurchaseSchema.index({
+  sellerId: 1,
+  categoryId: 1,
+  paymentStatus: 1,
+  remainingQuantity: 1,
+  expiresAt: 1,
+});

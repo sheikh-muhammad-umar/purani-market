@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { CategoryManagerComponent } from './category-manager.component';
 import { CategoriesService } from '../../../core/services/categories.service';
+import { AttributeDefinitionsService } from '../../../core/services/attribute-definitions.service';
 import { Category, CategoryAttribute } from '../../../core/models';
 
 const mockCategories: Category[] = [
@@ -83,10 +84,15 @@ function createMockService() {
 describe('CategoryManagerComponent', () => {
   let component: CategoryManagerComponent;
   let service: ReturnType<typeof createMockService>;
+  let attrDefService: { getAll: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     service = createMockService();
-    component = new CategoryManagerComponent(service as unknown as CategoriesService);
+    attrDefService = { getAll: vi.fn().mockReturnValue(of([])) };
+    component = new CategoryManagerComponent(
+      service as unknown as CategoriesService,
+      attrDefService as unknown as AttributeDefinitionsService,
+    );
   });
 
   it('should create', () => {

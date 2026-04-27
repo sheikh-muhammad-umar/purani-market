@@ -3,6 +3,7 @@ import { CategoriesController } from './categories.controller';
 import { CategoriesService, CategoryTreeNode } from './categories.service';
 import { Types } from 'mongoose';
 import { Reflector } from '@nestjs/core';
+import { AdminTrackerService } from '../ai/admin-tracker.service';
 
 describe('CategoriesController', () => {
   let controller: CategoriesController;
@@ -94,6 +95,7 @@ describe('CategoriesController', () => {
       controllers: [CategoriesController],
       providers: [
         { provide: CategoriesService, useValue: categoriesService },
+        { provide: AdminTrackerService, useValue: { track: jest.fn() } },
         Reflector,
       ],
     }).compile();

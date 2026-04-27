@@ -4,6 +4,8 @@ import {
   BadRequestException,
   ForbiddenException,
   Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -43,17 +45,14 @@ import { BrandsService } from '../brands/brands.service.js';
 import { VehicleBrandService } from '../brands/vehicle-brand.service.js';
 import { VehicleModelService } from '../brands/vehicle-model.service.js';
 import { VehicleVariantService } from '../brands/vehicle-variant.service.js';
+import { PackagesService } from '../packages/packages.service.js';
+import { AdminTrackerService } from '../ai/admin-tracker.service.js';
+import { UserAction } from '../ai/enums/user-action.enum.js';
+import { AdPackageType } from '../packages/schemas/ad-package.schema.js';
+import { OTHER_OPTION_ID } from './constants/index.js';
+import { PaginatedListings } from './interfaces/paginated-listings.interface.js';
 
-/** Sentinel value sent by the frontend when user selects "Other" brand/model/variant */
-const OTHER_OPTION_ID = 'other';
-
-export interface PaginatedListings {
-  data: ProductListingDocument[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
+export type { PaginatedListings };
 
 @Injectable()
 export class ListingsService {
@@ -76,6 +75,9 @@ export class ListingsService {
     private readonly vehicleBrandService: VehicleBrandService,
     private readonly vehicleModelService: VehicleModelService,
     private readonly vehicleVariantService: VehicleVariantService,
+    @Inject(forwardRef(() => PackagesService))
+    private readonly packagesService: PackagesService,
+    private readonly adminTrackerService: AdminTrackerService,
   ) {}
 
   async findAll(
@@ -219,7 +221,17 @@ export class ListingsService {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
-    const listing = await this.listingModel.findById(id).exec();
+    const listing = await this.listingModel
+      .findById(id)
+      .populate({
+        path: 'purchaseId',
+        select: 'remainingQuantity packageId',
+        populate: {
+          path: 'packageId',
+          select: 'name type',
+        },
+      })
+      .exec();
     if (!listing) {
       throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
@@ -436,6 +448,16 @@ export class ListingsService {
     if (!updated) {
       throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
+
+    // Track packaged listing lifecycle events
+    if (listing.purchaseId) {
+      this.trackPackagedListingEvent(listing, status).catch((err) =>
+        this.logger.warn(
+          `Failed to track packaged listing event: ${(err as Error).message}`,
+        ),
+      );
+    }
+
     this.syncToEs(updated);
     return updated;
   }
@@ -472,6 +494,16 @@ export class ListingsService {
     await this.userModel
       .updateOne({ _id: listing.sellerId }, { $inc: { activeAdCount: -1 } })
       .exec();
+
+    // Track packaged listing deletion
+    if (listing.purchaseId) {
+      this.trackPackagedListingEvent(listing, 'deleted').catch((err) =>
+        this.logger.warn(
+          `Failed to track PACKAGED_LISTING_DELETED: ${(err as Error).message}`,
+        ),
+      );
+    }
+
     this.removeFromEs(id);
     return updated;
   }
@@ -604,6 +636,23 @@ export class ListingsService {
       },
       status,
     });
+
+    // Apply package if purchaseId is provided
+    if (dto.purchaseId) {
+      const { purchase, packageDoc } =
+        await this.packagesService.applyPackageToListing(
+          dto.purchaseId,
+          sellerId,
+          dto.categoryId,
+          listing._id.toString(),
+        );
+      listing.purchaseId = new Types.ObjectId(dto.purchaseId);
+      if (packageDoc.type === AdPackageType.FEATURED_ADS) {
+        listing.isFeatured = true;
+        listing.featuredUntil = purchase.expiresAt;
+      }
+    }
+
     const saved = await listing.save();
     await this.userModel
       .updateOne(
@@ -714,6 +763,45 @@ export class ListingsService {
       responseRate,
       avgResponseTime,
     };
+  }
+
+  private static readonly TRANSITION_ACTION_MAP: ReadonlyMap<
+    string,
+    UserAction
+  > = new Map([
+    ['sold', UserAction.PACKAGED_LISTING_SOLD],
+    ['inactive', UserAction.PACKAGED_LISTING_DEACTIVATED],
+    ['deleted', UserAction.PACKAGED_LISTING_DELETED],
+  ]);
+
+  private async trackPackagedListingEvent(
+    listing: ProductListingDocument,
+    transition: string,
+  ): Promise<void> {
+    const action = ListingsService.TRANSITION_ACTION_MAP.get(transition);
+    if (!action || !listing.purchaseId) return;
+
+    const purchase = await this.packagesService.findPurchaseById(
+      listing.purchaseId.toString(),
+    );
+
+    const metadata: Record<string, any> = {
+      listingId: listing._id.toString(),
+      purchaseId: listing.purchaseId.toString(),
+      packageType: purchase?.type ?? null,
+      categoryId:
+        purchase?.categoryId?.toString() ?? listing.categoryId.toString(),
+    };
+
+    if (transition !== 'sold' && purchase) {
+      metadata.remainingQuantityOnPurchase = purchase.remainingQuantity;
+    }
+
+    await this.adminTrackerService.track(
+      listing.sellerId.toString(),
+      action,
+      metadata,
+    );
   }
 
   private assertOwnership(
