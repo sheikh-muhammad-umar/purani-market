@@ -1,66 +1,15 @@
 import { Prop, Schema, SchemaFactory, raw } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
+import { SocialProvider } from '../../common/enums/social-provider.enum.js';
+import { UserRole } from '../../common/enums/user-role.enum.js';
+import { UserStatus } from '../../common/enums/user-status.enum.js';
+import { Permission } from '../../common/enums/permission.enum.js';
+
+export { UserRole } from '../../common/enums/user-role.enum.js';
+export { UserStatus } from '../../common/enums/user-status.enum.js';
+export { Permission } from '../../common/enums/permission.enum.js';
 
 export type UserDocument = HydratedDocument<User>;
-
-export enum UserRole {
-  SUPER_ADMIN = 'super_admin',
-  ADMIN = 'admin',
-  USER = 'user',
-}
-
-export enum UserStatus {
-  ACTIVE = 'active',
-  SUSPENDED = 'suspended',
-}
-
-/** Granular permissions assignable to admin users by super_admin */
-export enum Permission {
-  // User management
-  USERS_VIEW = 'users:view',
-  USERS_ADD = 'users:add',
-  USERS_EDIT = 'users:edit',
-  USERS_DELETE = 'users:delete',
-  USERS_SUSPEND = 'users:suspend',
-
-  // Listing moderation
-  LISTINGS_VIEW = 'listings:view',
-  LISTINGS_APPROVE = 'listings:approve',
-  LISTINGS_REJECT = 'listings:reject',
-  LISTINGS_DELETE = 'listings:delete',
-
-  // Categories
-  CATEGORIES_VIEW = 'categories:view',
-  CATEGORIES_ADD = 'categories:add',
-  CATEGORIES_EDIT = 'categories:edit',
-  CATEGORIES_DELETE = 'categories:delete',
-
-  // Locations
-  LOCATIONS_VIEW = 'locations:view',
-  LOCATIONS_ADD = 'locations:add',
-  LOCATIONS_EDIT = 'locations:edit',
-  LOCATIONS_DELETE = 'locations:delete',
-
-  // Packages & Payments
-  PACKAGES_VIEW = 'packages:view',
-  PACKAGES_ADD = 'packages:add',
-  PACKAGES_EDIT = 'packages:edit',
-  PAYMENTS_VIEW = 'payments:view',
-
-  // Analytics
-  ANALYTICS_VIEW = 'analytics:view',
-  ANALYTICS_EXPORT = 'analytics:export',
-
-  // Activity log
-  ACTIVITY_VIEW = 'activity:view',
-
-  // ID Verification
-  ID_VERIFICATION_VIEW = 'id_verification:view',
-  ID_VERIFICATION_REVIEW = 'id_verification:review',
-
-  // Role management
-  ROLES_MANAGE = 'roles:manage',
-}
 
 @Schema({ _id: false })
 export class UserLocation {
@@ -130,7 +79,11 @@ export class VerificationChangeCount {
 
 @Schema({ _id: false })
 export class SocialLogin {
-  @Prop({ type: String, enum: ['google', 'facebook'], required: true })
+  @Prop({
+    type: String,
+    enum: Object.values(SocialProvider),
+    required: true,
+  })
   provider!: string;
 
   @Prop({ type: String, required: true })

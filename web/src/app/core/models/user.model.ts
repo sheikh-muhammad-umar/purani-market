@@ -1,3 +1,5 @@
+import { SocialProvider } from '../enums/social-provider';
+
 export interface UserProfile {
   firstName: string;
   lastName: string;
@@ -7,7 +9,7 @@ export interface UserProfile {
 }
 
 export interface SocialLogin {
-  provider: 'google' | 'facebook';
+  provider: SocialProvider;
   providerId: string;
 }
 

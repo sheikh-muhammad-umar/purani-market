@@ -293,6 +293,30 @@ export class AdminController {
     return this.adminService.getEngagementAnalytics(dateFrom, dateTo);
   }
 
+  @Get('analytics/social-logins')
+  async getSocialLoginAnalytics(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.adminService.getSocialLoginAnalytics(dateFrom, dateTo);
+  }
+
+  @Get('analytics/retention')
+  async getRetentionAnalytics(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.adminService.getUserRetentionAnalytics(dateFrom, dateTo);
+  }
+
+  @Get('analytics/revenue')
+  async getRevenueAnalytics(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.adminService.getRevenueAnalytics(dateFrom, dateTo);
+  }
+
   @Get('analytics/export')
   async exportAnalytics(
     @Query('dateFrom') dateFrom?: string,

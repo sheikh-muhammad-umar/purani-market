@@ -7,4 +7,9 @@ export const environment = {
   playStoreUrl: 'https://play.google.com/store/apps/details?id=com.marketplace.app',
   appGalleryUrl: 'https://appgallery.huawei.com/app/C000000000',
   appBannerDismissDays: 1,
+
+  // Social Login — fill these in to enable OAuth buttons
+  googleClientId: '',
+  facebookAppId: '',
+  appleClientId: '',
 };

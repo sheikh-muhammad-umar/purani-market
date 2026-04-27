@@ -3,41 +3,28 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { User } from '../models';
+import { SocialProvider } from '../enums/social-provider';
+import {
+  LoginRequest,
+  RegisterRequest,
+  AuthTokens,
+  LoginResponse,
+  MfaRequiredResponse,
+  MfaEnableResponse,
+} from './auth.types';
 import { environment } from '../../../environments/environment';
 import { ROUTES } from '../constants/routes';
 import { API } from '../constants/api-endpoints';
 import { STORAGE_ACCESS_TOKEN, STORAGE_REFRESH_TOKEN } from '../constants/storage-keys';
 
-export interface LoginRequest {
-  email?: string;
-  phone?: string;
-  password: string;
-}
-
-export interface RegisterRequest {
-  email?: string;
-  phone?: string;
-  password: string;
-  firstName: string;
-  lastName: string;
-}
-
-export interface AuthTokens {
-  accessToken: string;
-  refreshToken: string;
-}
-
-export interface MfaRequiredResponse {
-  mfaRequired: true;
-  mfaToken: string;
-}
-
-export interface MfaEnableResponse {
-  qrCodeUrl: string;
-  secret: string;
-}
-
-export type LoginResponse = AuthTokens | MfaRequiredResponse;
+export type {
+  LoginRequest,
+  RegisterRequest,
+  AuthTokens,
+  LoginResponse,
+  MfaRequiredResponse,
+  MfaEnableResponse,
+} from './auth.types';
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -65,10 +52,17 @@ export class AuthService {
     return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_REGISTER}`, data);
   }
 
-  socialLogin(provider: 'google' | 'facebook', token: string): Observable<AuthTokens> {
+  socialLogin(
+    provider: SocialProvider,
+    token: string,
+    firstName?: string,
+    lastName?: string,
+  ): Observable<AuthTokens> {
     return this.http.post<AuthTokens>(`${this.apiUrl}${API.AUTH_SOCIAL_LOGIN}`, {
       provider,
       token,
+      ...(firstName ? { firstName } : {}),
+      ...(lastName ? { lastName } : {}),
     });
   }
 

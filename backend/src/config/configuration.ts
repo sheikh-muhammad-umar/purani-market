@@ -45,6 +45,13 @@ export default () => ({
     appSecret: process.env.FACEBOOK_APP_SECRET || '',
   },
 
+  apple: {
+    clientId: process.env.APPLE_CLIENT_ID || '',
+    teamId: process.env.APPLE_TEAM_ID || '',
+    keyId: process.env.APPLE_KEY_ID || '',
+    privateKey: (process.env.APPLE_PRIVATE_KEY || '').replace(/\\n/g, '\n'),
+  },
+
   apiKey: process.env.API_KEY || '',
 
   payments: {

@@ -24,6 +24,10 @@ export enum UserAction {
   LOGIN_FAILED = 'login_failed',
   REGISTER = 'register',
   LOGOUT = 'logout',
+  SOCIAL_LOGIN = 'social_login',
+
+  // Reviews
+  REVIEW_CREATE = 'review_create',
 
   // Messaging
   MESSAGE_SENT = 'message_sent',

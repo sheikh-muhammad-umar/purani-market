@@ -44,82 +44,29 @@ import {
   IdVerificationDocument,
   IdVerificationStatus,
 } from '../id-verification/schemas/id-verification.schema.js';
+import {
+  PaginatedUsers,
+  PaginatedListings,
+  UserActivitySummary,
+  AnalyticsData,
+  AnalyticsExport,
+  PaginatedPurchases,
+  SellerAdInfo,
+  TimeSeriesEntry,
+  CategoryAnalytics,
+} from './interfaces/admin.interfaces.js';
 
-export interface PaginatedUsers {
-  data: Record<string, unknown>[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface PaginatedListings {
-  data: ProductListingDocument[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface UserActivitySummary {
-  listingsCount: number;
-  activeListingsCount: number;
-  conversationsCount: number;
-  violationsCount: number;
-}
-
-export interface TimeSeriesEntry {
-  date: string;
-  count: number;
-}
-
-export interface CategoryAnalytics {
-  categoryId: string;
-  categoryName: string;
-  listingCount: number;
-}
-
-export interface AnalyticsData {
-  keyMetrics: {
-    totalUsers: number;
-    activeUsers: number;
-    totalListings: number;
-    totalConversations: number;
-    totalPackagePurchases: number;
-    totalRevenue: number;
-  };
-  timeSeries: {
-    registrations: TimeSeriesEntry[];
-    listings: TimeSeriesEntry[];
-    conversations: TimeSeriesEntry[];
-    purchases: TimeSeriesEntry[];
-  };
-  categoryAnalytics: CategoryAnalytics[];
-}
-
-export interface AnalyticsExport {
-  generatedAt: string;
-  dateRange: { from: string; to: string };
-  keyMetrics: AnalyticsData['keyMetrics'];
-  timeSeries: AnalyticsData['timeSeries'];
-  categoryAnalytics: CategoryAnalytics[];
-}
-
-export interface PaginatedPurchases {
-  data: PackagePurchaseDocument[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-}
-
-export interface SellerAdInfo {
-  sellerId: string;
-  activeAdCount: number;
-  adLimit: number;
-  remainingFreeSlots: number;
-  activePackageSlots: number;
-}
+export type {
+  PaginatedUsers,
+  PaginatedListings,
+  UserActivitySummary,
+  TimeSeriesEntry,
+  CategoryAnalytics,
+  AnalyticsData,
+  AnalyticsExport,
+  PaginatedPurchases,
+  SellerAdInfo,
+} from './interfaces/admin.interfaces.js';
 
 @Injectable()
 export class AdminService {
@@ -1527,6 +1474,327 @@ export class AdminService {
   async deleteDeletionReason(id: string): Promise<void> {
     const result = await this.deletionReasonModel.findByIdAndDelete(id).exec();
     if (!result) throw new NotFoundException(ERROR.DELETION_REASON_NOT_FOUND);
+  }
+
+  // ── Social Login Analytics ──────────────────────────────────────
+
+  async getSocialLoginAnalytics(
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<Record<string, any>> {
+    const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+
+    const [byProvider, timeSeries, newVsReturning] = await Promise.all([
+      this.activityModel
+        .aggregate([
+          { $match: { action: UserAction.SOCIAL_LOGIN, ...dateFilter } },
+          { $group: { _id: '$metadata.provider', count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+        ])
+        .exec(),
+
+      this.activityModel
+        .aggregate([
+          { $match: { action: UserAction.SOCIAL_LOGIN, ...dateFilter } },
+          {
+            $group: {
+              _id: {
+                date: {
+                  $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+                },
+                provider: '$metadata.provider',
+              },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { '_id.date': 1 } },
+        ])
+        .exec(),
+
+      this.activityModel
+        .aggregate([
+          { $match: { action: UserAction.SOCIAL_LOGIN, ...dateFilter } },
+          {
+            $group: {
+              _id: null,
+              newUsers: {
+                $sum: {
+                  $cond: [{ $eq: ['$metadata.isNewUser', true] }, 1, 0],
+                },
+              },
+              returningUsers: {
+                $sum: {
+                  $cond: [{ $ne: ['$metadata.isNewUser', true] }, 1, 0],
+                },
+              },
+            },
+          },
+        ])
+        .exec(),
+    ]);
+
+    const dateMap = new Map<
+      string,
+      { google: number; facebook: number; apple: number }
+    >();
+    for (const row of timeSeries) {
+      const date = row._id.date;
+      if (!dateMap.has(date))
+        dateMap.set(date, { google: 0, facebook: 0, apple: 0 });
+      const entry = dateMap.get(date)!;
+      const provider = row._id.provider as string;
+      if (provider === 'google') entry.google = row.count;
+      else if (provider === 'facebook') entry.facebook = row.count;
+      else if (provider === 'apple') entry.apple = row.count;
+    }
+
+    const totalSocialLogins = byProvider.reduce(
+      (sum: number, r: any) => sum + r.count,
+      0,
+    );
+    const nvr = newVsReturning[0] || { newUsers: 0, returningUsers: 0 };
+
+    return {
+      totalSocialLogins,
+      byProvider: byProvider.map((r: any) => ({
+        provider: r._id || 'unknown',
+        count: r.count,
+      })),
+      timeSeries: Array.from(dateMap.entries()).map(([date, data]) => ({
+        date,
+        ...data,
+      })),
+      newVsReturning: {
+        newUsers: nvr.newUsers,
+        returningUsers: nvr.returningUsers,
+      },
+    };
+  }
+
+  // ── User Retention Analytics ────────────────────────────────────
+
+  async getUserRetentionAnalytics(
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<Record<string, any>> {
+    const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 86400000);
+    const sixtyDaysAgo = new Date(Date.now() - 60 * 86400000);
+
+    const [dau, wau, mau, activeLastMonth, activeThisMonth] = await Promise.all(
+      [
+        this.activityModel
+          .aggregate([
+            { $match: { userId: { $exists: true }, ...dateFilter } },
+            {
+              $group: {
+                _id: {
+                  date: {
+                    $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+                  },
+                  userId: '$userId',
+                },
+              },
+            },
+            { $group: { _id: '$_id.date', count: { $sum: 1 } } },
+            { $sort: { _id: 1 } },
+          ])
+          .exec(),
+
+        this.activityModel
+          .aggregate([
+            { $match: { userId: { $exists: true }, ...dateFilter } },
+            {
+              $group: {
+                _id: {
+                  week: {
+                    $dateToString: { format: '%Y-W%V', date: '$createdAt' },
+                  },
+                  userId: '$userId',
+                },
+              },
+            },
+            { $group: { _id: '$_id.week', count: { $sum: 1 } } },
+            { $sort: { _id: 1 } },
+          ])
+          .exec(),
+
+        this.activityModel
+          .aggregate([
+            { $match: { userId: { $exists: true }, ...dateFilter } },
+            {
+              $group: {
+                _id: {
+                  month: {
+                    $dateToString: { format: '%Y-%m', date: '$createdAt' },
+                  },
+                  userId: '$userId',
+                },
+              },
+            },
+            { $group: { _id: '$_id.month', count: { $sum: 1 } } },
+            { $sort: { _id: 1 } },
+          ])
+          .exec(),
+
+        this.activityModel
+          .distinct('userId', {
+            userId: { $exists: true },
+            createdAt: { $gte: sixtyDaysAgo, $lt: thirtyDaysAgo },
+          })
+          .exec(),
+
+        this.activityModel
+          .distinct('userId', {
+            userId: { $exists: true },
+            createdAt: { $gte: thirtyDaysAgo },
+          })
+          .exec(),
+      ],
+    );
+
+    const lastMonthSet = new Set(
+      activeLastMonth.map((id: any) => id.toString()),
+    );
+    const thisMonthSet = new Set(
+      activeThisMonth.map((id: any) => id.toString()),
+    );
+    const retained = [...lastMonthSet].filter((id) =>
+      thisMonthSet.has(id),
+    ).length;
+    const churnedUsers = lastMonthSet.size - retained;
+    const retentionRate =
+      lastMonthSet.size > 0
+        ? Math.round((retained / lastMonthSet.size) * 10000) / 100
+        : 0;
+
+    return {
+      dailyActiveUsers: dau.map((d: any) => ({
+        date: d._id,
+        count: d.count,
+      })),
+      weeklyActiveUsers: wau.map((w: any) => ({
+        week: w._id,
+        count: w.count,
+      })),
+      monthlyActiveUsers: mau.map((m: any) => ({
+        month: m._id,
+        count: m.count,
+      })),
+      churnedUsers,
+      retentionRate,
+    };
+  }
+
+  // ── Revenue Analytics ───────────────────────────────────────────
+
+  async getRevenueAnalytics(
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<Record<string, any>> {
+    const dateFilter: Record<string, any> = {
+      paymentStatus: PaymentStatus.COMPLETED,
+    };
+    if (dateFrom || dateTo) {
+      dateFilter.createdAt = {};
+      if (dateFrom) dateFilter.createdAt.$gte = new Date(dateFrom);
+      if (dateTo) {
+        const to = new Date(dateTo);
+        to.setHours(23, 59, 59, 999);
+        dateFilter.createdAt.$lte = to;
+      }
+    }
+
+    const [byMethod, byType, timeSeries, summary] = await Promise.all([
+      this.packagePurchaseModel
+        .aggregate([
+          { $match: dateFilter },
+          {
+            $group: {
+              _id: '$paymentMethod',
+              revenue: { $sum: '$price' },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { revenue: -1 } },
+        ])
+        .exec(),
+
+      this.packagePurchaseModel
+        .aggregate([
+          { $match: dateFilter },
+          {
+            $lookup: {
+              from: 'ad_packages',
+              localField: 'packageId',
+              foreignField: '_id',
+              as: 'pkg',
+            },
+          },
+          { $unwind: { path: '$pkg', preserveNullAndEmptyArrays: true } },
+          {
+            $group: {
+              _id: '$pkg.type',
+              revenue: { $sum: '$price' },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { revenue: -1 } },
+        ])
+        .exec(),
+
+      this.packagePurchaseModel
+        .aggregate([
+          { $match: dateFilter },
+          {
+            $group: {
+              _id: {
+                $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+              },
+              revenue: { $sum: '$price' },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { _id: 1 } },
+        ])
+        .exec(),
+
+      this.packagePurchaseModel
+        .aggregate([
+          { $match: dateFilter },
+          {
+            $group: {
+              _id: null,
+              totalRevenue: { $sum: '$price' },
+              totalCount: { $sum: 1 },
+            },
+          },
+        ])
+        .exec(),
+    ]);
+
+    const s = summary[0] || { totalRevenue: 0, totalCount: 0 };
+
+    return {
+      totalRevenue: s.totalRevenue,
+      byPaymentMethod: byMethod.map((r: any) => ({
+        method: r._id || 'unknown',
+        revenue: r.revenue,
+        count: r.count,
+      })),
+      byPackageType: byType.map((r: any) => ({
+        type: r._id || 'unknown',
+        revenue: r.revenue,
+        count: r.count,
+      })),
+      revenueTimeSeries: timeSeries.map((r: any) => ({
+        date: r._id,
+        revenue: r.revenue,
+        count: r.count,
+      })),
+      avgOrderValue:
+        s.totalCount > 0 ? Math.round(s.totalRevenue / s.totalCount) : 0,
+    };
   }
 
   // ── ID Verification Analytics ──────────────────────────────────

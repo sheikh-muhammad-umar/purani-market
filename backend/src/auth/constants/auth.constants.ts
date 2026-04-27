@@ -1,0 +1,13 @@
+export const BCRYPT_COST_FACTOR = 12;
+export const EMAIL_TOKEN_EXPIRY_HOURS = 24;
+export const PHONE_OTP_EXPIRY_MINUTES = 10;
+export const MAX_RESENDS_PER_HOUR = 5;
+export const UNVERIFIED_REMINDER_HOURS = 24;
+export const MFA_MAX_FAILED_ATTEMPTS = 5;
+export const MFA_FAILED_WINDOW_MINUTES = 15;
+export const MFA_LOCKOUT_MINUTES = 30;
+export const MFA_ISSUER = 'OnlineMarketplace';
+export const PASSWORD_RESET_EXPIRY_MINUTES = 30;
+export const EMAIL_CHANGE_EXPIRY_HOURS = 24;
+export const PHONE_CHANGE_OTP_EXPIRY_MINUTES = 10;
+export const MAX_CHANGE_REQUESTS_PER_DAY = 3;

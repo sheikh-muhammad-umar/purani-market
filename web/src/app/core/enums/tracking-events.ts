@@ -25,6 +25,7 @@ export const TrackingEvent = {
   LOGIN_FAILED: 'login_failed',
   REGISTER: 'register',
   LOGOUT: 'logout',
+  SOCIAL_LOGIN: 'social_login',
 
   // Messaging
   MESSAGE_SENT: 'message_sent',

@@ -33,21 +33,23 @@ import { EmailService } from './services/email.service.js';
 import { SmsService } from './services/sms.service.js';
 import { JwtPayload } from './strategies/jwt.strategy.js';
 import { OAuth2Client } from 'google-auth-library';
+import appleSignin from 'apple-signin-auth';
 import { ERROR } from '../common/constants/error-messages.js';
-
-const BCRYPT_COST_FACTOR = 12;
-const EMAIL_TOKEN_EXPIRY_HOURS = 24;
-const PHONE_OTP_EXPIRY_MINUTES = 10;
-const MAX_RESENDS_PER_HOUR = 5;
-const UNVERIFIED_REMINDER_HOURS = 24;
-const MFA_MAX_FAILED_ATTEMPTS = 5;
-const MFA_FAILED_WINDOW_MINUTES = 15;
-const MFA_LOCKOUT_MINUTES = 30;
-const MFA_ISSUER = 'OnlineMarketplace';
-const PASSWORD_RESET_EXPIRY_MINUTES = 30;
-const EMAIL_CHANGE_EXPIRY_HOURS = 24;
-const PHONE_CHANGE_OTP_EXPIRY_MINUTES = 10;
-const MAX_CHANGE_REQUESTS_PER_DAY = 3;
+import {
+  BCRYPT_COST_FACTOR,
+  EMAIL_TOKEN_EXPIRY_HOURS,
+  PHONE_OTP_EXPIRY_MINUTES,
+  MAX_RESENDS_PER_HOUR,
+  UNVERIFIED_REMINDER_HOURS,
+  MFA_MAX_FAILED_ATTEMPTS,
+  MFA_FAILED_WINDOW_MINUTES,
+  MFA_LOCKOUT_MINUTES,
+  MFA_ISSUER,
+  PASSWORD_RESET_EXPIRY_MINUTES,
+  EMAIL_CHANGE_EXPIRY_HOURS,
+  PHONE_CHANGE_OTP_EXPIRY_MINUTES,
+  MAX_CHANGE_REQUESTS_PER_DAY,
+} from './constants/auth.constants.js';
 
 @Injectable()
 export class AuthService {
@@ -402,6 +404,13 @@ export class AuthService {
       providerId = payload.id;
       firstName = payload.firstName;
       lastName = payload.lastName;
+    } else if (provider === SocialProvider.APPLE) {
+      const payload = await this.verifyAppleToken(token);
+      providerEmail = payload.email;
+      providerId = payload.sub;
+      // Apple only sends name on first auth; use DTO fallback
+      firstName = payload.firstName || dto.firstName || '';
+      lastName = payload.lastName || dto.lastName || '';
     } else {
       throw new BadRequestException('Unsupported social login provider');
     }
@@ -527,6 +536,33 @@ export class AuthService {
     } catch (error) {
       if (error instanceof UnauthorizedException) throw error;
       throw new UnauthorizedException('Invalid Facebook token');
+    }
+  }
+
+  private async verifyAppleToken(identityToken: string): Promise<{
+    email: string;
+    sub: string;
+    firstName: string;
+    lastName: string;
+  }> {
+    try {
+      const clientId = this.configService.get<string>('apple.clientId');
+      const payload = await appleSignin.verifyIdToken(identityToken, {
+        audience: clientId,
+        ignoreExpiration: false,
+      });
+      if (!payload.sub) {
+        throw new UnauthorizedException('Apple token missing subject');
+      }
+      return {
+        email: payload.email || `${payload.sub}@privaterelay.appleid.com`,
+        sub: payload.sub,
+        firstName: '',
+        lastName: '',
+      };
+    } catch (error) {
+      if (error instanceof UnauthorizedException) throw error;
+      throw new UnauthorizedException('Invalid Apple token');
     }
   }
 

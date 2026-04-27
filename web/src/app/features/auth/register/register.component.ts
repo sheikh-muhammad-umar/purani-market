@@ -1,4 +1,4 @@
-import { Component, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import {
   ReactiveFormsModule,
@@ -9,8 +9,14 @@ import {
   ValidationErrors,
 } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../../core/auth/auth.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { SocialAuthService } from '../../../core/services/social-auth.service';
+import { SocialProvider } from '../../../core/enums/social-provider';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ROUTES } from '../../../core/constants/routes';
+import { LOGIN_METHOD_EMAIL, LOGIN_METHOD_PHONE } from '../../../core/constants/app';
 
 @Component({
   selector: 'app-register',
@@ -21,16 +27,22 @@ import { ROUTES } from '../../../core/constants/routes';
 })
 export class RegisterComponent {
   readonly ROUTES = ROUTES;
+  readonly SocialProvider = SocialProvider;
+
   registerForm: FormGroup;
   usePhone = signal(false);
   loading = signal(false);
   errorMessage = signal('');
   successMessage = signal('');
 
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
     private readonly router: Router,
+    private readonly tracker: ActivityTrackerService,
+    private readonly socialAuth: SocialAuthService,
   ) {
     this.registerForm = this.fb.group(
       {
@@ -92,24 +104,75 @@ export class RegisterComponent {
       ...(this.usePhone() ? { phone: formValue.phone } : { email: formValue.email }),
     };
 
-    this.authService.register(data).subscribe({
-      next: (response) => {
-        this.loading.set(false);
-        this.successMessage.set(
-          response.message ||
-            (this.usePhone()
-              ? 'Registration successful! Please verify your phone number.'
-              : 'Registration successful! Please check your email for verification.'),
-        );
-      },
-      error: (err) => {
-        this.loading.set(false);
-        this.errorMessage.set(err.error?.message || 'Registration failed. Please try again.');
-      },
-    });
+    this.authService
+      .register(data)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.loading.set(false);
+          this.successMessage.set(
+            response.message ||
+              (this.usePhone()
+                ? 'Registration successful! Please verify your phone number.'
+                : 'Registration successful! Please check your email for verification.'),
+          );
+          this.tracker.trackAnonymous(TrackingEvent.REGISTER, {
+            method: this.usePhone() ? LOGIN_METHOD_PHONE : LOGIN_METHOD_EMAIL,
+            ...this.tracker.getDeviceInfo(),
+          });
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.errorMessage.set(err.error?.message || 'Registration failed. Please try again.');
+        },
+      });
   }
 
-  onSocialLogin(provider: 'google' | 'facebook'): void {
-    this.errorMessage.set(`${provider} login integration requires OAuth setup.`);
+  onSocialLogin(provider: SocialProvider): void {
+    this.loading.set(true);
+    this.errorMessage.set('');
+
+    const signIn =
+      provider === SocialProvider.GOOGLE
+        ? this.socialAuth.signInWithGoogle()
+        : provider === SocialProvider.FACEBOOK
+          ? this.socialAuth.signInWithFacebook()
+          : this.socialAuth.signInWithApple();
+
+    signIn
+      .then((socialToken) => {
+        this.authService
+          .socialLogin(
+            socialToken.provider,
+            socialToken.token,
+            socialToken.firstName,
+            socialToken.lastName,
+          )
+          .pipe(takeUntilDestroyed(this.destroyRef))
+          .subscribe({
+            next: (tokens) => {
+              this.loading.set(false);
+              this.authService.storeTokens(tokens);
+              this.authService
+                .fetchCurrentUser()
+                .pipe(takeUntilDestroyed(this.destroyRef))
+                .subscribe(() => {
+                  this.tracker.track(TrackingEvent.SOCIAL_LOGIN, {
+                    metadata: { provider },
+                  });
+                  this.router.navigate([ROUTES.HOME]);
+                });
+            },
+            error: (err) => {
+              this.loading.set(false);
+              this.errorMessage.set(
+                err.error?.message || `${provider} sign-up failed. Please try again.`,
+              );
+            },
+          });
+      })
+      .catch(() => {
+        this.loading.set(false);
+      });
   }
 }
