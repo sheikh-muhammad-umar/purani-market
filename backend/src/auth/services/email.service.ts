@@ -112,6 +112,25 @@ export class EmailService {
     );
   }
 
+  async sendBroadcastEmail(
+    email: string,
+    subject: string,
+    htmlContent: string,
+  ): Promise<void> {
+    await this.send(
+      email,
+      `${subject} — Marketplace`,
+      `<div style="max-width:600px;margin:0 auto;font-family:sans-serif;">
+       ${htmlContent}
+       <hr style="margin-top:24px;border:none;border-top:1px solid #e5e7eb;">
+       <p style="font-size:12px;color:#9ca3af;text-align:center;">
+         You received this because you're a Marketplace user.
+         <a href="${this.frontendUrl}/profile/notifications">Manage preferences</a>
+       </p>
+       </div>`,
+    );
+  }
+
   private async send(to: string, subject: string, html: string): Promise<void> {
     if (!this.transporter) {
       this.logger.log(`[STUB] To: ${to} | Subject: ${subject}`);

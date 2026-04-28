@@ -174,6 +174,24 @@
       </div>
     }
 
+    <!-- Mobile notification icon (profile page only) -->
+    @if (isProfilePage && authService.isAuthenticated()) {
+      <div class="mobile-profile-actions">
+        <app-notification-bell #mobileNotificationBell="notificationBell">
+          <button class="nav-icon" title="Notifications" (click)="mobileNotificationBell.toggle()">
+            <span class="material-symbols-rounded">notifications_none</span>
+            @if (mobileNotificationBell.unreadCount() > 0) {
+              <span class="icon-badge">{{
+                mobileNotificationBell.unreadCount() > 99
+                  ? '99+'
+                  : mobileNotificationBell.unreadCount()
+              }}</span>
+            }
+          </button>
+        </app-notification-bell>
+      </div>
+    }
+
     <!-- Desktop nav -->
     <nav class="desktop-nav">
       @if (authService.isAuthenticated()) {
@@ -186,6 +204,16 @@
         <a [routerLink]="ROUTES.FAVORITES" class="nav-icon" title="Favorites">
           <span class="material-symbols-rounded">favorite_border</span>
         </a>
+        <app-notification-bell #notificationBell="notificationBell">
+          <button class="nav-icon" title="Notifications" (click)="notificationBell.toggle()">
+            <span class="material-symbols-rounded">notifications_none</span>
+            @if (notificationBell.unreadCount() > 0) {
+              <span class="icon-badge">{{
+                notificationBell.unreadCount() > 99 ? '99+' : notificationBell.unreadCount()
+              }}</span>
+            }
+          </button>
+        </app-notification-bell>
         <button
           class="theme-toggle nav-icon"
           (click)="themeService.toggle()"
@@ -453,7 +481,14 @@
       (click)="!authService.isAuthenticated() && loginModal.open(ROUTES.PROFILE)"
       class="bottom-nav-item"
     >
-      <span class="material-symbols-rounded bottom-icon">person_outline</span>
+      <span class="material-symbols-rounded bottom-icon" style="position: relative">
+        person_outline
+        @if (notificationCount.unreadCount() > 0) {
+          <span class="bottom-badge">{{
+            notificationCount.unreadCount() > 9 ? '9+' : notificationCount.unreadCount()
+          }}</span>
+        }
+      </span>
       <span class="bottom-label">Account</span>
     </a>
   </nav>

@@ -1,0 +1,57 @@
+<ng-content></ng-content>
+
+@if (open()) {
+  <div class="notification-dropdown" role="dialog" aria-label="Notifications">
+    <div class="dropdown-header">
+      <span class="dropdown-title">Notifications</span>
+      @if (unreadCount() > 0) {
+        <button class="mark-all-btn" (click)="markAllAsRead()">Mark all read</button>
+      }
+    </div>
+
+    <div class="notification-list">
+      @for (n of notifications(); track n._id) {
+        <button
+          class="notification-item"
+          [class.unread]="!n.read"
+          [class.expanded]="expandedId() === n._id"
+          (click)="selectNotification(n)"
+        >
+          <span
+            class="notification-icon"
+            [style.background]="categoryMetaMap().get(n.category)?.color + '14'"
+            [style.color]="categoryMetaMap().get(n.category)?.color"
+          >
+            <span class="material-symbols-rounded">{{
+              categoryMetaMap().get(n.category)?.icon
+            }}</span>
+          </span>
+          <div class="notification-content">
+            <span class="notification-title">{{ n.title }}</span>
+            <span
+              class="notification-body"
+              [class.notification-body-full]="expandedId() === n._id"
+              >{{ n.body }}</span
+            >
+            <span class="notification-time">{{ n.createdAt | date: 'short' }}</span>
+          </div>
+          @if (!n.read) {
+            <span class="unread-dot" aria-label="Unread"></span>
+          }
+        </button>
+      } @empty {
+        <div class="notification-empty">No notifications yet</div>
+      }
+    </div>
+
+    <div class="dropdown-footer">
+      <a
+        [routerLink]="ROUTES.PROFILE_NOTIFICATIONS"
+        class="view-all-link"
+        (click)="open.set(false)"
+      >
+        Notification Settings
+      </a>
+    </div>
+  </div>
+}

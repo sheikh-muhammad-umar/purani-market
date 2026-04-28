@@ -76,6 +76,7 @@ export enum UserAction {
   ADMIN_PACKAGE_CREATE = 'admin_package_create',
   ADMIN_PACKAGE_UPDATE = 'admin_package_update',
   ADMIN_EXPORT_REPORT = 'admin_export_report',
+  ADMIN_NOTIFICATION_SEND = 'admin_notification_send',
   ADMIN_REJECTION_REASON_CREATE = 'admin_rejection_reason_create',
   ADMIN_REJECTION_REASON_UPDATE = 'admin_rejection_reason_update',
   ADMIN_REJECTION_REASON_DELETE = 'admin_rejection_reason_delete',

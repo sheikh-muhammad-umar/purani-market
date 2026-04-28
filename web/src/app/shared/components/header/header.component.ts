@@ -12,6 +12,8 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { LoginModalService } from '../login-modal/login-modal.service';
 import { AppBannerComponent } from '../app-banner/app-banner.component';
+import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
+import { NotificationCountService } from '../../../core/services/notification-count.service';
 import { Province, City, Area } from '../../../core/models';
 import { STORAGE_SELECTED_LOCATION } from '../../../core/constants/storage-keys';
 import { DEFAULT_COUNTRY } from '../../../core/constants/app';
@@ -20,7 +22,7 @@ import { ROUTES } from '../../../core/constants/routes';
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, AppBannerComponent],
+  imports: [RouterLink, AppBannerComponent, NotificationBellComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
@@ -71,6 +73,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private readonly locationService: LocationService,
     public readonly recentSearches: RecentSearchesService,
     private readonly tracker: ActivityTrackerService,
+    public readonly notificationCount: NotificationCountService,
   ) {}
 
   ngOnInit(): void {

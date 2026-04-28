@@ -541,6 +541,9 @@
 .mobile-bottom-nav {
   display: none;
 }
+.mobile-profile-actions {
+  display: none;
+}
 
 /* ============ MOBILE ============ */
 @media (max-width: 767px) {
@@ -580,6 +583,12 @@
   }
   .desktop-nav {
     display: none;
+  }
+
+  .mobile-profile-actions {
+    display: flex;
+    align-items: center;
+    margin-left: auto;
   }
 
   /* Mobile search — full width */

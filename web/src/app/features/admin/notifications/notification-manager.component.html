@@ -1,0 +1,254 @@
+<div class="nm-page">
+  <div class="page-header">
+    <h1>Notifications</h1>
+    @if (!loading()) {
+      <span class="nm-count">{{ total() }} total</span>
+    }
+    <button class="send-btn" (click)="toggleForm()">
+      <span class="material-symbols-rounded" style="font-size: 18px">{{
+        showForm() ? 'close' : 'send'
+      }}</span>
+      {{ showForm() ? 'Cancel' : 'Send New' }}
+    </button>
+  </div>
+
+  @if (successMessage()) {
+    <div class="alert alert-success" role="status">{{ successMessage() }}</div>
+  }
+  @if (errorMessage()) {
+    <div class="alert alert-error" role="alert">{{ errorMessage() }}</div>
+  }
+
+  <!-- Compose Form -->
+  @if (showForm()) {
+    <div class="compose-card">
+      <h3 class="compose-title">Compose Notification</h3>
+      <form [formGroup]="sendForm" (ngSubmit)="onSend()" class="compose-form" novalidate>
+        <div class="compose-grid">
+          <div class="form-group compose-full">
+            <label for="title" class="filter-label">Title</label>
+            <input
+              id="title"
+              type="text"
+              formControlName="title"
+              class="form-input"
+              placeholder="Notification title"
+            />
+          </div>
+
+          <div class="form-group compose-full">
+            <label for="body" class="filter-label">Message</label>
+            <textarea
+              id="body"
+              formControlName="body"
+              class="form-input"
+              rows="4"
+              placeholder="Write your notification message..."
+            ></textarea>
+          </div>
+
+          <div class="form-group">
+            <label for="channel" class="filter-label">Channel</label>
+            <select id="channel" formControlName="channel" class="form-input">
+              @for (opt of CHANNEL_OPTIONS; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="category" class="filter-label">Category</label>
+            <select id="category" formControlName="category" class="form-input">
+              @for (opt of CATEGORY_OPTIONS; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label for="audience" class="filter-label">Audience</label>
+            <select id="audience" formControlName="audience" class="form-input">
+              @for (opt of AUDIENCE_OPTIONS; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+
+          @if (sendForm.get('audience')?.value === 'role') {
+            <div class="form-group">
+              <label for="targetRole" class="filter-label">Target Role</label>
+              <select id="targetRole" formControlName="targetRole" class="form-input">
+                @for (opt of ROLE_OPTIONS; track opt.value) {
+                  <option [value]="opt.value">{{ opt.label }}</option>
+                }
+              </select>
+            </div>
+          }
+
+          @if (sendForm.get('audience')?.value === 'specific') {
+            <div class="form-group compose-full">
+              <label for="targetUserIds" class="filter-label">User IDs (comma-separated)</label>
+              <input
+                id="targetUserIds"
+                type="text"
+                formControlName="targetUserIds"
+                class="form-input"
+                placeholder="userId1, userId2, ..."
+              />
+            </div>
+          }
+        </div>
+
+        <div class="compose-actions">
+          <button type="button" class="btn-cancel" (click)="toggleForm()">Cancel</button>
+          <button type="submit" class="btn-send" [disabled]="sending() || sendForm.invalid">
+            @if (sending()) {
+              <div class="spinner"></div>
+              Sending...
+            } @else {
+              <span class="material-symbols-rounded" style="font-size: 16px">send</span> Send
+              Notification
+            }
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Toolbar -->
+  <div class="admin-toolbar">
+    <div class="admin-search">
+      <input
+        type="text"
+        placeholder="Search notifications..."
+        [(ngModel)]="searchQuery"
+        (keyup.enter)="applyFilters()"
+      />
+      <button (click)="applyFilters()">
+        <span class="material-symbols-rounded" style="font-size: 18px">search</span>
+      </button>
+    </div>
+    <button
+      class="filter-toggle-btn"
+      [class.active]="filtersOpen || hasActiveFilters"
+      (click)="filtersOpen = !filtersOpen"
+    >
+      <span class="material-symbols-rounded" style="font-size: 18px">filter_list</span> Filters
+      @if (activeFilterCount > 0) {
+        <span class="filter-badge">{{ activeFilterCount }}</span>
+      }
+    </button>
+    <app-custom-select
+      [options]="SORT_OPTIONS"
+      [(ngModel)]="sortBy"
+      (ngModelChange)="applyFilters()"
+      placeholder="Sort"
+    ></app-custom-select>
+  </div>
+
+  <!-- Filters Panel -->
+  @if (filtersOpen) {
+    <div class="filters-panel">
+      <div class="filters-grid">
+        <div class="filter-group">
+          <label class="filter-label">Status</label>
+          <app-custom-select
+            [options]="STATUS_FILTER_OPTIONS"
+            [(ngModel)]="filterStatus"
+            (ngModelChange)="applyFilters()"
+            placeholder="All Status"
+          ></app-custom-select>
+        </div>
+        <div class="filter-group">
+          <label class="filter-label">Channel</label>
+          <app-custom-select
+            [options]="CHANNEL_FILTER_OPTIONS"
+            [(ngModel)]="filterChannel"
+            (ngModelChange)="applyFilters()"
+            placeholder="All Channels"
+          ></app-custom-select>
+        </div>
+      </div>
+      @if (hasActiveFilters) {
+        <button class="clear-filters-btn" (click)="clearFilters()">
+          <span class="material-symbols-rounded" style="font-size: 16px">close</span> Clear all
+        </button>
+      }
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  }
+
+  <!-- Empty -->
+  @if (!loading() && notifications().length === 0) {
+    <div class="empty-state">
+      @if (hasActiveFilters) {
+        No notifications match your filters.
+        <button class="btn-retry" (click)="clearFilters()">Clear</button>
+      } @else {
+        No notifications sent yet. Click "Send New" to get started.
+      }
+    </div>
+  }
+
+  <!-- Notification Cards -->
+  @if (!loading() && notifications().length > 0) {
+    <div class="nm-list">
+      @for (n of notifications(); track n._id) {
+        <div
+          class="nm-card"
+          [class.nm-expanded]="expandedId() === n._id"
+          (click)="toggleExpand(n._id)"
+        >
+          <div class="nm-top">
+            <span class="nm-title">{{ n.title }}</span>
+            <span class="nm-status" [style.color]="statusColorMap().get(n.status)">{{
+              n.status
+            }}</span>
+          </div>
+          <div class="nm-body" [class.nm-body-full]="expandedId() === n._id">{{ n.body }}</div>
+          <div class="nm-meta-grid">
+            <span class="nm-meta">
+              <span class="nm-meta-label">Channel</span>
+              {{ n.channel }}
+            </span>
+            <span class="nm-meta">
+              <span class="nm-meta-label">Audience</span>
+              {{ n.audience }}{{ n.targetRole ? ' (' + n.targetRole + ')' : '' }}
+            </span>
+            <span class="nm-meta">
+              <span class="nm-meta-label">Category</span>
+              {{ n.category }}
+            </span>
+            <span class="nm-meta">
+              <span class="nm-meta-label">Recipients</span>
+              {{ n.recipientCount }}
+            </span>
+            <span class="nm-meta">
+              <span class="nm-meta-label">Read</span>
+              {{ n.readCount }}/{{ n.recipientCount }}
+              <span class="nm-rate">({{ readRateMap().get(n._id) }})</span>
+            </span>
+            <span class="nm-meta">
+              <span class="nm-meta-label">Sent</span>
+              {{ n.sentAt || n.createdAt | date: 'MMM d, y h:mm a' }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (totalPages() > 1) {
+      <div class="pagination">
+        <button class="btn-page" (click)="goToPage(page - 1)" [disabled]="page <= 1">← Prev</button>
+        <span class="page-info">Page {{ page }} of {{ totalPages() }}</span>
+        <button class="btn-page" (click)="goToPage(page + 1)" [disabled]="page >= totalPages()">
+          Next →
+        </button>
+      </div>
+    }
+  }
+</div>

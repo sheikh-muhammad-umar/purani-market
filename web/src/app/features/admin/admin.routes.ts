@@ -88,6 +88,13 @@ export const ADMIN_ROUTES: Routes = [
             (m) => m.IdVerificationsComponent,
           ),
       },
+      {
+        path: 'notifications',
+        loadComponent: () =>
+          import('./notifications/notification-manager.component').then(
+            (m) => m.NotificationManagerComponent,
+          ),
+      },
     ],
   },
 ];

@@ -131,6 +131,14 @@ export const API = {
   ADMIN_PAYMENTS: '/admin/payments',
   ADMIN_SELLER_AD_INFO: (id: string) => `/admin/sellers/${id}/ad-info`,
   ADMIN_ID_VERIFICATION_STATS: '/admin/id-verification-stats',
+  ADMIN_NOTIFICATIONS: '/admin/notifications',
+  ADMIN_NOTIFICATIONS_SEND: '/admin/notifications/send',
+  ADMIN_NOTIFICATION_BY_ID: (id: string) => `/admin/notifications/${id}`,
+
+  // User Notifications
+  NOTIFICATIONS: '/notifications',
+  NOTIFICATION_READ: (id: string) => `/notifications/${id}/read`,
+  NOTIFICATIONS_READ_ALL: '/notifications/read-all',
 
   // ID Verification
   ID_VERIFICATION_SUBMIT: '/id-verification/submit',
