@@ -1,9 +1,15 @@
-import { Component, signal } from '@angular/core';
+import { Component, DestroyRef, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterLink, ActivatedRoute, Router } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AuthService } from '../../../core/auth/auth.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
+import { OtpChannel } from '../../../core/enums/otp-channel';
 import { ROUTES } from '../../../core/constants/routes';
+
+const OTP_PATTERN = /^\d{6}$/;
 
 @Component({
   selector: 'app-verify-phone',
@@ -22,15 +28,17 @@ export class VerifyPhoneComponent {
   resendSuccess = signal(false);
   phone: string;
 
+  private readonly destroyRef = inject(DestroyRef);
+
   constructor(
     private readonly fb: FormBuilder,
     private readonly authService: AuthService,
     private readonly route: ActivatedRoute,
-    private readonly router: Router,
+    private readonly tracker: ActivityTrackerService,
   ) {
     this.phone = this.route.snapshot.queryParamMap.get('phone') || '';
     this.verifyForm = this.fb.group({
-      code: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
+      code: ['', [Validators.required, Validators.pattern(OTP_PATTERN)]],
     });
   }
 
@@ -43,31 +51,42 @@ export class VerifyPhoneComponent {
     this.loading.set(true);
     this.errorMessage.set('');
 
-    this.authService.verifyPhone(this.phone, this.verifyForm.value.code).subscribe({
-      next: () => {
-        this.loading.set(false);
-        this.success.set(true);
-      },
-      error: (err) => {
-        this.loading.set(false);
-        this.errorMessage.set(err.error?.message || 'Invalid or expired verification code.');
-      },
-    });
+    this.authService
+      .verifyPhone(this.phone, this.verifyForm.value.code)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.loading.set(false);
+          this.success.set(true);
+          this.tracker.track(TrackingEvent.PHONE_VERIFIED);
+        },
+        error: (err) => {
+          this.loading.set(false);
+          this.errorMessage.set(err.error?.message || 'Invalid or expired verification code.');
+          this.tracker.trackAnonymous(TrackingEvent.OTP_FAILED, {
+            channel: OtpChannel.PHONE,
+            reason: err.error?.message || 'verification_failed',
+          });
+        },
+      });
   }
 
   resendCode(): void {
     if (!this.phone) return;
     this.resendLoading.set(true);
     this.resendSuccess.set(false);
-    this.authService.resendVerification(this.phone).subscribe({
-      next: () => {
-        this.resendLoading.set(false);
-        this.resendSuccess.set(true);
-      },
-      error: () => {
-        this.resendLoading.set(false);
-        this.errorMessage.set('Failed to resend code. Please try again later.');
-      },
-    });
+    this.authService
+      .resendVerification(this.phone)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.resendLoading.set(false);
+          this.resendSuccess.set(true);
+        },
+        error: () => {
+          this.resendLoading.set(false);
+          this.errorMessage.set('Failed to resend code. Please try again later.');
+        },
+      });
   }
 }

@@ -108,6 +108,7 @@ describe('AuthController', () => {
       expect(mockAuthService.resendVerification).toHaveBeenCalledWith(
         'test@example.com',
         undefined,
+        undefined,
       );
     });
 
@@ -122,6 +123,7 @@ describe('AuthController', () => {
       expect(mockAuthService.resendVerification).toHaveBeenCalledWith(
         undefined,
         '+923001234567',
+        undefined,
       );
     });
   });

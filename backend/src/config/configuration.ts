@@ -54,6 +54,21 @@ export default () => ({
 
   apiKey: process.env.API_KEY || '',
 
+  smtp: {
+    host: process.env.SMTP_HOST || '',
+    port: parseInt(process.env.SMTP_PORT || '587', 10),
+    user: process.env.SMTP_USER || '',
+    pass: process.env.SMTP_PASS || '',
+    from: process.env.SMTP_FROM || 'noreply@marketplace.com',
+  },
+
+  twilio: {
+    accountSid: process.env.TWILIO_ACCOUNT_SID || '',
+    authToken: process.env.TWILIO_AUTH_TOKEN || '',
+    phoneNumber: process.env.TWILIO_PHONE_NUMBER || '',
+    whatsappNumber: process.env.TWILIO_WHATSAPP_NUMBER || '',
+  },
+
   payments: {
     jazzcash: {
       merchantId: process.env.JAZZCASH_MERCHANT_ID || '',

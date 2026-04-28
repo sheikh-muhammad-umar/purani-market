@@ -27,6 +27,14 @@ export const TrackingEvent = {
   LOGOUT: 'logout',
   SOCIAL_LOGIN: 'social_login',
 
+  // OTP / Verification
+  OTP_SENT: 'otp_sent',
+  OTP_VERIFIED: 'otp_verified',
+  OTP_FAILED: 'otp_failed',
+  OTP_RESENT: 'otp_resent',
+  EMAIL_VERIFIED: 'email_verified',
+  PHONE_VERIFIED: 'phone_verified',
+
   // Messaging
   MESSAGE_SENT: 'message_sent',
   CONVERSATION_START: 'conversation_start',

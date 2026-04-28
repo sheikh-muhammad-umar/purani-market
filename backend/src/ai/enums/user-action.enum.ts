@@ -26,6 +26,16 @@ export enum UserAction {
   LOGOUT = 'logout',
   SOCIAL_LOGIN = 'social_login',
 
+  // OTP / Verification
+  OTP_SENT = 'otp_sent',
+  OTP_VERIFIED = 'otp_verified',
+  OTP_FAILED = 'otp_failed',
+  OTP_RESENT = 'otp_resent',
+  OTP_EXPIRED = 'otp_expired',
+  EMAIL_VERIFIED = 'email_verified',
+  PHONE_VERIFIED = 'phone_verified',
+  WHATSAPP_OTP_SENT = 'whatsapp_otp_sent',
+
   // Reviews
   REVIEW_CREATE = 'review_create',
 

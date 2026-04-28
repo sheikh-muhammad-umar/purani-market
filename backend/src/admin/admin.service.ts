@@ -1571,6 +1571,126 @@ export class AdminService {
     };
   }
 
+  // ── OTP / Verification Analytics ────────────────────────────────
+
+  async getOtpAnalytics(
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<Record<string, any>> {
+    const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+
+    const otpActions = [
+      UserAction.OTP_SENT,
+      UserAction.OTP_VERIFIED,
+      UserAction.OTP_FAILED,
+      UserAction.OTP_RESENT,
+      UserAction.OTP_EXPIRED,
+      UserAction.EMAIL_VERIFIED,
+      UserAction.PHONE_VERIFIED,
+      UserAction.WHATSAPP_OTP_SENT,
+    ];
+
+    const [actionBreakdown, channelBreakdown, timeSeries, verificationStats] =
+      await Promise.all([
+        this.activityModel
+          .aggregate([
+            { $match: { action: { $in: otpActions }, ...dateFilter } },
+            { $group: { _id: '$action', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+          ])
+          .exec(),
+
+        this.activityModel
+          .aggregate([
+            {
+              $match: {
+                action: UserAction.OTP_SENT,
+                'metadata.channel': { $exists: true },
+                ...dateFilter,
+              },
+            },
+            { $group: { _id: '$metadata.channel', count: { $sum: 1 } } },
+            { $sort: { count: -1 } },
+          ])
+          .exec(),
+
+        this.activityModel
+          .aggregate([
+            { $match: { action: { $in: otpActions }, ...dateFilter } },
+            {
+              $group: {
+                _id: {
+                  date: {
+                    $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+                  },
+                  action: '$action',
+                },
+                count: { $sum: 1 },
+              },
+            },
+            { $sort: { '_id.date': 1 } },
+          ])
+          .exec(),
+
+        Promise.all([
+          this.userModel.countDocuments({ emailVerified: true }).exec(),
+          this.userModel.countDocuments({ phoneVerified: true }).exec(),
+          this.userModel
+            .countDocuments({
+              $or: [
+                { email: { $exists: true }, emailVerified: false },
+                { phone: { $exists: true }, phoneVerified: false },
+              ],
+            })
+            .exec(),
+        ]),
+      ]);
+
+    // Build time series by date
+    const dateMap = new Map<string, Record<string, number>>();
+    for (const row of timeSeries) {
+      const date = row._id.date;
+      if (!dateMap.has(date)) dateMap.set(date, {});
+      dateMap.get(date)![row._id.action] = row.count;
+    }
+
+    const sent =
+      actionBreakdown.find((a: any) => a._id === UserAction.OTP_SENT)?.count ||
+      0;
+    const verified =
+      actionBreakdown.find((a: any) => a._id === UserAction.OTP_VERIFIED)
+        ?.count || 0;
+    const failed =
+      actionBreakdown.find((a: any) => a._id === UserAction.OTP_FAILED)
+        ?.count || 0;
+
+    return {
+      summary: {
+        totalSent: sent,
+        totalVerified: verified,
+        totalFailed: failed,
+        successRate: sent > 0 ? Math.round((verified / sent) * 10000) / 100 : 0,
+      },
+      actionBreakdown: actionBreakdown.map((a: any) => ({
+        action: a._id,
+        count: a.count,
+      })),
+      channelBreakdown: channelBreakdown.map((c: any) => ({
+        channel: c._id || 'unknown',
+        count: c.count,
+      })),
+      timeSeries: Array.from(dateMap.entries()).map(([date, actions]) => ({
+        date,
+        ...actions,
+      })),
+      userVerificationStatus: {
+        emailVerified: verificationStats[0],
+        phoneVerified: verificationStats[1],
+        unverified: verificationStats[2],
+      },
+    };
+  }
+
   // ── User Retention Analytics ────────────────────────────────────
 
   async getUserRetentionAnalytics(

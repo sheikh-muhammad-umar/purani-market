@@ -1,4 +1,12 @@
-import { IsEmail, IsString, Matches, ValidateIf } from 'class-validator';
+import {
+  IsEmail,
+  IsString,
+  IsOptional,
+  IsEnum,
+  Matches,
+  ValidateIf,
+} from 'class-validator';
+import { OtpChannel } from '../../common/enums/otp-channel.enum.js';
 
 export class ResendVerificationDto {
   @ValidateIf((o: ResendVerificationDto) => !o.phone)
@@ -11,4 +19,8 @@ export class ResendVerificationDto {
     message: 'Phone number must be a valid international format',
   })
   phone?: string;
+
+  @IsOptional()
+  @IsEnum(OtpChannel, { message: 'Channel must be "sms" or "whatsapp"' })
+  channel?: OtpChannel;
 }

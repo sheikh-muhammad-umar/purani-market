@@ -84,10 +84,10 @@ export class AuthService {
     return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_VERIFY_EMAIL}`, { token });
   }
 
-  verifyPhone(phone: string, code: string): Observable<{ message: string }> {
+  verifyPhone(phone: string, otp: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_VERIFY_PHONE}`, {
       phone,
-      code,
+      otp,
     });
   }
 

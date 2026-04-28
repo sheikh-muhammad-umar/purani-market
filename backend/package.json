@@ -42,6 +42,7 @@
     "google-auth-library": "^10.6.2",
     "ioredis": "^5.10.1",
     "mongoose": "^9.3.3",
+    "nodemailer": "^8.0.7",
     "otplib": "^13.4.0",
     "passport": "^0.7.0",
     "passport-jwt": "^4.0.1",
@@ -51,6 +52,7 @@
     "sharp": "^0.34.5",
     "socket.io": "^4.8.3",
     "stripe": "^22.1.0",
+    "twilio": "^6.0.0",
     "ua-parser-js": "^2.0.9"
   },
   "devDependencies": {
@@ -66,6 +68,7 @@
     "@types/jest": "^30.0.0",
     "@types/multer": "^2.1.0",
     "@types/node": "^22.10.7",
+    "@types/nodemailer": "^8.0.0",
     "@types/passport-jwt": "^4.0.1",
     "@types/qrcode": "^1.5.6",
     "@types/supertest": "^6.0.2",

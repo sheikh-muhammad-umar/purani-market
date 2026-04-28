@@ -2,11 +2,13 @@ import {
   IsEmail,
   IsOptional,
   IsString,
+  IsEnum,
   MinLength,
   MaxLength,
   Matches,
   ValidateIf,
 } from 'class-validator';
+import { OtpChannel } from '../../common/enums/otp-channel.enum.js';
 
 export class RegisterDto {
   @ValidateIf((o: RegisterDto) => !o.phone)
@@ -35,4 +37,8 @@ export class RegisterDto {
   @IsOptional()
   @MaxLength(50)
   lastName?: string;
+
+  @IsOptional()
+  @IsEnum(OtpChannel, { message: 'Channel must be "sms" or "whatsapp"' })
+  channel?: OtpChannel;
 }

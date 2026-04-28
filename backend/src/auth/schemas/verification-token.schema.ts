@@ -1,13 +1,10 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
+import { VerificationType } from '../../common/enums/verification-type.enum.js';
+
+export { VerificationType } from '../../common/enums/verification-type.enum.js';
 
 export type VerificationTokenDocument = HydratedDocument<VerificationToken>;
-
-export enum VerificationType {
-  EMAIL = 'email',
-  PHONE = 'phone',
-  PASSWORD_RESET = 'password_reset',
-}
 
 @Schema({ timestamps: true, collection: 'verification_tokens' })
 export class VerificationToken {

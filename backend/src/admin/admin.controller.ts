@@ -301,6 +301,14 @@ export class AdminController {
     return this.adminService.getSocialLoginAnalytics(dateFrom, dateTo);
   }
 
+  @Get('analytics/otp')
+  async getOtpAnalytics(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.adminService.getOtpAnalytics(dateFrom, dateTo);
+  }
+
   @Get('analytics/retention')
   async getRetentionAnalytics(
     @Query('dateFrom') dateFrom?: string,

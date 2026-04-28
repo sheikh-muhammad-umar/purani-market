@@ -30,11 +30,14 @@ import {
 import { RegisterDto } from './dto/register.dto.js';
 import { SocialLoginDto, SocialProvider } from './dto/social-login.dto.js';
 import { EmailService } from './services/email.service.js';
-import { SmsService } from './services/sms.service.js';
+import { SmsService, OtpChannel } from './services/sms.service.js';
 import { JwtPayload } from './strategies/jwt.strategy.js';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
 import { ERROR } from '../common/constants/error-messages.js';
+import { OtpReason } from '../common/enums/otp-reason.enum.js';
+import { RecommendationService } from '../ai/recommendation.service.js';
+import { UserAction } from '../ai/enums/user-action.enum.js';
 import {
   BCRYPT_COST_FACTOR,
   EMAIL_TOKEN_EXPIRY_HOURS,
@@ -68,6 +71,7 @@ export class AuthService {
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     @InjectRedis() private readonly redis: Redis,
+    private readonly tracker: RecommendationService,
   ) {
     this.accessExpiration =
       this.configService.get<string>('jwt.accessExpiration') ?? '15m';
@@ -122,16 +126,31 @@ export class AuthService {
     // Send verification
     if (dto.email) {
       await this.sendEmailVerification(user._id, dto.email);
+      this.trackOtp(
+        UserAction.OTP_SENT,
+        user._id.toString(),
+        OtpChannel.EMAIL,
+        OtpReason.REGISTRATION,
+      );
       return {
         message:
           'Registration successful. Please check your email for verification.',
         userId: user._id.toString(),
       };
     } else {
-      await this.sendPhoneVerification(user._id, dto.phone!);
+      const channel = dto.channel || OtpChannel.SMS;
+      await this.sendPhoneVerification(user._id, dto.phone!, dto.channel);
+      this.trackOtp(
+        UserAction.OTP_SENT,
+        user._id.toString(),
+        channel,
+        OtpReason.REGISTRATION,
+      );
       return {
         message:
-          'Registration successful. Please check your phone for the OTP code.',
+          dto.channel === OtpChannel.WHATSAPP
+            ? 'Registration successful. Please check your WhatsApp for the OTP code.'
+            : 'Registration successful. Please check your phone for the OTP code.',
         userId: user._id.toString(),
       };
     }
@@ -165,6 +184,13 @@ export class AuthService {
       })
       .exec();
 
+    this.trackOtp(
+      UserAction.OTP_VERIFIED,
+      record.userId.toString(),
+      OtpChannel.EMAIL,
+      OtpReason.REGISTRATION,
+    );
+
     return { message: 'Email verified successfully' };
   }
 
@@ -177,7 +203,7 @@ export class AuthService {
     const record = await this.verificationTokenModel
       .findOne({
         userId: user._id,
-        type: VerificationType.PHONE,
+        type: { $in: [VerificationType.PHONE, VerificationType.WHATSAPP] },
         used: false,
       })
       .sort({ createdAt: -1 })
@@ -208,12 +234,24 @@ export class AuthService {
       })
       .exec();
 
+    const verifyChannel =
+      record.type === VerificationType.WHATSAPP
+        ? OtpChannel.WHATSAPP
+        : OtpChannel.SMS;
+    this.trackOtp(
+      UserAction.OTP_VERIFIED,
+      user._id.toString(),
+      verifyChannel,
+      OtpReason.REGISTRATION,
+    );
+
     return { message: 'Phone number verified successfully' };
   }
 
   async resendVerification(
     email?: string,
     phone?: string,
+    channel?: OtpChannel,
   ): Promise<{ message: string }> {
     if (!email && !phone) {
       throw new BadRequestException('Either email or phone is required');
@@ -243,7 +281,9 @@ export class AuthService {
     const recentCount = await this.verificationTokenModel
       .countDocuments({
         userId: user._id,
-        type: email ? VerificationType.EMAIL : VerificationType.PHONE,
+        type: email
+          ? VerificationType.EMAIL
+          : { $in: [VerificationType.PHONE, VerificationType.WHATSAPP] },
         createdAt: { $gte: oneHourAgo },
       })
       .exec();
@@ -259,7 +299,9 @@ export class AuthService {
       .updateMany(
         {
           userId: user._id,
-          type: email ? VerificationType.EMAIL : VerificationType.PHONE,
+          type: email
+            ? VerificationType.EMAIL
+            : { $in: [VerificationType.PHONE, VerificationType.WHATSAPP] },
           used: false,
         },
         { used: true },
@@ -269,8 +311,21 @@ export class AuthService {
     // Send new verification
     if (email) {
       await this.sendEmailVerification(user._id, email);
+      this.trackOtp(
+        UserAction.OTP_RESENT,
+        user._id.toString(),
+        OtpChannel.EMAIL,
+        OtpReason.RESEND,
+      );
     } else {
-      await this.sendPhoneVerification(user._id, phone!);
+      const resendChannel = channel || OtpChannel.SMS;
+      await this.sendPhoneVerification(user._id, phone!, channel);
+      this.trackOtp(
+        UserAction.OTP_RESENT,
+        user._id.toString(),
+        resendChannel,
+        OtpReason.RESEND,
+      );
     }
 
     return { message: 'Verification sent successfully' };
@@ -814,6 +869,13 @@ export class AuthService {
 
     await this.emailService.sendPasswordResetEmail(email, token);
 
+    this.trackOtp(
+      UserAction.OTP_SENT,
+      user._id.toString(),
+      OtpChannel.EMAIL,
+      OtpReason.PASSWORD_RESET,
+    );
+
     return { message: genericMessage };
   }
 
@@ -853,6 +915,13 @@ export class AuthService {
 
     // Invalidate all sessions by removing all refresh tokens from Redis
     await this.invalidateAllSessions(record.userId.toString());
+
+    this.trackOtp(
+      UserAction.OTP_VERIFIED,
+      record.userId.toString(),
+      OtpChannel.EMAIL,
+      OtpReason.PASSWORD_RESET,
+    );
 
     return { message: 'Password has been reset successfully' };
   }
@@ -914,6 +983,13 @@ export class AuthService {
     // Send verification email to new address
     await this.emailService.sendEmailChangeVerification(newEmail, token);
 
+    this.trackOtp(
+      UserAction.OTP_SENT,
+      userId,
+      OtpChannel.EMAIL,
+      OtpReason.EMAIL_CHANGE,
+    );
+
     return { message: 'Verification link sent to new email address' };
   }
 
@@ -969,6 +1045,14 @@ export class AuthService {
       await this.emailService.sendEmailChangeNotification(oldEmail);
     }
 
+    this.trackOtp(
+      UserAction.OTP_VERIFIED,
+      user._id.toString(),
+      OtpChannel.EMAIL,
+      OtpReason.EMAIL_CHANGE,
+      { oldEmail, newEmail },
+    );
+
     return { message: 'Email updated successfully' };
   }
 
@@ -1007,6 +1091,13 @@ export class AuthService {
 
     // Send OTP to new phone
     await this.smsService.sendOtp(newPhone, otp);
+
+    this.trackOtp(
+      UserAction.OTP_SENT,
+      userId,
+      OtpChannel.SMS,
+      OtpReason.PHONE_CHANGE,
+    );
 
     return { message: 'OTP sent to new phone number' };
   }
@@ -1067,6 +1158,14 @@ export class AuthService {
     // Invalidate all sessions
     await this.invalidateAllSessions(user._id.toString());
 
+    this.trackOtp(
+      UserAction.OTP_VERIFIED,
+      userId,
+      OtpChannel.SMS,
+      OtpReason.PHONE_CHANGE,
+      { newPhone },
+    );
+
     return { message: 'Phone number updated successfully' };
   }
 
@@ -1110,6 +1209,7 @@ export class AuthService {
   private async sendPhoneVerification(
     userId: Types.ObjectId,
     phone: string,
+    channel: OtpChannel = OtpChannel.SMS,
   ): Promise<void> {
     const otp = this.generateOtp();
     const otpHash = await bcrypt.hash(otp, BCRYPT_COST_FACTOR);
@@ -1117,14 +1217,19 @@ export class AuthService {
       Date.now() + PHONE_OTP_EXPIRY_MINUTES * 60 * 1000,
     );
 
+    const tokenType =
+      channel === OtpChannel.WHATSAPP
+        ? VerificationType.WHATSAPP
+        : VerificationType.PHONE;
+
     await this.verificationTokenModel.create({
       userId,
-      type: VerificationType.PHONE,
+      type: tokenType,
       token: otpHash,
       expiresAt,
     });
 
-    await this.smsService.sendOtp(phone, otp);
+    await this.smsService.sendOtp(phone, otp, channel);
   }
 
   private generateOtp(): string {
@@ -1187,5 +1292,22 @@ export class AuthService {
       default:
         return 900;
     }
+  }
+
+  /** Fire-and-forget OTP event tracking */
+  private trackOtp(
+    action: UserAction,
+    userId: string | undefined,
+    channel: string,
+    reason: OtpReason,
+    extra: Record<string, any> = {},
+  ): void {
+    this.tracker
+      .trackActivity(userId, action, {
+        metadata: { channel, reason, ...extra },
+      })
+      .catch((err) =>
+        this.logger.warn(`OTP tracking failed: ${(err as Error).message}`),
+      );
   }
 }

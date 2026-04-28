@@ -15,6 +15,7 @@ import { SmsService } from './services/sms.service.js';
 import { User } from '../users/schemas/user.schema.js';
 import { VerificationToken } from './schemas/verification-token.schema.js';
 import { SocialProvider } from './dto/social-login.dto.js';
+import { RecommendationService } from '../ai/recommendation.service.js';
 import * as bcrypt from 'bcrypt';
 
 describe('AuthService', () => {
@@ -90,6 +91,10 @@ describe('AuthService', () => {
         {
           provide: 'default_IORedisModuleConnectionToken',
           useValue: mockRedis,
+        },
+        {
+          provide: RecommendationService,
+          useValue: { trackActivity: jest.fn().mockResolvedValue(undefined) },
         },
       ],
     }).compile();
