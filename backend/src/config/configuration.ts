@@ -69,6 +69,15 @@ export default () => ({
     whatsappNumber: process.env.TWILIO_WHATSAPP_NUMBER || '',
   },
 
+  listing: {
+    activeDays: parseInt(process.env.LISTING_ACTIVE_DAYS || '30', 10),
+    deactivatedCleanupDays: parseInt(
+      process.env.LISTING_DEACTIVATED_CLEANUP_DAYS || '7',
+      10,
+    ),
+    defaultAdLimit: parseInt(process.env.DEFAULT_AD_LIMIT || '10', 10),
+  },
+
   payments: {
     jazzcash: {
       merchantId: process.env.JAZZCASH_MERCHANT_ID || '',

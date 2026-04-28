@@ -1,7 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { Types } from 'mongoose';
-import { NotificationsService } from './notifications.service';
+import {
+  NotificationsService,
+  NotificationType,
+} from './notifications.service';
 import { FcmProvider } from './providers/fcm.provider';
 import { HmsProvider } from './providers/hms.provider';
 import { User } from '../users/schemas/user.schema';
@@ -69,10 +72,14 @@ describe('NotificationsService', () => {
 
   describe('sendToUser', () => {
     it('should send notification via FCM for android/ios tokens', async () => {
-      const result = await service.sendToUser(userId.toString(), 'messages', {
-        title: 'Test',
-        body: 'Test body',
-      });
+      const result = await service.sendToUser(
+        userId.toString(),
+        NotificationType.MESSAGES,
+        {
+          title: 'Test',
+          body: 'Test body',
+        },
+      );
 
       expect(result).toBe(true);
       expect(fcmProvider.sendToMultipleDevices).toHaveBeenCalledWith(
@@ -93,7 +100,7 @@ describe('NotificationsService', () => {
         ),
       });
 
-      await service.sendToUser(userId.toString(), 'messages', {
+      await service.sendToUser(userId.toString(), NotificationType.MESSAGES, {
         title: 'Test',
         body: 'Body',
       });
@@ -113,10 +120,14 @@ describe('NotificationsService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      const result = await service.sendToUser(userId.toString(), 'messages', {
-        title: 'Test',
-        body: 'Body',
-      });
+      const result = await service.sendToUser(
+        userId.toString(),
+        NotificationType.MESSAGES,
+        {
+          title: 'Test',
+          body: 'Body',
+        },
+      );
 
       expect(result).toBe(false);
       expect(fcmProvider.sendToMultipleDevices).not.toHaveBeenCalled();
@@ -127,10 +138,14 @@ describe('NotificationsService', () => {
         exec: jest.fn().mockResolvedValue(createMockUser({ deviceTokens: [] })),
       });
 
-      const result = await service.sendToUser(userId.toString(), 'messages', {
-        title: 'Test',
-        body: 'Body',
-      });
+      const result = await service.sendToUser(
+        userId.toString(),
+        NotificationType.MESSAGES,
+        {
+          title: 'Test',
+          body: 'Body',
+        },
+      );
 
       expect(result).toBe(false);
     });
@@ -150,10 +165,14 @@ describe('NotificationsService', () => {
         ),
       });
 
-      const result = await service.sendToUser(userId.toString(), 'messages', {
-        title: 'Test',
-        body: 'Body',
-      });
+      const result = await service.sendToUser(
+        userId.toString(),
+        NotificationType.MESSAGES,
+        {
+          title: 'Test',
+          body: 'Body',
+        },
+      );
 
       expect(result).toBe(false);
       expect(fcmProvider.sendToMultipleDevices).not.toHaveBeenCalled();
@@ -163,7 +182,9 @@ describe('NotificationsService', () => {
   describe('isNotificationEnabled', () => {
     it('should return true when preference is enabled', () => {
       const user = createMockUser();
-      expect(service.isNotificationEnabled(user, 'messages')).toBe(true);
+      expect(
+        service.isNotificationEnabled(user, NotificationType.MESSAGES),
+      ).toBe(true);
     });
 
     it('should return false when preference is disabled', () => {
@@ -176,14 +197,18 @@ describe('NotificationsService', () => {
           packageAlerts: true,
         },
       });
-      expect(service.isNotificationEnabled(user, 'messages')).toBe(false);
+      expect(
+        service.isNotificationEnabled(user, NotificationType.MESSAGES),
+      ).toBe(false);
     });
 
     it('should default to true when preferences are missing', () => {
       const user = createMockUser({
         notificationPreferences: undefined,
       });
-      expect(service.isNotificationEnabled(user, 'messages')).toBe(true);
+      expect(
+        service.isNotificationEnabled(user, NotificationType.MESSAGES),
+      ).toBe(true);
     });
   });
 
@@ -197,11 +222,15 @@ describe('NotificationsService', () => {
         'conv-123',
       );
 
-      expect(spy).toHaveBeenCalledWith(userId.toString(), 'messages', {
-        title: 'New message from John',
-        body: 'Hello!',
-        data: { type: 'new_message', conversationId: 'conv-123' },
-      });
+      expect(spy).toHaveBeenCalledWith(
+        userId.toString(),
+        NotificationType.MESSAGES,
+        {
+          title: 'New message from John',
+          body: 'Hello!',
+          data: { type: 'new_message', conversationId: 'conv-123' },
+        },
+      );
     });
   });
 

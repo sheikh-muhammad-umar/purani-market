@@ -95,4 +95,10 @@ export enum UserAction {
   PACKAGED_LISTING_DELETED = 'packaged_listing_deleted',
   PACKAGED_LISTING_DEACTIVATED = 'packaged_listing_deactivated',
   PACKAGED_LISTING_SOLD = 'packaged_listing_sold',
+
+  // Listing lifecycle
+  LISTING_EXPIRED = 'listing_expired',
+  LISTING_DEACTIVATED_CLEANUP = 'listing_deactivated_cleanup',
+  AD_SLOTS_PACKAGE_EXPIRED = 'ad_slots_package_expired',
+  STALE_PAYMENT_FAILED = 'stale_payment_failed',
 }

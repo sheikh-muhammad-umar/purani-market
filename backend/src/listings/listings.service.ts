@@ -9,6 +9,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
+import { ConfigService } from '@nestjs/config';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { createHash } from 'crypto';
@@ -16,6 +17,7 @@ import {
   DEFAULT_CURRENCY,
   VIEW_DEDUP_PREFIX,
   VIEW_DEDUP_WINDOW_SECONDS,
+  LISTING_ACTIVE_DAYS,
 } from '../common/constants/index.js';
 import { ERROR } from '../common/constants/error-messages.js';
 import {
@@ -57,6 +59,7 @@ export type { PaginatedListings };
 @Injectable()
 export class ListingsService {
   private readonly logger = new Logger(ListingsService.name);
+  private readonly activeDays: number;
 
   constructor(
     @InjectModel(ProductListing.name)
@@ -78,7 +81,12 @@ export class ListingsService {
     @Inject(forwardRef(() => PackagesService))
     private readonly packagesService: PackagesService,
     private readonly adminTrackerService: AdminTrackerService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.activeDays =
+      this.configService.get<number>('listing.activeDays') ??
+      LISTING_ACTIVE_DAYS;
+  }
 
   async findAll(
     page = 1,
@@ -438,12 +446,27 @@ export class ListingsService {
         'Cannot update status of a deleted listing',
       );
     }
+    const updateFields: Record<string, any> = {
+      status,
+      updatedAt: new Date(),
+    };
+    if (status === AllowedStatusTransition.INACTIVE) {
+      updateFields.deactivatedAt = new Date();
+    } else {
+      updateFields.deactivatedAt = null;
+    }
+    // Re-activate expired or inactive listings: reset expiresAt to 30 days from now
+    if (
+      status === AllowedStatusTransition.ACTIVE &&
+      (listing.status === ListingStatus.EXPIRED ||
+        listing.status === ListingStatus.INACTIVE)
+    ) {
+      updateFields.expiresAt = new Date(
+        Date.now() + this.activeDays * 24 * 60 * 60 * 1000,
+      );
+    }
     const updated = await this.listingModel
-      .findByIdAndUpdate(
-        id,
-        { $set: { status, updatedAt: new Date() } },
-        { new: true },
-      )
+      .findByIdAndUpdate(id, { $set: updateFields }, { new: true })
       .exec();
     if (!updated) {
       throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
@@ -491,9 +514,16 @@ export class ListingsService {
     if (!updated) {
       throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
-    await this.userModel
-      .updateOne({ _id: listing.sellerId }, { $inc: { activeAdCount: -1 } })
-      .exec();
+    // Only decrement activeAdCount if the listing was in a state that counts as active
+    if (
+      listing.status === ListingStatus.ACTIVE ||
+      listing.status === ListingStatus.RESERVED ||
+      listing.status === ListingStatus.PENDING_REVIEW
+    ) {
+      await this.userModel
+        .updateOne({ _id: listing.sellerId }, { $inc: { activeAdCount: -1 } })
+        .exec();
+    }
 
     // Track packaged listing deletion
     if (listing.purchaseId) {
@@ -637,6 +667,12 @@ export class ListingsService {
       status,
     });
 
+    // Set default expiry — will be overridden if a package extends it
+    const expiresAt = new Date(
+      Date.now() + this.activeDays * 24 * 60 * 60 * 1000,
+    );
+    listing.expiresAt = expiresAt;
+
     // Apply package if purchaseId is provided
     if (dto.purchaseId) {
       const { purchase, packageDoc } =
@@ -650,6 +686,10 @@ export class ListingsService {
       if (packageDoc.type === AdPackageType.FEATURED_ADS) {
         listing.isFeatured = true;
         listing.featuredUntil = purchase.expiresAt;
+      }
+      // Extend listing expiry to match package expiry if longer
+      if (purchase.expiresAt && purchase.expiresAt > listing.expiresAt!) {
+        listing.expiresAt = purchase.expiresAt;
       }
     }
 

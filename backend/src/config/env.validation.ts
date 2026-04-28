@@ -43,6 +43,21 @@ class EnvironmentVariables {
   @IsString()
   @IsOptional()
   JWT_SECRET = 'your-jwt-secret-change-in-production';
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  LISTING_ACTIVE_DAYS = 30;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  LISTING_DEACTIVATED_CLEANUP_DAYS = 7;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  DEFAULT_AD_LIMIT = 10;
 }
 
 export function validate(config: Record<string, unknown>) {

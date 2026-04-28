@@ -6,6 +6,7 @@ export type ListingStatus =
   | 'rejected'
   | 'sold'
   | 'reserved'
+  | 'expired'
   | 'deleted';
 
 export interface ListingPrice {
@@ -71,6 +72,8 @@ export interface Listing {
   viewCount: number;
   favoriteCount: number;
   deletedAt?: Date;
+  expiresAt?: Date;
+  deactivatedAt?: Date;
   createdAt: Date;
   updatedAt: Date;
   sellerEmailVerified?: boolean;

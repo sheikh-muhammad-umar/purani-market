@@ -12,13 +12,18 @@ import {
   FavoriteDocument,
 } from '../favorites/schemas/favorite.schema.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import {
+  LISTING_ACTIVE_DAYS,
+  LISTING_DEACTIVATED_CLEANUP_DAYS,
+} from '../common/constants/index.js';
 
-export type NotificationType =
-  | 'messages'
-  | 'offers'
-  | 'productUpdates'
-  | 'promotions'
-  | 'packageAlerts';
+export enum NotificationType {
+  MESSAGES = 'messages',
+  OFFERS = 'offers',
+  PRODUCT_UPDATES = 'productUpdates',
+  PROMOTIONS = 'promotions',
+  PACKAGE_ALERTS = 'packageAlerts',
+}
 
 @Injectable()
 export class NotificationsService {
@@ -115,7 +120,7 @@ export class NotificationsService {
     messagePreview: string,
     conversationId: string,
   ): Promise<boolean> {
-    return this.sendToUser(recipientUserId, 'messages', {
+    return this.sendToUser(recipientUserId, NotificationType.MESSAGES, {
       title: `New message from ${senderName}`,
       body: messagePreview,
       data: { type: 'new_message', conversationId },
@@ -129,7 +134,7 @@ export class NotificationsService {
     newPrice: number,
     listingId: string,
   ): Promise<boolean> {
-    return this.sendToUser(userId, 'productUpdates', {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
       title: 'Price drop on a favorited item!',
       body: `${listingTitle} dropped from Rs ${oldPrice} to Rs ${newPrice}`,
       data: { type: 'price_drop', listingId },
@@ -142,7 +147,7 @@ export class NotificationsService {
     newStatus: string,
     listingId: string,
   ): Promise<boolean> {
-    return this.sendToUser(userId, 'productUpdates', {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
       title: 'Listing status updated',
       body: `${listingTitle} is now ${newStatus}`,
       data: { type: 'status_change', listingId, status: newStatus },
@@ -155,7 +160,7 @@ export class NotificationsService {
     listingTitle: string,
     listingId: string,
   ): Promise<boolean> {
-    return this.sendToUser(sellerUserId, 'offers', {
+    return this.sendToUser(sellerUserId, NotificationType.OFFERS, {
       title: 'New offer received',
       body: `${buyerName} is interested in "${listingTitle}"`,
       data: { type: 'new_offer', listingId },
@@ -167,7 +172,7 @@ export class NotificationsService {
     packageName: string,
     amount: number,
   ): Promise<boolean> {
-    return this.sendToUser(userId, 'packageAlerts', {
+    return this.sendToUser(userId, NotificationType.PACKAGE_ALERTS, {
       title: 'Payment successful',
       body: `Your purchase of "${packageName}" (Rs ${amount}) was successful`,
       data: { type: 'payment_success' },
@@ -175,7 +180,7 @@ export class NotificationsService {
   }
 
   async sendAdLimitReachedNotification(userId: string): Promise<boolean> {
-    return this.sendToUser(userId, 'packageAlerts', {
+    return this.sendToUser(userId, NotificationType.PACKAGE_ALERTS, {
       title: 'Free ad limit reached',
       body: 'You have reached your free ad limit. Purchase a package to post more ads.',
       data: { type: 'ad_limit_reached' },
@@ -187,7 +192,7 @@ export class NotificationsService {
     listingTitle: string,
     listingId: string,
   ): Promise<boolean> {
-    return this.sendToUser(userId, 'packageAlerts', {
+    return this.sendToUser(userId, NotificationType.PACKAGE_ALERTS, {
       title: 'Your ad is now featured!',
       body: `"${listingTitle}" is now a featured ad and will appear at the top of search results`,
       data: { type: 'featured_ad_activated', listingId },
@@ -200,10 +205,128 @@ export class NotificationsService {
     listingId: string,
     daysRemaining: number,
   ): Promise<boolean> {
-    return this.sendToUser(userId, 'packageAlerts', {
+    return this.sendToUser(userId, NotificationType.PACKAGE_ALERTS, {
       title: 'Featured ad expiring soon',
       body: `"${listingTitle}" featured status expires in ${daysRemaining} day(s)`,
       data: { type: 'featured_ad_expiring', listingId },
+    });
+  }
+
+  async sendListingExpirationReminder(
+    userId: string,
+    listingTitle: string,
+    listingId: string,
+    daysRemaining: number,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'Listing expiring soon',
+      body: `"${listingTitle}" will expire in ${daysRemaining} day(s). Renew it to keep it active.`,
+      data: { type: 'listing_expiring', listingId },
+    });
+  }
+
+  async sendListingExpiredNotification(
+    userId: string,
+    listingTitle: string,
+    listingId: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'Listing expired',
+      body: `"${listingTitle}" has expired after ${LISTING_ACTIVE_DAYS} days. Reactivate it from your listings.`,
+      data: { type: 'listing_expired', listingId },
+    });
+  }
+
+  async sendPackageExpirationReminder(
+    userId: string,
+    packageName: string,
+    remainingQuantity: number,
+    daysRemaining: number,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PACKAGE_ALERTS, {
+      title: 'Package expiring soon',
+      body: `Your "${packageName}" package expires in ${daysRemaining} day(s) with ${remainingQuantity} unused slot(s).`,
+      data: { type: 'package_expiring' },
+    });
+  }
+
+  async sendAdSlotsExpiredNotification(
+    userId: string,
+    packageName: string,
+    slotsLost: number,
+    newAdLimit: number,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PACKAGE_ALERTS, {
+      title: 'Ad slots package expired',
+      body: `Your "${packageName}" package has expired. Your ad limit has been reduced by ${slotsLost} to ${newAdLimit}.`,
+      data: { type: 'ad_slots_expired' },
+    });
+  }
+
+  async sendDeactivatedListingCleanupNotification(
+    userId: string,
+    listingTitle: string,
+    listingId: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'Inactive listing removed',
+      body: `"${listingTitle}" was removed after being inactive for ${LISTING_DEACTIVATED_CLEANUP_DAYS} days.`,
+      data: { type: 'deactivated_cleanup', listingId },
+    });
+  }
+
+  async sendStalePaymentFailedNotification(
+    userId: string,
+    purchaseId: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PACKAGE_ALERTS, {
+      title: 'Payment expired',
+      body: 'Your pending package payment was not completed within 24 hours and has been cancelled.',
+      data: { type: 'stale_payment_failed', purchaseId },
+    });
+  }
+
+  async sendReservedListingRevertedNotification(
+    userId: string,
+    listingTitle: string,
+    listingId: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'Reserved listing reactivated',
+      body: `"${listingTitle}" was automatically reactivated after being reserved for 14 days.`,
+      data: { type: 'reserved_reverted', listingId },
+    });
+  }
+
+  async sendRejectedListingCleanupNotification(
+    userId: string,
+    listingTitle: string,
+    listingId: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'Rejected listing removed',
+      body: `"${listingTitle}" was removed after reaching the maximum rejection limit without resubmission.`,
+      data: { type: 'rejected_cleanup', listingId },
+    });
+  }
+
+  async sendListingAutoApprovedNotification(
+    userId: string,
+    listingTitle: string,
+    listingId: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'Listing approved',
+      body: `"${listingTitle}" has been automatically approved and is now live.`,
+      data: { type: 'listing_auto_approved', listingId },
+    });
+  }
+
+  async sendAccountSuspendedNotification(userId: string): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'Account suspended',
+      body: 'Your account has been suspended. All your active listings have been deactivated.',
+      data: { type: 'account_suspended' },
     });
   }
 

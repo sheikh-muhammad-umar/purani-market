@@ -24,6 +24,7 @@ export enum ListingStatus {
   REJECTED = 'rejected',
   SOLD = 'sold',
   RESERVED = 'reserved',
+  EXPIRED = 'expired',
   DELETED = 'deleted',
 }
 

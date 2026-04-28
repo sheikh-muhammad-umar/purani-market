@@ -6,6 +6,8 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Category } from '../categories/schemas/category.schema.js';
+import { LISTING_ACTIVE_DAYS } from '../common/constants/index.js';
+import { ConfigService } from '@nestjs/config';
 import {
   User,
   UserDocument,
@@ -28,7 +30,10 @@ import {
   PaymentStatus,
 } from '../packages/schemas/package-purchase.schema.js';
 import { AuthService } from '../auth/auth.service.js';
-import { NotificationsService } from '../notifications/notifications.service.js';
+import {
+  NotificationsService,
+  NotificationType,
+} from '../notifications/notifications.service.js';
 import { ListUsersQueryDto } from './dto/list-users-query.dto.js';
 import { ListPurchasesQueryDto } from './dto/list-purchases-query.dto.js';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto.js';
@@ -70,6 +75,8 @@ export type {
 
 @Injectable()
 export class AdminService {
+  private readonly activeDays: number;
+
   constructor(
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
@@ -93,7 +100,12 @@ export class AdminService {
     private readonly idVerificationModel: Model<IdVerificationDocument>,
     private readonly authService: AuthService,
     private readonly notificationsService: NotificationsService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.activeDays =
+      this.configService.get<number>('listing.activeDays') ??
+      LISTING_ACTIVE_DAYS;
+  }
 
   async listUsers(query: ListUsersQueryDto): Promise<PaginatedUsers> {
     const {
@@ -341,6 +353,46 @@ export class AdminService {
 
     if (status === UserStatus.SUSPENDED) {
       await this.authService.invalidateAllSessions(userId);
+
+      // Count active listings before deactivating (for activeAdCount reset)
+      const activeCount = await this.listingModel
+        .countDocuments({
+          sellerId: new Types.ObjectId(userId),
+          status: ListingStatus.ACTIVE,
+        })
+        .exec();
+
+      // Deactivate all active listings and unfeature them
+      await this.listingModel.updateMany(
+        {
+          sellerId: new Types.ObjectId(userId),
+          status: ListingStatus.ACTIVE,
+        },
+        {
+          $set: {
+            status: ListingStatus.INACTIVE,
+            deactivatedAt: new Date(),
+            isFeatured: false,
+            updatedAt: new Date(),
+          },
+          $unset: { featuredUntil: '' },
+        },
+      );
+
+      // Reset activeAdCount to 0 since all listings are now inactive
+      if (activeCount > 0) {
+        await this.userModel
+          .updateOne(
+            { _id: new Types.ObjectId(userId) },
+            { $inc: { activeAdCount: -activeCount } },
+          )
+          .exec();
+      }
+
+      // Notify the seller
+      this.notificationsService
+        .sendAccountSuspendedNotification(userId)
+        .catch(() => {});
     }
 
     return user;
@@ -537,6 +589,10 @@ export class AdminService {
     }
 
     listing.status = ListingStatus.ACTIVE;
+    // Start the expiry clock from approval, not creation
+    listing.expiresAt = new Date(
+      Date.now() + this.activeDays * 24 * 60 * 60 * 1000,
+    );
     await listing.save();
 
     return listing;
@@ -578,7 +634,7 @@ export class AdminService {
       reasonTitles.join(', ') + (customNote ? `. Note: ${customNote}` : '');
     await this.notificationsService.sendToUser(
       listing.sellerId.toString(),
-      'productUpdates',
+      NotificationType.PRODUCT_UPDATES,
       {
         title: 'Listing rejected',
         body: `Your listing "${listing.title}" was rejected. Reasons: ${reasonText}`,

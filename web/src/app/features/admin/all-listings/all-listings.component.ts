@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -6,6 +6,7 @@ import { AdminService } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { LocationService } from '../../../core/services/location.service';
 import { saveState, loadState } from '../../../core/utils/state-persistence';
+import { ListingStatus } from '../../../core/constants/enums';
 import {
   CustomSelectComponent,
   SelectOption,
@@ -64,6 +65,7 @@ export class AllListingsComponent implements OnInit {
     { value: 'rejected', label: 'Rejected' },
     { value: 'sold', label: 'Sold' },
     { value: 'inactive', label: 'Inactive' },
+    { value: 'expired', label: 'Expired' },
     { value: 'deleted', label: 'Deleted' },
   ];
 
@@ -273,15 +275,17 @@ export class AllListingsComponent implements OnInit {
     return l.price ? `${l.price.currency} ${l.price.amount.toLocaleString()}` : '—';
   }
 
+  private static readonly STATUS_COLOR_MAP: Record<string, string> = {
+    [ListingStatus.ACTIVE]: '#00B894',
+    [ListingStatus.PENDING_REVIEW]: '#F39C12',
+    [ListingStatus.REJECTED]: '#E74C3C',
+    [ListingStatus.SOLD]: '#6C5CE7',
+    [ListingStatus.INACTIVE]: '#636e72',
+    [ListingStatus.EXPIRED]: '#F39C12',
+    [ListingStatus.DELETED]: '#E74C3C',
+  };
+
   getStatusColor(status: string): string {
-    const map: Record<string, string> = {
-      active: '#00B894',
-      pending_review: '#F39C12',
-      rejected: '#E74C3C',
-      sold: '#6C5CE7',
-      inactive: '#636e72',
-      deleted: '#E74C3C',
-    };
-    return map[status] || '#636e72';
+    return AllListingsComponent.STATUS_COLOR_MAP[status] || '#636e72';
   }
 }

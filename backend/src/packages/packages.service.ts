@@ -448,17 +448,20 @@ export class PackagesService {
       { $inc: { remainingQuantity: -1 } },
     );
 
+    const updateFields: Record<string, any> = {
+      isFeatured: true,
+      featuredUntil: activePurchase.expiresAt,
+    };
+    // Extend listing expiry to match package expiry if longer
+    if (
+      activePurchase.expiresAt &&
+      (!listing.expiresAt || activePurchase.expiresAt > listing.expiresAt)
+    ) {
+      updateFields.expiresAt = activePurchase.expiresAt;
+    }
+
     const updated = await this.listingModel
-      .findByIdAndUpdate(
-        listingId,
-        {
-          $set: {
-            isFeatured: true,
-            featuredUntil: activePurchase.expiresAt,
-          },
-        },
-        { new: true },
-      )
+      .findByIdAndUpdate(listingId, { $set: updateFields }, { new: true })
       .exec();
 
     return updated!;

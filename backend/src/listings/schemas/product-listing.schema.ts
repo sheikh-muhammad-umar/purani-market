@@ -17,6 +17,7 @@ export enum ListingStatus {
   REJECTED = 'rejected',
   SOLD = 'sold',
   RESERVED = 'reserved',
+  EXPIRED = 'expired',
   DELETED = 'deleted',
 }
 
@@ -222,6 +223,12 @@ export class ProductListing {
   @Prop({ type: String })
   deletionReason?: string;
 
+  @Prop({ type: Date })
+  expiresAt?: Date;
+
+  @Prop({ type: Date })
+  deactivatedAt?: Date;
+
   createdAt!: Date;
   updatedAt!: Date;
 }
@@ -244,3 +251,5 @@ ProductListingSchema.index({ vehicleBrandId: 1 });
 ProductListingSchema.index({ modelId: 1 });
 ProductListingSchema.index({ vehicleBrandId: 1, modelId: 1 });
 ProductListingSchema.index({ purchaseId: 1 });
+ProductListingSchema.index({ status: 1, expiresAt: 1 });
+ProductListingSchema.index({ status: 1, deactivatedAt: 1 });

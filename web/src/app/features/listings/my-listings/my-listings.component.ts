@@ -165,6 +165,7 @@ export class MyListingsComponent implements OnInit {
     [ListingStatus.RESERVED]: 'badge-warning',
     [ListingStatus.REJECTED]: 'badge-error',
     [ListingStatus.PENDING_REVIEW]: 'badge-pending',
+    [ListingStatus.EXPIRED]: 'badge-inactive',
   };
 
   getStatusBadgeClass(status: string): string {
