@@ -27,14 +27,11 @@ import { AdminTrackerService } from '../ai/admin-tracker.service.js';
 import { UserAction } from '../ai/enums/user-action.enum.js';
 import { SearchSyncService } from '../search/search-sync.service.js';
 import {
-  LISTING_ACTIVE_DAYS,
-  LISTING_DEACTIVATED_CLEANUP_DAYS,
   LISTING_EXPIRY_REMINDER_DAYS,
   PACKAGE_EXPIRY_REMINDER_DAYS,
   FEATURED_EXPIRY_REMINDER_DAYS,
   STALE_PENDING_PAYMENT_HOURS,
   STALE_RESERVED_DAYS,
-  DEFAULT_AD_LIMIT,
   MAX_REJECTION_COUNT,
   STALE_PENDING_REVIEW_DAYS,
   DELETION_REASON_INACTIVE_CLEANUP,
@@ -62,15 +59,13 @@ export class ListingLifecycleService {
     private readonly searchSyncService: SearchSyncService,
     private readonly configService: ConfigService,
   ) {
-    this.activeDays =
-      this.configService.get<number>('listing.activeDays') ??
-      LISTING_ACTIVE_DAYS;
-    this.deactivatedCleanupDays =
-      this.configService.get<number>('listing.deactivatedCleanupDays') ??
-      LISTING_DEACTIVATED_CLEANUP_DAYS;
-    this.defaultAdLimit =
-      this.configService.get<number>('listing.defaultAdLimit') ??
-      DEFAULT_AD_LIMIT;
+    this.activeDays = this.configService.get<number>('listing.activeDays')!;
+    this.deactivatedCleanupDays = this.configService.get<number>(
+      'listing.deactivatedCleanupDays',
+    )!;
+    this.defaultAdLimit = this.configService.get<number>(
+      'listing.defaultAdLimit',
+    )!;
   }
 
   // ─── 1. Expire active listings after 30 days (no package) ───

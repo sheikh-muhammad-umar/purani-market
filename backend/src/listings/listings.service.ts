@@ -17,7 +17,6 @@ import {
   DEFAULT_CURRENCY,
   VIEW_DEDUP_PREFIX,
   VIEW_DEDUP_WINDOW_SECONDS,
-  LISTING_ACTIVE_DAYS,
 } from '../common/constants/index.js';
 import { ERROR } from '../common/constants/error-messages.js';
 import {
@@ -83,9 +82,7 @@ export class ListingsService {
     private readonly adminTrackerService: AdminTrackerService,
     private readonly configService: ConfigService,
   ) {
-    this.activeDays =
-      this.configService.get<number>('listing.activeDays') ??
-      LISTING_ACTIVE_DAYS;
+    this.activeDays = this.configService.get<number>('listing.activeDays')!;
   }
 
   async findAll(

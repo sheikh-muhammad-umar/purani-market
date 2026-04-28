@@ -36,6 +36,7 @@ import {
   PaymentStatus,
 } from '../packages/schemas/package-purchase.schema';
 import { AdminTrackerService } from '../ai/admin-tracker.service';
+import { ConfigService } from '@nestjs/config';
 
 // Arbitrary for the transition type to exercise
 const arbTransitionType = fc.constantFrom(
@@ -238,6 +239,17 @@ describe('Property 6: Permanent Consumption (Non-Restoration)', () => {
               {
                 provide: AdminTrackerService,
                 useValue: { track: jest.fn().mockResolvedValue(undefined) },
+              },
+              {
+                provide: ConfigService,
+                useValue: {
+                  get: jest.fn((key: string) => {
+                    const config: Record<string, any> = {
+                      'listing.activeDays': 30,
+                    };
+                    return config[key];
+                  }),
+                },
               },
             ],
           }).compile();

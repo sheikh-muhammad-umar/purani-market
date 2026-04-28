@@ -11,6 +11,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { InjectRedis } from '@nestjs-modules/ioredis';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import Redis from 'ioredis';
 import { Model, Types } from 'mongoose';
 import * as bcrypt from 'bcrypt';
@@ -331,6 +332,9 @@ export class AuthService {
     return { message: 'Verification sent successfully' };
   }
 
+  // ─── Cron: Send reminders to unverified accounts ───
+
+  @Cron(CronExpression.EVERY_DAY_AT_9AM)
   async checkUnverifiedAccounts(): Promise<void> {
     const reminderThreshold = new Date(
       Date.now() - UNVERIFIED_REMINDER_HOURS * 60 * 60 * 1000,
@@ -358,6 +362,75 @@ export class AuthService {
     this.logger.log(
       `Sent reminders to ${unverifiedUsers.length} unverified accounts`,
     );
+  }
+
+  // ─── Cron: Cleanup expired verification tokens ───
+
+  @Cron(CronExpression.EVERY_DAY_AT_2AM)
+  async cleanupExpiredVerificationTokens(): Promise<void> {
+    const result = await this.verificationTokenModel
+      .deleteMany({
+        $or: [{ expiresAt: { $lte: new Date() } }, { used: true }],
+      })
+      .exec();
+
+    if (result.deletedCount > 0) {
+      this.logger.log(
+        `Cleaned up ${result.deletedCount} expired/used verification tokens`,
+      );
+    }
+  }
+
+  // ─── Cron: Cleanup expired pending email/phone changes ───
+
+  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  async cleanupExpiredPendingChanges(): Promise<void> {
+    const now = new Date();
+
+    const emailResult = await this.userModel
+      .updateMany(
+        { 'pendingEmailChange.expiresAt': { $lte: now } },
+        { $unset: { pendingEmailChange: '' } },
+      )
+      .exec();
+
+    const phoneResult = await this.userModel
+      .updateMany(
+        { 'pendingPhoneChange.expiresAt': { $lte: now } },
+        { $unset: { pendingPhoneChange: '' } },
+      )
+      .exec();
+
+    const total = emailResult.modifiedCount + phoneResult.modifiedCount;
+    if (total > 0) {
+      this.logger.log(
+        `Cleaned up ${emailResult.modifiedCount} expired email changes, ${phoneResult.modifiedCount} expired phone changes`,
+      );
+    }
+  }
+
+  // ─── Cron: Unlock expired MFA lockouts ───
+
+  @Cron(CronExpression.EVERY_HOUR)
+  async unlockExpiredMfaLockouts(): Promise<void> {
+    const now = new Date();
+
+    const result = await this.userModel
+      .updateMany(
+        {
+          'mfa.enabled': true,
+          'mfa.lockedUntil': { $lte: now },
+        },
+        {
+          $set: { 'mfa.failedAttempts': 0 },
+          $unset: { 'mfa.lockedUntil': '' },
+        },
+      )
+      .exec();
+
+    if (result.modifiedCount > 0) {
+      this.logger.log(`Unlocked ${result.modifiedCount} expired MFA lockouts`);
+    }
   }
 
   async login(

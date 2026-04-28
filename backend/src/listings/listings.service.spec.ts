@@ -24,6 +24,7 @@ import { VehicleModelService } from '../brands/vehicle-model.service';
 import { VehicleVariantService } from '../brands/vehicle-variant.service';
 import { PackagesService } from '../packages/packages.service';
 import { AdminTrackerService } from '../ai/admin-tracker.service';
+import { ConfigService } from '@nestjs/config';
 
 describe('ListingsService', () => {
   let service: ListingsService;
@@ -248,6 +249,17 @@ describe('ListingsService', () => {
         {
           provide: AdminTrackerService,
           useValue: { track: jest.fn().mockResolvedValue(undefined) },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              const config: Record<string, any> = {
+                'listing.activeDays': 30,
+              };
+              return config[key];
+            }),
+          },
         },
       ],
     }).compile();

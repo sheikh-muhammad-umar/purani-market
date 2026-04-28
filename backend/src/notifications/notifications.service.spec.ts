@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
+import { ConfigService } from '@nestjs/config';
 import { Types } from 'mongoose';
 import {
   NotificationsService,
@@ -59,6 +60,18 @@ describe('NotificationsService', () => {
         HmsProvider,
         { provide: getModelToken(User.name), useValue: mockUserModel },
         { provide: getModelToken(Favorite.name), useValue: mockFavoriteModel },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              const config: Record<string, any> = {
+                'listing.activeDays': 30,
+                'listing.deactivatedCleanupDays': 7,
+              };
+              return config[key];
+            }),
+          },
+        },
       ],
     }).compile();
 

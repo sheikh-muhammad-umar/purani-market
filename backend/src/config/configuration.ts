@@ -78,6 +78,20 @@ export default () => ({
     defaultAdLimit: parseInt(process.env.DEFAULT_AD_LIMIT || '10', 10),
   },
 
+  review: {
+    stalePendingModerationDays: parseInt(
+      process.env.STALE_PENDING_REVIEW_MODERATION_DAYS || '14',
+      10,
+    ),
+  },
+
+  idVerification: {
+    staleVerificationDays: parseInt(
+      process.env.STALE_ID_VERIFICATION_DAYS || '30',
+      10,
+    ),
+  },
+
   payments: {
     jazzcash: {
       merchantId: process.env.JAZZCASH_MERCHANT_ID || '',

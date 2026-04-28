@@ -3,6 +3,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { ConfigModule, ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { UsersModule } from '../users/users.module.js';
 import { AiModule } from '../ai/ai.module.js';
 import {
@@ -18,6 +19,7 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
 
 @Module({
   imports: [
+    ScheduleModule.forRoot(),
     UsersModule,
     forwardRef(() => AiModule),
     PassportModule.register({ defaultStrategy: 'jwt' }),

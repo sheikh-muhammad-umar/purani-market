@@ -16,6 +16,7 @@ import {
 import { AdPackageType } from '../packages/schemas/ad-package.schema.js';
 import { AuthService } from '../auth/auth.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
+import { ConfigService } from '@nestjs/config';
 import { Types } from 'mongoose';
 
 describe('AdminService', () => {
@@ -211,6 +212,17 @@ describe('AdminService', () => {
             aggregate: jest
               .fn()
               .mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }),
+          },
+        },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: jest.fn((key: string) => {
+              const config: Record<string, any> = {
+                'listing.activeDays': 30,
+              };
+              return config[key];
+            }),
           },
         },
       ],

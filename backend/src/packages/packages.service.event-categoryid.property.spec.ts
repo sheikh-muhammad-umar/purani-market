@@ -38,6 +38,7 @@ import { VehicleBrandService } from '../brands/vehicle-brand.service';
 import { VehicleModelService } from '../brands/vehicle-model.service';
 import { VehicleVariantService } from '../brands/vehicle-variant.service';
 import { UserAction } from '../ai/enums/user-action.enum';
+import { ConfigService } from '@nestjs/config';
 
 // The six package-related event actions we must verify
 const PACKAGE_EVENT_ACTIONS = [
@@ -542,6 +543,17 @@ describe('Property 8: Event CategoryId Completeness', () => {
               },
               { provide: PackagesService, useValue: mockPackagesService },
               { provide: AdminTrackerService, useValue: mockAdminTracker },
+              {
+                provide: ConfigService,
+                useValue: {
+                  get: jest.fn((key: string) => {
+                    const config: Record<string, any> = {
+                      'listing.activeDays': 30,
+                    };
+                    return config[key];
+                  }),
+                },
+              },
             ],
           }).compile();
 

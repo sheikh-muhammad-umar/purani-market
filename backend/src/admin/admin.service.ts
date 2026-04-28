@@ -6,7 +6,6 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Category } from '../categories/schemas/category.schema.js';
-import { LISTING_ACTIVE_DAYS } from '../common/constants/index.js';
 import { ConfigService } from '@nestjs/config';
 import {
   User,
@@ -102,9 +101,7 @@ export class AdminService {
     private readonly notificationsService: NotificationsService,
     private readonly configService: ConfigService,
   ) {
-    this.activeDays =
-      this.configService.get<number>('listing.activeDays') ??
-      LISTING_ACTIVE_DAYS;
+    this.activeDays = this.configService.get<number>('listing.activeDays')!;
   }
 
   async listUsers(query: ListUsersQueryDto): Promise<PaginatedUsers> {

@@ -58,6 +58,16 @@ class EnvironmentVariables {
   @IsNumber()
   @IsOptional()
   DEFAULT_AD_LIMIT = 10;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  STALE_PENDING_REVIEW_MODERATION_DAYS = 14;
+
+  @Type(() => Number)
+  @IsNumber()
+  @IsOptional()
+  STALE_ID_VERIFICATION_DAYS = 30;
 }
 
 export function validate(config: Record<string, unknown>) {

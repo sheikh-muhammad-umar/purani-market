@@ -1,5 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
+import { ConfigService } from '@nestjs/config';
 import { Model, Types } from 'mongoose';
 import {
   FcmProvider,
@@ -12,10 +13,6 @@ import {
   FavoriteDocument,
 } from '../favorites/schemas/favorite.schema.js';
 import { ERROR } from '../common/constants/error-messages.js';
-import {
-  LISTING_ACTIVE_DAYS,
-  LISTING_DEACTIVATED_CLEANUP_DAYS,
-} from '../common/constants/index.js';
 
 export enum NotificationType {
   MESSAGES = 'messages',
@@ -28,6 +25,8 @@ export enum NotificationType {
 @Injectable()
 export class NotificationsService {
   private readonly logger = new Logger(NotificationsService.name);
+  private readonly activeDays: number;
+  private readonly deactivatedCleanupDays: number;
 
   constructor(
     private readonly fcmProvider: FcmProvider,
@@ -35,7 +34,13 @@ export class NotificationsService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Favorite.name)
     private readonly favoriteModel: Model<FavoriteDocument>,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.activeDays = this.configService.get<number>('listing.activeDays')!;
+    this.deactivatedCleanupDays = this.configService.get<number>(
+      'listing.deactivatedCleanupDays',
+    )!;
+  }
 
   /**
    * Send push notification to a user, respecting their preferences.
@@ -232,7 +237,7 @@ export class NotificationsService {
   ): Promise<boolean> {
     return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
       title: 'Listing expired',
-      body: `"${listingTitle}" has expired after ${LISTING_ACTIVE_DAYS} days. Reactivate it from your listings.`,
+      body: `"${listingTitle}" has expired after ${this.activeDays} days. Reactivate it from your listings.`,
       data: { type: 'listing_expired', listingId },
     });
   }
@@ -270,7 +275,7 @@ export class NotificationsService {
   ): Promise<boolean> {
     return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
       title: 'Inactive listing removed',
-      body: `"${listingTitle}" was removed after being inactive for ${LISTING_DEACTIVATED_CLEANUP_DAYS} days.`,
+      body: `"${listingTitle}" was removed after being inactive for ${this.deactivatedCleanupDays} days.`,
       data: { type: 'deactivated_cleanup', listingId },
     });
   }
