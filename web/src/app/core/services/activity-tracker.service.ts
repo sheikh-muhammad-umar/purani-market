@@ -4,6 +4,7 @@ import { AuthService } from '../auth/auth.service';
 import { UserAction, ANONYMOUS_TRACKED_ACTIONS, TrackingEvent } from '../enums/tracking-events';
 import { STORAGE_SELECTED_LOCATION } from '../constants/storage-keys';
 import { API } from '../constants/api-endpoints';
+import { GEO_TIMEOUT_MS, GEO_MAX_AGE_MS } from '../constants/app';
 
 export type { UserAction } from '../enums/tracking-events';
 
@@ -105,7 +106,7 @@ export class ActivityTrackerService {
             .post(API.TRACK, { action: TrackingEvent.LOGIN as UserAction, metadata })
             .subscribe({ error: () => {} });
         },
-        { timeout: 5000, maximumAge: 300000 },
+        { timeout: GEO_TIMEOUT_MS, maximumAge: GEO_MAX_AGE_MS },
       );
     } else {
       this.api

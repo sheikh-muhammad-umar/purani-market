@@ -7,6 +7,7 @@ import { CategoriesService } from '../../../core/services/categories.service';
 import { LocationService } from '../../../core/services/location.service';
 import { saveState, loadState } from '../../../core/utils/state-persistence';
 import { ListingStatus } from '../../../core/constants/enums';
+import { PAGE_SIZE_DEFAULT } from '../../../core/constants/app';
 import {
   CustomSelectComponent,
   SelectOption,
@@ -203,7 +204,7 @@ export class AllListingsComponent implements OnInit {
     this.adminService
       .getAllListings({
         page: this.page,
-        limit: 20,
+        limit: PAGE_SIZE_DEFAULT,
         search: this.searchQuery.trim() || undefined,
         status: this.filterStatus || undefined,
         categoryId: this.filterCategory || undefined,

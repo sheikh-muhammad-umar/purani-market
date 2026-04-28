@@ -16,6 +16,8 @@ import {
   PLACEHOLDER_IMAGE,
   CATEGORY_ICONS_PATH,
   DEFAULT_CATEGORY_ICON,
+  FEATURED_ADS_LIMIT,
+  NEARBY_LISTINGS_LIMIT,
 } from '../../core/constants/app';
 import { ROUTES } from '../../core/constants/routes';
 
@@ -119,7 +121,7 @@ export class HomeComponent implements OnInit {
       }
     } catch {}
 
-    this.listingsService.getFeaturedFiltered({ city, limit: 10 }).subscribe({
+    this.listingsService.getFeaturedFiltered({ city, limit: FEATURED_ADS_LIMIT }).subscribe({
       next: (res: any) => {
         const data = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? (res as any) : [];
         if (data.length > 0) {
@@ -179,7 +181,7 @@ export class HomeComponent implements OnInit {
               provinceId: loc.province?._id,
               cityId: loc.city?._id,
               areaId: loc.area?._id,
-              limit: 12,
+              limit: NEARBY_LISTINGS_LIMIT,
             })
             .subscribe({
               next: (res: ListingsResponse) => {

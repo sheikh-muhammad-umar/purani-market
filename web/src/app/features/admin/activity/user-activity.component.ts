@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../../core/services/admin.service';
 import { saveState, loadState } from '../../../core/utils/state-persistence';
+import { PAGE_SIZE_LARGE } from '../../../core/constants/app';
 import {
   CustomSelectComponent,
   SelectOption,
@@ -127,7 +128,7 @@ export class UserActivityComponent implements OnInit {
     this.adminService
       .getAllActivity({
         page: this.page,
-        limit: 50,
+        limit: PAGE_SIZE_LARGE,
         action: this.filterAction || undefined,
         userId: this.filterUserId.trim() || undefined,
         dateFrom: this.filterDateFrom || undefined,

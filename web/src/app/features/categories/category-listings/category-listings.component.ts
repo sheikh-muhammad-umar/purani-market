@@ -14,7 +14,7 @@ import {
 import { Category, Listing } from '../../../core/models';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
-import { PLACEHOLDER_IMAGE } from '../../../core/constants/app';
+import { PLACEHOLDER_IMAGE, FEATURED_ADS_LIMIT } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 
 export interface BreadcrumbItem {
@@ -173,7 +173,7 @@ export class CategoryListingsComponent implements OnInit, OnDestroy {
 
   private loadFeaturedAds(categoryId: string): void {
     this.listingsService
-      .getFeaturedFiltered({ category: categoryId, limit: 10 })
+      .getFeaturedFiltered({ category: categoryId, limit: FEATURED_ADS_LIMIT })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res: any) => {

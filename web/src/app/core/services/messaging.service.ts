@@ -3,6 +3,7 @@ import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { Conversation, Message, MessageType } from '../models';
 import { API } from '../constants/api-endpoints';
+import { PAGE_SIZE_DEFAULT } from '../constants/app';
 
 export interface ConversationsResponse {
   data: Conversation[];
@@ -44,7 +45,7 @@ export class MessagingService {
   getMessages(conversationId: string, page: number = 1): Observable<MessagesResponse> {
     return this.api.get<MessagesResponse>(API.CONVERSATION_MESSAGES(conversationId), {
       page,
-      limit: 20,
+      limit: PAGE_SIZE_DEFAULT,
     });
   }
 

@@ -49,3 +49,17 @@ export const PAYMENT_METHOD_CONFIG: Record<string, { label: string; icon: string
   easypaisa: { label: 'EasyPaisa', icon: 'account_balance_wallet' },
   card: { label: 'Credit/Debit Card', icon: 'credit_card' },
 };
+
+// ─── Pagination ─────────────────────────────────────────────
+export const PAGE_SIZE_DEFAULT = 20;
+export const PAGE_SIZE_LARGE = 50;
+export const FEATURED_ADS_LIMIT = 10;
+export const NEARBY_LISTINGS_LIMIT = 12;
+
+// ─── Geolocation ────────────────────────────────────────────
+export const GEO_TIMEOUT_MS = 5000;
+export const GEO_MAX_AGE_MS = 300_000; // 5 minutes
+
+// ─── WebSocket ──────────────────────────────────────────────
+export const WS_RECONNECTION_ATTEMPTS = 10;
+export const WS_RECONNECTION_DELAY_MS = 1000;

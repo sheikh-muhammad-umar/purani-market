@@ -9,7 +9,7 @@ import { Listing, PackagePurchase, User } from '../../../core/models';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ListingStatus, PackageType, PaymentStatus } from '../../../core/constants/enums';
-import { PLACEHOLDER_IMAGE } from '../../../core/constants/app';
+import { PLACEHOLDER_IMAGE, PAGE_SIZE_LARGE } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { extractPackageDetails } from '../../../core/utils/package-details';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
@@ -130,7 +130,7 @@ export class MyListingsComponent implements OnInit {
 
   loadListings(): void {
     this.loading.set(true);
-    this.listingsService.getMyListings(this.page(), 50).subscribe({
+    this.listingsService.getMyListings(this.page(), PAGE_SIZE_LARGE).subscribe({
       next: (res: any) => {
         const data = Array.isArray(res) ? res : (res?.data ?? []);
         this.listings.set(data);

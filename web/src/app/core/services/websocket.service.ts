@@ -2,6 +2,7 @@ import { Injectable, OnDestroy } from '@angular/core';
 import { Subject, Observable } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { environment } from '../../../environments/environment';
+import { WS_RECONNECTION_ATTEMPTS, WS_RECONNECTION_DELAY_MS } from '../constants/app';
 
 @Injectable({ providedIn: 'root' })
 export class WebSocketService implements OnDestroy {
@@ -27,8 +28,8 @@ export class WebSocketService implements OnDestroy {
       query: { userId },
       transports: ['websocket', 'polling'],
       reconnection: true,
-      reconnectionAttempts: 10,
-      reconnectionDelay: 1000,
+      reconnectionAttempts: WS_RECONNECTION_ATTEMPTS,
+      reconnectionDelay: WS_RECONNECTION_DELAY_MS,
     });
 
     this.socket.onAny((event: string, data: unknown) => {
