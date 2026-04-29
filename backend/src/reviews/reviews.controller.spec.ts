@@ -100,10 +100,14 @@ describe('ReviewsController', () => {
 
   describe('getReviewsByListing', () => {
     it('should return reviews for a listing', async () => {
-      const result = await controller.getReviewsByListing(listingId.toString());
+      const result = await controller.getReviewsByListing(
+        listingId.toString(),
+        20,
+      );
 
       expect(mockReviewsService.getReviewsByListing).toHaveBeenCalledWith(
         listingId.toString(),
+        20,
       );
       expect(result).toEqual([mockReview]);
     });
@@ -114,17 +118,21 @@ describe('ReviewsController', () => {
       );
 
       await expect(
-        controller.getReviewsByListing('invalid-id'),
+        controller.getReviewsByListing('invalid-id', 20),
       ).rejects.toThrow(NotFoundException);
     });
   });
 
   describe('getReviewsBySeller', () => {
     it('should return reviews with average rating for a seller', async () => {
-      const result = await controller.getReviewsBySeller(sellerId.toString());
+      const result = await controller.getReviewsBySeller(
+        sellerId.toString(),
+        20,
+      );
 
       expect(mockReviewsService.getReviewsBySeller).toHaveBeenCalledWith(
         sellerId.toString(),
+        20,
       );
       expect(result).toEqual({
         reviews: [mockReview],

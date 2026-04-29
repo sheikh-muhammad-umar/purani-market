@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
+import { containsRegex } from '../common/utils/sanitize-regex.js';
 import {
   AttributeDefinition,
   AttributeDefinitionDocument,
@@ -72,7 +73,7 @@ export class AttributeDefinitionsService {
   }
 
   async search(query: string): Promise<AttributeDefinitionDocument[]> {
-    const regex = new RegExp(query, 'i');
+    const regex = containsRegex(query);
     return this.model
       .find({ $or: [{ name: regex }, { key: regex }] })
       .sort({ name: 1 })

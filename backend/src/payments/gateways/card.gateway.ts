@@ -161,6 +161,9 @@ export class CardGateway implements PaymentGateway {
   }
 
   verifyWebhookSignature(rawBody: Buffer, signature: string): unknown {
+    if (!this.webhookSecret) {
+      throw new BadRequestException('Stripe webhook secret is not configured');
+    }
     const stripe = this.getStripe();
     return stripe.webhooks.constructEvent(
       rawBody,

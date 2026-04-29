@@ -83,4 +83,10 @@ export const ERROR = {
   PACKAGE_OWN_ONLY: 'You can only use your own packages',
   INVALID_CATEGORY_ID_PARAM: 'A valid categoryId query parameter is required',
   INVALID_CATEGORY_ID_FILTER: 'Invalid categoryId',
+
+  // Reviews
+  CANNOT_REVIEW_OWN_LISTING: 'You cannot review your own listing',
+  REVIEW_REQUIRES_CONVERSATION:
+    'You must have a conversation with the seller about this listing before submitting a review',
+  REVIEW_DUPLICATE: 'You have already reviewed this listing',
 } as const;

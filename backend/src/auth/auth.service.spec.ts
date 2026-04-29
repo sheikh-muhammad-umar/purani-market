@@ -71,6 +71,10 @@ describe('AuthService', () => {
     set: jest.fn().mockResolvedValue('OK'),
     del: jest.fn().mockResolvedValue(1),
     scan: jest.fn().mockResolvedValue(['0', []]),
+    sadd: jest.fn().mockResolvedValue(1),
+    srem: jest.fn().mockResolvedValue(1),
+    smembers: jest.fn().mockResolvedValue([]),
+    expire: jest.fn().mockResolvedValue(1),
   };
 
   beforeEach(async () => {
@@ -313,6 +317,7 @@ describe('AuthService', () => {
       phone: undefined,
       passwordHash,
       role: 'buyer',
+      status: 'active',
     };
 
     it('should login with valid email and password and return tokens', async () => {
@@ -1264,22 +1269,13 @@ describe('AuthService', () => {
       mockUserModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue({}),
       });
-      mockRedis.scan.mockResolvedValueOnce(['0', ['rt:jti-1', 'rt:jti-2']]);
-      mockRedis.get
-        .mockResolvedValueOnce('user123')
-        .mockResolvedValueOnce('other-user');
+      mockRedis.smembers.mockResolvedValueOnce(['jti-1', 'jti-2']);
 
       await service.resetPassword('valid-token', 'newPassword123');
 
-      expect(mockRedis.scan).toHaveBeenCalledWith(
-        '0',
-        'MATCH',
-        'rt:*',
-        'COUNT',
-        100,
-      );
-      expect(mockRedis.del).toHaveBeenCalledWith('rt:jti-1');
-      expect(mockRedis.del).not.toHaveBeenCalledWith('rt:jti-2');
+      expect(mockRedis.smembers).toHaveBeenCalledWith('rt_set:user123');
+      expect(mockRedis.del).toHaveBeenCalledWith('rt:jti-1', 'rt:jti-2');
+      expect(mockRedis.del).toHaveBeenCalledWith('rt_set:user123');
     });
 
     it('should throw BadRequestException for invalid token', async () => {
@@ -1425,7 +1421,7 @@ describe('AuthService', () => {
       mockUserModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue({}),
       });
-      mockRedis.scan.mockResolvedValue(['0', []]);
+      mockRedis.smembers.mockResolvedValue([]);
 
       const result = await service.verifyEmailChange('valid-token');
 
@@ -1455,7 +1451,7 @@ describe('AuthService', () => {
       mockUserModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue({}),
       });
-      mockRedis.scan.mockResolvedValue(['0', []]);
+      mockRedis.smembers.mockResolvedValue([]);
 
       await service.verifyEmailChange('valid-token');
 
@@ -1609,7 +1605,7 @@ describe('AuthService', () => {
       mockUserModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue({}),
       });
-      mockRedis.scan.mockResolvedValue(['0', []]);
+      mockRedis.smembers.mockResolvedValue([]);
 
       const result = await service.verifyPhoneChange('user123', '123456');
 
@@ -1813,7 +1809,7 @@ describe('AuthService', () => {
       expect(mockSmsService.sendOtp).toHaveBeenCalled();
     });
 
-    it('should throw BadRequestException when phone is already verified', async () => {
+    it('should return generic success when phone is already verified', async () => {
       const mockUser = {
         _id: 'user123',
         phone: '+923001234567',
@@ -1823,12 +1819,16 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue(mockUser),
       });
 
-      await expect(
-        service.resendVerification(undefined, '+923001234567'),
-      ).rejects.toThrow(BadRequestException);
+      const result = await service.resendVerification(
+        undefined,
+        '+923001234567',
+      );
+      expect(result.message).toBe(
+        'If an account exists, a verification will be sent.',
+      );
     });
 
-    it('should throw BadRequestException when email is already verified', async () => {
+    it('should return generic success when email is already verified', async () => {
       const mockUser = {
         _id: 'user123',
         email: 'test@example.com',
@@ -1838,19 +1838,21 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue(mockUser),
       });
 
-      await expect(
-        service.resendVerification('test@example.com'),
-      ).rejects.toThrow(BadRequestException);
+      const result = await service.resendVerification('test@example.com');
+      expect(result.message).toBe(
+        'If an account exists, a verification will be sent.',
+      );
     });
 
-    it('should throw NotFoundException for unknown user', async () => {
+    it('should return generic success for unknown user', async () => {
       mockUserModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      await expect(
-        service.resendVerification('unknown@example.com'),
-      ).rejects.toThrow(NotFoundException);
+      const result = await service.resendVerification('unknown@example.com');
+      expect(result.message).toBe(
+        'If an account exists, a verification will be sent.',
+      );
     });
 
     it('should throw BadRequestException when neither email nor phone provided', async () => {

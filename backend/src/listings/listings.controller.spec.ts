@@ -173,7 +173,8 @@ describe('ListingsController', () => {
         mockReq,
       );
       expect(result.viewCount).toBe(11);
-      expect(result.sellerEmailVerified).toBe(true);
+      // Anonymous users don't get seller verification info
+      expect((result as any).sellerEmailVerified).toBeUndefined();
     });
 
     it('should propagate NotFoundException from service', async () => {

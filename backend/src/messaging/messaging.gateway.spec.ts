@@ -1,5 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
+import { JwtService } from '@nestjs/jwt';
 import { Types } from 'mongoose';
 import { MessagingGateway } from './messaging.gateway';
 import { Conversation } from './schemas/conversation.schema';
@@ -66,7 +67,10 @@ describe('MessagingGateway', () => {
     const rooms = new Set<string>();
     return {
       id,
-      handshake: { query: { userId } },
+      handshake: {
+        query: {},
+        auth: { token: userId || '' },
+      },
       join: jest.fn().mockImplementation((room: string) => {
         rooms.add(room);
         return Promise.resolve();
@@ -123,6 +127,15 @@ describe('MessagingGateway', () => {
                 exec: jest.fn().mockResolvedValue({ status: 'active' }),
               }),
             }),
+          },
+        },
+        {
+          provide: JwtService,
+          useValue: {
+            verify: jest.fn().mockImplementation((token: string) => ({
+              sub: token,
+              type: 'access',
+            })),
           },
         },
       ],

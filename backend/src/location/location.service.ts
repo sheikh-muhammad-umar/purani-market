@@ -12,6 +12,7 @@ import {
   ProductListingDocument,
   ListingStatus,
 } from '../listings/schemas/product-listing.schema.js';
+import { LISTING_PUBLIC_SELECT } from '../listings/constants/index.js';
 import { Province, ProvinceDocument } from './schemas/province.schema.js';
 import { City, CityDocument } from './schemas/city.schema.js';
 import { Area, AreaDocument } from './schemas/area.schema.js';
@@ -134,6 +135,7 @@ export class LocationService {
       if (total >= minResults) {
         data = await this.listingModel
           .find(filter)
+          .select(LISTING_PUBLIC_SELECT)
           .sort({ isFeatured: -1, createdAt: -1 })
           .skip(skip)
           .limit(safeLimit)
@@ -147,6 +149,7 @@ export class LocationService {
       [data, total] = await Promise.all([
         this.listingModel
           .find(baseFilter)
+          .select(LISTING_PUBLIC_SELECT)
           .sort({ isFeatured: -1, createdAt: -1 })
           .skip(skip)
           .limit(safeLimit)
@@ -183,6 +186,7 @@ export class LocationService {
 
     return this.listingModel
       .find(filter)
+      .select(LISTING_PUBLIC_SELECT)
       .sort({ viewCount: -1, createdAt: -1 })
       .limit(limit)
       .exec();

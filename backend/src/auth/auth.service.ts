@@ -23,6 +23,7 @@ import {
 } from 'otplib';
 import * as QRCode from 'qrcode';
 import { User, UserDocument } from '../users/schemas/user.schema.js';
+import { UserStatus } from '../common/enums/user-status.enum.js';
 import {
   VerificationToken,
   VerificationTokenDocument,
@@ -96,7 +97,9 @@ export class AuthService {
         .findOne({ email: dto.email })
         .exec();
       if (existingEmail) {
-        throw new ConflictException('Email is already registered');
+        throw new ConflictException(
+          'Unable to complete registration. Please try a different email or phone.',
+        );
       }
     }
     if (dto.phone) {
@@ -104,7 +107,9 @@ export class AuthService {
         .findOne({ phone: dto.phone })
         .exec();
       if (existingPhone) {
-        throw new ConflictException('Phone number is already registered');
+        throw new ConflictException(
+          'Unable to complete registration. Please try a different email or phone.',
+        );
       }
     }
 
@@ -266,15 +271,13 @@ export class AuthService {
     }
 
     if (!user) {
-      throw new NotFoundException(ERROR.USER_NOT_FOUND);
+      // Return generic success to prevent user enumeration
+      return { message: 'If an account exists, a verification will be sent.' };
     }
 
-    // Check if already verified
-    if (email && user.emailVerified) {
-      throw new BadRequestException('Email is already verified');
-    }
-    if (phone && user.phoneVerified) {
-      throw new BadRequestException('Phone is already verified');
+    // Silently succeed if already verified (don't reveal verification status)
+    if ((email && user.emailVerified) || (phone && user.phoneVerified)) {
+      return { message: 'If an account exists, a verification will be sent.' };
     }
 
     // Rate limit: max 5 resends per hour
@@ -461,6 +464,12 @@ export class AuthService {
       throw new UnauthorizedException('Invalid credentials');
     }
 
+    if (user.status === UserStatus.SUSPENDED) {
+      throw new ForbiddenException(
+        'Your account has been suspended. Please contact support.',
+      );
+    }
+
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
@@ -488,10 +497,9 @@ export class AuthService {
 
     // Store refresh token in Redis
     const refreshTtl = this.parseExpirationToSeconds(this.refreshExpiration);
-    await this.redis.set(
-      `rt:${tokens.refreshJti}`,
+    await this.storeRefreshToken(
       user._id.toString(),
-      'EX',
+      tokens.refreshJti,
       refreshTtl,
     );
 
@@ -585,10 +593,9 @@ export class AuthService {
 
     // Store refresh token in Redis
     const refreshTtl = this.parseExpirationToSeconds(this.refreshExpiration);
-    await this.redis.set(
-      `rt:${tokens.refreshJti}`,
+    await this.storeRefreshToken(
       user._id.toString(),
-      'EX',
+      tokens.refreshJti,
       refreshTtl,
     );
 
@@ -723,16 +730,16 @@ export class AuthService {
 
     // Invalidate old refresh token
     await this.redis.del(`rt:${payload.jti}`);
+    await this.redis.srem(`rt_set:${storedUserId}`, payload.jti);
 
     // Generate new tokens
     const tokens = await this.generateTokens(user);
 
     // Store new refresh token in Redis
     const refreshTtl = this.parseExpirationToSeconds(this.refreshExpiration);
-    await this.redis.set(
-      `rt:${tokens.refreshJti}`,
+    await this.storeRefreshToken(
       user._id.toString(),
-      'EX',
+      tokens.refreshJti,
       refreshTtl,
     );
 
@@ -888,10 +895,9 @@ export class AuthService {
 
     // Store refresh token in Redis
     const refreshTtl = this.parseExpirationToSeconds(this.refreshExpiration);
-    await this.redis.set(
-      `rt:${tokens.refreshJti}`,
+    await this.storeRefreshToken(
       user._id.toString(),
-      'EX',
+      tokens.refreshJti,
       refreshTtl,
     );
 
@@ -1000,25 +1006,14 @@ export class AuthService {
   }
 
   async invalidateAllSessions(userId: string): Promise<void> {
-    // Scan for all refresh tokens belonging to this user and delete them
-    let cursor = '0';
-    do {
-      const [nextCursor, keys] = await this.redis.scan(
-        cursor,
-        'MATCH',
-        'rt:*',
-        'COUNT',
-        100,
-      );
-      cursor = nextCursor;
+    const userSetKey = `rt_set:${userId}`;
+    const jtis = await this.redis.smembers(userSetKey);
 
-      for (const key of keys) {
-        const storedUserId = await this.redis.get(key);
-        if (storedUserId === userId) {
-          await this.redis.del(key);
-        }
-      }
-    } while (cursor !== '0');
+    if (jtis.length > 0) {
+      const keys = jtis.map((jti) => `rt:${jti}`);
+      await this.redis.del(...keys);
+    }
+    await this.redis.del(userSetKey);
   }
 
   async requestEmailChange(
@@ -1368,6 +1363,19 @@ export class AuthService {
   }
 
   /** Fire-and-forget OTP event tracking */
+  private async storeRefreshToken(
+    userId: string,
+    jti: string,
+    ttl: number,
+  ): Promise<void> {
+    const key = `rt:${jti}`;
+    const userSetKey = `rt_set:${userId}`;
+    await this.redis.set(key, userId, 'EX', ttl);
+    await this.redis.sadd(userSetKey, jti);
+    // Set expiry on the set to auto-cleanup (slightly longer than token TTL)
+    await this.redis.expire(userSetKey, ttl + 3600);
+  }
+
   private trackOtp(
     action: UserAction,
     userId: string | undefined,

@@ -92,7 +92,6 @@ export class UsersService {
       throw new NotFoundException(ERROR.USER_NOT_FOUND);
     }
     return {
-      _id: user._id,
       name:
         `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() ||
         'User',
@@ -100,7 +99,7 @@ export class UsersService {
       city: user.profile?.city || '',
       emailVerified: user.emailVerified ?? false,
       phoneVerified: user.phoneVerified ?? false,
-      idVerified: (user as any).idVerified ?? false,
+      idVerified: user.idVerified ?? false,
       memberSince: user.createdAt,
     };
   }

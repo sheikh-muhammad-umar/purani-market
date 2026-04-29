@@ -3,6 +3,7 @@ import { Subject, Observable } from 'rxjs';
 import { io, Socket } from 'socket.io-client';
 import { environment } from '../../../environments/environment';
 import { WS_RECONNECTION_ATTEMPTS, WS_RECONNECTION_DELAY_MS } from '../constants/app';
+import { AuthService } from '../auth/auth.service';
 
 @Injectable({ providedIn: 'root' })
 export class WebSocketService implements OnDestroy {
@@ -10,22 +11,25 @@ export class WebSocketService implements OnDestroy {
   private readonly messages$ = new Subject<{ event: string; data: unknown }>();
   private connectedUserId: string | null = null;
 
+  constructor(private readonly authService: AuthService) {}
+
   connect(userId: string): void {
     if (!userId) return;
-    // Already connected or connecting for this user
     if (this.socket && this.connectedUserId === userId) return;
 
-    // Different user or no socket — disconnect old one first
     if (this.socket) {
       this.socket.disconnect();
       this.socket = null;
     }
 
+    const token = this.authService.getAccessToken();
+    if (!token) return;
+
     this.connectedUserId = userId;
     const baseUrl = environment.wsUrl.replace(/^ws/, 'http');
 
     this.socket = io(baseUrl, {
-      query: { userId },
+      auth: { token },
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionAttempts: WS_RECONNECTION_ATTEMPTS,

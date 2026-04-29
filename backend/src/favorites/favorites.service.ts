@@ -60,7 +60,10 @@ export class FavoritesService {
     }
   }
 
-  async getUserFavorites(userId: string): Promise<FavoriteDocument[]> {
+  async getUserFavorites(
+    userId: string,
+    limit = 50,
+  ): Promise<FavoriteDocument[]> {
     return this.favoriteModel
       .find({ userId: new Types.ObjectId(userId) })
       .populate({
@@ -69,6 +72,7 @@ export class FavoritesService {
           'title price status images condition location createdAt isFeatured',
       })
       .sort({ createdAt: -1 })
+      .limit(limit)
       .exec();
   }
 

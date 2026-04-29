@@ -159,6 +159,7 @@ describe('ListingsService', () => {
       exec: jest.fn().mockResolvedValue(mockListing),
     });
     mockListingModel.find = jest.fn().mockReturnValue({
+      select: jest.fn().mockReturnThis(),
       sort: jest.fn().mockReturnValue({
         skip: jest.fn().mockReturnValue({
           limit: jest.fn().mockReturnValue({

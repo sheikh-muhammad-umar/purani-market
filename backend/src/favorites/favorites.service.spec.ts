@@ -45,7 +45,9 @@ describe('FavoritesService', () => {
     mockFavoriteModel.find = jest.fn().mockReturnValue({
       populate: jest.fn().mockReturnValue({
         sort: jest.fn().mockReturnValue({
-          exec: jest.fn().mockResolvedValue([mockFavorite]),
+          limit: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue([mockFavorite]),
+          }),
         }),
       }),
     });

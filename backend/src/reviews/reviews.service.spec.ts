@@ -56,11 +56,15 @@ describe('ReviewsService', () => {
     mockReviewModel.find = jest.fn().mockReturnValue({
       populate: jest.fn().mockReturnValue({
         sort: jest.fn().mockReturnValue({
-          exec: jest.fn().mockResolvedValue([mockReview]),
+          limit: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue([mockReview]),
+          }),
         }),
         populate: jest.fn().mockReturnValue({
           sort: jest.fn().mockReturnValue({
-            exec: jest.fn().mockResolvedValue([mockReview]),
+            limit: jest.fn().mockReturnValue({
+              exec: jest.fn().mockResolvedValue([mockReview]),
+            }),
           }),
         }),
       }),

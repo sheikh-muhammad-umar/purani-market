@@ -141,6 +141,11 @@ export class AuthController {
     return this.authService.requestEmailChange(user.sub, dto.newEmail);
   }
 
+  /**
+   * Verify email change via token from the verification link.
+   * No JwtAuthGuard — the user clicks this link from their new email inbox,
+   * so they may not have an active session. The token itself is the proof of ownership.
+   */
   @Post('change-email/verify')
   @HttpCode(HttpStatus.OK)
   async verifyEmailChange(@Body() dto: VerifyEmailChangeDto) {

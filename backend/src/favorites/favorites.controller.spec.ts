@@ -83,10 +83,11 @@ describe('FavoritesController', () => {
 
   describe('getUserFavorites', () => {
     it('should return user favorites', async () => {
-      const result = await controller.getUserFavorites(userId.toString());
+      const result = await controller.getUserFavorites(userId.toString(), 50);
 
       expect(mockFavoritesService.getUserFavorites).toHaveBeenCalledWith(
         userId.toString(),
+        50,
       );
       expect(result).toEqual([mockFavorite]);
     });

@@ -17,8 +17,14 @@ const PLACE_PATTERN = /\/place\/([^/@]+)/;
 /**
  * Builds a Google Maps embed URL from a map link.
  * Extracts coordinates or place name; falls back to a city/area query.
+ * Always returns an https:// URL — never passes through user input directly.
  */
 export function buildMapEmbedUrl(mapLink: string, fallbackQuery?: string): string {
+  // Only process https URLs to prevent javascript: or data: injection
+  if (mapLink && !mapLink.startsWith('https://')) {
+    return `https://maps.google.com/maps?q=${encodeURIComponent(fallbackQuery || '')}&z=15&output=embed`;
+  }
+
   for (const pattern of COORD_PATTERNS) {
     const match = mapLink.match(pattern);
     if (match) {

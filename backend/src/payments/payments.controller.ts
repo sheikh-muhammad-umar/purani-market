@@ -7,9 +7,11 @@ import {
   HttpCode,
   HttpStatus,
   Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
 import { CardGateway } from './gateways/card.gateway.js';
+import { PackagesService } from '../packages/packages.service.js';
 import { PAYMENT_ROUTES, STRIPE_CHECKOUT_COMPLETED } from './constants.js';
 import { PaymentMethod } from '../packages/schemas/package-purchase.schema.js';
 import { ERROR } from '../common/constants/error-messages.js';
@@ -25,7 +27,8 @@ export class PaymentsController {
 
   constructor(
     private readonly cardGateway: CardGateway,
-    private readonly configService: ConfigService,
+    @Inject(forwardRef(() => PackagesService))
+    private readonly packagesService: PackagesService,
   ) {}
 
   @Post(PAYMENT_ROUTES.STRIPE_WEBHOOK)
@@ -62,34 +65,19 @@ export class PaymentsController {
 
     if (event.type === STRIPE_CHECKOUT_COMPLETED) {
       const session = event.data.object;
-      this.forwardToPaymentCallback(session.id);
+      // Process payment directly instead of HTTP loopback
+      this.packagesService
+        .handlePaymentCallback({
+          transactionId: session.id,
+          paymentMethod: PaymentMethod.CARD,
+        })
+        .catch((err: Error) => {
+          this.logger.error(
+            `Failed to process Stripe payment ${session.id}: ${err.message}`,
+          );
+        });
     }
 
     return res.json({ received: true });
-  }
-
-  /**
-   * Forwards a verified Stripe webhook event to the packages
-   * payment-callback endpoint for purchase activation.
-   */
-  private forwardToPaymentCallback(sessionId: string): void {
-    const port = this.configService.get<number>('port') ?? 3000;
-    const apiKey = this.configService.get<string>('apiKey') ?? '';
-
-    fetch(`http://localhost:${port}${PAYMENT_ROUTES.PACKAGE_CALLBACK}`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-        'X-API-Key': apiKey,
-      },
-      body: JSON.stringify({
-        transactionId: sessionId,
-        paymentMethod: PaymentMethod.CARD,
-      }),
-    }).catch((err: Error) => {
-      this.logger.error(
-        `Failed to forward Stripe webhook to payment-callback: ${err.message}`,
-      );
-    });
   }
 }

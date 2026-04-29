@@ -7,6 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Category } from '../categories/schemas/category.schema.js';
 import { ConfigService } from '@nestjs/config';
+import { containsRegex } from '../common/utils/sanitize-regex.js';
 import {
   User,
   UserDocument,
@@ -117,7 +118,7 @@ export class AdminService {
     const filter: Record<string, any> = {};
 
     if (search) {
-      const regex = new RegExp(search, 'i');
+      const regex = containsRegex(search);
       filter.$or = [
         { email: regex },
         { phone: regex },
@@ -520,10 +521,10 @@ export class AdminService {
       filter['location.provinceId'] = new Types.ObjectId(provinceId);
     if (cityId) filter['location.cityId'] = new Types.ObjectId(cityId);
     if (rejectionReason)
-      filter.rejectionReason = new RegExp(rejectionReason, 'i');
-    if (deletionReason) filter.deletionReason = new RegExp(deletionReason, 'i');
+      filter.rejectionReason = containsRegex(rejectionReason);
+    if (deletionReason) filter.deletionReason = containsRegex(deletionReason);
     if (search) {
-      const regex = new RegExp(search, 'i');
+      const regex = containsRegex(search);
       filter.$or = [{ title: regex }, { description: regex }];
     }
     if (dateFrom || dateTo) {

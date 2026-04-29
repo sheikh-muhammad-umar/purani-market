@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  MinLength,
   validateSync,
 } from 'class-validator';
 
@@ -41,6 +42,9 @@ class EnvironmentVariables {
   ELASTICSEARCH_NODE = 'http://localhost:9200';
 
   @IsString()
+  @MinLength(32, {
+    message: 'JWT_SECRET must be at least 32 characters for security',
+  })
   @IsOptional()
   JWT_SECRET = 'your-jwt-secret-change-in-production';
 

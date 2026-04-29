@@ -12,6 +12,7 @@ import {
   ProductListingDocument,
   ListingStatus,
 } from '../listings/schemas/product-listing.schema.js';
+import { LISTING_PUBLIC_SELECT } from '../listings/constants/index.js';
 
 @Injectable()
 export class RecommendationService {
@@ -135,6 +136,7 @@ export class RecommendationService {
     const [featured, regular] = await Promise.all([
       this.listingModel
         .find({ ...filter, isFeatured: true })
+        .select(LISTING_PUBLIC_SELECT)
         .sort({ viewCount: -1 })
         .limit(Math.ceil(limit / 3))
         .exec(),
@@ -188,6 +190,7 @@ export class RecommendationService {
     const [featured, regular] = await Promise.all([
       this.listingModel
         .find({ ...filter, isFeatured: true })
+        .select(LISTING_PUBLIC_SELECT)
         .sort({ viewCount: -1 })
         .limit(Math.ceil(limit / 3))
         .exec(),

@@ -65,6 +65,7 @@ describe('RecommendationService', () => {
 
     mockListingModel = {
       find: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnThis(),
         sort: jest.fn().mockReturnValue({
           limit: jest.fn().mockReturnValue({
             exec: jest.fn().mockResolvedValue(mockListings),

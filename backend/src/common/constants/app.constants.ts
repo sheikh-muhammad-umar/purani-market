@@ -34,3 +34,19 @@ export const ID_VERIFICATION_AUTO_EXPIRE_REASON =
 
 // ─── Messaging ──────────────────────────────────────────────
 export const INACTIVE_CONVERSATION_RETENTION_DAYS = 30;
+
+// ─── Content Moderation ─────────────────────────────────────
+export const PROHIBITED_WORDS: readonly string[] = [
+  'spam',
+  'scam',
+  'fake',
+  'fraud',
+  'illegal',
+  'hate',
+  'violence',
+  'abuse',
+] as const;
+
+// ─── Pagination Limits ──────────────────────────────────────
+export const MAX_REVIEWS_PER_PAGE = 20;
+export const MAX_FAVORITES_PER_PAGE = 50;

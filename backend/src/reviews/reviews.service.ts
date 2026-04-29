@@ -18,17 +18,7 @@ import {
 } from '../listings/schemas/product-listing.schema.js';
 import { CreateReviewDto } from './dto/create-review.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
-
-const PROHIBITED_WORDS = [
-  'spam',
-  'scam',
-  'fake',
-  'fraud',
-  'illegal',
-  'hate',
-  'violence',
-  'abuse',
-];
+import { PROHIBITED_WORDS } from '../common/constants/app.constants.js';
 
 @Injectable()
 export class ReviewsService {
@@ -57,7 +47,7 @@ export class ReviewsService {
     }
 
     if (listing.sellerId.toString() === reviewerId) {
-      throw new ForbiddenException('You cannot review your own listing');
+      throw new ForbiddenException(ERROR.CANNOT_REVIEW_OWN_LISTING);
     }
 
     // Check if buyer has had a conversation with the seller about this listing
@@ -70,9 +60,7 @@ export class ReviewsService {
       .exec();
 
     if (!conversation) {
-      throw new BadRequestException(
-        'You must have a conversation with the seller about this listing before submitting a review',
-      );
+      throw new BadRequestException(ERROR.REVIEW_REQUIRES_CONVERSATION);
     }
 
     // Check for prohibited content
@@ -92,13 +80,16 @@ export class ReviewsService {
       return await review.save();
     } catch (error: any) {
       if (error.code === 11000) {
-        throw new ConflictException('You have already reviewed this listing');
+        throw new ConflictException(ERROR.REVIEW_DUPLICATE);
       }
       throw error;
     }
   }
 
-  async getReviewsByListing(listingId: string): Promise<ReviewDocument[]> {
+  async getReviewsByListing(
+    listingId: string,
+    limit = 20,
+  ): Promise<ReviewDocument[]> {
     if (!Types.ObjectId.isValid(listingId)) {
       throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
@@ -113,10 +104,14 @@ export class ReviewsService {
         'profile.firstName profile.lastName profile.avatar',
       )
       .sort({ createdAt: -1 })
+      .limit(limit)
       .exec();
   }
 
-  async getReviewsBySeller(sellerId: string): Promise<{
+  async getReviewsBySeller(
+    sellerId: string,
+    limit = 20,
+  ): Promise<{
     reviews: ReviewDocument[];
     averageRating: number;
     totalReviews: number;
@@ -136,6 +131,7 @@ export class ReviewsService {
       )
       .populate('productListingId', 'title')
       .sort({ createdAt: -1 })
+      .limit(limit)
       .exec();
 
     const averageRating = await this.calculateAverageRating(sellerId);

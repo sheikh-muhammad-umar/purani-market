@@ -1,9 +1,10 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { APP_FILTER, APP_INTERCEPTOR, APP_PIPE } from '@nestjs/core';
 import { HttpExceptionFilter } from './filters/http-exception.filter.js';
 import { TransformInterceptor } from './interceptors/transform.interceptor.js';
 import { LoggingInterceptor } from './interceptors/logging.interceptor.js';
 import { AppValidationPipe } from './pipes/validation.pipe.js';
+import { CsrfMiddleware } from './middleware/csrf.middleware.js';
 
 @Module({
   providers: [
@@ -25,4 +26,15 @@ import { AppValidationPipe } from './pipes/validation.pipe.js';
     },
   ],
 })
-export class CommonModule {}
+export class CommonModule implements NestModule {
+  configure(consumer: MiddlewareConsumer): void {
+    consumer
+      .apply(CsrfMiddleware)
+      .exclude(
+        'api/auth/(.*)', // login/register/verify flows (no cookie yet)
+        'api/payments/(.*)', // external payment callbacks
+        'api/packages/payment-callback', // payment gateway callbacks
+      )
+      .forRoutes('*');
+  }
+}

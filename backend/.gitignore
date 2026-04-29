@@ -5,10 +5,10 @@
 /dist
 
 # Environment files
-# .env
-# .env.production
-# .env.staging
-# .env.local
+.env
+.env.production
+.env.staging
+.env.local
 
 # Test coverage
 /coverage

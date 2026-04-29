@@ -9,6 +9,8 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 import { InjectModel } from '@nestjs/mongoose';
+import { JwtService } from '@nestjs/jwt';
+import { ConfigService } from '@nestjs/config';
 import { Model, Types } from 'mongoose';
 import {
   Conversation,
@@ -25,17 +27,7 @@ import {
   ProductListingDocument,
   ListingStatus,
 } from '../listings/schemas/product-listing.schema.js';
-
-const PROHIBITED_WORDS = [
-  'spam',
-  'scam',
-  'fake',
-  'fraud',
-  'illegal',
-  'hate',
-  'violence',
-  'abuse',
-];
+import { PROHIBITED_WORDS } from '../common/constants/app.constants.js';
 
 /** Preview labels shown in conversation list for non-text messages. */
 const MESSAGE_PREVIEW: Record<string, string> = {
@@ -45,6 +37,10 @@ const MESSAGE_PREVIEW: Record<string, string> = {
 };
 
 const PREVIEW_MAX_LENGTH = 100;
+
+/** Max messages per user per minute via WebSocket. */
+const WS_RATE_LIMIT_PER_MINUTE = 30;
+const WS_RATE_WINDOW_MS = 60_000;
 
 /** Gateway error messages. */
 const GW_ERROR = {
@@ -57,6 +53,7 @@ const GW_ERROR = {
   NO_MESSAGE_IDS: 'No message IDs provided',
   NO_VALID_IDS: 'No valid message IDs',
   LISTING_NOT_ACTIVE: 'This listing is no longer active',
+  RATE_LIMITED: 'Too many messages. Please slow down.',
 } as const;
 
 export interface SendMessagePayload {
@@ -88,7 +85,16 @@ export interface MarkReadPayload {
   messageIds: string[];
 }
 
-@WebSocketGateway({ namespace: '/ws/messaging', cors: { origin: '*' } })
+@WebSocketGateway({
+  namespace: '/ws/messaging',
+  cors: {
+    origin: (process.env.CORS_ALLOWED_ORIGINS || 'http://localhost:4200')
+      .split(',')
+      .map((o) => o.trim())
+      .filter(Boolean),
+    credentials: true,
+  },
+})
 export class MessagingGateway
   implements OnGatewayConnection, OnGatewayDisconnect
 {
@@ -99,6 +105,8 @@ export class MessagingGateway
   private userSockets = new Map<string, Set<string>>();
   /** Maps socketId -> userId */
   private socketUsers = new Map<string, string>();
+  /** Rate limiter: userId -> list of message timestamps */
+  private messageTimestamps = new Map<string, number[]>();
 
   constructor(
     @InjectModel(Conversation.name)
@@ -109,11 +117,32 @@ export class MessagingGateway
     private readonly userModel: Model<UserDocument>,
     @InjectModel(ProductListing.name)
     private readonly listingModel: Model<ProductListingDocument>,
+    private readonly jwtService: JwtService,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
-    const userId = client.handshake.query['userId'] as string | undefined;
-    if (!userId || !Types.ObjectId.isValid(userId)) {
+    // Authenticate via JWT token from handshake
+    const token =
+      (client.handshake.auth?.['token'] as string) ||
+      (client.handshake.query?.['token'] as string) ||
+      '';
+
+    let userId: string;
+    try {
+      const payload = this.jwtService.verify<{ sub: string; type: string }>(
+        token,
+      );
+      if (payload.type !== 'access' || !payload.sub) {
+        client.disconnect();
+        return;
+      }
+      userId = payload.sub;
+    } catch {
+      client.disconnect();
+      return;
+    }
+
+    if (!Types.ObjectId.isValid(userId)) {
       client.disconnect();
       return;
     }
@@ -161,6 +190,11 @@ export class MessagingGateway
     const userId = this.socketUsers.get(client.id);
     if (!userId) {
       return { success: false, error: GW_ERROR.NOT_AUTHENTICATED };
+    }
+
+    // Rate limit: max N messages per minute per user
+    if (this.isRateLimited(userId)) {
+      return { success: false, error: GW_ERROR.RATE_LIMITED };
     }
 
     const { conversationId, content } = payload;
@@ -369,6 +403,15 @@ export class MessagingGateway
   isUserOnline(userId: string): boolean {
     const sockets = this.userSockets.get(userId);
     return !!sockets && sockets.size > 0;
+  }
+
+  private isRateLimited(userId: string): boolean {
+    const now = Date.now();
+    const timestamps = this.messageTimestamps.get(userId) ?? [];
+    const recent = timestamps.filter((t) => now - t < WS_RATE_WINDOW_MS);
+    recent.push(now);
+    this.messageTimestamps.set(userId, recent);
+    return recent.length > WS_RATE_LIMIT_PER_MINUTE;
   }
 
   /**

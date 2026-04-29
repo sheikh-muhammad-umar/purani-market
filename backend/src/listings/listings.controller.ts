@@ -19,6 +19,7 @@ import { PackagesService } from '../packages/packages.service.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
+import { VerifiedUserGuard } from '../auth/guards/verified-user.guard.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { CreateListingDto } from './dto/create-listing.dto.js';
@@ -96,24 +97,42 @@ export class ListingsController {
       userRole,
       req,
     );
-    // Enrich with seller verification info
-    const seller = await this.listingsService.getSellerVerification(
-      listing.sellerId.toString(),
-    );
     const obj = listing.toJSON();
-    return {
-      ...obj,
-      sellerEmailVerified: seller.emailVerified,
-      sellerPhoneVerified: seller.phoneVerified,
-      sellerIdVerified: seller.idVerified,
-      sellerActiveAdsCount: seller.activeAdsCount,
-      sellerResponseRate: seller.responseRate,
-      sellerAvgResponseTime: seller.avgResponseTime,
-    };
+
+    // Strip internal fields from response
+    delete obj.purchaseId;
+    delete obj.rejectionReasonIds;
+    delete obj.rejectionNote;
+    delete obj.rejectedAt;
+    delete obj.deactivatedAt;
+    delete obj.deletionReason;
+
+    // Strip seller contact info for anonymous users
+    if (!userId) {
+      delete obj.contactInfo;
+    }
+
+    // Enrich with seller info for authenticated users only
+    if (userId) {
+      const seller = await this.listingsService.getSellerVerification(
+        listing.sellerId.toString(),
+      );
+      return {
+        ...obj,
+        sellerEmailVerified: seller.emailVerified,
+        sellerPhoneVerified: seller.phoneVerified,
+        sellerIdVerified: seller.idVerified,
+        sellerActiveAdsCount: seller.activeAdsCount,
+        sellerResponseRate: seller.responseRate,
+        sellerAvgResponseTime: seller.avgResponseTime,
+      };
+    }
+
+    return obj;
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   async createListing(
     @CurrentUser('sub') sellerId: string,
     @Body() dto: CreateListingDto,

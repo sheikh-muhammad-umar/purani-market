@@ -14,6 +14,7 @@ import { Types } from 'mongoose';
 import { PackagesService } from './packages.service.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
+import { VerifiedUserGuard } from '../auth/guards/verified-user.guard.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { AdminTrackerService } from '../ai/admin-tracker.service.js';
@@ -109,7 +110,7 @@ export class PackagesController {
   }
 
   @Post(PACKAGE_ROUTES.PURCHASE)
-  @UseGuards(JwtAuthGuard)
+  @UseGuards(JwtAuthGuard, VerifiedUserGuard)
   async purchasePackages(
     @CurrentUser('sub') sellerId: string,
     @Body() dto: PurchasePackageDto,

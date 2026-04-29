@@ -7,6 +7,10 @@ import Redis from 'ioredis';
 import { CategoriesService } from '../categories/categories.service.js';
 import { AttributeType } from '../categories/schemas/category.schema.js';
 import {
+  escapeRegex,
+  exactMatchRegex,
+} from '../common/utils/sanitize-regex.js';
+import {
   ProductListing,
   ProductListingDocument,
   ListingStatus,
@@ -274,14 +278,15 @@ export class SearchService {
     };
 
     if (query.q) {
+      const safeQ = escapeRegex(query.q);
       filter.$or = [
-        { title: { $regex: query.q, $options: 'i' } },
-        { description: { $regex: query.q, $options: 'i' } },
-        { brandName: { $regex: query.q, $options: 'i' } },
-        { vehicleBrandName: { $regex: query.q, $options: 'i' } },
-        { modelName: { $regex: query.q, $options: 'i' } },
-        { variantName: { $regex: query.q, $options: 'i' } },
-        { selectedFeatures: { $regex: query.q, $options: 'i' } },
+        { title: { $regex: safeQ, $options: 'i' } },
+        { description: { $regex: safeQ, $options: 'i' } },
+        { brandName: { $regex: safeQ, $options: 'i' } },
+        { vehicleBrandName: { $regex: safeQ, $options: 'i' } },
+        { modelName: { $regex: safeQ, $options: 'i' } },
+        { variantName: { $regex: safeQ, $options: 'i' } },
+        { selectedFeatures: { $regex: safeQ, $options: 'i' } },
       ];
     }
 
@@ -299,24 +304,20 @@ export class SearchService {
     if (query.provinceId) {
       filter['location.provinceId'] = new Types.ObjectId(query.provinceId);
     } else if (query.province) {
-      filter['location.province'] = {
-        $regex: new RegExp(`^${query.province}$`, 'i'),
-      };
+      filter['location.province'] = exactMatchRegex(query.province);
     }
     if (query.cityId) {
       filter['location.cityId'] = new Types.ObjectId(query.cityId);
     } else if (query.city) {
-      filter['location.city'] = { $regex: new RegExp(`^${query.city}$`, 'i') };
+      filter['location.city'] = exactMatchRegex(query.city);
     }
     if (query.areaId) {
       filter['location.areaId'] = new Types.ObjectId(query.areaId);
     } else if (query.area) {
-      filter['location.area'] = { $regex: new RegExp(`^${query.area}$`, 'i') };
+      filter['location.area'] = exactMatchRegex(query.area);
     }
     if (query.blockPhase) {
-      filter['location.blockPhase'] = {
-        $regex: new RegExp(`^${query.blockPhase}$`, 'i'),
-      };
+      filter['location.blockPhase'] = exactMatchRegex(query.blockPhase);
     }
 
     if (query.priceMin || query.priceMax) {
@@ -335,7 +336,7 @@ export class SearchService {
       filter.modelId = new Types.ObjectId(query.modelId);
     }
     if (query.modelName) {
-      filter.modelName = { $regex: new RegExp(`^${query.modelName}$`, 'i') };
+      filter.modelName = exactMatchRegex(query.modelName);
     }
     if (query.variantId) {
       filter.variantId = new Types.ObjectId(query.variantId);
@@ -350,9 +351,7 @@ export class SearchService {
           !key.endsWith('_province') &&
           !key.endsWith('_city')
         ) {
-          filter[`categoryAttributes.${key}`] = {
-            $regex: new RegExp(`^${value}$`, 'i'),
-          };
+          filter[`categoryAttributes.${key}`] = exactMatchRegex(value);
         }
       }
     }

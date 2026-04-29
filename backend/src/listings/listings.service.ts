@@ -19,6 +19,7 @@ import {
   VIEW_DEDUP_WINDOW_SECONDS,
 } from '../common/constants/index.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { exactMatchRegex } from '../common/utils/sanitize-regex.js';
 import {
   ProductListing,
   ProductListingDocument,
@@ -50,7 +51,7 @@ import { PackagesService } from '../packages/packages.service.js';
 import { AdminTrackerService } from '../ai/admin-tracker.service.js';
 import { UserAction } from '../ai/enums/user-action.enum.js';
 import { AdPackageType } from '../packages/schemas/ad-package.schema.js';
-import { OTHER_OPTION_ID } from './constants/index.js';
+import { OTHER_OPTION_ID, LISTING_PUBLIC_SELECT } from './constants/index.js';
 import { PaginatedListings } from './interfaces/paginated-listings.interface.js';
 
 export type { PaginatedListings };
@@ -121,23 +122,17 @@ export class ListingsService {
     if (filters?.provinceId) {
       filter['location.provinceId'] = new Types.ObjectId(filters.provinceId);
     } else if (filters?.province) {
-      filter['location.province'] = {
-        $regex: new RegExp(`^${filters.province}$`, 'i'),
-      };
+      filter['location.province'] = exactMatchRegex(filters.province);
     }
     if (filters?.cityId) {
       filter['location.cityId'] = new Types.ObjectId(filters.cityId);
     } else if (filters?.city) {
-      filter['location.city'] = {
-        $regex: new RegExp(`^${filters.city}$`, 'i'),
-      };
+      filter['location.city'] = exactMatchRegex(filters.city);
     }
     if (filters?.areaId) {
       filter['location.areaId'] = new Types.ObjectId(filters.areaId);
     } else if (filters?.area) {
-      filter['location.area'] = {
-        $regex: new RegExp(`^${filters.area}$`, 'i'),
-      };
+      filter['location.area'] = exactMatchRegex(filters.area);
     }
 
     const sortObj: Record<string, 1 | -1> = {
@@ -147,6 +142,7 @@ export class ListingsService {
     const [data, total] = await Promise.all([
       this.listingModel
         .find(filter)
+        .select(LISTING_PUBLIC_SELECT)
         .sort(sortObj)
         .skip(skip)
         .limit(safeLimit)
@@ -191,15 +187,27 @@ export class ListingsService {
     if (options.cityId) {
       filter['location.cityId'] = new Types.ObjectId(options.cityId);
     } else if (options.city) {
-      filter['location.city'] = {
-        $regex: new RegExp(`^${options.city}$`, 'i'),
-      };
+      filter['location.city'] = exactMatchRegex(options.city);
     }
     if (options.areaId) {
       filter['location.areaId'] = new Types.ObjectId(options.areaId);
     }
 
-    const pipeline: any[] = [{ $match: filter }, { $sample: { size: limit } }];
+    const pipeline: any[] = [
+      { $match: filter },
+      { $sample: { size: limit } },
+      {
+        $project: {
+          purchaseId: 0,
+          rejectionReasonIds: 0,
+          rejectionNote: 0,
+          rejectedAt: 0,
+          deactivatedAt: 0,
+          deletionReason: 0,
+          __v: 0,
+        },
+      },
+    ];
 
     return this.listingModel.aggregate(pipeline).exec();
   }
@@ -226,17 +234,7 @@ export class ListingsService {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }
-    const listing = await this.listingModel
-      .findById(id)
-      .populate({
-        path: 'purchaseId',
-        select: 'remainingQuantity packageId',
-        populate: {
-          path: 'packageId',
-          select: 'name type',
-        },
-      })
-      .exec();
+    const listing = await this.listingModel.findById(id).exec();
     if (!listing) {
       throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
     }

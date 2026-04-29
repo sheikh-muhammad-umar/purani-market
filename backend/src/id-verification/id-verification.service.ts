@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types, PipelineStage } from 'mongoose';
+import { containsRegex } from '../common/utils/sanitize-regex.js';
 import {
   IdVerification,
   IdVerificationDocument,
@@ -153,7 +154,7 @@ export class IdVerificationService {
     ];
 
     if (params.search) {
-      const regex = new RegExp(params.search, 'i');
+      const regex = containsRegex(params.search);
       pipeline.push({
         $match: {
           $or: [
