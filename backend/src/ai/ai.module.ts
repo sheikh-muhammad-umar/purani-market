@@ -6,7 +6,6 @@ import {
   UserActivitySchema,
 } from './schemas/user-activity.schema.js';
 import { RecommendationService } from './recommendation.service.js';
-import { ChatbotService } from './chatbot.service.js';
 import { AdminTrackerService } from './admin-tracker.service.js';
 import { AiController } from './ai.controller.js';
 import { ListingsModule } from '../listings/listings.module.js';
@@ -20,7 +19,7 @@ import { ListingsModule } from '../listings/listings.module.js';
     ListingsModule,
   ],
   controllers: [AiController],
-  providers: [RecommendationService, ChatbotService, AdminTrackerService],
-  exports: [RecommendationService, ChatbotService, AdminTrackerService],
+  providers: [RecommendationService, AdminTrackerService],
+  exports: [RecommendationService, AdminTrackerService],
 })
 export class AiModule {}

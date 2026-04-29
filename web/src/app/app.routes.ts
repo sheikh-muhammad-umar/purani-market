@@ -54,10 +54,6 @@ export const routes: Routes = [
     loadChildren: () => import('./features/reviews/reviews.routes').then((m) => m.REVIEWS_ROUTES),
   },
   {
-    path: 'chatbot',
-    loadChildren: () => import('./features/chatbot/chatbot.routes').then((m) => m.CHATBOT_ROUTES),
-  },
-  {
     path: 'admin',
     loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
   },

@@ -8,22 +8,16 @@ import {
   UseGuards,
 } from '@nestjs/common';
 import { RecommendationService } from './recommendation.service.js';
-import { ChatbotService } from './chatbot.service.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { DismissRecommendationDto } from './dto/dismiss-recommendation.dto.js';
-import { ChatbotMessageDto } from './dto/chatbot-message.dto.js';
 import { TrackActivityDto } from './dto/track-activity.dto.js';
-import { randomUUID } from 'crypto';
 import { UAParser } from 'ua-parser-js';
 
 @Controller('api')
 export class AiController {
-  constructor(
-    private readonly recommendationService: RecommendationService,
-    private readonly chatbotService: ChatbotService,
-  ) {}
+  constructor(private readonly recommendationService: RecommendationService) {}
 
   @Get('recommendations')
   @UseGuards(OptionalJwtAuthGuard)
@@ -50,21 +44,6 @@ export class AiController {
       dto.productListingId,
     );
     return { message: 'Recommendation dismissed successfully' };
-  }
-
-  @Post('chatbot/message')
-  async chatbotMessage(@Body() dto: ChatbotMessageDto) {
-    const sessionId = dto.sessionId || randomUUID();
-    const result = await this.chatbotService.processMessage(
-      sessionId,
-      dto.message,
-    );
-
-    return {
-      sessionId,
-      reply: result.reply,
-      escalated: result.escalated,
-    };
   }
 
   @Post('track')

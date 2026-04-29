@@ -13,12 +13,6 @@ export { ReviewsService, type ReviewsResponse } from './reviews.service';
 export { FavoritesService, type FavoritesResponse } from './favorites.service';
 export { PackagesService, type MyPurchasesResponse } from './packages.service';
 export {
-  ChatbotService,
-  type ChatMessage,
-  type ChatbotRequest,
-  type ChatbotResponse,
-} from './chatbot.service';
-export {
   AdminService,
   type AnalyticsData,
   type MetricsSummary,
