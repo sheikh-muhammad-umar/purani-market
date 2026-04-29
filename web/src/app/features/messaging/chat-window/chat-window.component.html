@@ -205,7 +205,7 @@
   @if (chatDisabled()) {
     <div class="input-area chat-disabled-bar">
       <span class="material-symbols-rounded" style="font-size: 18px">block</span>
-      This ad is no longer active. You can't send new messages.
+      {{ chatDisabledLabel() }} You can't send new messages.
     </div>
   } @else {
     <!-- Recording state -->

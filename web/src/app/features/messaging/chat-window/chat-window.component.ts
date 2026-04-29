@@ -26,6 +26,7 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { QUICK_REPLIES, PLACEHOLDER_IMAGE } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
+import { ListingStatus } from '../../../core/constants/enums';
 import {
   ACCEPTED_IMAGE_TYPES,
   VOICE_MIME_TYPE,
@@ -35,6 +36,7 @@ import {
   LIVE_LOCATION_DURATION_MIN,
   SKELETON_ITEMS,
   WAVEFORM_BARS,
+  CHAT_DISABLED_LABELS,
 } from '../messaging.constants';
 
 @Component({
@@ -85,7 +87,16 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
   /** Precomputed: whether the chat is disabled (listing not active). */
   readonly chatDisabled = computed(() => {
     const l = this.listing();
-    return l != null && l.status !== 'active';
+    return l != null && l.status !== ListingStatus.ACTIVE;
+  });
+
+  /** Precomputed: label explaining why the chat is disabled. */
+  readonly chatDisabledLabel = computed(() => {
+    const l = this.listing();
+    if (!l || l.status === ListingStatus.ACTIVE) return '';
+    return (
+      CHAT_DISABLED_LABELS[l.status as ListingStatus] ?? 'This listing is no longer available.'
+    );
   });
 
   /** Precomputed: listing image for the product card header. */

@@ -24,6 +24,7 @@ describe('MessagingService', () => {
     sellerId,
     title: 'Test Listing',
     price: { amount: 5000, currency: 'PKR' },
+    status: 'active',
   };
 
   const mockConversation = {
@@ -102,6 +103,9 @@ describe('MessagingService', () => {
 
     mockListingModel = {
       findById: jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue(mockListing),
+        }),
         exec: jest.fn().mockResolvedValue(mockListing),
       }),
     };

@@ -5,6 +5,7 @@ import { MessagingGateway } from './messaging.gateway';
 import { Conversation } from './schemas/conversation.schema';
 import { Message } from './schemas/message.schema';
 import { User } from '../users/schemas/user.schema';
+import { ProductListing } from '../listings/schemas/product-listing.schema';
 import { Server, Socket } from 'socket.io';
 
 describe('MessagingGateway', () => {
@@ -114,6 +115,16 @@ describe('MessagingGateway', () => {
         },
         { provide: getModelToken(Message.name), useValue: mockMessageModel },
         { provide: getModelToken(User.name), useValue: mockUserModel },
+        {
+          provide: getModelToken(ProductListing.name),
+          useValue: {
+            findById: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                exec: jest.fn().mockResolvedValue({ status: 'active' }),
+              }),
+            }),
+          },
+        },
       ],
     }).compile();
 

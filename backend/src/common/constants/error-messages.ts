@@ -52,6 +52,8 @@ export const ERROR = {
     'You cannot start a conversation on your own listing',
   NOT_CONVERSATION_PARTICIPANT:
     'You are not a participant in this conversation',
+  LISTING_NOT_ACTIVE_MESSAGING:
+    'This listing is no longer active. You cannot send new messages.',
 
   // Payments
   PAYMENT_TXN_ID_REQUIRED: 'Transaction ID is required',

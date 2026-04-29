@@ -19,9 +19,11 @@ import {
 import {
   ProductListing,
   ProductListingDocument,
+  ListingStatus,
 } from '../listings/schemas/product-listing.schema.js';
 import { CreateConversationDto } from './dto/create-conversation.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { INACTIVE_CONVERSATION_RETENTION_DAYS } from '../common/constants/app.constants.js';
 
 /** Options for sending a rich message (image, voice, location). */
 export interface SendMessageOptions {
@@ -79,6 +81,10 @@ export class MessagingService {
       throw new BadRequestException(ERROR.CANNOT_MESSAGE_OWN_LISTING);
     }
 
+    if (listing.status !== ListingStatus.ACTIVE) {
+      throw new BadRequestException(ERROR.LISTING_NOT_ACTIVE_MESSAGING);
+    }
+
     const buyerId = new Types.ObjectId(userId);
     const sellerId = listing.sellerId;
 
@@ -120,7 +126,7 @@ export class MessagingService {
 
   async getUserConversations(userId: string): Promise<ConversationDocument[]> {
     const userObjectId = new Types.ObjectId(userId);
-    return this.conversationModel
+    const conversations = await this.conversationModel
       .find({
         $or: [{ buyerId: userObjectId }, { sellerId: userObjectId }],
       })
@@ -129,6 +135,18 @@ export class MessagingService {
       .populate('productListingId', 'title price images status')
       .sort({ lastMessageAt: -1, createdAt: -1 })
       .exec();
+
+    // Hide conversations for non-active listings older than 30 days
+    const cutoff = new Date(
+      Date.now() - INACTIVE_CONVERSATION_RETENTION_DAYS * 24 * 60 * 60 * 1000,
+    );
+
+    return conversations.filter((conv) => {
+      const listing = conv.productListingId as any;
+      if (!listing || listing.status === ListingStatus.ACTIVE) return true;
+      const lastActivity = conv.lastMessageAt ?? conv.createdAt;
+      return lastActivity > cutoff;
+    });
   }
 
   async getConversationMessages(
@@ -211,6 +229,15 @@ export class MessagingService {
       conversation.sellerId.toString() !== userId
     ) {
       throw new ForbiddenException(ERROR.NOT_CONVERSATION_PARTICIPANT);
+    }
+
+    // Check listing is still active
+    const listing = await this.listingModel
+      .findById(conversation.productListingId)
+      .select('status')
+      .exec();
+    if (listing && listing.status !== ListingStatus.ACTIVE) {
+      throw new BadRequestException(ERROR.LISTING_NOT_ACTIVE_MESSAGING);
     }
 
     const msgType = options?.type || MessageType.TEXT;

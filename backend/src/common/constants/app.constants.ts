@@ -31,3 +31,6 @@ export const DELETION_REASON_MAX_REJECTIONS =
 // ─── ID Verification ────────────────────────────────────────
 export const ID_VERIFICATION_AUTO_EXPIRE_REASON =
   'Auto-expired: verification was not reviewed within 30 days. Please resubmit.';
+
+// ─── Messaging ──────────────────────────────────────────────
+export const INACTIVE_CONVERSATION_RETENTION_DAYS = 30;

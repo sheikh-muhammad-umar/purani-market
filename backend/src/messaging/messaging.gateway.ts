@@ -20,6 +20,11 @@ import {
   MessageType,
 } from './schemas/message.schema.js';
 import { User, UserDocument } from '../users/schemas/user.schema.js';
+import {
+  ProductListing,
+  ProductListingDocument,
+  ListingStatus,
+} from '../listings/schemas/product-listing.schema.js';
 
 const PROHIBITED_WORDS = [
   'spam',
@@ -51,6 +56,7 @@ const GW_ERROR = {
   PROHIBITED_CONTENT: 'Message contains prohibited content',
   NO_MESSAGE_IDS: 'No message IDs provided',
   NO_VALID_IDS: 'No valid message IDs',
+  LISTING_NOT_ACTIVE: 'This listing is no longer active',
 } as const;
 
 export interface SendMessagePayload {
@@ -101,6 +107,8 @@ export class MessagingGateway
     private readonly messageModel: Model<MessageDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    @InjectModel(ProductListing.name)
+    private readonly listingModel: Model<ProductListingDocument>,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
@@ -186,6 +194,15 @@ export class MessagingGateway
         success: false,
         error: GW_ERROR.NOT_PARTICIPANT,
       };
+    }
+
+    // Check listing is still active
+    const listing = await this.listingModel
+      .findById(conversation.productListingId)
+      .select('status')
+      .exec();
+    if (listing && listing.status !== ListingStatus.ACTIVE) {
+      return { success: false, error: GW_ERROR.LISTING_NOT_ACTIVE };
     }
 
     // Check prohibited content
