@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
+import { JwtModule } from '@nestjs/jwt';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import {
   Conversation,
@@ -22,6 +24,17 @@ import { ListingsModule } from '../listings/listings.module.js';
       { name: Message.name, schema: MessageSchema },
       { name: User.name, schema: UserSchema },
     ]),
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: (configService: ConfigService) => ({
+        secret: configService.get<string>('jwt.secret'),
+        signOptions: {
+          expiresIn: (configService.get<string>('jwt.accessExpiration') ??
+            '15m') as any,
+        },
+      }),
+    }),
     ListingsModule,
   ],
   controllers: [MessagingController],
