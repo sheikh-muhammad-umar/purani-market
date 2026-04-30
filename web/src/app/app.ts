@@ -1,4 +1,13 @@
-import { Component, signal, HostListener, OnInit, OnDestroy } from '@angular/core';
+import {
+  Component,
+  signal,
+  HostListener,
+  OnInit,
+  OnDestroy,
+  inject,
+  PLATFORM_ID,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterOutlet, NavigationEnd } from '@angular/router';
 import { Subscription, filter } from 'rxjs';
 import { HeaderComponent } from './shared/components/header/header.component';
@@ -25,6 +34,7 @@ export class App implements OnInit, OnDestroy {
   readonly hideFooter = signal(false);
   private scrolling = false;
   private navSub?: Subscription;
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   constructor(private readonly router: Router) {}
 
@@ -41,12 +51,13 @@ export class App implements OnInit, OnDestroy {
 
   @HostListener('window:scroll')
   onScroll(): void {
-    if (!this.scrolling) {
+    if (!this.scrolling && this.isBrowser) {
       this.showScrollTop.set(window.scrollY > 400);
     }
   }
 
   scrollToTop(): void {
+    if (!this.isBrowser) return;
     this.scrolling = true;
     window.scrollTo({ top: 0, behavior: 'smooth' });
     setTimeout(() => {

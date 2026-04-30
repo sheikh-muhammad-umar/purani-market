@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { Listing } from '../models';
@@ -53,6 +54,8 @@ export interface MediaUploadResponse {
 
 @Injectable({ providedIn: 'root' })
 export class ListingsService {
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
   constructor(private readonly api: ApiService) {}
 
   getFeatured(limit: number = 10): Observable<ListingsResponse> {
@@ -67,17 +70,19 @@ export class ListingsService {
     if (params.limit) clean['limit'] = params.limit;
 
     // Add location from header selection
-    try {
-      const locRaw = localStorage.getItem(STORAGE_SELECTED_LOCATION);
-      if (locRaw) {
-        const loc = JSON.parse(locRaw);
-        if (loc.label && loc.label !== DEFAULT_COUNTRY) {
-          if (loc.province?._id) clean['provinceId'] = loc.province._id;
-          if (loc.city?._id) clean['cityId'] = loc.city._id;
-          if (loc.area?._id) clean['areaId'] = loc.area._id;
+    if (this.isBrowser) {
+      try {
+        const locRaw = localStorage.getItem(STORAGE_SELECTED_LOCATION);
+        if (locRaw) {
+          const loc = JSON.parse(locRaw);
+          if (loc.label && loc.label !== DEFAULT_COUNTRY) {
+            if (loc.province?._id) clean['provinceId'] = loc.province._id;
+            if (loc.city?._id) clean['cityId'] = loc.city._id;
+            if (loc.area?._id) clean['areaId'] = loc.area._id;
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
 
     // Fallback to city name if passed directly
     if (!clean['cityId'] && params.city) clean['city'] = params.city;
@@ -117,17 +122,19 @@ export class ListingsService {
     };
 
     // Add location from header selection (only if user selected something specific)
-    try {
-      const locRaw = localStorage.getItem(STORAGE_SELECTED_LOCATION);
-      if (locRaw) {
-        const loc = JSON.parse(locRaw);
-        if (loc.label && loc.label !== DEFAULT_COUNTRY) {
-          if (loc.province?._id) params['provinceId'] = loc.province._id;
-          if (loc.city?._id) params['cityId'] = loc.city._id;
-          if (loc.area?._id) params['areaId'] = loc.area._id;
+    if (this.isBrowser) {
+      try {
+        const locRaw = localStorage.getItem(STORAGE_SELECTED_LOCATION);
+        if (locRaw) {
+          const loc = JSON.parse(locRaw);
+          if (loc.label && loc.label !== DEFAULT_COUNTRY) {
+            if (loc.province?._id) params['provinceId'] = loc.province._id;
+            if (loc.city?._id) params['cityId'] = loc.city._id;
+            if (loc.area?._id) params['areaId'] = loc.area._id;
+          }
         }
-      }
-    } catch {}
+      } catch {}
+    }
 
     return this.api.get<ListingsResponse>(API.LISTINGS, params);
   }

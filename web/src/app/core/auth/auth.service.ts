@@ -1,4 +1,5 @@
-import { Injectable, signal, computed } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Injectable, inject, PLATFORM_ID, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
@@ -28,6 +29,7 @@ export type {
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly apiUrl = environment.apiUrl;
   private readonly currentUser = signal<User | null>(null);
   readonly user = this.currentUser.asReadonly();
@@ -139,19 +141,23 @@ export class AuthService {
   // --- Token Management ---
 
   getAccessToken(): string | null {
+    if (!this.isBrowser) return null;
     return localStorage.getItem(STORAGE_ACCESS_TOKEN);
   }
 
   getRefreshToken(): string | null {
+    if (!this.isBrowser) return null;
     return localStorage.getItem(STORAGE_REFRESH_TOKEN);
   }
 
   storeTokens(tokens: AuthTokens): void {
+    if (!this.isBrowser) return;
     localStorage.setItem(STORAGE_ACCESS_TOKEN, tokens.accessToken);
     localStorage.setItem(STORAGE_REFRESH_TOKEN, tokens.refreshToken);
   }
 
   clearTokens(): void {
+    if (!this.isBrowser) return;
     localStorage.removeItem(STORAGE_ACCESS_TOKEN);
     localStorage.removeItem(STORAGE_REFRESH_TOKEN);
   }

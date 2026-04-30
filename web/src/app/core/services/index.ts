@@ -22,3 +22,6 @@ export {
   type DateRange,
 } from './admin.service';
 export { LocationService } from './location.service';
+export { SeoApiService } from './seo-api.service';
+export { MetaService } from './meta.service';
+export { StructuredDataService } from './structured-data.service';

@@ -1,6 +1,13 @@
 /** App-level constants */
 
-export const DEFAULT_COUNTRY = 'Pakistan';
+import { environment } from '../../../environments/environment';
+
+// ─── Values from environment (change in environment.ts, not here) ───
+export const DEFAULT_COUNTRY = environment.defaultCountry;
+export const DEFAULT_CURRENCY = environment.defaultCurrency;
+export const CURRENCY_SYMBOL = environment.currencySymbol;
+
+// ─── Structural constants ───────────────────────────────────
 
 /** User-agent detection patterns */
 export const UA_MOBILE_PATTERN = /android|iphone|ipad|ipod/i;
@@ -15,10 +22,6 @@ export const PLATFORM_HUAWEI = 'huawei';
 /** Login method identifiers */
 export const LOGIN_METHOD_EMAIL = 'email';
 export const LOGIN_METHOD_PHONE = 'phone';
-
-/** Currency */
-export const DEFAULT_CURRENCY = 'PKR';
-export const CURRENCY_SYMBOL = 'Rs';
 
 /** Chat quick replies */
 export const QUICK_REPLIES = [

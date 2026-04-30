@@ -1,4 +1,14 @@
-import { Component, OnInit, OnDestroy, signal, computed, HostListener } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  signal,
+  computed,
+  HostListener,
+  inject,
+  PLATFORM_ID,
+} from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
@@ -34,12 +44,15 @@ export class HeaderComponent implements OnInit, OnDestroy {
   readonly defaultCountry = DEFAULT_COUNTRY;
   readonly ROUTES = ROUTES;
   private subs: Subscription[] = [];
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   // Location selector state
   locationDropdownOpen = signal(false);
   searchDropdownOpen = signal(false);
   searchPlaceholder = signal(
-    window.innerWidth < 1024 ? 'Search...' : 'Find cars, phones, furniture...',
+    typeof window !== 'undefined' && window.innerWidth < 1024
+      ? 'Search...'
+      : 'Find cars, phones, furniture...',
   );
   provinces = signal<Province[]>([]);
   cities = signal<City[]>([]);
@@ -193,6 +206,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   @HostListener('window:resize')
   onResize(): void {
+    if (!this.isBrowser) return;
     this.searchPlaceholder.set(
       window.innerWidth < 1024 ? 'Search...' : 'Find cars, phones, furniture...',
     );
@@ -200,6 +214,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   @HostListener('window:scroll')
   onScroll(): void {
+    if (!this.isBrowser) return;
     this.scrolled.set(window.scrollY > 10);
   }
 

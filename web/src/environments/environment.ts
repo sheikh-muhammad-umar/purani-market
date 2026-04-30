@@ -8,6 +8,15 @@ export const environment = {
   appGalleryUrl: 'https://appgallery.huawei.com/app/C000000000',
   appBannerDismissDays: 1,
 
+  // Locale
+  defaultCountry: 'Pakistan',
+  defaultCurrency: 'PKR',
+  currencySymbol: 'Rs',
+
+  // SEO
+  seoBaseUrl: 'https://marketplace.pk',
+  seoSiteName: 'marketplace.pk',
+
   // Social Login — fill these in to enable OAuth buttons
   googleClientId: '',
   facebookAppId: '',

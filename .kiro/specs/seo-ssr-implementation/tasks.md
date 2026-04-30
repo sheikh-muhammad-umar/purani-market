@@ -1,0 +1,284 @@
+# Implementation Plan: SEO & SSR Implementation
+
+## Overview
+
+This plan implements Server-Side Rendering and comprehensive SEO optimization for the marketplace.pk Angular 21 + NestJS application. The implementation starts with backend SEO services (pure logic layer), then adds SSR configuration, frontend SEO services, route resolvers, sitemap/robots.txt generation, and prerendering. Each step builds incrementally on the previous one, with property-based tests validating correctness properties from the design.
+
+## Tasks
+
+- [x] 1. Create backend SeoModule scaffolding and SlugService
+  - [x] 1.1 Create the SeoModule with directory structure and register in AppModule
+    - Create `backend/src/seo/` directory with `seo.module.ts`
+    - Define the module importing MongooseModule for ProductListing, Category, and User schemas
+    - Register SeoModule in `backend/src/app.module.ts` imports array
+    - Create placeholder files for all controllers and services declared in the module
+    - _Requirements: 9.1, 9.2, 9.3, 9.4_
+  - [x] 1.2 Implement SlugService with slug generation, URL construction, and parameter stripping
+    - Create `backend/src/seo/slug.service.ts` with `generateSlug()`, `generateListingUrl()`, `generateCategoryUrl()`, `generateSellerUrl()`, and `stripTrackingParams()` methods
+    - `generateSlug()` must handle Urdu text transliteration, special characters, and produce URL-safe lowercase alphanumeric-and-hyphen output
+    - `generateListingUrl()` returns `/listings/{slug}-{id}` pattern
+    - `generateCategoryUrl()` returns `/categories/{slug}` pattern
+    - `generateSellerUrl()` returns `/seller/{id}` pattern
+    - `stripTrackingParams()` removes utm_source, utm_medium, utm_campaign, fbclid, gclid, page, offset parameters
+    - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5, 5.4, 5.6_
+  - [x] 1.3 Write property test: Slug generation produces URL-safe output
+    - **Property 9: Slug generation produces URL-safe output**
+    - Test with arbitrary strings including Urdu, special characters, mixed scripts
+    - Assert output contains only lowercase alphanumeric and hyphens, no leading/trailing/consecutive hyphens
+    - **Validates: Requirements 10.5**
+  - [x] 1.4 Write property test: URL pattern correctness per entity type
+    - **Property 7: URL pattern correctness per entity type**
+    - Test that `generateListingUrl` produces `/listings/{slug}-{id}`, `generateCategoryUrl` produces `/categories/{slug}`, `generateSellerUrl` produces `/seller/{id}`
+    - **Validates: Requirements 5.2, 5.3, 5.5, 10.1, 10.2, 10.3, 10.4**
+  - [x] 1.5 Write property test: Canonical URL strips extraneous parameters
+    - **Property 8: Canonical URL strips extraneous parameters**
+    - Test that `stripTrackingParams` removes pagination and tracking params while preserving content-relevant params
+    - **Validates: Requirements 5.4, 5.6**
+
+- [x] 2. Implement SeoService with DTOs and SEO metadata logic
+  - [x] 2.1 Create SEO DTO classes and shared types
+    - Create `backend/src/seo/dto/listing-seo.dto.ts` with ListingSeoDto (title, description, imageUrl, price, currency, categoryBreadcrumb, sellerName, averageRating, reviewCount, canonicalUrl, productJsonLd, breadcrumbJsonLd)
+    - Create `backend/src/seo/dto/category-seo.dto.ts` with CategorySeoDto (title, description, breadcrumb, listingCount, canonicalUrl, itemListJsonLd, breadcrumbJsonLd)
+    - Create `backend/src/seo/dto/seller-seo.dto.ts` with SellerSeoDto (title, description, avatarUrl, city, memberSince, isVerified, activeListingCount, canonicalUrl, personJsonLd)
+    - Create `backend/src/seo/dto/home-seo.dto.ts` with HomeSeoDto (title, description, featuredCategories, canonicalUrl, websiteJsonLd)
+    - Create `backend/src/seo/dto/breadcrumb-item.dto.ts` with BreadcrumbItem (name, url, position)
+    - Create `backend/src/seo/dto/sitemap-url.dto.ts` with SitemapUrl (loc, lastmod, changefreq, priority)
+    - _Requirements: 9.1, 9.2, 9.3, 9.4_
+  - [x] 2.2 Implement SeoService core methods
+    - Create `backend/src/seo/seo.service.ts` with constructor injecting Listing, Category, and User Mongoose models plus SlugService
+    - Implement `truncateDescription(description, maxLength)` — truncate to 160 chars at word boundary with ellipsis
+    - Implement `buildBreadcrumb(categoryPath)` — query category ancestors and build BreadcrumbItem array with incrementing positions
+    - Implement `buildProductJsonLd(listing, seller, breadcrumb)` — construct schema.org Product JSON-LD with conditional aggregateRating
+    - Implement `buildCategoryJsonLd(category, listings)` — construct schema.org ItemList JSON-LD
+    - Implement `buildSellerJsonLd(seller)` — construct schema.org Person/Organization JSON-LD
+    - Implement `buildWebsiteJsonLd()` — construct schema.org WebSite JSON-LD with SearchAction
+    - _Requirements: 2.2, 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
+  - [x] 2.3 Implement SeoService endpoint methods with title templates
+    - Implement `getListingSeo(id)` — query listing + seller, build title as `"{title} - {currency} {amount} | marketplace.pk"`, truncate description, build JSON-LD, construct canonical URL
+    - Implement `getCategorySeo(slug)` — query category, build title as `"{name} - Buy & Sell {name} in Pakistan | marketplace.pk"`, build breadcrumb and JSON-LD
+    - Implement `getSellerSeo(id)` — query seller, build title as `"{name} - Seller Profile | marketplace.pk"`, include city and listing count in description
+    - Implement `getHomeSeo()` — return static title `"marketplace.pk - Buy & Sell in Pakistan"`, build WebSite JSON-LD with SearchAction
+    - Handle 404 cases by throwing NotFoundException when entity not found
+    - _Requirements: 2.1, 2.2, 2.3, 2.5, 9.1, 9.2, 9.3, 9.4, 9.5_
+  - [x] 2.4 Write property test: Meta title follows page-type template
+    - **Property 1: Meta title follows page-type template**
+    - Generate arbitrary listing/category/seller data and verify title matches the template pattern for each page type
+    - **Validates: Requirements 2.2, 2.3, 2.4, 2.5**
+  - [x] 2.5 Write property test: Description truncation preserves content within limit
+    - **Property 2: Description truncation preserves content within limit**
+    - Generate arbitrary strings, verify truncated output is at most 160 chars, and strings <= 160 chars are returned unchanged
+    - **Validates: Requirements 2.2**
+  - [x] 2.6 Write property test: JSON-LD schema correctness per entity type
+    - **Property 4: JSON-LD schema correctness per entity type**
+    - Generate arbitrary entity data, verify JSON-LD contains @context, @type matching entity, and all required fields
+    - **Validates: Requirements 4.1, 4.3, 4.5, 4.7**
+  - [x] 2.7 Write property test: Conditional aggregateRating inclusion
+    - **Property 5: Conditional aggregateRating inclusion**
+    - Generate listings with random review counts, verify aggregateRating present when reviewCount > 0 and absent when reviewCount === 0
+    - **Validates: Requirements 4.2**
+  - [x] 2.8 Write property test: BreadcrumbList reflects category hierarchy
+    - **Property 6: BreadcrumbList reflects category hierarchy**
+    - Generate arbitrary category paths, verify BreadcrumbList has correct count, incrementing positions, and matching names/URLs
+    - **Validates: Requirements 4.6**
+
+- [x] 3. Implement SeoController with Redis caching
+  - [x] 3.1 Implement SeoController with all SEO API endpoints
+    - Create `backend/src/seo/seo.controller.ts` with `@Controller('api/seo')` decorator
+    - Implement `GET /api/seo/listing/:id` calling `SeoService.getListingSeo()`
+    - Implement `GET /api/seo/category/:slug` calling `SeoService.getCategorySeo()`
+    - Implement `GET /api/seo/seller/:id` calling `SeoService.getSellerSeo()`
+    - Implement `GET /api/seo/home` calling `SeoService.getHomeSeo()`
+    - Add validation pipes for ObjectId parameters, return 400 for malformed IDs
+    - Handle NotFoundException and return 404 with appropriate error message
+    - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
+  - [x] 3.2 Add Redis caching to SeoService
+    - Inject IoRedis client into SeoService
+    - Wrap each endpoint method with Redis cache check (get from cache, return if hit, otherwise query DB and set cache)
+    - Configure TTLs: 5 minutes for listings, 30 minutes for categories, 1 hour for static/home content
+    - Handle Redis connection failures gracefully — fall back to direct MongoDB queries, log cache errors
+    - _Requirements: 9.6, 9.7_
+  - [x] 3.3 Write property test: SEO API response completeness
+    - **Property 13: SEO API response completeness**
+    - Generate arbitrary entity data, verify API responses contain all required metadata fields per entity type
+    - **Validates: Requirements 9.1, 9.2, 9.3**
+  - [x] 3.4 Write unit tests for SeoController
+    - Test correct routing and parameter passing for each endpoint
+    - Test 404 response when entity not found
+    - Test 400 response for malformed ObjectId parameters
+    - _Requirements: 9.1, 9.2, 9.3, 9.4, 9.5_
+
+- [x] 4. Checkpoint - Ensure all backend SEO service tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 5. Implement SitemapService and SitemapController
+  - [x] 5.1 Implement SitemapService with XML generation and URL building
+    - Create `backend/src/seo/sitemap.service.ts` injecting Listing, Category, and User models plus SlugService and Redis client
+    - Implement `buildListingUrls()` — query active listings, map to SitemapUrl with priority 0.8 and lastmod from updatedAt
+    - Implement `buildCategoryUrls()` — query active categories, map to SitemapUrl with priority 0.7
+    - Implement `buildSellerUrls()` — query sellers with active listings, map to SitemapUrl with priority 0.5
+    - Implement `buildStaticUrls()` — return hardcoded static page URLs (home at 1.0, about/terms/privacy/etc at 0.3)
+    - Implement `generateSitemap()` — combine all URL sources, generate XML conforming to sitemaps.org protocol
+    - Implement `generateSitemapIndex(sitemapUrls)` — create sitemap index XML when URLs exceed 50,000
+    - Implement automatic splitting: when total URLs > 50,000, split into multiple sitemap files of max 50,000 each
+    - Cache generated sitemap XML in Redis, regenerate on schedule (default: every 6 hours) using @nestjs/schedule Cron
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5, 6.6, 6.7, 6.8_
+  - [x] 5.2 Implement SitemapController
+    - Create `backend/src/seo/sitemap.controller.ts` with `@Controller()` decorator
+    - Implement `GET /sitemap.xml` — return cached sitemap XML with `Content-Type: application/xml` header
+    - Implement `GET /sitemap-:index.xml` — return individual sitemap part for split sitemaps
+    - If no cached sitemap exists, trigger generation and return result
+    - On database query failure, return last cached sitemap or minimal sitemap with home + static pages
+    - _Requirements: 6.1, 6.5, 6.8_
+  - [x] 5.3 Write property test: Sitemap URL metadata correctness
+    - **Property 10: Sitemap URL metadata correctness**
+    - Generate arbitrary listings with updatedAt timestamps, verify lastmod matches and priority values match spec (1.0 home, 0.8 listings, 0.7 categories, 0.5 sellers, 0.3 static)
+    - **Validates: Requirements 6.3, 6.4**
+  - [x] 5.4 Write property test: Sitemap XML validity and splitting
+    - **Property 11: Sitemap XML validity and splitting**
+    - Generate arbitrary URL sets, verify XML conforms to sitemaps.org schema, and sets > 50,000 URLs are split with a sitemap index
+    - **Validates: Requirements 6.1, 6.5**
+  - [x] 5.5 Write property test: Sitemap includes only active content
+    - **Property 12: Sitemap includes only active content**
+    - Generate listings with mixed statuses (active, inactive, pending_review, rejected, sold, reserved, expired, deleted), verify only active listings appear in sitemap
+    - **Validates: Requirements 6.7**
+
+- [x] 6. Implement RobotsController
+  - [x] 6.1 Implement RobotsController serving robots.txt
+    - Create `backend/src/seo/robots.controller.ts` with `@Controller()` decorator
+    - Implement `GET /robots.txt` returning plain text with `Content-Type: text/plain` header
+    - Allow crawlers for: `/`, `/listings/`, `/categories/`, `/seller/`, `/search`, `/pages/`
+    - Disallow crawlers for: `/profile`, `/favorites`, `/messaging`, `/admin`, `/auth`, `/listings/create`, `/listings/my`, `/listings/*/edit`
+    - Include `Crawl-delay: 1` directive
+    - Include `Sitemap: https://marketplace.pk/sitemap.xml` directive
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+  - [x] 6.2 Write unit tests for RobotsController
+    - Verify robots.txt contains all required Allow directives
+    - Verify robots.txt contains all required Disallow directives
+    - Verify Sitemap directive points to correct URL
+    - Verify Crawl-delay is set to 1
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5_
+
+- [x] 7. Checkpoint - Ensure all backend tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 8. Set up Angular SSR with @angular/ssr
+  - [x] 8.1 Install @angular/ssr and configure SSR build
+    - Install `@angular/ssr` package in the web project
+    - Create `web/src/main.server.ts` server entry point with `bootstrapApplication` using server config
+    - Create `web/src/app/app.config.server.ts` with `provideServerRendering()` and `provideServerRoutesConfig()`
+    - Update `web/angular.json` build configuration to include `server` entry point for SSR
+    - Configure server routes: mark public routes (home, listings, categories, search, seller, pages) for SSR rendering, mark private routes (profile, favorites, messaging, admin, auth) as client-only
+    - _Requirements: 1.1, 1.2, 1.6_
+  - [x] 8.2 Configure TransferState for SSR hydration
+    - Ensure `provideClientHydration()` is configured in `web/src/app/app.config.ts`
+    - Add `withHttpTransferCacheOptions()` to transfer HTTP responses from server to client
+    - This prevents duplicate API calls during client-side hydration
+    - _Requirements: 1.5_
+  - [x] 8.3 Add browser API guards for SSR compatibility
+    - Create `web/src/app/core/utils/platform.utils.ts` with `isPlatformBrowser()` and `isPlatformServer()` helper functions using Angular's `PLATFORM_ID` injection token
+    - Audit existing services that use `window`, `localStorage`, or `document.addEventListener` and wrap them with platform checks
+    - Ensure no browser-only APIs are called during server-side execution paths
+    - _Requirements: 1.6_
+
+- [x] 9. Implement frontend SEO services
+  - [x] 9.1 Create frontend SEO models and interfaces
+    - Create `web/src/app/core/models/seo.models.ts` with PageMetaConfig, OpenGraphConfig, TwitterCardConfig, and all SEO response interfaces (ListingSeoResponse, CategorySeoResponse, SellerSeoResponse, HomeSeoResponse)
+    - _Requirements: 2.1, 3.1, 4.1_
+  - [x] 9.2 Implement SeoApiService
+    - Create `web/src/app/core/services/seo-api.service.ts` as an injectable service
+    - Implement `getListingSeo(id)`, `getCategorySeo(slug)`, `getSellerSeo(id)`, `getHomeSeo()` methods calling backend `/api/seo/*` endpoints
+    - Use Angular HttpClient with TransferState-aware caching
+    - Add 2-second timeout for SSR requests to prevent blocking
+    - _Requirements: 9.1, 9.2, 9.3, 9.4_
+  - [x] 9.3 Implement MetaService
+    - Create `web/src/app/core/services/meta.service.ts` injecting Angular's `Meta`, `Title`, and `DOCUMENT` tokens
+    - Implement `setPageMeta(config)` — set title, description meta tag, and canonical link element
+    - Implement `setOpenGraphTags(config)` — set og:title, og:description, og:image, og:url, og:type, og:site_name meta tags
+    - Implement `setTwitterCardTags(config)` — set twitter:card, twitter:title, twitter:description, twitter:image meta tags
+    - Implement `setCanonicalUrl(url)` — create or update `<link rel="canonical">` in document head
+    - Implement `setFallbackMeta()` — set generic marketplace title and description as fallback
+    - Implement `clearMeta()` — remove all dynamically set meta tags
+    - Use placeholder image URL when og:image or twitter:image would be empty
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 2.7, 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 5.1_
+  - [x] 9.4 Implement StructuredDataService
+    - Create `web/src/app/core/services/structured-data.service.ts` injecting `DOCUMENT` token
+    - Implement `setProductData(data)` — inject JSON-LD script tag with Product schema
+    - Implement `setCategoryData(data)` — inject JSON-LD script tag with ItemList schema
+    - Implement `setSellerData(data)` — inject JSON-LD script tag with Person/Organization schema
+    - Implement `setWebsiteData(data)` — inject JSON-LD script tag with WebSite schema including SearchAction
+    - Implement `setBreadcrumbData(breadcrumbs)` — inject JSON-LD script tag with BreadcrumbList schema
+    - Implement `clearStructuredData()` — remove all dynamically injected JSON-LD script tags
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 4.7_
+  - [x] 9.5 Write property test: Social sharing tags completeness
+    - **Property 3: Social sharing tags completeness**
+    - Generate arbitrary page data, verify all required OG tags are present and og:image/twitter:image are never empty (placeholder used when no image)
+    - **Validates: Requirements 3.1, 3.2, 3.3, 3.4, 3.6**
+  - [x] 9.6 Write unit tests for MetaService
+    - Test that setPageMeta correctly sets title and description
+    - Test that setOpenGraphTags sets all required OG meta tags
+    - Test that setCanonicalUrl creates/updates the canonical link element
+    - Test that clearMeta removes dynamically set tags
+    - Test fallback meta is set when setFallbackMeta is called
+    - _Requirements: 2.1, 2.7, 3.1, 5.1_
+  - [x] 9.7 Write unit tests for StructuredDataService
+    - Test that JSON-LD script tags are injected into document head
+    - Test that clearStructuredData removes all injected script tags
+    - Test that each entity type produces correct @type in JSON-LD
+    - _Requirements: 4.1, 4.3, 4.5, 4.7_
+
+- [x] 10. Implement route resolvers and wire SEO into routes
+  - [x] 10.1 Create SEO route resolvers
+    - Create `web/src/app/core/resolvers/seo.resolver.ts` with functional resolvers
+    - Implement `listingSeoResolver` — fetch listing SEO data via SeoApiService, call MetaService and StructuredDataService to set tags, return data
+    - Implement `categorySeoResolver` — fetch category SEO data, set meta tags and structured data
+    - Implement `sellerSeoResolver` — fetch seller SEO data, set meta tags and structured data
+    - Implement `homeSeoResolver` — fetch home SEO data, set meta tags and structured data
+    - Handle errors gracefully: on API failure, call `MetaService.setFallbackMeta()` and continue rendering
+    - _Requirements: 1.3, 1.4, 2.1, 2.2, 2.3, 2.5_
+  - [x] 10.2 Wire resolvers into Angular route configuration
+    - Update `web/src/app/app.routes.ts` to add `resolve` property with SEO resolvers to public routes (home, listings detail, categories, seller, search)
+    - Update feature route files as needed to attach resolvers to specific child routes (e.g., listing detail route)
+    - Ensure resolvers run during SSR before component rendering
+    - _Requirements: 1.2, 1.3_
+
+- [x] 11. Checkpoint - Ensure frontend and backend integration works
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 12. Configure prerendering for critical pages
+  - [x] 12.1 Configure Angular prerender builder for static pages
+    - Update `web/angular.json` to add prerender configuration targeting critical routes
+    - Define prerender routes: home page (`/`), top-level category pages, and static pages (`/pages/about`, `/pages/terms`, `/pages/privacy`, `/pages/contact`, `/pages/careers`, `/pages/press`, `/pages/trust-safety`, `/pages/selling-tips`, `/pages/cookies`)
+    - Configure the SSR engine to serve prerendered HTML when available, falling back to on-demand SSR
+    - _Requirements: 8.1, 8.3_
+  - [x] 12.2 Implement prerender refresh scheduling
+    - Add a NestJS scheduled task (using @nestjs/schedule) to trigger prerender regeneration
+    - Home page refresh: every 1 hour
+    - Static pages refresh: every 24 hours
+    - Implement stale-while-revalidate: serve stale prerendered HTML while triggering background re-prerender when TTL expires
+    - _Requirements: 8.2, 8.4_
+
+- [x] 13. Add SSR error handling and fallback behavior
+  - [x] 13.1 Implement SSR error handling and fallback rendering
+    - Configure the Angular SSR engine to catch rendering errors and return the client-side rendered shell HTML with 200 status
+    - Log SSR errors with request context (URL, user agent, timestamp) for debugging
+    - Implement 2-second timeout for SEO API calls during SSR — on timeout, render with fallback meta tags
+    - Return 404 status with noindex meta tag when a listing/category/seller is not found
+    - _Requirements: 1.1, 1.4, 2.7_
+  - [x] 13.2 Write integration tests for SSR rendering
+    - Test that public routes return fully rendered HTML containing expected content
+    - Test that SSR returns fallback HTML on rendering error
+    - Test that 404 pages include noindex meta tag
+    - _Requirements: 1.1, 1.2, 1.4_
+
+- [x] 14. Final checkpoint - Ensure all tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for faster MVP
+- Each task references specific requirements for traceability
+- Checkpoints ensure incremental validation after major milestones
+- Property tests use `fast-check` (already installed in backend) with Jest for backend logic
+- Frontend tests use Vitest (already configured in the Angular project)
+- Backend tests use Jest (already configured in the NestJS project)
+- The implementation order prioritizes backend pure logic first (testable independently), then SSR infrastructure, then frontend services, then integration

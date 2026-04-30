@@ -1,10 +1,13 @@
-import { Injectable, signal } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { inject, Injectable, PLATFORM_ID, signal } from '@angular/core';
 
 const STORAGE_KEY = 'recent_searches';
 const MAX_ITEMS = 10;
 
 @Injectable({ providedIn: 'root' })
 export class RecentSearchesService {
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
   readonly searches = signal<string[]>(this.load());
 
   add(term: string): void {
@@ -24,7 +27,9 @@ export class RecentSearchesService {
 
   clear(): void {
     this.searches.set([]);
-    localStorage.removeItem(STORAGE_KEY);
+    if (this.isBrowser) {
+      localStorage.removeItem(STORAGE_KEY);
+    }
   }
 
   /** Get recent searches filtered by a query prefix */
@@ -35,6 +40,7 @@ export class RecentSearchesService {
   }
 
   private load(): string[] {
+    if (!this.isBrowser) return [];
     try {
       const raw = localStorage.getItem(STORAGE_KEY);
       return raw ? JSON.parse(raw) : [];
@@ -44,6 +50,7 @@ export class RecentSearchesService {
   }
 
   private save(items: string[]): void {
+    if (!this.isBrowser) return;
     localStorage.setItem(STORAGE_KEY, JSON.stringify(items));
   }
 }

@@ -23,6 +23,7 @@ import { AdminModule } from './admin/admin.module.js';
 import { BrandsModule } from './brands/brands.module.js';
 import { IdVerificationModule } from './id-verification/id-verification.module.js';
 import { CommonModule } from './common/common.module.js';
+import { SeoModule } from './seo/seo.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
@@ -97,6 +98,7 @@ import { AppService } from './app.service.js';
     AdminModule,
     BrandsModule,
     IdVerificationModule,
+    SeoModule,
   ],
   controllers: [AppController],
   providers: [AppService],

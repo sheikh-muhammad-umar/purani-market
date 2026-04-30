@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard, sellerGuard } from '../../core/auth';
+import { listingSeoResolver } from '../../core/resolvers/seo.resolver';
 
 export const LISTINGS_ROUTES: Routes = [
   {
@@ -23,6 +24,7 @@ export const LISTINGS_ROUTES: Routes = [
     path: ':id',
     loadComponent: () =>
       import('./listing-detail/listing-detail.component').then((m) => m.ListingDetailComponent),
+    resolve: { seo: listingSeoResolver },
   },
   {
     path: ':id/edit',

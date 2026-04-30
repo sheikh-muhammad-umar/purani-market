@@ -1,4 +1,5 @@
-import { Injectable, OnDestroy } from '@angular/core';
+import { DOCUMENT, isPlatformBrowser } from '@angular/common';
+import { inject, Injectable, OnDestroy, PLATFORM_ID } from '@angular/core';
 import { environment } from '../../../environments/environment';
 import { SocialProvider } from '../enums/social-provider';
 import {
@@ -24,6 +25,9 @@ declare const AppleID: any;
 
 @Injectable({ providedIn: 'root' })
 export class SocialAuthService implements OnDestroy {
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly doc = inject(DOCUMENT);
+
   private sdkLoaded: Record<SocialProvider, boolean> = {
     [SocialProvider.GOOGLE]: false,
     [SocialProvider.FACEBOOK]: false,
@@ -133,13 +137,17 @@ export class SocialAuthService implements OnDestroy {
   // ── SDK Loader ────────────────────────────────────────────────
 
   private loadSdk(provider: SocialProvider): Promise<void> {
+    if (!this.isBrowser) {
+      return Promise.reject(new Error('Social SDKs are not available during SSR'));
+    }
+
     if (this.sdkLoaded[provider]) {
       return Promise.resolve();
     }
 
     const scriptId = SDK_SCRIPT_IDS[provider];
 
-    if (document.getElementById(scriptId)) {
+    if (this.doc.getElementById(scriptId)) {
       this.sdkLoaded[provider] = true;
       return Promise.resolve();
     }
@@ -149,7 +157,7 @@ export class SocialAuthService implements OnDestroy {
     }
 
     return new Promise<void>((resolve, reject) => {
-      const script = document.createElement('script');
+      const script = this.doc.createElement('script');
       script.id = scriptId;
       script.src = SDK_URLS[provider];
       script.async = true;
@@ -159,7 +167,7 @@ export class SocialAuthService implements OnDestroy {
         resolve();
       };
       script.onerror = () => reject(new Error(`Failed to load ${provider} SDK`));
-      document.head.appendChild(script);
+      this.doc.head.appendChild(script);
     });
   }
 
@@ -177,13 +185,13 @@ export class SocialAuthService implements OnDestroy {
         resolve();
       };
 
-      const script = document.createElement('script');
+      const script = this.doc.createElement('script');
       script.id = SDK_SCRIPT_IDS[SocialProvider.FACEBOOK];
       script.src = SDK_URLS[SocialProvider.FACEBOOK];
       script.async = true;
       script.defer = true;
       script.onerror = () => reject(new Error('Failed to load Facebook SDK'));
-      document.head.appendChild(script);
+      this.doc.head.appendChild(script);
     });
   }
 }

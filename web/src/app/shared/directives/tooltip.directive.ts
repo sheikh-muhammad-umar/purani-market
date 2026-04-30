@@ -44,7 +44,7 @@ export class TooltipDirective implements OnDestroy {
     const rect = this.tooltip.getBoundingClientRect();
 
     // Keep within viewport
-    const maxX = window.innerWidth - (rect.width || 200) - 16;
+    const maxX = typeof window !== 'undefined' ? window.innerWidth - (rect.width || 200) - 16 : 0;
     const maxY = 8;
 
     this.tooltip.style.left = `${Math.min(x, maxX)}px`;

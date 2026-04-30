@@ -7,4 +7,4 @@ export const EMAIL_ROUTES = {
 
 export const DEFAULT_FROM_ADDRESS = 'noreply@marketplace.com';
 export const DEFAULT_FRONTEND_URL = 'http://localhost:4200';
-export const BRAND_COLOR = '#4F46E5';
+export const BRAND_COLOR = process.env.BRAND_COLOR || '#4F46E5';

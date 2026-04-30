@@ -1,4 +1,5 @@
-import { Injectable } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { inject, Injectable, PLATFORM_ID } from '@angular/core';
 import { ApiService } from './api.service';
 import { AuthService } from '../auth/auth.service';
 import { UserAction, ANONYMOUS_TRACKED_ACTIONS, TrackingEvent } from '../enums/tracking-events';
@@ -10,6 +11,8 @@ export type { UserAction } from '../enums/tracking-events';
 
 @Injectable({ providedIn: 'root' })
 export class ActivityTrackerService {
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
   constructor(
     private readonly api: ApiService,
     private readonly auth: AuthService,
@@ -44,6 +47,8 @@ export class ActivityTrackerService {
 
   /** Collect client-side device/environment info for login events */
   getDeviceInfo(): Record<string, any> {
+    if (!this.isBrowser) return {};
+
     const nav = navigator as any;
     const screen = window.screen;
     const info: Record<string, any> = {
@@ -85,7 +90,7 @@ export class ActivityTrackerService {
   trackLoginWithLocation(metadata: Record<string, any>): void {
     if (!this.auth.isAuthenticated()) return;
 
-    if ('geolocation' in navigator) {
+    if (this.isBrowser && 'geolocation' in navigator) {
       navigator.geolocation.getCurrentPosition(
         (pos) => {
           this.api

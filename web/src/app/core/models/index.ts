@@ -8,3 +8,4 @@ export * from './favorite.model';
 export * from './location.model';
 export * from './brand.model';
 export * from './analytics.model';
+export * from './seo.models';

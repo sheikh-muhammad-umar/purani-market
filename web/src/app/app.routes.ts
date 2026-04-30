@@ -1,4 +1,5 @@
 import { Routes } from '@angular/router';
+import { sellerSeoResolver } from './core/resolvers/seo.resolver';
 
 export const routes: Routes = [
   {
@@ -20,6 +21,7 @@ export const routes: Routes = [
       import('./features/seller-profile/seller-profile.component').then(
         (m) => m.SellerProfileComponent,
       ),
+    resolve: { seo: sellerSeoResolver },
   },
   {
     path: 'search',

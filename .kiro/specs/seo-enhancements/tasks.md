@@ -1,0 +1,252 @@
+# Implementation Plan: SEO Enhancements
+
+## Overview
+
+This plan implements 10 SEO enhancement areas for the marketplace.pk Angular 21 + NestJS application. The work is organized into backend API extensions (new endpoints, DTOs, constants), frontend service extensions (MetaService, StructuredDataService, SeoApiService, resolvers, route configs), and static HTML template changes (index.html). Each task builds incrementally on the previous, wiring everything together at the end.
+
+## Tasks
+
+- [x] 1. Add backend constants and DTOs for new SEO endpoints
+  - [x] 1.1 Add new SEO cache key and TTL constants to `backend/src/common/constants/app.constants.ts`
+    - Add `CACHE_KEY_SEO_SEARCH = 'seo:search:'` and `CACHE_TTL_SEO_SEARCH = 600` (10 minutes)
+    - Add `CACHE_KEY_SEO_PAGE = 'seo:page:'` and `CACHE_TTL_SEO_PAGE = 86400` (24 hours)
+    - _Requirements: 2.7, 3.8_
+  - [x] 1.2 Create `backend/src/seo/dto/search-seo.dto.ts` with `SearchSeoDto` class
+    - Fields: `title`, `description`, `canonicalUrl` (all `string`)
+    - _Requirements: 2.1_
+  - [x] 1.3 Create `backend/src/seo/dto/page-seo.dto.ts` with `PageSeoDto` class
+    - Fields: `title`, `description`, `canonicalUrl`, `ogType` (all `string`), optional `faqJsonLd` (`Record<string, unknown>`)
+    - _Requirements: 3.1, 9.2_
+  - [x] 1.4 Extend `backend/src/seo/dto/home-seo.dto.ts` to add `organizationJsonLd` field
+    - Add `organizationJsonLd!: Record<string, unknown>` to the existing `HomeSeoDto` class
+    - _Requirements: 10.6_
+
+- [x] 2. Create static page SEO constants and implement backend SeoService methods
+  - [x] 2.1 Create `backend/src/common/constants/static-page-seo.constants.ts`
+    - Define `StaticPageSeoConfig` interface with `title`, `description`, and optional `faqs` array
+    - Define `STATIC_PAGE_SEO` constant map keyed by slug for all 9 static pages (about, terms, privacy, contact, careers, press, trust-safety, selling-tips, cookies)
+    - Include FAQ entries for pages that have FAQ content (e.g., about, contact, selling-tips)
+    - _Requirements: 3.1, 3.2, 3.3, 9.1, 9.2_
+  - [x] 2.2 Add `getSearchSeo(query?: string)` method to `backend/src/seo/seo.service.ts`
+    - Build `SearchSeoDto` with title `"Search: {query} | marketplace.pk"` (or fallback `"Search Listings | marketplace.pk"` for empty query)
+    - Build description `"Find {query} listings on . Browse results and discover the best deals in Pakistan."` (or generic fallback)
+    - Build canonical URL `https://marketplace.pk/search?q={query}` retaining only the `q` parameter
+    - Cache with `CACHE_KEY_SEO_SEARCH` prefix and `CACHE_TTL_SEO_SEARCH` TTL
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.7_
+  - [x] 2.3 Add `getPageSeo(slug: string)` method to `backend/src/seo/seo.service.ts`
+    - Look up slug in `STATIC_PAGE_SEO` constant map; throw `NotFoundException` for unknown slugs
+    - Build `PageSeoDto` with title, description, canonical URL `https://marketplace.pk/pages/{slug}`, ogType `"website"`
+    - If the page config has FAQs, call `buildFaqJsonLd()` and include in the DTO
+    - Cache with `CACHE_KEY_SEO_PAGE` prefix and `CACHE_TTL_SEO_PAGE` TTL
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.7, 3.8, 9.2_
+  - [x] 2.4 Add `buildFaqJsonLd(faqs)` method to `backend/src/seo/seo.service.ts`
+    - Build JSON-LD object with `@context: "https://schema.org"`, `@type: "FAQPage"`, `mainEntity` array of Question/Answer objects
+    - _Requirements: 9.1, 9.4_
+  - [x] 2.5 Add `buildOrganizationJsonLd()` method to `backend/src/seo/seo.service.ts`
+    - Build JSON-LD object with `@context: "https://schema.org"`, `@type: "Organization"`, name, url, logo, description, contactPoint, sameAs, address
+    - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
+  - [x] 2.6 Update `getHomeSeo()` in `backend/src/seo/seo.service.ts` to include `organizationJsonLd`
+    - Call `buildOrganizationJsonLd()` and add the result to the `HomeSeoDto` response
+    - _Requirements: 10.6_
+
+- [x] 3. Add new SEO controller endpoints
+  - [x] 3.1 Add `GET /api/seo/search` endpoint to `backend/src/seo/seo.controller.ts`
+    - Accept optional `@Query('q')` parameter, return `SearchSeoDto`
+    - Import `Query` from `@nestjs/common` and `SearchSeoDto`
+    - _Requirements: 2.1_
+  - [x] 3.2 Add `GET /api/seo/page/:slug` endpoint to `backend/src/seo/seo.controller.ts`
+    - Accept `@Param('slug')` parameter, return `PageSeoDto`
+    - Import `PageSeoDto`
+    - _Requirements: 3.1, 3.7_
+  - [ ]* 3.3 Write unit tests for `SeoService.getSearchSeo` in `backend/src/seo/seo.service.spec.ts`
+    - Test with query `"iphone"`, empty query, and special characters
+    - Verify correct title, description, and canonical URL patterns
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5_
+  - [ ]* 3.4 Write unit tests for `SeoService.getPageSeo` in `backend/src/seo/seo.service.spec.ts`
+    - Test each of the 9 valid static page slugs
+    - Test unknown slug returns `NotFoundException`
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.7_
+  - [ ]* 3.5 Write unit tests for `SeoService.buildOrganizationJsonLd` in `backend/src/seo/seo.service.spec.ts`
+    - Verify all required fields: name, url, logo, contactPoint, sameAs, address
+    - _Requirements: 10.1, 10.2, 10.3, 10.4, 10.5_
+  - [ ]* 3.6 Write unit tests for `SeoService.buildFaqJsonLd` in `backend/src/seo/seo.service.spec.ts`
+    - Verify correct `@context`, `@type`, and `mainEntity` structure
+    - _Requirements: 9.1, 9.4_
+
+- [x] 4. Checkpoint — Backend complete
+  - Ensure all backend tests pass, ask the user if questions arise.
+
+- [x] 5. Extend frontend models and API service for new SEO endpoints
+  - [x] 5.1 Add `SearchSeoResponse` and `PageSeoResponse` interfaces to `web/src/app/core/models/seo.models.ts`
+    - `SearchSeoResponse`: `title`, `description`, `canonicalUrl`
+    - `PageSeoResponse`: `title`, `description`, `canonicalUrl`, `ogType`, optional `faqJsonLd`
+    - Extend `HomeSeoResponse` to add `organizationJsonLd: Record<string, unknown>`
+    - _Requirements: 2.1, 3.1, 10.6_
+  - [x] 5.2 Add new API endpoint constants to `web/src/app/core/constants/api-endpoints.ts`
+    - Add `SEO_SEARCH: '/seo/search'`
+    - Add `SEO_PAGE: (slug: string) => \`/seo/page/\${slug}\``
+    - _Requirements: 2.1, 3.1_
+  - [x] 5.3 Add `getSearchSeo(query?: string)` method to `web/src/app/core/services/seo-api.service.ts`
+    - Call `API.SEO_SEARCH` with `q` query parameter, wrap with `withSsrTimeout`
+    - _Requirements: 2.1, 2.6_
+  - [x] 5.4 Add `getPageSeo(slug: string)` method to `web/src/app/core/services/seo-api.service.ts`
+    - Call `API.SEO_PAGE(slug)`, wrap with `withSsrTimeout`
+    - _Requirements: 3.1, 3.6_
+
+- [x] 6. Extend MetaService with OG price tags, pagination links, and hreflang
+  - [x] 6.1 Add `setProductPriceTags(amount, currency)` and `removeProductPriceTags()` to `web/src/app/core/services/meta.service.ts`
+    - `setProductPriceTags`: set `og:price:amount`, `og:price:currency`, `product:price:amount`, `product:price:currency` meta tags
+    - `removeProductPriceTags`: remove all four price-related meta tags
+    - Guard: if amount is undefined, null, or 0, do not set tags
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5_
+  - [x] 6.2 Add `setPaginationLinks(config)` and `removePaginationLinks()` to `web/src/app/core/services/meta.service.ts`
+    - `setPaginationLinks`: remove stale links first, then inject `<link rel="next">` and/or `<link rel="prev">` elements based on `nextUrl` and `prevUrl` config
+    - `removePaginationLinks`: remove all `link[rel="next"]` and `link[rel="prev"]` elements
+    - Construct pagination URLs using canonical base URL with `page` query parameter
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6_
+  - [x] 6.3 Add `setHreflangTags(canonicalUrl)` and `removeHreflangTags()` to `web/src/app/core/services/meta.service.ts`
+    - `setHreflangTags`: inject or update three `<link rel="alternate">` elements for `hreflang="en"`, `hreflang="ur"`, and `hreflang="x-default"`, all pointing to the canonical URL
+    - `removeHreflangTags`: remove all hreflang link elements
+    - Ensure no duplicates are created on repeated calls
+    - _Requirements: 6.1, 6.2, 6.3, 6.4, 6.5_
+  - [ ]* 6.4 Write property test for search SEO metadata patterns (Property 1) in `web/src/app/core/services/__tests__/seo-properties.spec.ts`
+    - **Property 1: Search SEO metadata follows title and description patterns**
+    - Use `fast-check` to generate random non-empty query strings (alphanumeric, unicode, special chars)
+    - Assert title matches `"Search: {query} | marketplace.pk"` and description matches expected pattern
+    - Minimum 100 iterations
+    - **Validates: Requirements 2.2, 2.3**
+  - [ ]* 6.5 Write property test for search canonical URL stripping (Property 2) in `web/src/app/core/services/__tests__/seo-properties.spec.ts`
+    - **Property 2: Search canonical URL excludes pagination and filter parameters**
+    - Use `fast-check` to generate URLs with `q` param plus random tracking/pagination params (`page`, `offset`, `utm_source`, `utm_medium`, `utm_campaign`, `fbclid`, `gclid`)
+    - Assert output URL retains only the `q` parameter
+    - Minimum 100 iterations
+    - **Validates: Requirements 2.4**
+  - [ ]* 6.6 Write property test for static page canonical URL (Property 3) in `web/src/app/core/services/__tests__/seo-properties.spec.ts`
+    - **Property 3: Static page canonical URL construction**
+    - Use `fast-check` to generate from the fixed set of 9 valid slugs
+    - Assert canonical URL equals `"https://marketplace.pk/pages/{slug}"`
+    - Minimum 100 iterations
+    - **Validates: Requirements 3.4**
+  - [ ]* 6.7 Write property test for pagination links (Property 4) in `web/src/app/core/services/__tests__/seo-properties.spec.ts`
+    - **Property 4: Pagination links reflect current page position**
+    - Use `fast-check` to generate random `(currentPage, totalPages)` pairs where `1 ≤ currentPage ≤ totalPages` and `totalPages ≥ 1`
+    - Assert `rel="prev"` present iff `currentPage > 1`, `rel="next"` present iff `currentPage < totalPages`, correct URLs, no stale links
+    - Minimum 100 iterations
+    - **Validates: Requirements 4.1, 4.2, 4.3, 4.4, 4.5, 4.6**
+  - [ ]* 6.8 Write property test for hreflang tags (Property 5) in `web/src/app/core/services/__tests__/seo-properties.spec.ts`
+    - **Property 5: Hreflang tags are complete and current**
+    - Use `fast-check` to generate random canonical URL strings, call setter, assert exactly 3 `<link rel="alternate">` elements with correct `hreflang` and `href` values
+    - Call setter again with a different URL and assert all hrefs updated without duplicates
+    - Minimum 100 iterations
+    - **Validates: Requirements 6.1, 6.2, 6.3, 6.5**
+
+- [x] 7. Extend StructuredDataService with FAQ and Organization JSON-LD
+  - [x] 7.1 Add `setFaqData(data)` method to `web/src/app/core/services/structured-data.service.ts`
+    - Call the existing private `setJsonLd('faq', data)` helper to inject FAQPage JSON-LD
+    - _Requirements: 9.1, 9.3_
+  - [x] 7.2 Add `setOrganizationData(data)` method to `web/src/app/core/services/structured-data.service.ts`
+    - Call the existing private `setJsonLd('organization', data)` helper to inject Organization JSON-LD
+    - _Requirements: 10.1_
+  - [ ]* 7.3 Write property test for FAQ JSON-LD structure (Property 6) in `web/src/app/core/services/__tests__/seo-properties.spec.ts`
+    - **Property 6: FAQ JSON-LD structure conforms to schema.org FAQPage**
+    - Use `fast-check` to generate random arrays of `{question: string, answer: string}` objects
+    - Assert output has `@context: "https://schema.org"`, `@type: "FAQPage"`, `mainEntity` array with matching length and correct Question/Answer structure
+    - Minimum 100 iterations
+    - **Validates: Requirements 9.1, 9.4**
+
+- [x] 8. Checkpoint — Frontend services complete
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [x] 9. Create new SEO resolvers and update existing listing resolver
+  - [x] 9.1 Update `listingSeoResolver` in `web/src/app/core/resolvers/seo.resolver.ts` to set OG price tags
+    - After setting page meta, call `meta.setProductPriceTags(data.price, data.currency)` if price is defined and non-zero
+    - Call `meta.removeProductPriceTags()` if price is undefined/null/zero
+    - Also call `meta.setHreflangTags(data.canonicalUrl)` for hreflang support
+    - _Requirements: 1.1, 1.2, 1.3, 1.4, 1.5, 6.1, 6.2, 6.3_
+  - [x] 9.2 Add `searchSeoResolver` to `web/src/app/core/resolvers/seo.resolver.ts`
+    - Fetch search SEO data via `SeoApiService.getSearchSeo(query)` where query comes from route query params
+    - Set page meta with title, description, canonical URL
+    - Call `meta.setHreflangTags(data.canonicalUrl)` for hreflang support
+    - On error or null data, call `meta.setFallbackMeta()`
+    - _Requirements: 2.1, 2.2, 2.3, 2.4, 2.5, 2.6, 6.1, 6.2, 6.3_
+  - [x] 9.3 Add `pageSeoResolver` to `web/src/app/core/resolvers/seo.resolver.ts`
+    - Fetch page SEO data via `SeoApiService.getPageSeo(slug)` where slug comes from route path
+    - Set page meta with title, description, canonical URL, ogType
+    - If `faqJsonLd` is present, call `structuredData.setFaqData(data.faqJsonLd)`
+    - Call `meta.setHreflangTags(data.canonicalUrl)` for hreflang support
+    - On error or null data, call `meta.setFallbackMeta()`
+    - _Requirements: 3.1, 3.2, 3.3, 3.4, 3.5, 3.6, 6.1, 6.2, 6.3, 9.3_
+  - [x] 9.4 Update `homeSeoResolver` in `web/src/app/core/resolvers/seo.resolver.ts` to inject Organization JSON-LD
+    - After setting website data, call `structuredData.setOrganizationData(data.organizationJsonLd)`
+    - Call `meta.setHreflangTags(data.canonicalUrl)` for hreflang support
+    - _Requirements: 10.1, 10.6, 6.1, 6.2, 6.3_
+  - [x] 9.5 Update `categorySeoResolver` in `web/src/app/core/resolvers/seo.resolver.ts` to add hreflang and pagination support
+    - Call `meta.setHreflangTags(data.canonicalUrl)` for hreflang support
+    - Call `meta.setPaginationLinks(...)` with appropriate next/prev URLs based on route query params and listing count
+    - _Requirements: 4.1, 4.2, 4.3, 4.4, 4.5, 4.6, 6.1, 6.2, 6.3_
+
+- [x] 10. Update route configurations to wire resolvers
+  - [x] 10.1 Update `web/src/app/features/search/search.routes.ts` to add `searchSeoResolver`
+    - Add `resolve: { seo: searchSeoResolver }` to the search route
+    - Import `searchSeoResolver` from the resolvers file
+    - _Requirements: 2.6_
+  - [x] 10.2 Update `web/src/app/features/pages/pages.routes.ts` to add `pageSeoResolver`
+    - Add `resolve: { seo: pageSeoResolver }` to each static page route
+    - Import `pageSeoResolver` from the resolvers file
+    - The resolver reads the slug from the route path segment
+    - _Requirements: 3.6_
+
+- [x] 11. Update index.html with static meta tags, performance hints, and geo tags
+  - [x] 11.1 Add default meta tags to `web/src/index.html` `<head>`
+    - Add `<meta name="robots" content="index, follow">`
+    - Add `<meta property="og:site_name" content="marketplace.pk">`
+    - Add `<meta property="og:type" content="website">`
+    - Add `<meta property="og:image" content="https://marketplace.pk/assets/og-default.png">`
+    - Add `<meta name="theme-color" content="#1a73e8">`
+    - Add `<meta name="format-detection" content="telephone=no">`
+    - _Requirements: 5.1, 5.2, 5.3, 5.4, 5.5, 5.6_
+  - [x] 11.2 Add performance hint link elements to `web/src/index.html` `<head>`
+    - Add `<link rel="dns-prefetch" href="{api_domain}">` for the backend API domain
+    - Add `<link rel="dns-prefetch" href="{cdn_domain}">` for the CDN domain
+    - Add `<link rel="preconnect" href="{api_domain}">` for the backend API domain
+    - Add `<link rel="preconnect" href="{cdn_domain}" crossorigin>` for the CDN domain
+    - Add `<link rel="preconnect" href="https://fonts.googleapis.com">`
+    - Add `<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>`
+    - _Requirements: 7.1, 7.2, 7.3, 7.4, 7.5, 7.6_
+  - [x] 11.3 Add geo meta tags to `web/src/index.html` `<head>`
+    - Add `<meta name="geo.region" content="PK">`
+    - Add `<meta name="geo.placename" content="Pakistan">`
+    - Add `<meta name="geo.position" content="30.3753;69.3451">`
+    - Add `<meta name="ICBM" content="30.3753, 69.3451">`
+    - _Requirements: 8.1, 8.2, 8.3, 8.4_
+
+- [x] 12. Checkpoint — All features wired
+  - Ensure all tests pass, ask the user if questions arise.
+
+- [ ] 13. Integration tests for new backend endpoints
+  - [ ]* 13.1 Write integration tests for `GET /api/seo/search` in `backend/src/seo/seo.controller.spec.ts`
+    - Test `GET /api/seo/search?q=iphone` returns 200 with correct shape
+    - Test `GET /api/seo/search` (no query) returns 200 with fallback metadata
+    - _Requirements: 2.1, 2.5, 2.7_
+  - [ ]* 13.2 Write integration tests for `GET /api/seo/page/:slug` in `backend/src/seo/seo.controller.spec.ts`
+    - Test `GET /api/seo/page/about` returns 200 with correct title, description, canonical URL
+    - Test `GET /api/seo/page/unknown` returns 404
+    - Test a page with FAQ data includes `faqJsonLd` field
+    - _Requirements: 3.1, 3.7, 9.2_
+  - [ ]* 13.3 Write integration tests for updated `GET /api/seo/home` in `backend/src/seo/seo.controller.spec.ts`
+    - Test response includes `organizationJsonLd` field with correct structure
+    - _Requirements: 10.6_
+
+- [x] 14. Final checkpoint — All tests pass
+  - Ensure all tests pass, ask the user if questions arise.
+
+## Notes
+
+- Tasks marked with `*` are optional and can be skipped for faster MVP
+- Each task references specific requirements for traceability
+- Checkpoints ensure incremental validation
+- Property tests (Properties 1–6) validate universal correctness properties from the design document using `fast-check` with Vitest
+- Unit tests validate specific examples and edge cases
+- The implementation language is TypeScript throughout (Angular 21 frontend, NestJS backend)
+- All new backend methods follow the existing caching pattern in `SeoService` (Redis GET → miss → build → SET → return)
+- All new frontend resolvers follow the existing pattern in `seo.resolver.ts` (fetch → tap → setPageMeta → catchError → fallback)

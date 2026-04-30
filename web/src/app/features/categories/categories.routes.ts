@@ -1,5 +1,5 @@
 import { Routes } from '@angular/router';
-
+import { categorySeoResolver } from '../../core/resolvers/seo.resolver';
 export const CATEGORIES_ROUTES: Routes = [
   {
     path: '',
@@ -12,5 +12,6 @@ export const CATEGORIES_ROUTES: Routes = [
       import('./category-listings/category-listings.component').then(
         (m) => m.CategoryListingsComponent,
       ),
+    resolve: { seo: categorySeoResolver },
   },
 ];
