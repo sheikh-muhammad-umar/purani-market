@@ -13,6 +13,3 @@ export const SEO_SSR_TIMEOUT_MS = 2000;
 
 /** Hreflang language codes injected on every public page. */
 export const SEO_HREFLANG_VALUES = ['en', 'ur', 'x-default'] as const;
-
-/** Default page size used for pagination link calculations. */
-export const SEO_CATEGORY_PAGE_SIZE = 20;

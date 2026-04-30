@@ -4,10 +4,8 @@ import { Observable, of, tap, catchError } from 'rxjs';
 import { SeoApiService } from '../services/seo-api.service';
 import { MetaService } from '../services/meta.service';
 import { StructuredDataService } from '../services/structured-data.service';
-import { SEO_CATEGORY_PAGE_SIZE } from '../constants/seo';
 import {
   ListingSeoResponse,
-  CategorySeoResponse,
   SellerSeoResponse,
   HomeSeoResponse,
   SearchSeoResponse,
@@ -53,52 +51,6 @@ export const listingSeoResolver: ResolveFn<ListingSeoResponse | null> = (
 
       structuredData.setProductData(data.productJsonLd);
       structuredData.setBreadcrumbData(data.categoryBreadcrumb);
-    }),
-    catchError(() => {
-      meta.setFallbackMeta();
-      return of(null);
-    }),
-  );
-};
-
-/**
- * Route resolver that fetches category SEO data, sets meta tags and
- * structured data (ItemList + Breadcrumb JSON-LD) before the component renders.
- */
-export const categorySeoResolver: ResolveFn<CategorySeoResponse | null> = (
-  route: ActivatedRouteSnapshot,
-): Observable<CategorySeoResponse | null> => {
-  const seoApi = inject(SeoApiService);
-  const meta = inject(MetaService);
-  const structuredData = inject(StructuredDataService);
-
-  const slug = route.paramMap.get('slug') ?? '';
-
-  return seoApi.getCategorySeo(slug).pipe(
-    tap((data) => {
-      if (!data) {
-        meta.setFallbackMeta();
-        return;
-      }
-
-      meta.setPageMeta({
-        title: data.title,
-        description: data.description,
-        canonicalUrl: data.canonicalUrl,
-        ogType: 'website',
-      });
-
-      meta.setHreflangTags(data.canonicalUrl);
-
-      const currentPage = Number(route.queryParamMap.get('page')) || 1;
-      const totalPages = Math.ceil(data.listingCount / SEO_CATEGORY_PAGE_SIZE);
-      const prevUrl = currentPage > 1 ? `${data.canonicalUrl}?page=${currentPage - 1}` : undefined;
-      const nextUrl =
-        currentPage < totalPages ? `${data.canonicalUrl}?page=${currentPage + 1}` : undefined;
-      meta.setPaginationLinks({ nextUrl, prevUrl });
-
-      structuredData.setCategoryData(data.itemListJsonLd);
-      structuredData.setBreadcrumbData(data.breadcrumb);
     }),
     catchError(() => {
       meta.setFallbackMeta();
@@ -191,8 +143,9 @@ export const searchSeoResolver: ResolveFn<SearchSeoResponse | null> = (
   const meta = inject(MetaService);
 
   const query = route.queryParamMap.get('q') ?? undefined;
+  const category = route.queryParamMap.get('category') ?? undefined;
 
-  return seoApi.getSearchSeo(query).pipe(
+  return seoApi.getSearchSeo(query, category).pipe(
     tap((data) => {
       if (!data) {
         meta.setFallbackMeta();

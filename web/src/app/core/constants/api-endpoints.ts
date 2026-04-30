@@ -149,7 +149,6 @@ export const API = {
   ID_VERIFICATION_ADMIN_REVIEW: (id: string) => `/id-verification/admin/${id}/review`,
   // SEO
   SEO_LISTING: (id: string) => `/seo/listing/${id}`,
-  SEO_CATEGORY: (slug: string) => `/seo/category/${slug}`,
   SEO_SELLER: (id: string) => `/seo/seller/${id}`,
   SEO_HOME: '/seo/home',
   SEO_SEARCH: '/seo/search',

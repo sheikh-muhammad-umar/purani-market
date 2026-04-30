@@ -6,7 +6,6 @@ import { API } from '../constants/api-endpoints';
 import { SEO_SSR_TIMEOUT_MS } from '../constants/seo';
 import {
   ListingSeoResponse,
-  CategorySeoResponse,
   SellerSeoResponse,
   HomeSeoResponse,
   SearchSeoResponse,
@@ -22,10 +21,6 @@ export class SeoApiService {
     return this.withSsrTimeout(this.api.get<ListingSeoResponse>(API.SEO_LISTING(id)));
   }
 
-  getCategorySeo(slug: string): Observable<CategorySeoResponse | null> {
-    return this.withSsrTimeout(this.api.get<CategorySeoResponse>(API.SEO_CATEGORY(slug)));
-  }
-
   getSellerSeo(id: string): Observable<SellerSeoResponse | null> {
     return this.withSsrTimeout(this.api.get<SellerSeoResponse>(API.SEO_SELLER(id)));
   }
@@ -34,9 +29,16 @@ export class SeoApiService {
     return this.withSsrTimeout(this.api.get<HomeSeoResponse>(API.SEO_HOME));
   }
 
-  getSearchSeo(query?: string): Observable<SearchSeoResponse | null> {
-    const params = query ? { q: query } : undefined;
-    return this.withSsrTimeout(this.api.get<SearchSeoResponse>(API.SEO_SEARCH, params));
+  getSearchSeo(query?: string, category?: string): Observable<SearchSeoResponse | null> {
+    const params: Record<string, string> = {};
+    if (query) params['q'] = query;
+    if (category) params['category'] = category;
+    return this.withSsrTimeout(
+      this.api.get<SearchSeoResponse>(
+        API.SEO_SEARCH,
+        Object.keys(params).length ? params : undefined,
+      ),
+    );
   }
 
   getPageSeo(slug: string): Observable<PageSeoResponse | null> {

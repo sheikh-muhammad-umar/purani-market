@@ -50,7 +50,9 @@ export class CategoryModalComponent {
 
   navigateTo(category: Category): void {
     this.closed.emit();
-    this.router.navigate([ROUTES.CATEGORIES, category.slug]);
+    this.router.navigate([ROUTES.SEARCH], {
+      queryParams: { category: category.slug },
+    });
   }
 
   goToBreadcrumb(index: number): void {

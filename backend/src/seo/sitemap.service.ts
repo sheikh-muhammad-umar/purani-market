@@ -23,6 +23,7 @@ import {
   SITEMAP_MAX_URLS,
   SEO_BASE_URL,
   SEO_STATIC_PAGES,
+  SEO_ROUTE_PATTERNS,
 } from '../common/constants/index.js';
 
 @Injectable()
@@ -62,7 +63,7 @@ export class SitemapService {
 
   /**
    * Build sitemap URLs for all active categories.
-   * Each URL has priority 0.7.
+   * Each URL points to /search?category={slug} with priority 0.7.
    */
   async buildCategoryUrls(): Promise<SitemapUrl[]> {
     const categories = await this.categoryModel
@@ -73,7 +74,7 @@ export class SitemapService {
 
     return categories.map((category) => {
       const url = new SitemapUrl();
-      url.loc = `${SEO_BASE_URL}${this.slugService.generateCategoryUrl(category)}`;
+      url.loc = `${SEO_BASE_URL}${SEO_ROUTE_PATTERNS.SEARCH}?category=${encodeURIComponent(category.slug)}`;
       url.priority = 0.7;
       return url;
     });

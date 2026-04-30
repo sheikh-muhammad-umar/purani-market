@@ -54,7 +54,6 @@ const KEY_PAGES = [
   'listing-detail',
   'create-listing',
   'category-browse',
-  'category-listings',
   'conversation-list',
   'chat-window',
   'user-profile',

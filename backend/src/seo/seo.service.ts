@@ -16,20 +16,17 @@ import { User, UserDocument } from '../users/schemas/user.schema.js';
 import { SlugService } from './slug.service.js';
 import { BreadcrumbItem } from './dto/breadcrumb-item.dto.js';
 import { ListingSeoDto } from './dto/listing-seo.dto.js';
-import { CategorySeoDto } from './dto/category-seo.dto.js';
 import { SellerSeoDto } from './dto/seller-seo.dto.js';
 import { HomeSeoDto } from './dto/home-seo.dto.js';
 import { SearchSeoDto } from './dto/search-seo.dto.js';
 import { PageSeoDto } from './dto/page-seo.dto.js';
 import {
   CACHE_KEY_SEO_LISTING,
-  CACHE_KEY_SEO_CATEGORY,
   CACHE_KEY_SEO_SELLER,
   CACHE_KEY_SEO_HOME,
   CACHE_KEY_SEO_SEARCH,
   CACHE_KEY_SEO_PAGE,
   CACHE_TTL_SEO_LISTING,
-  CACHE_TTL_SEO_CATEGORY,
   CACHE_TTL_SEO_SELLER,
   CACHE_TTL_SEO_HOME,
   CACHE_TTL_SEO_SEARCH,
@@ -213,28 +210,6 @@ export class SeoService {
   }
 
   /**
-   * Build schema.org ItemList JSON-LD for a category page.
-   */
-  buildCategoryJsonLd(
-    category: Category,
-    listings: ProductListing[],
-  ): Record<string, unknown> {
-    const itemListElement = listings.map((listing, index) => ({
-      '@type': 'ListItem',
-      position: index + 1,
-      url: `${SEO_BASE_URL}${this.slugService.generateListingUrl(listing)}`,
-      name: listing.title,
-    }));
-
-    return {
-      '@context': 'https://schema.org',
-      '@type': 'ItemList',
-      name: category.name,
-      itemListElement,
-    };
-  }
-
-  /**
    * Build schema.org Person JSON-LD for a seller profile page.
    */
   buildSellerJsonLd(seller: User): Record<string, unknown> {
@@ -371,81 +346,6 @@ export class SeoService {
   }
 
   /**
-   * Get SEO metadata for a category page.
-   *
-   * Queries the category by slug, builds the title using the template
-   * "{name} - Buy & Sell {name} in Pakistan | marketplace.pk",
-   * builds breadcrumb and ItemList JSON-LD.
-   *
-   * Throws NotFoundException if the category is not found.
-   */
-  async getCategorySeo(slug: string): Promise<CategorySeoDto> {
-    // Check Redis cache first
-    const cacheKey = `${CACHE_KEY_SEO_CATEGORY}${slug}`;
-    const cached = await this.cacheGet<CategorySeoDto>(cacheKey);
-    if (cached) {
-      return cached;
-    }
-
-    const category = await this.categoryModel.findOne({ slug }).lean().exec();
-    if (!category) {
-      throw new NotFoundException('Category not found');
-    }
-
-    const title = `${category.name} - Buy & Sell ${category.name} in Pakistan | ${SEO_SITE_NAME}`;
-    const description = `Browse ${category.name} listings on ${SEO_SITE_NAME}. Find the best deals on ${category.name} in Pakistan.`;
-
-    // Build breadcrumb: include parent categories + this category
-    const breadcrumbPath: Types.ObjectId[] = [];
-    if (category.parentId) {
-      // Walk up the hierarchy to build the full path
-      const ancestors = await this.buildCategoryAncestorPath(category);
-      breadcrumbPath.push(...ancestors);
-    }
-    breadcrumbPath.push(category._id);
-    const breadcrumb = await this.buildBreadcrumb(breadcrumbPath);
-
-    // Count active listings in this category
-    const listingCount = await this.listingModel
-      .countDocuments({
-        categoryPath: category._id,
-        status: ListingStatus.ACTIVE,
-      })
-      .exec();
-
-    // Fetch a sample of active listings for the ItemList JSON-LD
-    const listings = await this.listingModel
-      .find({
-        categoryPath: category._id,
-        status: ListingStatus.ACTIVE,
-      })
-      .limit(10)
-      .lean()
-      .exec();
-
-    const itemListJsonLd = this.buildCategoryJsonLd(
-      category as unknown as Category,
-      listings as unknown as ProductListing[],
-    );
-    const breadcrumbJsonLd = this.buildBreadcrumbJsonLd(breadcrumb);
-
-    const canonicalUrl = `${SEO_BASE_URL}${this.slugService.generateCategoryUrl(category as unknown as Pick<Category, 'slug'>)}`;
-
-    const dto = new CategorySeoDto();
-    dto.title = title;
-    dto.description = this.truncateDescription(description);
-    dto.breadcrumb = breadcrumb;
-    dto.listingCount = listingCount;
-    dto.canonicalUrl = canonicalUrl;
-    dto.itemListJsonLd = itemListJsonLd;
-    dto.breadcrumbJsonLd = breadcrumbJsonLd;
-
-    await this.cacheSet(cacheKey, dto, CACHE_TTL_SEO_CATEGORY);
-
-    return dto;
-  }
-
-  /**
    * Get SEO metadata for a seller profile page.
    *
    * Queries the seller by ID, builds the title using the template
@@ -560,24 +460,51 @@ export class SeoService {
   /**
    * Get SEO metadata for a search results page.
    *
-   * Builds a title "Search: {query} | marketplace.pk" (or fallback
-   * "Search Listings | marketplace.pk" for empty/missing query),
-   * a description, and a canonical URL retaining only the `q` parameter.
+   * Builds a title based on query and/or category:
+   * - Category only: "{name} - Buy & Sell {name} in Pakistan | marketplace.pk"
+   * - Query only: "Search: {query} | marketplace.pk"
+   * - Both: "Search: {query} in {name} | marketplace.pk"
+   * - Neither: "Search Listings | marketplace.pk"
    *
+   * The canonical URL includes only the `q` and `category` parameters.
    * Results are cached with a 10-minute TTL.
    */
-  async getSearchSeo(query?: string): Promise<SearchSeoDto> {
+  async getSearchSeo(
+    query?: string,
+    categorySlug?: string,
+  ): Promise<SearchSeoDto> {
     const trimmedQuery = query?.trim() || '';
-    const cacheKey = `${CACHE_KEY_SEO_SEARCH}${trimmedQuery}`;
+    const trimmedSlug = categorySlug?.trim() || '';
+    const cacheKey = `${CACHE_KEY_SEO_SEARCH}${trimmedQuery}:${trimmedSlug}`;
 
     const cached = await this.cacheGet<SearchSeoDto>(cacheKey);
     if (cached) {
       return cached;
     }
 
+    // Look up category name if slug is provided
+    let categoryName = '';
+    if (trimmedSlug) {
+      const category = await this.categoryModel
+        .findOne({ slug: trimmedSlug })
+        .lean()
+        .exec();
+      if (category) {
+        categoryName = category.name;
+      }
+    }
+
     const dto = new SearchSeoDto();
 
-    if (trimmedQuery) {
+    if (trimmedQuery && categoryName) {
+      dto.title = `Search: ${trimmedQuery} in ${categoryName} | ${SEO_SITE_NAME}`;
+      dto.description = `Find ${trimmedQuery} in ${categoryName} on ${SEO_SITE_NAME}. Browse results and discover the best deals in Pakistan.`;
+      dto.canonicalUrl = `${SEO_BASE_URL}${SEO_ROUTE_PATTERNS.SEARCH}?q=${encodeURIComponent(trimmedQuery)}&category=${encodeURIComponent(trimmedSlug)}`;
+    } else if (categoryName) {
+      dto.title = `${categoryName} - Buy & Sell ${categoryName} in Pakistan | ${SEO_SITE_NAME}`;
+      dto.description = `Browse ${categoryName} listings on ${SEO_SITE_NAME}. Find the best deals on ${categoryName} in Pakistan.`;
+      dto.canonicalUrl = `${SEO_BASE_URL}${SEO_ROUTE_PATTERNS.SEARCH}?category=${encodeURIComponent(trimmedSlug)}`;
+    } else if (trimmedQuery) {
       dto.title = `Search: ${trimmedQuery} | ${SEO_SITE_NAME}`;
       dto.description = `Find ${trimmedQuery} listings on ${SEO_SITE_NAME}. Browse results and discover the best deals in Pakistan.`;
       dto.canonicalUrl = `${SEO_BASE_URL}${SEO_ROUTE_PATTERNS.SEARCH}?q=${encodeURIComponent(trimmedQuery)}`;
@@ -673,28 +600,5 @@ export class SeoService {
         addressCountry: SEO_DEFAULT_COUNTRY_CODE,
       },
     };
-  }
-
-  /**
-   * Walk up the category hierarchy to build the ancestor path for breadcrumbs.
-   * Returns an array of ancestor ObjectIds from root to parent (excluding the category itself).
-   */
-  private async buildCategoryAncestorPath(
-    category: Record<string, any>,
-  ): Promise<Types.ObjectId[]> {
-    const ancestors: Types.ObjectId[] = [];
-    let currentParentId = category.parentId;
-
-    while (currentParentId) {
-      const parent = await this.categoryModel
-        .findById(currentParentId)
-        .lean()
-        .exec();
-      if (!parent) break;
-      ancestors.unshift(parent._id);
-      currentParentId = parent.parentId;
-    }
-
-    return ancestors;
   }
 }

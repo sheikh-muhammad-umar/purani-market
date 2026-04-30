@@ -4,7 +4,6 @@ import { Types } from 'mongoose';
 import { SeoController } from './seo.controller.js';
 import { SeoService } from './seo.service.js';
 import { ListingSeoDto } from './dto/listing-seo.dto.js';
-import { CategorySeoDto } from './dto/category-seo.dto.js';
 import { SellerSeoDto } from './dto/seller-seo.dto.js';
 import { HomeSeoDto } from './dto/home-seo.dto.js';
 
@@ -15,7 +14,6 @@ describe('SeoController', () => {
   beforeEach(async () => {
     seoService = {
       getListingSeo: jest.fn(),
-      getCategorySeo: jest.fn(),
       getSellerSeo: jest.fn(),
       getHomeSeo: jest.fn(),
     };
@@ -70,54 +68,6 @@ describe('SeoController', () => {
         BadRequestException,
       );
       expect(seoService.getListingSeo).not.toHaveBeenCalled();
-    });
-  });
-
-  // --- GET /api/seo/category/:slug ---
-
-  describe('getCategorySeo', () => {
-    it('should call SeoService.getCategorySeo with the correct slug', async () => {
-      const dto = new CategorySeoDto();
-      dto.title =
-        'Electronics - Buy & Sell Electronics in Pakistan | marketplace.pk';
-      seoService.getCategorySeo.mockResolvedValue(dto);
-
-      const result = await controller.getCategorySeo('electronics');
-
-      expect(seoService.getCategorySeo).toHaveBeenCalledWith('electronics');
-      expect(result).toBe(dto);
-    });
-
-    it('should pass slug with hyphens correctly', async () => {
-      const dto = new CategorySeoDto();
-      seoService.getCategorySeo.mockResolvedValue(dto);
-
-      await controller.getCategorySeo('mobile-phones');
-
-      expect(seoService.getCategorySeo).toHaveBeenCalledWith('mobile-phones');
-    });
-
-    it('should propagate NotFoundException as 404 when category not found', async () => {
-      seoService.getCategorySeo.mockRejectedValue(
-        new NotFoundException('Category not found'),
-      );
-
-      await expect(
-        controller.getCategorySeo('nonexistent-category'),
-      ).rejects.toThrow(NotFoundException);
-    });
-
-    it('should not validate slug as ObjectId (no BadRequestException for non-ObjectId slugs)', async () => {
-      const dto = new CategorySeoDto();
-      seoService.getCategorySeo.mockResolvedValue(dto);
-
-      // Slugs are plain strings, not ObjectIds — should pass through without validation
-      const result = await controller.getCategorySeo('some-random-slug');
-
-      expect(seoService.getCategorySeo).toHaveBeenCalledWith(
-        'some-random-slug',
-      );
-      expect(result).toBe(dto);
     });
   });
 

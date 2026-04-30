@@ -302,6 +302,8 @@
 }
 
 .cat-children {
+  display: flex;
+  flex-direction: column;
   border-left: 2px solid var(--border);
   margin-left: var(--space-1);
   padding-left: var(--space-half);

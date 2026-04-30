@@ -1,17 +1,8 @@
-import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, OnInit, OnDestroy, signal, computed, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import {
-  Subject,
-  takeUntil,
-  debounceTime,
-  distinctUntilChanged,
-  switchMap,
-  of,
-  forkJoin,
-} from 'rxjs';
-import { map, catchError } from 'rxjs/operators';
+import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
 import {
   SearchService,
   SearchParams,
@@ -39,8 +30,6 @@ import { Listing, Category, CategoryAttribute } from '../../../core/models';
 import { VehicleModel, VehicleVariant, BrandOption } from '../../../core/models/brand.model';
 import { BrandsService } from '../../../core/services/brands.service';
 
-export type SortOption = SearchSortOption;
-
 export interface ActiveFilter {
   key: string;
   label: string;
@@ -65,6 +54,9 @@ export interface ActiveFilter {
 })
 export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly ROUTES = ROUTES;
+  readonly SKELETON_ITEMS = [1, 2, 3, 4, 5, 6, 7, 8];
+
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
   readonly query = signal('');
   readonly results = signal<Listing[]>([]);
@@ -73,12 +65,13 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly currentPage = signal(1);
   readonly pageSize = 20;
   readonly loading = signal(false);
-  readonly sortBy = signal<SortOption>(SearchSortOption.RELEVANCE);
-  readonly filtersOpen = signal(window.innerWidth >= 768);
+  readonly sortBy = signal<SearchSortOption>(SearchSortOption.RELEVANCE);
+  readonly filtersOpen = signal(true);
 
   // Category filters
   readonly categories = signal<Category[]>([]);
   readonly selectedCategoryId = signal<string>('');
+  readonly selectedCategorySlug = signal<string>('');
   readonly selectedCategory = signal<Category | null>(null);
   readonly categoryFilters = signal<CategoryAttribute[]>([]);
 
@@ -103,9 +96,6 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly hasResults = computed(() => this.results().length > 0 || this.featuredAds().length > 0);
   readonly totalPages = computed(() => Math.ceil(this.totalResults() / this.pageSize));
 
-  // Location filter
-  readonly locationOpen = signal(false);
-  readonly selectedCity = signal('');
   readonly expandedCategories = signal<Set<string>>(new Set());
 
   // Province/City for province_city attribute type
@@ -195,13 +185,16 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
+    if (this.isBrowser) {
+      this.filtersOpen.set(window.innerWidth >= 768);
+    }
     this.loadCategories();
     this.setupSuggestions();
 
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const q = params.get('q') || '';
-      const category = params.get('category') || '';
-      const sort = (params.get('sort') as SortOption) || SearchSortOption.RELEVANCE;
+      const categorySlug = params.get('category') || '';
+      const sort = (params.get('sort') as SearchSortOption) || SearchSortOption.RELEVANCE;
       const page = Number(params.get('page')) || 1;
       const minPrice = params.get('minPrice') ? Number(params.get('minPrice')) : null;
       const maxPrice = params.get('maxPrice') ? Number(params.get('maxPrice')) : null;
@@ -209,8 +202,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
       this.query.set(q);
       this.searchInput.set(q);
-      this.selectedCategoryId.set(category);
-      if (category) this.autoExpandCategory(category);
+      this.selectedCategorySlug.set(categorySlug);
       this.sortBy.set(sort);
       this.currentPage.set(page);
       this.minPrice.set(minPrice);
@@ -226,8 +218,17 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       });
       this.filterValues.set(dynamicFilters);
 
-      if (category) {
-        this.loadCategoryFilters(category);
+      // Resolve slug to category ID if categories are already loaded
+      if (categorySlug) {
+        const resolved = this.resolveCategorySlug(categorySlug);
+        if (resolved) {
+          this.selectedCategoryId.set(resolved);
+          this.autoExpandCategory(resolved);
+          this.loadCategoryFilters(resolved);
+        }
+        // If not resolved yet, loadCategories callback will handle it
+      } else {
+        this.selectedCategoryId.set('');
       }
 
       this.executeSearch();
@@ -279,7 +280,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     setTimeout(() => this.showSuggestions.set(false), 200);
   }
 
-  onSortChange(sort: SortOption): void {
+  onSortChange(sort: SearchSortOption): void {
     this.sortBy.set(sort);
     this.currentPage.set(1);
     this.updateUrlAndSearch();
@@ -287,6 +288,9 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
   onCategoryChange(categoryId: string): void {
     this.selectedCategoryId.set(categoryId);
+    // Look up slug for the URL
+    const cat = this.categories().find((c) => c._id === categoryId);
+    this.selectedCategorySlug.set(cat?.slug || '');
     this.filterValues.set({});
     this.currentPage.set(1);
     if (categoryId) {
@@ -345,8 +349,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
   clearAllFilters(): void {
     this.selectedCategoryId.set('');
+    this.selectedCategorySlug.set('');
     this.selectedCondition.set('');
-    this.selectedCity.set('');
     this.minPrice.set(null);
     this.maxPrice.set(null);
     this.filterValues.set({});
@@ -386,10 +390,14 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   }
 
   private autoExpandCategory(catId: string): void {
-    // Find the category and expand all its ancestors
+    // Find the category and expand all its ancestors + itself
     const cats = this.categories();
     const toExpand = new Set<string>();
     let current = cats.find((c) => c._id === catId);
+    // Expand the selected category itself so its children are visible
+    if (current) {
+      toExpand.add(catId);
+    }
     while (current?.parentId) {
       toExpand.add(current.parentId);
       current = cats.find((c) => c._id === current!.parentId);
@@ -401,14 +409,6 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
         return next;
       });
     }
-  }
-
-  // Location helpers
-  selectCity(city: string): void {
-    this.selectedCity.set(city);
-    this.locationOpen.set(false);
-    this.currentPage.set(1);
-    this.updateUrlAndSearch();
   }
 
   toggleFilters(): void {
@@ -540,9 +540,37 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .getAll()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (cats) => this.categories.set(cats),
+        next: (cats) => {
+          this.categories.set(cats);
+          // Resolve pending category slug now that categories are available
+          const slug = this.selectedCategorySlug();
+          if (slug && !this.selectedCategoryId()) {
+            const resolved = this.resolveCategorySlug(slug);
+            if (resolved) {
+              this.selectedCategoryId.set(resolved);
+              this.autoExpandCategory(resolved);
+              this.loadCategoryFilters(resolved);
+              this.lastSearchHash = ''; // Reset to allow re-search with resolved ID
+              this.executeSearch();
+            }
+          }
+          // Rebuild active filters and re-expand category tree now that names are available
+          if (this.selectedCategoryId()) {
+            this.activeFilters.set(this.buildActiveFilters());
+            this.autoExpandCategory(this.selectedCategoryId());
+          }
+        },
         error: () => this.categories.set([]),
       });
+  }
+
+  /**
+   * Resolve a category slug to its _id from the loaded categories list.
+   * Returns the _id if found, empty string otherwise.
+   */
+  private resolveCategorySlug(slug: string): string {
+    const cat = this.categories().find((c) => c.slug === slug);
+    return cat?._id || '';
   }
 
   private loadCategoryFilters(categoryId: string): void {
@@ -842,8 +870,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     const queryParams: Record<string, string | number | null> = {};
     const q = this.query();
     if (q) queryParams['q'] = q;
-    const cat = this.selectedCategoryId();
-    if (cat) queryParams['category'] = cat;
+    const slug = this.selectedCategorySlug();
+    if (slug) queryParams['category'] = slug;
     const sort = this.sortBy();
     if (sort !== SearchSortOption.RELEVANCE) queryParams['sort'] = sort;
     const page = this.currentPage();

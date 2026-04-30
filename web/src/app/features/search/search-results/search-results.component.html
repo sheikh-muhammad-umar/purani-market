@@ -427,7 +427,7 @@
       @if (loading()) {
         <!-- Loading Skeleton -->
         <div class="results-grid">
-          @for (i of [1, 2, 3, 4, 5, 6, 7, 8]; track i) {
+          @for (i of SKELETON_ITEMS; track i) {
             <div class="listing-card-skeleton">
               <div class="skeleton img-skeleton"></div>
               <div class="skeleton text-skeleton title-sk"></div>
@@ -445,7 +445,7 @@
               @for (ad of featuredAds(); track ad._id) {
                 <a
                   class="listing-card featured-card"
-                  [routerLink]="['/listings', ad | listingUrl]"
+                  [routerLink]="[ROUTES.LISTINGS, ad | listingUrl]"
                   role="listitem"
                 >
                   <div class="listing-img-wrap">
@@ -477,7 +477,7 @@
           @for (listing of results(); track listing._id) {
             <a
               class="listing-card"
-              [routerLink]="['/listings', listing | listingUrl]"
+              [routerLink]="[ROUTES.LISTINGS, listing | listingUrl]"
               role="listitem"
             >
               <div class="listing-img-wrap">
@@ -560,9 +560,12 @@
               <p class="suggestions-label">Browse related categories:</p>
               <div class="suggestion-chips">
                 @for (cat of relatedCategories(); track cat._id) {
-                  <a class="suggestion-chip" [routerLink]="['/categories', cat.slug]">{{
-                    cat.name
-                  }}</a>
+                  <a
+                    class="suggestion-chip"
+                    [routerLink]="ROUTES.SEARCH"
+                    [queryParams]="{ category: cat.slug }"
+                    >{{ cat.name }}</a
+                  >
                 }
               </div>
             </div>

@@ -60,16 +60,6 @@ export interface ListingSeoResponse {
   breadcrumbJsonLd: Record<string, unknown>;
 }
 
-export interface CategorySeoResponse {
-  title: string;
-  description: string;
-  breadcrumb: BreadcrumbItem[];
-  listingCount: number;
-  canonicalUrl: string;
-  itemListJsonLd: Record<string, unknown>;
-  breadcrumbJsonLd: Record<string, unknown>;
-}
-
 export interface SellerSeoResponse {
   title: string;
   description: string;

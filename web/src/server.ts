@@ -8,7 +8,7 @@ import express from 'express';
 import { join } from 'node:path';
 import { readFileSync } from 'node:fs';
 
-import type { Request, Response as ExpressResponse, NextFunction } from 'express';
+import type { Request, Response as ExpressResponse } from 'express';
 import { logSsrError, injectNoindexAndSend, sendFallbackShell } from './ssr-error-handler';
 
 const browserDistFolder = join(import.meta.dirname, '../browser');
@@ -48,12 +48,14 @@ app.use(
  * a 404 status, inject a noindex meta tag so search engines skip the page.
  * On failure, fall back to the client-side shell HTML with a 200 status.
  */
-app.use('*path', (req: Request, res: ExpressResponse, next: NextFunction) => {
+app.use('*path', (req: Request, res: ExpressResponse) => {
   angularApp
     .handle(req)
     .then((response) => {
       if (!response) {
-        return next();
+        // No SSR response — serve the client-side shell so the SPA can bootstrap
+        sendFallbackShell(res, shellHtml);
+        return;
       }
 
       // If the Angular SSR engine returned a 404, inject noindex meta tag

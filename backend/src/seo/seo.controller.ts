@@ -8,7 +8,6 @@ import {
 import { Types } from 'mongoose';
 import { SeoService } from './seo.service.js';
 import { ListingSeoDto } from './dto/listing-seo.dto.js';
-import { CategorySeoDto } from './dto/category-seo.dto.js';
 import { SellerSeoDto } from './dto/seller-seo.dto.js';
 import { HomeSeoDto } from './dto/home-seo.dto.js';
 import { SearchSeoDto } from './dto/search-seo.dto.js';
@@ -19,8 +18,11 @@ export class SeoController {
   constructor(private readonly seoService: SeoService) {}
 
   @Get('search')
-  async getSearchSeo(@Query('q') query?: string): Promise<SearchSeoDto> {
-    return this.seoService.getSearchSeo(query);
+  async getSearchSeo(
+    @Query('q') query?: string,
+    @Query('category') category?: string,
+  ): Promise<SearchSeoDto> {
+    return this.seoService.getSearchSeo(query, category);
   }
 
   @Get('page/:slug')
@@ -34,11 +36,6 @@ export class SeoController {
       throw new BadRequestException('Invalid listing ID');
     }
     return this.seoService.getListingSeo(id);
-  }
-
-  @Get('category/:slug')
-  async getCategorySeo(@Param('slug') slug: string): Promise<CategorySeoDto> {
-    return this.seoService.getCategorySeo(slug);
   }
 
   @Get('seller/:id')

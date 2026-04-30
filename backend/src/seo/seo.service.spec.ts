@@ -174,42 +174,6 @@ describe('SeoService - Endpoint Methods', () => {
     });
   });
 
-  describe('getCategorySeo', () => {
-    beforeEach(() => {
-      // Default mocks for category queries
-      mockCategoryModel.findOne.mockReturnValue(chainable(mockCategory));
-      mockCategoryModel.find.mockReturnValue(chainable([mockCategory]));
-      mockListingModel.countDocuments.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(42),
-      });
-      mockListingModel.find.mockReturnValue(chainableWithLimit([]));
-    });
-
-    it('should return category SEO data with correct title template', async () => {
-      const result = await service.getCategorySeo('mobile-phones');
-
-      expect(result.title).toBe(
-        'Mobile Phones - Buy & Sell Mobile Phones in Pakistan | marketplace.pk',
-      );
-      expect(result.description).toBeDefined();
-      expect(result.listingCount).toBe(42);
-      expect(result.canonicalUrl).toBe(
-        'https://marketplace.pk/categories/mobile-phones',
-      );
-      expect(result.itemListJsonLd).toBeDefined();
-      expect((result.itemListJsonLd as any)['@type']).toBe('ItemList');
-      expect(result.breadcrumbJsonLd).toBeDefined();
-    });
-
-    it('should throw NotFoundException when category not found', async () => {
-      mockCategoryModel.findOne.mockReturnValue(chainable(null));
-
-      await expect(service.getCategorySeo('nonexistent')).rejects.toThrow(
-        NotFoundException,
-      );
-    });
-  });
-
   describe('getSellerSeo', () => {
     beforeEach(() => {
       mockUserModel.findById.mockReturnValue(chainable(mockSeller));

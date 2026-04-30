@@ -83,11 +83,9 @@ export const CACHE_TTL_POPULAR_SEARCHES = 3600; // 1 hour
 
 // ─── SEO Cache ──────────────────────────────────────────────
 export const CACHE_KEY_SEO_LISTING = 'seo:listing:';
-export const CACHE_KEY_SEO_CATEGORY = 'seo:category:';
 export const CACHE_KEY_SEO_SELLER = 'seo:seller:';
 export const CACHE_KEY_SEO_HOME = 'seo:home';
 export const CACHE_TTL_SEO_LISTING = 300; // 5 minutes
-export const CACHE_TTL_SEO_CATEGORY = 1800; // 30 minutes
 export const CACHE_TTL_SEO_SELLER = 1800; // 30 minutes
 export const CACHE_TTL_SEO_HOME = 3600; // 1 hour
 export const CACHE_KEY_SEO_SEARCH = 'seo:search:';
@@ -108,7 +106,6 @@ export const SEO_DESCRIPTION_MAX_LENGTH = 160;
 export const SEO_DEFAULT_OG_TYPE = 'website' as const;
 export const SEO_SUPPORTED_LANGUAGES = ['English', 'Urdu'] as const;
 export const SEO_HREFLANG_VALUES = ['en', 'ur', 'x-default'] as const;
-export const SEO_CATEGORY_PAGE_SIZE = 20;
 export const SEO_PRERENDER_HOME_TTL = 3600; // 1 hour
 export const SEO_PRERENDER_STATIC_TTL = 86400; // 24 hours
 export const SEO_PRERENDER_FETCH_TIMEOUT_MS = 30000;
