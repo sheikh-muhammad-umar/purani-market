@@ -91,6 +91,10 @@ export class SearchQueryDto {
   variantId?: string;
 
   @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  verifiedSeller?: boolean;
+
+  @IsOptional()
   @Type(() => Number)
   @IsNumber()
   lat?: number;

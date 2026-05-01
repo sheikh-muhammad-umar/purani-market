@@ -660,6 +660,10 @@ export class ListingsService {
         phone: dto.contactInfo?.phone || seller.phone || '',
         email: dto.contactInfo?.email || seller.email || '',
       },
+      sellerVerified:
+        !!seller.emailVerified &&
+        !!seller.phoneVerified &&
+        !!(seller as any).idVerified,
       status,
     });
 

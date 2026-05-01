@@ -38,6 +38,7 @@ const KNOWN_KEYS = new Set([
   'page',
   'limit',
   'filters',
+  'verifiedSeller',
 ]);
 
 @Controller('api/search')

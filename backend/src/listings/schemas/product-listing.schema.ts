@@ -190,6 +190,10 @@ export class ProductListing {
   @Prop({ type: Boolean, default: false })
   isFeatured!: boolean;
 
+  /** Denormalized: true when the seller has verified email, phone, and ID */
+  @Prop({ type: Boolean, default: false })
+  sellerVerified!: boolean;
+
   @Prop({ type: Date })
   featuredUntil?: Date;
 
@@ -241,6 +245,7 @@ ProductListingSchema.index({ sellerId: 1 });
 ProductListingSchema.index({ categoryId: 1 });
 ProductListingSchema.index({ status: 1 });
 ProductListingSchema.index({ isFeatured: -1, createdAt: -1 });
+ProductListingSchema.index({ sellerVerified: 1 });
 ProductListingSchema.index({ createdAt: -1 });
 ProductListingSchema.index({ categoryPath: 1 });
 ProductListingSchema.index({ 'location.cityId': 1 });

@@ -36,6 +36,7 @@ async function sync() {
           thumbnailUrl: img.thumbnailUrl,
           sortOrder: img.sortOrder ?? 0,
         })),
+        sellerVerified: doc.sellerVerified || false,
         isFeatured: doc.isFeatured || false,
         status: doc.status,
         sellerId: doc.sellerId?.toString(),

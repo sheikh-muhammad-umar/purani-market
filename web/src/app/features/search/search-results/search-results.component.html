@@ -215,6 +215,21 @@
             ></app-custom-select>
           </div>
 
+          <!-- Verified Seller Card -->
+          <div class="filter-card">
+            <label class="verified-seller-toggle">
+              <input
+                type="checkbox"
+                [checked]="verifiedSellerOnly()"
+                (change)="onVerifiedSellerChange($any($event).target.checked)"
+              />
+              <span class="verified-seller-label">
+                <span class="material-symbols-rounded verified-seller-icon">verified</span>
+                Verified Sellers Only
+              </span>
+            </label>
+          </div>
+
           <!-- Brand / Model / Variant Filters -->
           @if (hasBrandsFilter() && filterBrands().length > 0) {
             <div class="filter-card">
@@ -449,7 +464,7 @@
                   role="listitem"
                 >
                   <div class="listing-img-wrap">
-                    <img [src]="getListingImage(ad)" [alt]="ad.title" loading="lazy" />
+                    <img [src]="ad | listingImage" [alt]="ad.title" loading="lazy" />
                     <span class="badge badge-featured">Featured</span>
                   </div>
                   <div class="listing-info">
@@ -457,14 +472,24 @@
                     <p class="listing-price price">
                       {{ ad.price.amount | priceFormat: ad.price.currency }}
                     </p>
-                    <p class="listing-location">
-                      <span
-                        class="material-symbols-rounded"
-                        style="font-size: 16px; vertical-align: middle"
-                        >location_on</span
-                      >
-                      {{ ad.location.city || 'Unknown' }}
-                    </p>
+                    <div class="listing-bottom-row">
+                      <p class="listing-location">
+                        <span
+                          class="material-symbols-rounded"
+                          style="font-size: 16px; vertical-align: middle"
+                          >location_on</span
+                        >
+                        {{ ad.location.city || 'Unknown' }}
+                      </p>
+                      @if (ad.sellerVerified) {
+                        <span class="listing-verified" [appTooltip]="VERIFIED_SELLER_TOOLTIP">
+                          <span class="material-symbols-rounded listing-verified-icon"
+                            >verified</span
+                          >
+                          Verified Seller
+                        </span>
+                      }
+                    </div>
                   </div>
                 </a>
               }
@@ -481,7 +506,7 @@
               role="listitem"
             >
               <div class="listing-img-wrap">
-                <img [src]="getListingImage(listing)" [alt]="listing.title" loading="lazy" />
+                <img [src]="listing | listingImage" [alt]="listing.title" loading="lazy" />
                 @if (listing.isFeatured) {
                   <span class="badge badge-featured">Featured</span>
                 }
@@ -491,14 +516,22 @@
                 <p class="listing-price price">
                   {{ listing.price.amount | priceFormat: listing.price.currency }}
                 </p>
-                <p class="listing-location">
-                  <span
-                    class="material-symbols-rounded"
-                    style="font-size: 16px; vertical-align: middle"
-                    >location_on</span
-                  >
-                  {{ listing.location.city || 'Unknown' }}
-                </p>
+                <div class="listing-bottom-row">
+                  <p class="listing-location">
+                    <span
+                      class="material-symbols-rounded"
+                      style="font-size: 16px; vertical-align: middle"
+                      >location_on</span
+                    >
+                    {{ listing.location.city || 'Unknown' }}
+                  </p>
+                  @if (listing.sellerVerified) {
+                    <span class="listing-verified" [appTooltip]="VERIFIED_SELLER_TOOLTIP">
+                      <span class="material-symbols-rounded listing-verified-icon">verified</span>
+                      Verified Seller
+                    </span>
+                  }
+                </div>
               </div>
             </a>
           }

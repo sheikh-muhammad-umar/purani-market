@@ -66,6 +66,7 @@ export interface Listing {
   contactInfo: ListingContactInfo;
   status: ListingStatus;
   isFeatured: boolean;
+  sellerVerified?: boolean;
   featuredUntil?: Date;
   rejectionReason?: string;
   rejectionCount?: number;

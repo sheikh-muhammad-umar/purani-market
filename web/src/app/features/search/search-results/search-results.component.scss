@@ -237,6 +237,35 @@
   margin-bottom: var(--space-1);
 }
 
+.verified-seller-toggle {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  cursor: pointer;
+  padding: var(--space-half) 0;
+
+  input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    accent-color: var(--primary);
+    cursor: pointer;
+  }
+}
+
+.verified-seller-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: var(--text-sm);
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.verified-seller-icon {
+  font-size: 18px;
+  color: var(--success);
+}
+
 /* Category Tree */
 .category-tree {
   display: flex;
@@ -712,10 +741,31 @@
   margin-bottom: 4px;
 }
 
+.listing-bottom-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-1);
+  margin-top: auto;
+}
+
 .listing-location {
   font-size: var(--text-xs);
   color: var(--text-secondary);
-  margin-top: auto;
+}
+
+.listing-verified {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  font-size: 11px;
+  font-weight: 500;
+  color: var(--success);
+  white-space: nowrap;
+}
+
+.listing-verified-icon {
+  font-size: 14px;
 }
 
 /* ---- Pagination ---- */

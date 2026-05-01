@@ -87,6 +87,7 @@ export const listingsIndexMapping = {
       },
     },
     isFeatured: { type: 'boolean' as const },
+    sellerVerified: { type: 'boolean' as const },
     status: { type: 'keyword' as const },
     sellerId: { type: 'keyword' as const },
     createdAt: { type: 'date' as const },

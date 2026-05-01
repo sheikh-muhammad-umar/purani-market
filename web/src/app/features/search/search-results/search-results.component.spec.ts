@@ -2,6 +2,7 @@ import { of, throwError, Subject, BehaviorSubject } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { convertToParamMap, ParamMap } from '@angular/router';
 import { SearchResultsComponent, SortOption, ActiveFilter } from './search-results.component';
+import { ListingImagePipe } from '../../../shared/pipes/listing-image.pipe';
 import {
   SearchService,
   SearchResponse,
@@ -353,14 +354,16 @@ describe('SearchResultsComponent', () => {
     expect(routerMock.navigate.mock.calls.length).toBe(callCount);
   });
 
-  it('should return listing image correctly', () => {
+  it('should return listing image correctly via pipe', () => {
+    const pipe = new ListingImagePipe();
     const listing = makeListing();
-    expect(component.getListingImage(listing)).toBe('https://img.test/1_thumb.jpg');
+    expect(pipe.transform(listing)).toBe('https://img.test/1_thumb.jpg');
   });
 
-  it('should return placeholder for listing with no images', () => {
+  it('should return placeholder for listing with no images via pipe', () => {
+    const pipe = new ListingImagePipe();
     const listing = makeListing({ images: [] });
-    expect(component.getListingImage(listing)).toBe('assets/placeholder.png');
+    expect(pipe.transform(listing)).toBe('assets/placeholder.png');
   });
 
   it('should handle search submit', () => {

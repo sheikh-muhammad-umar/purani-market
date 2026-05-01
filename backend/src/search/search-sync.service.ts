@@ -30,6 +30,7 @@ export interface ListingDocument {
     area?: string;
   };
   isFeatured: boolean;
+  sellerVerified: boolean;
   status: string;
   sellerId: string;
   createdAt: Date;
@@ -196,6 +197,7 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
         sortOrder: img.sortOrder ?? 0,
       })),
       isFeatured: doc.isFeatured || false,
+      sellerVerified: doc.sellerVerified || false,
       status: doc.status,
       sellerId: doc.sellerId?.toString(),
       createdAt: doc.createdAt,

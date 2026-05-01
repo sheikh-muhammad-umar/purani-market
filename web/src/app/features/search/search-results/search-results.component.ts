@@ -19,13 +19,15 @@ import { RecentSearchesService } from '../../../core/services/recent-searches.se
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { STORAGE_SELECTED_LOCATION } from '../../../core/constants/storage-keys';
-import { DEFAULT_COUNTRY, CURRENCY_SYMBOL, PLACEHOLDER_IMAGE } from '../../../core/constants/app';
+import { DEFAULT_COUNTRY, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { SORT_OPTIONS, CONDITION_FILTER_OPTIONS } from '../../../core/constants/select-options';
 import { SearchSortOption } from '../../../core/constants/enums';
 import { PriceFormatPipe } from '../../../shared/pipes/price-format.pipe';
 import { TruncateTextPipe } from '../../../shared/pipes/truncate-text.pipe';
 import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
+import { ListingImagePipe } from '../../../shared/pipes/listing-image.pipe';
+import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 import { Listing, Category, CategoryAttribute } from '../../../core/models';
 import { VehicleModel, VehicleVariant, BrandOption } from '../../../core/models/brand.model';
 import { BrandsService } from '../../../core/services/brands.service';
@@ -47,7 +49,9 @@ export interface ActiveFilter {
     PriceFormatPipe,
     TruncateTextPipe,
     ListingUrlPipe,
+    ListingImagePipe,
     CustomSelectComponent,
+    TooltipDirective,
   ],
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.scss'],
@@ -55,6 +59,7 @@ export interface ActiveFilter {
 export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly ROUTES = ROUTES;
   readonly SKELETON_ITEMS = [1, 2, 3, 4, 5, 6, 7, 8];
+  readonly VERIFIED_SELLER_TOOLTIP = 'Seller has verified email, phone, and ID';
 
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
@@ -83,6 +88,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly minPrice = signal<number | null>(null);
   readonly maxPrice = signal<number | null>(null);
   readonly selectedCondition = signal<string>('');
+  readonly verifiedSellerOnly = signal(false);
 
   // Suggestions
   readonly suggestions = signal<SearchSuggestion[]>([]);
@@ -208,11 +214,23 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       this.minPrice.set(minPrice);
       this.maxPrice.set(maxPrice);
       this.selectedCondition.set(condition);
+      this.verifiedSellerOnly.set(params.get('verifiedSeller') === 'true');
 
       // Parse dynamic filter params
       const dynamicFilters: Record<string, string | number | boolean> = {};
       params.keys.forEach((key) => {
-        if (!['q', 'category', 'sort', 'page', 'minPrice', 'maxPrice', 'condition'].includes(key)) {
+        if (
+          ![
+            'q',
+            'category',
+            'sort',
+            'page',
+            'minPrice',
+            'maxPrice',
+            'condition',
+            'verifiedSeller',
+          ].includes(key)
+        ) {
           dynamicFilters[key] = params.get(key) || '';
         }
       });
@@ -309,6 +327,12 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.updateUrlAndSearch();
   }
 
+  onVerifiedSellerChange(checked: boolean): void {
+    this.verifiedSellerOnly.set(checked);
+    this.currentPage.set(1);
+    this.updateUrlAndSearch();
+  }
+
   onPriceFilterApply(): void {
     this.currentPage.set(1);
     this.updateUrlAndSearch();
@@ -331,6 +355,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       this.onCategoryChange('');
     } else if (filter.key === 'condition') {
       this.onConditionChange('');
+    } else if (filter.key === 'verifiedSeller') {
+      this.onVerifiedSellerChange(false);
     } else if (filter.key === 'minPrice' || filter.key === 'maxPrice') {
       if (filter.key === 'minPrice') this.minPrice.set(null);
       if (filter.key === 'maxPrice') this.maxPrice.set(null);
@@ -421,10 +447,6 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.updateUrlAndSearch();
   }
 
-  getListingImage(listing: Listing): string {
-    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || PLACEHOLDER_IMAGE;
-  }
-
   buildActiveFilters(): ActiveFilter[] {
     const filters: ActiveFilter[] = [];
     const catId = this.selectedCategoryId();
@@ -444,6 +466,14 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
         label: 'Condition',
         value: condition,
         displayValue: condition.charAt(0).toUpperCase() + condition.slice(1),
+      });
+    }
+    if (this.verifiedSellerOnly()) {
+      filters.push({
+        key: 'verifiedSeller',
+        label: 'Verified Seller',
+        value: 'true',
+        displayValue: 'Verified Sellers Only',
       });
     }
     const min = this.minPrice();
@@ -789,6 +819,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     if (max !== null) params['priceMax'] = max;
     const condition = this.selectedCondition();
     if (condition) params.condition = condition;
+    if (this.verifiedSellerOnly()) params['verifiedSeller'] = true;
 
     // Location from header selection (persisted in localStorage)
     try {
@@ -882,6 +913,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     if (max !== null) queryParams['maxPrice'] = max;
     const condition = this.selectedCondition();
     if (condition) queryParams['condition'] = condition;
+    if (this.verifiedSellerOnly()) queryParams['verifiedSeller'] = 'true';
 
     const dynamic = this.filterValues();
     Object.entries(dynamic).forEach(([key, value]) => {

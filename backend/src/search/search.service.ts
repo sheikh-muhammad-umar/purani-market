@@ -237,7 +237,10 @@ export class SearchService {
 
     // If ES results are missing location names or images, enrich from MongoDB
     const needsEnrichment = items.some(
-      (item: any) => !item.location?.city || !item.images?.length,
+      (item: any) =>
+        !item.location?.city ||
+        !item.images?.length ||
+        item.sellerVerified === undefined,
     );
     if (needsEnrichment && items.length > 0) {
       const ids = items.map((item: any) => new Types.ObjectId(item._id));
@@ -253,6 +256,9 @@ export class SearchService {
         }
         if (!item.images?.length && dbItem?.images?.length) {
           item.images = dbItem.images;
+        }
+        if (item.sellerVerified === undefined && dbItem) {
+          item.sellerVerified = dbItem.sellerVerified ?? false;
         }
       }
     }
@@ -345,6 +351,10 @@ export class SearchService {
     }
     if (query.variantId) {
       filter.variantId = new Types.ObjectId(query.variantId);
+    }
+
+    if (query.verifiedSeller) {
+      filter.sellerVerified = true;
     }
 
     // Dynamic category attribute filters
@@ -609,6 +619,11 @@ export class SearchService {
     }
     if (query.variantId) {
       filter.push({ term: { variantId: query.variantId } });
+    }
+
+    // Verified seller filter
+    if (query.verifiedSeller) {
+      filter.push({ term: { sellerVerified: true } });
     }
 
     return {
