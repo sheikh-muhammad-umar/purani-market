@@ -22,6 +22,7 @@ export interface ListingDocument {
   categoryPath: string[];
   condition: string;
   categoryAttributes: Record<string, any>;
+  images: { url: string; thumbnailUrl?: string; sortOrder: number }[];
   location?: {
     type: string;
     coordinates: number[];
@@ -189,6 +190,11 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
       categoryAttributes: this.transformCategoryAttributes(
         doc.categoryAttributes,
       ),
+      images: (doc.images || []).map((img: any) => ({
+        url: img.url,
+        thumbnailUrl: img.thumbnailUrl,
+        sortOrder: img.sortOrder ?? 0,
+      })),
       isFeatured: doc.isFeatured || false,
       status: doc.status,
       sellerId: doc.sellerId?.toString(),

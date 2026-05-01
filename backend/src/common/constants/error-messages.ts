@@ -32,6 +32,8 @@ export const ERROR = {
   INVALID_VIDEO_FORMAT: 'Invalid video format. Allowed: MP4',
   VIDEO_SIZE_EXCEEDED: 'Video size exceeds 50MB',
   NOT_AUTHORIZED_UPLOAD: 'Not authorized to upload to this listing',
+  INVALID_LISTING_ID: 'Invalid listing ID',
+  INVALID_SELLER_ID: 'Invalid seller ID',
   INVALID_CATEGORY_ID: 'Invalid category ID',
   INVALID_BRAND_ID: 'Invalid brand ID',
   INVALID_MODEL_ID: 'Invalid model ID',

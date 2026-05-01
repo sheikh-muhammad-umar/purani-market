@@ -260,8 +260,7 @@ export class ListingDetailComponent implements OnInit {
   }
 
   getCurrentImage(): string {
-    const images = this.listing()?.images ?? [];
-    return images[this.currentImageIndex()]?.url ?? PLACEHOLDER_IMAGE;
+    return this.currentImage();
   }
 
   // Details/Features helpers
@@ -271,19 +270,6 @@ export class ListingDetailComponent implements OnInit {
 
   formatLabel(key: string): string {
     return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
-  }
-
-  getFeatureTags(attrs: Record<string, unknown> | undefined): string[] {
-    if (!attrs) return [];
-    const tags: string[] = [];
-    for (const [key, value] of Object.entries(attrs)) {
-      if (Array.isArray(value)) {
-        tags.push(...value.map((v) => String(v)));
-      } else if (value === true) {
-        tags.push(this.formatLabel(key));
-      }
-    }
-    return tags;
   }
 
   async shareListing(): Promise<void> {

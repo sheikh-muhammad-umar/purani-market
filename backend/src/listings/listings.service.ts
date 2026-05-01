@@ -17,6 +17,7 @@ import {
   DEFAULT_CURRENCY,
   VIEW_DEDUP_PREFIX,
   VIEW_DEDUP_WINDOW_SECONDS,
+  SEO_SELLER_FALLBACK_NAME,
 } from '../common/constants/index.js';
 import { ERROR } from '../common/constants/error-messages.js';
 import { exactMatchRegex } from '../common/utils/sanitize-regex.js';
@@ -720,6 +721,7 @@ export class ListingsService {
   }
 
   async getSellerVerification(sellerId: string): Promise<{
+    sellerName: string;
     emailVerified: boolean;
     phoneVerified: boolean;
     idVerified: boolean;
@@ -731,7 +733,9 @@ export class ListingsService {
     const [user, activeAdsCount, conversations] = await Promise.all([
       this.userModel
         .findById(sellerId)
-        .select('emailVerified phoneVerified idVerified')
+        .select(
+          'emailVerified phoneVerified idVerified profile.firstName profile.lastName',
+        )
         .lean()
         .exec(),
       this.listingModel
@@ -791,6 +795,10 @@ export class ListingsService {
     }
 
     return {
+      sellerName:
+        [(user as any)?.profile?.firstName, (user as any)?.profile?.lastName]
+          .filter(Boolean)
+          .join(' ') || SEO_SELLER_FALLBACK_NAME,
       emailVerified: user?.emailVerified ?? false,
       phoneVerified: user?.phoneVerified ?? false,
       idVerified: (user as any)?.idVerified ?? false,

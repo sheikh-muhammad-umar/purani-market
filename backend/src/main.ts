@@ -27,6 +27,7 @@ async function bootstrap() {
         },
       },
       crossOriginEmbedderPolicy: false, // needed for map embeds
+      crossOriginResourcePolicy: { policy: 'cross-origin' }, // allow cross-origin image/media loads
     }),
   );
   app.disable('x-powered-by');
@@ -52,6 +53,7 @@ async function bootstrap() {
     },
     methods: 'GET,HEAD,PUT,PATCH,POST,DELETE,OPTIONS',
     allowedHeaders: 'Content-Type,Authorization,X-CSRF-Token,X-API-Key',
+    exposedHeaders: ['X-CSRF-Token'],
     credentials: true,
     maxAge: 86400, // cache preflight for 24 hours
   });

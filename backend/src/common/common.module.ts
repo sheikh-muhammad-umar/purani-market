@@ -34,6 +34,7 @@ export class CommonModule implements NestModule {
         'api/auth/(.*)', // login/register/verify flows (no cookie yet)
         'api/payments/(.*)', // external payment callbacks
         'api/packages/payment-callback', // payment gateway callbacks
+        'api/track', // analytics tracking — protected by API key, no CSRF needed
       )
       .forRoutes('*');
   }

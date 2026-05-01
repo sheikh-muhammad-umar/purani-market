@@ -20,6 +20,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
 import { VerifiedUserGuard } from '../auth/guards/verified-user.guard.js';
+import { PhoneVerifiedGuard } from '../auth/guards/phone-verified.guard.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { CreateListingDto } from './dto/create-listing.dto.js';
@@ -112,13 +113,16 @@ export class ListingsController {
       delete obj.contactInfo;
     }
 
-    // Enrich with seller info for authenticated users only
+    // Always include seller name (public info)
+    const seller = await this.listingsService.getSellerVerification(
+      listing.sellerId.toString(),
+    );
+
+    // Enrich with seller verification info for authenticated users only
     if (userId) {
-      const seller = await this.listingsService.getSellerVerification(
-        listing.sellerId.toString(),
-      );
       return {
         ...obj,
+        sellerName: seller.sellerName,
         sellerEmailVerified: seller.emailVerified,
         sellerPhoneVerified: seller.phoneVerified,
         sellerIdVerified: seller.idVerified,
@@ -128,11 +132,11 @@ export class ListingsController {
       };
     }
 
-    return obj;
+    return { ...obj, sellerName: seller.sellerName };
   }
 
   @Post()
-  @UseGuards(JwtAuthGuard, VerifiedUserGuard)
+  @UseGuards(JwtAuthGuard, VerifiedUserGuard, PhoneVerifiedGuard)
   async createListing(
     @CurrentUser('sub') sellerId: string,
     @Body() dto: CreateListingDto,

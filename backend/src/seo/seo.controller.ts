@@ -12,6 +12,7 @@ import { SellerSeoDto } from './dto/seller-seo.dto.js';
 import { HomeSeoDto } from './dto/home-seo.dto.js';
 import { SearchSeoDto } from './dto/search-seo.dto.js';
 import { PageSeoDto } from './dto/page-seo.dto.js';
+import { ERROR } from '../common/constants/error-messages.js';
 
 @Controller('api/seo')
 export class SeoController {
@@ -33,7 +34,7 @@ export class SeoController {
   @Get('listing/:id')
   async getListingSeo(@Param('id') id: string): Promise<ListingSeoDto> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('Invalid listing ID');
+      throw new BadRequestException(ERROR.INVALID_LISTING_ID);
     }
     return this.seoService.getListingSeo(id);
   }
@@ -41,7 +42,7 @@ export class SeoController {
   @Get('seller/:id')
   async getSellerSeo(@Param('id') id: string): Promise<SellerSeoDto> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new BadRequestException('Invalid seller ID');
+      throw new BadRequestException(ERROR.INVALID_SELLER_ID);
     }
     return this.seoService.getSellerSeo(id);
   }

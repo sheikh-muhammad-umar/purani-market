@@ -235,9 +235,11 @@ export class SearchService {
       return { _id: hit._id, _score: hit._score, ...source };
     });
 
-    // If ES results are missing location names, enrich from MongoDB
-    const missingLocation = items.some((item: any) => !item.location?.city);
-    if (missingLocation && items.length > 0) {
+    // If ES results are missing location names or images, enrich from MongoDB
+    const needsEnrichment = items.some(
+      (item: any) => !item.location?.city || !item.images?.length,
+    );
+    if (needsEnrichment && items.length > 0) {
       const ids = items.map((item: any) => new Types.ObjectId(item._id));
       const dbListings = await this.listingModel
         .find({ _id: { $in: ids } })
@@ -248,6 +250,9 @@ export class SearchService {
         const dbItem = dbMap.get(item._id);
         if (dbItem?.location) {
           item.location = { ...item.location, ...dbItem.location };
+        }
+        if (!item.images?.length && dbItem?.images?.length) {
+          item.images = dbItem.images;
         }
       }
     }

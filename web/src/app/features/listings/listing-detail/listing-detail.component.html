@@ -418,7 +418,7 @@
           <div class="seller-row">
             <div class="seller-avatar">👤</div>
             <div class="seller-info-col">
-              <span class="seller-name">Seller</span>
+              <span class="seller-name">{{ l.sellerName || 'Seller' }}</span>
               @if (totalReviews() > 0) {
                 <span class="seller-rating"
                   ><span
@@ -454,7 +454,7 @@
               ><span class="stat-value">{{ listing()?.sellerAvgResponseTime ?? 'N/A' }}</span>
             </div>
           </div>
-          <a class="view-profile-btn" [routerLink]="'/seller/' + listing()?.sellerId">
+          <a class="view-profile-btn" [routerLink]="ROUTES.SELLER(listing()?.sellerId ?? '')">
             View all ads from this seller
             <span class="material-symbols-rounded" style="font-size: 16px">arrow_forward</span>
           </a>

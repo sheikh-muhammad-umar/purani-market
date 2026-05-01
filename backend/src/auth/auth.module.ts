@@ -15,6 +15,7 @@ import { AuthController } from './auth.controller.js';
 import { EmailService } from './services/email.service.js';
 import { SmsService } from './services/sms.service.js';
 import { VerifiedUserGuard } from './guards/verified-user.guard.js';
+import { PhoneVerifiedGuard } from './guards/phone-verified.guard.js';
 import { JwtStrategy } from './strategies/jwt.strategy.js';
 
 @Module({
@@ -44,6 +45,7 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
     EmailService,
     SmsService,
     VerifiedUserGuard,
+    PhoneVerifiedGuard,
     JwtStrategy,
   ],
   exports: [
@@ -51,6 +53,7 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
     EmailService,
     SmsService,
     VerifiedUserGuard,
+    PhoneVerifiedGuard,
     JwtModule,
   ],
 })

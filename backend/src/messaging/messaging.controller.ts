@@ -14,7 +14,6 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { MessagingService } from './messaging.service.js';
 import { MessagingGateway } from './messaging.gateway.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
-import { VerifiedUserGuard } from '../auth/guards/verified-user.guard.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { CreateConversationDto } from './dto/create-conversation.dto.js';
 import { SendMessageDto } from './dto/send-message.dto.js';
@@ -23,7 +22,7 @@ import { MessageType } from './schemas/message.schema.js';
 import { ERROR } from '../common/constants/error-messages.js';
 
 @Controller('api/conversations')
-@UseGuards(JwtAuthGuard, VerifiedUserGuard)
+@UseGuards(JwtAuthGuard)
 export class MessagingController {
   constructor(
     private readonly messagingService: MessagingService,

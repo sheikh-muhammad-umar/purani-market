@@ -31,6 +31,11 @@ async function sync() {
         categoryPath: (doc.categoryPath || []).map(id => id.toString()),
         condition: doc.condition,
         categoryAttributes: doc.categoryAttributes || {},
+        images: (doc.images || []).map(img => ({
+          url: img.url,
+          thumbnailUrl: img.thumbnailUrl,
+          sortOrder: img.sortOrder ?? 0,
+        })),
         isFeatured: doc.isFeatured || false,
         status: doc.status,
         sellerId: doc.sellerId?.toString(),

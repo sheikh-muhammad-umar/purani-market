@@ -5,8 +5,12 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 
+/**
+ * Guard that requires the user to have a verified phone number.
+ * Used on endpoints where phone verification is mandatory (e.g. posting listings).
+ */
 @Injectable()
-export class VerifiedUserGuard implements CanActivate {
+export class PhoneVerifiedGuard implements CanActivate {
   canActivate(context: ExecutionContext): boolean {
     const request = context.switchToHttp().getRequest();
     const user = request.user;
@@ -15,10 +19,9 @@ export class VerifiedUserGuard implements CanActivate {
       return false;
     }
 
-    // Check if user has verified their email (if registered with email)
-    if (user.email && !user.emailVerified) {
+    if (user.phone && !user.phoneVerified) {
       throw new ForbiddenException(
-        'Please verify your email address to access this feature',
+        'Please verify your phone number to access this feature',
       );
     }
 

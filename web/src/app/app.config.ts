@@ -10,13 +10,16 @@ import { routes } from './app.routes';
 import { jwtInterceptor } from './core/auth';
 import { unwrapInterceptor } from './core/interceptors/unwrap.interceptor';
 import { apiKeyInterceptor } from './core/interceptors/api-key.interceptor';
+import { csrfInterceptor } from './core/interceptors/csrf.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
     provideZoneChangeDetection({ eventCoalescing: true }),
     provideRouter(routes, withComponentInputBinding()),
-    provideHttpClient(withInterceptors([apiKeyInterceptor, jwtInterceptor, unwrapInterceptor])),
+    provideHttpClient(
+      withInterceptors([apiKeyInterceptor, csrfInterceptor, jwtInterceptor, unwrapInterceptor]),
+    ),
     provideClientHydration(withHttpTransferCacheOptions({})),
   ],
 };

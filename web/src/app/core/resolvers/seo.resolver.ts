@@ -4,6 +4,7 @@ import { Observable, of, tap, catchError } from 'rxjs';
 import { SeoApiService } from '../services/seo-api.service';
 import { MetaService } from '../services/meta.service';
 import { StructuredDataService } from '../services/structured-data.service';
+import { extractIdFromSlug } from '../utils/slug';
 import {
   ListingSeoResponse,
   SellerSeoResponse,
@@ -23,7 +24,7 @@ export const listingSeoResolver: ResolveFn<ListingSeoResponse | null> = (
   const meta = inject(MetaService);
   const structuredData = inject(StructuredDataService);
 
-  const id = route.paramMap.get('id') ?? '';
+  const id = extractIdFromSlug(route.paramMap.get('id') ?? '');
 
   return seoApi.getListingSeo(id).pipe(
     tap((data) => {
@@ -70,7 +71,7 @@ export const sellerSeoResolver: ResolveFn<SellerSeoResponse | null> = (
   const meta = inject(MetaService);
   const structuredData = inject(StructuredDataService);
 
-  const id = route.paramMap.get('id') ?? '';
+  const id = extractIdFromSlug(route.paramMap.get('id') ?? '');
 
   return seoApi.getSellerSeo(id).pipe(
     tap((data) => {

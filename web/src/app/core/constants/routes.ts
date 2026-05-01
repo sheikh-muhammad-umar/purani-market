@@ -23,6 +23,8 @@ export const ROUTES = {
   CATEGORIES: '/categories',
   HOME: '/',
 
+  SELLER: (id: string) => `/seller/${id}`,
+
   // Static pages
   PAGES_ABOUT: '/pages/about',
   PAGES_CAREERS: '/pages/careers',

@@ -114,6 +114,10 @@ export const listingsIndexMapping = {
       type: 'text' as const,
       fields: { keyword: { type: 'keyword' as const, ignore_above: 100 } },
     },
+    images: {
+      type: 'object' as const,
+      enabled: false, // stored for display only, not searched
+    },
   },
 };
 
