@@ -615,13 +615,15 @@
   white-space: nowrap;
 }
 
-.sort-select {
-  font-size: var(--text-sm);
-  padding: var(--space-half) var(--space-1);
-  min-width: 160px;
+.sort-controls app-custom-select {
+  min-width: 170px;
 }
 
 .filter-toggle-mobile {
+  display: none;
+}
+
+.grid-toggle-mobile {
   display: none;
 }
 
@@ -955,11 +957,15 @@
     right: 0;
     bottom: 0;
     width: 100%;
+    height: 100%;
     z-index: 200;
     background: var(--background);
     overflow-y: auto;
+    overflow-x: hidden;
     padding: var(--space-2);
+    padding-bottom: calc(var(--space-2) + env(safe-area-inset-bottom, 0px));
     -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
 
     &:not(.collapsed) {
       display: block;
@@ -974,8 +980,12 @@
     }
   }
 
-  .filter-toggle-mobile {
+  .filter-toggle-mobile,
+  .grid-toggle-mobile {
     display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 6px 8px;
   }
 
   /* Layout stacks */
@@ -995,16 +1005,10 @@
 
   .sort-controls {
     gap: var(--space-half);
-  }
 
-  .sort-label {
-    display: none;
-  }
-
-  .sort-select {
-    min-width: 120px;
-    font-size: var(--text-xs);
-    padding: 6px 8px;
+    app-custom-select {
+      min-width: 130px;
+    }
   }
 
   /* 2-column grid for results */
@@ -1018,6 +1022,29 @@
     gap: var(--space-1);
   }
 
+  /* Single-column mobile toggle */
+  .results-grid.mobile-single,
+  .featured-grid.mobile-single {
+    grid-template-columns: 1fr !important;
+
+    .listing-card .listing-title {
+      font-size: var(--text-sm);
+      -webkit-line-clamp: 2;
+    }
+
+    .listing-card .listing-price {
+      font-size: var(--text-base);
+    }
+
+    .listing-card .listing-location {
+      font-size: var(--text-xs);
+    }
+
+    .listing-img-wrap {
+      aspect-ratio: 16 / 9;
+    }
+  }
+
   /* Compact listing cards */
   .listing-card {
     .listing-info {
@@ -1027,15 +1054,30 @@
     .listing-title {
       font-size: var(--text-xs);
       line-height: 1.3;
+      min-height: 0;
+      -webkit-line-clamp: 1;
     }
 
     .listing-price {
       font-size: var(--text-sm);
+      margin-bottom: 2px;
     }
 
     .listing-location {
       font-size: 10px;
     }
+
+    .listing-verified {
+      font-size: 10px;
+
+      .listing-verified-icon {
+        font-size: 12px;
+      }
+    }
+  }
+
+  .listing-img-wrap {
+    aspect-ratio: 3 / 2;
   }
 
   /* Pagination compact */
@@ -1071,9 +1113,14 @@
 
 /* Extra small screens */
 @media (max-width: 380px) {
-  .results-grid,
-  .featured-grid {
-    grid-template-columns: 1fr;
+  .results-grid:not(.mobile-single),
+  .featured-grid:not(.mobile-single) {
+    grid-template-columns: repeat(2, 1fr);
+  }
+
+  .results-grid.mobile-single,
+  .featured-grid.mobile-single {
+    grid-template-columns: 1fr !important;
   }
 
   .search-page {

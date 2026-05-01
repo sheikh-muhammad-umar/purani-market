@@ -2,6 +2,7 @@ import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
+import { CustomSelectComponent } from '../../../shared/components/custom-select/custom-select.component';
 import { PackagesService } from '../../../core/services/packages.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
@@ -30,7 +31,7 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 @Component({
   selector: 'app-my-packages',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink],
+  imports: [CommonModule, FormsModule, RouterLink, CustomSelectComponent],
   templateUrl: './my-packages.component.html',
   styleUrls: ['./my-packages.component.scss'],
 })
@@ -42,6 +43,11 @@ export class MyPackagesComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly activeTab = signal<'active' | 'history'>('active');
   readonly selectedCategoryId = signal<string>('');
+
+  readonly categoryFilterOptions = computed(() => [
+    { value: '', label: 'All Categories' },
+    ...this.categories().map((c) => ({ value: c._id, label: c.name })),
+  ]);
 
   private pendingFilterChange = false;
 

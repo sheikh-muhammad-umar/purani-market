@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import { CustomSelectComponent } from '../../../shared/components/custom-select/custom-select.component';
 import { PackagesService } from '../../../core/services/packages.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
@@ -13,7 +14,7 @@ import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
 @Component({
   selector: 'app-package-list',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, CustomSelectComponent],
   templateUrl: './package-list.component.html',
   styleUrls: ['./package-list.component.scss'],
 })
@@ -26,6 +27,11 @@ export class PackageListComponent implements OnInit {
   readonly selectedType = signal<PackageType | 'all'>('all');
   readonly selectedDuration = signal<7 | 15 | 30 | null>(null);
   readonly selectedCategoryId = signal<string | null>(null);
+
+  readonly categoryFilterOptions = computed(() => [
+    { value: '', label: 'All Categories' },
+    ...this.categories().map((c) => ({ value: c._id, label: c.name })),
+  ]);
 
   constructor(
     private readonly packagesService: PackagesService,

@@ -6,13 +6,13 @@ export const CHANNEL_OPTIONS = [
   { value: 'push', label: 'Push Notification' },
   { value: 'email', label: 'Email' },
   { value: 'both', label: 'Push + Email' },
-] as const;
+];
 
 export const AUDIENCE_OPTIONS = [
   { value: 'all', label: 'All Users' },
   { value: 'role', label: 'By Role' },
   { value: 'specific', label: 'Specific Users' },
-] as const;
+];
 
 export const CATEGORY_OPTIONS = Object.entries(NOTIFICATION_CATEGORIES).map(([value, meta]) => ({
   value,
@@ -23,7 +23,7 @@ export const ROLE_OPTIONS = [
   { value: 'user', label: 'Regular Users' },
   { value: 'admin', label: 'Admins' },
   { value: 'super_admin', label: 'Super Admins' },
-] as const;
+];
 
 // ── Filter / sort options ───────────────────────────────────────
 

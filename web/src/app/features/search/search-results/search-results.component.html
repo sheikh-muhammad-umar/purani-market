@@ -418,23 +418,31 @@
           }
         </p>
         <div class="sort-controls">
-          <label for="sort-select" class="sort-label">Sort by:</label>
-          <select
-            id="sort-select"
-            class="form-input sort-select"
+          <label class="sort-label">Sort by:</label>
+          <app-custom-select
+            [options]="sortOptions"
             [ngModel]="sortBy()"
-            (ngModelChange)="onSortChange($event)"
-          >
-            @for (opt of sortOptions; track opt.value) {
-              <option [value]="opt.value">{{ opt.label }}</option>
-            }
-          </select>
+            (ngModelChange)="onSortChange($any($event))"
+            placeholder="Relevance"
+          ></app-custom-select>
           <button
             class="btn btn-outline filter-toggle-mobile"
             (click)="toggleFilters()"
             aria-label="Toggle filters"
           >
-            ☰ Filters
+            <span class="material-symbols-rounded" style="font-size: 18px">tune</span>
+          </button>
+          <button
+            class="btn btn-outline grid-toggle-mobile"
+            (click)="toggleMobileColumns()"
+            [attr.aria-label]="
+              mobileColumns() === 2 ? 'Switch to single column' : 'Switch to two columns'
+            "
+            type="button"
+          >
+            <span class="material-symbols-rounded" style="font-size: 18px">{{
+              mobileColumns() === 2 ? 'view_agenda' : 'grid_view'
+            }}</span>
           </button>
         </div>
       </div>
@@ -456,7 +464,7 @@
         @if (featuredAds().length > 0) {
           <section class="featured-section" aria-label="Featured ads">
             <h3 class="featured-title"><span aria-hidden="true">✨</span> Featured</h3>
-            <div class="featured-grid" role="list">
+            <div class="featured-grid" [class.mobile-single]="mobileColumns() === 1" role="list">
               @for (ad of featuredAds(); track ad._id) {
                 <a
                   class="listing-card featured-card"
@@ -498,7 +506,7 @@
         }
 
         <!-- Regular Results -->
-        <div class="results-grid" role="list">
+        <div class="results-grid" [class.mobile-single]="mobileColumns() === 1" role="list">
           @for (listing of results(); track listing._id) {
             <a
               class="listing-card"

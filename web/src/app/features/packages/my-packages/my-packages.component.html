@@ -9,18 +9,14 @@
     </div>
 
     <div class="filter-bar">
-      <label for="categoryFilter" class="filter-label">Filter by Category</label>
-      <select
-        id="categoryFilter"
-        class="filter-select"
+      <label class="filter-label">Filter by Category</label>
+      <app-custom-select
+        [options]="categoryFilterOptions()"
         [ngModel]="selectedCategoryId()"
-        (ngModelChange)="onCategoryFilterChange($event)"
-      >
-        <option value="">All Categories</option>
-        @for (cat of categories(); track cat._id) {
-          <option [value]="cat._id">{{ cat.name }}</option>
-        }
-      </select>
+        (ngModelChange)="onCategoryFilterChange($any($event))"
+        placeholder="All Categories"
+        [searchable]="true"
+      ></app-custom-select>
     </div>
 
     <div class="tab-bar">

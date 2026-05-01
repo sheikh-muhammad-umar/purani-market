@@ -8,6 +8,7 @@ import {
   FormControl,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
+import { CustomSelectComponent } from '../../../shared/components/custom-select/custom-select.component';
 import { Subject, takeUntil, forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { CategoriesService } from '../../../core/services/categories.service';
@@ -35,7 +36,7 @@ import { mapLinkValidator } from '../../../core/utils/map-link';
 @Component({
   selector: 'app-edit-listing',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule],
+  imports: [CommonModule, ReactiveFormsModule, CustomSelectComponent],
   templateUrl: './edit-listing.component.html',
   styleUrls: ['../create-listing/create-listing.component.scss'],
 })
@@ -493,6 +494,13 @@ export class EditListingComponent implements OnInit, OnDestroy {
       this.detailsForm.addControl(key, new FormControl(''));
     }
     return this.detailsForm.get(key) as FormControl;
+  }
+
+  getAttributeSelectOptions(attr: { options?: string[] }): { value: string; label: string }[] {
+    return [
+      { value: '', label: 'Select' },
+      ...(attr.options ?? []).map((opt) => ({ value: opt, label: opt })),
+    ];
   }
 
   private loadInheritedAttributes(categoryId: string): void {

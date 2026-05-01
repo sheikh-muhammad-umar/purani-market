@@ -130,11 +130,11 @@
               </div>
               <div class="form-group">
                 <label class="form-label" for="condition">Condition *</label>
-                <select id="condition" class="form-input" formControlName="condition">
-                  @for (opt of conditionOptions; track opt.value) {
-                    <option [value]="opt.value">{{ opt.label }}</option>
-                  }
-                </select>
+                <app-custom-select
+                  [options]="conditionOptions"
+                  formControlName="condition"
+                  placeholder="Select condition"
+                ></app-custom-select>
               </div>
             </div>
             @if (hasBrands()) {
@@ -350,16 +350,12 @@
                     </label>
                     @switch (attr.type) {
                       @case ('select') {
-                        <select
-                          [id]="attr.key"
-                          class="form-input"
+                        <app-custom-select
+                          [options]="getAttributeSelectOptions(attr)"
                           [formControl]="getDynamicControl(attr.key)"
-                        >
-                          <option value="">Select {{ attr.name }}</option>
-                          @for (opt of attr.options; track opt) {
-                            <option [value]="opt">{{ opt }}</option>
-                          }
-                        </select>
+                          [placeholder]="'Select ' + attr.name"
+                          [searchable]="(attr.options?.length ?? 0) > 5"
+                        ></app-custom-select>
                       }
                       @case ('number') {
                         <input

@@ -70,18 +70,14 @@
       </div>
       @if (categories().length > 0) {
         <div class="category-filter">
-          <label for="category-select" class="category-label">Category</label>
-          <select
-            id="category-select"
-            class="category-select"
+          <label class="category-label">Category</label>
+          <app-custom-select
+            [options]="categoryFilterOptions()"
             [ngModel]="selectedCategoryId() ?? ''"
-            (ngModelChange)="onCategoryChange($event)"
-          >
-            <option value="">All Categories</option>
-            @for (cat of categories(); track cat._id) {
-              <option [value]="cat._id">{{ cat.name }}</option>
-            }
-          </select>
+            (ngModelChange)="onCategoryChange($any($event))"
+            placeholder="All Categories"
+            [searchable]="true"
+          ></app-custom-select>
         </div>
       }
     </div>

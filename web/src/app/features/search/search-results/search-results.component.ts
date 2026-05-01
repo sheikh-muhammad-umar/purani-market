@@ -18,7 +18,10 @@ import {
 import { RecentSearchesService } from '../../../core/services/recent-searches.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
-import { STORAGE_SELECTED_LOCATION } from '../../../core/constants/storage-keys';
+import {
+  STORAGE_SELECTED_LOCATION,
+  STORAGE_MOBILE_COLUMNS,
+} from '../../../core/constants/storage-keys';
 import { DEFAULT_COUNTRY, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { SORT_OPTIONS, CONDITION_FILTER_OPTIONS } from '../../../core/constants/select-options';
@@ -71,7 +74,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly pageSize = 20;
   readonly loading = signal(false);
   readonly sortBy = signal<SearchSortOption>(SearchSortOption.RELEVANCE);
-  readonly filtersOpen = signal(true);
+  readonly filtersOpen = signal(false);
+  readonly mobileColumns = signal<1 | 2>(this.loadMobileColumns());
 
   // Category filters
   readonly categories = signal<Category[]>([]);
@@ -377,6 +381,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.selectedCategoryId.set('');
     this.selectedCategorySlug.set('');
     this.selectedCondition.set('');
+    this.verifiedSellerOnly.set(false);
     this.minPrice.set(null);
     this.maxPrice.set(null);
     this.filterValues.set({});
@@ -439,6 +444,23 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
   toggleFilters(): void {
     this.filtersOpen.set(!this.filtersOpen());
+  }
+
+  toggleMobileColumns(): void {
+    this.mobileColumns.update((c) => {
+      const next = c === 2 ? 1 : 2;
+      if (this.isBrowser) {
+        localStorage.setItem(STORAGE_MOBILE_COLUMNS, String(next));
+      }
+      return next;
+    });
+  }
+
+  private loadMobileColumns(): 1 | 2 {
+    if (isPlatformBrowser(inject(PLATFORM_ID))) {
+      return localStorage.getItem(STORAGE_MOBILE_COLUMNS) === '1' ? 1 : 2;
+    }
+    return 2;
   }
 
   loadPage(page: number): void {
@@ -770,20 +792,26 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
   loadProvinces(): void {
     if (this.provinces().length > 0) return;
-    this.locationService.getProvinces().subscribe({
-      next: (p: any[]) => this.provinces.set(p),
-    });
+    this.locationService
+      .getProvinces()
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (p: any[]) => this.provinces.set(p),
+      });
   }
 
   loadCitiesForProvince(provinceName: string): void {
     if (!provinceName || this.provinceCities()[provinceName]) return;
     const province = this.provinces().find((p) => p.name === provinceName);
     if (!province) return;
-    this.locationService.getCities(province._id).subscribe({
-      next: (cities: any[]) => {
-        this.provinceCities.update((m) => ({ ...m, [provinceName]: cities }));
-      },
-    });
+    this.locationService
+      .getCities(province._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (cities: any[]) => {
+          this.provinceCities.update((m) => ({ ...m, [provinceName]: cities }));
+        },
+      });
   }
 
   onProvinceCityChange(attrKey: string, province: string, city: string): void {
@@ -796,10 +824,6 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     }));
     this.currentPage.set(1);
     this.updateUrlAndSearch();
-  }
-
-  getCitiesForProvince(provinceName: string): { _id: string; name: string }[] {
-    return this.provinceCities()[provinceName] || [];
   }
 
   private buildSearchParams(): SearchParams {

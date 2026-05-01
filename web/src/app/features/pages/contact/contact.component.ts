@@ -1,11 +1,24 @@
 import { Component } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { FormsModule } from '@angular/forms';
+import {
+  CustomSelectComponent,
+  SelectOption,
+} from '../../../shared/components/custom-select/custom-select.component';
+
+const SUBJECT_OPTIONS: SelectOption[] = [
+  { value: 'general', label: 'General Enquiry' },
+  { value: 'bug', label: 'Bug Report' },
+  { value: 'account', label: 'Account Issue' },
+  { value: 'listing', label: 'Listing Issue' },
+  { value: 'payment', label: 'Payment Issue' },
+  { value: 'other', label: 'Other' },
+];
 
 @Component({
   selector: 'app-contact',
   standalone: true,
-  imports: [RouterLink, FormsModule],
+  imports: [RouterLink, FormsModule, CustomSelectComponent],
   styleUrl: '../pages.scss',
   template: `
     <div class="static-page">
@@ -62,15 +75,12 @@ import { FormsModule } from '@angular/forms';
           required
           aria-label="Your Email"
         />
-        <select [(ngModel)]="form.subject" name="subject" required aria-label="Subject">
-          <option value="" disabled>Select a subject</option>
-          <option value="general">General Enquiry</option>
-          <option value="bug">Bug Report</option>
-          <option value="account">Account Issue</option>
-          <option value="listing">Listing Issue</option>
-          <option value="payment">Payment Issue</option>
-          <option value="other">Other</option>
-        </select>
+        <app-custom-select
+          [options]="subjectOptions"
+          [(ngModel)]="form.subject"
+          name="subject"
+          placeholder="Select a subject"
+        ></app-custom-select>
         <textarea
           placeholder="Your Message"
           [(ngModel)]="form.message"
@@ -119,6 +129,8 @@ import { FormsModule } from '@angular/forms';
   `,
 })
 export class ContactComponent {
+  readonly subjectOptions = SUBJECT_OPTIONS;
+
   form = {
     name: '',
     email: '',

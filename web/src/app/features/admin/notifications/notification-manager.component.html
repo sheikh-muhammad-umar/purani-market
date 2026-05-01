@@ -49,39 +49,39 @@
 
           <div class="form-group">
             <label for="channel" class="filter-label">Channel</label>
-            <select id="channel" formControlName="channel" class="form-input">
-              @for (opt of CHANNEL_OPTIONS; track opt.value) {
-                <option [value]="opt.value">{{ opt.label }}</option>
-              }
-            </select>
+            <app-custom-select
+              [options]="CHANNEL_OPTIONS"
+              formControlName="channel"
+              placeholder="Select channel"
+            ></app-custom-select>
           </div>
 
           <div class="form-group">
             <label for="category" class="filter-label">Category</label>
-            <select id="category" formControlName="category" class="form-input">
-              @for (opt of CATEGORY_OPTIONS; track opt.value) {
-                <option [value]="opt.value">{{ opt.label }}</option>
-              }
-            </select>
+            <app-custom-select
+              [options]="CATEGORY_OPTIONS"
+              formControlName="category"
+              placeholder="Select category"
+            ></app-custom-select>
           </div>
 
           <div class="form-group">
             <label for="audience" class="filter-label">Audience</label>
-            <select id="audience" formControlName="audience" class="form-input">
-              @for (opt of AUDIENCE_OPTIONS; track opt.value) {
-                <option [value]="opt.value">{{ opt.label }}</option>
-              }
-            </select>
+            <app-custom-select
+              [options]="AUDIENCE_OPTIONS"
+              formControlName="audience"
+              placeholder="Select audience"
+            ></app-custom-select>
           </div>
 
           @if (sendForm.get('audience')?.value === 'role') {
             <div class="form-group">
               <label for="targetRole" class="filter-label">Target Role</label>
-              <select id="targetRole" formControlName="targetRole" class="form-input">
-                @for (opt of ROLE_OPTIONS; track opt.value) {
-                  <option [value]="opt.value">{{ opt.label }}</option>
-                }
-              </select>
+              <app-custom-select
+                [options]="ROLE_OPTIONS"
+                formControlName="targetRole"
+                placeholder="Select role"
+              ></app-custom-select>
             </div>
           }
 

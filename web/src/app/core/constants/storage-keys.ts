@@ -13,3 +13,6 @@ export const STORAGE_THEME = 'theme';
 // Auth
 export const STORAGE_ACCESS_TOKEN = 'access_token';
 export const STORAGE_REFRESH_TOKEN = 'refresh_token';
+
+// Search preferences
+export const STORAGE_MOBILE_COLUMNS = 'search_mobile_columns';
