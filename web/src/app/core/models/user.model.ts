@@ -1,4 +1,8 @@
 import { SocialProvider } from '../enums/social-provider';
+import { UserRole } from '../constants/enums';
+import { UserStatus } from '../constants/enums';
+
+export { UserRole, UserStatus } from '../constants/enums';
 
 export interface UserProfile {
   firstName: string;
@@ -50,9 +54,6 @@ export interface DeviceToken {
   platform: string;
   token: string;
 }
-
-export type UserRole = 'super_admin' | 'admin' | 'user';
-export type UserStatus = 'active' | 'suspended';
 
 export interface User {
   _id: string;

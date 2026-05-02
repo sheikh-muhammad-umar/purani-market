@@ -5,9 +5,11 @@ import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { User } from '../../../core/models/user.model';
+import { UserStatus } from '../../../core/constants/enums';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ROUTES } from '../../../core/constants/routes';
+import { API } from '../../../core/constants/api-endpoints';
 
 @Component({
   selector: 'app-settings',
@@ -18,6 +20,7 @@ import { ROUTES } from '../../../core/constants/routes';
 })
 export class SettingsComponent implements OnInit {
   readonly ROUTES = ROUTES;
+  readonly UserStatus = UserStatus;
   user = signal<User | null>(null);
   loading = signal(false);
   successMessage = signal('');
@@ -105,7 +108,7 @@ export class SettingsComponent implements OnInit {
     this.emailChangeError.set('');
 
     this.http
-      .post<{ message: string }>(`${this.apiUrl}/auth/change-email`, {
+      .post<{ message: string }>(`${this.apiUrl}${API.AUTH_CHANGE_EMAIL}`, {
         newEmail: this.emailForm.value.newEmail,
       })
       .subscribe({
@@ -144,7 +147,7 @@ export class SettingsComponent implements OnInit {
     this.phoneChangeError.set('');
 
     this.http
-      .post<{ message: string }>(`${this.apiUrl}/auth/change-phone`, {
+      .post<{ message: string }>(`${this.apiUrl}${API.AUTH_CHANGE_PHONE}`, {
         newPhone: this.phoneForm.value.newPhone,
       })
       .subscribe({
@@ -170,7 +173,7 @@ export class SettingsComponent implements OnInit {
     this.phoneChangeError.set('');
 
     this.http
-      .post<{ message: string }>(`${this.apiUrl}/auth/change-phone/verify`, {
+      .post<{ message: string }>(`${this.apiUrl}${API.AUTH_CHANGE_PHONE_VERIFY}`, {
         otp: this.otpForm.value.otp,
       })
       .subscribe({

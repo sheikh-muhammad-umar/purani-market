@@ -1,16 +1,24 @@
 import { Injectable, DestroyRef, inject, signal } from '@angular/core';
-import { HttpClient, HttpParams } from '@angular/common/http';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { environment } from '../../../environments/environment';
-import { API } from '../constants/api-endpoints';
+import { Subject } from 'rxjs';
 
 const POLL_INTERVAL_MS = 60_000;
 
+/**
+ * Tracks the unread notification count.
+ *
+ * Instead of making its own API call (which duplicated the bell component's
+ * call), this service now emits a `refreshRequested` event that the bell
+ * component listens to. The bell fetches notifications (limit=10) and calls
+ * `setCount()` with the `unreadCount` from the response — one call serves
+ * both the badge number and the dropdown list.
+ */
 @Injectable({ providedIn: 'root' })
 export class NotificationCountService {
   readonly unreadCount = signal(0);
 
-  private readonly http = inject(HttpClient);
+  /** Emits when a refresh is needed (polling tick or manual trigger). */
+  readonly refreshRequested = new Subject<void>();
+
   private readonly destroyRef = inject(DestroyRef);
   private pollTimer: ReturnType<typeof setInterval> | null = null;
   private started = false;
@@ -19,8 +27,8 @@ export class NotificationCountService {
   start(): void {
     if (this.started) return;
     this.started = true;
-    this.refresh();
-    this.pollTimer = setInterval(() => this.refresh(), POLL_INTERVAL_MS);
+    // The initial refresh is handled by the bell component's ngOnInit
+    this.pollTimer = setInterval(() => this.refreshRequested.next(), POLL_INTERVAL_MS);
     this.destroyRef.onDestroy(() => this.stop());
   }
 
@@ -32,18 +40,7 @@ export class NotificationCountService {
     this.started = false;
   }
 
-  refresh(): void {
-    const params = new HttpParams().set('page', '1').set('limit', '1');
-    this.http
-      .get<{ unreadCount: number }>(`${environment.apiUrl}${API.NOTIFICATIONS}`, { params })
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe({
-        next: (res) => this.unreadCount.set(res.unreadCount),
-        error: () => {},
-      });
-  }
-
-  /** Called by the bell component when user marks notifications as read */
+  /** Called by the bell component when it receives fresh data or user marks as read */
   setCount(count: number): void {
     this.unreadCount.set(count);
   }

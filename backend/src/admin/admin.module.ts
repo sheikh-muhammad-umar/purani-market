@@ -8,6 +8,7 @@ import { ListingsModule } from '../listings/listings.module.js';
 import { MessagingModule } from '../messaging/messaging.module.js';
 import { NotificationsModule } from '../notifications/notifications.module.js';
 import { CategoriesModule } from '../categories/categories.module.js';
+import { SearchModule } from '../search/search.module.js';
 import { AiModule } from '../ai/ai.module.js';
 import { Review, ReviewSchema } from '../reviews/schemas/review.schema.js';
 import {
@@ -39,6 +40,7 @@ import {
     MessagingModule,
     NotificationsModule,
     CategoriesModule,
+    SearchModule,
     forwardRef(() => AiModule),
     MongooseModule.forFeature([
       { name: Review.name, schema: ReviewSchema },

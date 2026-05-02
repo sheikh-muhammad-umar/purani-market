@@ -36,7 +36,7 @@
             @if (avatarPreview()) {
               <img [src]="avatarPreview()" alt="Profile avatar" class="avatar-img" />
             } @else {
-              <div class="avatar-placeholder">{{ initials }}</div>
+              <div class="avatar-placeholder">{{ initials() }}</div>
             }
             @if (editing()) {
               <label class="avatar-upload-btn" for="avatarInput" aria-label="Change avatar">
@@ -70,8 +70,8 @@
             </h2>
             <span
               class="user-role badge"
-              [class.badge-featured]="user()?.role === 'admin'"
-              [class.badge-success]="user()?.role === 'user'"
+              [class.badge-featured]="user()?.role === UserRole.ADMIN"
+              [class.badge-success]="user()?.role === UserRole.USER"
             >
               {{ user()?.role | titlecase }}
             </span>

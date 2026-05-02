@@ -7,6 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import Redis from 'ioredis';
 import { User, UserDocument } from '../../users/schemas/user.schema.js';
+import { UserRole, isAdminRole } from '../../common/enums/user-role.enum.js';
 
 export interface JwtPayload {
   sub: string;
@@ -46,7 +47,7 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     }
 
     // Fetch fresh role & permissions from DB (so super_admin changes take effect immediately)
-    if (payload.role === 'admin' || payload.role === 'super_admin') {
+    if (isAdminRole(payload.role)) {
       const user = await this.userModel
         .findById(payload.sub)
         .select('role permissions')

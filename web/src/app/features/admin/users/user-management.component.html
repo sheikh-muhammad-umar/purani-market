@@ -110,17 +110,17 @@
 
     <div class="user-cards">
       @for (user of users() || []; track user._id) {
-        <div class="user-card" [class.suspended]="user.status === 'suspended'">
+        <div class="user-card" [class.suspended]="user.status === UserStatus.SUSPENDED">
           <!-- Top: User info -->
           <div class="uc-top">
             <div class="uc-info">
-              <span class="uc-name">{{ getUserName(user) }}</span>
-              <span class="uc-contact">{{ getUserContact(user) }}</span>
+              <span class="uc-name">{{ userDisplayMap().get(user._id)?.name }}</span>
+              <span class="uc-contact">{{ userDisplayMap().get(user._id)?.contact }}</span>
               <span class="uc-id">ID: {{ user._id }}</span>
             </div>
             <div class="uc-badges">
               <span class="role-badge" [attr.data-role]="user.role">{{
-                user.role === 'super_admin' ? 'Super Admin' : user.role
+                user.role === UserRole.SUPER_ADMIN ? 'Super Admin' : user.role
               }}</span>
               <span class="status-badge" [attr.data-status]="user.status">{{ user.status }}</span>
             </div>
@@ -135,7 +135,7 @@
             ></app-verification-badges>
             <span class="uc-meta-item">
               <span class="material-symbols-rounded uc-meta-icon">schedule</span>
-              {{ user.lastLoginAt ? formatDateTime(user.lastLoginAt) : 'Never logged in' }}
+              {{ userDisplayMap().get(user._id)?.lastLogin }}
             </span>
           </div>
 
@@ -174,15 +174,15 @@
           <div class="uc-actions">
             <button
               class="uc-btn"
-              [class.uc-btn-danger]="user.status === 'active'"
-              [class.uc-btn-success]="user.status === 'suspended'"
+              [class.uc-btn-danger]="user.status === UserStatus.ACTIVE"
+              [class.uc-btn-success]="user.status === UserStatus.SUSPENDED"
               [disabled]="actionLoading() === user._id"
               (click)="toggleUserStatus(user)"
             >
               <span class="material-symbols-rounded uc-btn-icon">{{
-                user.status === 'active' ? 'block' : 'check_circle'
+                user.status === UserStatus.ACTIVE ? 'block' : 'check_circle'
               }}</span>
-              {{ user.status === 'active' ? 'Suspend' : 'Reactivate' }}
+              {{ user.status === UserStatus.ACTIVE ? 'Suspend' : 'Reactivate' }}
             </button>
 
             <div class="uc-action-row">
@@ -209,7 +209,7 @@
               </div>
             </div>
 
-            @if (authService.isSuperAdmin() && user.role === 'admin') {
+            @if (authService.isSuperAdmin() && user.role === UserRole.ADMIN) {
               <button class="uc-btn uc-btn-permissions" (click)="openPermissions(user)">
                 <span class="material-symbols-rounded uc-btn-icon">shield</span>
                 Manage Permissions

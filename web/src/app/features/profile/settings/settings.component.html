@@ -248,7 +248,7 @@
           <div class="detail-item">
             <span class="detail-label">Status</span>
             <span class="detail-value">
-              @if (user()?.status === 'active') {
+              @if (user()?.status === UserStatus.ACTIVE) {
                 <span class="badge badge-success">Active</span>
               } @else {
                 <span class="badge badge-error">Suspended</span>

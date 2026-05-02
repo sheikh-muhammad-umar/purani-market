@@ -247,13 +247,14 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
           this.selectedCategoryId.set(resolved);
           this.autoExpandCategory(resolved);
           this.loadCategoryFilters(resolved);
+          this.executeSearch();
         }
-        // If not resolved yet, loadCategories callback will handle it
+        // If not resolved yet, defer search — loadCategories callback will
+        // resolve the slug and trigger executeSearch once categories arrive.
       } else {
         this.selectedCategoryId.set('');
+        this.executeSearch();
       }
-
-      this.executeSearch();
     });
   }
 
@@ -626,19 +627,15 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   }
 
   private loadCategoryFilters(categoryId: string): void {
-    this.categoriesService
-      .getById(categoryId)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (cat) => {
-          this.selectedCategory.set(cat);
-          this.loadBrandsForFilter(cat);
-        },
-        error: () => {
-          this.selectedCategory.set(null);
-          this.clearBrandFilters();
-        },
-      });
+    // Use the already-loaded categories list instead of a separate getById call.
+    // The flat list from getAll() contains all the fields we need (hasBrands, etc.).
+    const localCat = this.categories().find((c) => c._id === categoryId) || null;
+    this.selectedCategory.set(localCat);
+    if (localCat) {
+      this.loadBrandsForFilter(localCat);
+    } else {
+      this.clearBrandFilters();
+    }
 
     this.categoriesService
       .getInheritedAttributes(categoryId)

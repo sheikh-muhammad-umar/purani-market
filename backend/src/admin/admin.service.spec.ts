@@ -16,6 +16,7 @@ import {
 import { AdPackageType } from '../packages/schemas/ad-package.schema.js';
 import { AuthService } from '../auth/auth.service.js';
 import { NotificationsService } from '../notifications/notifications.service.js';
+import { SearchSyncService } from '../search/search-sync.service.js';
 import { ConfigService } from '@nestjs/config';
 import { Types } from 'mongoose';
 
@@ -82,6 +83,7 @@ describe('AdminService', () => {
       aggregate: jest
         .fn()
         .mockReturnValue({ exec: jest.fn().mockResolvedValue([]) }),
+      updateMany: jest.fn().mockResolvedValue({ modifiedCount: 0 }),
     };
 
     conversationModel = {
@@ -118,6 +120,7 @@ describe('AdminService', () => {
 
     notificationsService = {
       sendToUser: jest.fn().mockResolvedValue(true),
+      sendAccountSuspendedNotification: jest.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -223,6 +226,13 @@ describe('AdminService', () => {
               };
               return config[key];
             }),
+          },
+        },
+        {
+          provide: SearchSyncService,
+          useValue: {
+            indexListing: jest.fn().mockResolvedValue(undefined),
+            removeListing: jest.fn().mockResolvedValue(undefined),
           },
         },
       ],

@@ -2,6 +2,7 @@ import {
   Injectable,
   NotFoundException,
   ForbiddenException,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -49,6 +50,7 @@ import {
   IdVerificationDocument,
   IdVerificationStatus,
 } from '../id-verification/schemas/id-verification.schema.js';
+import { SearchSyncService } from '../search/search-sync.service.js';
 import {
   PaginatedUsers,
   PaginatedListings,
@@ -76,6 +78,7 @@ export type {
 @Injectable()
 export class AdminService {
   private readonly activeDays: number;
+  private readonly logger = new Logger(AdminService.name);
 
   constructor(
     @InjectModel(User.name)
@@ -101,6 +104,7 @@ export class AdminService {
     private readonly authService: AuthService,
     private readonly notificationsService: NotificationsService,
     private readonly configService: ConfigService,
+    private readonly searchSyncService: SearchSyncService,
   ) {
     this.activeDays = this.configService.get<number>('listing.activeDays')!;
   }
@@ -352,15 +356,16 @@ export class AdminService {
     if (status === UserStatus.SUSPENDED) {
       await this.authService.invalidateAllSessions(userId);
 
-      // Count active listings before deactivating (for activeAdCount reset)
-      const activeCount = await this.listingModel
-        .countDocuments({
+      // Deactivate all active listings and unfeature them
+      const activeListings = await this.listingModel
+        .find({
           sellerId: new Types.ObjectId(userId),
           status: ListingStatus.ACTIVE,
         })
+        .select('_id')
+        .lean()
         .exec();
 
-      // Deactivate all active listings and unfeature them
       await this.listingModel.updateMany(
         {
           sellerId: new Types.ObjectId(userId),
@@ -377,12 +382,17 @@ export class AdminService {
         },
       );
 
+      // Remove deactivated listings from search index
+      for (const listing of activeListings) {
+        this.removeFromEs(listing._id.toString());
+      }
+
       // Reset activeAdCount to 0 since all listings are now inactive
-      if (activeCount > 0) {
+      if (activeListings.length > 0) {
         await this.userModel
           .updateOne(
             { _id: new Types.ObjectId(userId) },
-            { $inc: { activeAdCount: -activeCount } },
+            { $inc: { activeAdCount: -activeListings.length } },
           )
           .exec();
       }
@@ -593,6 +603,7 @@ export class AdminService {
     );
     await listing.save();
 
+    this.syncToEs(listing);
     return listing;
   }
 
@@ -645,6 +656,7 @@ export class AdminService {
       },
     );
 
+    this.removeFromEs(listing._id.toString());
     return listing;
   }
 
@@ -2049,5 +2061,27 @@ export class AdminService {
         ...data,
       })),
     };
+  }
+
+  // ── ES sync helpers ───────────────────────────────────────────
+
+  private syncToEs(listing: ProductListingDocument): void {
+    this.searchSyncService
+      .indexListing(listing)
+      .catch((err) =>
+        this.logger.warn(
+          `Failed to sync listing ${listing._id} to ES: ${(err as Error).message}`,
+        ),
+      );
+  }
+
+  private removeFromEs(listingId: string): void {
+    this.searchSyncService
+      .removeListing(listingId)
+      .catch((err) =>
+        this.logger.warn(
+          `Failed to remove listing ${listingId} from ES: ${(err as Error).message}`,
+        ),
+      );
   }
 }

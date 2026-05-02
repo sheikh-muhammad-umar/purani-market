@@ -17,6 +17,7 @@ import { UpdateAttributeDefinitionDto } from './dto/update-attribute-definition.
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
+import { UserRole } from '../common/enums/user-role.enum.js';
 
 @Controller('api/attribute-definitions')
 export class AttributeDefinitionsController {
@@ -39,14 +40,14 @@ export class AttributeDefinitionsController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   async create(@Body() dto: CreateAttributeDefinitionDto) {
     return this.service.create(dto);
   }
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   async update(
     @Param('id') id: string,
     @Body() dto: UpdateAttributeDefinitionDto,
@@ -56,7 +57,7 @@ export class AttributeDefinitionsController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   async remove(@Param('id') id: string) {
     return this.service.remove(id);

@@ -19,6 +19,7 @@ export const API = {
   AUTH_MFA_VERIFY: '/auth/mfa/verify',
   AUTH_CHANGE_PHONE: '/auth/change-phone',
   AUTH_CHANGE_PHONE_VERIFY: '/auth/change-phone/verify',
+  AUTH_CHANGE_EMAIL: '/auth/change-email',
 
   // Users
   USERS_ME: '/users/me',

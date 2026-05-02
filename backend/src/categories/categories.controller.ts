@@ -16,6 +16,7 @@ import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { RolesGuard } from '../common/guards/roles.guard.js';
 import { Roles } from '../common/decorators/roles.decorator.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
+import { UserRole } from '../common/enums/user-role.enum.js';
 import { AdminTrackerService } from '../ai/admin-tracker.service.js';
 import { UserAction } from '../ai/schemas/user-activity.schema.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
@@ -51,7 +52,7 @@ export class CategoriesController {
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   async createCategory(
     @Body() dto: CreateCategoryDto,
     @CurrentUser('sub') adminId: string,
@@ -69,7 +70,7 @@ export class CategoriesController {
 
   @Patch(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   async updateCategory(
     @Param('id') id: string,
     @Body() dto: UpdateCategoryDto,
@@ -93,7 +94,7 @@ export class CategoriesController {
 
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   @HttpCode(HttpStatus.NO_CONTENT)
   async deleteCategory(
     @Param('id') id: string,
@@ -112,7 +113,7 @@ export class CategoriesController {
 
   @Patch(':id/attributes')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   async updateAttributes(
     @Param('id') id: string,
     @Body() dto: UpdateAttributesDto,
@@ -134,7 +135,7 @@ export class CategoriesController {
 
   @Patch(':id/assign-attributes')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   async assignAttributes(
     @Param('id') id: string,
     @Body() dto: AssignAttributesDto,
@@ -156,7 +157,7 @@ export class CategoriesController {
 
   @Patch(':id/features')
   @UseGuards(JwtAuthGuard, RolesGuard)
-  @Roles('admin')
+  @Roles(UserRole.ADMIN)
   async updateFeatures(
     @Param('id') id: string,
     @Body() dto: UpdateFeaturesDto,

@@ -1,4 +1,5 @@
 import { NOTIFICATION_CATEGORIES } from './notification-categories';
+import { UserRole } from './enums';
 
 // ── Compose form options ────────────────────────────────────────
 
@@ -20,9 +21,9 @@ export const CATEGORY_OPTIONS = Object.entries(NOTIFICATION_CATEGORIES).map(([va
 }));
 
 export const ROLE_OPTIONS = [
-  { value: 'user', label: 'Regular Users' },
-  { value: 'admin', label: 'Admins' },
-  { value: 'super_admin', label: 'Super Admins' },
+  { value: UserRole.USER, label: 'Regular Users' },
+  { value: UserRole.ADMIN, label: 'Admins' },
+  { value: UserRole.SUPER_ADMIN, label: 'Super Admins' },
 ];
 
 // ── Filter / sort options ───────────────────────────────────────

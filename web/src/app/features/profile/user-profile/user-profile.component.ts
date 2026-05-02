@@ -1,12 +1,14 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { User } from '../../../core/models/user.model';
+import { UserRole } from '../../../core/constants/enums';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ROUTES } from '../../../core/constants/routes';
+import { API } from '../../../core/constants/api-endpoints';
 
 @Component({
   selector: 'app-user-profile',
@@ -17,6 +19,7 @@ import { ROUTES } from '../../../core/constants/routes';
 })
 export class UserProfileComponent implements OnInit {
   readonly ROUTES = ROUTES;
+  readonly UserRole = UserRole;
   profileForm: FormGroup;
   user = signal<User | null>(null);
   loading = signal(false);
@@ -124,7 +127,7 @@ export class UserProfileComponent implements OnInit {
       },
     };
 
-    this.http.patch<User>(`${this.apiUrl}/users/me`, payload).subscribe({
+    this.http.patch<User>(`${this.apiUrl}${API.USERS_ME}`, payload).subscribe({
       next: (updatedUser) => {
         this.user.set(updatedUser);
         this.authService.setUser(updatedUser);
@@ -139,13 +142,13 @@ export class UserProfileComponent implements OnInit {
     });
   }
 
-  get initials(): string {
+  readonly initials = computed(() => {
     const u = this.user();
     if (!u) return '';
     return (
       (u.profile.firstName?.charAt(0) || '') + (u.profile.lastName?.charAt(0) || '')
     ).toUpperCase();
-  }
+  });
 
   logout(): void {
     this.authService.logout();

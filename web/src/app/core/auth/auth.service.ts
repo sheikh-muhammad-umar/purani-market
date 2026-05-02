@@ -4,6 +4,7 @@ import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
 import { Observable, tap } from 'rxjs';
 import { User } from '../models';
+import { UserRole } from '../constants/enums';
 import { SocialProvider } from '../enums/social-provider';
 import {
   LoginRequest,
@@ -35,9 +36,11 @@ export class AuthService {
   readonly user = this.currentUser.asReadonly();
   readonly isAuthenticated = computed(() => !!this.currentUser() || !!this.getAccessToken());
   readonly isAdmin = computed(
-    () => this.currentUser()?.role === 'admin' || this.currentUser()?.role === 'super_admin',
+    () =>
+      this.currentUser()?.role === UserRole.ADMIN ||
+      this.currentUser()?.role === UserRole.SUPER_ADMIN,
   );
-  readonly isSuperAdmin = computed(() => this.currentUser()?.role === 'super_admin');
+  readonly isSuperAdmin = computed(() => this.currentUser()?.role === UserRole.SUPER_ADMIN);
 
   constructor(
     private readonly http: HttpClient,

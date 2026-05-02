@@ -6,6 +6,11 @@ import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { SearchSortOption } from './dto/search-query.dto';
 import { AttributeType } from '../categories/schemas/category.schema';
 import { getModelToken } from '@nestjs/mongoose';
+import { Types } from 'mongoose';
+
+// Reusable valid ObjectId strings for tests
+const ID1 = new Types.ObjectId().toHexString();
+const ID2 = new Types.ObjectId().toHexString();
 
 describe('SearchService', () => {
   let service: SearchService;
@@ -47,7 +52,25 @@ describe('SearchService', () => {
     };
 
     listingModel = {
-      find: jest.fn().mockReturnValue(mockQuery),
+      find: jest.fn().mockImplementation((filter?: any) => {
+        // When called with { _id: { $in: [...] } }, return stub documents
+        // matching those IDs so the ES→MongoDB validation passes.
+        const ids: string[] =
+          filter?._id?.$in?.map((id: any) => id.toString()) ?? [];
+        const docs = ids.map((id: string) => ({
+          _id: { toString: () => id },
+          location: {},
+          images: [],
+          sellerVerified: false,
+        }));
+        return {
+          sort: jest.fn().mockReturnThis(),
+          skip: jest.fn().mockReturnThis(),
+          limit: jest.fn().mockReturnThis(),
+          lean: jest.fn().mockReturnThis(),
+          exec: jest.fn().mockResolvedValue(docs),
+        };
+      }),
       countDocuments: jest
         .fn()
         .mockReturnValue({ exec: jest.fn().mockResolvedValue(0) }),
@@ -74,7 +97,7 @@ describe('SearchService', () => {
           total: { value: 2 },
           hits: [
             {
-              _id: '1',
+              _id: ID1,
               _score: 5.0,
               _source: {
                 title: 'iPhone 15',
@@ -83,7 +106,7 @@ describe('SearchService', () => {
               },
             },
             {
-              _id: '2',
+              _id: ID2,
               _score: 3.0,
               _source: {
                 title: 'Samsung S24',
@@ -102,7 +125,7 @@ describe('SearchService', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(10);
       expect(result.totalPages).toBe(1);
-      expect(result.items[0]._id).toBe('1');
+      expect(result.items[0]._id).toBe(ID1);
       expect(result.items[0].title).toBe('iPhone 15');
     });
 
@@ -153,7 +176,7 @@ describe('SearchService', () => {
           total: { value: 1 },
           hits: [
             {
-              _id: '1',
+              _id: ID1,
               _score: 1,
               _source: { title: 'Car', location: { city: 'Lahore' } },
             },
@@ -184,7 +207,7 @@ describe('SearchService', () => {
           total: { value: 1 },
           hits: [
             {
-              _id: '1',
+              _id: ID1,
               _score: 1,
               _source: { title: 'Test', location: { city: 'Lahore' } },
             },
@@ -204,7 +227,7 @@ describe('SearchService', () => {
           total: { value: 1 },
           hits: [
             {
-              _id: '1',
+              _id: ID1,
               _score: 1,
               _source: { title: 'Test', location: { city: 'Lahore' } },
             },
@@ -1056,7 +1079,7 @@ describe('SearchService', () => {
           total: { value: 1 },
           hits: [
             {
-              _id: '1',
+              _id: ID1,
               _score: 5,
               _source: {
                 title: 'Test',
@@ -1080,7 +1103,7 @@ describe('SearchService', () => {
           total: { value: 1 },
           hits: [
             {
-              _id: '1',
+              _id: ID1,
               _score: 7.5,
               _source: { title: 'High Score', location: { city: 'Lahore' } },
             },
@@ -1094,11 +1117,14 @@ describe('SearchService', () => {
     });
 
     it('should calculate totalPages correctly', async () => {
+      const pageIds = Array.from({ length: 20 }, () =>
+        new Types.ObjectId().toHexString(),
+      );
       (esService.search as jest.Mock).mockResolvedValue({
         hits: {
           total: { value: 55 },
-          hits: Array.from({ length: 20 }, (_, i) => ({
-            _id: String(i),
+          hits: pageIds.map((id, i) => ({
+            _id: id,
             _score: 1,
             _source: { title: `Item ${i}`, location: { city: 'Lahore' } },
           })),

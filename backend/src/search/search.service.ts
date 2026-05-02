@@ -235,20 +235,33 @@ export class SearchService {
       return { _id: hit._id, _score: hit._score, ...source };
     });
 
-    // If ES results are missing location names or images, enrich from MongoDB
-    const needsEnrichment = items.some(
-      (item: any) =>
-        !item.location?.city ||
-        !item.images?.length ||
-        item.sellerVerified === undefined,
-    );
-    if (needsEnrichment && items.length > 0) {
-      const ids = items.map((item: any) => new Types.ObjectId(item._id));
+    // Validate ES results against MongoDB to filter out orphaned documents
+    // and enrich missing fields (location, images, sellerVerified).
+    if (items.length > 0) {
+      const ids = items
+        .filter((item: any) => Types.ObjectId.isValid(item._id))
+        .map((item: any) => new Types.ObjectId(item._id));
       const dbListings = await this.listingModel
         .find({ _id: { $in: ids } })
         .lean()
         .exec();
       const dbMap = new Map(dbListings.map((l: any) => [l._id.toString(), l]));
+
+      const removedCount = items.filter(
+        (item: any) => !dbMap.has(item._id),
+      ).length;
+
+      // If any orphans were found the ES index is stale — pagination based on
+      // ES totals would be wrong (pages with fewer items than expected, inflated
+      // totals, etc.).  Fall back to MongoDB which is the source of truth.
+      if (removedCount > 0) {
+        this.logger.warn(
+          `Found ${removedCount} orphaned ES document(s) not in MongoDB — falling back to MongoDB for accurate pagination`,
+        );
+        return this.mongoFallbackSearch(query, page, limit);
+      }
+
+      // No orphans — enrich from MongoDB data
       for (const item of items) {
         const dbItem = dbMap.get(item._id);
         if (dbItem?.location) {

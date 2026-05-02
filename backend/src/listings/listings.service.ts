@@ -21,6 +21,7 @@ import {
 } from '../common/constants/index.js';
 import { ERROR } from '../common/constants/error-messages.js';
 import { exactMatchRegex } from '../common/utils/sanitize-regex.js';
+import { UserRole, isAdminRole } from '../common/enums/user-role.enum.js';
 import {
   ProductListing,
   ProductListingDocument,
@@ -248,7 +249,7 @@ export class ListingsService {
     // Only active/sold listings are publicly visible
     // Seller can see their own listings in any non-deleted status, admin can see all
     const isOwner = requesterId && listing.sellerId.toString() === requesterId;
-    const isAdmin = requesterRole === 'admin';
+    const isAdmin = isAdminRole(requesterRole);
     if (
       listing.status !== ListingStatus.ACTIVE &&
       listing.status !== ListingStatus.SOLD &&
@@ -489,7 +490,7 @@ export class ListingsService {
   ): Promise<ProductListingDocument> {
     const listing = await this.findById(id);
     const isOwner = listing.sellerId.toString() === userId;
-    const isAdmin = userRole === 'admin' || userRole === 'super_admin';
+    const isAdmin = isAdminRole(userRole);
     if (!isOwner && !isAdmin) {
       throw new ForbiddenException(
         'You are not authorized to delete this listing',

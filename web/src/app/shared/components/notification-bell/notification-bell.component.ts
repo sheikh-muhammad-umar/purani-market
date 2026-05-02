@@ -54,9 +54,7 @@ export class NotificationBellComponent implements OnInit {
     return map;
   });
 
-  get unreadCount() {
-    return this.countService.unreadCount;
-  }
+  readonly unreadCount = this.countService.unreadCount;
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly elRef = inject(ElementRef);
@@ -67,6 +65,12 @@ export class NotificationBellComponent implements OnInit {
   ngOnInit(): void {
     this.countService.start();
     this.loadNotifications();
+
+    // Listen for polling refresh requests — reuse the same loadNotifications
+    // call so we get both the dropdown data and the unread count in one request
+    this.countService.refreshRequested
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.loadNotifications());
   }
 
   toggle(): void {

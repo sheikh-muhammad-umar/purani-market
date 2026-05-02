@@ -27,6 +27,7 @@ import {
   STATUS_COLORS,
   DEFAULT_STATUS_COLOR,
 } from '../../../core/constants/notification-options';
+import { UserRole } from '../../../core/constants/enums';
 
 const PAGE_SIZE = 20;
 
@@ -109,7 +110,7 @@ export class NotificationManagerComponent implements OnInit {
       body: ['', [Validators.required, Validators.maxLength(5000)]],
       channel: ['push', Validators.required],
       audience: ['all', Validators.required],
-      targetRole: ['user'],
+      targetRole: [UserRole.USER],
       targetUserIds: [''],
       category: ['promotions'],
     });
@@ -218,7 +219,7 @@ export class NotificationManagerComponent implements OnInit {
           this.sendForm.reset({
             channel: 'push',
             audience: 'all',
-            targetRole: 'user',
+            targetRole: UserRole.USER,
             category: 'promotions',
           });
           this.showForm.set(false);

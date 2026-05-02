@@ -7,13 +7,14 @@ import {
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator.js';
 import { PERMISSIONS_KEY } from '../decorators/permissions.decorator.js';
+import { UserRole } from '../enums/user-role.enum.js';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
   constructor(private readonly reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    const requiredRoles = this.reflector.getAllAndOverride<string[]>(
+    const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
       ROLES_KEY,
       [context.getHandler(), context.getClass()],
     );
@@ -44,7 +45,7 @@ export class RolesGuard implements CanActivate {
     }
 
     // super_admin has full access to everything
-    if (role === 'super_admin') {
+    if (role === UserRole.SUPER_ADMIN) {
       return true;
     }
 

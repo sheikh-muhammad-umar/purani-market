@@ -3,8 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService, AdminUser, GetUsersParams } from '../../../core/services/admin.service';
 import { saveState, loadState } from '../../../core/utils/state-persistence';
-import { UserRole, UserStatus } from '../../../core/models/user.model';
-import { UserStatus as UserStatusEnum } from '../../../core/constants/enums';
+import { UserRole, UserStatus } from '../../../core/constants/enums';
 import {
   ROLE_OPTIONS,
   ROLE_CHANGE_OPTIONS,
@@ -56,6 +55,10 @@ export class UserManagementComponent implements OnInit {
   readonly statusOptions: SelectOption[] = STATUS_OPTIONS;
   readonly roleChangeOptions: SelectOption[] = ROLE_CHANGE_OPTIONS;
 
+  // Expose enums to template
+  readonly UserRole = UserRole;
+  readonly UserStatus = UserStatus;
+
   // Permissions management
   permissionsUserId: string | null = null;
   permissionsUserName = '';
@@ -68,6 +71,26 @@ export class UserManagementComponent implements OnInit {
   savingPermissions = false;
 
   readonly totalPages = computed(() => Math.max(1, Math.ceil(this.totalUsers() / this.pageSize())));
+
+  /** Precomputed display values per user — avoids method calls in template */
+  readonly userDisplayMap = computed(() => {
+    const map = new Map<string, { name: string; contact: string; lastLogin: string }>();
+    for (const user of this.users()) {
+      const name = `${user.profile.firstName} ${user.profile.lastName}`.trim() || 'Unknown User';
+      const contact = user.email || user.phone || '—';
+      const lastLogin = user.lastLoginAt
+        ? new Date(user.lastLoginAt).toLocaleString('en-PK', {
+            month: 'short',
+            day: 'numeric',
+            year: 'numeric',
+            hour: '2-digit',
+            minute: '2-digit',
+          })
+        : 'Never logged in';
+      map.set(user._id, { name, contact, lastLogin });
+    }
+    return map;
+  });
 
   readonly pages = computed(() => {
     const total = this.totalPages();
@@ -123,10 +146,9 @@ export class UserManagementComponent implements OnInit {
     if (this.filterDateTo) params.endDate = this.filterDateTo;
 
     this.adminService.getUsers(params).subscribe({
-      next: (res: any) => {
-        const users = Array.isArray(res) ? res : (res.users ?? res.data ?? []);
-        this.users.set(users);
-        this.totalUsers.set(res.total ?? users.length);
+      next: (res) => {
+        this.users.set(res.users);
+        this.totalUsers.set(res.total);
         this.loading.set(false);
       },
       error: () => {
@@ -172,7 +194,8 @@ export class UserManagementComponent implements OnInit {
   }
 
   toggleUserStatus(user: AdminUser): void {
-    const newStatus: UserStatus = user.status === UserStatusEnum.ACTIVE ? 'suspended' : 'active';
+    const newStatus: UserStatus =
+      user.status === UserStatus.ACTIVE ? UserStatus.SUSPENDED : UserStatus.ACTIVE;
     this.actionLoading.set(user._id);
     this.adminService.updateUserStatus(user._id, newStatus).subscribe({
       next: () => {

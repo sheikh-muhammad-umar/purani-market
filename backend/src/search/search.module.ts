@@ -2,6 +2,7 @@ import { Module, forwardRef } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ElasticsearchModule } from '@nestjs/elasticsearch';
 import { ConfigService } from '@nestjs/config';
+import { ScheduleModule } from '@nestjs/schedule';
 import { CategoriesModule } from '../categories/categories.module.js';
 import {
   ProductListing,
@@ -10,6 +11,7 @@ import {
 import { SearchIndexService } from './search-index.service.js';
 import { SearchSyncService } from './search-sync.service.js';
 import { SearchService } from './search.service.js';
+import { SearchReconciliationService } from './search-reconciliation.service.js';
 import { SearchController } from './search.controller.js';
 
 @Module({
@@ -31,9 +33,15 @@ import { SearchController } from './search.controller.js';
       },
     }),
     forwardRef(() => CategoriesModule),
+    ScheduleModule.forRoot(),
   ],
   controllers: [SearchController],
-  providers: [SearchIndexService, SearchSyncService, SearchService],
+  providers: [
+    SearchIndexService,
+    SearchSyncService,
+    SearchService,
+    SearchReconciliationService,
+  ],
   exports: [SearchIndexService, SearchSyncService, SearchService],
 })
 export class SearchModule {}

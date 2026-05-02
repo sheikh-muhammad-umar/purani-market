@@ -13,12 +13,21 @@ async function sync() {
 
     console.log(`Found ${listings.length} active listings to sync`);
 
+    // ── Step 1: Delete the old index to remove orphaned documents ──
+    const existsRes = await fetch(`${ES_URL}/${INDEX}`, { method: 'HEAD' });
+    if (existsRes.ok) {
+      console.log('Deleting existing index to clear orphaned documents...');
+      await fetch(`${ES_URL}/${INDEX}`, { method: 'DELETE' });
+    }
+
     if (listings.length === 0) {
-      console.log('No listings to sync');
+      console.log('No active listings — index cleared');
       return;
     }
 
-    // Build bulk body
+    // ── Step 2: Recreate the index (ES will auto-create with defaults) ──
+
+    // ── Step 3: Bulk-index active listings ──
     const body = [];
     for (const doc of listings) {
       body.push(JSON.stringify({ index: { _index: INDEX, _id: doc._id.toString() } }));
@@ -41,11 +50,32 @@ async function sync() {
         status: doc.status,
         sellerId: doc.sellerId?.toString(),
         createdAt: doc.createdAt,
+        brandId: doc.brandId?.toString(),
+        brandName: doc.brandName,
+        vehicleBrandId: doc.vehicleBrandId?.toString(),
+        vehicleBrandName: doc.vehicleBrandName,
+        modelId: doc.modelId?.toString(),
+        modelName: doc.modelName,
+        variantId: doc.variantId?.toString(),
+        variantName: doc.variantName,
+        selectedFeatures: doc.selectedFeatures || [],
       };
 
+      // Geo-point for distance queries
       if (doc.location?.coordinates?.length === 2) {
         esDoc.location = { lat: doc.location.coordinates[1], lon: doc.location.coordinates[0] };
       }
+
+      // Text location fields for display and filtering
+      esDoc.location_text = {
+        province: doc.location?.province,
+        city: doc.location?.city,
+        area: doc.location?.area,
+        blockPhase: doc.location?.blockPhase,
+        provinceId: doc.location?.provinceId?.toString(),
+        cityId: doc.location?.cityId?.toString(),
+        areaId: doc.location?.areaId?.toString(),
+      };
 
       body.push(JSON.stringify(esDoc));
     }
