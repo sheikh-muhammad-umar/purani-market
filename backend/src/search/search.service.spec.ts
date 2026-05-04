@@ -254,19 +254,28 @@ describe('SearchService', () => {
       const query = await service.buildSearchQuery({ q: 'phone' });
       const mustClause = query.bool.must[0];
       expect(mustClause).toHaveProperty('bool');
-      expect(mustClause.bool.should.length).toBeGreaterThanOrEqual(2);
+      expect(mustClause.bool.should.length).toBeGreaterThanOrEqual(5);
       // Should contain match_phrase for exact boost
       const phraseMatch = mustClause.bool.should.find(
         (s: any) => s.match_phrase?.title,
       );
       expect(phraseMatch).toBeDefined();
-      // Should contain multi_match with most_fields
-      const multiMatch = mustClause.bool.should.find((s: any) => s.multi_match);
-      expect(multiMatch).toBeDefined();
-      expect(multiMatch.multi_match.query).toBe('phone');
-      expect(multiMatch.multi_match.type).toBe('most_fields');
-      expect(multiMatch.multi_match.fields).toContain('title^3');
-      expect(multiMatch.multi_match.fields).toContain('selectedFeatures^1.5');
+      expect(phraseMatch.match_phrase.title.boost).toBe(25);
+      // Should contain cross_fields multi_match with operator 'and'
+      const crossFields = mustClause.bool.should.find(
+        (s: any) => s.multi_match?.type === 'cross_fields',
+      );
+      expect(crossFields).toBeDefined();
+      expect(crossFields.multi_match.query).toBe('phone');
+      expect(crossFields.multi_match.operator).toBe('and');
+      // Should contain relaxed most_fields match with minimum_should_match
+      const relaxed = mustClause.bool.should.find(
+        (s: any) =>
+          s.multi_match?.type === 'most_fields' &&
+          s.multi_match?.minimum_should_match,
+      );
+      expect(relaxed).toBeDefined();
+      expect(relaxed.multi_match.minimum_should_match).toBe('75%');
     });
 
     it('should add category filter', async () => {
@@ -804,10 +813,13 @@ describe('SearchService', () => {
         (s: any) => s.match_phrase?.title,
       );
       expect(phraseMatch.match_phrase.title.query).toBe('iphone 14 Pro');
-      expect(phraseMatch.match_phrase.title.boost).toBe(10);
-      // Should have multi_match with most_fields
-      const multiMatch = mustClause.bool.should.find((s: any) => s.multi_match);
-      expect(multiMatch.multi_match.type).toBe('most_fields');
+      expect(phraseMatch.match_phrase.title.boost).toBe(25);
+      // Should have cross_fields multi_match
+      const crossFields = mustClause.bool.should.find(
+        (s: any) => s.multi_match?.type === 'cross_fields',
+      );
+      expect(crossFields).toBeDefined();
+      expect(crossFields.multi_match.operator).toBe('and');
       // Should have prefix match for partial
       const prefixMatch = mustClause.bool.should.find(
         (s: any) => s.match_phrase_prefix?.title,
@@ -817,18 +829,18 @@ describe('SearchService', () => {
 
     it('should match partial model names like "14 Pro"', async () => {
       const query = await service.buildSearchQuery({ q: '14 Pro' });
-      const multiMatch = query.bool.must[0].bool.should.find(
-        (s: any) => s.multi_match,
+      const crossFields = query.bool.must[0].bool.should.find(
+        (s: any) => s.multi_match?.type === 'cross_fields',
       );
-      expect(multiMatch.multi_match.fields).toContain('modelName^2');
+      expect(crossFields.multi_match.fields).toContain('modelName^3');
     });
 
     it('should search across features', async () => {
       const query = await service.buildSearchQuery({ q: 'bluetooth' });
-      const multiMatch = query.bool.must[0].bool.should.find(
-        (s: any) => s.multi_match,
+      const crossFields = query.bool.must[0].bool.should.find(
+        (s: any) => s.multi_match?.type === 'cross_fields',
       );
-      expect(multiMatch.multi_match.fields).toContain('selectedFeatures^1.5');
+      expect(crossFields.multi_match.fields).toContain('selectedFeatures');
     });
   });
 

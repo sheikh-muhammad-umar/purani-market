@@ -198,6 +198,8 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
       })),
       isFeatured: doc.isFeatured || false,
       sellerVerified: doc.sellerVerified || false,
+      viewCount: doc.viewCount || 0,
+      favoriteCount: doc.favoriteCount || 0,
       status: doc.status,
       sellerId: doc.sellerId?.toString(),
       createdAt: doc.createdAt,
@@ -273,9 +275,42 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
       function_score: {
         query: baseQuery,
         functions: [
+          // Featured listings get a significant boost
           {
             filter: { term: { isFeatured: true } },
             weight: FEATURED_BOOST_FACTOR,
+          },
+          // Recency boost — newer listings score higher (decays over 30 days)
+          {
+            gauss: {
+              createdAt: {
+                origin: 'now',
+                scale: '15d',
+                offset: '3d',
+                decay: 0.5,
+              },
+            },
+            weight: 1.5,
+          },
+          // Popularity: view count (logarithmic to prevent runaway scores)
+          {
+            field_value_factor: {
+              field: 'viewCount',
+              factor: 0.1,
+              modifier: 'log1p',
+              missing: 0,
+            },
+            weight: 0.5,
+          },
+          // Popularity: favorite count (stronger signal than views)
+          {
+            field_value_factor: {
+              field: 'favoriteCount',
+              factor: 0.5,
+              modifier: 'log1p',
+              missing: 0,
+            },
+            weight: 0.8,
           },
         ],
         boost_mode: 'multiply',

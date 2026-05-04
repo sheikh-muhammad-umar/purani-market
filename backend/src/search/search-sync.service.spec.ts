@@ -397,26 +397,31 @@ describe('SearchSyncService', () => {
   });
 
   describe('buildFeaturedBoostQuery', () => {
-    it('should wrap a base query with function_score for featured boost', () => {
+    it('should wrap a base query with function_score including featured, recency, and popularity boosts', () => {
       const baseQuery = { match: { title: 'iphone' } };
       const result = service.buildFeaturedBoostQuery(baseQuery);
 
-      expect(result).toEqual({
-        function_score: {
-          query: baseQuery,
-          functions: [
-            {
-              filter: { term: { isFeatured: true } },
-              weight: FEATURED_BOOST_FACTOR,
-            },
-          ],
-          boost_mode: 'multiply',
-          score_mode: 'sum',
-        },
+      expect(result.function_score).toBeDefined();
+      expect(result.function_score.query).toEqual(baseQuery);
+      expect(result.function_score.boost_mode).toBe('multiply');
+      expect(result.function_score.score_mode).toBe('sum');
+
+      const functions = result.function_score.functions;
+      // Featured boost
+      expect(functions[0]).toEqual({
+        filter: { term: { isFeatured: true } },
+        weight: FEATURED_BOOST_FACTOR,
       });
+      // Recency decay
+      expect(functions[1].gauss).toBeDefined();
+      expect(functions[1].gauss.createdAt).toBeDefined();
+      // View count boost
+      expect(functions[2].field_value_factor.field).toBe('viewCount');
+      // Favorite count boost
+      expect(functions[3].field_value_factor.field).toBe('favoriteCount');
     });
 
-    it('should use the correct boost factor', () => {
+    it('should use the correct boost factor for featured', () => {
       const result = service.buildFeaturedBoostQuery({ match_all: {} });
       expect(result.function_score.functions[0].weight).toBe(
         FEATURED_BOOST_FACTOR,

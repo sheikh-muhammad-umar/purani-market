@@ -20,6 +20,24 @@ async function sync() {
       await fetch(`${ES_URL}/${INDEX}`, { method: 'DELETE' });
     }
 
+    // ── Step 2: Recreate index with proper settings from compiled code ──
+    try {
+      const { listingsIndexSettings, listingsIndexMapping } = require('../dist/search/search-index.service.js');
+      const createRes = await fetch(`${ES_URL}/${INDEX}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ settings: listingsIndexSettings, mappings: listingsIndexMapping }),
+      });
+      const createResult = await createRes.json();
+      if (createResult.error) {
+        console.error('Failed to create index with settings:', createResult.error.reason);
+        return;
+      }
+      console.log('Created index with custom analyzers and mappings');
+    } catch (e) {
+      console.warn('Could not load index settings from dist — creating index without custom settings');
+    }
+
     if (listings.length === 0) {
       console.log('No active listings — index cleared');
       return;
@@ -47,6 +65,8 @@ async function sync() {
         })),
         sellerVerified: doc.sellerVerified || false,
         isFeatured: doc.isFeatured || false,
+        viewCount: doc.viewCount || 0,
+        favoriteCount: doc.favoriteCount || 0,
         status: doc.status,
         sellerId: doc.sellerId?.toString(),
         createdAt: doc.createdAt,

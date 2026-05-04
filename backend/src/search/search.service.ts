@@ -223,7 +223,7 @@ export class SearchService {
       if (mongoResult.total > 0) return mongoResult;
     }
 
-    const items = hits.map((hit: any) => {
+    let items = hits.map((hit: any) => {
       const source = hit._source;
       if (source.location_text) {
         source.location = {
@@ -234,6 +234,16 @@ export class SearchService {
       }
       return { _id: hit._id, _score: hit._score, ...source };
     });
+
+    // Filter out low-relevance noise when a text query is provided.
+    // Items scoring below 10% of the top result are likely irrelevant partial matches.
+    if (query.q && items.length > 1) {
+      const topScore = items[0]._score ?? 0;
+      const threshold = topScore * 0.15;
+      if (threshold > 0) {
+        items = items.filter((item: any) => (item._score ?? 0) >= threshold);
+      }
+    }
 
     // Validate ES results against MongoDB to filter out orphaned documents
     // and enrich missing fields (location, images, sellerVerified).
@@ -483,34 +493,66 @@ export class SearchService {
       must.push({
         bool: {
           should: [
-            // Exact phrase match gets highest boost
+            // Exact phrase match gets highest boost — "iphone 14 pro max" as a unit
             {
               match_phrase: {
-                title: { query: query.q, boost: 10 },
+                title: { query: query.q, boost: 25 },
               },
             },
             // Word-delimiter match handles "14pro" → "14 pro"
             {
               match: {
-                'title.delimited': { query: query.q, boost: 6 },
+                'title.delimited': { query: query.q, boost: 8 },
               },
             },
-            // Individual terms across multiple fields
+            // Cross-field match — all terms must be present across title/brand/model
+            {
+              multi_match: {
+                query: query.q,
+                fields: [
+                  'title^4',
+                  'title.keyword^6',
+                  'brandName^3',
+                  'vehicleBrandName^3',
+                  'modelName^3',
+                  'variantName^2',
+                  'selectedFeatures',
+                ],
+                type: 'cross_fields',
+                operator: 'and',
+              },
+            },
+            // Relaxed match — most terms should match (for partial matches)
             {
               multi_match: {
                 query: query.q,
                 fields: [
                   'title^3',
-                  'title.keyword^5',
                   'description',
                   'brandName^2',
-                  'vehicleBrandName^2',
                   'modelName^2',
-                  'variantName',
-                  'selectedFeatures^1.5',
                 ],
                 type: 'most_fields',
+                minimum_should_match: '75%',
+              },
+            },
+            // Fuzzy match for typo tolerance (low boost)
+            {
+              multi_match: {
+                query: query.q,
+                fields: ['title^2', 'brandName', 'modelName'],
+                type: 'best_fields',
                 fuzziness: 'AUTO',
+                boost: 0.5,
+              },
+            },
+            // Synonym-expanded match (handles "mobile"→"phone", "gaari"→"car", etc.)
+            {
+              multi_match: {
+                query: query.q,
+                fields: ['title.synonyms^2', 'description.synonyms'],
+                type: 'best_fields',
+                boost: 2,
               },
             },
             // Edge-ngram for partial / type-ahead matching
@@ -522,7 +564,7 @@ export class SearchService {
             // Prefix match for partial words
             {
               match_phrase_prefix: {
-                title: { query: query.q, boost: 2 },
+                title: { query: query.q, boost: 3 },
               },
             },
           ],

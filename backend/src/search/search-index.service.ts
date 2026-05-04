@@ -26,6 +26,12 @@ export const listingsIndexSettings = {
         tokenizer: 'standard',
         filter: ['lowercase'],
       },
+      // Synonym-aware analyzer for search queries (Urdu/English marketplace terms)
+      synonym_analyzer: {
+        type: 'custom' as const,
+        tokenizer: 'standard',
+        filter: ['lowercase', 'marketplace_synonyms'],
+      },
     },
     tokenizer: {
       edge_ngram_tokenizer: {
@@ -43,6 +49,42 @@ export const listingsIndexSettings = {
         generate_word_parts: true,
         generate_number_parts: true,
         preserve_original: true,
+      },
+      marketplace_synonyms: {
+        type: 'synonym_graph' as const,
+        synonyms: [
+          // Mobile / Phone
+          'mobile, phone, cell, cellphone, smartphone, handset',
+          'iphone, apple phone',
+          // Vehicles
+          'car, vehicle, gaari, gari, automobile',
+          'bike, motorcycle, motorbike',
+          'truck, lorry',
+          // Property
+          'house, ghar, home, residence',
+          'flat, apartment',
+          'plot, land, zameen',
+          'marla, kanal',
+          // Electronics
+          'laptop, notebook',
+          'tv, television',
+          'ac, air conditioner',
+          'fridge, refrigerator',
+          // Condition
+          'new, brand new, sealed, unused',
+          'used, second hand, 2nd hand, preowned, pre-owned',
+          // Common Urdu/English marketplace terms
+          'sell, bechna, for sale',
+          'buy, khareedna, purchase',
+          'cheap, sasta, budget, affordable',
+          'urgent, jaldi, asap',
+          // Storage
+          'gb, gigabyte',
+          'tb, terabyte',
+          // PTA status (Pakistan specific)
+          'pta, pta approved',
+          'non pta, non-pta, without pta',
+        ],
       },
     },
   },
@@ -64,9 +106,24 @@ export const listingsIndexMapping = {
           analyzer: 'edge_ngram_analyzer',
           search_analyzer: 'edge_ngram_search_analyzer',
         },
+        synonyms: {
+          type: 'text' as const,
+          analyzer: 'standard',
+          search_analyzer: 'synonym_analyzer',
+        },
       },
     },
-    description: { type: 'text' as const, analyzer: 'standard' },
+    description: {
+      type: 'text' as const,
+      analyzer: 'standard',
+      fields: {
+        synonyms: {
+          type: 'text' as const,
+          analyzer: 'standard',
+          search_analyzer: 'synonym_analyzer',
+        },
+      },
+    },
     'price.amount': { type: 'float' as const },
     'price.currency': { type: 'keyword' as const },
     categoryId: { type: 'keyword' as const },
@@ -88,6 +145,8 @@ export const listingsIndexMapping = {
     },
     isFeatured: { type: 'boolean' as const },
     sellerVerified: { type: 'boolean' as const },
+    viewCount: { type: 'integer' as const },
+    favoriteCount: { type: 'integer' as const },
     status: { type: 'keyword' as const },
     sellerId: { type: 'keyword' as const },
     createdAt: { type: 'date' as const },
