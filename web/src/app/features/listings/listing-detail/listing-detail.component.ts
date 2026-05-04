@@ -165,16 +165,10 @@ export class ListingDetailComponent implements OnInit {
 
   private checkFavoriteStatus(listingId: string): void {
     if (!this.authService.isAuthenticated()) return;
-    this.favoritesService.getAll().subscribe({
+    this.favoritesService.check(listingId).subscribe({
       next: (res) => {
-        const favorites = Array.isArray(res) ? res : (res.data ?? []);
-        const fav = favorites.find((f: any) => {
-          const pid = f.productListingId;
-          const id = typeof pid === 'string' ? pid : pid?._id;
-          return id === listingId;
-        });
-        this.isFavorited.set(!!fav);
-        this.favoriteId.set(fav?._id ?? null);
+        this.isFavorited.set(res.isFavorited);
+        this.favoriteId.set(res.favoriteId ?? null);
       },
       error: () => {
         /* not logged in or error */

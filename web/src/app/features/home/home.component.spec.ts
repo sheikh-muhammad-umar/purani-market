@@ -242,23 +242,6 @@ describe('HomeComponent', () => {
     // getCategoryIcon was removed
   });
 
-  it('should return thumbnail URL from listing images', () => {
-    const listing = makeListing();
-    expect(component.getListingImage(listing)).toBe('https://img.test/1_thumb.jpg');
-  });
-
-  it('should return main URL if no thumbnail', () => {
-    const listing = makeListing({
-      images: [{ url: 'https://img.test/main.jpg', thumbnailUrl: '', sortOrder: 0 }],
-    });
-    expect(component.getListingImage(listing)).toBe('https://img.test/main.jpg');
-  });
-
-  it('should return fallback for listing with no images', () => {
-    const listing = makeListing({ images: [] });
-    expect(component.getListingImage(listing)).toBe('assets/placeholder.png');
-  });
-
   it('should exclude inactive categories from chips', () => {
     component.ngOnInit();
     const chips = component.categoryChips();

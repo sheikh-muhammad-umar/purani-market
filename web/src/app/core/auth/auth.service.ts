@@ -2,7 +2,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Injectable, inject, PLATFORM_ID, signal, computed } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { Router } from '@angular/router';
-import { Observable, tap } from 'rxjs';
+import { Observable, tap, shareReplay } from 'rxjs';
 import { User } from '../models';
 import { UserRole } from '../constants/enums';
 import { SocialProvider } from '../enums/social-provider';
@@ -33,6 +33,7 @@ export class AuthService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly apiUrl = environment.apiUrl;
   private readonly currentUser = signal<User | null>(null);
+  private userCache$: Observable<User> | null = null;
   readonly user = this.currentUser.asReadonly();
   readonly isAuthenticated = computed(() => !!this.currentUser() || !!this.getAccessToken());
   readonly isAdmin = computed(
@@ -80,6 +81,7 @@ export class AuthService {
     this.http.post(`${this.apiUrl}${API.AUTH_LOGOUT}`, {}).subscribe();
     this.clearTokens();
     this.currentUser.set(null);
+    this.userCache$ = null;
     this.router.navigate([ROUTES.AUTH_LOGIN]);
   }
 
@@ -167,12 +169,27 @@ export class AuthService {
 
   setUser(user: User): void {
     this.currentUser.set(user);
+    this.userCache$ = null; // Invalidate cache when user is explicitly set
   }
 
+  /**
+   * Fetches the current user from the API. Concurrent calls share the same
+   * in-flight request. The cache is invalidated on logout, setUser, or
+   * after the response completes (so the next call gets fresh data).
+   */
   fetchCurrentUser(): Observable<User> {
-    return this.http
-      .get<User>(`${this.apiUrl}${API.USERS_ME}`)
-      .pipe(tap((user) => this.currentUser.set(user)));
+    if (!this.userCache$) {
+      this.userCache$ = this.http.get<User>(`${this.apiUrl}${API.USERS_ME}`).pipe(
+        tap((user) => this.currentUser.set(user)),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+    }
+    return this.userCache$;
+  }
+
+  /** Invalidate the user cache so the next fetchCurrentUser() hits the API */
+  invalidateUserCache(): void {
+    this.userCache$ = null;
   }
 
   isMfaResponse(response: LoginResponse): response is MfaRequiredResponse {

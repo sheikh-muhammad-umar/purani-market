@@ -76,6 +76,23 @@ export class FavoritesService {
       .exec();
   }
 
+  async checkFavorite(
+    userId: string,
+    listingId: string,
+  ): Promise<{ isFavorited: boolean; favoriteId?: string }> {
+    const favorite = await this.favoriteModel
+      .findOne({
+        userId: new Types.ObjectId(userId),
+        productListingId: new Types.ObjectId(listingId),
+      })
+      .select('_id')
+      .lean()
+      .exec();
+    return favorite
+      ? { isFavorited: true, favoriteId: (favorite as any)._id.toString() }
+      : { isFavorited: false };
+  }
+
   async removeFavorite(favoriteId: string, userId: string): Promise<void> {
     if (!Types.ObjectId.isValid(favoriteId)) {
       throw new NotFoundException(ERROR.FAVORITE_NOT_FOUND);

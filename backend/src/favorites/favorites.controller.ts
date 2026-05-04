@@ -39,6 +39,14 @@ export class FavoritesController {
     return this.favoritesService.getUserFavorites(userId, safeLimit);
   }
 
+  @Get('check/:listingId')
+  async checkFavorite(
+    @CurrentUser('sub') userId: string,
+    @Param('listingId') listingId: string,
+  ) {
+    return this.favoritesService.checkFavorite(userId, listingId);
+  }
+
   @Delete(':id')
   async removeFavorite(
     @Param('id') favoriteId: string,

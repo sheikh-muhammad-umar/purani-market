@@ -61,6 +61,7 @@ describe('ListingDetailComponent', () => {
 
     favoritesServiceMock = {
       getAll: vi.fn().mockReturnValue(of({ data: [] })),
+      check: vi.fn().mockReturnValue(of({ isFavorited: false })),
       add: vi
         .fn()
         .mockReturnValue(
@@ -225,12 +226,10 @@ describe('ListingDetailComponent', () => {
   });
 
   it('should check favorite status on load', () => {
-    favoritesServiceMock.getAll.mockReturnValue(
-      of({ data: [{ _id: 'fav-1', productListingId: 'listing-1' }] }),
-    );
+    favoritesServiceMock.check.mockReturnValue(of({ isFavorited: true, favoriteId: 'fav-1' }));
     component.ngOnInit();
 
-    expect(favoritesServiceMock.getAll).toHaveBeenCalled();
+    expect(favoritesServiceMock.check).toHaveBeenCalledWith('listing-1');
     expect(component.isFavorited()).toBe(true);
     expect(component.favoriteId()).toBe('fav-1');
   });
@@ -246,9 +245,7 @@ describe('ListingDetailComponent', () => {
   });
 
   it('should toggle favorite off (remove)', () => {
-    favoritesServiceMock.getAll.mockReturnValue(
-      of({ data: [{ _id: 'fav-1', productListingId: 'listing-1' }] }),
-    );
+    favoritesServiceMock.check.mockReturnValue(of({ isFavorited: true, favoriteId: 'fav-1' }));
     component.ngOnInit();
 
     component.toggleFavorite();

@@ -73,6 +73,7 @@ export const API = {
   // Favorites
   FAVORITES: '/favorites',
   FAVORITE_BY_ID: (id: string) => `/favorites/${id}`,
+  FAVORITE_CHECK: (listingId: string) => `/favorites/check/${listingId}`,
 
   // Packages
   PACKAGES: '/packages',

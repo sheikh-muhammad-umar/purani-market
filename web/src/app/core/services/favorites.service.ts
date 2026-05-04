@@ -13,8 +13,8 @@ export interface FavoritesResponse {
 export class FavoritesService {
   constructor(private readonly api: ApiService) {}
 
-  getAll(): Observable<any> {
-    return this.api.get(API.FAVORITES);
+  getAll(): Observable<FavoritesResponse> {
+    return this.api.get<FavoritesResponse>(API.FAVORITES);
   }
 
   add(productListingId: string): Observable<Favorite> {
@@ -26,9 +26,8 @@ export class FavoritesService {
   }
 
   check(productListingId: string): Observable<{ isFavorited: boolean; favoriteId?: string }> {
-    return this.api.get<{ isFavorited: boolean; favoriteId?: string }>(API.FAVORITES, {
-      productListingId,
-      check: true,
-    });
+    return this.api.get<{ isFavorited: boolean; favoriteId?: string }>(
+      API.FAVORITE_CHECK(productListingId),
+    );
   }
 }

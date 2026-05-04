@@ -1,6 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import { Observable, map, shareReplay } from 'rxjs';
 import { CategoriesService } from '../../core/services/categories.service';
 import { ListingsService, ListingsResponse } from '../../core/services/listings.service';
 import { RecommendationsService } from '../../core/services/recommendations.service';
@@ -8,12 +9,12 @@ import { AuthService } from '../../core/auth/auth.service';
 import { PriceFormatPipe } from '../../shared/pipes/price-format.pipe';
 import { TruncateTextPipe } from '../../shared/pipes/truncate-text.pipe';
 import { ListingUrlPipe } from '../../shared/pipes/listing-url.pipe';
+import { ListingImagePipe } from '../../shared/pipes/listing-image.pipe';
 import { CategoryModalComponent } from '../../shared/components/category-modal/category-modal.component';
 import { Category, Listing } from '../../core/models';
 import { STORAGE_SELECTED_LOCATION } from '../../core/constants/storage-keys';
 import {
   DEFAULT_COUNTRY,
-  PLACEHOLDER_IMAGE,
   CATEGORY_ICONS_PATH,
   DEFAULT_CATEGORY_ICON,
   FEATURED_ADS_LIMIT,
@@ -36,6 +37,7 @@ interface CategoryChip {
     RouterLink,
     PriceFormatPipe,
     TruncateTextPipe,
+    ListingImagePipe,
     CategoryModalComponent,
     ListingUrlPipe,
   ],
@@ -44,6 +46,10 @@ interface CategoryChip {
 })
 export class HomeComponent implements OnInit {
   readonly ROUTES = ROUTES;
+  readonly SKELETON_CATEGORIES = Array.from({ length: 8 }, (_, i) => i);
+  readonly SKELETON_FEATURED = Array.from({ length: 4 }, (_, i) => i);
+  readonly SKELETON_GRID = Array.from({ length: 6 }, (_, i) => i);
+
   readonly categories = signal<Category[]>([]);
   readonly featuredListings = signal<Listing[]>([]);
   readonly recommendations = signal<Listing[]>([]);
@@ -83,10 +89,6 @@ export class HomeComponent implements OnInit {
     this.loadNearby();
   }
 
-  getListingImage(listing: Listing): string {
-    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || PLACEHOLDER_IMAGE;
-  }
-
   openCategoryModal(chip: CategoryChip): void {
     const cat = this.categories().find((c) => c._id === chip.id);
     if (cat) {
@@ -122,21 +124,16 @@ export class HomeComponent implements OnInit {
     } catch {}
 
     this.listingsService.getFeaturedFiltered({ city, limit: FEATURED_ADS_LIMIT }).subscribe({
-      next: (res: any) => {
-        const data = Array.isArray(res?.data) ? res.data : Array.isArray(res) ? (res as any) : [];
+      next: (res) => {
+        const data = res.data ?? [];
         if (data.length > 0) {
           this.featuredListings.set(data);
-          this.loadingFeatured.set(false);
         } else {
-          // Fallback: show latest listings as "featured"
-          this.listingsService.getByCategory('', 1, 10).subscribe({
-            next: (fallback: any) => {
-              this.featuredListings.set(Array.isArray(fallback?.data) ? fallback.data : []);
-              this.loadingFeatured.set(false);
-            },
-            error: () => this.loadingFeatured.set(false),
+          this.getLatestListings().subscribe({
+            next: (listings) => this.featuredListings.set(listings.slice(0, 10)),
           });
         }
+        this.loadingFeatured.set(false);
       },
       error: () => this.loadingFeatured.set(false),
     });
@@ -148,24 +145,33 @@ export class HomeComponent implements OnInit {
         const data = Array.isArray(listings) ? listings : [];
         if (data.length > 0) {
           this.recommendations.set(data);
-          this.loadingRecommendations.set(false);
         } else {
-          this.loadRandomListings();
+          this.getLatestListings().subscribe({
+            next: (listings) => this.recommendations.set(listings),
+          });
         }
+        this.loadingRecommendations.set(false);
       },
-      error: () => this.loadRandomListings(),
+      error: () => {
+        this.getLatestListings().subscribe({
+          next: (listings) => this.recommendations.set(listings),
+          error: () => {},
+        });
+        this.loadingRecommendations.set(false);
+      },
     });
   }
 
-  private loadRandomListings(): void {
-    // No activity history — show latest listings as recommendations
-    this.listingsService.getByCategory('', 1, 20).subscribe({
-      next: (res: any) => {
-        this.recommendations.set(Array.isArray(res?.data) ? res.data : []);
-        this.loadingRecommendations.set(false);
-      },
-      error: () => this.loadingRecommendations.set(false),
-    });
+  /** Shared cached call for latest listings — used as fallback by multiple sections */
+  private latestListings$: Observable<Listing[]> | null = null;
+  private getLatestListings(): Observable<Listing[]> {
+    if (!this.latestListings$) {
+      this.latestListings$ = this.listingsService.getByCategory('', 1, 20).pipe(
+        map((res) => res.data ?? []),
+        shareReplay({ bufferSize: 1, refCount: true }),
+      );
+    }
+    return this.latestListings$;
   }
 
   private loadNearby(): void {
@@ -204,9 +210,9 @@ export class HomeComponent implements OnInit {
   }
 
   private loadLatestListings(): void {
-    this.listingsService.getByCategory('', 1, 12).subscribe({
-      next: (res: any) => {
-        this.nearbyListings.set(Array.isArray(res?.data) ? res.data : []);
+    this.getLatestListings().subscribe({
+      next: (listings) => {
+        this.nearbyListings.set(listings.slice(0, 12));
         this.loadingNearby.set(false);
       },
       error: () => this.loadingNearby.set(false),

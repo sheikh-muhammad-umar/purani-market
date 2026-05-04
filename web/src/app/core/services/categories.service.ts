@@ -1,5 +1,5 @@
 import { Injectable } from '@angular/core';
-import { Observable, map } from 'rxjs';
+import { Observable, map, shareReplay } from 'rxjs';
 import { ApiService } from './api.service';
 import { Category, CategoryAttribute } from '../models';
 import { API } from '../constants/api-endpoints';
@@ -26,12 +26,24 @@ export interface UpdateCategoryPayload {
 
 @Injectable({ providedIn: 'root' })
 export class CategoriesService {
+  /** Cached category tree — shared across all subscribers, refetched on invalidate */
+  private allCache$: Observable<Category[]> | null = null;
+
   constructor(private readonly api: ApiService) {}
 
   getAll(): Observable<Category[]> {
-    return this.api
-      .get<Category[]>(API.CATEGORIES)
-      .pipe(map((tree) => this.flattenTree(Array.isArray(tree) ? tree : [])));
+    if (!this.allCache$) {
+      this.allCache$ = this.api.get<Category[]>(API.CATEGORIES).pipe(
+        map((tree) => this.flattenTree(Array.isArray(tree) ? tree : [])),
+        shareReplay({ bufferSize: 1, refCount: false }),
+      );
+    }
+    return this.allCache$;
+  }
+
+  /** Force refetch on next getAll() call (e.g. after admin edits categories) */
+  invalidateCache(): void {
+    this.allCache$ = null;
   }
 
   getTree(): Observable<Category[]> {
@@ -53,14 +65,17 @@ export class CategoriesService {
   }
 
   create(payload: CreateCategoryPayload): Observable<Category> {
+    this.invalidateCache();
     return this.api.post<Category>(API.CATEGORIES, payload);
   }
 
   update(id: string, payload: UpdateCategoryPayload): Observable<Category> {
+    this.invalidateCache();
     return this.api.patch<Category>(API.CATEGORY_BY_ID(id), payload);
   }
 
   remove(id: string): Observable<void> {
+    this.invalidateCache();
     return this.api.delete<void>(API.CATEGORY_BY_ID(id));
   }
 
