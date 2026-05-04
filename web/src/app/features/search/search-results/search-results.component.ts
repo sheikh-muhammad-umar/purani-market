@@ -35,6 +35,18 @@ import { Listing, Category, CategoryAttribute } from '../../../core/models';
 import { VehicleModel, VehicleVariant, BrandOption } from '../../../core/models/brand.model';
 import { BrandsService } from '../../../core/services/brands.service';
 
+/** Query param keys managed by this component — dynamic filters are anything else */
+const KNOWN_QUERY_PARAMS = new Set([
+  'q',
+  'category',
+  'sort',
+  'page',
+  'minPrice',
+  'maxPrice',
+  'condition',
+  'verifiedSeller',
+]);
+
 export interface ActiveFilter {
   key: string;
   label: string;
@@ -74,11 +86,13 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly pageSize = 20;
   readonly loading = signal(false);
   readonly sortBy = signal<SearchSortOption>(SearchSortOption.RELEVANCE);
-  readonly filtersOpen = signal(false);
+  /** null = no user interaction yet (CSS handles default), true/false = user toggled */
+  readonly filtersOpen = signal<boolean | null>(null);
   readonly mobileColumns = signal<1 | 2>(this.loadMobileColumns());
 
   // Category filters
   readonly categories = signal<Category[]>([]);
+  readonly categoriesLoading = signal(true);
   readonly selectedCategoryId = signal<string>('');
   readonly selectedCategorySlug = signal<string>('');
   readonly selectedCategory = signal<Category | null>(null);
@@ -107,6 +121,18 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly totalPages = computed(() => Math.ceil(this.totalResults() / this.pageSize));
 
   readonly expandedCategories = signal<Set<string>>(new Set());
+
+  /** Precomputed subcategories map — avoids filtering the full list on every CD cycle */
+  readonly subcategoriesMap = computed(() => {
+    const map = new Map<string, Category[]>();
+    for (const cat of this.categories()) {
+      if (!cat.isActive) continue;
+      const parentId = cat.parentId || '';
+      if (!map.has(parentId)) map.set(parentId, []);
+      map.get(parentId)!.push(cat);
+    }
+    return map;
+  });
 
   // Province/City for province_city attribute type
   readonly provinces = signal<{ _id: string; name: string }[]>([]);
@@ -137,12 +163,10 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     ...this.filterVariants().map((v) => ({ value: v._id, label: v.name })),
   ]);
 
-  getProvinceOptions(): SelectOption[] {
-    return [
-      { value: '', label: 'All Provinces' },
-      ...this.provinces().map((p) => ({ value: p.name, label: p.name })),
-    ];
-  }
+  readonly provinceOptions = computed<SelectOption[]>(() => [
+    { value: '', label: 'All Provinces' },
+    ...this.provinces().map((p) => ({ value: p.name, label: p.name })),
+  ]);
 
   getCityOptions(provinceName: string): SelectOption[] {
     const cities = this.provinceCities()[provinceName] || [];
@@ -195,9 +219,6 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    if (this.isBrowser) {
-      this.filtersOpen.set(window.innerWidth >= 768);
-    }
     this.loadCategories();
     this.setupSuggestions();
 
@@ -223,18 +244,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       // Parse dynamic filter params
       const dynamicFilters: Record<string, string | number | boolean> = {};
       params.keys.forEach((key) => {
-        if (
-          ![
-            'q',
-            'category',
-            'sort',
-            'page',
-            'minPrice',
-            'maxPrice',
-            'condition',
-            'verifiedSeller',
-          ].includes(key)
-        ) {
+        if (!KNOWN_QUERY_PARAMS.has(key)) {
           dynamicFilters[key] = params.get(key) || '';
         }
       });
@@ -395,7 +405,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
   // Category tree helpers
   getSubcategories(parentId: string): Category[] {
-    return this.categories().filter((c) => c.parentId === parentId && c.isActive);
+    return this.subcategoriesMap().get(parentId) || [];
   }
 
   isCategoryChildSelected(parentId: string): boolean {
@@ -444,7 +454,15 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   }
 
   toggleFilters(): void {
-    this.filtersOpen.set(!this.filtersOpen());
+    const current = this.filtersOpen();
+    // First toggle: on desktop it's visually open (treat as true), on mobile it's hidden (treat as false)
+    if (current === null) {
+      // If we can check viewport, use it; otherwise toggle to opposite of CSS default
+      const isDesktop = this.isBrowser && window.innerWidth >= 768;
+      this.filtersOpen.set(!isDesktop);
+    } else {
+      this.filtersOpen.set(!current);
+    }
   }
 
   toggleMobileColumns(): void {
@@ -458,7 +476,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   }
 
   private loadMobileColumns(): 1 | 2 {
-    if (isPlatformBrowser(inject(PLATFORM_ID))) {
+    if (this.isBrowser) {
       return localStorage.getItem(STORAGE_MOBILE_COLUMNS) === '1' ? 1 : 2;
     }
     return 2;
@@ -589,12 +607,14 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   }
 
   private loadCategories(): void {
+    this.categoriesLoading.set(true);
     this.categoriesService
       .getAll()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (cats) => {
           this.categories.set(cats);
+          this.categoriesLoading.set(false);
           // Resolve pending category slug now that categories are available
           const slug = this.selectedCategorySlug();
           if (slug && !this.selectedCategoryId()) {
@@ -613,7 +633,10 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
             this.autoExpandCategory(this.selectedCategoryId());
           }
         },
-        error: () => this.categories.set([]),
+        error: () => {
+          this.categories.set([]);
+          this.categoriesLoading.set(false);
+        },
       });
   }
 
@@ -793,7 +816,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .getProvinces()
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (p: any[]) => this.provinces.set(p),
+        next: (p) => this.provinces.set(p),
       });
   }
 
@@ -805,7 +828,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .getCities(province._id)
       .pipe(takeUntil(this.destroy$))
       .subscribe({
-        next: (cities: any[]) => {
+        next: (cities) => {
           this.provinceCities.update((m) => ({ ...m, [provinceName]: cities }));
         },
       });
@@ -902,7 +925,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res: SearchResponse) => {
-          this.results.set(res.data || (res as any).items || []);
+          this.results.set(res.data || []);
           this.featuredAds.set(res.featuredAds || []);
           this.totalResults.set(res.total);
           this.relatedCategories.set(res.relatedCategories || []);

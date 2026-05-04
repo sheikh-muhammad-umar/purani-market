@@ -85,23 +85,37 @@
 
   <div class="search-layout">
     <!-- Filter Sidebar (Desktop) -->
-    <aside class="filter-sidebar" [class.collapsed]="!filtersOpen()" aria-label="Search filters">
+    <aside
+      class="filter-sidebar"
+      [class.collapsed]="filtersOpen() === false"
+      [class.mobile-open]="filtersOpen() === true"
+      aria-label="Search filters"
+    >
       <div class="filter-header">
         <h3 class="filter-title">Filters</h3>
         <button
           class="filter-toggle"
           (click)="toggleFilters()"
-          [attr.aria-expanded]="filtersOpen()"
+          [attr.aria-expanded]="filtersOpen() !== false"
         >
-          {{ filtersOpen() ? '✕' : '☰' }}
+          {{ filtersOpen() === false ? '☰' : '✕' }}
         </button>
       </div>
 
-      @if (filtersOpen()) {
-        <div class="filter-body">
-          <!-- Categories Card -->
-          <div class="filter-card">
-            <h4 class="filter-card-title">Categories</h4>
+      <div class="filter-body">
+        <!-- Categories Card -->
+        <div class="filter-card">
+          <h4 class="filter-card-title">Categories</h4>
+          @if (categoriesLoading()) {
+            <div class="filter-skeleton">
+              <div class="skeleton filter-sk-item" style="width: 60%"></div>
+              <div class="skeleton filter-sk-item" style="width: 75%"></div>
+              <div class="skeleton filter-sk-item" style="width: 50%"></div>
+              <div class="skeleton filter-sk-item" style="width: 65%"></div>
+              <div class="skeleton filter-sk-item" style="width: 55%"></div>
+              <div class="skeleton filter-sk-item" style="width: 70%"></div>
+            </div>
+          } @else {
             <div class="category-tree">
               <button
                 class="cat-link cat-all"
@@ -175,231 +189,229 @@
                 }
               }
             </div>
-          </div>
+          }
+        </div>
 
-          <!-- Price Card -->
-          <div class="filter-card">
-            <h4 class="filter-card-title">Price</h4>
-            <div class="price-range-row">
-              <input
-                type="number"
-                class="price-field"
-                placeholder="Min"
-                [ngModel]="minPrice()"
-                (ngModelChange)="minPrice.set($event)"
-                min="0"
-              />
-              <span class="price-to">to</span>
-              <input
-                type="number"
-                class="price-field"
-                placeholder="Max"
-                [ngModel]="maxPrice()"
-                (ngModelChange)="maxPrice.set($event)"
-                min="0"
-              />
-            </div>
-            <button class="btn btn-outline btn-sm price-apply-btn" (click)="onPriceFilterApply()">
-              Apply
-            </button>
+        <!-- Price Card -->
+        <div class="filter-card">
+          <h4 class="filter-card-title">Price</h4>
+          <div class="price-range-row">
+            <input
+              type="number"
+              class="price-field"
+              placeholder="Min"
+              [ngModel]="minPrice()"
+              (ngModelChange)="minPrice.set($event)"
+              min="0"
+            />
+            <span class="price-to">to</span>
+            <input
+              type="number"
+              class="price-field"
+              placeholder="Max"
+              [ngModel]="maxPrice()"
+              (ngModelChange)="maxPrice.set($event)"
+              min="0"
+            />
           </div>
+          <button class="btn btn-outline btn-sm price-apply-btn" (click)="onPriceFilterApply()">
+            Apply
+          </button>
+        </div>
 
-          <!-- Condition Card -->
+        <!-- Condition Card -->
+        <div class="filter-card">
+          <h4 class="filter-card-title">Condition</h4>
+          <app-custom-select
+            [options]="conditionOptions"
+            [ngModel]="selectedCondition()"
+            (ngModelChange)="onConditionChange($any($event))"
+            placeholder="Any"
+          ></app-custom-select>
+        </div>
+
+        <!-- Verified Seller Card -->
+        <div class="filter-card">
+          <label class="verified-seller-toggle">
+            <input
+              type="checkbox"
+              [checked]="verifiedSellerOnly()"
+              (change)="onVerifiedSellerChange($any($event).target.checked)"
+            />
+            <span class="verified-seller-label">
+              <span class="material-symbols-rounded verified-seller-icon">verified</span>
+              Verified Sellers Only
+            </span>
+          </label>
+        </div>
+
+        <!-- Brand / Model / Variant Filters -->
+        @if (hasBrandsFilter() && filterBrands().length > 0) {
           <div class="filter-card">
-            <h4 class="filter-card-title">Condition</h4>
+            <h4 class="filter-card-title">Brand</h4>
             <app-custom-select
-              [options]="conditionOptions"
-              [ngModel]="selectedCondition()"
-              (ngModelChange)="onConditionChange($any($event))"
-              placeholder="Any"
+              [options]="brandFilterOptions()"
+              [ngModel]="selectedFilterBrandId()"
+              (ngModelChange)="onBrandFilterChange($any($event))"
+              placeholder="All Brands"
+              [searchable]="true"
             ></app-custom-select>
           </div>
 
-          <!-- Verified Seller Card -->
-          <div class="filter-card">
-            <label class="verified-seller-toggle">
-              <input
-                type="checkbox"
-                [checked]="verifiedSellerOnly()"
-                (change)="onVerifiedSellerChange($any($event).target.checked)"
-              />
-              <span class="verified-seller-label">
-                <span class="material-symbols-rounded verified-seller-icon">verified</span>
-                Verified Sellers Only
-              </span>
-            </label>
-          </div>
-
-          <!-- Brand / Model / Variant Filters -->
-          @if (hasBrandsFilter() && filterBrands().length > 0) {
+          @if (isVehicleCategoryFilter() && selectedFilterBrandId() && filterModels().length > 0) {
             <div class="filter-card">
-              <h4 class="filter-card-title">Brand</h4>
+              <h4 class="filter-card-title">Model</h4>
               <app-custom-select
-                [options]="brandFilterOptions()"
-                [ngModel]="selectedFilterBrandId()"
-                (ngModelChange)="onBrandFilterChange($any($event))"
-                placeholder="All Brands"
+                [options]="modelFilterOptions()"
+                [ngModel]="selectedFilterModelId()"
+                (ngModelChange)="onModelFilterChange($any($event))"
+                placeholder="All Models"
                 [searchable]="true"
               ></app-custom-select>
             </div>
-
-            @if (
-              isVehicleCategoryFilter() && selectedFilterBrandId() && filterModels().length > 0
-            ) {
-              <div class="filter-card">
-                <h4 class="filter-card-title">Model</h4>
-                <app-custom-select
-                  [options]="modelFilterOptions()"
-                  [ngModel]="selectedFilterModelId()"
-                  (ngModelChange)="onModelFilterChange($any($event))"
-                  placeholder="All Models"
-                  [searchable]="true"
-                ></app-custom-select>
-              </div>
-            }
-
-            @if (
-              isVehicleCategoryFilter() && selectedFilterModelId() && filterVariants().length > 0
-            ) {
-              <div class="filter-card">
-                <h4 class="filter-card-title">Variant</h4>
-                <app-custom-select
-                  [options]="variantFilterOptions()"
-                  [ngModel]="selectedFilterVariantId()"
-                  (ngModelChange)="onVariantFilterChange($any($event))"
-                  placeholder="All Variants"
-                  [searchable]="true"
-                ></app-custom-select>
-              </div>
-            }
           }
 
-          <!-- Dynamic Category-Specific Filters -->
-          @for (filter of categoryFilters(); track filter.key) {
+          @if (
+            isVehicleCategoryFilter() && selectedFilterModelId() && filterVariants().length > 0
+          ) {
             <div class="filter-card">
-              <h4 class="filter-card-title">{{ filter.name }}</h4>
-              @switch (filter.type) {
-                @case ('select') {
-                  <app-custom-select
-                    [options]="getSelectFilterOptions(filter)"
-                    [ngModel]="filterValues()[filter.key] || ''"
-                    (ngModelChange)="onDynamicFilterChange(filter.key, $any($event))"
-                    placeholder="Any"
-                    [searchable]="true"
-                  ></app-custom-select>
-                }
-                @case ('multiselect') {
-                  <app-custom-select
-                    [options]="getSelectFilterOptions(filter)"
-                    [ngModel]="filterValues()[filter.key] || ''"
-                    (ngModelChange)="onDynamicFilterChange(filter.key, $any($event))"
-                    placeholder="Any"
-                    [searchable]="true"
-                  ></app-custom-select>
-                }
-                @case ('range') {
-                  <div class="price-range-row">
-                    <input
-                      type="number"
-                      class="price-field"
-                      [placeholder]="'Min'"
-                      [ngModel]="filterValues()[filter.key + '_min'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $event)"
-                    />
-                    <span class="price-to">to</span>
-                    <input
-                      type="number"
-                      class="price-field"
-                      [placeholder]="'Max'"
-                      [ngModel]="filterValues()[filter.key + '_max'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)"
-                    />
-                  </div>
-                }
-                @case ('boolean') {
-                  <label class="checkbox-label">
-                    <input
-                      type="checkbox"
-                      [ngModel]="filterValues()[filter.key] === 'true'"
-                      (ngModelChange)="onDynamicFilterChange(filter.key, $event ? 'true' : '')"
-                    />
-                    {{ filter.name }}
-                  </label>
-                }
-                @case ('number') {
-                  <div class="price-range-row">
-                    <input
-                      type="number"
-                      class="price-field"
-                      [placeholder]="'Min'"
-                      [ngModel]="filterValues()[filter.key + '_min'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $event)"
-                    />
-                    <span class="price-to">to</span>
-                    <input
-                      type="number"
-                      class="price-field"
-                      [placeholder]="'Max'"
-                      [ngModel]="filterValues()[filter.key + '_max'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)"
-                    />
-                  </div>
-                }
-                @case ('year') {
-                  <div class="price-range-row">
-                    <app-custom-select
-                      [options]="getYearFilterOptions(filter, '_min')"
-                      [ngModel]="filterValues()[filter.key + '_min'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $any($event))"
-                      placeholder="From"
-                      [searchable]="true"
-                    ></app-custom-select>
-                    <span class="price-to">to</span>
-                    <app-custom-select
-                      [options]="getYearFilterOptions(filter, '_max')"
-                      [ngModel]="filterValues()[filter.key + '_max'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $any($event))"
-                      placeholder="To"
-                      [searchable]="true"
-                    ></app-custom-select>
-                  </div>
-                }
-                @case ('province_city') {
-                  <div class="province-city-filter">
-                    <app-custom-select
-                      [options]="getProvinceOptions()"
-                      [ngModel]="filterValues()[filter.key + '_province'] || ''"
-                      (ngModelChange)="
-                        loadCitiesForProvince($any($event));
-                        onProvinceCityChange(filter.key, $any($event), '')
-                      "
-                      placeholder="All Provinces"
-                      [searchable]="true"
-                    ></app-custom-select>
-                    @if (filterValues()[filter.key + '_province']) {
-                      <app-custom-select
-                        [options]="
-                          getCityOptions(filterValues()[filter.key + '_province']?.toString() || '')
-                        "
-                        [ngModel]="filterValues()[filter.key + '_city'] || ''"
-                        (ngModelChange)="
-                          onProvinceCityChange(
-                            filter.key,
-                            filterValues()[filter.key + '_province']?.toString() || '',
-                            $any($event)
-                          )
-                        "
-                        placeholder="All Cities"
-                        [searchable]="true"
-                      ></app-custom-select>
-                    }
-                  </div>
-                }
-              }
+              <h4 class="filter-card-title">Variant</h4>
+              <app-custom-select
+                [options]="variantFilterOptions()"
+                [ngModel]="selectedFilterVariantId()"
+                (ngModelChange)="onVariantFilterChange($any($event))"
+                placeholder="All Variants"
+                [searchable]="true"
+              ></app-custom-select>
             </div>
           }
-        </div>
-      }
+        }
+
+        <!-- Dynamic Category-Specific Filters -->
+        @for (filter of categoryFilters(); track filter.key) {
+          <div class="filter-card">
+            <h4 class="filter-card-title">{{ filter.name }}</h4>
+            @switch (filter.type) {
+              @case ('select') {
+                <app-custom-select
+                  [options]="getSelectFilterOptions(filter)"
+                  [ngModel]="filterValues()[filter.key] || ''"
+                  (ngModelChange)="onDynamicFilterChange(filter.key, $any($event))"
+                  placeholder="Any"
+                  [searchable]="true"
+                ></app-custom-select>
+              }
+              @case ('multiselect') {
+                <app-custom-select
+                  [options]="getSelectFilterOptions(filter)"
+                  [ngModel]="filterValues()[filter.key] || ''"
+                  (ngModelChange)="onDynamicFilterChange(filter.key, $any($event))"
+                  placeholder="Any"
+                  [searchable]="true"
+                ></app-custom-select>
+              }
+              @case ('range') {
+                <div class="price-range-row">
+                  <input
+                    type="number"
+                    class="price-field"
+                    [placeholder]="'Min'"
+                    [ngModel]="filterValues()[filter.key + '_min'] || ''"
+                    (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $event)"
+                  />
+                  <span class="price-to">to</span>
+                  <input
+                    type="number"
+                    class="price-field"
+                    [placeholder]="'Max'"
+                    [ngModel]="filterValues()[filter.key + '_max'] || ''"
+                    (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)"
+                  />
+                </div>
+              }
+              @case ('boolean') {
+                <label class="checkbox-label">
+                  <input
+                    type="checkbox"
+                    [ngModel]="filterValues()[filter.key] === 'true'"
+                    (ngModelChange)="onDynamicFilterChange(filter.key, $event ? 'true' : '')"
+                  />
+                  {{ filter.name }}
+                </label>
+              }
+              @case ('number') {
+                <div class="price-range-row">
+                  <input
+                    type="number"
+                    class="price-field"
+                    [placeholder]="'Min'"
+                    [ngModel]="filterValues()[filter.key + '_min'] || ''"
+                    (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $event)"
+                  />
+                  <span class="price-to">to</span>
+                  <input
+                    type="number"
+                    class="price-field"
+                    [placeholder]="'Max'"
+                    [ngModel]="filterValues()[filter.key + '_max'] || ''"
+                    (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)"
+                  />
+                </div>
+              }
+              @case ('year') {
+                <div class="price-range-row">
+                  <app-custom-select
+                    [options]="getYearFilterOptions(filter, '_min')"
+                    [ngModel]="filterValues()[filter.key + '_min'] || ''"
+                    (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $any($event))"
+                    placeholder="From"
+                    [searchable]="true"
+                  ></app-custom-select>
+                  <span class="price-to">to</span>
+                  <app-custom-select
+                    [options]="getYearFilterOptions(filter, '_max')"
+                    [ngModel]="filterValues()[filter.key + '_max'] || ''"
+                    (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $any($event))"
+                    placeholder="To"
+                    [searchable]="true"
+                  ></app-custom-select>
+                </div>
+              }
+              @case ('province_city') {
+                <div class="province-city-filter">
+                  <app-custom-select
+                    [options]="provinceOptions()"
+                    [ngModel]="filterValues()[filter.key + '_province'] || ''"
+                    (ngModelChange)="
+                      loadCitiesForProvince($any($event));
+                      onProvinceCityChange(filter.key, $any($event), '')
+                    "
+                    placeholder="All Provinces"
+                    [searchable]="true"
+                  ></app-custom-select>
+                  @if (filterValues()[filter.key + '_province']) {
+                    <app-custom-select
+                      [options]="
+                        getCityOptions(filterValues()[filter.key + '_province']?.toString() || '')
+                      "
+                      [ngModel]="filterValues()[filter.key + '_city'] || ''"
+                      (ngModelChange)="
+                        onProvinceCityChange(
+                          filter.key,
+                          filterValues()[filter.key + '_province']?.toString() || '',
+                          $any($event)
+                        )
+                      "
+                      placeholder="All Cities"
+                      [searchable]="true"
+                    ></app-custom-select>
+                  }
+                </div>
+              }
+            }
+          </div>
+        }
+      </div>
     </aside>
 
     <!-- Results Area -->

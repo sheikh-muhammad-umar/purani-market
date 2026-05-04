@@ -187,7 +187,11 @@
   align-self: flex-start;
   position: sticky;
   top: calc(var(--header-height) + var(--space-2));
-  transition: width 0.3s ease;
+
+  /* User explicitly collapsed via toggle button */
+  &.collapsed .filter-body {
+    display: none;
+  }
 
   &.collapsed {
     width: auto;
@@ -863,6 +867,18 @@
 }
 
 /* ---- Skeleton ---- */
+.filter-skeleton {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-1);
+  padding: var(--space-half) 0;
+}
+
+.filter-sk-item {
+  height: 14px;
+  border-radius: var(--radius-sm);
+}
+
 .listing-card-skeleton {
   background: var(--card);
   border-radius: var(--radius-lg);
@@ -967,8 +983,13 @@
     -webkit-overflow-scrolling: touch;
     overscroll-behavior: contain;
 
-    &:not(.collapsed) {
+    &.mobile-open {
       display: block;
+    }
+
+    /* On mobile, always show filter body when overlay is open */
+    &.mobile-open .filter-body {
+      display: flex;
     }
 
     .filter-header {

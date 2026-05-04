@@ -11,8 +11,24 @@
     </div>
 
     @if (loading()) {
-      <div class="loading-center">
-        <span class="spinner spinner-lg" aria-label="Loading preferences"></span>
+      <div class="prefs-skeleton card" style="padding: 20px">
+        @for (i of [1, 2, 3, 4, 5]; track i) {
+          <div
+            style="
+              display: flex;
+              justify-content: space-between;
+              align-items: center;
+              padding: 12px 0;
+              border-bottom: 1px solid var(--border);
+            "
+          >
+            <div style="flex: 1">
+              <div class="skeleton skeleton-text" style="width: 40%"></div>
+              <div class="skeleton skeleton-text short" style="margin-top: 4px; width: 60%"></div>
+            </div>
+            <div class="skeleton" style="width: 44px; height: 24px; border-radius: 12px"></div>
+          </div>
+        }
       </div>
     } @else {
       @if (successMessage()) {
