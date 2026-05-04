@@ -925,7 +925,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res: SearchResponse) => {
-          this.results.set(res.data || []);
+          this.results.set(res.items || []);
           this.featuredAds.set(res.featuredAds || []);
           this.totalResults.set(res.total);
           this.relatedCategories.set(res.relatedCategories || []);

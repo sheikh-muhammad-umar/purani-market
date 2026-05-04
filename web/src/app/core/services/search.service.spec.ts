@@ -8,10 +8,11 @@ describe('SearchService', () => {
   let apiMock: { get: ReturnType<typeof vi.fn> };
 
   const mockSearchResponse: SearchResponse = {
-    data: [],
+    items: [],
     total: 0,
     page: 1,
     limit: 20,
+    totalPages: 0,
     featuredAds: [],
     suggestions: [],
     relatedCategories: [],

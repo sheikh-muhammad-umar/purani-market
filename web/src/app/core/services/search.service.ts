@@ -19,10 +19,11 @@ export interface SearchParams {
 }
 
 export interface SearchResponse {
-  data: Listing[];
+  items: Listing[];
   total: number;
   page: number;
   limit: number;
+  totalPages: number;
   featuredAds?: Listing[];
   suggestions?: string[];
   relatedCategories?: { _id: string; name: string; slug: string }[];
