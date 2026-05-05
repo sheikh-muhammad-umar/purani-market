@@ -157,4 +157,57 @@ export class SearchQueryDto {
   @IsOptional()
   @IsString()
   rankingConfig?: string;
+
+  // ─── A/B Experiment Parameters ───────────────────────────────────────
+  // These are sent by the frontend experiment system and used for ranking tuning.
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  showCondition?: boolean;
+
+  @IsOptional()
+  @Transform(({ value }) => value === 'true' || value === true)
+  showSellerBadge?: boolean;
+
+  @IsOptional()
+  @IsString()
+  position?: string;
+
+  @IsOptional()
+  @IsString()
+  defaultSort?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  phraseBoost?: number;
+
+  @IsOptional()
+  @IsString()
+  recencyScale?: string;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  recencyWeight?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  popularityViewWeight?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  popularityFavWeight?: number;
+
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  synonymBoost?: number;
 }

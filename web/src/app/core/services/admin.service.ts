@@ -21,6 +21,7 @@ import {
   AppBannerStats,
   EngagementAnalytics,
   PriceTrendsData,
+  VoiceSearchAnalytics,
 } from '../models/analytics.model';
 import { API } from '../constants/api-endpoints';
 import { IdVerificationStats } from '../models/id-verification.model';
@@ -35,6 +36,7 @@ export type {
   AppBannerStats,
   EngagementAnalytics,
   PriceTrendsData,
+  VoiceSearchAnalytics,
 } from '../models/analytics.model';
 
 export interface AdminUser {
@@ -228,6 +230,15 @@ export class AdminService {
     if (dateRange?.endDate) params = params.set('dateTo', dateRange.endDate);
     return this.http
       .get<any>(`${this.baseUrl}${API.ADMIN_ANALYTICS_ENGAGEMENT}`, { params })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
+  }
+
+  getVoiceSearchAnalytics(dateRange?: DateRange): Observable<VoiceSearchAnalytics> {
+    let params = new HttpParams();
+    if (dateRange?.startDate) params = params.set('dateFrom', dateRange.startDate);
+    if (dateRange?.endDate) params = params.set('dateTo', dateRange.endDate);
+    return this.http
+      .get<any>(`${this.baseUrl}${API.ADMIN_ANALYTICS_VOICE_SEARCH}`, { params })
       .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
   }
 

@@ -350,6 +350,229 @@
     }
 
     <!-- ═══════════════════════════════════════════════════ -->
+    <!-- VOICE SEARCH                                       -->
+    <!-- ═══════════════════════════════════════════════════ -->
+
+    <h2 class="section-group-title">
+      <span class="material-symbols-rounded">mic</span> Voice Search
+    </h2>
+
+    @if (voiceSearchStats(); as vs) {
+      <!-- Summary Metrics -->
+      <section class="charts-section">
+        <div class="metrics-grid metrics-grid-4">
+          <div class="metric-card" [appTooltip]="'Total voice searches initiated'">
+            <span class="metric-icon material-symbols-rounded">mic</span>
+            <div class="metric-info">
+              <span class="metric-value">{{ vs.totalStarted | number }}</span>
+              <span class="metric-label">Started</span>
+            </div>
+          </div>
+          <div
+            class="metric-card metric-card-success"
+            [appTooltip]="'Successfully completed voice searches'"
+          >
+            <span class="metric-icon material-symbols-rounded">check_circle</span>
+            <div class="metric-info">
+              <span class="metric-value">{{ vs.totalCompleted | number }}</span>
+              <span class="metric-label">Completed ({{ vs.completionRate }}%)</span>
+            </div>
+          </div>
+          <div
+            class="metric-card metric-card-warning"
+            [appTooltip]="'Voice searches cancelled by user'"
+          >
+            <span class="metric-icon material-symbols-rounded">cancel</span>
+            <div class="metric-info">
+              <span class="metric-value">{{ vs.totalCancelled | number }}</span>
+              <span class="metric-label">Cancelled ({{ vs.cancelRate }}%)</span>
+            </div>
+          </div>
+          <div
+            class="metric-card metric-card-danger"
+            [appTooltip]="'Voice searches that failed with errors'"
+          >
+            <span class="metric-icon material-symbols-rounded">error</span>
+            <div class="metric-info">
+              <span class="metric-value">{{ vs.totalErrors | number }}</span>
+              <span class="metric-label">Errors ({{ vs.errorRate }}%)</span>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <!-- Text vs Voice Search Comparison -->
+      <section class="charts-section">
+        <h2>Text Search vs Voice Search</h2>
+        <div class="comparison-card">
+          <div class="comparison-totals">
+            <div class="comparison-total-item" [appTooltip]="'Total text-based searches'">
+              <span class="material-symbols-rounded">search</span>
+              <div class="comparison-total-info">
+                <span class="comparison-total-value">{{
+                  vs.searchComparison.totalTextSearches | number
+                }}</span>
+                <span class="comparison-total-label">Text Searches</span>
+              </div>
+            </div>
+            <div
+              class="comparison-total-item auth"
+              [appTooltip]="'Total successful voice searches'"
+            >
+              <span class="material-symbols-rounded">mic</span>
+              <div class="comparison-total-info">
+                <span class="comparison-total-value">{{
+                  vs.searchComparison.totalVoiceSearches | number
+                }}</span>
+                <span class="comparison-total-label"
+                  >Voice Searches ({{ vs.searchComparison.voiceSearchShare }}%)</span
+                >
+              </div>
+            </div>
+          </div>
+          @if (vs.searchComparison.dailyComparison.length > 0) {
+            <div class="chart-card" style="margin-top: var(--space-2)">
+              <div class="chart-header">
+                <h3>Daily Comparison</h3>
+              </div>
+              <div class="verification-legend">
+                <span class="legend-item"
+                  ><span class="legend-dot legend-submitted"></span> Text</span
+                >
+                <span class="legend-item"
+                  ><span class="legend-dot legend-approved"></span> Voice</span
+                >
+              </div>
+              <div class="bar-chart-wrap">
+                <div class="bar-chart">
+                  @for (point of vs.searchComparison.dailyComparison; track point.date) {
+                    <div class="bar-column bar-column-stacked">
+                      <div class="stacked-bars">
+                        @if (point.text > 0) {
+                          <div
+                            class="bar bar-id-pending"
+                            [style.height.px]="
+                              getBarHeight(
+                                point.text,
+                                getMaxValue(vs.searchComparison.dailyComparison, 'text')
+                              ) * 0.8
+                            "
+                            [title]="'Text: ' + point.text"
+                          ></div>
+                        }
+                        @if (point.voice > 0) {
+                          <div
+                            class="bar bar-id-approved"
+                            [style.height.px]="
+                              getBarHeight(
+                                point.voice,
+                                getMaxValue(vs.searchComparison.dailyComparison, 'voice')
+                              ) * 0.8
+                            "
+                            [title]="'Voice: ' + point.voice"
+                          ></div>
+                        }
+                      </div>
+                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
+                    </div>
+                  }
+                </div>
+              </div>
+            </div>
+          }
+        </div>
+      </section>
+
+      <!-- Platform Breakdown + Top Queries side by side -->
+      <div class="charts-grid">
+        <!-- Platform Breakdown -->
+        @if (vs.byPlatform.length > 0) {
+          <div class="chart-card">
+            <div class="chart-header"><h3>Platform Breakdown</h3></div>
+            <div class="device-h-bars">
+              @for (p of vs.byPlatform; track p.platform) {
+                <div class="device-h-row">
+                  <div class="device-h-icon" [class]="'device-color-bg-' + p.platform">
+                    <span class="material-symbols-rounded">
+                      {{ p.platform === 'mobile' ? 'smartphone' : 'computer' }}
+                    </span>
+                  </div>
+                  <span class="device-h-label">{{ p.platform | titlecase }}</span>
+                  <div class="device-h-track">
+                    <div
+                      class="device-h-fill"
+                      [class]="'device-color-' + p.platform"
+                      [style.width.%]="
+                        vs.totalStarted > 0 ? (p.started / vs.totalStarted) * 100 : 0
+                      "
+                    ></div>
+                  </div>
+                  <span class="device-h-count">{{ p.started | number }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Top Voice Queries -->
+        @if (vs.topQueries.length > 0) {
+          <section class="charts-section">
+            <h2>Top Voice Queries</h2>
+            <div class="data-table-card scrollable-table">
+              <div class="table-scroll-body">
+                <table class="data-table">
+                  <thead>
+                    <tr>
+                      <th class="col-rank">#</th>
+                      <th class="col-term">Query</th>
+                      <th class="col-count">Count</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (item of vs.topQueries; track $index) {
+                      <tr>
+                        <td class="col-rank">{{ $index + 1 }}</td>
+                        <td class="col-term">{{ item.term }}</td>
+                        <td class="col-count">{{ item.count | number }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          </section>
+        }
+      </div>
+
+      <!-- Error Breakdown -->
+      @if (vs.errorBreakdown.length > 0) {
+        <section class="charts-section">
+          <h2>Error Breakdown</h2>
+          <div class="chart-card">
+            <div class="h-bar-chart">
+              @for (item of vs.errorBreakdown; track item.error) {
+                <div class="h-bar-row">
+                  <span class="h-bar-label">{{ formatAction(item.error) }}</span>
+                  <div class="h-bar-track">
+                    <div
+                      class="h-bar-fill bar-failures"
+                      [style.width.%]="getBarHeight(item.count, vs.errorBreakdown[0].count)"
+                    ></div>
+                  </div>
+                  <span class="h-bar-value">{{ item.count | number }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        </section>
+      }
+    } @else {
+      <div class="chart-card">
+        <p class="no-data">No voice search data yet.</p>
+      </div>
+    }
+
+    <!-- ═══════════════════════════════════════════════════ -->
     <!-- CONTENT & MARKETPLACE                              -->
     <!-- ═══════════════════════════════════════════════════ -->
 

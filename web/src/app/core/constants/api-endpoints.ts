@@ -120,6 +120,7 @@ export const API = {
   ADMIN_ANALYTICS_EXPORT: '/admin/analytics/export',
   ADMIN_ANALYTICS_APP_BANNER: '/admin/analytics/app-banner',
   ADMIN_ANALYTICS_ENGAGEMENT: '/admin/analytics/engagement',
+  ADMIN_ANALYTICS_VOICE_SEARCH: '/admin/analytics/voice-search',
   ADMIN_ANALYTICS_PRICE_TRENDS: '/admin/analytics/price-trends',
   ADMIN_LISTINGS_PENDING: '/admin/listings/pending',
   ADMIN_LISTINGS_ALL: '/admin/listings/all',

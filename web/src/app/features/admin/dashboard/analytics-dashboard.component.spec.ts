@@ -55,6 +55,27 @@ describe('AnalyticsDashboardComponent', () => {
       getPriceTrends: vi
         .fn()
         .mockReturnValue(of({ categories: [], overall: null, recentChanges: [] })),
+      getVoiceSearchAnalytics: vi.fn().mockReturnValue(
+        of({
+          totalStarted: 0,
+          totalCompleted: 0,
+          totalCancelled: 0,
+          totalErrors: 0,
+          completionRate: 0,
+          cancelRate: 0,
+          errorRate: 0,
+          topQueries: [],
+          byPlatform: [],
+          errorBreakdown: [],
+          dailyTrend: [],
+          searchComparison: {
+            totalTextSearches: 0,
+            totalVoiceSearches: 0,
+            voiceSearchShare: 0,
+            dailyComparison: [],
+          },
+        }),
+      ),
       getIdVerificationStats: vi
         .fn()
         .mockReturnValue(of({ total: 0, pending: 0, approved: 0, rejected: 0 })),

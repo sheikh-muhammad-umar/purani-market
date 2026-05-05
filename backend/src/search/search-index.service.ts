@@ -54,36 +54,56 @@ export const listingsIndexSettings = {
         type: 'synonym_graph' as const,
         synonyms: [
           // Mobile / Phone
-          'mobile, phone, cell, cellphone, smartphone, handset',
+          'mobile, phone, cell, cellphone, smartphone, handset, mobayl',
           'iphone, apple phone',
           // Vehicles
           'car, vehicle, gaari, gari, automobile',
-          'bike, motorcycle, motorbike',
+          'bike, motorcycle, motorbike, motor cycle',
           'truck, lorry',
+          'cycle, bicycle, saikil',
           // Property
-          'house, ghar, home, residence',
+          'house, ghar, home, residence, makaan',
           'flat, apartment',
-          'plot, land, zameen',
+          'plot, land, zameen, zamin',
           'marla, kanal',
+          'rent, kiraya, kiray par',
           // Electronics
           'laptop, notebook',
           'tv, television',
           'ac, air conditioner',
           'fridge, refrigerator',
+          'washing machine, washer',
+          'camera, kamera',
+          // Furniture
+          'sofa, couch, settee',
+          'bed, palang, bistar',
+          'table, mez',
+          'chair, kursi',
+          'wardrobe, almari, almaari',
           // Condition
-          'new, brand new, sealed, unused',
-          'used, second hand, 2nd hand, preowned, pre-owned',
+          'new, brand new, sealed, unused, naya, nayi',
+          'used, second hand, 2nd hand, preowned, pre-owned, purana, purani',
           // Common Urdu/English marketplace terms
-          'sell, bechna, for sale',
-          'buy, khareedna, purchase',
-          'cheap, sasta, budget, affordable',
-          'urgent, jaldi, asap',
+          'sell, bechna, for sale, farookht',
+          'buy, khareedna, purchase, kharidna',
+          'cheap, sasta, budget, affordable, kam qeemat',
+          'urgent, jaldi, asap, fori',
+          'price, qeemat, daam',
           // Storage
           'gb, gigabyte',
           'tb, terabyte',
           // PTA status (Pakistan specific)
           'pta, pta approved',
           'non pta, non-pta, without pta',
+          // Clothing
+          'clothes, kapray, kapde',
+          'shoes, jootay, joote',
+          // Jobs
+          'job, naukri, kaam',
+          // Animals
+          'pet, janwar',
+          'cat, billi',
+          'dog, kutta',
         ],
       },
     },

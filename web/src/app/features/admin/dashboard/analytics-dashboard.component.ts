@@ -13,6 +13,7 @@ import {
   AppBannerStats,
   EngagementAnalytics,
   PriceTrendsData,
+  VoiceSearchAnalytics,
 } from '../../../core/services/admin.service';
 import {
   GuestVsAuthEntry,
@@ -30,6 +31,9 @@ export interface MetricCard {
   icon: string;
   format: 'number' | 'currency';
 }
+
+/** Default lookback period in milliseconds (30 days) */
+const DEFAULT_LOOKBACK_MS = 30 * 24 * 60 * 60 * 1000;
 
 @Component({
   selector: 'app-analytics-dashboard',
@@ -53,6 +57,7 @@ export class AnalyticsDashboardComponent implements OnInit {
   readonly bannerStats = signal<AppBannerStats | null>(null);
   readonly engagement = signal<EngagementAnalytics | null>(null);
   readonly priceTrends = signal<PriceTrendsData | null>(null);
+  readonly voiceSearchStats = signal<VoiceSearchAnalytics | null>(null);
   readonly idVerificationStats = signal<IdVerificationStats | null>(null);
 
   startDate = '';
@@ -197,25 +202,22 @@ export class AnalyticsDashboardComponent implements OnInit {
 
   ngOnInit(): void {
     const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
-    this.startDate = this.formatDateInput(thirtyDaysAgo);
+    const lookbackStart = new Date(now.getTime() - DEFAULT_LOOKBACK_MS);
+    this.startDate = this.formatDateInput(lookbackStart);
     this.endDate = this.formatDateInput(now);
     this.loadAnalytics();
     this.loadBannerStats();
     this.loadEngagement();
     this.loadPriceTrends();
+    this.loadVoiceSearchStats();
     this.loadIdVerificationStats();
   }
 
   loadAnalytics(): void {
     this.loading.set(true);
     this.error.set(null);
-    const dateRange: DateRange | undefined =
-      this.startDate && this.endDate
-        ? { startDate: this.startDate, endDate: this.endDate }
-        : undefined;
 
-    this.adminService.getAnalytics(dateRange).subscribe({
+    this.adminService.getAnalytics(this.getDateRange()).subscribe({
       next: (data: any) => {
         const km = data?.metrics ?? data?.keyMetrics ?? {};
         this.metrics.set({
@@ -250,39 +252,41 @@ export class AnalyticsDashboardComponent implements OnInit {
     this.loadBannerStats();
     this.loadEngagement();
     this.loadPriceTrends();
+    this.loadVoiceSearchStats();
   }
 
   private loadBannerStats(): void {
-    const dateRange: DateRange | undefined =
-      this.startDate && this.endDate
-        ? { startDate: this.startDate, endDate: this.endDate }
-        : undefined;
-    this.adminService.getAppBannerStats(dateRange).subscribe({
+    this.adminService.getAppBannerStats(this.getDateRange()).subscribe({
       next: (stats) => this.bannerStats.set(stats),
       error: () => {},
     });
   }
 
   private loadEngagement(): void {
-    const dateRange: DateRange | undefined =
-      this.startDate && this.endDate
-        ? { startDate: this.startDate, endDate: this.endDate }
-        : undefined;
-    this.adminService.getEngagementAnalytics(dateRange).subscribe({
+    this.adminService.getEngagementAnalytics(this.getDateRange()).subscribe({
       next: (data) => this.engagement.set(data),
       error: () => {},
     });
   }
 
   private loadPriceTrends(): void {
-    const dateRange: DateRange | undefined =
-      this.startDate && this.endDate
-        ? { startDate: this.startDate, endDate: this.endDate }
-        : undefined;
-    this.adminService.getPriceTrends(dateRange).subscribe({
+    this.adminService.getPriceTrends(this.getDateRange()).subscribe({
       next: (data) => this.priceTrends.set(data),
       error: () => {},
     });
+  }
+
+  private loadVoiceSearchStats(): void {
+    this.adminService.getVoiceSearchAnalytics(this.getDateRange()).subscribe({
+      next: (data) => this.voiceSearchStats.set(data),
+      error: () => {},
+    });
+  }
+
+  private getDateRange(): DateRange | undefined {
+    return this.startDate && this.endDate
+      ? { startDate: this.startDate, endDate: this.endDate }
+      : undefined;
   }
 
   getMaxPriceChanges(categories: CategoryPriceTrend[]): number {

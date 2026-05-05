@@ -179,7 +179,7 @@ export class SearchService {
     limit: number,
   ): Promise<SearchResult> {
     const from = (page - 1) * limit;
-    const rankingConfig = this.parseRankingConfig(query.rankingConfig);
+    const rankingConfig = this.parseRankingConfig(query.rankingConfig, query);
     const baseQuery = await this.buildSearchQuery(query, rankingConfig);
     const boostedQuery = this.searchSyncService.buildFeaturedBoostQuery(
       baseQuery,
@@ -764,29 +764,53 @@ export class SearchService {
   }
 
   /** Parse ranking config from experiment JSON string, with safe defaults */
-  private parseRankingConfig(configStr?: string): RankingConfig {
-    if (!configStr) return DEFAULT_RANKING_CONFIG;
-    try {
-      const parsed = JSON.parse(configStr);
-      return {
-        phraseBoost:
-          Number(parsed.phraseBoost) || DEFAULT_RANKING_CONFIG.phraseBoost,
-        recencyScale:
-          parsed.recencyScale || DEFAULT_RANKING_CONFIG.recencyScale,
-        recencyWeight:
-          Number(parsed.recencyWeight) || DEFAULT_RANKING_CONFIG.recencyWeight,
-        popularityViewWeight:
-          Number(parsed.popularityViewWeight) ||
-          DEFAULT_RANKING_CONFIG.popularityViewWeight,
-        popularityFavWeight:
-          Number(parsed.popularityFavWeight) ||
-          DEFAULT_RANKING_CONFIG.popularityFavWeight,
-        synonymBoost:
-          Number(parsed.synonymBoost) || DEFAULT_RANKING_CONFIG.synonymBoost,
-      };
-    } catch {
-      return DEFAULT_RANKING_CONFIG;
+  private parseRankingConfig(
+    configStr?: string,
+    query?: SearchQueryDto,
+  ): RankingConfig {
+    // Start with defaults
+    let config = { ...DEFAULT_RANKING_CONFIG };
+
+    // Override from JSON string if provided
+    if (configStr) {
+      try {
+        const parsed = JSON.parse(configStr);
+        config = {
+          phraseBoost:
+            Number(parsed.phraseBoost) || DEFAULT_RANKING_CONFIG.phraseBoost,
+          recencyScale:
+            parsed.recencyScale || DEFAULT_RANKING_CONFIG.recencyScale,
+          recencyWeight:
+            Number(parsed.recencyWeight) ||
+            DEFAULT_RANKING_CONFIG.recencyWeight,
+          popularityViewWeight:
+            Number(parsed.popularityViewWeight) ||
+            DEFAULT_RANKING_CONFIG.popularityViewWeight,
+          popularityFavWeight:
+            Number(parsed.popularityFavWeight) ||
+            DEFAULT_RANKING_CONFIG.popularityFavWeight,
+          synonymBoost:
+            Number(parsed.synonymBoost) || DEFAULT_RANKING_CONFIG.synonymBoost,
+        };
+      } catch {
+        // keep defaults
+      }
     }
+
+    // Override from individual query params (A/B experiment params sent directly)
+    if (query) {
+      if (query.phraseBoost != null) config.phraseBoost = query.phraseBoost;
+      if (query.recencyScale != null) config.recencyScale = query.recencyScale;
+      if (query.recencyWeight != null)
+        config.recencyWeight = query.recencyWeight;
+      if (query.popularityViewWeight != null)
+        config.popularityViewWeight = query.popularityViewWeight;
+      if (query.popularityFavWeight != null)
+        config.popularityFavWeight = query.popularityFavWeight;
+      if (query.synonymBoost != null) config.synonymBoost = query.synonymBoost;
+    }
+
+    return config;
   }
 
   async trackSearchTerm(term: string): Promise<void> {

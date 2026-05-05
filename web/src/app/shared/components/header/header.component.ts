@@ -24,20 +24,28 @@ import { LoginModalService } from '../login-modal/login-modal.service';
 import { AppBannerComponent } from '../app-banner/app-banner.component';
 import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 import { NotificationCountService } from '../../../core/services/notification-count.service';
+import { VoiceSearchComponent } from '../voice-search/voice-search.component';
 import { Province, City, Area } from '../../../core/models';
 import { STORAGE_SELECTED_LOCATION } from '../../../core/constants/storage-keys';
 import { DEFAULT_COUNTRY } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
+import {
+  MOBILE_BREAKPOINT,
+  SEARCH_PLACEHOLDER_MOBILE,
+  SEARCH_PLACEHOLDER_DESKTOP,
+  SEARCH_BLUR_DELAY,
+  LOGOUT_DELAY,
+  SCROLL_THRESHOLD,
+} from './header.constants';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, AppBannerComponent, NotificationBellComponent],
+  imports: [RouterLink, AppBannerComponent, NotificationBellComponent, VoiceSearchComponent],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
 export class HeaderComponent implements OnInit, OnDestroy {
-  mobileMenuOpen = signal(false);
   accountMenuOpen = signal(false);
   unreadCount = signal(0);
   scrolled = signal(false);
@@ -50,9 +58,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
   locationDropdownOpen = signal(false);
   searchDropdownOpen = signal(false);
   searchPlaceholder = signal(
-    typeof window !== 'undefined' && window.innerWidth < 1024
-      ? 'Search...'
-      : 'Find cars, phones, furniture...',
+    this.isBrowser && window.innerWidth < MOBILE_BREAKPOINT
+      ? SEARCH_PLACEHOLDER_MOBILE
+      : SEARCH_PLACEHOLDER_DESKTOP,
   );
   provinces = signal<Province[]>([]);
   cities = signal<City[]>([]);
@@ -76,6 +84,36 @@ export class HeaderComponent implements OnInit, OnDestroy {
     return q ? this.areas().filter((a) => a.name.toLowerCase().includes(q)) : this.areas();
   });
 
+  private searchBlurTimeout: ReturnType<typeof setTimeout> | null = null;
+  private logoutTimeout: ReturnType<typeof setTimeout> | null = null;
+
+  // Page detection — computed from router URL to avoid recalculating every CD cycle
+  private currentUrl = signal('');
+  readonly isAuthPage = computed(() => this.currentUrl().startsWith(ROUTES.AUTH));
+  readonly isMessagingPage = computed(() => this.currentUrl().startsWith(ROUTES.MESSAGING));
+  readonly isChatOpen = computed(() => {
+    const url = this.currentUrl().split('?')[0];
+    return url !== ROUTES.MESSAGING && url.startsWith(ROUTES.MESSAGING + '/');
+  });
+  readonly isProfilePage = computed(() => this.currentUrl().startsWith(ROUTES.PROFILE));
+  readonly isAdminPage = computed(() => this.currentUrl().startsWith(ROUTES.ADMIN));
+
+  /** Combined computed for header scroll class and mobile search visibility */
+  readonly showScrolledHeader = computed(
+    () =>
+      this.scrolled() &&
+      !this.isAuthPage() &&
+      !this.isMessagingPage() &&
+      !this.isProfilePage() &&
+      !this.isAdminPage(),
+  );
+  readonly showMobileSearch = computed(
+    () =>
+      !this.isAuthPage() && !this.isMessagingPage() && !this.isProfilePage() && !this.isAdminPage(),
+  );
+  readonly isAuthenticated = computed(() => this.authService.isAuthenticated());
+  readonly isAdmin = computed(() => this.authService.isAdmin());
+
   constructor(
     public readonly authService: AuthService,
     private readonly messagingService: MessagingService,
@@ -97,10 +135,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.loadProvinces();
     this.restoreLocationFromStorage();
 
+    // Track current URL for page detection signals
+    this.currentUrl.set(this.router.url);
     this.subs.push(
       this.router.events
         .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))
-        .subscribe(() => {
+        .subscribe((e) => {
+          this.currentUrl.set(e.urlAfterRedirects);
           this.closeAccountMenu();
         }),
     );
@@ -114,6 +155,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.forEach((s) => s.unsubscribe());
+    if (this.searchBlurTimeout) clearTimeout(this.searchBlurTimeout);
+    if (this.logoutTimeout) clearTimeout(this.logoutTimeout);
   }
 
   private refreshUnreadCount(): void {
@@ -122,36 +165,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
       next: (res) => this.unreadCount.set(res.count),
       error: () => {},
     });
-  }
-
-  get isAuthPage(): boolean {
-    return this.router.url.startsWith(ROUTES.AUTH);
-  }
-
-  get isMessagingPage(): boolean {
-    return this.router.url.startsWith(ROUTES.MESSAGING);
-  }
-
-  /** True when a specific conversation is open (e.g. /messaging/abc123). */
-  get isChatOpen(): boolean {
-    const url = this.router.url.split('?')[0];
-    return url !== ROUTES.MESSAGING && url.startsWith(ROUTES.MESSAGING + '/');
-  }
-
-  get isProfilePage(): boolean {
-    return this.router.url.startsWith(ROUTES.PROFILE);
-  }
-
-  get isAdminPage(): boolean {
-    return this.router.url.startsWith(ROUTES.ADMIN);
-  }
-
-  toggleMenu(): void {
-    this.mobileMenuOpen.update((open) => !open);
-  }
-
-  closeMenu(): void {
-    this.mobileMenuOpen.set(false);
   }
 
   toggleAccountMenu(): void {
@@ -171,6 +184,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
   }
 
+  onVoiceSearchResult(transcript: string, inputEl: HTMLInputElement): void {
+    inputEl.value = transcript;
+    this.goToSearch(transcript);
+  }
+
   onSearchFocus(): void {
     if (this.recentSearches.searches().length > 0) {
       this.searchDropdownOpen.set(true);
@@ -178,8 +196,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   onSearchBlur(): void {
-    // Delay to allow click on suggestion
-    setTimeout(() => this.searchDropdownOpen.set(false), 200);
+    this.searchBlurTimeout = setTimeout(
+      () => this.searchDropdownOpen.set(false),
+      SEARCH_BLUR_DELAY,
+    );
   }
 
   selectRecentSearch(term: string, inputEl: HTMLInputElement): void {
@@ -207,14 +227,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
   onResize(): void {
     if (!this.isBrowser) return;
     this.searchPlaceholder.set(
-      window.innerWidth < 1024 ? 'Search...' : 'Find cars, phones, furniture...',
+      window.innerWidth < MOBILE_BREAKPOINT
+        ? SEARCH_PLACEHOLDER_MOBILE
+        : SEARCH_PLACEHOLDER_DESKTOP,
     );
   }
 
   @HostListener('window:scroll')
   onScroll(): void {
     if (!this.isBrowser) return;
-    this.scrolled.set(window.scrollY > 10);
+    this.scrolled.set(window.scrollY > SCROLL_THRESHOLD);
   }
 
   @HostListener('document:click', ['$event'])
@@ -302,7 +324,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   selectSubItem(name: string): void {
-    this.applyLocation(name, this.buildLabel(this.selectedArea()?.name, name));
+    this.applyLocation(this.buildLabel(this.selectedArea()?.name, name));
   }
 
   /** "All Pakistan" */
@@ -312,31 +334,31 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.selectedArea.set(null);
     this.cities.set([]);
     this.areas.set([]);
-    this.applyLocation(DEFAULT_COUNTRY, DEFAULT_COUNTRY);
+    this.applyLocation(DEFAULT_COUNTRY);
   }
 
   /** "All <Province>" */
   seeAllInProvince(): void {
     const p = this.selectedProvince();
     if (!p) return;
-    this.applyLocation(p.name, p.name);
+    this.applyLocation(p.name);
   }
 
   /** "All <City>" */
   seeAllInCity(): void {
     const c = this.selectedCity();
     if (!c) return;
-    this.applyLocation(c.name, this.buildLabel(this.selectedProvince()?.name, c.name));
+    this.applyLocation(this.buildLabel(this.selectedProvince()?.name, c.name));
   }
 
   /** "All <Area>" */
   seeAllInArea(): void {
     const a = this.selectedArea();
     if (!a) return;
-    this.applyLocation(a.name, this.buildLabel(this.selectedCity()?.name, a.name));
+    this.applyLocation(this.buildLabel(this.selectedCity()?.name, a.name));
   }
 
-  private applyLocation(_label: string, fullLabel: string): void {
+  private applyLocation(fullLabel: string): void {
     const previousLocation = this.locationLabel();
     this.locationLabel.set(fullLabel);
     this.locationDropdownOpen.set(false);
@@ -345,10 +367,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
       metadata: { previousLocation, newLocation: fullLabel },
     });
     this.reloadCurrentPage();
-  }
-
-  clearLocation(): void {
-    this.seeAllPakistan();
   }
 
   goBackToProvinces(): void {
@@ -390,7 +408,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
   }
 
   private reloadCurrentPage(): void {
-    // Use Angular router to re-navigate to the same URL, forcing components to re-init
     const url = this.router.url;
     this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
       this.router.navigateByUrl(url);
@@ -407,7 +424,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
       if (state.city) this.selectedCity.set(state.city);
       if (state.area) this.selectedArea.set(state.area);
 
-      // Reload child data so dropdowns work if reopened
       if (state.province?._id) {
         this.locationService.getCities(state.province._id).subscribe({
           next: (cities) => this.cities.set(cities),
@@ -430,14 +446,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
   logout(): void {
     if (this.loggingOut) return;
     this.loggingOut = true;
-    this.closeMenu();
     this.closeAccountMenu();
-    this.recentSearches.searches();
     this.tracker.track(TrackingEvent.LOGOUT, { metadata: this.tracker.getDeviceInfo() });
-    // Small delay to let the track request fire before tokens are cleared
-    setTimeout(() => {
+    this.logoutTimeout = setTimeout(() => {
       this.authService.logout();
       this.loggingOut = false;
-    }, 150);
+    }, LOGOUT_DELAY);
   }
 }

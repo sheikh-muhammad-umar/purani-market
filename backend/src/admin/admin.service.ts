@@ -1335,6 +1335,310 @@ export class AdminService {
     };
   }
 
+  // ── Voice Search Analytics ───────────────────────────────────────
+
+  async getVoiceSearchAnalytics(
+    dateFrom?: string,
+    dateTo?: string,
+  ): Promise<{
+    totalStarted: number;
+    totalCompleted: number;
+    totalCancelled: number;
+    totalErrors: number;
+    completionRate: number;
+    cancelRate: number;
+    errorRate: number;
+    topQueries: { term: string; count: number }[];
+    byPlatform: {
+      platform: string;
+      started: number;
+      completed: number;
+      cancelled: number;
+      errors: number;
+    }[];
+    errorBreakdown: { error: string; count: number }[];
+    dailyTrend: { date: string; started: number; completed: number }[];
+    searchComparison: {
+      totalTextSearches: number;
+      totalVoiceSearches: number;
+      voiceSearchShare: number;
+      dailyComparison: { date: string; text: number; voice: number }[];
+    };
+  }> {
+    const dateFilter = this.buildDateFilter(dateFrom, dateTo);
+
+    const voiceActions = [
+      UserAction.VOICE_SEARCH_START,
+      UserAction.VOICE_SEARCH_COMPLETE,
+      UserAction.VOICE_SEARCH_CANCEL,
+      UserAction.VOICE_SEARCH_ERROR,
+    ];
+
+    const [
+      totalStarted,
+      totalCompleted,
+      totalCancelled,
+      totalErrors,
+      topQueries,
+      platformBreakdown,
+      errorBreakdown,
+      dailyTrend,
+      totalTextSearches,
+      dailySearchComparison,
+    ] = await Promise.all([
+      this.activityModel
+        .countDocuments({
+          action: UserAction.VOICE_SEARCH_START,
+          ...dateFilter,
+        })
+        .exec(),
+      this.activityModel
+        .countDocuments({
+          action: UserAction.VOICE_SEARCH_COMPLETE,
+          ...dateFilter,
+        })
+        .exec(),
+      this.activityModel
+        .countDocuments({
+          action: UserAction.VOICE_SEARCH_CANCEL,
+          ...dateFilter,
+        })
+        .exec(),
+      this.activityModel
+        .countDocuments({
+          action: UserAction.VOICE_SEARCH_ERROR,
+          ...dateFilter,
+        })
+        .exec(),
+
+      // Top voice search queries
+      this.activityModel
+        .aggregate([
+          {
+            $match: {
+              action: UserAction.VOICE_SEARCH_COMPLETE,
+              searchQuery: { $ne: null },
+              ...dateFilter,
+            },
+          },
+          { $group: { _id: '$searchQuery', count: { $sum: 1 } } },
+          { $sort: { count: -1 } },
+          { $limit: 20 },
+        ])
+        .exec(),
+
+      // Platform (mobile vs desktop) breakdown
+      this.activityModel
+        .aggregate([
+          {
+            $match: {
+              action: { $in: voiceActions },
+              ...dateFilter,
+            },
+          },
+          {
+            $group: {
+              _id: {
+                platform: {
+                  $cond: [
+                    { $eq: ['$metadata.mobile', true] },
+                    'mobile',
+                    'desktop',
+                  ],
+                },
+                action: '$action',
+              },
+              count: { $sum: 1 },
+            },
+          },
+        ])
+        .exec(),
+
+      // Error type breakdown
+      this.activityModel
+        .aggregate([
+          {
+            $match: {
+              action: UserAction.VOICE_SEARCH_ERROR,
+              ...dateFilter,
+            },
+          },
+          {
+            $group: {
+              _id: { $ifNull: ['$metadata.error', 'unknown'] },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { count: -1 } },
+        ])
+        .exec(),
+
+      // Daily trend (voice)
+      this.activityModel
+        .aggregate([
+          {
+            $match: {
+              action: {
+                $in: [
+                  UserAction.VOICE_SEARCH_START,
+                  UserAction.VOICE_SEARCH_COMPLETE,
+                ],
+              },
+              ...dateFilter,
+            },
+          },
+          {
+            $group: {
+              _id: {
+                date: {
+                  $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+                },
+                action: '$action',
+              },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { '_id.date': 1 } },
+        ])
+        .exec(),
+
+      // Total normal text searches (action = 'search')
+      this.activityModel
+        .countDocuments({ action: UserAction.SEARCH, ...dateFilter })
+        .exec(),
+
+      // Daily comparison: text search vs voice search (completed)
+      this.activityModel
+        .aggregate([
+          {
+            $match: {
+              action: {
+                $in: [UserAction.SEARCH, UserAction.VOICE_SEARCH_COMPLETE],
+              },
+              ...dateFilter,
+            },
+          },
+          {
+            $group: {
+              _id: {
+                date: {
+                  $dateToString: { format: '%Y-%m-%d', date: '$createdAt' },
+                },
+                action: '$action',
+              },
+              count: { $sum: 1 },
+            },
+          },
+          { $sort: { '_id.date': 1 } },
+        ])
+        .exec(),
+    ]);
+
+    // Build platform breakdown map
+    const platformMap = new Map<
+      string,
+      { started: number; completed: number; cancelled: number; errors: number }
+    >();
+    for (const row of platformBreakdown) {
+      const platform = row._id.platform;
+      if (!platformMap.has(platform)) {
+        platformMap.set(platform, {
+          started: 0,
+          completed: 0,
+          cancelled: 0,
+          errors: 0,
+        });
+      }
+      const entry = platformMap.get(platform)!;
+      if (row._id.action === UserAction.VOICE_SEARCH_START)
+        entry.started = row.count;
+      else if (row._id.action === UserAction.VOICE_SEARCH_COMPLETE)
+        entry.completed = row.count;
+      else if (row._id.action === UserAction.VOICE_SEARCH_CANCEL)
+        entry.cancelled = row.count;
+      else if (row._id.action === UserAction.VOICE_SEARCH_ERROR)
+        entry.errors = row.count;
+    }
+
+    // Build daily trend
+    const dailyMap = new Map<string, { started: number; completed: number }>();
+    for (const row of dailyTrend) {
+      const date = row._id.date;
+      if (!dailyMap.has(date)) {
+        dailyMap.set(date, { started: 0, completed: 0 });
+      }
+      const entry = dailyMap.get(date)!;
+      if (row._id.action === UserAction.VOICE_SEARCH_START)
+        entry.started = row.count;
+      else if (row._id.action === UserAction.VOICE_SEARCH_COMPLETE)
+        entry.completed = row.count;
+    }
+
+    // Build daily search comparison (text vs voice)
+    const comparisonMap = new Map<string, { text: number; voice: number }>();
+    for (const row of dailySearchComparison) {
+      const date = row._id.date;
+      if (!comparisonMap.has(date)) {
+        comparisonMap.set(date, { text: 0, voice: 0 });
+      }
+      const entry = comparisonMap.get(date)!;
+      if (row._id.action === UserAction.SEARCH) entry.text = row.count;
+      else if (row._id.action === UserAction.VOICE_SEARCH_COMPLETE)
+        entry.voice = row.count;
+    }
+
+    const totalSearches = totalTextSearches + totalCompleted;
+    const voiceSearchShare =
+      totalSearches > 0
+        ? Math.round((totalCompleted / totalSearches) * 10000) / 100
+        : 0;
+
+    return {
+      totalStarted,
+      totalCompleted,
+      totalCancelled,
+      totalErrors,
+      completionRate:
+        totalStarted > 0
+          ? Math.round((totalCompleted / totalStarted) * 10000) / 100
+          : 0,
+      cancelRate:
+        totalStarted > 0
+          ? Math.round((totalCancelled / totalStarted) * 10000) / 100
+          : 0,
+      errorRate:
+        totalStarted > 0
+          ? Math.round((totalErrors / totalStarted) * 10000) / 100
+          : 0,
+      topQueries: topQueries.map((q: any) => ({ term: q._id, count: q.count })),
+      byPlatform: Array.from(platformMap.entries()).map(
+        ([platform, stats]) => ({
+          platform,
+          ...stats,
+        }),
+      ),
+      errorBreakdown: errorBreakdown.map((e: any) => ({
+        error: e._id,
+        count: e.count,
+      })),
+      dailyTrend: Array.from(dailyMap.entries()).map(([date, stats]) => ({
+        date,
+        ...stats,
+      })),
+      searchComparison: {
+        totalTextSearches,
+        totalVoiceSearches: totalCompleted,
+        voiceSearchShare,
+        dailyComparison: Array.from(comparisonMap.entries()).map(
+          ([date, stats]) => ({
+            date,
+            ...stats,
+          }),
+        ),
+      },
+    };
+  }
+
   // ── Category Price Trends ───────────────────────────────────────
 
   async getCategoryPriceTrends(

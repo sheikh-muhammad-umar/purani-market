@@ -293,6 +293,14 @@ export class AdminController {
     return this.adminService.getEngagementAnalytics(dateFrom, dateTo);
   }
 
+  @Get('analytics/voice-search')
+  async getVoiceSearchAnalytics(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.adminService.getVoiceSearchAnalytics(dateFrom, dateTo);
+  }
+
   @Get('analytics/social-logins')
   async getSocialLoginAnalytics(
     @Query('dateFrom') dateFrom?: string,

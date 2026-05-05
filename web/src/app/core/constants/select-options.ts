@@ -140,6 +140,11 @@ export const ACTION_FILTER_OPTIONS: SelectOption[] = [
   { value: 'payment_attempt', label: 'Payment Attempt' },
   // Location
   { value: 'location_change', label: 'Location Change' },
+  // Voice Search
+  { value: 'voice_search_start', label: 'Voice Search Start' },
+  { value: 'voice_search_complete', label: 'Voice Search Complete' },
+  { value: 'voice_search_cancel', label: 'Voice Search Cancel' },
+  { value: 'voice_search_error', label: 'Voice Search Error' },
   // AI
   { value: 'dismiss', label: 'Dismiss Recommendation' },
   { value: 'recommendation_click', label: 'Recommendation Click' },

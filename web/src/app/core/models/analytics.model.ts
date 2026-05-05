@@ -126,3 +126,29 @@ export interface PriceTrendsData {
   avgPriceIncrease: number;
   avgPriceDecrease: number;
 }
+
+export interface VoiceSearchAnalytics {
+  totalStarted: number;
+  totalCompleted: number;
+  totalCancelled: number;
+  totalErrors: number;
+  completionRate: number;
+  cancelRate: number;
+  errorRate: number;
+  topQueries: { term: string; count: number }[];
+  byPlatform: {
+    platform: string;
+    started: number;
+    completed: number;
+    cancelled: number;
+    errors: number;
+  }[];
+  errorBreakdown: { error: string; count: number }[];
+  dailyTrend: { date: string; started: number; completed: number }[];
+  searchComparison: {
+    totalTextSearches: number;
+    totalVoiceSearches: number;
+    voiceSearchShare: number;
+    dailyComparison: { date: string; text: number; voice: number }[];
+  };
+}

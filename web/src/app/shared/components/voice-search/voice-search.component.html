@@ -1,0 +1,28 @@
+<button
+  [class]="mobile() ? 'mobile-voice-btn' : 'voice-search-btn'"
+  [class.voice-active]="voiceSearchActive()"
+  (mousedown)="onVoiceDown($event)"
+  (mouseup)="onVoiceUp($event)"
+  (mouseleave)="onVoiceLeave()"
+  (touchstart)="onVoiceDown($event)"
+  (touchend)="onVoiceUp($event)"
+  (touchmove)="onVoiceMove($event)"
+  title="Hold to speak"
+  aria-label="Hold to speak for voice search"
+>
+  <span class="material-symbols-rounded">mic</span>
+</button>
+
+@if (voiceSearchActive()) {
+  <div class="voice-listening-indicator">
+    <div class="voice-pulse"></div>
+    <span class="voice-transcript-live">{{
+      voiceSearch.interimTranscript() || LISTENING_LABEL
+    }}</span>
+    <span class="voice-hint">{{ HINT_LABEL }}</span>
+  </div>
+}
+
+@if (voiceSearchError()) {
+  <div class="voice-error-tooltip">{{ voiceSearchError() }}</div>
+}

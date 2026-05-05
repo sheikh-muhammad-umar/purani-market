@@ -26,7 +26,10 @@ const KNOWN_KEYS = new Set([
   'area',
   'blockPhase',
   'brandId',
+  'vehicleBrandId',
+  'modelId',
   'modelName',
+  'variantId',
   'lat',
   'lng',
   'radius',
@@ -39,6 +42,17 @@ const KNOWN_KEYS = new Set([
   'scoreThreshold',
   'threshold',
   'rankingConfig',
+  // A/B experiment params
+  'showCondition',
+  'showSellerBadge',
+  'position',
+  'defaultSort',
+  'phraseBoost',
+  'recencyScale',
+  'recencyWeight',
+  'popularityViewWeight',
+  'popularityFavWeight',
+  'synonymBoost',
 ]);
 
 @Controller('api/search')

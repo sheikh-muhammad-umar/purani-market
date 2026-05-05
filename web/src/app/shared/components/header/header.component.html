@@ -1,10 +1,5 @@
 <app-banner />
-<header
-  class="app-header"
-  [class.header-scrolled]="
-    scrolled() && !isAuthPage && !isMessagingPage && !isProfilePage && !isAdminPage
-  "
->
+<header class="app-header" [class.header-scrolled]="showScrolledHeader()">
   <div class="header-container">
     <!-- Logo -->
     <a [routerLink]="ROUTES.HOME" class="logo">
@@ -14,7 +9,7 @@
     </a>
 
     <!-- Search bar (desktop) -->
-    @if (!isAuthPage) {
+    @if (!isAuthPage()) {
       <div class="header-search">
         <div class="search-location" (click)="toggleLocationDropdown()">
           <span class="material-symbols-rounded" style="font-size: 18px">location_on</span>
@@ -171,11 +166,13 @@
         <button class="search-circle" (click)="goToSearch(desktopSearch.value)">
           <span class="material-symbols-rounded">search</span>
         </button>
+        <!-- Voice Search Button -->
+        <app-voice-search (searched)="onVoiceSearchResult($event, desktopSearch)" />
       </div>
     }
 
     <!-- Mobile notification icon (profile page only) -->
-    @if (isProfilePage && authService.isAuthenticated()) {
+    @if (isProfilePage() && isAuthenticated()) {
       <div class="mobile-profile-actions">
         <app-notification-bell #mobileNotificationBell="notificationBell">
           <button class="nav-icon" title="Notifications" (click)="mobileNotificationBell.toggle()">
@@ -194,7 +191,7 @@
 
     <!-- Desktop nav -->
     <nav class="desktop-nav">
-      @if (authService.isAuthenticated()) {
+      @if (isAuthenticated()) {
         <a [routerLink]="ROUTES.MESSAGING" class="nav-icon" title="Messages">
           <span class="material-symbols-rounded">chat_bubble_outline</span>
           @if (unreadCount() > 0) {
@@ -245,7 +242,7 @@
               <a [routerLink]="ROUTES.PACKAGES" class="dropdown-item">
                 <span class="material-symbols-rounded">inventory_2</span> Packages
               </a>
-              @if (authService.isAdmin()) {
+              @if (isAdmin()) {
                 <a [routerLink]="ROUTES.ADMIN" class="dropdown-item">
                   <span class="material-symbols-rounded">admin_panel_settings</span> Admin Panel
                 </a>
@@ -262,7 +259,7 @@
           <span class="material-symbols-rounded" style="font-size: 18px">storefront</span>
           Post Ad
         </a>
-      } @else if (!isAuthPage) {
+      } @else if (!isAuthPage()) {
         <button class="theme-toggle nav-icon" (click)="themeService.toggle()">
           <span class="material-symbols-rounded">{{
             themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'
@@ -276,7 +273,7 @@
 </header>
 
 <!-- Mobile search bar -->
-@if (!isAuthPage && !isMessagingPage && !isProfilePage && !isAdminPage) {
+@if (showMobileSearch()) {
   <div class="mobile-search">
     <div class="mobile-search-row">
       <button class="mobile-location-btn" (click)="toggleLocationDropdown()">
@@ -431,21 +428,23 @@
         <button class="mobile-search-btn" (click)="goToSearch(mobileSearch.value)">
           <span class="material-symbols-rounded" style="font-size: 18px">search</span>
         </button>
+        <!-- Mobile Voice Search Button -->
+        <app-voice-search [mobile]="true" (searched)="onVoiceSearchResult($event, mobileSearch)" />
       </div>
     </div>
   </div>
 }
 
 <!-- Mobile Bottom Navigation -->
-@if (!isAuthPage && !isChatOpen) {
+@if (!isAuthPage() && !isChatOpen()) {
   <nav class="mobile-bottom-nav">
     <a [routerLink]="ROUTES.HOME" class="bottom-nav-item">
       <span class="material-symbols-rounded bottom-icon">home</span>
       <span class="bottom-label">Home</span>
     </a>
     <a
-      [routerLink]="authService.isAuthenticated() ? ROUTES.MESSAGING : null"
-      (click)="!authService.isAuthenticated() && loginModal.open(ROUTES.MESSAGING)"
+      [routerLink]="isAuthenticated() ? ROUTES.MESSAGING : null"
+      (click)="!isAuthenticated() && loginModal.open(ROUTES.MESSAGING)"
       class="bottom-nav-item"
     >
       <span class="material-symbols-rounded bottom-icon" style="position: relative">
@@ -457,8 +456,8 @@
       <span class="bottom-label">Chat</span>
     </a>
     <a
-      [routerLink]="authService.isAuthenticated() ? ROUTES.LISTINGS_CREATE : null"
-      (click)="!authService.isAuthenticated() && loginModal.open(ROUTES.LISTINGS_CREATE)"
+      [routerLink]="isAuthenticated() ? ROUTES.LISTINGS_CREATE : null"
+      (click)="!isAuthenticated() && loginModal.open(ROUTES.LISTINGS_CREATE)"
       class="bottom-nav-item sell-item"
     >
       <span class="sell-btn">
@@ -469,16 +468,16 @@
       <span class="bottom-label sell-label">Sell</span>
     </a>
     <a
-      [routerLink]="authService.isAuthenticated() ? ROUTES.LISTINGS_MY : null"
-      (click)="!authService.isAuthenticated() && loginModal.open(ROUTES.LISTINGS_MY)"
+      [routerLink]="isAuthenticated() ? ROUTES.LISTINGS_MY : null"
+      (click)="!isAuthenticated() && loginModal.open(ROUTES.LISTINGS_MY)"
       class="bottom-nav-item"
     >
       <span class="material-symbols-rounded bottom-icon">list_alt</span>
       <span class="bottom-label">My Ads</span>
     </a>
     <a
-      [routerLink]="authService.isAuthenticated() ? ROUTES.PROFILE : null"
-      (click)="!authService.isAuthenticated() && loginModal.open(ROUTES.PROFILE)"
+      [routerLink]="isAuthenticated() ? ROUTES.PROFILE : null"
+      (click)="!isAuthenticated() && loginModal.open(ROUTES.PROFILE)"
       class="bottom-nav-item"
     >
       <span class="material-symbols-rounded bottom-icon" style="position: relative">

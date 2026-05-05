@@ -50,6 +50,12 @@ export enum UserAction {
   // Location
   LOCATION_CHANGE = 'location_change',
 
+  // Voice Search
+  VOICE_SEARCH_START = 'voice_search_start',
+  VOICE_SEARCH_COMPLETE = 'voice_search_complete',
+  VOICE_SEARCH_CANCEL = 'voice_search_cancel',
+  VOICE_SEARCH_ERROR = 'voice_search_error',
+
   // AI
   DISMISS = 'dismiss',
   RECOMMENDATION_CLICK = 'recommendation_click',
