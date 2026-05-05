@@ -15,3 +15,37 @@
     gap: var(--space-2);
   }
 }
+
+// Password strength checkpoints
+.password-checks {
+  list-style: none;
+  padding: 0;
+  margin: 8px 0 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px 12px;
+}
+
+.password-check {
+  font-size: 12px;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  color: var(--text-muted);
+  transition: color 0.2s;
+
+  &.valid {
+    color: var(--success);
+  }
+
+  &.invalid {
+    color: var(--error, #e74c3c);
+  }
+
+  .check-icon {
+    font-size: 11px;
+    font-weight: 700;
+    width: 14px;
+    text-align: center;
+  }
+}

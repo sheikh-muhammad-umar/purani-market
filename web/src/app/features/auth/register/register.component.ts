@@ -18,6 +18,13 @@ import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ROUTES } from '../../../core/constants/routes';
 import { LOGIN_METHOD_EMAIL, LOGIN_METHOD_PHONE } from '../../../core/constants/app';
 
+interface PasswordCheck {
+  label: string;
+  valid: boolean;
+}
+
+const MIN_PASSWORD_LENGTH = 5;
+
 @Component({
   selector: 'app-register',
   standalone: true,
@@ -50,12 +57,46 @@ export class RegisterComponent {
         lastName: ['', [Validators.required, Validators.maxLength(50)]],
         email: ['', [Validators.required, Validators.email]],
         phone: [''],
-        password: ['', [Validators.required, Validators.minLength(8)]],
+        password: [
+          '',
+          [
+            Validators.required,
+            Validators.minLength(MIN_PASSWORD_LENGTH),
+            this.passwordStrengthValidator,
+          ],
+        ],
         confirmPassword: ['', [Validators.required]],
       },
       { validators: this.passwordMatchValidator },
     );
   }
+
+  /** Password strength rules — exposed to template for checkpoint display */
+  readonly passwordChecks = signal<PasswordCheck[]>([
+    { label: `At least ${MIN_PASSWORD_LENGTH} characters`, valid: false },
+    { label: '1 lowercase letter', valid: false },
+    { label: '1 uppercase letter', valid: false },
+    { label: '1 number', valid: false },
+    { label: '1 special character', valid: false },
+  ]);
+
+  /** Custom validator that checks all password strength rules */
+  private passwordStrengthValidator = (control: AbstractControl): ValidationErrors | null => {
+    const value = control.value || '';
+    const checks: PasswordCheck[] = [
+      {
+        label: `At least ${MIN_PASSWORD_LENGTH} characters`,
+        valid: value.length >= MIN_PASSWORD_LENGTH,
+      },
+      { label: '1 lowercase letter', valid: /[a-z]/.test(value) },
+      { label: '1 uppercase letter', valid: /[A-Z]/.test(value) },
+      { label: '1 number', valid: /\d/.test(value) },
+      { label: '1 special character', valid: /[!@#$%^&*()_+\-=\[\]{};':"\\|,.<>\/?]/.test(value) },
+    ];
+    this.passwordChecks.set(checks);
+    const allValid = checks.every((c) => c.valid);
+    return allValid ? null : { passwordStrength: true };
+  };
 
   passwordMatchValidator(control: AbstractControl): ValidationErrors | null {
     const password = control.get('password');

@@ -76,9 +76,23 @@
             type="password"
             formControlName="password"
             class="form-input"
-            placeholder="At least 8 characters"
+            placeholder="Create a strong password"
             autocomplete="new-password"
           />
+          @if (registerForm.get('password')?.value) {
+            <ul class="password-checks" aria-label="Password requirements">
+              @for (check of passwordChecks(); track check.label) {
+                <li
+                  class="password-check"
+                  [class.valid]="check.valid"
+                  [class.invalid]="!check.valid"
+                >
+                  <span class="check-icon">{{ check.valid ? '✓' : '✗' }}</span>
+                  {{ check.label }}
+                </li>
+              }
+            </ul>
+          }
         </div>
 
         <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
