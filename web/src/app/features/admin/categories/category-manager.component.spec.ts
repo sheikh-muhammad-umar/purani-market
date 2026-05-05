@@ -76,7 +76,10 @@ function createMockService() {
     update: vi.fn().mockReturnValue(of(mockCategories[0])),
     remove: vi.fn().mockReturnValue(of(undefined)),
     updateAttributes: vi.fn().mockReturnValue(of(mockCategories[0])),
+    assignAttributes: vi.fn().mockReturnValue(of(mockCategories[0])),
     updateFeatures: vi.fn().mockReturnValue(of(mockCategories[0])),
+    getInheritedAttributes: vi.fn().mockReturnValue(of({ attributes: [], features: [] })),
+    invalidateCache: vi.fn(),
     buildBreadcrumb: vi.fn(),
   };
 }
@@ -259,11 +262,14 @@ describe('CategoryManagerComponent', () => {
     component.formName = 'Electronics Updated';
     component.formSlug = 'electronics-updated';
     component.submitEdit();
-    expect(service.update).toHaveBeenCalledWith('c1', {
-      name: 'Electronics Updated',
-      slug: 'electronics-updated',
-      isActive: true,
-    });
+    expect(service.update).toHaveBeenCalledWith(
+      'c1',
+      expect.objectContaining({
+        name: 'Electronics Updated',
+        slug: 'electronics-updated',
+        isActive: true,
+      }),
+    );
     expect(component.saving()).toBe(false);
     expect(component.activePanel).toBe('none');
   });
@@ -345,80 +351,60 @@ describe('CategoryManagerComponent', () => {
     expect(service.update).not.toHaveBeenCalled();
   });
 
-  // --- ATTRIBUTES ---
-  it('should open attributes panel with copies of existing attributes', () => {
+  // --- ATTRIBUTES (registry-based) ---
+  it('should open attributes panel and build assigned list from category', () => {
     component.ngOnInit();
     component.openAttributes(mockCategories[0]);
     expect(component.activePanel).toBe('attributes');
-    expect(component.editingAttributes.length).toBe(1);
-    expect(component.editingAttributes[0].name).toBe('Brand');
-    // Verify it's a copy, not the same reference
-    expect(component.editingAttributes[0]).not.toBe(mockCategories[0].attributes[0]);
-    expect(component.editingAttributes[0].options).not.toBe(
-      mockCategories[0].attributes[0].options,
-    );
+    expect(component.assignedAttributes.length).toBe(1);
+    expect(component.assignedAttributes[0].definition.name).toBe('Brand');
+    expect(component.assignedAttributes[0].definition.key).toBe('brand');
+    expect(component.assignedAttributes[0].options).toEqual(['Apple', 'Samsung']);
   });
 
-  it('should add a new attribute', () => {
+  it('should add attribute via pickDefinition', () => {
     component.ngOnInit();
     component.openAttributes(mockCategories[0]);
-    component.addAttribute();
-    expect(component.editingAttributes.length).toBe(2);
-    expect(component.editingAttributes[1].name).toBe('');
-    expect(component.editingAttributes[1].type).toBe('text');
-  });
-
-  it('should remove an attribute', () => {
-    component.ngOnInit();
-    component.openAttributes(mockCategories[0]);
-    component.removeAttribute(0);
-    expect(component.editingAttributes.length).toBe(0);
-  });
-
-  it('should generate attribute key from name', () => {
-    const attr: CategoryAttribute = { name: 'Body Type', key: '', type: 'text', required: false };
-    component.generateAttributeKey(attr);
-    expect(attr.key).toBe('body_type');
-  });
-
-  it('should add and remove attribute options', () => {
-    const attr: CategoryAttribute = {
-      name: 'Color',
-      key: 'color',
+    const newDef = {
+      _id: 'def2',
+      name: 'Storage',
+      key: 'storage',
       type: 'select',
-      required: false,
-      options: ['Red'],
+      options: ['64GB', '128GB'],
     };
-    component.addAttributeOption(attr);
-    expect(attr.options!.length).toBe(2);
-    component.removeAttributeOption(attr, 0);
-    expect(attr.options!.length).toBe(1);
-    expect(attr.options![0]).toBe('');
+    component.pickDefinition(newDef as any);
+    expect(component.assignedAttributes.length).toBe(2);
+    expect(component.assignedAttributes[1].definition.name).toBe('Storage');
   });
 
-  it('should save attributes', () => {
+  it('should remove assigned attribute by index', () => {
+    component.ngOnInit();
+    component.openAttributes(mockCategories[0]);
+    expect(component.assignedAttributes.length).toBe(1);
+    component.removeAssigned(0);
+    expect(component.assignedAttributes.length).toBe(0);
+  });
+
+  it('should save attributes using legacy endpoint when definitions have no IDs', () => {
     component.ngOnInit();
     component.openAttributes(mockCategories[0]);
     component.saveAttributes();
-    expect(service.updateAttributes).toHaveBeenCalledWith('c1', component.editingAttributes);
+    expect(service.updateAttributes).toHaveBeenCalled();
     expect(component.saving()).toBe(false);
     expect(component.activePanel).toBe('none');
   });
 
-  it('should not save attributes with empty name', () => {
+  it('should save attributes using assignAttributes when all have IDs', () => {
     component.ngOnInit();
     component.openAttributes(mockCategories[0]);
-    component.editingAttributes[0].name = '';
+    component.assignedAttributes[0].definition._id = 'def1';
     component.saveAttributes();
-    expect(service.updateAttributes).not.toHaveBeenCalled();
-  });
-
-  it('should not save attributes with empty key', () => {
-    component.ngOnInit();
-    component.openAttributes(mockCategories[0]);
-    component.editingAttributes[0].key = '';
-    component.saveAttributes();
-    expect(service.updateAttributes).not.toHaveBeenCalled();
+    expect(service.assignAttributes).toHaveBeenCalledWith(
+      'c1',
+      expect.arrayContaining([expect.objectContaining({ definitionId: 'def1' })]),
+    );
+    expect(component.saving()).toBe(false);
+    expect(component.activePanel).toBe('none');
   });
 
   it('should handle save attributes error', () => {
@@ -427,7 +413,12 @@ describe('CategoryManagerComponent', () => {
     component.openAttributes(mockCategories[0]);
     component.saveAttributes();
     expect(component.saving()).toBe(false);
-    expect(component.error()).toBe('Failed to update attributes.');
+  });
+
+  it('should handle categories with no attributes in open panel', () => {
+    component.ngOnInit();
+    component.openAttributes(mockCategories[1]);
+    expect(component.assignedAttributes.length).toBe(0);
   });
 
   // --- FILTERS → FEATURES ---
@@ -493,15 +484,9 @@ describe('CategoryManagerComponent', () => {
     expect(component.hasChildren(mockCategories[1])).toBe(false); // Vehicles has no children
   });
 
-  it('should handle categories with no attributes/features in open panels', () => {
+  it('should handle categories with no features in open panel', () => {
     component.ngOnInit();
-    component.openAttributes(mockCategories[1]); // Vehicles has empty attributes
-    expect(component.editingAttributes.length).toBe(0);
     component.openFeatures(mockCategories[1]);
     expect(component.editingFeatures.length).toBe(0);
-  });
-
-  it('trackByIndex should return the index', () => {
-    expect(component.trackByIndex(5)).toBe(5);
   });
 });

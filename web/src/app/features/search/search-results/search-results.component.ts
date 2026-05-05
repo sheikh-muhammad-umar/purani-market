@@ -10,6 +10,10 @@ import {
   SearchSuggestion,
 } from '../../../core/services/search.service';
 import { CategoriesService } from '../../../core/services/categories.service';
+import {
+  ExperimentsService,
+  ExperimentEventType,
+} from '../../../core/services/experiments.service';
 import { LocationService } from '../../../core/services/location.service';
 import {
   CustomSelectComponent,
@@ -47,12 +51,7 @@ const KNOWN_QUERY_PARAMS = new Set([
   'verifiedSeller',
 ]);
 
-export interface ActiveFilter {
-  key: string;
-  label: string;
-  value: string;
-  displayValue: string;
-}
+import { ActiveFilter } from './search-results.types';
 
 @Component({
   selector: 'app-search-results',
@@ -216,11 +215,14 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     private readonly recentSearches: RecentSearchesService,
     private readonly tracker: ActivityTrackerService,
     private readonly brandsService: BrandsService,
+    private readonly experiments: ExperimentsService,
   ) {}
 
   ngOnInit(): void {
     this.loadCategories();
     this.setupSuggestions();
+    // Pre-fetch experiment assignments (cached for session)
+    this.experiments.getAssignments().pipe(takeUntil(this.destroy$)).subscribe();
 
     this.route.queryParamMap.pipe(takeUntil(this.destroy$)).subscribe((params) => {
       const q = params.get('q') || '';
@@ -900,6 +902,22 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     const variantId = this.selectedFilterVariantId();
     if (variantId) params['variantId'] = variantId;
 
+    // Apply A/B experiment configs to search params.
+    // Experiment configs use the same key names the backend accepts
+    // (scoreThreshold, rankingConfig, limit, sort, etc.).
+    // Each config entry is passed directly as a search param.
+    const assignments = this.experiments.getAllAssignments();
+    for (const assignment of assignments) {
+      const config = assignment.config;
+      if (!config || Object.keys(config).length === 0) continue;
+      for (const [key, value] of Object.entries(config)) {
+        if (value != null && value !== '') {
+          // Objects (like ranking weights) are serialized as JSON
+          params[key] = typeof value === 'object' ? JSON.stringify(value) : value;
+        }
+      }
+    }
+
     return params;
   }
 
@@ -931,6 +949,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
           this.relatedCategories.set(res.relatedCategories || []);
           this.suggestedTerms.set(res.suggestions || []);
           this.loading.set(false);
+          this.trackSearchImpression(params, res.total);
         },
         error: () => {
           this.results.set([]);
@@ -970,6 +989,27 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       relativeTo: this.route,
       queryParams,
       queryParamsHandling: '',
+    });
+  }
+
+  // ── Experiment Tracking ─────────────────────────────────────────
+
+  /** Track a search impression for all running experiments */
+  private trackSearchImpression(params: SearchParams, totalResults: number): void {
+    this.experiments.trackAll(ExperimentEventType.SEARCH_IMPRESSION, {
+      searchQuery: params.q,
+      totalResults,
+      metadata: { category: params.category, sort: params.sort, page: params.page },
+    });
+  }
+
+  /** Track a click on a search result. Called from the template. */
+  onResultClick(listingId: string, position: number): void {
+    this.experiments.trackAll(ExperimentEventType.SEARCH_CLICK, {
+      searchQuery: this.query(),
+      listingId,
+      position,
+      totalResults: this.totalResults(),
     });
   }
 }

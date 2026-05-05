@@ -270,7 +270,20 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  buildFeaturedBoostQuery(baseQuery: any): any {
+  buildFeaturedBoostQuery(
+    baseQuery: any,
+    ranking?: {
+      recencyScale?: string;
+      recencyWeight?: number;
+      popularityViewWeight?: number;
+      popularityFavWeight?: number;
+    },
+  ): any {
+    const recencyScale = ranking?.recencyScale || '15d';
+    const recencyWeight = ranking?.recencyWeight ?? 1.5;
+    const viewWeight = ranking?.popularityViewWeight ?? 0.5;
+    const favWeight = ranking?.popularityFavWeight ?? 0.8;
+
     return {
       function_score: {
         query: baseQuery,
@@ -280,17 +293,17 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
             filter: { term: { isFeatured: true } },
             weight: FEATURED_BOOST_FACTOR,
           },
-          // Recency boost — newer listings score higher (decays over 30 days)
+          // Recency boost — newer listings score higher
           {
             gauss: {
               createdAt: {
                 origin: 'now',
-                scale: '15d',
+                scale: recencyScale,
                 offset: '3d',
                 decay: 0.5,
               },
             },
-            weight: 1.5,
+            weight: recencyWeight,
           },
           // Popularity: view count (logarithmic to prevent runaway scores)
           {
@@ -300,7 +313,7 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
               modifier: 'log1p',
               missing: 0,
             },
-            weight: 0.5,
+            weight: viewWeight,
           },
           // Popularity: favorite count (stronger signal than views)
           {
@@ -310,7 +323,7 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
               modifier: 'log1p',
               missing: 0,
             },
-            weight: 0.8,
+            weight: favWeight,
           },
         ],
         boost_mode: 'multiply',

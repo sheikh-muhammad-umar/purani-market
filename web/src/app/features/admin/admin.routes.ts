@@ -95,6 +95,13 @@ export const ADMIN_ROUTES: Routes = [
             (m) => m.NotificationManagerComponent,
           ),
       },
+      {
+        path: 'experiments',
+        loadComponent: () =>
+          import('./experiments/experiments-dashboard.component').then(
+            (m) => m.ExperimentsDashboardComponent,
+          ),
+      },
     ],
   },
 ];

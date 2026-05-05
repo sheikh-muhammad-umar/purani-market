@@ -136,4 +136,25 @@ export class SearchQueryDto {
   @IsObject()
   @Type(() => Object)
   filters?: Record<string, any>;
+
+  /** Score threshold for filtering low-relevance results (0.0-1.0). Set by A/B experiments. */
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  scoreThreshold?: number;
+
+  /** Alias for scoreThreshold — allows experiments to use either name */
+  @IsOptional()
+  @Type(() => Number)
+  @IsNumber()
+  @Min(0)
+  @Max(1)
+  threshold?: number;
+
+  /** ES ranking weights from A/B experiment. Passed as JSON string. */
+  @IsOptional()
+  @IsString()
+  rankingConfig?: string;
 }

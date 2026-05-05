@@ -477,10 +477,11 @@
           <section class="featured-section" aria-label="Featured ads">
             <h3 class="featured-title"><span aria-hidden="true">✨</span> Featured</h3>
             <div class="featured-grid" [class.mobile-single]="mobileColumns() === 1" role="list">
-              @for (ad of featuredAds(); track ad._id) {
+              @for (ad of featuredAds(); track ad._id; let idx = $index) {
                 <a
                   class="listing-card featured-card"
                   [routerLink]="[ROUTES.LISTINGS, ad | listingUrl]"
+                  (click)="onResultClick(ad._id, idx)"
                   role="listitem"
                 >
                   <div class="listing-img-wrap">
@@ -519,10 +520,11 @@
 
         <!-- Regular Results -->
         <div class="results-grid" [class.mobile-single]="mobileColumns() === 1" role="list">
-          @for (listing of results(); track listing._id) {
+          @for (listing of results(); track listing._id; let idx = $index) {
             <a
               class="listing-card"
               [routerLink]="[ROUTES.LISTINGS, listing | listingUrl]"
+              (click)="onResultClick(listing._id, idx)"
               role="listitem"
             >
               <div class="listing-img-wrap">

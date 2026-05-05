@@ -20,31 +20,12 @@ import { SearchSyncService } from './search-sync.service.js';
 import { SearchQueryDto, SearchSortOption } from './dto/search-query.dto.js';
 import { SuggestionQueryDto } from './dto/suggestion-query.dto.js';
 import { CACHE_TTL_POPULAR_SEARCHES } from '../common/constants/index.js';
-
-export interface SearchResultItem {
-  _id: string;
-  _score?: number;
-  _relaxed?: boolean;
-  title: string;
-  description?: string;
-  price?: { amount: number; currency: string };
-  location?: Record<string, unknown>;
-  [key: string]: unknown;
-}
-
-export interface SearchResult {
-  items: SearchResultItem[];
-  total: number;
-  page: number;
-  limit: number;
-  totalPages: number;
-  suggestions?: string[];
-  relatedCategories?: string[];
-}
-
-export interface SuggestionResult {
-  suggestions: string[];
-}
+import {
+  SearchResult,
+  SuggestionResult,
+  RankingConfig,
+  DEFAULT_RANKING_CONFIG,
+} from './search.types.js';
 
 const POPULAR_SEARCHES_KEY = 'search:popular';
 const DEFAULT_GEO_RADIUS_KM = 25;
@@ -198,9 +179,12 @@ export class SearchService {
     limit: number,
   ): Promise<SearchResult> {
     const from = (page - 1) * limit;
-    const baseQuery = await this.buildSearchQuery(query);
-    const boostedQuery =
-      this.searchSyncService.buildFeaturedBoostQuery(baseQuery);
+    const rankingConfig = this.parseRankingConfig(query.rankingConfig);
+    const baseQuery = await this.buildSearchQuery(query, rankingConfig);
+    const boostedQuery = this.searchSyncService.buildFeaturedBoostQuery(
+      baseQuery,
+      rankingConfig,
+    );
     const sortClause = this.buildSortClause(query.sort);
 
     const response = await this.esService.search({
@@ -236,10 +220,11 @@ export class SearchService {
     });
 
     // Filter out low-relevance noise when a text query is provided.
-    // Items scoring below 10% of the top result are likely irrelevant partial matches.
+    // Threshold can be overridden by A/B experiments via scoreThreshold or threshold param.
     if (query.q && items.length > 1) {
       const topScore = items[0]._score ?? 0;
-      const threshold = topScore * 0.15;
+      const thresholdPct = query.scoreThreshold ?? query.threshold ?? 0.15;
+      const threshold = topScore * thresholdPct;
       if (threshold > 0) {
         items = items.filter((item: any) => (item._score ?? 0) >= threshold);
       }
@@ -481,7 +466,10 @@ export class SearchService {
     }
   }
 
-  async buildSearchQuery(query: SearchQueryDto): Promise<any> {
+  async buildSearchQuery(
+    query: SearchQueryDto,
+    ranking: RankingConfig = DEFAULT_RANKING_CONFIG,
+  ): Promise<any> {
     const must: any[] = [];
     const filter: any[] = [];
 
@@ -496,7 +484,7 @@ export class SearchService {
             // Exact phrase match gets highest boost — "iphone 14 pro max" as a unit
             {
               match_phrase: {
-                title: { query: query.q, boost: 25 },
+                title: { query: query.q, boost: ranking.phraseBoost },
               },
             },
             // Word-delimiter match handles "14pro" → "14 pro"
@@ -552,7 +540,7 @@ export class SearchService {
                 query: query.q,
                 fields: ['title.synonyms^2', 'description.synonyms'],
                 type: 'best_fields',
-                boost: 2,
+                boost: ranking.synonymBoost,
               },
             },
             // Edge-ngram for partial / type-ahead matching
@@ -772,6 +760,32 @@ export class SearchService {
       case SearchSortOption.RELEVANCE:
       default:
         return ['_score', { createdAt: { order: 'desc' } }];
+    }
+  }
+
+  /** Parse ranking config from experiment JSON string, with safe defaults */
+  private parseRankingConfig(configStr?: string): RankingConfig {
+    if (!configStr) return DEFAULT_RANKING_CONFIG;
+    try {
+      const parsed = JSON.parse(configStr);
+      return {
+        phraseBoost:
+          Number(parsed.phraseBoost) || DEFAULT_RANKING_CONFIG.phraseBoost,
+        recencyScale:
+          parsed.recencyScale || DEFAULT_RANKING_CONFIG.recencyScale,
+        recencyWeight:
+          Number(parsed.recencyWeight) || DEFAULT_RANKING_CONFIG.recencyWeight,
+        popularityViewWeight:
+          Number(parsed.popularityViewWeight) ||
+          DEFAULT_RANKING_CONFIG.popularityViewWeight,
+        popularityFavWeight:
+          Number(parsed.popularityFavWeight) ||
+          DEFAULT_RANKING_CONFIG.popularityFavWeight,
+        synonymBoost:
+          Number(parsed.synonymBoost) || DEFAULT_RANKING_CONFIG.synonymBoost,
+      };
+    } catch {
+      return DEFAULT_RANKING_CONFIG;
     }
   }
 

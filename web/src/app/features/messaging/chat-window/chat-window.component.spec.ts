@@ -1,5 +1,6 @@
 import { of, Subject } from 'rxjs';
 import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
+import { Injector, runInInjectionContext, PLATFORM_ID } from '@angular/core';
 import { ChatWindowComponent } from './chat-window.component';
 import { MessagingService, MessagesResponse } from '../../../core/services/messaging.service';
 import { ListingsService } from '../../../core/services/listings.service';
@@ -128,13 +129,21 @@ describe('ChatWindowComponent', () => {
       snapshot: { paramMap: { get: vi.fn().mockReturnValue('conv1') } },
     };
 
-    component = new ChatWindowComponent(
-      routeMock as unknown as ActivatedRoute,
-      messagingServiceMock as unknown as MessagingService,
-      listingsServiceMock as unknown as ListingsService,
-      wsServiceMock as unknown as WebSocketService,
-      authServiceMock as unknown as AuthService,
-      { track: vi.fn() } as unknown as ActivityTrackerService,
+    const injector = Injector.create({
+      providers: [{ provide: PLATFORM_ID, useValue: 'browser' }],
+    });
+
+    component = runInInjectionContext(
+      injector,
+      () =>
+        new ChatWindowComponent(
+          routeMock as unknown as ActivatedRoute,
+          messagingServiceMock as unknown as MessagingService,
+          listingsServiceMock as unknown as ListingsService,
+          wsServiceMock as unknown as WebSocketService,
+          authServiceMock as unknown as AuthService,
+          { track: vi.fn() } as unknown as ActivityTrackerService,
+        ),
     );
   });
 
@@ -292,13 +301,17 @@ describe('ChatWindowComponent', () => {
       .mockReturnValue(
         of({ data: twentyMessages, total: 40, page: 1, limit: 20 } as MessagesResponse),
       );
-    component = new ChatWindowComponent(
-      routeMock as unknown as ActivatedRoute,
-      messagingServiceMock as unknown as MessagingService,
-      listingsServiceMock as unknown as ListingsService,
-      wsServiceMock as unknown as WebSocketService,
-      authServiceMock as unknown as AuthService,
-      { track: vi.fn() } as unknown as ActivityTrackerService,
+    component = runInInjectionContext(
+      Injector.create({ providers: [{ provide: PLATFORM_ID, useValue: 'browser' }] }),
+      () =>
+        new ChatWindowComponent(
+          routeMock as unknown as ActivatedRoute,
+          messagingServiceMock as unknown as MessagingService,
+          listingsServiceMock as unknown as ListingsService,
+          wsServiceMock as unknown as WebSocketService,
+          authServiceMock as unknown as AuthService,
+          { track: vi.fn() } as unknown as ActivityTrackerService,
+        ),
     );
     component.ngOnInit();
     expect(component.hasMore()).toBe(true);
@@ -340,13 +353,17 @@ describe('ChatWindowComponent', () => {
 
   it('should not load messages if no conversationId', () => {
     routeMock.snapshot.paramMap.get = vi.fn().mockReturnValue(null);
-    component = new ChatWindowComponent(
-      routeMock as unknown as ActivatedRoute,
-      messagingServiceMock as unknown as MessagingService,
-      listingsServiceMock as unknown as ListingsService,
-      wsServiceMock as unknown as WebSocketService,
-      authServiceMock as unknown as AuthService,
-      { track: vi.fn() } as unknown as ActivityTrackerService,
+    component = runInInjectionContext(
+      Injector.create({ providers: [{ provide: PLATFORM_ID, useValue: 'browser' }] }),
+      () =>
+        new ChatWindowComponent(
+          routeMock as unknown as ActivatedRoute,
+          messagingServiceMock as unknown as MessagingService,
+          listingsServiceMock as unknown as ListingsService,
+          wsServiceMock as unknown as WebSocketService,
+          authServiceMock as unknown as AuthService,
+          { track: vi.fn() } as unknown as ActivityTrackerService,
+        ),
     );
     messagingServiceMock.getMessages.mockClear();
     component.ngOnInit();

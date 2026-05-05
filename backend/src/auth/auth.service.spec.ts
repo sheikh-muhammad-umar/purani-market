@@ -2,6 +2,10 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
+
+// bcrypt with cost factor 12 can be slow under load — increase timeout
+jest.setTimeout(15000);
+
 import {
   ConflictException,
   BadRequestException,

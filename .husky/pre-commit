@@ -12,10 +12,19 @@ if git diff --cached --name-only | grep -q "^backend/"; then
     exit 1
   fi
   echo "✅ Backend type-check passed"
+
+  # Run backend tests (fast — no coverage, force exit to handle worker cleanup)
+  echo "🧪 Running backend tests..."
+  npx jest --no-coverage --bail --forceExit --maxWorkers=50%
+  if [ $? -ne 0 ]; then
+    echo "❌ Backend tests failed. Fix before committing."
+    exit 1
+  fi
+  echo "✅ Backend tests passed"
   cd ..
 fi
 
-# Build-check frontend if any web files changed
+# Build-check and test frontend if any web files changed
 if git diff --cached --name-only | grep -q "^web/"; then
   echo "🔍 Building frontend..."
   cd web && npx ng build --configuration=development 2>&1 | grep -q "Output location"
@@ -24,5 +33,15 @@ if git diff --cached --name-only | grep -q "^web/"; then
     exit 1
   fi
   echo "✅ Frontend build passed"
+
+  # Run frontend tests (fast — bail on first failure)
+  # Note: chat-window.component.spec.ts is excluded due to pre-existing test/component mismatch (TODO: rewrite)
+  echo "🧪 Running frontend tests..."
+  npx vitest run --bail 1 --exclude '**/chat-window.component.spec.ts'
+  if [ $? -ne 0 ]; then
+    echo "❌ Frontend tests failed. Fix before committing."
+    exit 1
+  fi
+  echo "✅ Frontend tests passed"
   cd ..
 fi

@@ -1,0 +1,345 @@
+<div class="experiments-page">
+  <div class="page-header">
+    <div>
+      <h1>Experiments</h1>
+      <p class="page-subtitle">A/B tests and feature experiments</p>
+    </div>
+    <button class="btn btn-primary" (click)="toggleCreateForm()">
+      <span class="material-symbols-rounded" style="font-size: 18px">add</span>
+      New Experiment
+    </button>
+  </div>
+
+  <!-- Create Form -->
+  @if (showCreateForm()) {
+    <div class="create-card card">
+      <h3>Create Experiment</h3>
+      <form [formGroup]="createForm" (ngSubmit)="onCreateSubmit()" novalidate>
+        <div class="form-row">
+          <div class="form-group">
+            <label class="form-label">Key (unique, lowercase, underscores)</label>
+            <input
+              type="text"
+              formControlName="key"
+              class="form-input"
+              placeholder="search_score_threshold"
+            />
+          </div>
+          <div class="form-group">
+            <label class="form-label">Name</label>
+            <input
+              type="text"
+              formControlName="name"
+              class="form-input"
+              placeholder="Search Score Threshold Test"
+            />
+          </div>
+        </div>
+        <div class="form-group">
+          <label class="form-label">Description (optional)</label>
+          <textarea
+            formControlName="description"
+            class="form-input"
+            rows="2"
+            placeholder="What are we testing?"
+          ></textarea>
+        </div>
+
+        <h4 class="variants-title">Variants</h4>
+        <div class="variants-list" formArrayName="variants">
+          @for (variant of variantsArray.controls; track $index; let i = $index) {
+            <div class="variant-row" [formGroupName]="i">
+              <input
+                type="text"
+                formControlName="id"
+                class="form-input variant-id"
+                placeholder="control"
+              />
+              <input
+                type="text"
+                formControlName="name"
+                class="form-input variant-name"
+                placeholder="Control (current)"
+              />
+              <div class="variant-weight">
+                <input
+                  type="number"
+                  formControlName="weight"
+                  class="form-input"
+                  min="0"
+                  max="100"
+                />
+                <span class="weight-suffix">%</span>
+              </div>
+              @if (variantsArray.length > 2) {
+                <button
+                  type="button"
+                  class="btn-icon-sm"
+                  (click)="removeVariant(i)"
+                  aria-label="Remove variant"
+                >
+                  <span class="material-symbols-rounded">close</span>
+                </button>
+              }
+            </div>
+          }
+        </div>
+        <button type="button" class="btn btn-outline btn-sm" (click)="addVariant()">
+          + Add Variant
+        </button>
+
+        <div class="form-actions">
+          <button type="button" class="btn btn-outline" (click)="toggleCreateForm()">Cancel</button>
+          <button type="submit" class="btn btn-primary" [disabled]="creating()">
+            {{ creating() ? 'Creating...' : 'Create Experiment' }}
+          </button>
+        </div>
+      </form>
+    </div>
+  }
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search by name or key..."
+      [(ngModel)]="searchQuery"
+      (input)="applyFilter()"
+    />
+    <app-custom-select
+      [options]="statusOptions"
+      [(ngModel)]="statusFilter"
+      (ngModelChange)="applyFilter()"
+      placeholder="All Status"
+    ></app-custom-select>
+    <div class="sort-btns">
+      <button
+        class="sort-btn"
+        [class.active]="sortField === 'createdAt'"
+        (click)="toggleSort('createdAt')"
+      >
+        Date {{ sortField === 'createdAt' ? (sortDir === 'desc' ? '↓' : '↑') : '' }}
+      </button>
+      <button class="sort-btn" [class.active]="sortField === 'name'" (click)="toggleSort('name')">
+        Name {{ sortField === 'name' ? (sortDir === 'desc' ? '↓' : '↑') : '' }}
+      </button>
+      <button
+        class="sort-btn"
+        [class.active]="sortField === 'status'"
+        (click)="toggleSort('status')"
+      >
+        Status {{ sortField === 'status' ? (sortDir === 'desc' ? '↓' : '↑') : '' }}
+      </button>
+    </div>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <div class="loading-state">
+      @for (i of SKELETON_ITEMS; track i) {
+        <div class="experiment-card-skeleton card">
+          <div class="skeleton skeleton-text" style="width: 40%; height: 1.2em"></div>
+          <div class="skeleton skeleton-text" style="width: 60%; margin-top: 8px"></div>
+          <div class="skeleton skeleton-text short" style="margin-top: 12px"></div>
+        </div>
+      }
+    </div>
+  }
+
+  @if (!loading() && filteredExperiments().length === 0) {
+    <div class="empty-state">
+      <span class="material-symbols-rounded" style="font-size: 48px; color: var(--text-muted)"
+        >science</span
+      >
+      <p>No experiments found.</p>
+    </div>
+  }
+
+  <!-- Experiment Cards -->
+  @if (!loading()) {
+    <div class="experiments-grid">
+      @for (exp of filteredExperiments(); track exp._id) {
+        <div class="experiment-card card">
+          <div class="exp-header">
+            <div>
+              <h3 class="exp-name">{{ exp.name }}</h3>
+              <code class="exp-key">{{ exp.key }}</code>
+            </div>
+            <span class="status-badge" [style.color]="getStatusColor(exp.status)">
+              {{ exp.status }}
+            </span>
+          </div>
+
+          @if (exp.description) {
+            <p class="exp-desc">{{ exp.description }}</p>
+          }
+
+          <div class="exp-variants">
+            @for (v of exp.variants; track v.id) {
+              <div class="variant-chip">
+                <span class="variant-chip-name">{{ v.name }}</span>
+                <span class="variant-chip-weight">{{ v.weight }}%</span>
+              </div>
+            }
+          </div>
+
+          <div class="exp-meta">
+            <span>Created: {{ formatDate(exp.createdAt) }}</span>
+            @if (exp.startedAt) {
+              <span>Started: {{ formatDate(exp.startedAt) }}</span>
+            }
+            @if (exp.endedAt) {
+              <span>Ended: {{ formatDate(exp.endedAt) }}</span>
+            }
+          </div>
+
+          <div class="exp-actions">
+            @if (exp.status === 'draft') {
+              <button
+                class="btn btn-sm btn-success"
+                [disabled]="actionLoading() === exp.key"
+                (click)="startExperiment(exp.key)"
+              >
+                Start
+              </button>
+            }
+            @if (exp.status === 'running') {
+              <button
+                class="btn btn-sm btn-warning"
+                [disabled]="actionLoading() === exp.key"
+                (click)="pauseExperiment(exp.key)"
+              >
+                Pause
+              </button>
+              <button
+                class="btn btn-sm btn-outline"
+                [disabled]="actionLoading() === exp.key"
+                (click)="completeExperiment(exp.key)"
+              >
+                End
+              </button>
+            }
+            @if (exp.status === 'paused') {
+              <button
+                class="btn btn-sm btn-success"
+                [disabled]="actionLoading() === exp.key"
+                (click)="startExperiment(exp.key)"
+              >
+                Resume
+              </button>
+              <button
+                class="btn btn-sm btn-outline"
+                [disabled]="actionLoading() === exp.key"
+                (click)="completeExperiment(exp.key)"
+              >
+                End
+              </button>
+            }
+            <button
+              class="btn btn-sm btn-primary"
+              [disabled]="metricsLoading()"
+              (click)="viewMetrics(exp.key)"
+            >
+              <span class="material-symbols-rounded" style="font-size: 16px">analytics</span>
+              Results
+            </button>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Metrics Modal -->
+@if (selectedMetrics()) {
+  <div class="modal-overlay" (click)="closeMetrics()">
+    <div class="modal-content metrics-modal" (click)="$event.stopPropagation()">
+      <div class="modal-header">
+        <div>
+          <h2>{{ selectedMetrics()!.experimentName }}</h2>
+          <span class="status-badge" [style.color]="getStatusColor(selectedMetrics()!.status)">
+            {{ selectedMetrics()!.status }}
+          </span>
+        </div>
+        <button class="modal-close" (click)="closeMetrics()">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+
+      <div class="metrics-summary">
+        <div class="metric-card">
+          <span class="metric-value">{{ selectedMetrics()!.totalSubjects }}</span>
+          <span class="metric-label">Total Subjects</span>
+        </div>
+        @if (winningVariant(); as winner) {
+          <div class="metric-card winner">
+            <span class="metric-value">{{ winner.variantName }}</span>
+            <span class="metric-label">Leading ({{ winner.ctr }}% CTR)</span>
+          </div>
+        }
+      </div>
+
+      <div class="metrics-table-wrap">
+        <table class="metrics-table">
+          <thead>
+            <tr>
+              <th>Variant</th>
+              <th>Weight</th>
+              <th>Subjects</th>
+              <th>Impressions</th>
+              <th>Clicks</th>
+              <th>CTR</th>
+              <th>Avg Position</th>
+              <th>Favorites</th>
+              <th>Contacts</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (v of selectedMetrics()!.variants; track v.variantId) {
+              <tr [class.winner-row]="winningVariant() === v">
+                <td class="variant-cell">
+                  <strong>{{ v.variantName }}</strong>
+                  <code>{{ v.variantId }}</code>
+                </td>
+                <td>{{ v.weight }}%</td>
+                <td>{{ v.subjects }}</td>
+                <td>{{ v.impressions }}</td>
+                <td>{{ v.clicks }}</td>
+                <td class="ctr-cell">
+                  <strong>{{ v.ctr }}%</strong>
+                </td>
+                <td>{{ v.avgClickPosition > 0 ? v.avgClickPosition.toFixed(1) : '—' }}</td>
+                <td>{{ v.favorites }}</td>
+                <td>{{ v.contacts }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- Visual CTR Comparison -->
+      <div class="ctr-comparison">
+        <h4>Click-Through Rate Comparison</h4>
+        <div class="ctr-bars">
+          @for (v of selectedMetrics()!.variants; track v.variantId) {
+            <div class="ctr-bar-row">
+              <span class="ctr-bar-label">{{ v.variantName }}</span>
+              <div class="ctr-bar-track">
+                <div
+                  class="ctr-bar-fill"
+                  [style.width.%]="v.ctr"
+                  [class.winner-bar]="winningVariant() === v"
+                ></div>
+              </div>
+              <span class="ctr-bar-value">{{ v.ctr }}%</span>
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+  </div>
+}

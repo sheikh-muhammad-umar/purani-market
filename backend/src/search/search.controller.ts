@@ -6,11 +6,8 @@ import {
   UsePipes,
   ValidationPipe,
 } from '@nestjs/common';
-import {
-  SearchService,
-  SearchResult,
-  SuggestionResult,
-} from './search.service.js';
+import { SearchService } from './search.service.js';
+import { SearchResult, SuggestionResult } from './search.types.js';
 import { SearchQueryDto } from './dto/search-query.dto.js';
 import { SuggestionQueryDto } from './dto/suggestion-query.dto.js';
 
@@ -39,6 +36,9 @@ const KNOWN_KEYS = new Set([
   'limit',
   'filters',
   'verifiedSeller',
+  'scoreThreshold',
+  'threshold',
+  'rankingConfig',
 ]);
 
 @Controller('api/search')

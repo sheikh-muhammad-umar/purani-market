@@ -155,4 +155,13 @@ export const API = {
   SEO_HOME: '/seo/home',
   SEO_SEARCH: '/seo/search',
   SEO_PAGE: (slug: string) => `/seo/page/${slug}`,
+
+  // Experiments / A/B Testing
+  EXPERIMENTS_ASSIGNMENTS: '/experiments/assignments',
+  EXPERIMENTS_TRACK: '/experiments/track',
+  EXPERIMENTS: '/experiments',
+  EXPERIMENT_START: (key: string) => `/experiments/${key}/start`,
+  EXPERIMENT_PAUSE: (key: string) => `/experiments/${key}/pause`,
+  EXPERIMENT_COMPLETE: (key: string) => `/experiments/${key}/complete`,
+  EXPERIMENT_METRICS: (key: string) => `/experiments/${key}/metrics`,
 } as const;

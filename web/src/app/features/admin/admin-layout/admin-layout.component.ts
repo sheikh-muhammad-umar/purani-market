@@ -35,6 +35,7 @@ export class AdminLayoutComponent {
     { label: 'Deletion Reasons', icon: 'delete_sweep', path: `${ROUTES.ADMIN}/deletion-reasons` },
     { label: 'ID Verifications', icon: 'verified_user', path: `${ROUTES.ADMIN}/id-verifications` },
     { label: 'Notifications', icon: 'notifications', path: `${ROUTES.ADMIN}/notifications` },
+    { label: 'Experiments', icon: 'science', path: `${ROUTES.ADMIN}/experiments` },
   ];
 
   sidebarCollapsed = false;

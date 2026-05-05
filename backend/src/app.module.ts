@@ -24,6 +24,7 @@ import { BrandsModule } from './brands/brands.module.js';
 import { IdVerificationModule } from './id-verification/id-verification.module.js';
 import { CommonModule } from './common/common.module.js';
 import { SeoModule } from './seo/seo.module.js';
+import { ExperimentsModule } from './experiments/experiments.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
@@ -99,6 +100,7 @@ import { AppService } from './app.service.js';
     BrandsModule,
     IdVerificationModule,
     SeoModule,
+    ExperimentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

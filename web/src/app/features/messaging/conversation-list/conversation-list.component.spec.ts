@@ -21,7 +21,10 @@ function makeConversation(overrides: Partial<Conversation> = {}): Conversation {
 
 describe('ConversationListComponent', () => {
   let component: ConversationListComponent;
-  let messagingServiceMock: { getConversations: ReturnType<typeof vi.fn> };
+  let messagingServiceMock: {
+    getConversations: ReturnType<typeof vi.fn>;
+    getUnreadPerConversation: ReturnType<typeof vi.fn>;
+  };
   let wsServiceMock: { connect: ReturnType<typeof vi.fn>; on: ReturnType<typeof vi.fn> };
   let authServiceMock: { user: ReturnType<typeof vi.fn> };
   let routeMock: any;
@@ -139,33 +142,50 @@ describe('ConversationListComponent', () => {
     expect(component.conversations()[0]._id).toBe('c1');
   });
 
+  // --- Time formatting (tested via conversationViews computed signal) ---
   it('should format time as "Just now" for recent messages', () => {
-    const result = component.getTimeAgo(new Date());
-    expect(result).toBe('Just now');
+    messagingServiceMock.getConversations.mockReturnValue(
+      of({ data: [makeConversation({ _id: 'recent', lastMessageAt: new Date() })], total: 1 }),
+    );
+    component.ngOnInit();
+    const views = component.conversationViews();
+    expect(views[0].timeAgo).toBe('Just now');
   });
 
   it('should format time as minutes ago', () => {
     const fiveMinAgo = new Date(Date.now() - 5 * 60 * 1000);
-    const result = component.getTimeAgo(fiveMinAgo);
-    expect(result).toBe('5m ago');
+    messagingServiceMock.getConversations.mockReturnValue(
+      of({ data: [makeConversation({ _id: 'mins', lastMessageAt: fiveMinAgo })], total: 1 }),
+    );
+    component.ngOnInit();
+    expect(component.conversationViews()[0].timeAgo).toBe('5m ago');
   });
 
   it('should format time as hours ago', () => {
     const twoHoursAgo = new Date(Date.now() - 2 * 60 * 60 * 1000);
-    const result = component.getTimeAgo(twoHoursAgo);
-    expect(result).toBe('2h ago');
+    messagingServiceMock.getConversations.mockReturnValue(
+      of({ data: [makeConversation({ _id: 'hrs', lastMessageAt: twoHoursAgo })], total: 1 }),
+    );
+    component.ngOnInit();
+    expect(component.conversationViews()[0].timeAgo).toBe('2h ago');
   });
 
   it('should format time as days ago', () => {
     const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
-    const result = component.getTimeAgo(threeDaysAgo);
-    expect(result).toBe('3d ago');
+    messagingServiceMock.getConversations.mockReturnValue(
+      of({ data: [makeConversation({ _id: 'days', lastMessageAt: threeDaysAgo })], total: 1 }),
+    );
+    component.ngOnInit();
+    expect(component.conversationViews()[0].timeAgo).toBe('3d ago');
   });
 
   it('should show date string for messages older than a week', () => {
     const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
-    const result = component.getTimeAgo(twoWeeksAgo);
-    expect(result).toBe(twoWeeksAgo.toLocaleDateString());
+    messagingServiceMock.getConversations.mockReturnValue(
+      of({ data: [makeConversation({ _id: 'old', lastMessageAt: twoWeeksAgo })], total: 1 }),
+    );
+    component.ngOnInit();
+    expect(component.conversationViews()[0].timeAgo).toBe(twoWeeksAgo.toLocaleDateString());
   });
 
   it('should unsubscribe on destroy', () => {

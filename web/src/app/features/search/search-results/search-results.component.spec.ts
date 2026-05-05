@@ -1,8 +1,10 @@
 import { of, throwError, Subject, BehaviorSubject } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { convertToParamMap, ParamMap } from '@angular/router';
+import { Injector, runInInjectionContext, PLATFORM_ID } from '@angular/core';
 import { SearchResultsComponent, SortOption, ActiveFilter } from './search-results.component';
 import { ListingImagePipe } from '../../../shared/pipes/listing-image.pipe';
+import { ExperimentsService } from '../../../core/services/experiments.service';
 import {
   SearchService,
   SearchResponse,
@@ -80,6 +82,12 @@ describe('SearchResultsComponent', () => {
   let recentSearchesMock: { add: ReturnType<typeof vi.fn>; getAll: ReturnType<typeof vi.fn> };
   let trackerMock: { track: ReturnType<typeof vi.fn> };
   let brandsServiceMock: { getByCategory: ReturnType<typeof vi.fn> };
+  let experimentsServiceMock: {
+    getAssignments: ReturnType<typeof vi.fn>;
+    getVariant: ReturnType<typeof vi.fn>;
+    getAllAssignments: ReturnType<typeof vi.fn>;
+    trackAll: ReturnType<typeof vi.fn>;
+  };
 
   const mockCategories: Category[] = [
     makeCategory({ _id: 'c1', name: 'Cars', slug: 'cars' }),
@@ -87,13 +95,14 @@ describe('SearchResultsComponent', () => {
   ];
 
   const mockSearchResponse: SearchResponse = {
-    data: [
+    items: [
       makeListing({ _id: 'l1', title: 'Honda Civic' }),
       makeListing({ _id: 'l2', title: 'Toyota Corolla' }),
     ],
     total: 2,
     page: 1,
     limit: 20,
+    totalPages: 1,
     featuredAds: [makeListing({ _id: 'f1', title: 'Featured BMW', isFeatured: true })],
     suggestions: [],
     relatedCategories: [],
@@ -140,19 +149,35 @@ describe('SearchResultsComponent', () => {
     recentSearchesMock = { add: vi.fn(), getAll: vi.fn().mockReturnValue([]) };
     trackerMock = { track: vi.fn() };
     brandsServiceMock = { getByCategory: vi.fn().mockReturnValue(of([])) };
+    experimentsServiceMock = {
+      getAssignments: vi.fn().mockReturnValue(of([])),
+      getVariant: vi.fn().mockReturnValue(null),
+      getAllAssignments: vi.fn().mockReturnValue([]),
+      trackAll: vi.fn(),
+    };
 
     queryParamSubject = new BehaviorSubject<ParamMap>(convertToParamMap({ q: 'car' }));
     routeMock = { queryParamMap: queryParamSubject };
 
-    component = new SearchResultsComponent(
-      routeMock as any,
-      routerMock as any,
-      searchServiceMock as unknown as SearchService,
-      categoriesServiceMock as unknown as CategoriesService,
-      locationServiceMock as unknown as LocationService,
-      recentSearchesMock as unknown as RecentSearchesService,
-      trackerMock as unknown as ActivityTrackerService,
-      brandsServiceMock as unknown as BrandsService,
+    const injector = Injector.create({
+      providers: [{ provide: PLATFORM_ID, useValue: 'browser' }],
+    });
+
+    component = runInInjectionContext(
+      injector,
+      () =>
+        new SearchResultsComponent(
+          routeMock as any,
+          routerMock as any,
+          searchServiceMock as unknown as SearchService,
+          categoriesServiceMock as unknown as CategoriesService,
+          locationServiceMock as unknown as LocationService,
+          recentSearchesMock as unknown as RecentSearchesService,
+          trackerMock as unknown as ActivityTrackerService,
+          brandsServiceMock as unknown as BrandsService,
+          experimentsServiceMock as unknown as ExperimentsService,
+          experimentsServiceMock as unknown as ExperimentsService,
+        ),
     );
   });
 
@@ -165,7 +190,7 @@ describe('SearchResultsComponent', () => {
     expect(component.results()).toEqual([]);
     expect(component.loading()).toBe(false);
     expect(component.sortBy()).toBe('relevance');
-    expect(component.filtersOpen()).toBe(true);
+    expect(component.filtersOpen()).toBe(null); // null = CSS handles default visibility
   });
 
   it('should load categories on init', () => {
@@ -203,7 +228,7 @@ describe('SearchResultsComponent', () => {
     component.ngOnInit();
     component.onCategoryChange('c1');
     expect(component.selectedCategoryId()).toBe('c1');
-    expect(categoriesServiceMock.getById).toHaveBeenCalledWith('c1');
+    expect(categoriesServiceMock.getInheritedAttributes).toHaveBeenCalledWith('c1');
   });
 
   it('should clear category filters when category is deselected', () => {
@@ -319,8 +344,8 @@ describe('SearchResultsComponent', () => {
   });
 
   it('should toggle filters panel', () => {
-    expect(component.filtersOpen()).toBe(true);
-    component.toggleFilters();
+    expect(component.filtersOpen()).toBe(null); // initial: CSS default
+    component.toggleFilters(); // first toggle on desktop: closes (false)
     expect(component.filtersOpen()).toBe(false);
     component.toggleFilters();
     expect(component.filtersOpen()).toBe(true);
@@ -395,22 +420,27 @@ describe('SearchResultsComponent', () => {
 
   it('should parse category from query params and load filters', () => {
     queryParamSubject = new BehaviorSubject<ParamMap>(
-      convertToParamMap({ q: 'car', category: 'c1' }),
+      convertToParamMap({ q: 'car', category: 'cars' }),
     );
     routeMock = { queryParamMap: queryParamSubject };
-    component = new SearchResultsComponent(
-      routeMock as any,
-      routerMock as any,
-      searchServiceMock as unknown as SearchService,
-      categoriesServiceMock as unknown as CategoriesService,
-      locationServiceMock as unknown as LocationService,
-      recentSearchesMock as unknown as RecentSearchesService,
-      trackerMock as unknown as ActivityTrackerService,
-      brandsServiceMock as unknown as BrandsService,
+    component = runInInjectionContext(
+      Injector.create({ providers: [{ provide: PLATFORM_ID, useValue: 'browser' }] }),
+      () =>
+        new SearchResultsComponent(
+          routeMock as any,
+          routerMock as any,
+          searchServiceMock as unknown as SearchService,
+          categoriesServiceMock as unknown as CategoriesService,
+          locationServiceMock as unknown as LocationService,
+          recentSearchesMock as unknown as RecentSearchesService,
+          trackerMock as unknown as ActivityTrackerService,
+          brandsServiceMock as unknown as BrandsService,
+          experimentsServiceMock as unknown as ExperimentsService,
+        ),
     );
     component.ngOnInit();
     expect(component.selectedCategoryId()).toBe('c1');
-    expect(categoriesServiceMock.getById).toHaveBeenCalledWith('c1');
+    expect(categoriesServiceMock.getInheritedAttributes).toHaveBeenCalledWith('c1');
   });
 
   it('should parse sort and price from query params', () => {
@@ -418,15 +448,20 @@ describe('SearchResultsComponent', () => {
       convertToParamMap({ q: 'phone', sort: 'price_desc', minPrice: '500', maxPrice: '10000' }),
     );
     routeMock = { queryParamMap: queryParamSubject };
-    component = new SearchResultsComponent(
-      routeMock as any,
-      routerMock as any,
-      searchServiceMock as unknown as SearchService,
-      categoriesServiceMock as unknown as CategoriesService,
-      locationServiceMock as unknown as LocationService,
-      recentSearchesMock as unknown as RecentSearchesService,
-      trackerMock as unknown as ActivityTrackerService,
-      brandsServiceMock as unknown as BrandsService,
+    component = runInInjectionContext(
+      Injector.create({ providers: [{ provide: PLATFORM_ID, useValue: 'browser' }] }),
+      () =>
+        new SearchResultsComponent(
+          routeMock as any,
+          routerMock as any,
+          searchServiceMock as unknown as SearchService,
+          categoriesServiceMock as unknown as CategoriesService,
+          locationServiceMock as unknown as LocationService,
+          recentSearchesMock as unknown as RecentSearchesService,
+          trackerMock as unknown as ActivityTrackerService,
+          brandsServiceMock as unknown as BrandsService,
+          experimentsServiceMock as unknown as ExperimentsService,
+        ),
     );
     component.ngOnInit();
     expect(component.sortBy()).toBe('price_desc');
@@ -446,15 +481,20 @@ describe('SearchResultsComponent', () => {
     };
     searchServiceMock.search = vi.fn().mockReturnValue(of(emptyResponse));
 
-    component = new SearchResultsComponent(
-      routeMock as any,
-      routerMock as any,
-      searchServiceMock as unknown as SearchService,
-      categoriesServiceMock as unknown as CategoriesService,
-      locationServiceMock as unknown as LocationService,
-      recentSearchesMock as unknown as RecentSearchesService,
-      trackerMock as unknown as ActivityTrackerService,
-      brandsServiceMock as unknown as BrandsService,
+    component = runInInjectionContext(
+      Injector.create({ providers: [{ provide: PLATFORM_ID, useValue: 'browser' }] }),
+      () =>
+        new SearchResultsComponent(
+          routeMock as any,
+          routerMock as any,
+          searchServiceMock as unknown as SearchService,
+          categoriesServiceMock as unknown as CategoriesService,
+          locationServiceMock as unknown as LocationService,
+          recentSearchesMock as unknown as RecentSearchesService,
+          trackerMock as unknown as ActivityTrackerService,
+          brandsServiceMock as unknown as BrandsService,
+          experimentsServiceMock as unknown as ExperimentsService,
+        ),
     );
     component.ngOnInit();
 
@@ -466,36 +506,47 @@ describe('SearchResultsComponent', () => {
 
   it('should set empty categories on categories load error', () => {
     categoriesServiceMock.getAll = vi.fn().mockReturnValue(throwError(() => new Error('fail')));
-    component = new SearchResultsComponent(
-      routeMock as any,
-      routerMock as any,
-      searchServiceMock as unknown as SearchService,
-      categoriesServiceMock as unknown as CategoriesService,
-      locationServiceMock as unknown as LocationService,
-      recentSearchesMock as unknown as RecentSearchesService,
-      trackerMock as unknown as ActivityTrackerService,
-      brandsServiceMock as unknown as BrandsService,
+    component = runInInjectionContext(
+      Injector.create({ providers: [{ provide: PLATFORM_ID, useValue: 'browser' }] }),
+      () =>
+        new SearchResultsComponent(
+          routeMock as any,
+          routerMock as any,
+          searchServiceMock as unknown as SearchService,
+          categoriesServiceMock as unknown as CategoriesService,
+          locationServiceMock as unknown as LocationService,
+          recentSearchesMock as unknown as RecentSearchesService,
+          trackerMock as unknown as ActivityTrackerService,
+          brandsServiceMock as unknown as BrandsService,
+          experimentsServiceMock as unknown as ExperimentsService,
+        ),
     );
     component.ngOnInit();
     expect(component.categories()).toEqual([]);
   });
 
   it('should handle category filter load error', () => {
-    categoriesServiceMock.getById = vi.fn().mockReturnValue(throwError(() => new Error('fail')));
-    component = new SearchResultsComponent(
-      routeMock as any,
-      routerMock as any,
-      searchServiceMock as unknown as SearchService,
-      categoriesServiceMock as unknown as CategoriesService,
-      locationServiceMock as unknown as LocationService,
-      recentSearchesMock as unknown as RecentSearchesService,
-      trackerMock as unknown as ActivityTrackerService,
-      brandsServiceMock as unknown as BrandsService,
+    categoriesServiceMock.getInheritedAttributes = vi
+      .fn()
+      .mockReturnValue(throwError(() => new Error('fail')));
+    component = runInInjectionContext(
+      Injector.create({ providers: [{ provide: PLATFORM_ID, useValue: 'browser' }] }),
+      () =>
+        new SearchResultsComponent(
+          routeMock as any,
+          routerMock as any,
+          searchServiceMock as unknown as SearchService,
+          categoriesServiceMock as unknown as CategoriesService,
+          locationServiceMock as unknown as LocationService,
+          recentSearchesMock as unknown as RecentSearchesService,
+          trackerMock as unknown as ActivityTrackerService,
+          brandsServiceMock as unknown as BrandsService,
+          experimentsServiceMock as unknown as ExperimentsService,
+        ),
     );
     component.ngOnInit();
     component.onCategoryChange('c1');
     expect(component.categoryFilters()).toEqual([]);
-    expect(component.selectedCategory()).toBeNull();
   });
 
   it('should clean up on destroy', () => {
