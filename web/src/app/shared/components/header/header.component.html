@@ -133,10 +133,21 @@
           class="search-input"
           placeholder="{{ searchPlaceholder() }}"
           (keyup.enter)="goToSearch(desktopSearch.value)"
+          (input)="searchQuery.set(desktopSearch.value)"
           (focus)="onSearchFocus()"
           (blur)="onSearchBlur()"
           autocomplete="off"
         />
+        @if (searchQuery()) {
+          <button
+            class="search-clear-btn"
+            (click)="clearSearch(desktopSearch)"
+            type="button"
+            aria-label="Clear search"
+          >
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        }
         @if (searchDropdownOpen() && recentSearches.searches().length > 0) {
           <div class="recent-searches-dropdown">
             <div class="recent-searches-header">
@@ -395,10 +406,21 @@
           class="search-input"
           placeholder="Search..."
           (keyup.enter)="goToSearch(mobileSearch.value)"
+          (input)="searchQuery.set(mobileSearch.value)"
           (focus)="onSearchFocus()"
           (blur)="onSearchBlur()"
           autocomplete="off"
         />
+        @if (searchQuery()) {
+          <button
+            class="search-clear-btn"
+            (click)="clearSearch(mobileSearch)"
+            type="button"
+            aria-label="Clear search"
+          >
+            <span class="material-symbols-rounded">close</span>
+          </button>
+        }
         @if (searchDropdownOpen() && recentSearches.searches().length > 0) {
           <div class="recent-searches-dropdown mobile-recent">
             <div class="recent-searches-header">

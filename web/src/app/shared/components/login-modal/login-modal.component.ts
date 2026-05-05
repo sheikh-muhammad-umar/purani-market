@@ -20,6 +20,7 @@ export class LoginModalComponent {
   loginForm: FormGroup;
   loading = signal(false);
   errorMessage = signal('');
+  showPassword = signal(false);
 
   constructor(
     private readonly fb: FormBuilder,
@@ -47,7 +48,11 @@ export class LoginModalComponent {
   }
 
   submit(): void {
-    if (this.loginForm.invalid || this.loading()) return;
+    if (this.loading()) return;
+    if (this.loginForm.invalid) {
+      this.loginForm.markAllAsTouched();
+      return;
+    }
     this.loading.set(true);
     this.errorMessage.set('');
 

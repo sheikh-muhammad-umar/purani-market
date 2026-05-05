@@ -29,6 +29,7 @@ export class LoginComponent {
   usePhone = signal(false);
   loading = signal(false);
   errorMessage = signal('');
+  showPassword = signal(false);
 
   private readonly destroyRef = inject(DestroyRef);
 

@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ListingsService } from '../../../core/services/listings.service';
@@ -110,16 +111,23 @@ export class MyListingsComponent implements OnInit {
       .reduce((s, p) => s + (p.remainingQuantity || 0), 0);
   });
 
+  private readonly isBrowser: boolean;
+
   constructor(
     private readonly listingsService: ListingsService,
     private readonly packagesService: PackagesService,
     private readonly authService: AuthService,
     private readonly tracker: ActivityTrackerService,
     private readonly confirmModal: ConfirmModalService,
-  ) {}
+    @Inject(PLATFORM_ID) platformId: object,
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
-    this.loadAll();
+    if (this.isBrowser) {
+      this.loadAll();
+    }
   }
 
   loadAll(): void {

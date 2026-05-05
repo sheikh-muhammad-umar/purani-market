@@ -143,6 +143,7 @@ describe('MyListingsComponent', () => {
       authService as unknown as AuthService,
       trackerMock as unknown as ActivityTrackerService,
       confirmModalMock as unknown as ConfirmModalService,
+      'browser',
     );
     component.ngOnInit();
   });

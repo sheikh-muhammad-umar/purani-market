@@ -108,6 +108,14 @@
 } @else {
   <div class="wizard-page">
     <div class="wizard-container">
+      <!-- Promotional Banner -->
+      <app-promo-banner
+        badge="Tip"
+        message="Boost your listing with Featured Ads — get 10x more views"
+        ctaText="Explore Packages →"
+        ctaLink="/packages"
+      />
+
       <!-- Progress Bar -->
       <div class="wizard-progress">
         @for (label of stepLabels; track label; let i = $index) {

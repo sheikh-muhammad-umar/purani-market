@@ -1,0 +1,34 @@
+@if (href()) {
+  <a
+    class="ad-wrapper"
+    [class.ad-leaderboard]="variant() === 'leaderboard'"
+    [class.ad-inline]="variant() === 'inline'"
+    [href]="href()"
+    target="_blank"
+    rel="noopener noreferrer sponsored"
+    aria-label="Advertisement"
+  >
+    <img [src]="activeSrc()" [alt]="alt()" class="ad-image" loading="lazy" />
+    <span class="ad-label">Ad</span>
+  </a>
+} @else if (link()) {
+  <a
+    class="ad-wrapper"
+    [class.ad-leaderboard]="variant() === 'leaderboard'"
+    [class.ad-inline]="variant() === 'inline'"
+    [routerLink]="link()"
+    aria-label="Advertisement"
+  >
+    <img [src]="activeSrc()" [alt]="alt()" class="ad-image" loading="lazy" />
+    <span class="ad-label">Ad</span>
+  </a>
+} @else {
+  <div
+    class="ad-wrapper"
+    [class.ad-leaderboard]="variant() === 'leaderboard'"
+    [class.ad-inline]="variant() === 'inline'"
+  >
+    <img [src]="activeSrc()" [alt]="alt()" class="ad-image" loading="lazy" />
+    <span class="ad-label">Ad</span>
+  </div>
+}

@@ -1,0 +1,99 @@
+:host {
+  display: block;
+}
+
+.ad-wrapper {
+  display: block;
+  position: relative;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  background: var(--surface);
+  border: 1px solid var(--border);
+  text-decoration: none;
+  transition: box-shadow 0.2s;
+
+  &:hover {
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+}
+
+.ad-image {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.ad-label {
+  position: absolute;
+  top: 6px;
+  right: 6px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 10px;
+  font-weight: 600;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  pointer-events: none;
+}
+
+/*
+ * Leaderboard — full-width horizontal strip
+ * Recommended image: 728×90 (desktop), 320×100 (mobile)
+ */
+.ad-leaderboard {
+  width: 100%;
+  height: 90px;
+}
+
+/*
+ * Inline — fits within content, card-like appearance
+ * Recommended image: 336×280 (desktop), 300×250 (mobile)
+ */
+.ad-inline {
+  width: fit-content;
+  max-width: 100%;
+  height: auto;
+  margin-inline: auto;
+  border: none;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  transition:
+    box-shadow 0.2s ease,
+    transform 0.2s ease;
+
+  .ad-image {
+    width: auto;
+    max-width: 100%;
+    height: auto;
+    max-height: 280px;
+    object-fit: contain;
+  }
+
+  &:hover {
+    box-shadow: var(--shadow-hover);
+    transform: scale(1.02);
+  }
+
+  .ad-label {
+    top: var(--space-1);
+    left: var(--space-1);
+    right: auto;
+    background: rgba(0, 0, 0, 0.55);
+    border-radius: var(--radius-full);
+    padding: 2px 8px;
+  }
+}
+
+/* Mobile */
+@media (max-width: 767px) {
+  .ad-leaderboard {
+    height: 60px;
+  }
+
+  .ad-inline .ad-image {
+    max-height: 250px;
+  }
+}

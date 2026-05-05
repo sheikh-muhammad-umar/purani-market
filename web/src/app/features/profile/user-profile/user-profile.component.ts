@@ -1,4 +1,4 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
@@ -9,6 +9,8 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ROUTES } from '../../../core/constants/routes';
 import { API } from '../../../core/constants/api-endpoints';
+import { WebSocketService } from '../../../core/services/websocket.service';
+import { NotificationCountService } from '../../../core/services/notification-count.service';
 
 @Component({
   selector: 'app-user-profile',
@@ -30,6 +32,8 @@ export class UserProfileComponent implements OnInit {
   avatarPreview = signal<string | null>(null);
 
   private readonly apiUrl = environment.apiUrl;
+  private readonly wsService = inject(WebSocketService);
+  private readonly notificationCount = inject(NotificationCountService);
 
   constructor(
     private readonly fb: FormBuilder,
@@ -151,7 +155,9 @@ export class UserProfileComponent implements OnInit {
   });
 
   logout(): void {
+    this.wsService.disconnect();
+    this.notificationCount.setCount(0);
+    this.notificationCount.stop();
     this.authService.logout();
-    this.router.navigate([ROUTES.HOME]);
   }
 }

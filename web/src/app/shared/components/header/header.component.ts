@@ -57,6 +57,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   // Location selector state
   locationDropdownOpen = signal(false);
   searchDropdownOpen = signal(false);
+  searchQuery = signal('');
   searchPlaceholder = signal(
     this.isBrowser && window.innerWidth < MOBILE_BREAKPOINT
       ? SEARCH_PLACEHOLDER_MOBILE
@@ -187,6 +188,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   onVoiceSearchResult(transcript: string, inputEl: HTMLInputElement): void {
     inputEl.value = transcript;
     this.goToSearch(transcript);
+  }
+
+  clearSearch(inputEl: HTMLInputElement): void {
+    inputEl.value = '';
+    this.searchQuery.set('');
+    inputEl.focus();
   }
 
   onSearchFocus(): void {
@@ -449,6 +456,10 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.closeAccountMenu();
     this.tracker.track(TrackingEvent.LOGOUT, { metadata: this.tracker.getDeviceInfo() });
     this.logoutTimeout = setTimeout(() => {
+      this.wsService.disconnect();
+      this.notificationCount.setCount(0);
+      this.notificationCount.stop();
+      this.unreadCount.set(0);
       this.authService.logout();
       this.loggingOut = false;
     }, LOGOUT_DELAY);

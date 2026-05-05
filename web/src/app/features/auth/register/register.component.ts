@@ -41,6 +41,8 @@ export class RegisterComponent {
   loading = signal(false);
   errorMessage = signal('');
   successMessage = signal('');
+  showPassword = signal(false);
+  showConfirmPassword = signal(false);
 
   private readonly destroyRef = inject(DestroyRef);
 

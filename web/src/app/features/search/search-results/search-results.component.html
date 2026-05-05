@@ -1,66 +1,14 @@
 <div class="search-page">
-  <!-- Search Bar -->
-  <section class="search-bar-section">
-    <form class="search-form" (ngSubmit)="onSearchSubmit()" role="search">
-      <div class="search-input-wrap">
-        <span class="search-icon material-symbols-rounded" aria-hidden="true">search</span>
-        <input
-          type="text"
-          class="search-input"
-          placeholder="Search for products..."
-          [value]="searchInput()"
-          (input)="onSearchInputChange($any($event.target).value)"
-          (focus)="showSuggestions.set(suggestions().length > 0)"
-          (blur)="hideSuggestions()"
-          aria-label="Search products"
-          autocomplete="off"
-        />
-        @if (searchInput()) {
-          <button
-            type="button"
-            class="search-clear material-symbols-rounded"
-            (click)="clearSearchInput()"
-            aria-label="Clear search"
-          >
-            close
-          </button>
-        }
-        <button type="submit" class="btn btn-primary search-btn">
-          <span class="material-symbols-rounded" style="font-size: 18px">search</span>
-          <span class="search-btn-text">Search</span>
-        </button>
-      </div>
-
-      <!-- Suggestions Dropdown -->
-      @if (showSuggestions() && suggestions().length > 0) {
-        <ul class="suggestions-dropdown" role="listbox" aria-label="Search suggestions">
-          @for (suggestion of suggestions(); track suggestion.term) {
-            <li
-              class="suggestion-item"
-              role="option"
-              (mousedown)="selectSuggestion(suggestion.term)"
-            >
-              <span class="suggestion-icon" aria-hidden="true">
-                @switch (suggestion.type) {
-                  @case ('recent') {
-                    🕐
-                  }
-                  @case ('trending') {
-                    🔥
-                  }
-                  @case ('ai') {
-                    ✨
-                  }
-                }
-              </span>
-              <span class="suggestion-text">{{ suggestion.term }}</span>
-              <span class="suggestion-type">{{ suggestion.type }}</span>
-            </li>
-          }
-        </ul>
-      }
-    </form>
-  </section>
+  <!-- Top of page banner -->
+  <div class="ad-banner-wrap">
+    <app-ad-banner
+      src="https://placehold.co/728x90/0da5c3/FFFFFF/png?text=AD+Banner"
+      mobileSrc="https://placehold.co/320x100/0da5c3/FFFFFF/png?text=AD+Banner"
+      alt="AD+Banner"
+      href="https://placehold.co/728x90/0da5c3/FFFFFF/png?text=AD+Banner"
+      variant="leaderboard"
+    />
+  </div>
 
   <!-- Active Filters Chips -->
   @if (activeFilters().length > 0) {

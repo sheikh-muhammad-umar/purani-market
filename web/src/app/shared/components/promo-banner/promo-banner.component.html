@@ -1,0 +1,15 @@
+<div class="promo-banner">
+  <div class="promo-content">
+    <div class="promo-text">
+      @if (badge()) {
+        <span class="promo-badge">{{ badge() }}</span>
+      }
+      @if (message()) {
+        <span class="promo-message">{{ message() }}</span>
+      }
+    </div>
+    @if (ctaText() && ctaLink()) {
+      <a class="promo-cta" [routerLink]="ctaLink()">{{ ctaText() }}</a>
+    }
+  </div>
+</div>

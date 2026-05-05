@@ -82,7 +82,7 @@ export class AuthService {
     this.clearTokens();
     this.currentUser.set(null);
     this.userCache$ = null;
-    this.router.navigate([ROUTES.AUTH_LOGIN]);
+    this.router.navigate([ROUTES.HOME]);
   }
 
   // --- Verification ---

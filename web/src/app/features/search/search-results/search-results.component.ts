@@ -52,6 +52,7 @@ const KNOWN_QUERY_PARAMS = new Set([
 ]);
 
 import { ActiveFilter } from './search-results.types';
+import { AdBannerComponent } from '../../../shared/components/ad-banner/ad-banner.component';
 
 @Component({
   selector: 'app-search-results',
@@ -66,6 +67,7 @@ import { ActiveFilter } from './search-results.types';
     ListingImagePipe,
     CustomSelectComponent,
     TooltipDirective,
+    AdBannerComponent,
   ],
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.scss'],

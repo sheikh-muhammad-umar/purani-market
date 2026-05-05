@@ -33,6 +33,7 @@ import { computeFileHash } from '../../../core/utils/file-hash';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { mapLinkValidator } from '../../../core/utils/map-link';
 import { AvailablePackagesComponent } from './available-packages/available-packages.component';
+import { PromoBannerComponent } from '../../../shared/components/promo-banner/promo-banner.component';
 import { Subject, takeUntil, forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -46,7 +47,13 @@ export interface MediaItem {
 @Component({
   selector: 'app-create-listing',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink, AvailablePackagesComponent],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    RouterLink,
+    AvailablePackagesComponent,
+    PromoBannerComponent,
+  ],
   templateUrl: './create-listing.component.html',
   styleUrls: ['./create-listing.component.scss'],
 })
