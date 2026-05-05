@@ -104,6 +104,10 @@ describe('ChatWindowComponent', () => {
           of({ data: [...mockMessages], total: 2, page: 1, limit: 20 } as MessagesResponse),
         ),
       getConversations: vi.fn().mockReturnValue(of({ data: [mockConversation], total: 1 })),
+      sendMessage: vi
+        .fn()
+        .mockReturnValue(of(makeMessage({ _id: 'sent1', content: 'Test message' }))),
+      markAsRead: vi.fn().mockReturnValue(of({})),
     };
 
     listingsServiceMock = {
@@ -114,9 +118,9 @@ describe('ChatWindowComponent', () => {
       connect: vi.fn(),
       send: vi.fn(),
       on: vi.fn().mockImplementation((event: string) => {
-        if (event === 'new_message') return newMessageSubject.asObservable();
-        if (event === 'typing') return typingSubject.asObservable();
-        if (event === 'messages_read') return readSubject.asObservable();
+        if (event === 'newMessage') return newMessageSubject.asObservable();
+        if (event === 'userTyping') return typingSubject.asObservable();
+        if (event === 'messagesRead') return readSubject.asObservable();
         return new Subject().asObservable();
       }),
     };
@@ -189,20 +193,20 @@ describe('ChatWindowComponent', () => {
     expect(component.isSentByMe(receivedMsg)).toBe(false);
   });
 
-  it('should send message via WebSocket', () => {
+  it('should send message via messaging service', () => {
     component.ngOnInit();
     component.messageText = 'Test message';
     component.sendMessage();
-    expect(wsServiceMock.send).toHaveBeenCalledWith('send_message', {
-      conversationId: 'conv1',
-      content: 'Test message',
-    });
+    expect(messagingServiceMock.sendMessage).toHaveBeenCalledWith('conv1', 'Test message');
   });
 
   it('should add optimistic message on send', () => {
     component.ngOnInit();
     const initialCount = component.messages().length;
     component.messageText = 'New message';
+    messagingServiceMock.sendMessage.mockReturnValue(
+      of(makeMessage({ _id: 'sent2', content: 'New message' })),
+    );
     component.sendMessage();
     expect(component.messages().length).toBe(initialCount + 1);
     expect(component.messages()[component.messages().length - 1].content).toBe('New message');
@@ -225,10 +229,10 @@ describe('ChatWindowComponent', () => {
   it('should send quick reply', () => {
     component.ngOnInit();
     component.sendQuickReply('Is this still available?');
-    expect(wsServiceMock.send).toHaveBeenCalledWith('send_message', {
-      conversationId: 'conv1',
-      content: 'Is this still available?',
-    });
+    expect(messagingServiceMock.sendMessage).toHaveBeenCalledWith(
+      'conv1',
+      'Is this still available?',
+    );
   });
 
   it('should have correct quick reply options', () => {
@@ -337,13 +341,11 @@ describe('ChatWindowComponent', () => {
 
   it('should return listing thumbnail image', () => {
     component.ngOnInit();
-    const img = component.getListingImage();
-    expect(img).toBe('https://img.test/1_thumb.jpg');
+    expect(component.listingImage()).toBe('https://img.test/1_thumb.jpg');
   });
 
   it('should return placeholder when no listing', () => {
-    const img = component.getListingImage();
-    expect(img).toBe('assets/placeholder.png');
+    expect(component.listingImage()).toBe('assets/placeholder.png');
   });
 
   it('should clean up subscriptions on destroy', () => {
