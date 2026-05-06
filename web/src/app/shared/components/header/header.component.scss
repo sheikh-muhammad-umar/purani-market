@@ -847,7 +847,13 @@
 /* ============ TABLET ============ */
 @media (min-width: 768px) and (max-width: 1023px) {
   .header-search {
-    max-width: 360px;
+    max-width: 420px;
+    min-width: 280px;
+  }
+  .search-location {
+    max-width: 100px;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
   .logo-text {
     font-size: 16px;
@@ -858,5 +864,12 @@
   }
   .theme-toggle {
     display: none;
+  }
+  .desktop-nav {
+    gap: 2px;
+  }
+  .nav-icon {
+    width: 36px;
+    height: 36px;
   }
 }
