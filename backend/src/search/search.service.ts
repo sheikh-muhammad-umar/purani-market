@@ -519,6 +519,7 @@ export class SearchService {
                   'description',
                   'brandName^2',
                   'modelName^2',
+                  'selectedFeatures',
                 ],
                 type: 'most_fields',
                 minimum_should_match: '75%',
@@ -528,7 +529,12 @@ export class SearchService {
             {
               multi_match: {
                 query: query.q,
-                fields: ['title^2', 'brandName', 'modelName'],
+                fields: [
+                  'title^2',
+                  'brandName',
+                  'modelName',
+                  'selectedFeatures',
+                ],
                 type: 'best_fields',
                 fuzziness: 'AUTO',
                 boost: 0.5,
