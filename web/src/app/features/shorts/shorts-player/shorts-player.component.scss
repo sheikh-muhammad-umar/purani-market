@@ -1,0 +1,154 @@
+.player-wrapper {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  background: #000;
+  cursor: pointer;
+  overflow: hidden;
+}
+video {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  background: #000;
+}
+.play-overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.3);
+}
+.play-icon {
+  font-size: 48px;
+  color: white;
+  opacity: 0.9;
+
+  .material-symbols-rounded {
+    font-size: 56px;
+  }
+}
+.overlay-bottom {
+  position: absolute;
+  bottom: 12px;
+  left: 12px;
+  right: 60px;
+  color: white;
+}
+.short-price {
+  display: none; // replaced by price-badge
+}
+.seller-info {
+  margin-bottom: 8px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.price-badge {
+  padding: 3px 10px;
+  background: rgba(13, 165, 195, 0.85);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: 20px;
+  white-space: nowrap;
+  text-shadow: none;
+}
+.seller-link {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  text-decoration: none;
+  color: white;
+}
+.seller-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  overflow: hidden;
+  background: #4b5563;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.seller-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.avatar-placeholder {
+  color: white;
+  font-weight: 600;
+  font-size: 14px;
+}
+.seller-name {
+  font-weight: 600;
+  font-size: 14px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.caption {
+  font-size: 13px;
+  line-height: 1.4;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  cursor: pointer;
+  transition: all 0.2s;
+
+  &.expanded {
+    -webkit-line-clamp: unset;
+    display: block;
+  }
+}
+.actions-sidebar {
+  position: absolute;
+  right: 12px;
+  bottom: 80px;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  align-items: center;
+}
+.action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  text-decoration: none;
+
+  &.liked .action-icon {
+    color: #ef4444;
+  }
+}
+.action-icon {
+  font-size: 24px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+
+  .material-symbols-rounded {
+    font-size: 26px;
+  }
+}
+.action-count {
+  font-size: 11px;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+}
+.progress-bar {
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: rgba(255, 255, 255, 0.3);
+}
+.progress-fill {
+  height: 100%;
+  background: var(--primary, #0da5c3);
+  transition: width 0.1s linear;
+}

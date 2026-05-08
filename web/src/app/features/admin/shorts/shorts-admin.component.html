@@ -1,0 +1,239 @@
+<div class="shorts-admin">
+  <h1>Shorts Management</h1>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button
+      [class.active]="activeTab() === 'moderation'"
+      (click)="activeTab.set('moderation'); loadShorts('pending_review')"
+    >
+      Moderation Queue
+    </button>
+    <button [class.active]="activeTab() === 'all'" (click)="activeTab.set('all'); loadShorts()">
+      All Shorts
+    </button>
+    <button
+      [class.active]="activeTab() === 'packages'"
+      (click)="activeTab.set('packages'); loadPackages()"
+    >
+      Packages
+    </button>
+  </div>
+
+  <!-- Moderation / All Shorts -->
+  @if (activeTab() === 'moderation' || activeTab() === 'all') {
+    <!-- Filters -->
+    <div class="filters">
+      <select [(ngModel)]="statusFilter" (ngModelChange)="loadShorts($event)">
+        <option value="">All Statuses</option>
+        <option value="pending_review">Pending Review</option>
+        <option value="active">Active</option>
+        <option value="rejected">Rejected</option>
+        <option value="expired">Expired</option>
+      </select>
+    </div>
+
+    @if (loading()) {
+      <div class="loading">Loading...</div>
+    }
+
+    <div class="shorts-table">
+      <table>
+        <thead>
+          <tr>
+            <th>Preview</th>
+            <th>Seller</th>
+            <th>Caption</th>
+            <th>Status</th>
+            <th>Duration</th>
+            <th>Views</th>
+            <th>Created</th>
+            <th>Expires</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (short of shorts(); track short._id) {
+            <tr>
+              <td>
+                <div class="thumb-cell">
+                  @if (short.video.thumbnailUrl) {
+                    <img [src]="short.video.thumbnailUrl" alt="thumb" class="thumb-img" />
+                  } @else {
+                    <div class="thumb-placeholder">
+                      <span class="material-symbols-rounded">videocam</span>
+                    </div>
+                  }
+                </div>
+              </td>
+              <td>
+                <div class="seller-cell">
+                  <span>{{ getSellerName(short) }}</span>
+                  <small>{{ getSellerContact(short) }}</small>
+                </div>
+              </td>
+              <td class="caption-cell">{{ short.title || short.description || '—' }}</td>
+              <td>
+                <span class="status-badge" [class]="short.status">
+                  {{ short.status | formatStatus }}
+                </span>
+              </td>
+              <td>{{ short.video.duration | formatDuration }}</td>
+              <td>{{ short.viewCount }}</td>
+              <td>{{ formatDate(short.createdAt) }}</td>
+              <td>{{ short.expiresAt ? formatDate(short.expiresAt) : '—' }}</td>
+              <td>
+                <div class="action-btns">
+                  @if (short.status === 'pending_review') {
+                    <button class="btn-approve" (click)="approveShort(short._id)">✓ Approve</button>
+                    <button class="btn-reject" (click)="openRejectModal(short)">✗ Reject</button>
+                  }
+                  <button class="btn-view" (click)="openPreview(short)">
+                    <span class="material-symbols-rounded" style="font-size: 14px">play_arrow</span>
+                    View
+                  </button>
+                  <button class="btn-delete" (click)="deleteShort(short._id)">🗑</button>
+                </div>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    @if (!loading() && shorts().length === 0) {
+      <div class="empty">No shorts found.</div>
+    }
+
+    <!-- Pagination -->
+    @if (total() > limit) {
+      <div class="pagination">
+        <button [disabled]="page() <= 1" (click)="changePage(page() - 1)">← Prev</button>
+        <span>Page {{ page() }} of {{ totalPages() }}</span>
+        <button [disabled]="page() >= totalPages()" (click)="changePage(page() + 1)">Next →</button>
+      </div>
+    }
+  }
+
+  <!-- Packages Tab -->
+  @if (activeTab() === 'packages') {
+    <div class="packages-section">
+      <div class="section-header">
+        <h2>Shorts Packages</h2>
+        <button class="btn-primary" (click)="showCreatePackage.set(true)">+ Create Package</button>
+      </div>
+
+      <div class="packages-grid">
+        @for (pkg of packages(); track pkg._id) {
+          <div class="package-card" [class.inactive]="!pkg.isActive">
+            <div class="package-header">
+              <h3>{{ pkg.name }}</h3>
+              <span class="package-status" [class.active]="pkg.isActive">
+                {{ pkg.isActive ? 'Active' : 'Inactive' }}
+              </span>
+            </div>
+            <div class="package-details">
+              <p>Quantity: {{ pkg.quantity }} shorts</p>
+              <p>Duration: {{ pkg.duration }} days</p>
+              <p>Max Length: {{ pkg.maxVideoLength }}s</p>
+              <p>Price: {{ DEFAULT_CURRENCY }} {{ pkg.price }}</p>
+            </div>
+            <div class="package-actions">
+              <button class="btn-edit" (click)="editPackage(pkg)">Edit</button>
+              <button class="btn-toggle" (click)="togglePackageStatus(pkg)">
+                {{ pkg.isActive ? 'Deactivate' : 'Activate' }}
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Create/Edit Package Modal -->
+      @if (showCreatePackage() || editingPackage()) {
+        <div class="modal-overlay" (click)="closePackageModal()">
+          <div class="modal" (click)="$event.stopPropagation()">
+            <h3>{{ editingPackage() ? 'Edit Package' : 'Create Package' }}</h3>
+            <div class="form-group">
+              <label>Name</label>
+              <input [(ngModel)]="pkgForm.name" placeholder="e.g. Starter Pack" />
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Quantity</label>
+                <input type="number" [(ngModel)]="pkgForm.quantity" min="1" />
+              </div>
+              <div class="form-group">
+                <label>Duration (days)</label>
+                <select [(ngModel)]="pkgForm.duration">
+                  <option [value]="7">7</option>
+                  <option [value]="15">15</option>
+                  <option [value]="30">30</option>
+                  <option [value]="60">60</option>
+                  <option [value]="90">90</option>
+                </select>
+              </div>
+            </div>
+            <div class="form-row">
+              <div class="form-group">
+                <label>Price ({{ DEFAULT_CURRENCY }})</label>
+                <input type="number" [(ngModel)]="pkgForm.price" min="0" />
+              </div>
+              <div class="form-group">
+                <label>Max Video Length (s)</label>
+                <input type="number" [(ngModel)]="pkgForm.maxVideoLength" min="15" max="60" />
+              </div>
+            </div>
+            <div class="form-group">
+              <label>Description</label>
+              <textarea [(ngModel)]="pkgForm.description" rows="2"></textarea>
+            </div>
+            <div class="modal-actions">
+              <button class="btn-secondary" (click)="closePackageModal()">Cancel</button>
+              <button class="btn-primary" (click)="savePackage()">
+                {{ editingPackage() ? 'Update' : 'Create' }}
+              </button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Reject Modal -->
+  @if (rejectingShort()) {
+    <div class="modal-overlay" (click)="rejectingShort.set(null)">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3>Reject Short</h3>
+        <div class="form-group">
+          <label>Rejection Reason</label>
+          <textarea
+            [(ngModel)]="rejectionReason"
+            rows="3"
+            placeholder="Explain why this short is being rejected..."
+          ></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="rejectingShort.set(null)">Cancel</button>
+          <button class="btn-reject" (click)="confirmReject()">Reject</button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <!-- Video Preview Modal -->
+  @if (previewShort()) {
+    <div class="modal-overlay" (click)="previewShort.set(null)">
+      <div class="preview-modal" (click)="$event.stopPropagation()">
+        <video
+          [src]="previewShort()!.video.compressedUrl || previewShort()!.video.url"
+          controls
+          autoplay
+          class="preview-video"
+        ></video>
+        <button class="btn-close" (click)="previewShort.set(null)">
+          <span class="material-symbols-rounded">close</span>
+        </button>
+      </div>
+    </div>
+  }
+</div>

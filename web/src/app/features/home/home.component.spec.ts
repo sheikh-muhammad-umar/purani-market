@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { HomeComponent } from './home.component';
 import { CategoriesService } from '../../core/services/categories.service';
 import { ListingsService, ListingsResponse } from '../../core/services/listings.service';
+import { ShortsService } from '../../core/services/shorts.service';
 import { RecommendationsService } from '../../core/services/recommendations.service';
 import { AuthService } from '../../core/auth';
 import { Category, Listing } from '../../core/models';
@@ -67,6 +68,9 @@ describe('HomeComponent', () => {
     getRecommendations: ReturnType<typeof vi.fn>;
     dismiss: ReturnType<typeof vi.fn>;
   };
+  let shortsServiceMock: {
+    getFeed: ReturnType<typeof vi.fn>;
+  };
 
   const mockCategories: Category[] = [
     makeCategory({ _id: 'c1', name: 'Cars', slug: 'cars', sortOrder: 1 }),
@@ -118,9 +122,14 @@ describe('HomeComponent', () => {
       dismiss: vi.fn(),
     };
 
+    shortsServiceMock = {
+      getFeed: vi.fn().mockReturnValue(of({ data: [], total: 0 })),
+    };
+
     component = new HomeComponent(
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
+      shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
     );
@@ -165,6 +174,7 @@ describe('HomeComponent', () => {
     component = new HomeComponent(
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
+      shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
     );
@@ -194,6 +204,7 @@ describe('HomeComponent', () => {
     component = new HomeComponent(
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
+      shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
     );
@@ -209,6 +220,7 @@ describe('HomeComponent', () => {
     component = new HomeComponent(
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
+      shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
     );
@@ -223,6 +235,7 @@ describe('HomeComponent', () => {
     component = new HomeComponent(
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
+      shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
     );
@@ -271,6 +284,7 @@ describe('HomeComponent', () => {
     component = new HomeComponent(
       categoriesServiceMock as unknown as CategoriesService,
       listingsServiceMock as unknown as ListingsService,
+      shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
     );

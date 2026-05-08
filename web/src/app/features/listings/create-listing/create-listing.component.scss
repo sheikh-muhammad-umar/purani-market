@@ -9,6 +9,33 @@
   margin: 0 auto;
 }
 
+/* Page Header */
+.wizard-header {
+  margin-bottom: var(--space-3);
+}
+
+.wizard-header .back-link {
+  color: var(--text-muted);
+  text-decoration: none;
+  font-size: var(--text-sm);
+
+  &:hover {
+    color: var(--primary);
+  }
+}
+
+.wizard-header h1 {
+  font-size: var(--text-xl);
+  font-weight: 700;
+  margin: var(--space-1) 0 4px;
+  color: var(--text-primary);
+}
+
+.wizard-header .header-subtitle {
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+}
+
 /* Progress Bar */
 .wizard-progress {
   display: flex;

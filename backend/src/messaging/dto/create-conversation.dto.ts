@@ -1,9 +1,19 @@
-import { IsNotEmpty, IsString, IsOptional, MaxLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  IsOptional,
+  MaxLength,
+  ValidateIf,
+} from 'class-validator';
 
 export class CreateConversationDto {
-  @IsNotEmpty()
+  @IsOptional()
   @IsString()
-  productListingId!: string;
+  productListingId?: string;
+
+  @IsOptional()
+  @IsString()
+  shortVideoId?: string;
 
   @IsOptional()
   @IsString()

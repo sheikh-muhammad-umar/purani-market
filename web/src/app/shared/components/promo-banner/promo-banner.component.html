@@ -9,7 +9,9 @@
       }
     </div>
     @if (ctaText() && ctaLink()) {
-      <a class="promo-cta" [routerLink]="ctaLink()">{{ ctaText() }}</a>
+      <a class="promo-cta" [routerLink]="ctaLink()" [queryParams]="ctaQueryParams()">{{
+        ctaText()
+      }}</a>
     }
   </div>
 </div>

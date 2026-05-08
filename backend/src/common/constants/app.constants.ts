@@ -141,6 +141,7 @@ export const ROBOTS_ALLOWED_PATHS = [
   '/seller/',
   '/search',
   '/pages/',
+  '/shorts/',
 ] as const;
 
 export const ROBOTS_DISALLOWED_PATHS = [
@@ -175,3 +176,19 @@ export const PROHIBITED_WORDS: readonly string[] = [
   'violence',
   'abuse',
 ] as const;
+
+// ─── Shorts ─────────────────────────────────────────────────
+export const SHORTS_FREE_LIMIT = 3;
+export const SHORTS_FREE_DURATION_DAYS = 7;
+export const SHORTS_MAX_DURATION_SECONDS = 60;
+export const SHORTS_MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
+export const SHORTS_EXPIRY_REMINDER_DAYS = [2, 1];
+export const SHORTS_STALE_PENDING_REVIEW_DAYS = 3; // Auto-approve after 3 days
+
+export const SHORTS_ALLOWED_MIMETYPES = [
+  'video/mp4',
+  'video/webm',
+  'video/quicktime',
+] as const;
+
+export const SHORTS_ACCEPT_STRING = 'video/mp4,video/webm,video/quicktime';

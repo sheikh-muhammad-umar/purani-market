@@ -108,11 +108,18 @@
 } @else {
   <div class="wizard-page">
     <div class="wizard-container">
+      <!-- Page Header -->
+      <div class="wizard-header">
+        <a routerLink="/listings/my" class="back-link">← Back to My Ads</a>
+        <h1>Create New Listing</h1>
+        <p class="header-subtitle">List your product and reach thousands of buyers</p>
+      </div>
+
       <!-- Promotional Banner -->
       <app-promo-banner
         badge="Tip"
         message="Boost your listing with Featured Ads — get 10x more views"
-        ctaText="Explore Packages →"
+        ctaText="Get a Package →"
         ctaLink="/packages"
       />
 
@@ -262,7 +269,7 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label" for="price">Price (PKR) *</label>
+                <label class="form-label" for="price">Price ({{ DEFAULT_CURRENCY }}) *</label>
                 <input
                   id="price"
                   class="form-input"
@@ -1071,7 +1078,9 @@
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">Price</span>
-                  <span class="price">PKR {{ detailsForm.get('price')?.value | number }}</span>
+                  <span class="price"
+                    >{{ DEFAULT_CURRENCY }} {{ detailsForm.get('price')?.value | number }}</span
+                  >
                 </div>
                 <div class="detail-row">
                   <span class="detail-label">Condition</span>

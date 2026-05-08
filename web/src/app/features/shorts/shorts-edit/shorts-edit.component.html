@@ -1,0 +1,207 @@
+<div class="edit-page">
+  <div class="edit-header">
+    <a [routerLink]="ROUTES.LISTINGS_MY" [queryParams]="{ tab: 'shorts' }" class="back-link"
+      >← Back to My Shorts</a
+    >
+    <h1>Edit Short Video</h1>
+    <p class="subtitle">Update your short's details</p>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-center"><div class="spinner spinner-lg"></div></div>
+  } @else if (short()) {
+    <!-- Review Warning -->
+    <div class="review-warning">
+      <span class="material-symbols-rounded" style="font-size: 20px; vertical-align: middle"
+        >info</span
+      >
+      After saving, your short will go through review again before becoming active.
+    </div>
+
+    <!-- Video Preview (non-editable) -->
+    <div class="upload-card">
+      <h2 class="card-title">Video Preview</h2>
+      <p class="card-desc">
+        The video cannot be changed. To use a different video, upload a new short.
+      </p>
+      <div class="video-preview-container">
+        <video
+          [src]="short()!.video.compressedUrl || short()!.video.url"
+          controls
+          playsinline
+        ></video>
+      </div>
+    </div>
+
+    <!-- Details Card -->
+    <div class="upload-card">
+      <h2 class="card-title">Details</h2>
+      <p class="card-desc">Update information about your short</p>
+
+      <!-- Title -->
+      <div class="form-group">
+        <label for="title">Title <span class="required">*</span></label>
+        <input
+          id="title"
+          type="text"
+          [(ngModel)]="title"
+          maxlength="100"
+          placeholder="Give your short a title..."
+          required
+        />
+        <span class="char-count">{{ title.length }}/100</span>
+      </div>
+
+      <!-- Description -->
+      <div class="form-group">
+        <label for="description">Description <span class="required">*</span></label>
+        <textarea
+          id="description"
+          [(ngModel)]="description"
+          maxlength="500"
+          rows="3"
+          placeholder="Describe your product..."
+          required
+        ></textarea>
+        <span class="char-count">{{ description.length }}/500</span>
+      </div>
+
+      <!-- Price -->
+      <div class="form-group">
+        <label for="price">Price ({{ CURRENCY_SYMBOL }}) <span class="required">*</span></label>
+        <input
+          id="price"
+          type="number"
+          [(ngModel)]="price"
+          min="0"
+          placeholder="Enter price..."
+          required
+        />
+      </div>
+    </div>
+
+    <!-- Category & Location Card -->
+    <div class="upload-card">
+      <h2 class="card-title">Category & Location</h2>
+      <p class="card-desc">Help buyers find your short</p>
+
+      <!-- Category (multi-level) -->
+      <div class="form-group">
+        <label>Category <span class="required">*</span></label>
+        <div class="multi-select-section">
+          <div class="level-select">
+            <app-custom-select
+              [options]="level1Options()"
+              placeholder="Select Category"
+              [searchable]="true"
+              [ngModel]="selectedLevel1Id()"
+              (ngModelChange)="onLevel1Change($event)"
+            />
+          </div>
+          @if (level2Options().length > 0) {
+            <div class="level-select">
+              <app-custom-select
+                [options]="level2Options()"
+                placeholder="Select Subcategory"
+                [searchable]="true"
+                [ngModel]="selectedLevel2Id()"
+                (ngModelChange)="onLevel2Change($event)"
+              />
+            </div>
+          }
+          @if (level3Options().length > 0) {
+            <div class="level-select">
+              <app-custom-select
+                [options]="level3Options()"
+                placeholder="Select Sub-subcategory"
+                [searchable]="true"
+                [ngModel]="selectedLevel3Id()"
+                (ngModelChange)="onLevel3Change($event)"
+              />
+            </div>
+          }
+          @if (selectedCategoryPath()) {
+            <p class="selected-path">{{ selectedCategoryPath() }}</p>
+          }
+        </div>
+      </div>
+
+      <!-- Location (Province → City → Area) -->
+      <div class="form-group">
+        <label>Location <span class="required">*</span></label>
+        <div class="multi-select-section">
+          <div class="level-select">
+            <app-custom-select
+              [options]="provinceOptions()"
+              placeholder="Select Province"
+              [searchable]="true"
+              [ngModel]="selectedProvinceId()"
+              (ngModelChange)="onProvinceChange($event)"
+            />
+          </div>
+          @if (cityOptionsForProvince().length > 0) {
+            <div class="level-select">
+              <app-custom-select
+                [options]="cityOptionsForProvince()"
+                placeholder="Select City"
+                [searchable]="true"
+                [ngModel]="selectedCityId()"
+                (ngModelChange)="onCityChange($event)"
+              />
+            </div>
+          }
+          @if (areaOptionsForCity().length > 0) {
+            <div class="level-select">
+              <app-custom-select
+                [options]="areaOptionsForCity()"
+                placeholder="Select Area (optional)"
+                [searchable]="true"
+                [ngModel]="selectedAreaId()"
+                (ngModelChange)="onAreaChange($event)"
+              />
+            </div>
+          }
+        </div>
+      </div>
+    </div>
+
+    <!-- Link to Listing Card -->
+    <div class="upload-card">
+      <h2 class="card-title">Link to Listing</h2>
+      <p class="card-desc">Optionally link this short to one of your active ads</p>
+
+      <div class="form-group">
+        @if (myListingOptions().length > 0) {
+          <app-custom-select
+            [options]="myListingOptions()"
+            placeholder="Select a listing (optional)"
+            [searchable]="true"
+            [(ngModel)]="selectedListingId"
+          />
+        } @else {
+          <p class="no-listings-msg">
+            <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
+              >info</span
+            >
+            You don't have any active ads.
+            <a [routerLink]="ROUTES.LISTINGS_CREATE">Create a listing</a> first to link it here.
+          </p>
+        }
+      </div>
+    </div>
+
+    <!-- Submit -->
+    <div class="submit-section">
+      @if (error()) {
+        <p class="error-msg">{{ error() }}</p>
+      }
+      <button class="btn-submit" [disabled]="!canSubmit()" (click)="saveShort()">
+        @if (saving()) {
+          <span class="spinner-small"></span> Saving...
+        } @else {
+          Save Changes
+        }
+      </button>
+    </div>
+  }
+</div>

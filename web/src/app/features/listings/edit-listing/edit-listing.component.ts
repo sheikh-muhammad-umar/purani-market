@@ -42,6 +42,7 @@ import { mapLinkValidator } from '../../../core/utils/map-link';
 })
 export class EditListingComponent implements OnInit, OnDestroy {
   readonly conditionOptions = CONDITION_OPTIONS;
+  readonly DEFAULT_CURRENCY = DEFAULT_CURRENCY;
   readonly ERROR_MSG = ERROR_MSG;
   readonly OTHER_ID = OTHER_OPTION_ID;
   private readonly DRAFT_KEY = 'edit-listing-step';

@@ -1,0 +1,160 @@
+<div class="analytics-page">
+  <h1>Shorts Analytics</h1>
+
+  <!-- Date Filter -->
+  <div class="filter-bar">
+    <div class="date-filters">
+      <label>From</label>
+      <input type="date" [(ngModel)]="dateFrom" />
+      <label>To</label>
+      <input type="date" [(ngModel)]="dateTo" />
+      <button class="btn-apply" (click)="applyDateFilter()">Apply</button>
+      @if (dateFrom || dateTo) {
+        <button class="btn-clear" (click)="clearDateFilter()">Clear</button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Loading analytics...</div>
+  } @else if (analytics()) {
+    <!-- Overview Cards -->
+    <div class="overview-grid">
+      <div class="stat-card">
+        <span class="stat-value">{{ analytics().overview.totalShorts }}</span>
+        <span class="stat-label">Total Shorts</span>
+      </div>
+      <div class="stat-card active">
+        <span class="stat-value">{{ analytics().overview.activeShorts }}</span>
+        <span class="stat-label">Active</span>
+      </div>
+      <div class="stat-card pending">
+        <span class="stat-value">{{ analytics().overview.pendingShorts }}</span>
+        <span class="stat-label">Pending Review</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ analytics().overview.rejectedShorts }}</span>
+        <span class="stat-label">Rejected</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ analytics().overview.expiredShorts }}</span>
+        <span class="stat-label">Expired</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ analytics().overview.totalViews | number }}</span>
+        <span class="stat-label">Total Views</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ analytics().overview.totalLikes | number }}</span>
+        <span class="stat-label">Total Likes</span>
+      </div>
+    </div>
+
+    <!-- Uploads by Day Chart (simple bar representation) -->
+    <div class="section-card">
+      <h2>Uploads by Day</h2>
+      <div class="bar-chart">
+        @for (day of analytics().uploadsByDay; track day._id) {
+          <div class="bar-item">
+            <div class="bar-fill" [style.height.%]="(day.count / getMaxUploads()) * 100"></div>
+            <span class="bar-label">{{ day._id | slice: 5 }}</span>
+            <span class="bar-value">{{ day.count }}</span>
+          </div>
+        }
+      </div>
+    </div>
+
+    <!-- Top Shorts -->
+    <div class="section-card">
+      <div class="section-header">
+        <h2>Top Shorts</h2>
+        <div class="sort-toggle">
+          <button [class.active]="sortTopBy() === 'views'" (click)="sortTopBy.set('views')">
+            By Views
+          </button>
+          <button [class.active]="sortTopBy() === 'likes'" (click)="sortTopBy.set('likes')">
+            By Likes
+          </button>
+        </div>
+      </div>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>#</th>
+            <th>Title</th>
+            <th>Seller</th>
+            <th>Views</th>
+            <th>Likes</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (
+            short of sortTopBy() === 'views' ? analytics().topViewed : analytics().topLiked;
+            track short._id;
+            let i = $index
+          ) {
+            <tr>
+              <td>{{ i + 1 }}</td>
+              <td>{{ short.title || 'Untitled' }}</td>
+              <td>{{ getSellerName(short) }}</td>
+              <td>{{ short.viewCount | number }}</td>
+              <td>{{ short.favoriteCount | number }}</td>
+              <td>{{ short.createdAt | date: 'shortDate' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Category Breakdown -->
+    <div class="two-col">
+      <div class="section-card">
+        <h2>By Category</h2>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Shorts</th>
+              <th>Views</th>
+              <th>Likes</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (cat of analytics().categoryBreakdown; track cat._id) {
+              <tr>
+                <td>{{ cat._id }}</td>
+                <td>{{ cat.count }}</td>
+                <td>{{ cat.views | number }}</td>
+                <td>{{ cat.likes | number }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+
+      <!-- City Breakdown -->
+      <div class="section-card">
+        <h2>By City</h2>
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>City</th>
+              <th>Shorts</th>
+              <th>Views</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (city of analytics().cityBreakdown; track city._id) {
+              <tr>
+                <td>{{ city._id }}</td>
+                <td>{{ city.count }}</td>
+                <td>{{ city.views | number }}</td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    </div>
+  }
+</div>

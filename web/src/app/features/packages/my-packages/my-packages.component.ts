@@ -1,15 +1,18 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { CustomSelectComponent } from '../../../shared/components/custom-select/custom-select.component';
 import { PackagesService } from '../../../core/services/packages.service';
+import { ShortsService, ShortsPackagePurchase } from '../../../core/services/shorts.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { PackagePurchase, PaymentStatus, Category } from '../../../core/models';
 import {
   PaymentStatus as PaymentStatusEnum,
   PackageType as PackageTypeEnum,
+  TAB,
+  TabType,
 } from '../../../core/constants/enums';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { CURRENCY_SYMBOL, PAYMENT_METHOD_CONFIG } from '../../../core/constants/app';
@@ -37,9 +40,13 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 })
 export class MyPackagesComponent implements OnInit {
   readonly ROUTES = ROUTES;
+  readonly TAB = TAB;
+  readonly mainTab = signal<TabType>(TAB.ADS);
   readonly purchases = signal<PackagePurchase[]>([]);
+  readonly shortsPurchases = signal<ShortsPackagePurchase[]>([]);
   readonly categories = signal<Category[]>([]);
   readonly loading = signal(true);
+  readonly loadingShorts = signal(false);
   readonly error = signal<string | null>(null);
   readonly activeTab = signal<'active' | 'history'>('active');
   readonly selectedCategoryId = signal<string>('');
@@ -53,13 +60,39 @@ export class MyPackagesComponent implements OnInit {
 
   constructor(
     private readonly packagesService: PackagesService,
+    private readonly shortsService: ShortsService,
     private readonly categoriesService: CategoriesService,
     private readonly tracker: ActivityTrackerService,
+    private readonly route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
+    const tab = this.route.snapshot.queryParams['tab'];
+    if (tab === TAB.SHORTS) {
+      this.mainTab.set(TAB.SHORTS);
+      this.loadShortsPurchases();
+    }
+
     this.loadCategories();
     this.loadPurchases();
+  }
+
+  switchMainTab(tab: TabType): void {
+    this.mainTab.set(tab);
+    if (tab === TAB.SHORTS && this.shortsPurchases().length === 0) {
+      this.loadShortsPurchases();
+    }
+  }
+
+  loadShortsPurchases(): void {
+    this.loadingShorts.set(true);
+    this.shortsService.getMyPurchases().subscribe({
+      next: (purchases) => {
+        this.shortsPurchases.set(purchases);
+        this.loadingShorts.set(false);
+      },
+      error: () => this.loadingShorts.set(false),
+    });
   }
 
   loadCategories(): void {
@@ -166,5 +199,14 @@ export class MyPackagesComponent implements OnInit {
 
   getPaymentMethodLabel(method: string): string {
     return PAYMENT_METHOD_CONFIG[method]?.label ?? method;
+  }
+
+  isShortsPurchaseActive(purchase: ShortsPackagePurchase): boolean {
+    return (
+      purchase.paymentStatus === 'completed' &&
+      !!purchase.expiresAt &&
+      new Date(purchase.expiresAt) > new Date() &&
+      purchase.remainingQuantity > 0
+    );
   }
 }

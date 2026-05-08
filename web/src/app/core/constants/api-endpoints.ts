@@ -23,6 +23,7 @@ export const API = {
 
   // Users
   USERS_ME: '/users/me',
+  USERS_PUBLIC: (id: string) => `/users/${id}/public`,
 
   // Listings
   LISTINGS: '/listings',
@@ -165,4 +166,28 @@ export const API = {
   EXPERIMENT_PAUSE: (key: string) => `/experiments/${key}/pause`,
   EXPERIMENT_COMPLETE: (key: string) => `/experiments/${key}/complete`,
   EXPERIMENT_METRICS: (key: string) => `/experiments/${key}/metrics`,
+
+  // Shorts
+  SHORTS_FEED: '/shorts/feed',
+  SHORTS_MY_LIST: '/shorts/my/list',
+  SHORTS_MY_LIKED: '/shorts/my/liked',
+  SHORTS_MY_STATS: '/shorts/my/stats',
+  SHORTS_BY_SELLER: (sellerId: string) => `/shorts/seller/${sellerId}`,
+  SHORT_BY_ID: (id: string) => `/shorts/${id}`,
+  SHORTS_CREATE: '/shorts',
+  SHORT_DELETE: (id: string) => `/shorts/${id}`,
+  SHORT_LIKE: (id: string) => `/shorts/${id}/like`,
+  SHORT_UPDATE: (id: string) => `/shorts/${id}`,
+  SHORTS_PACKAGES_AVAILABLE: '/shorts/packages/available',
+  SHORTS_PACKAGES_PURCHASE: '/shorts/packages/purchase',
+  SHORTS_PACKAGES_MY_PURCHASES: '/shorts/packages/my-purchases',
+  SHORTS_ADMIN_LIST: '/shorts/admin/list',
+  SHORTS_ADMIN_APPROVE: (id: string) => `/shorts/admin/${id}/approve`,
+  SHORTS_ADMIN_REJECT: (id: string) => `/shorts/admin/${id}/reject`,
+  SHORTS_ADMIN_DELETE: (id: string) => `/shorts/admin/${id}`,
+  SHORTS_ADMIN_PACKAGES: '/shorts/admin/packages',
+  SHORTS_ADMIN_PACKAGES_CREATE: '/shorts/admin/packages',
+  SHORTS_ADMIN_PACKAGES_UPDATE: (id: string) => `/shorts/admin/packages/${id}`,
+  SHORTS_ADMIN_PURCHASES_CONFIRM: (id: string) => `/shorts/admin/purchases/${id}/confirm`,
+  SHORTS_ADMIN_ANALYTICS: '/shorts/admin/analytics',
 } as const;

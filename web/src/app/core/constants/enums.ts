@@ -79,3 +79,12 @@ export enum SocialProvider {
   GOOGLE = 'google',
   FACEBOOK = 'facebook',
 }
+
+// ─── UI Tabs ─────────────────────────────────────────────
+export const TAB = {
+  ADS: 'ads',
+  LISTINGS: 'listings',
+  SHORTS: 'shorts',
+} as const;
+
+export type TabType = (typeof TAB)[keyof typeof TAB];

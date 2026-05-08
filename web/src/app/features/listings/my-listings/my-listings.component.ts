@@ -1,18 +1,28 @@
 import { Component, OnInit, signal, computed, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { ListingsService } from '../../../core/services/listings.service';
+import { ShortsService, ShortVideo, ShortsStats } from '../../../core/services/shorts.service';
 import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth';
 import { Listing, PackagePurchase, User } from '../../../core/models';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
-import { ListingStatus, PackageType, PaymentStatus } from '../../../core/constants/enums';
+import {
+  ListingStatus,
+  PackageType,
+  PaymentStatus,
+  TAB,
+  TabType,
+} from '../../../core/constants/enums';
 import { PLACEHOLDER_IMAGE, PAGE_SIZE_LARGE } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
+import { DEFAULT_CURRENCY } from '../../../core/constants/app';
 import { extractPackageDetails } from '../../../core/utils/package-details';
+import { FormatDurationPipe } from '../../../shared/pipes/format-duration.pipe';
+import { FormatStatusPipe } from '../../../shared/pipes/format-status.pipe';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 
 interface AnalyticsCard {
@@ -30,16 +40,23 @@ interface FeaturedAdInfo {
 @Component({
   selector: 'app-my-listings',
   standalone: true,
-  imports: [CommonModule, RouterLink, ListingUrlPipe],
+  imports: [CommonModule, RouterLink, ListingUrlPipe, FormatDurationPipe, FormatStatusPipe],
   templateUrl: './my-listings.component.html',
   styleUrls: ['./my-listings.component.scss'],
 })
 export class MyListingsComponent implements OnInit {
   readonly ListingStatus = ListingStatus;
   readonly ROUTES = ROUTES;
+  readonly DEFAULT_CURRENCY = DEFAULT_CURRENCY;
+  readonly TAB = TAB;
+  readonly SKELETON_ITEMS = [1, 2, 3, 4, 5];
+  readonly mainTab = signal<TabType>(TAB.ADS);
 
   listings = signal<Listing[]>([]);
+  shorts = signal<ShortVideo[]>([]);
+  shortsStats = signal<ShortsStats | null>(null);
   loading = signal(true);
+  loadingShorts = signal(false);
   total = signal(0);
   page = signal(1);
   user = signal<User | null>(null);
@@ -115,10 +132,12 @@ export class MyListingsComponent implements OnInit {
 
   constructor(
     private readonly listingsService: ListingsService,
+    private readonly shortsService: ShortsService,
     private readonly packagesService: PackagesService,
     private readonly authService: AuthService,
     private readonly tracker: ActivityTrackerService,
     private readonly confirmModal: ConfirmModalService,
+    private readonly route: ActivatedRoute,
     @Inject(PLATFORM_ID) platformId: object,
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -126,6 +145,11 @@ export class MyListingsComponent implements OnInit {
 
   ngOnInit(): void {
     if (this.isBrowser) {
+      const tab = this.route.snapshot.queryParams['tab'];
+      if (tab === TAB.SHORTS) {
+        this.mainTab.set(TAB.SHORTS);
+        this.loadShorts();
+      }
       this.loadAll();
     }
   }
@@ -302,5 +326,52 @@ export class MyListingsComponent implements OnInit {
         metadata: { listingId: listing._id, purchaseId, packageType, actionType },
       });
     }
+  }
+
+  // ─── Shorts Tab ─────────────────────────────────────────
+  switchMainTab(tab: TabType): void {
+    this.mainTab.set(tab);
+    if (tab === TAB.SHORTS && this.shorts().length === 0) {
+      this.loadShorts();
+    }
+  }
+
+  loadShorts(): void {
+    this.loadingShorts.set(true);
+    this.shortsService.getMyShorts(1, 50).subscribe({
+      next: (res) => {
+        this.shorts.set(res.data ?? []);
+        this.loadingShorts.set(false);
+      },
+      error: () => this.loadingShorts.set(false),
+    });
+    this.shortsService.getMyStats().subscribe({
+      next: (stats) => this.shortsStats.set(stats),
+    });
+  }
+
+  async deleteShort(id: string): Promise<void> {
+    const confirmed = await this.confirmModal.confirm({
+      title: 'Delete Short',
+      message:
+        "Are you sure you want to delete this short? This action cannot be undone and won't restore your monthly upload limit.",
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
+    if (confirmed) {
+      this.shortsService.deleteShort(id).subscribe({
+        next: () => {
+          this.shorts.update((list) => list.filter((s) => s._id !== id));
+          this.loadShorts();
+        },
+      });
+    }
+  }
+
+  isShortExpiringSoon(expiresAt?: string): boolean {
+    if (!expiresAt) return false;
+    const diff = new Date(expiresAt).getTime() - Date.now();
+    return diff > 0 && diff < 2 * 24 * 60 * 60 * 1000;
   }
 }

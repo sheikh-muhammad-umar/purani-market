@@ -59,7 +59,7 @@
 /* Search Bar */
 .header-search {
   flex: 1;
-  max-width: 520px;
+  max-width: 560px;
   min-width: 0;
   display: flex;
   align-items: center;
@@ -393,7 +393,7 @@
 .desktop-nav {
   display: flex;
   align-items: center;
-  gap: 6px;
+  gap: 2px;
   flex-shrink: 0;
 }
 
@@ -473,6 +473,7 @@
   display: flex;
   align-items: center;
   gap: 6px;
+  margin-left: 8px;
   background: #0da5c3;
   color: #fff;
   padding: 8px 20px;
@@ -847,8 +848,7 @@
 /* ============ TABLET ============ */
 @media (min-width: 768px) and (max-width: 1023px) {
   .header-search {
-    max-width: 420px;
-    min-width: 280px;
+    max-width: 360px;
   }
   .search-location {
     max-width: 100px;

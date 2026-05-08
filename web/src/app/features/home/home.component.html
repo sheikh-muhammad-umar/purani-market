@@ -105,6 +105,65 @@
     }
   </section>
 
+  <!-- Shorts Carousel -->
+  @if (!loadingShorts() && shorts().length > 0) {
+    <section class="home-section" aria-label="Short videos">
+      <div class="section-header">
+        <h2 class="section-title">
+          <span aria-hidden="true"
+            ><span
+              class="mat-icon"
+              style="font-size: 20px; vertical-align: middle; color: var(--primary)"
+              >play_circle</span
+            ></span
+          >
+          Shorts
+        </h2>
+        <a [routerLink]="ROUTES.SHORTS" class="see-all-link">See all →</a>
+      </div>
+      <div class="shorts-carousel" role="list">
+        @for (short of shorts(); track short._id) {
+          <a
+            class="short-card"
+            [routerLink]="['/shorts']"
+            [queryParams]="{ id: short._id }"
+            role="listitem"
+          >
+            <div class="short-thumb">
+              <video
+                [src]="short.video.compressedUrl || short.video.url"
+                preload="metadata"
+                muted
+                playsinline
+              ></video>
+              <span class="short-duration">{{ formatShortDuration(short.video.duration) }}</span>
+            </div>
+            <div class="short-info">
+              <span class="short-title">{{
+                short.title || short.description || 'Short video'
+              }}</span>
+              <span class="short-date">{{ short.createdAt | date: 'mediumDate' }}</span>
+              @if (short.price) {
+                <span class="short-price"
+                  >{{ short.currency || CURRENCY_SYMBOL }} {{ short.price | number }}</span
+                >
+              } @else {
+                <span class="short-views"
+                  ><span
+                    class="material-symbols-rounded"
+                    style="font-size: 12px; vertical-align: middle"
+                    >visibility</span
+                  >
+                  {{ short.viewCount }}</span
+                >
+              }
+            </div>
+          </a>
+        }
+      </div>
+    </section>
+  }
+
   <!-- Recommended for You -->
   <section class="home-section" aria-label="Recommended for you">
     <div class="section-header">

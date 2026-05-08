@@ -91,4 +91,20 @@ export const ERROR = {
   REVIEW_REQUIRES_CONVERSATION:
     'You must have a conversation with the seller about this listing before submitting a review',
   REVIEW_DUPLICATE: 'You have already reviewed this listing',
+
+  // Shorts
+  SHORT_NOT_FOUND: 'Short video not found',
+  SHORT_NOT_PENDING: 'Short is not pending review',
+  SHORT_DURATION_EXCEEDED:
+    'Video duration exceeds 60 seconds. Please trim your video.',
+  SHORT_SIZE_EXCEEDED: 'Video size exceeds 15MB limit',
+  SHORT_INVALID_FORMAT: 'Invalid video format. Allowed: MP4, WebM, MOV',
+  SHORT_FREE_LIMIT_REACHED:
+    'You have used all 3 free shorts. Purchase a shorts package to upload more.',
+  SHORT_PACKAGE_NOT_FOUND: 'Shorts package not found',
+  SHORT_PACKAGE_EXPIRED: 'Shorts package has expired',
+  SHORT_PACKAGE_FULLY_USED:
+    'Package fully used. Purchase a new package to upload more shorts.',
+  SHORT_NOT_AUTHORIZED: 'Not authorized to perform this action on this short',
+  SHORT_CANNOT_EDIT_DELETED: 'Cannot edit a deleted short',
 } as const;

@@ -60,6 +60,7 @@ export interface MediaItem {
 export class CreateListingComponent implements OnInit, OnDestroy {
   readonly conditionOptions = CONDITION_OPTIONS;
   readonly ROUTES = ROUTES;
+  readonly DEFAULT_CURRENCY = DEFAULT_CURRENCY;
   readonly ERROR_MSG = ERROR_MSG;
   readonly OTHER_ID = OTHER_OPTION_ID;
 

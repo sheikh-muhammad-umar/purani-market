@@ -2,8 +2,10 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { PackageListComponent } from './package-list.component';
 import { PackagesService } from '../../../core/services/packages.service';
+import { ShortsService } from '../../../core/services/shorts.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { ActivatedRoute } from '@angular/router';
 import { AdPackage, Category } from '../../../core/models';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 
@@ -90,10 +92,16 @@ describe('PackageListComponent', () => {
     tracker = {
       track: vi.fn(),
     };
+    const shortsServiceMock = {
+      getAvailablePackages: vi.fn().mockReturnValue(of([])),
+    };
+    const routeMock = { snapshot: { queryParams: {} } };
     component = new PackageListComponent(
       packagesService as unknown as PackagesService,
+      shortsServiceMock as unknown as ShortsService,
       categoriesService as unknown as CategoriesService,
       tracker as unknown as ActivityTrackerService,
+      routeMock as unknown as ActivatedRoute,
     );
   });
 

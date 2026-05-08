@@ -51,4 +51,23 @@ export class SeoController {
   async getHomeSeo(): Promise<HomeSeoDto> {
     return this.seoService.getHomeSeo();
   }
+
+  @Get('shorts')
+  async getShortsSeo(): Promise<any> {
+    return {
+      title: 'Short Videos - Product Showcases | marketplace.pk',
+      description:
+        'Watch short product videos from sellers. Discover products through quick 1-minute video showcases on marketplace.pk.',
+      canonical: 'https://marketplace.pk/shorts',
+      ogType: 'website',
+      ogImage: 'https://marketplace.pk/assets/og-shorts.png',
+      jsonLd: {
+        '@context': 'https://schema.org',
+        '@type': 'CollectionPage',
+        name: 'Short Videos',
+        description: 'Product showcase short videos from sellers',
+        url: 'https://marketplace.pk/shorts',
+      },
+    };
+  }
 }

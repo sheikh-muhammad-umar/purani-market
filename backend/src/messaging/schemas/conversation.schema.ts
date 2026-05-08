@@ -10,8 +10,11 @@ export type ConversationDocument = HydratedDocument<Conversation>;
 export class Conversation {
   _id!: Types.ObjectId;
 
-  @Prop({ type: Types.ObjectId, ref: 'ProductListing', required: true })
-  productListingId!: Types.ObjectId;
+  @Prop({ type: Types.ObjectId, ref: 'ProductListing' })
+  productListingId?: Types.ObjectId;
+
+  @Prop({ type: Types.ObjectId, ref: 'ShortVideo' })
+  shortVideoId?: Types.ObjectId;
 
   @Prop({ type: Types.ObjectId, ref: 'User', required: true })
   buyerId!: Types.ObjectId;
@@ -34,7 +37,12 @@ export const ConversationSchema = SchemaFactory.createForClass(Conversation);
 ConversationSchema.index({ buyerId: 1 });
 ConversationSchema.index({ sellerId: 1 });
 ConversationSchema.index({ productListingId: 1 });
+ConversationSchema.index({ shortVideoId: 1 });
 ConversationSchema.index(
   { buyerId: 1, sellerId: 1, productListingId: 1 },
-  { unique: true },
+  { unique: true, sparse: true },
+);
+ConversationSchema.index(
+  { buyerId: 1, sellerId: 1, shortVideoId: 1 },
+  { unique: true, sparse: true },
 );

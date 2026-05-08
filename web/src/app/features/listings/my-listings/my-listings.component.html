@@ -1,261 +1,405 @@
 <div class="my-listings-page">
   <div class="container">
     <div class="page-header">
-      <h1>My Listings</h1>
-      <a [routerLink]="ROUTES.LISTINGS_CREATE" class="btn btn-primary">+ Post New Ad</a>
+      <h1>My Listings & Shorts</h1>
+      <div class="header-actions">
+        <a [routerLink]="ROUTES.LISTINGS_CREATE" class="btn btn-primary">+ Post Ad</a>
+        <a [routerLink]="ROUTES.SHORTS_UPLOAD" class="btn btn-primary">+ Upload Short</a>
+      </div>
     </div>
 
-    <!-- Analytics Cards -->
-    <div class="analytics-row">
-      @for (card of analytics(); track card.label) {
-        <div class="analytics-card card">
-          <span class="analytics-icon material-symbols-rounded">{{ card.icon }}</span>
-          <div class="analytics-data">
-            <span class="analytics-value">{{ card.value | number }}</span>
-            <span class="analytics-label">{{ card.label }}</span>
+    <!-- Main Tabs -->
+    <div class="main-tabs">
+      <button
+        class="main-tab-btn"
+        [class.active]="mainTab() === TAB.ADS"
+        (click)="switchMainTab(TAB.ADS)"
+      >
+        <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
+          >list_alt</span
+        >
+        My Ads
+      </button>
+      <button
+        class="main-tab-btn"
+        [class.active]="mainTab() === TAB.SHORTS"
+        (click)="switchMainTab(TAB.SHORTS)"
+      >
+        <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
+          >play_circle</span
+        >
+        My Shorts
+      </button>
+    </div>
+
+    @if (mainTab() === TAB.ADS) {
+      <!-- Analytics Cards -->
+      <div class="analytics-row">
+        @for (card of analytics(); track card.label) {
+          <div class="analytics-card card">
+            <span class="analytics-icon material-symbols-rounded">{{ card.icon }}</span>
+            <div class="analytics-data">
+              <span class="analytics-value">{{ card.value | number }}</span>
+              <span class="analytics-label">{{ card.label }}</span>
+            </div>
+          </div>
+        }
+      </div>
+
+      <!-- Meters Row -->
+      <div class="meters-row">
+        <!-- Ad Slots Meter -->
+        <div class="meter-card card">
+          <h3 class="meter-title">Ad Slots</h3>
+          <div class="meter-bar-container">
+            <div
+              class="meter-bar"
+              [style.width.%]="slotPercent()"
+              [class.meter-bar-warning]="slotPercent() >= 80"
+              [class.meter-bar-full]="slotPercent() >= 100"
+            ></div>
+          </div>
+          <div class="meter-details">
+            <span>{{ slotsUsed() }} / {{ totalSlots() }} used</span>
+            <span class="meter-breakdown">
+              ({{ freeSlotLimit() }} free
+              @if (paidSlots() > 0) {
+                + {{ paidSlots() }} paid
+              }
+              )
+            </span>
+          </div>
+        </div>
+
+        <!-- Featured Ads Meter -->
+        <div class="meter-card card">
+          <h3 class="meter-title">Featured Ads</h3>
+          <div class="featured-info">
+            <div class="featured-count">
+              <span class="featured-active">{{ featuredAds().length }}</span>
+              <span class="featured-label">active</span>
+            </div>
+            <div class="featured-remaining">
+              <span class="featured-slots">{{ featuredSlotsRemaining() }}</span>
+              <span class="featured-label">slots left</span>
+            </div>
+          </div>
+          @if (featuredAds().length > 0) {
+            <ul class="featured-list">
+              @for (fa of featuredAds(); track fa.listingId) {
+                <li class="featured-item">
+                  <span class="featured-title">{{ fa.title }}</span>
+                  <span
+                    class="featured-expiry"
+                    [class.expiring-soon]="daysUntil(fa.expiresAt) <= 3"
+                  >
+                    {{ daysUntil(fa.expiresAt) }}d left
+                  </span>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      </div>
+
+      <!-- Listings Table -->
+      @if (loading()) {
+        <div class="listings-table-wrapper">
+          <table class="listings-table" role="table">
+            <thead>
+              <tr>
+                <th>Listing</th>
+                <th>Status</th>
+                <th>Views</th>
+                <th>Favorites</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (i of SKELETON_ITEMS; track i) {
+                <tr>
+                  <td class="listing-cell">
+                    <div
+                      class="skeleton"
+                      style="width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0"
+                    ></div>
+                    <div style="flex: 1">
+                      <div class="skeleton-text" style="width: 70%"></div>
+                      <div class="skeleton-text short" style="margin-top: 4px"></div>
+                    </div>
+                  </td>
+                  <td><div class="skeleton-text" style="width: 60px"></div></td>
+                  <td><div class="skeleton-text" style="width: 40px"></div></td>
+                  <td><div class="skeleton-text" style="width: 30px"></div></td>
+                  <td><div class="skeleton-text" style="width: 80px"></div></td>
+                  <td><div class="skeleton-text" style="width: 100px"></div></td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      } @else if (listings().length === 0) {
+        <div class="empty-state">
+          <span class="empty-icon"><span class="material-symbols-rounded">inventory_2</span></span>
+          <h3>No listings yet</h3>
+          <p>Start selling by posting your first ad</p>
+          <a [routerLink]="ROUTES.LISTINGS_CREATE" class="btn btn-primary">Post Your First Ad</a>
+        </div>
+      } @else {
+        <div class="listings-table-wrapper">
+          <table class="listings-table" role="table">
+            <thead>
+              <tr>
+                <th>Listing</th>
+                <th>Status</th>
+                <th>Views</th>
+                <th>Favorites</th>
+                <th>Created</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (listing of listings(); track listing._id) {
+                <tr
+                  [class.row-sold]="listing.status === ListingStatus.SOLD"
+                  [class.row-rejected]="listing.status === ListingStatus.REJECTED"
+                  [class.row-inactive]="listing.status === ListingStatus.INACTIVE"
+                >
+                  <td class="listing-cell">
+                    <img [src]="getImage(listing)" [alt]="listing.title" class="listing-thumb" />
+                    <div class="listing-meta">
+                      <a
+                        [routerLink]="['/listings', listing | listingUrl]"
+                        class="listing-title-link"
+                        >{{ listing.title }}</a
+                      >
+                      <span class="listing-price"
+                        >{{ DEFAULT_CURRENCY }} {{ listing.price.amount | number }}</span
+                      >
+                    </div>
+                  </td>
+                  <td>
+                    <span class="badge" [ngClass]="getStatusBadgeClass(listing.status)">{{
+                      listing.status
+                    }}</span>
+                    @if (listing.isFeatured) {
+                      <span class="badge badge-featured"
+                        ><span
+                          class="material-symbols-rounded"
+                          style="font-size: 14px; vertical-align: middle"
+                          >star</span
+                        >
+                        Featured</span
+                      >
+                    }
+                  </td>
+                  <td class="stat-cell">{{ listing.viewCount | number }}</td>
+                  <td class="stat-cell">{{ listing.favoriteCount | number }}</td>
+                  <td class="date-cell">{{ formatDate(listing.createdAt) }}</td>
+                  <td class="actions-cell">
+                    @if (actionLoading() === listing._id) {
+                      <span class="spinner"></span>
+                    } @else {
+                      <div class="action-buttons">
+                        <a
+                          [routerLink]="['/listings', listing | listingUrl, 'edit']"
+                          class="btn btn-outline btn-sm"
+                          title="Edit listing"
+                          >Edit</a
+                        >
+
+                        @if (listing.status === ListingStatus.ACTIVE) {
+                          <button
+                            class="btn btn-outline btn-sm"
+                            title="Mark as sold"
+                            (click)="markStatus(listing, ListingStatus.SOLD)"
+                          >
+                            Sold
+                          </button>
+                          <button
+                            class="btn btn-outline btn-sm"
+                            title="Mark as reserved"
+                            (click)="markStatus(listing, ListingStatus.RESERVED)"
+                          >
+                            Reserved
+                          </button>
+                          <button
+                            class="btn btn-outline btn-sm"
+                            title="Disable this ad"
+                            (click)="markStatus(listing, ListingStatus.INACTIVE)"
+                          >
+                            Disable
+                          </button>
+                        }
+
+                        @if (listing.status === ListingStatus.INACTIVE) {
+                          <button
+                            class="btn btn-outline btn-sm btn-success"
+                            title="Re-activate this ad"
+                            (click)="markStatus(listing, ListingStatus.ACTIVE)"
+                          >
+                            Activate
+                          </button>
+                        }
+
+                        @if (
+                          listing.status === ListingStatus.ACTIVE &&
+                          !listing.isFeatured &&
+                          featuredSlotsRemaining() > 0
+                        ) {
+                          <button
+                            class="btn btn-accent btn-sm"
+                            title="Feature this ad"
+                            (click)="featureListing(listing)"
+                          >
+                            <span
+                              class="material-symbols-rounded"
+                              style="font-size: 14px; vertical-align: middle"
+                              >star</span
+                            >
+                            Feature
+                          </button>
+                        }
+
+                        @if (confirmDeleteId() === listing._id) {
+                          <div class="confirm-delete">
+                            <span>Delete?</span>
+                            <button
+                              class="btn btn-error btn-sm"
+                              (click)="deleteListing(listing._id)"
+                            >
+                              Yes
+                            </button>
+                            <button class="btn btn-outline btn-sm" (click)="cancelDelete()">
+                              No
+                            </button>
+                          </div>
+                        } @else {
+                          <button
+                            class="btn btn-outline btn-sm btn-danger"
+                            title="Delete listing"
+                            (click)="confirmDelete(listing._id)"
+                          >
+                            Delete
+                          </button>
+                        }
+                      </div>
+                    }
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+    }
+    <!-- end ads tab -->
+
+    <!-- Shorts Tab -->
+    @if (mainTab() === TAB.SHORTS) {
+      <!-- Shorts Stats -->
+      @if (shortsStats()) {
+        <div class="analytics-row">
+          <div class="analytics-card card">
+            <span class="analytics-icon material-symbols-rounded">upload</span>
+            <div class="analytics-data">
+              <span class="analytics-value">{{ shortsStats()!.freeUsedThisMonth }}/4</span>
+              <span class="analytics-label">Used This Month</span>
+            </div>
+          </div>
+          <div class="analytics-card card">
+            <span class="analytics-icon material-symbols-rounded">play_circle</span>
+            <div class="analytics-data">
+              <span class="analytics-value">{{ shortsStats()!.activeShorts }}</span>
+              <span class="analytics-label">Active</span>
+            </div>
+          </div>
+          <div class="analytics-card card">
+            <span class="analytics-icon material-symbols-rounded">visibility</span>
+            <div class="analytics-data">
+              <span class="analytics-value">{{ shortsStats()!.totalViews | number }}</span>
+              <span class="analytics-label">Total Views</span>
+            </div>
           </div>
         </div>
       }
-    </div>
 
-    <!-- Meters Row -->
-    <div class="meters-row">
-      <!-- Ad Slots Meter -->
-      <div class="meter-card card">
-        <h3 class="meter-title">Ad Slots</h3>
-        <div class="meter-bar-container">
-          <div
-            class="meter-bar"
-            [style.width.%]="slotPercent()"
-            [class.meter-bar-warning]="slotPercent() >= 80"
-            [class.meter-bar-full]="slotPercent() >= 100"
-          ></div>
+      @if (loadingShorts()) {
+        <div class="loading-center"><div class="spinner spinner-lg"></div></div>
+      } @else if (shorts().length === 0) {
+        <div class="empty-state">
+          <span class="material-symbols-rounded empty-icon">play_circle</span>
+          <h3>No shorts yet</h3>
+          <p>Upload a short video to showcase your products</p>
+          <a [routerLink]="ROUTES.SHORTS_UPLOAD" class="btn btn-primary">Upload Short</a>
         </div>
-        <div class="meter-details">
-          <span>{{ slotsUsed() }} / {{ totalSlots() }} used</span>
-          <span class="meter-breakdown">
-            ({{ freeSlotLimit() }} free
-            @if (paidSlots() > 0) {
-              + {{ paidSlots() }} paid
-            }
-            )
-          </span>
-        </div>
-      </div>
-
-      <!-- Featured Ads Meter -->
-      <div class="meter-card card">
-        <h3 class="meter-title">Featured Ads</h3>
-        <div class="featured-info">
-          <div class="featured-count">
-            <span class="featured-active">{{ featuredAds().length }}</span>
-            <span class="featured-label">active</span>
-          </div>
-          <div class="featured-remaining">
-            <span class="featured-slots">{{ featuredSlotsRemaining() }}</span>
-            <span class="featured-label">slots left</span>
-          </div>
-        </div>
-        @if (featuredAds().length > 0) {
-          <ul class="featured-list">
-            @for (fa of featuredAds(); track fa.listingId) {
-              <li class="featured-item">
-                <span class="featured-title">{{ fa.title }}</span>
-                <span class="featured-expiry" [class.expiring-soon]="daysUntil(fa.expiresAt) <= 3">
-                  {{ daysUntil(fa.expiresAt) }}d left
-                </span>
-              </li>
-            }
-          </ul>
-        }
-      </div>
-    </div>
-
-    <!-- Listings Table -->
-    @if (loading()) {
-      <div class="listings-table-wrapper">
-        <table class="listings-table" role="table">
-          <thead>
-            <tr>
-              <th>Listing</th>
-              <th>Status</th>
-              <th>Views</th>
-              <th>Favorites</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (i of [1, 2, 3, 4, 5]; track i) {
-              <tr>
-                <td class="listing-cell">
-                  <div
-                    class="skeleton"
-                    style="width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0"
-                  ></div>
-                  <div style="flex: 1">
-                    <div class="skeleton-text" style="width: 70%"></div>
-                    <div class="skeleton-text short" style="margin-top: 4px"></div>
-                  </div>
-                </td>
-                <td><div class="skeleton-text" style="width: 60px"></div></td>
-                <td><div class="skeleton-text" style="width: 40px"></div></td>
-                <td><div class="skeleton-text" style="width: 30px"></div></td>
-                <td><div class="skeleton-text" style="width: 80px"></div></td>
-                <td><div class="skeleton-text" style="width: 100px"></div></td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-    } @else if (listings().length === 0) {
-      <div class="empty-state">
-        <span class="empty-icon"><span class="material-symbols-rounded">inventory_2</span></span>
-        <h3>No listings yet</h3>
-        <p>Start selling by posting your first ad</p>
-        <a [routerLink]="ROUTES.LISTINGS_CREATE" class="btn btn-primary">Post Your First Ad</a>
-      </div>
-    } @else {
-      <div class="listings-table-wrapper">
-        <table class="listings-table" role="table">
-          <thead>
-            <tr>
-              <th>Listing</th>
-              <th>Status</th>
-              <th>Views</th>
-              <th>Favorites</th>
-              <th>Created</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (listing of listings(); track listing._id) {
-              <tr
-                [class.row-sold]="listing.status === ListingStatus.SOLD"
-                [class.row-rejected]="listing.status === ListingStatus.REJECTED"
-                [class.row-inactive]="listing.status === ListingStatus.INACTIVE"
-              >
-                <td class="listing-cell">
-                  <img [src]="getImage(listing)" [alt]="listing.title" class="listing-thumb" />
-                  <div class="listing-meta">
-                    <a
-                      [routerLink]="['/listings', listing | listingUrl]"
-                      class="listing-title-link"
-                      >{{ listing.title }}</a
+      } @else {
+        <div class="shorts-list">
+          @for (short of shorts(); track short._id) {
+            <div class="short-item" [class]="'status-' + short.status">
+              <div class="short-thumb">
+                <video
+                  [src]="short.video.compressedUrl || short.video.url"
+                  preload="metadata"
+                  muted
+                  playsinline
+                ></video>
+                <span class="duration-badge">{{ short.video.duration | formatDuration }}</span>
+                <span class="status-badge" [class]="short.status">{{
+                  short.status | formatStatus
+                }}</span>
+              </div>
+              <div class="short-details">
+                <p class="short-title">{{ short.title || short.description || 'Short video' }}</p>
+                <div class="short-meta">
+                  <span
+                    ><span
+                      class="material-symbols-rounded"
+                      style="font-size: 14px; vertical-align: middle"
+                      >visibility</span
                     >
-                    <span class="listing-price">PKR {{ listing.price.amount | number }}</span>
-                  </div>
-                </td>
-                <td>
-                  <span class="badge" [ngClass]="getStatusBadgeClass(listing.status)">{{
-                    listing.status
-                  }}</span>
-                  @if (listing.isFeatured) {
-                    <span class="badge badge-featured"
-                      ><span
-                        class="material-symbols-rounded"
-                        style="font-size: 14px; vertical-align: middle"
-                        >star</span
-                      >
-                      Featured</span
+                    {{ short.viewCount }}</span
+                  >
+                  <span
+                    ><span
+                      class="material-symbols-rounded"
+                      style="font-size: 14px; vertical-align: middle"
+                      >favorite</span
                     >
-                  }
-                </td>
-                <td class="stat-cell">{{ listing.viewCount | number }}</td>
-                <td class="stat-cell">{{ listing.favoriteCount | number }}</td>
-                <td class="date-cell">{{ formatDate(listing.createdAt) }}</td>
-                <td class="actions-cell">
-                  @if (actionLoading() === listing._id) {
-                    <span class="spinner"></span>
-                  } @else {
-                    <div class="action-buttons">
-                      <a
-                        [routerLink]="['/listings', listing | listingUrl, 'edit']"
-                        class="btn btn-outline btn-sm"
-                        title="Edit listing"
-                        >Edit</a
-                      >
-
-                      @if (listing.status === ListingStatus.ACTIVE) {
-                        <button
-                          class="btn btn-outline btn-sm"
-                          title="Mark as sold"
-                          (click)="markStatus(listing, ListingStatus.SOLD)"
-                        >
-                          Sold
-                        </button>
-                        <button
-                          class="btn btn-outline btn-sm"
-                          title="Mark as reserved"
-                          (click)="markStatus(listing, ListingStatus.RESERVED)"
-                        >
-                          Reserved
-                        </button>
-                        <button
-                          class="btn btn-outline btn-sm"
-                          title="Disable this ad"
-                          (click)="markStatus(listing, ListingStatus.INACTIVE)"
-                        >
-                          Disable
-                        </button>
-                      }
-
-                      @if (listing.status === ListingStatus.INACTIVE) {
-                        <button
-                          class="btn btn-outline btn-sm btn-success"
-                          title="Re-activate this ad"
-                          (click)="markStatus(listing, ListingStatus.ACTIVE)"
-                        >
-                          Activate
-                        </button>
-                      }
-
-                      @if (
-                        listing.status === ListingStatus.ACTIVE &&
-                        !listing.isFeatured &&
-                        featuredSlotsRemaining() > 0
-                      ) {
-                        <button
-                          class="btn btn-accent btn-sm"
-                          title="Feature this ad"
-                          (click)="featureListing(listing)"
-                        >
-                          <span
-                            class="material-symbols-rounded"
-                            style="font-size: 14px; vertical-align: middle"
-                            >star</span
-                          >
-                          Feature
-                        </button>
-                      }
-
-                      @if (confirmDeleteId() === listing._id) {
-                        <div class="confirm-delete">
-                          <span>Delete?</span>
-                          <button class="btn btn-error btn-sm" (click)="deleteListing(listing._id)">
-                            Yes
-                          </button>
-                          <button class="btn btn-outline btn-sm" (click)="cancelDelete()">
-                            No
-                          </button>
-                        </div>
-                      } @else {
-                        <button
-                          class="btn btn-outline btn-sm btn-danger"
-                          title="Delete listing"
-                          (click)="confirmDelete(listing._id)"
-                        >
-                          Delete
-                        </button>
-                      }
-                    </div>
-                  }
-                </td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
+                    {{ short.favoriteCount }}</span
+                  >
+                  <span>{{ formatDate(short.createdAt) }}</span>
+                </div>
+                @if (short.price) {
+                  <span class="short-price-tag"
+                    >{{ short.currency || DEFAULT_CURRENCY }} {{ short.price | number }}</span
+                  >
+                }
+                @if (short.expiresAt) {
+                  <p
+                    class="short-expiry"
+                    [class.expiring-soon]="isShortExpiringSoon(short.expiresAt)"
+                  >
+                    Expires: {{ formatDate(short.expiresAt) }}
+                  </p>
+                }
+                @if (short.status === 'rejected' && short.rejectionReason) {
+                  <p class="short-rejection">Reason: {{ short.rejectionReason }}</p>
+                }
+              </div>
+              <div class="short-actions">
+                <a [routerLink]="['/shorts', short._id, 'edit']" class="btn-icon-edit" title="Edit">
+                  <span class="material-symbols-rounded">edit</span>
+                </a>
+                <button class="btn-icon-delete" (click)="deleteShort(short._id)" title="Delete">
+                  <span class="material-symbols-rounded">delete</span>
+                </button>
+              </div>
+            </div>
+          }
+        </div>
+      }
     }
   </div>
 </div>

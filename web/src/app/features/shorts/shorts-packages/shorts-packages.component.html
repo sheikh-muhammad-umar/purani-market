@@ -1,0 +1,71 @@
+<div class="packages-page">
+  <div class="page-header">
+    <a [routerLink]="ROUTES.SHORTS" class="back-link">← Back to Shorts</a>
+    <h1>Shorts Packages</h1>
+    <p class="subtitle">Upload more shorts and keep them active longer</p>
+  </div>
+
+  <!-- Free tier info -->
+  <div class="free-tier-card">
+    <h3>Free Tier</h3>
+    <ul>
+      <li>4 shorts per month</li>
+      <li>Each short stays active for 7 days</li>
+      <li>Monthly limit resets on the 1st of each month</li>
+      <li>Deleted shorts still count toward the monthly limit</li>
+    </ul>
+  </div>
+
+  <!-- Available packages -->
+  <h2>Available Packages</h2>
+  @if (loading()) {
+    <div class="loading">Loading packages...</div>
+  }
+
+  <div class="packages-grid">
+    @for (pkg of packages(); track pkg._id) {
+      <div class="package-card">
+        <div class="package-header">
+          <h3>{{ pkg.name }}</h3>
+          <span class="package-price">{{ CURRENCY_SYMBOL }} {{ pkg.price }}</span>
+        </div>
+        <ul class="package-features">
+          <li>{{ pkg.quantity }} shorts</li>
+          <li>Active for {{ pkg.duration }} days</li>
+          <li>Max {{ pkg.maxVideoLength }}s per video</li>
+        </ul>
+        @if (pkg.description) {
+          <p class="package-desc">{{ pkg.description }}</p>
+        }
+        <button class="btn-purchase" (click)="purchasePackage(pkg)">Purchase</button>
+      </div>
+    }
+  </div>
+
+  <!-- My purchases -->
+  @if (purchases().length > 0) {
+    <h2>My Purchases</h2>
+    <div class="purchases-list">
+      @for (purchase of purchases(); track purchase._id) {
+        <div class="purchase-item">
+          <div class="purchase-info">
+            <span class="purchase-name">{{ purchase.packageId?.name || 'Package' }}</span>
+            <span class="purchase-remaining">
+              {{ purchase.remainingQuantity }}/{{ purchase.quantity }} remaining
+            </span>
+          </div>
+          <div class="purchase-meta">
+            <span>{{ CURRENCY_SYMBOL }} {{ purchase.amountPaid }}</span>
+            <span [class.expired]="isExpired(purchase.expiresAt)">
+              {{
+                isExpired(purchase.expiresAt)
+                  ? 'Expired'
+                  : 'Expires: ' + formatDate(purchase.expiresAt!)
+              }}
+            </span>
+          </div>
+        </div>
+      }
+    </div>
+  }
+</div>

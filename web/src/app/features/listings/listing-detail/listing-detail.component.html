@@ -313,7 +313,9 @@
                     />
                   </div>
                   <div class="similar-info">
-                    <span class="similar-price">PKR {{ item.price.amount | number }}</span>
+                    <span class="similar-price"
+                      >{{ CURRENCY_SYMBOL }} {{ item.price.amount | number }}</span
+                    >
                     <span class="similar-title">{{ item.title }}</span>
                     <span class="similar-location"
                       ><span
@@ -336,7 +338,7 @@
         <!-- Price Card -->
         <div class="sidebar-card price-card">
           <span class="price-label">Listed Price</span>
-          <span class="price-big">PKR {{ l.price.amount | number }}</span>
+          <span class="price-big">{{ CURRENCY_SYMBOL }} {{ l.price.amount | number }}</span>
           <div class="price-card-buttons">
             @if (l.status !== ListingStatus.ACTIVE) {
               <div class="chat-disabled-notice">

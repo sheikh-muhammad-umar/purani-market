@@ -59,6 +59,12 @@ export const PAGE_SIZE_LARGE = 50;
 export const FEATURED_ADS_LIMIT = 10;
 export const NEARBY_LISTINGS_LIMIT = 12;
 
+// ─── Shorts ─────────────────────────────────────────────────
+export const FREE_SHORTS_PER_MONTH = 4;
+export const SHORTS_ALLOWED_MIMETYPES = ['video/mp4', 'video/webm', 'video/quicktime'] as const;
+export const SHORTS_ACCEPT_STRING = 'video/mp4,video/webm,video/quicktime';
+export const SHORTS_MAX_FILE_SIZE = 15 * 1024 * 1024; // 15MB
+
 // ─── Geolocation ────────────────────────────────────────────
 export const GEO_TIMEOUT_MS = 5000;
 export const GEO_MAX_AGE_MS = 300_000; // 5 minutes

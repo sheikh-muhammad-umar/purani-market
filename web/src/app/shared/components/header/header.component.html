@@ -9,7 +9,7 @@
     </a>
 
     <!-- Search bar (desktop) -->
-    @if (!isAuthPage()) {
+    @if (!isAuthPage() && !isShortsPage()) {
       <div class="header-search">
         <div class="search-location" (click)="toggleLocationDropdown()">
           <span class="material-symbols-rounded" style="font-size: 18px">location_on</span>
@@ -209,8 +209,8 @@
             <span class="icon-badge">{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
           }
         </a>
-        <a [routerLink]="ROUTES.FAVORITES" class="nav-icon" title="Favorites">
-          <span class="material-symbols-rounded">favorite_border</span>
+        <a [routerLink]="ROUTES.SHORTS" class="nav-icon" title="Shorts">
+          <span class="material-symbols-rounded">play_circle</span>
         </a>
         <app-notification-bell #notificationBell="notificationBell">
           <button class="nav-icon" title="Notifications" (click)="notificationBell.toggle()">
@@ -222,15 +222,6 @@
             }
           </button>
         </app-notification-bell>
-        <button
-          class="theme-toggle nav-icon"
-          (click)="themeService.toggle()"
-          [title]="themeService.theme() === 'dark' ? 'Light mode' : 'Dark mode'"
-        >
-          <span class="material-symbols-rounded">{{
-            themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'
-          }}</span>
-        </button>
 
         <!-- Account dropdown -->
         <div class="account-dropdown-wrap">
@@ -268,14 +259,9 @@
 
         <a [routerLink]="ROUTES.LISTINGS_CREATE" class="post-ad-btn">
           <span class="material-symbols-rounded" style="font-size: 18px">storefront</span>
-          Post Ad
+          Sell
         </a>
       } @else if (!isAuthPage()) {
-        <button class="theme-toggle nav-icon" (click)="themeService.toggle()">
-          <span class="material-symbols-rounded">{{
-            themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'
-          }}</span>
-        </button>
         <a [routerLink]="ROUTES.AUTH_LOGIN" class="nav-text-link">Login</a>
         <a [routerLink]="ROUTES.AUTH_REGISTER" class="post-ad-btn">Register</a>
       }
@@ -489,13 +475,9 @@
       </span>
       <span class="bottom-label sell-label">Sell</span>
     </a>
-    <a
-      [routerLink]="isAuthenticated() ? ROUTES.LISTINGS_MY : null"
-      (click)="!isAuthenticated() && loginModal.open(ROUTES.LISTINGS_MY)"
-      class="bottom-nav-item"
-    >
-      <span class="material-symbols-rounded bottom-icon">list_alt</span>
-      <span class="bottom-label">My Ads</span>
+    <a [routerLink]="ROUTES.SHORTS" class="bottom-nav-item">
+      <span class="material-symbols-rounded bottom-icon">play_circle</span>
+      <span class="bottom-label">Shorts</span>
     </a>
     <a
       [routerLink]="isAuthenticated() ? ROUTES.PROFILE : null"

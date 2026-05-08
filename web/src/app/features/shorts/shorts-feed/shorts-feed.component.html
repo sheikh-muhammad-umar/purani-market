@@ -1,0 +1,151 @@
+<div class="shorts-page">
+  <!-- Shorts container takes full available height -->
+  <div class="shorts-container" (scroll)="onContainerScroll($event)">
+    @for (short of shorts(); track short._id) {
+      <div class="short-card">
+        <app-shorts-player
+          [short]="short"
+          [isActive]="activeIndex() === $index"
+          [muted]="isMuted()"
+        />
+        <button class="mute-btn" (click)="toggleMute(); $event.stopPropagation()">
+          <span class="material-symbols-rounded">{{ isMuted() ? 'volume_off' : 'volume_up' }}</span>
+        </button>
+      </div>
+    }
+
+    @if (loadingMore()) {
+      <div class="short-card loading-card">
+        <div class="spinner"></div>
+      </div>
+    }
+  </div>
+
+  <!-- Overlay header (floats on top of video) -->
+  <div class="shorts-overlay-header">
+    <h1>Shorts</h1>
+    <div class="overlay-actions">
+      <!-- Filter toggles -->
+      <div class="filter-chips">
+        <div class="filter-chip-wrap" (click)="$event.stopPropagation()">
+          <button
+            class="filter-chip"
+            [class.active]="openFilter() === 'category'"
+            (click)="toggleFilter('category')"
+          >
+            {{ categoryLabel() }}
+            <span class="material-symbols-rounded chip-arrow">expand_more</span>
+          </button>
+          @if (openFilter() === 'category') {
+            <div class="drilldown-panel">
+              <div class="drilldown-header">
+                @if (catLevel() > 1) {
+                  <button class="drilldown-back" (click)="catGoBack()">
+                    <span class="material-symbols-rounded" style="font-size: 16px">arrow_back</span>
+                  </button>
+                }
+                <input
+                  class="drilldown-search-input"
+                  type="text"
+                  placeholder="Search..."
+                  [value]="catSearch()"
+                  (input)="catSearch.set($any($event.target).value)"
+                  (click)="$event.stopPropagation()"
+                />
+                <button class="drilldown-clear" (click)="clearCategoryFilter()">All</button>
+              </div>
+              <div class="drilldown-list">
+                @for (item of filteredCatItems(); track item._id) {
+                  <button class="drilldown-option" (click)="selectCatItem(item)">
+                    {{ item.name }}
+                    @if (hasChildren(item)) {
+                      <span class="material-symbols-rounded" style="font-size: 16px"
+                        >chevron_right</span
+                      >
+                    }
+                  </button>
+                }
+                @if (filteredCatItems().length === 0) {
+                  <div class="drilldown-empty">No results</div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        <div class="filter-chip-wrap" (click)="$event.stopPropagation()">
+          <button
+            class="filter-chip"
+            [class.active]="openFilter() === 'location'"
+            (click)="toggleFilter('location')"
+          >
+            {{ locationLabel() }}
+            <span class="material-symbols-rounded chip-arrow">expand_more</span>
+          </button>
+          @if (openFilter() === 'location') {
+            <div class="drilldown-panel">
+              <div class="drilldown-header">
+                @if (locLevel() > 1) {
+                  <button class="drilldown-back" (click)="locGoBack()">
+                    <span class="material-symbols-rounded" style="font-size: 16px">arrow_back</span>
+                  </button>
+                }
+                <input
+                  class="drilldown-search-input"
+                  type="text"
+                  placeholder="Search..."
+                  [value]="locSearch()"
+                  (input)="locSearch.set($any($event.target).value)"
+                  (click)="$event.stopPropagation()"
+                />
+                <button class="drilldown-clear" (click)="clearLocationFilter()">All</button>
+              </div>
+              <div class="drilldown-list">
+                @for (item of filteredLocItems(); track item._id) {
+                  <button class="drilldown-option" (click)="selectLocItem(item)">
+                    {{ item.name }}
+                    @if (locLevel() < 3) {
+                      <span class="material-symbols-rounded" style="font-size: 16px"
+                        >chevron_right</span
+                      >
+                    }
+                  </button>
+                }
+                @if (filteredLocItems().length === 0) {
+                  <div class="drilldown-empty">No results</div>
+                }
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (selectedCategory || selectedCityId) {
+          <button class="filter-chip clear-chip" (click)="clearFilters()">
+            <span class="material-symbols-rounded" style="font-size: 14px">close</span>
+          </button>
+        }
+      </div>
+      <a [routerLink]="ROUTES.SHORTS_UPLOAD" class="upload-btn">+ Upload</a>
+    </div>
+  </div>
+
+  <!-- Loading state -->
+  @if (loading()) {
+    <div class="loading-overlay">
+      <div class="spinner"></div>
+    </div>
+  }
+
+  <!-- Empty state -->
+  @if (!loading() && shorts().length === 0) {
+    <div class="empty-overlay">
+      @if (hasActiveFilters()) {
+        <p>No shorts match your filters.</p>
+        <button class="btn-secondary" (click)="clearFilters()">Clear Filters</button>
+      } @else {
+        <p>No shorts available yet.</p>
+        <a [routerLink]="ROUTES.SHORTS_UPLOAD" class="btn-primary">Upload a Short</a>
+      }
+    </div>
+  }
+</div>

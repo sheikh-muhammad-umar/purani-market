@@ -73,7 +73,12 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    this.loadConversations();
+    const listingId =
+      this.route.snapshot.queryParamMap.get('listingId') ||
+      this.route.snapshot.queryParams['listingId'];
+    const shortId =
+      this.route.snapshot.queryParamMap.get('shortId') ||
+      this.route.snapshot.queryParams['shortId'];
 
     const userId = this.authService.user()?._id;
     if (userId) this.wsService.connect(userId);
@@ -84,12 +89,69 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
       }),
     );
 
-    // React to route param changes (handles initial load, navigation, and browser back/forward)
-    this.subs.push(
-      this.route.paramMap.subscribe((params) => {
-        this.selectedConversationId.set(params.get('id'));
-      }),
-    );
+    if (listingId) {
+      this.initiateChat({ productListingId: listingId });
+    } else if (shortId) {
+      this.initiateChat({ shortVideoId: shortId });
+    } else {
+      this.loadConversations();
+      this.subs.push(
+        this.route.paramMap.subscribe((params) => {
+          this.selectedConversationId.set(params.get('id'));
+        }),
+      );
+    }
+  }
+
+  private initiateChat(payload: { productListingId?: string; shortVideoId?: string }): void {
+    this.messagingService.getConversations().subscribe({
+      next: (res) => {
+        const conversations = Array.isArray(res) ? res : ((res as any).data ?? []);
+        this.conversations.set(conversations);
+        this.loading.set(false);
+
+        // Check if conversation already exists
+        const existing = conversations.find((c: Conversation) => {
+          if (payload.productListingId) {
+            const pid = c.productListingId
+              ? typeof c.productListingId === 'object'
+                ? (c.productListingId as any)._id
+                : c.productListingId
+              : null;
+            return pid === payload.productListingId;
+          }
+          if (payload.shortVideoId) {
+            const sv = (c as any).shortVideoId;
+            const sid = sv ? (typeof sv === 'object' ? sv._id : sv) : null;
+            return sid === payload.shortVideoId;
+          }
+          return false;
+        });
+
+        if (existing) {
+          this.selectedConversationId.set(existing._id);
+        } else {
+          this.messagingService.startConversation(payload).subscribe({
+            next: (response: any) => {
+              const convId = response?.conversation?._id || response?._id;
+              if (convId) {
+                this.selectedConversationId.set(convId);
+                this.loadConversations();
+              }
+            },
+            error: (err: any) => {
+              const msg = err?.error?.message || 'Could not start conversation';
+              alert(msg);
+              this.loadConversations();
+            },
+          });
+        }
+      },
+      error: () => {
+        this.loading.set(false);
+        this.loadConversations();
+      },
+    });
   }
 
   ngOnDestroy(): void {
@@ -110,14 +172,26 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
   // --- Private extraction helpers (called only from computed, not template) ---
 
   private extractListingTitle(conversation: Conversation): string {
+    // Check short video first
+    const sid = (conversation as any).shortVideoId;
+    if (sid && typeof sid === 'object' && (sid.title || sid.description)) {
+      return sid.title || sid.description || 'Short Video';
+    }
+
     const pid = conversation.productListingId;
     if (typeof pid === 'object' && (pid as ConversationListing)?.title) {
       return (pid as ConversationListing).title;
     }
-    return 'Listing';
+    return 'Conversation';
   }
 
   private extractListingImage(conversation: Conversation): string {
+    // Check short video first
+    const sid = (conversation as any).shortVideoId;
+    if (sid && typeof sid === 'object') {
+      return sid.video?.thumbnailUrl || sid.video?.url || PLACEHOLDER_IMAGE;
+    }
+
     const pid = conversation.productListingId;
     if (typeof pid === 'object') {
       const listing = pid as ConversationListing;
@@ -129,6 +203,12 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
   }
 
   private extractListingPrice(conversation: Conversation): string {
+    // Shorts don't have a price
+    const sid = (conversation as any).shortVideoId;
+    if (sid && typeof sid === 'object') {
+      return '🎬 Short';
+    }
+
     const pid = conversation.productListingId;
     if (typeof pid === 'object') {
       const listing = pid as ConversationListing;

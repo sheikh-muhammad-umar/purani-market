@@ -1,15 +1,16 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { CustomSelectComponent } from '../../../shared/components/custom-select/custom-select.component';
 import { PackagesService } from '../../../core/services/packages.service';
+import { ShortsService, ShortsPackage } from '../../../core/services/shorts.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { AdPackage, PackageType, Category } from '../../../core/models';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { CURRENCY_SYMBOL, PACKAGE_TYPE_LABELS } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
-import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
+import { PackageType as PackageTypeEnum, TAB, TabType } from '../../../core/constants/enums';
 
 @Component({
   selector: 'app-package-list',
@@ -20,9 +21,13 @@ import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
 })
 export class PackageListComponent implements OnInit {
   readonly ROUTES = ROUTES;
+  readonly TAB = TAB;
+  readonly activeTab = signal<TabType>(TAB.ADS);
   readonly packages = signal<AdPackage[]>([]);
+  readonly shortsPackages = signal<ShortsPackage[]>([]);
   readonly categories = signal<Category[]>([]);
   readonly loading = signal(true);
+  readonly loadingShorts = signal(false);
   readonly error = signal<string | null>(null);
   readonly selectedType = signal<PackageType | 'all'>('all');
   readonly selectedDuration = signal<7 | 15 | 30 | null>(null);
@@ -35,13 +40,40 @@ export class PackageListComponent implements OnInit {
 
   constructor(
     private readonly packagesService: PackagesService,
+    private readonly shortsService: ShortsService,
     private readonly categoriesService: CategoriesService,
     private readonly tracker: ActivityTrackerService,
+    private readonly route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
+    // Check query param for tab
+    const tab = this.route.snapshot.queryParams['tab'];
+    if (tab === TAB.SHORTS) {
+      this.activeTab.set(TAB.SHORTS);
+      this.loadShortsPackages();
+    }
+
     this.loadPackages();
     this.loadCategories();
+  }
+
+  switchTab(tab: TabType): void {
+    this.activeTab.set(tab);
+    if (tab === TAB.SHORTS && this.shortsPackages().length === 0) {
+      this.loadShortsPackages();
+    }
+  }
+
+  loadShortsPackages(): void {
+    this.loadingShorts.set(true);
+    this.shortsService.getAvailablePackages().subscribe({
+      next: (pkgs) => {
+        this.shortsPackages.set(pkgs);
+        this.loadingShorts.set(false);
+      },
+      error: () => this.loadingShorts.set(false),
+    });
   }
 
   loadPackages(): void {

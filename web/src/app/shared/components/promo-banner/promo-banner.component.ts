@@ -20,4 +20,7 @@ export class PromoBannerComponent {
 
   /** CTA route path */
   readonly ctaLink = input('');
+
+  /** CTA query params */
+  readonly ctaQueryParams = input<Record<string, string>>({});
 }

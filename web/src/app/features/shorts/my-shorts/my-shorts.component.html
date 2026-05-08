@@ -1,0 +1,101 @@
+<div class="my-shorts-page">
+  <div class="page-header">
+    <a [routerLink]="ROUTES.SHORTS" class="back-link">← Back to Shorts</a>
+    <h1>My Shorts</h1>
+  </div>
+
+  <!-- Stats -->
+  @if (stats()) {
+    <div class="stats-grid">
+      <div class="stat-card">
+        <span class="stat-value">{{ stats()!.freeUsedThisMonth }}/4</span>
+        <span class="stat-label">Used This Month</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ stats()!.freeRemainingThisMonth }}</span>
+        <span class="stat-label">Remaining This Month</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ stats()!.activeShorts }}</span>
+        <span class="stat-label">Active</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ stats()!.pendingShorts }}</span>
+        <span class="stat-label">Pending</span>
+      </div>
+      <div class="stat-card">
+        <span class="stat-value">{{ stats()!.totalViews }}</span>
+        <span class="stat-label">Views</span>
+      </div>
+    </div>
+  }
+
+  <div class="actions-bar">
+    <a [routerLink]="ROUTES.SHORTS_UPLOAD" class="btn-primary">+ Upload New Short</a>
+    <a [routerLink]="ROUTES.PACKAGES" [queryParams]="{ tab: 'shorts' }" class="btn-secondary"
+      >Buy Package</a
+    >
+  </div>
+
+  @if (loading()) {
+    <div class="loading">Loading...</div>
+  }
+
+  <div class="shorts-grid">
+    @for (short of shorts(); track short._id) {
+      <div class="short-item" [class]="'status-' + short.status">
+        <div class="short-thumb">
+          @if (short.video.thumbnailUrl) {
+            <img [src]="short.video.thumbnailUrl" alt="Short thumbnail" />
+          } @else {
+            <div class="thumb-placeholder">
+              <span class="material-symbols-rounded">videocam</span>
+            </div>
+          }
+          <span class="duration-badge">{{ short.video.duration | formatDuration }}</span>
+          <span class="status-badge" [class]="short.status">{{ short.status | formatStatus }}</span>
+        </div>
+        <div class="short-details">
+          <p class="short-caption">{{ short.title || short.description || 'No description' }}</p>
+          <div class="short-meta">
+            <span
+              ><span
+                class="material-symbols-rounded"
+                style="font-size: 14px; vertical-align: middle"
+                >visibility</span
+              >
+              {{ short.viewCount }}</span
+            >
+            <span
+              ><span
+                class="material-symbols-rounded"
+                style="font-size: 14px; vertical-align: middle"
+                >favorite</span
+              >
+              {{ short.favoriteCount }}</span
+            >
+            <span>{{ formatDate(short.createdAt) }}</span>
+          </div>
+          @if (short.expiresAt) {
+            <p class="expiry" [class.expiring-soon]="isExpiringSoon(short.expiresAt)">
+              Expires: {{ formatDate(short.expiresAt) }}
+            </p>
+          }
+          @if (short.status === 'rejected' && short.rejectionReason) {
+            <p class="rejection-reason">Reason: {{ short.rejectionReason }}</p>
+          }
+        </div>
+        <div class="short-actions">
+          <button class="btn-delete" (click)="deleteShort(short._id)">Delete</button>
+        </div>
+      </div>
+    }
+  </div>
+
+  @if (!loading() && shorts().length === 0) {
+    <div class="empty-state">
+      <p>You haven't uploaded any shorts yet.</p>
+      <a [routerLink]="ROUTES.SHORTS_UPLOAD" class="btn-primary">Upload Your First Short</a>
+    </div>
+  }
+</div>

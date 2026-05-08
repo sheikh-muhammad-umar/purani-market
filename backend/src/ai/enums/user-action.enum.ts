@@ -107,4 +107,14 @@ export enum UserAction {
   LISTING_DEACTIVATED_CLEANUP = 'listing_deactivated_cleanup',
   AD_SLOTS_PACKAGE_EXPIRED = 'ad_slots_package_expired',
   STALE_PAYMENT_FAILED = 'stale_payment_failed',
+
+  // Shorts
+  SHORT_UPLOADED = 'short_uploaded',
+  SHORT_APPROVED = 'short_approved',
+  SHORT_REJECTED = 'short_rejected',
+  SHORT_EXPIRED = 'short_expired',
+  SHORT_DELETED = 'short_deleted',
+  SHORT_VIEWED = 'short_viewed',
+  SHORTS_PACKAGE_PURCHASED = 'shorts_package_purchased',
+  SHORTS_PACKAGE_EXPIRED = 'shorts_package_expired',
 }

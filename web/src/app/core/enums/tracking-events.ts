@@ -72,6 +72,25 @@ export const TrackingEvent = {
   APP_BANNER_SHOWN: 'app_banner_shown',
   APP_BANNER_CLICK: 'app_banner_click',
   APP_BANNER_DISMISS: 'app_banner_dismiss',
+
+  // Shorts
+  SHORT_VIEW: 'short_view',
+  SHORT_UPLOAD_START: 'short_upload_start',
+  SHORT_UPLOAD_SUCCESS: 'short_upload_success',
+  SHORT_UPLOAD_FAIL: 'short_upload_fail',
+  SHORT_EDIT: 'short_edit',
+  SHORT_DELETE: 'short_delete',
+  SHORT_LIKE: 'short_like',
+  SHORT_UNLIKE: 'short_unlike',
+  SHORT_CHAT_CLICK: 'short_chat_click',
+  SHORT_CALL_CLICK: 'short_call_click',
+  SHORT_SELLER_CLICK: 'short_seller_click',
+  SHORT_FEED_FILTER: 'short_feed_filter',
+  SHORT_SHARE: 'short_share',
+  SHORT_PACKAGE_VIEW: 'short_package_view',
+  SHORT_PACKAGE_PURCHASE: 'short_package_purchase',
+  SHORT_CAMERA_RECORD: 'short_camera_record',
+  SHORT_LIMIT_REACHED: 'short_limit_reached',
 } as const;
 
 /** Union type derived from the const object */

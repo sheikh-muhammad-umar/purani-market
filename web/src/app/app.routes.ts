@@ -56,6 +56,10 @@ export const routes: Routes = [
     loadChildren: () => import('./features/reviews/reviews.routes').then((m) => m.REVIEWS_ROUTES),
   },
   {
+    path: 'shorts',
+    loadChildren: () => import('./features/shorts/shorts.routes').then((m) => m.SHORTS_ROUTES),
+  },
+  {
     path: 'admin',
     loadChildren: () => import('./features/admin/admin.routes').then((m) => m.ADMIN_ROUTES),
   },

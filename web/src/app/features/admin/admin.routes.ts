@@ -102,6 +102,18 @@ export const ADMIN_ROUTES: Routes = [
             (m) => m.ExperimentsDashboardComponent,
           ),
       },
+      {
+        path: 'shorts',
+        loadComponent: () =>
+          import('./shorts/shorts-admin.component').then((m) => m.ShortsAdminComponent),
+      },
+      {
+        path: 'shorts-analytics',
+        loadComponent: () =>
+          import('./shorts-analytics/shorts-analytics.component').then(
+            (m) => m.ShortsAnalyticsComponent,
+          ),
+      },
     ],
   },
 ];

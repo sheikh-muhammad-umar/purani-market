@@ -4,81 +4,159 @@
       <h1>My Favorites</h1>
     </div>
 
-    @if (loading()) {
-      <div class="favorites-grid">
-        @for (i of [1, 2, 3, 4]; track i) {
-          <div class="card" style="padding: 0; overflow: hidden">
-            <div class="skeleton-image"></div>
-            <div style="padding: 12px">
-              <div class="skeleton-text" style="width: 80%"></div>
-              <div class="skeleton-text short" style="height: 1.2em; margin-top: 8px"></div>
-              <div class="skeleton-text medium" style="margin-top: 8px"></div>
-            </div>
-          </div>
-        }
-      </div>
-    } @else if (error()) {
-      <div class="error-state">
-        <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
-        <p>{{ error() }}</p>
-        <button class="btn btn-primary" (click)="loadFavorites()">Retry</button>
-      </div>
-    } @else if (favorites().length === 0) {
-      <div class="empty-state">
-        <span class="empty-icon">💜</span>
-        <h3>No favorites yet</h3>
-        <p>Browse listings and tap the heart icon to save your favorites here</p>
-        <a [routerLink]="ROUTES.SEARCH" class="btn btn-primary">Browse Listings</a>
-      </div>
-    } @else {
-      <div class="favorites-grid grid">
-        @for (favorite of favorites(); track favorite._id) {
-          @if (getListing(favorite); as listing) {
-            <div class="favorite-card card">
-              <div class="card-image-wrapper">
-                <a [routerLink]="['/listings', listing | listingUrl]">
-                  <img [src]="getImage(favorite)" [alt]="listing.title" class="card-image" />
-                </a>
-                <span class="badge status-badge" [ngClass]="getStatusBadgeClass(listing.status)">
-                  {{ listing.status }}
-                </span>
-                <button
-                  class="remove-btn"
-                  [disabled]="removingId() === favorite._id"
-                  (click)="removeFavorite(favorite)"
-                  title="Remove from favorites"
-                  aria-label="Remove from favorites"
-                >
-                  @if (removingId() === favorite._id) {
-                    <span class="spinner"></span>
-                  } @else {
-                    <span class="material-symbols-rounded">favorite</span>
-                  }
-                </button>
-              </div>
-              <div class="card-body">
-                <a [routerLink]="['/listings', listing | listingUrl]" class="card-title">
-                  {{ listing.title }}
-                </a>
-                <span class="card-price price">{{ formatPrice(listing) }}</span>
-                <div class="card-meta">
-                  @if (listing.location.city) {
-                    <span class="card-location"
-                      ><span
-                        class="material-symbols-rounded"
-                        style="font-size: 16px; vertical-align: middle"
-                        >location_on</span
-                      >
-                      {{ listing.location.city }}</span
-                    >
-                  }
-                  <span class="card-condition">{{ listing.condition }}</span>
-                </div>
+    <!-- Tabs -->
+    <div class="favorites-tabs">
+      <button class="tab-btn" [class.active]="activeTab() === TAB.ADS" (click)="switchTab(TAB.ADS)">
+        Ads
+      </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === TAB.SHORTS"
+        (click)="switchTab(TAB.SHORTS)"
+      >
+        Shorts
+      </button>
+    </div>
+
+    <!-- Ads Tab -->
+    @if (activeTab() === TAB.ADS) {
+      @if (loading()) {
+        <div class="favorites-grid">
+          @for (i of [1, 2, 3, 4]; track i) {
+            <div class="card" style="padding: 0; overflow: hidden">
+              <div class="skeleton-image"></div>
+              <div style="padding: 12px">
+                <div class="skeleton-text" style="width: 80%"></div>
+                <div class="skeleton-text short" style="height: 1.2em; margin-top: 8px"></div>
+                <div class="skeleton-text medium" style="margin-top: 8px"></div>
               </div>
             </div>
           }
-        }
-      </div>
+        </div>
+      } @else if (error()) {
+        <div class="error-state">
+          <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
+          <p>{{ error() }}</p>
+          <button class="btn btn-primary" (click)="loadFavorites()">Retry</button>
+        </div>
+      } @else if (favorites().length === 0) {
+        <div class="empty-state">
+          <span class="material-symbols-rounded empty-icon-mat">favorite_border</span>
+          <h3>No favorite ads yet</h3>
+          <p>Browse listings and tap the heart icon to save your favorites here</p>
+          <a [routerLink]="ROUTES.SEARCH" class="btn btn-primary">Browse Listings</a>
+        </div>
+      } @else {
+        <div class="favorites-grid grid">
+          @for (favorite of favorites(); track favorite._id) {
+            @if (getListing(favorite); as listing) {
+              <div class="favorite-card card">
+                <div class="card-image-wrapper">
+                  <a [routerLink]="['/listings', listing | listingUrl]">
+                    <img [src]="getImage(favorite)" [alt]="listing.title" class="card-image" />
+                  </a>
+                  <span class="badge status-badge" [ngClass]="getStatusBadgeClass(listing.status)">
+                    {{ listing.status }}
+                  </span>
+                  <button
+                    class="remove-btn"
+                    [disabled]="removingId() === favorite._id"
+                    (click)="removeFavorite(favorite)"
+                    title="Remove from favorites"
+                    aria-label="Remove from favorites"
+                  >
+                    @if (removingId() === favorite._id) {
+                      <span class="spinner"></span>
+                    } @else {
+                      <span class="material-symbols-rounded">favorite</span>
+                    }
+                  </button>
+                </div>
+                <div class="card-body">
+                  <a [routerLink]="['/listings', listing | listingUrl]" class="card-title">
+                    {{ listing.title }}
+                  </a>
+                  <span class="card-price price">{{ formatPrice(listing) }}</span>
+                  <div class="card-meta">
+                    @if (listing.location.city) {
+                      <span class="card-location"
+                        ><span
+                          class="material-symbols-rounded"
+                          style="font-size: 16px; vertical-align: middle"
+                          >location_on</span
+                        >
+                        {{ listing.location.city }}</span
+                      >
+                    }
+                    <span class="card-condition">{{ listing.condition }}</span>
+                  </div>
+                </div>
+              </div>
+            }
+          }
+        </div>
+      }
+    }
+
+    <!-- Shorts Tab -->
+    @if (activeTab() === TAB.SHORTS) {
+      @if (loadingShorts()) {
+        <div class="favorites-grid">
+          @for (i of [1, 2, 3, 4]; track i) {
+            <div class="card" style="padding: 0; overflow: hidden">
+              <div class="skeleton-image" style="aspect-ratio: 9/16"></div>
+            </div>
+          }
+        </div>
+      } @else if (likedShorts().length === 0) {
+        <div class="empty-state">
+          <span class="material-symbols-rounded empty-icon-mat">play_circle</span>
+          <h3>No favorite shorts yet</h3>
+          <p>Like shorts by tapping the heart icon while watching</p>
+          <a routerLink="/shorts" class="btn btn-primary">Browse Shorts</a>
+        </div>
+      } @else {
+        <div class="shorts-grid">
+          @for (short of likedShorts(); track short._id) {
+            <div class="short-fav-card">
+              <a
+                [routerLink]="['/shorts']"
+                [queryParams]="{ id: short._id }"
+                class="short-thumb-link"
+              >
+                <video
+                  [src]="short.video.compressedUrl || short.video.url"
+                  preload="metadata"
+                  muted
+                  playsinline
+                ></video>
+                <span class="short-views-badge">
+                  <span class="material-symbols-rounded" style="font-size: 12px">visibility</span>
+                  {{ short.viewCount }}
+                </span>
+              </a>
+              <div class="short-fav-info">
+                <span class="short-fav-title">{{
+                  short.title || short.description || 'Short video'
+                }}</span>
+                <span class="short-fav-meta">{{ short.createdAt | date: 'mediumDate' }}</span>
+                @if (short.price) {
+                  <span class="short-fav-price"
+                    >{{ short.currency || CURRENCY_SYMBOL }} {{ short.price | number }}</span
+                  >
+                }
+              </div>
+              <button
+                class="remove-btn short-remove"
+                (click)="removeShortLike(short)"
+                title="Remove"
+              >
+                <span class="material-symbols-rounded">favorite</span>
+              </button>
+            </div>
+          }
+        </div>
+      }
     }
   </div>
 </div>

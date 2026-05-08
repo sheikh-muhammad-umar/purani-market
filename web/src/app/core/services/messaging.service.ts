@@ -18,8 +18,9 @@ export interface MessagesResponse {
 }
 
 export interface StartConversationPayload {
-  productListingId: string;
-  message: string;
+  productListingId?: string;
+  shortVideoId?: string;
+  message?: string;
 }
 
 export interface SendMessagePayload {

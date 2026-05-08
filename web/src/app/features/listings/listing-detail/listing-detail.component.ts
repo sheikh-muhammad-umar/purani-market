@@ -13,7 +13,7 @@ import { extractIdFromSlug } from '../../../core/utils/slug';
 import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
-import { PLACEHOLDER_IMAGE } from '../../../core/constants/app';
+import { PLACEHOLDER_IMAGE, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { ListingStatus } from '../../../core/constants/enums';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
@@ -31,6 +31,7 @@ import { ConfirmModalService } from '../../../shared/components/confirm-modal/co
 export class ListingDetailComponent implements OnInit {
   readonly ROUTES = ROUTES;
   readonly ListingStatus = ListingStatus;
+  readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
   readonly TrackingEvent = TrackingEvent;
   listing = signal<Listing | null>(null);
   loading = signal(true);

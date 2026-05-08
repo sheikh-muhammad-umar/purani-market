@@ -1,0 +1,78 @@
+<div class="player-wrapper" (click)="togglePlay()">
+  <video
+    #videoEl
+    [src]="short.video.compressedUrl || short.video.url"
+    [poster]="short.video.thumbnailUrl || ''"
+    [autoplay]="isActive"
+    loop
+    playsinline
+    muted
+    preload="auto"
+    (loadeddata)="onVideoLoaded()"
+  ></video>
+
+  @if (!isPlaying()) {
+    <div class="play-overlay">
+      <span class="play-icon"><span class="material-symbols-rounded">play_arrow</span></span>
+    </div>
+  }
+
+  <!-- Seller info & description overlay -->
+  <div class="overlay-bottom" (click)="$event.stopPropagation()">
+    <div class="seller-info">
+      <a [routerLink]="ROUTES.SELLER(short.sellerId._id)" class="seller-link">
+        <div class="seller-avatar">
+          @if (short.sellerId.profile?.avatar) {
+            <img [src]="short.sellerId.profile.avatar" alt="avatar" />
+          } @else {
+            <span class="avatar-placeholder">{{ sellerInitial() }}</span>
+          }
+        </div>
+        <span class="seller-name">
+          {{ short.sellerId.profile?.firstName }} {{ short.sellerId.profile?.lastName }}
+        </span>
+      </a>
+      @if (short.price) {
+        <span class="price-badge"
+          >{{ short.currency || DEFAULT_CURRENCY }} {{ short.price | number }}</span
+        >
+      }
+    </div>
+    @if (short.description) {
+      <p class="caption" [class.expanded]="descExpanded()" (click)="toggleDescription()">
+        {{ short.description }}
+      </p>
+    }
+  </div>
+
+  <!-- Action buttons (right side) -->
+  <div class="actions-sidebar" (click)="$event.stopPropagation()">
+    <button class="action-btn" [class.liked]="isLiked()" title="Favorite" (click)="toggleLike()">
+      <span class="action-icon"
+        ><span class="material-symbols-rounded">{{
+          isLiked() ? 'favorite' : 'favorite_border'
+        }}</span></span
+      >
+      <span class="action-count">{{ likeCount() }}</span>
+    </button>
+    <button class="action-btn" title="Views">
+      <span class="action-icon"><span class="material-symbols-rounded">visibility</span></span>
+      <span class="action-count">{{ short.viewCount }}</span>
+    </button>
+    <button class="action-btn" title="Message" (click)="startChat()">
+      <span class="action-icon"><span class="material-symbols-rounded">chat_bubble</span></span>
+      <span class="action-count">Chat</span>
+    </button>
+    @if (short.sellerId.phone) {
+      <a [href]="'tel:' + short.sellerId.phone" class="action-btn" title="Call">
+        <span class="action-icon"><span class="material-symbols-rounded">call</span></span>
+        <span class="action-count">Call</span>
+      </a>
+    }
+  </div>
+
+  <!-- Progress bar -->
+  <div class="progress-bar">
+    <div class="progress-fill" [style.width.%]="progress()"></div>
+  </div>
+</div>

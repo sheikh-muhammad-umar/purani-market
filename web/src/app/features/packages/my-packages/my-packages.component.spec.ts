@@ -58,10 +58,14 @@ describe('MyPackagesComponent', () => {
     tracker = {
       track: vi.fn(),
     };
+    const routeMock = { snapshot: { queryParams: {} } };
+    const shortsServiceMock = { getMyPurchases: vi.fn().mockReturnValue(of([])) };
     component = new MyPackagesComponent(
       packagesService as unknown as PackagesService,
+      shortsServiceMock as any,
       categoriesService as unknown as CategoriesService,
       tracker as unknown as ActivityTrackerService,
+      routeMock as any,
     );
   });
 

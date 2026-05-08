@@ -181,6 +181,28 @@
       }
 
       <div class="info-card card">
+        <h3 class="section-title">Quick Actions</h3>
+        <div class="quick-actions">
+          <a [routerLink]="ROUTES.LISTINGS_MY" class="quick-action-item">
+            <span class="material-symbols-rounded">list_alt</span>
+            <span>My Ads</span>
+          </a>
+          <a [routerLink]="ROUTES.FAVORITES" class="quick-action-item">
+            <span class="material-symbols-rounded">favorite_border</span>
+            <span>Favourites</span>
+          </a>
+          <a [routerLink]="ROUTES.PACKAGES_MY" class="quick-action-item">
+            <span class="material-symbols-rounded">inventory_2</span>
+            <span>My Packages</span>
+          </a>
+          <a routerLink="/shorts/my" class="quick-action-item">
+            <span class="material-symbols-rounded">play_circle</span>
+            <span>My Shorts</span>
+          </a>
+        </div>
+      </div>
+
+      <div class="info-card card">
         <h3 class="section-title">Account Details</h3>
         <div class="detail-grid">
           <div class="detail-item">

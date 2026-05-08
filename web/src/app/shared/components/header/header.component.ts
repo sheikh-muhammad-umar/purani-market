@@ -98,6 +98,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   });
   readonly isProfilePage = computed(() => this.currentUrl().startsWith(ROUTES.PROFILE));
   readonly isAdminPage = computed(() => this.currentUrl().startsWith(ROUTES.ADMIN));
+  readonly isShortsPage = computed(() => this.currentUrl().startsWith(ROUTES.SHORTS));
 
   /** Combined computed for header scroll class and mobile search visibility */
   readonly showScrolledHeader = computed(
@@ -110,7 +111,11 @@ export class HeaderComponent implements OnInit, OnDestroy {
   );
   readonly showMobileSearch = computed(
     () =>
-      !this.isAuthPage() && !this.isMessagingPage() && !this.isProfilePage() && !this.isAdminPage(),
+      !this.isAuthPage() &&
+      !this.isMessagingPage() &&
+      !this.isProfilePage() &&
+      !this.isAdminPage() &&
+      !this.isShortsPage(),
   );
   readonly isAuthenticated = computed(() => this.authService.isAuthenticated());
   readonly isAdmin = computed(() => this.authService.isAdmin());

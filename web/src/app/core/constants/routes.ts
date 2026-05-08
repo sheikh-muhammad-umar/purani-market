@@ -21,6 +21,10 @@ export const ROUTES = {
   PACKAGES: '/packages',
   PACKAGES_MY: '/packages/my',
   CATEGORIES: '/categories',
+  SHORTS: '/shorts',
+  SHORTS_UPLOAD: '/shorts/upload',
+  SHORTS_MY: '/shorts/my',
+  SHORTS_EDIT: (id: string) => `/shorts/${id}/edit`,
   HOME: '/',
 
   SELLER: (id: string) => `/seller/${id}`,

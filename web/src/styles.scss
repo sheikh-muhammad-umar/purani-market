@@ -435,7 +435,8 @@ button {
 }
 
 .btn-primary:hover {
-  background-color: var(--primary-light);
+  background-color: var(--primary-dark);
+  color: #fff;
 }
 
 .btn-secondary {

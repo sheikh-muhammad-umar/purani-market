@@ -2,10 +2,12 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { MyListingsComponent } from './my-listings.component';
 import { ListingsService } from '../../../core/services/listings.service';
+import { ShortsService } from '../../../core/services/shorts.service';
 import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { ActivatedRoute } from '@angular/router';
 import { Listing, User, PackagePurchase } from '../../../core/models';
 
 function makeListing(overrides: Partial<Listing> = {}): Listing {
@@ -94,10 +96,16 @@ describe('MyListingsComponent', () => {
     featureListing: ReturnType<typeof vi.fn>;
     deleteListing: ReturnType<typeof vi.fn>;
   };
+  let shortsService: {
+    getMyShorts: ReturnType<typeof vi.fn>;
+    getMyStats: ReturnType<typeof vi.fn>;
+    deleteShort: ReturnType<typeof vi.fn>;
+  };
   let packagesService: { getMyPurchases: ReturnType<typeof vi.fn> };
   let authService: { fetchCurrentUser: ReturnType<typeof vi.fn> };
   let trackerMock: { track: ReturnType<typeof vi.fn> };
   let confirmModalMock: { confirmPackageWarning: ReturnType<typeof vi.fn> };
+  let routeMock: { snapshot: { queryParams: Record<string, string> } };
 
   const mockListings: Listing[] = [
     makeListing({ _id: 'l1', title: 'Car', viewCount: 100, favoriteCount: 20, status: 'active' }),
@@ -122,6 +130,11 @@ describe('MyListingsComponent', () => {
       featureListing: vi.fn().mockReturnValue(of({})),
       deleteListing: vi.fn().mockReturnValue(of(undefined)),
     };
+    shortsService = {
+      getMyShorts: vi.fn().mockReturnValue(of({ data: [], total: 0 })),
+      getMyStats: vi.fn().mockReturnValue(of({ uploadsThisMonth: 0, monthlyLimit: 4 })),
+      deleteShort: vi.fn().mockReturnValue(of(undefined)),
+    };
     packagesService = {
       getMyPurchases: vi.fn().mockReturnValue(of({ data: [makePurchase()], total: 1 })),
     };
@@ -137,12 +150,16 @@ describe('MyListingsComponent', () => {
       confirmPackageWarning: vi.fn().mockResolvedValue(true),
     };
 
+    routeMock = { snapshot: { queryParams: {} } };
+
     component = new MyListingsComponent(
       listingsService as unknown as ListingsService,
+      shortsService as unknown as ShortsService,
       packagesService as unknown as PackagesService,
       authService as unknown as AuthService,
       trackerMock as unknown as ActivityTrackerService,
       confirmModalMock as unknown as ConfirmModalService,
+      routeMock as unknown as ActivatedRoute,
       'browser',
     );
     component.ngOnInit();

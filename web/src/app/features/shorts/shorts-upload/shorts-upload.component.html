@@ -1,0 +1,329 @@
+<div class="upload-page">
+  <div class="upload-header">
+    <a [routerLink]="ROUTES.SHORTS" class="back-link">← Back to Shorts</a>
+    <h1>Upload Short Video</h1>
+    <p class="subtitle">Share a 1-minute video of your product</p>
+  </div>
+
+  <!-- Promo Banner -->
+  <div class="promo-banner-wrap">
+    <app-promo-banner
+      badge="Info"
+      message="Free shorts are active for 7 days. Want them to stay longer?"
+      ctaText="Get a package →"
+      [ctaLink]="ROUTES.PACKAGES"
+      [ctaQueryParams]="{ tab: 'shorts' }"
+    />
+  </div>
+
+  <!-- Limit Exceeded Banner -->
+  @if (stats()?.freeRemainingThisMonth === 0) {
+    <div class="limit-banner">
+      <p>
+        You've used all {{ FREE_SHORTS_PER_MONTH }} free shorts this month. Purchase a package to
+        upload more.
+      </p>
+      <a [routerLink]="ROUTES.PACKAGES" [queryParams]="{ tab: 'shorts' }" class="btn-primary"
+        >Buy Package</a
+      >
+    </div>
+  }
+
+  <!-- Stats -->
+  @if (stats()) {
+    <div class="stats-bar">
+      <div class="stat">
+        <span class="stat-value">{{ stats()!.freeUsedThisMonth }}/{{ FREE_SHORTS_PER_MONTH }}</span>
+        <span class="stat-label">Used This Month</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ stats()!.freeRemainingThisMonth }}</span>
+        <span class="stat-label">Remaining This Month</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ stats()!.activeShorts }}</span>
+        <span class="stat-label">Active</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ stats()!.pendingShorts }}</span>
+        <span class="stat-label">Pending</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{{ stats()!.totalViews }}</span>
+        <span class="stat-label">Total Views</span>
+      </div>
+    </div>
+  }
+
+  <!-- Video Upload Card -->
+  <div class="upload-card">
+    <h2 class="card-title">Video</h2>
+    <p class="card-desc">Upload or record a short video (max 1 minute, 15MB)</p>
+
+    <div
+      class="upload-area"
+      [class.has-file]="videoFile()"
+      (drop)="onDrop($event)"
+      (dragover)="onDragOver($event)"
+    >
+      @if (!videoFile()) {
+        <div class="upload-prompt">
+          <div class="upload-icon">
+            <span class="material-symbols-rounded" style="font-size: 48px">videocam</span>
+          </div>
+          <p>Drag & drop your video here or</p>
+          <div class="upload-actions">
+            <button class="btn-primary" (click)="fileInput.click()">Choose File</button>
+            <button class="btn-secondary" (click)="startCamera()">Record from Camera</button>
+          </div>
+          <p class="upload-info">Max 1 minute · Max 15MB · MP4, WebM, MOV</p>
+        </div>
+      } @else {
+        <div class="video-preview">
+          <video #previewVideo [src]="videoPreviewUrl()" controls playsinline></video>
+          <div class="video-info">
+            <p>{{ videoFile()!.name }}</p>
+            <p class="file-size">{{ formatSize(videoFile()!.size) }}</p>
+            @if (videoDuration() > 60) {
+              <div class="trim-warning">
+                <p class="warning-text">
+                  <span
+                    class="material-symbols-rounded"
+                    style="font-size: 16px; vertical-align: middle; color: var(--accent)"
+                    >warning</span
+                  >
+                  Video is {{ Math.ceil(videoDuration()) }}s long (max 60s). Please trim it.
+                </p>
+                <div class="trim-controls">
+                  <label>
+                    Start:
+                    <input
+                      type="number"
+                      [(ngModel)]="trimStart"
+                      min="0"
+                      [max]="videoDuration() - 1"
+                      step="1"
+                    />s
+                  </label>
+                  <label>
+                    End:
+                    <input
+                      type="number"
+                      [(ngModel)]="trimEnd"
+                      [min]="trimStart + 1"
+                      [max]="videoDuration()"
+                      step="1"
+                    />s
+                  </label>
+                  <p class="trim-duration">Duration: {{ trimEnd - trimStart }}s</p>
+                </div>
+              </div>
+            }
+          </div>
+          <button class="btn-remove" (click)="removeFile()">Remove</button>
+        </div>
+      }
+      <input
+        #fileInput
+        type="file"
+        [accept]="SHORTS_ACCEPT_STRING"
+        (change)="onFileSelected($event)"
+        hidden
+      />
+    </div>
+    @if (error()) {
+      <p class="error-msg">{{ error() }}</p>
+    }
+  </div>
+
+  <!-- Camera Recording -->
+  @if (isRecording()) {
+    <div class="camera-overlay">
+      <video #cameraVideo autoplay playsinline muted></video>
+      <div class="recording-controls">
+        <div class="recording-timer">{{ formatTime(recordingTime()) }}</div>
+        <button class="btn-stop-recording" (click)="stopRecording()">
+          <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
+            >stop_circle</span
+          >
+          Stop Recording
+        </button>
+      </div>
+    </div>
+  }
+
+  <!-- Details Card -->
+  <div class="upload-card">
+    <h2 class="card-title">Details</h2>
+    <p class="card-desc">Provide information about your short</p>
+
+    <!-- Title -->
+    <div class="form-group">
+      <label for="title">Title <span class="required">*</span></label>
+      <input
+        id="title"
+        type="text"
+        [(ngModel)]="title"
+        maxlength="100"
+        placeholder="Give your short a title..."
+        required
+      />
+      <span class="char-count">{{ title.length }}/100</span>
+    </div>
+
+    <!-- Description -->
+    <div class="form-group">
+      <label for="description">Description <span class="required">*</span></label>
+      <textarea
+        id="description"
+        [(ngModel)]="description"
+        maxlength="500"
+        rows="3"
+        placeholder="Describe your product..."
+        required
+      ></textarea>
+      <span class="char-count">{{ description.length }}/500</span>
+    </div>
+
+    <!-- Price -->
+    <div class="form-group">
+      <label for="price">Price ({{ CURRENCY_SYMBOL }}) <span class="required">*</span></label>
+      <input
+        id="price"
+        type="number"
+        [(ngModel)]="price"
+        min="0"
+        placeholder="Enter price..."
+        required
+      />
+    </div>
+  </div>
+
+  <!-- Category & Location Card -->
+  <div class="upload-card">
+    <h2 class="card-title">Category & Location</h2>
+    <p class="card-desc">Help buyers find your short</p>
+
+    <!-- Category (multi-level) -->
+    <div class="form-group">
+      <label>Category <span class="required">*</span></label>
+      <div class="multi-select-section">
+        <div class="level-select">
+          <app-custom-select
+            [options]="level1Options()"
+            placeholder="Select Category"
+            [searchable]="true"
+            [ngModel]="selectedLevel1Id()"
+            (ngModelChange)="onLevel1Change($event)"
+          />
+        </div>
+        @if (level2Options().length > 0) {
+          <div class="level-select">
+            <app-custom-select
+              [options]="level2Options()"
+              placeholder="Select Subcategory"
+              [searchable]="true"
+              [ngModel]="selectedLevel2Id()"
+              (ngModelChange)="onLevel2Change($event)"
+            />
+          </div>
+        }
+        @if (level3Options().length > 0) {
+          <div class="level-select">
+            <app-custom-select
+              [options]="level3Options()"
+              placeholder="Select Sub-subcategory"
+              [searchable]="true"
+              [ngModel]="selectedLevel3Id()"
+              (ngModelChange)="onLevel3Change($event)"
+            />
+          </div>
+        }
+        @if (selectedCategoryPath()) {
+          <p class="selected-path">{{ selectedCategoryPath() }}</p>
+        }
+      </div>
+    </div>
+
+    <!-- Location (Province → City → Area) -->
+    <div class="form-group">
+      <label>Location <span class="required">*</span></label>
+      <div class="multi-select-section">
+        <div class="level-select">
+          <app-custom-select
+            [options]="provinceOptions()"
+            placeholder="Select Province"
+            [searchable]="true"
+            [ngModel]="selectedProvinceId()"
+            (ngModelChange)="onProvinceChange($event)"
+          />
+        </div>
+        @if (cityOptionsForProvince().length > 0) {
+          <div class="level-select">
+            <app-custom-select
+              [options]="cityOptionsForProvince()"
+              placeholder="Select City"
+              [searchable]="true"
+              [ngModel]="selectedCityId()"
+              (ngModelChange)="onCityChange($event)"
+            />
+          </div>
+        }
+        @if (areaOptionsForCity().length > 0) {
+          <div class="level-select">
+            <app-custom-select
+              [options]="areaOptionsForCity()"
+              placeholder="Select Area (optional)"
+              [searchable]="true"
+              [ngModel]="selectedAreaId()"
+              (ngModelChange)="onAreaChange($event)"
+            />
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+
+  <!-- Link to Listing Card -->
+  <div class="upload-card">
+    <h2 class="card-title">Link to Listing</h2>
+    <p class="card-desc">Optionally link this short to one of your active ads</p>
+
+    <div class="form-group">
+      @if (myListingOptions().length > 0) {
+        <app-custom-select
+          [options]="myListingOptions()"
+          placeholder="Select a listing (optional)"
+          [searchable]="true"
+          [(ngModel)]="selectedListingId"
+        />
+      } @else {
+        <p class="no-listings-msg">
+          <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
+            >info</span
+          >
+          You don't have any active ads.
+          <a [routerLink]="ROUTES.LISTINGS_CREATE">Create a listing</a> first to link it here.
+        </p>
+      }
+    </div>
+  </div>
+
+  <!-- Submit -->
+  <div class="submit-section">
+    <button class="btn-submit" [disabled]="!canSubmit()" (click)="uploadShort()">
+      @if (uploading()) {
+        <span class="spinner-small"></span> Uploading...
+      } @else {
+        Upload Short
+      }
+    </button>
+    @if (stats()?.freeRemainingThisMonth === 0) {
+      <p class="package-hint">
+        No free shorts remaining this month.
+        <a [routerLink]="ROUTES.PACKAGES" [queryParams]="{ tab: 'shorts' }">Purchase a package</a>
+        to upload more.
+      </p>
+    }
+  </div>
+</div>

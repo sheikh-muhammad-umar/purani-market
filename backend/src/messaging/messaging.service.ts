@@ -66,62 +66,129 @@ export class MessagingService {
     conversation: ConversationDocument;
     message?: MessageDocument;
   }> {
-    const { productListingId, message } = dto;
+    const { productListingId, shortVideoId, message } = dto;
 
-    if (!Types.ObjectId.isValid(productListingId)) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+    if (!productListingId && !shortVideoId) {
+      throw new BadRequestException(
+        'Either productListingId or shortVideoId is required',
+      );
     }
 
-    const listing = await this.listingModel.findById(productListingId).exec();
-    if (!listing) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
-    }
-
-    if (listing.sellerId.toString() === userId) {
-      throw new BadRequestException(ERROR.CANNOT_MESSAGE_OWN_LISTING);
-    }
-
-    if (listing.status !== ListingStatus.ACTIVE) {
-      throw new BadRequestException(ERROR.LISTING_NOT_ACTIVE_MESSAGING);
-    }
-
+    let sellerId: Types.ObjectId;
     const buyerId = new Types.ObjectId(userId);
-    const sellerId = listing.sellerId;
 
-    // Try to find existing conversation
-    let conversation = await this.conversationModel
-      .findOne({ buyerId, sellerId, productListingId: listing._id })
-      .exec();
+    if (productListingId) {
+      // Listing-based conversation
+      if (!Types.ObjectId.isValid(productListingId)) {
+        throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      }
 
-    if (!conversation) {
-      conversation = new this.conversationModel({
-        productListingId: listing._id,
+      const listing = await this.listingModel.findById(productListingId).exec();
+      if (!listing) {
+        throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      }
+
+      if (listing.sellerId.toString() === userId) {
+        throw new BadRequestException(ERROR.CANNOT_MESSAGE_OWN_LISTING);
+      }
+
+      if (listing.status !== ListingStatus.ACTIVE) {
+        throw new BadRequestException(ERROR.LISTING_NOT_ACTIVE_MESSAGING);
+      }
+
+      sellerId = listing.sellerId;
+
+      // Try to find existing conversation for this listing
+      let conversation = await this.conversationModel
+        .findOne({ buyerId, sellerId, productListingId: listing._id })
+        .exec();
+
+      if (!conversation) {
+        conversation = new this.conversationModel({
+          productListingId: listing._id,
+          buyerId,
+          sellerId,
+        });
+        await conversation.save();
+      }
+
+      const savedMessage = await this.optionallySendMessage(
+        conversation,
         buyerId,
-        sellerId,
-      });
-      await conversation.save();
+        message,
+      );
+      return { conversation, message: savedMessage };
+    } else {
+      // Short-based conversation
+      if (!Types.ObjectId.isValid(shortVideoId!)) {
+        throw new NotFoundException('Short video not found');
+      }
+
+      const short = await this.conversationModel.db
+        .collection('short_videos')
+        .findOne({ _id: new Types.ObjectId(shortVideoId!) });
+
+      if (!short) {
+        throw new NotFoundException('Short video not found');
+      }
+
+      sellerId = new Types.ObjectId(short.sellerId.toString());
+
+      if (sellerId.toString() === userId) {
+        throw new BadRequestException(
+          'You cannot message yourself about your own short',
+        );
+      }
+
+      // Try to find existing conversation for this short
+      let conversation = await this.conversationModel
+        .findOne({
+          buyerId,
+          sellerId,
+          shortVideoId: new Types.ObjectId(shortVideoId!),
+        })
+        .exec();
+
+      if (!conversation) {
+        conversation = new this.conversationModel({
+          shortVideoId: new Types.ObjectId(shortVideoId!),
+          buyerId,
+          sellerId,
+        });
+        await conversation.save();
+      }
+
+      const savedMessage = await this.optionallySendMessage(
+        conversation,
+        buyerId,
+        message,
+      );
+      return { conversation, message: savedMessage };
     }
+  }
 
-    // Optionally send first message
-    let savedMessage: MessageDocument | undefined;
-    if (message) {
-      savedMessage = new this.messageModel({
-        conversationId: conversation._id,
-        senderId: buyerId,
-        content: message,
-      });
-      await savedMessage.save();
+  private async optionallySendMessage(
+    conversation: ConversationDocument,
+    senderId: Types.ObjectId,
+    message?: string,
+  ): Promise<MessageDocument | undefined> {
+    if (!message) return undefined;
 
-      // Update conversation with last message info
-      conversation.lastMessageAt = savedMessage.createdAt;
-      conversation.lastMessagePreview =
-        message.length > PREVIEW_MAX_LENGTH
-          ? message.substring(0, PREVIEW_MAX_LENGTH) + '...'
-          : message;
-      await conversation.save();
-    }
+    const savedMessage = new this.messageModel({
+      conversationId: conversation._id,
+      senderId,
+      content: message,
+    });
+    await savedMessage.save();
 
-    return { conversation, message: savedMessage };
+    conversation.lastMessageAt = savedMessage.createdAt;
+    conversation.lastMessagePreview =
+      message.length > PREVIEW_MAX_LENGTH
+        ? message.substring(0, PREVIEW_MAX_LENGTH) + '...'
+        : message;
+    await conversation.save();
+
+    return savedMessage;
   }
 
   async getUserConversations(userId: string): Promise<ConversationDocument[]> {
@@ -133,6 +200,10 @@ export class MessagingService {
       .populate('buyerId', 'profile.firstName profile.lastName profile.avatar')
       .populate('sellerId', 'profile.firstName profile.lastName profile.avatar')
       .populate('productListingId', 'title price images status')
+      .populate(
+        'shortVideoId',
+        'title description video.thumbnailUrl video.url status',
+      )
       .sort({ lastMessageAt: -1, createdAt: -1 })
       .exec();
 

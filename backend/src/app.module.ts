@@ -25,6 +25,7 @@ import { IdVerificationModule } from './id-verification/id-verification.module.j
 import { CommonModule } from './common/common.module.js';
 import { SeoModule } from './seo/seo.module.js';
 import { ExperimentsModule } from './experiments/experiments.module.js';
+import { ShortsModule } from './shorts/shorts.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
@@ -101,6 +102,7 @@ import { AppService } from './app.service.js';
     IdVerificationModule,
     SeoModule,
     ExperimentsModule,
+    ShortsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

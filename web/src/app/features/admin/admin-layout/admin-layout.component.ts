@@ -36,6 +36,8 @@ export class AdminLayoutComponent {
     { label: 'ID Verifications', icon: 'verified_user', path: `${ROUTES.ADMIN}/id-verifications` },
     { label: 'Notifications', icon: 'notifications', path: `${ROUTES.ADMIN}/notifications` },
     { label: 'Experiments', icon: 'science', path: `${ROUTES.ADMIN}/experiments` },
+    { label: 'Shorts', icon: 'play_circle', path: `${ROUTES.ADMIN}/shorts` },
+    { label: 'Shorts Analytics', icon: 'analytics', path: `${ROUTES.ADMIN}/shorts-analytics` },
   ];
 
   sidebarCollapsed = false;

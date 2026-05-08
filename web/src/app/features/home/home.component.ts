@@ -4,6 +4,7 @@ import { CommonModule } from '@angular/common';
 import { Observable, map, shareReplay } from 'rxjs';
 import { CategoriesService } from '../../core/services/categories.service';
 import { ListingsService, ListingsResponse } from '../../core/services/listings.service';
+import { ShortsService, ShortVideo } from '../../core/services/shorts.service';
 import { RecommendationsService } from '../../core/services/recommendations.service';
 import { AuthService } from '../../core/auth/auth.service';
 import { PriceFormatPipe } from '../../shared/pipes/price-format.pipe';
@@ -19,6 +20,7 @@ import {
   DEFAULT_CATEGORY_ICON,
   FEATURED_ADS_LIMIT,
   NEARBY_LISTINGS_LIMIT,
+  CURRENCY_SYMBOL,
 } from '../../core/constants/app';
 import { ROUTES } from '../../core/constants/routes';
 
@@ -46,6 +48,7 @@ interface CategoryChip {
 })
 export class HomeComponent implements OnInit {
   readonly ROUTES = ROUTES;
+  readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
   readonly SKELETON_CATEGORIES = Array.from({ length: 8 }, (_, i) => i);
   readonly SKELETON_FEATURED = Array.from({ length: 4 }, (_, i) => i);
   readonly SKELETON_GRID = Array.from({ length: 6 }, (_, i) => i);
@@ -54,12 +57,14 @@ export class HomeComponent implements OnInit {
   readonly featuredListings = signal<Listing[]>([]);
   readonly recommendations = signal<Listing[]>([]);
   readonly nearbyListings = signal<Listing[]>([]);
+  readonly shorts = signal<ShortVideo[]>([]);
   readonly userCity = signal<string>('');
 
   readonly loadingCategories = signal(true);
   readonly loadingFeatured = signal(true);
   readonly loadingRecommendations = signal(true);
   readonly loadingNearby = signal(true);
+  readonly loadingShorts = signal(true);
 
   readonly selectedCategory = signal<Category | null>(null);
 
@@ -78,6 +83,7 @@ export class HomeComponent implements OnInit {
   constructor(
     private readonly categoriesService: CategoriesService,
     private readonly listingsService: ListingsService,
+    private readonly shortsService: ShortsService,
     private readonly recommendationsService: RecommendationsService,
     public readonly authService: AuthService,
   ) {}
@@ -85,6 +91,7 @@ export class HomeComponent implements OnInit {
   ngOnInit(): void {
     this.loadCategories();
     this.loadFeatured();
+    this.loadShorts();
     this.loadRecommendations();
     this.loadNearby();
   }
@@ -136,6 +143,16 @@ export class HomeComponent implements OnInit {
         this.loadingFeatured.set(false);
       },
       error: () => this.loadingFeatured.set(false),
+    });
+  }
+
+  private loadShorts(): void {
+    this.shortsService.getFeed(1, 10).subscribe({
+      next: (res) => {
+        this.shorts.set(res.data ?? []);
+        this.loadingShorts.set(false);
+      },
+      error: () => this.loadingShorts.set(false),
     });
   }
 
@@ -217,5 +234,20 @@ export class HomeComponent implements OnInit {
       },
       error: () => this.loadingNearby.set(false),
     });
+  }
+
+  formatShortDuration(seconds?: number): string {
+    if (!seconds) return '0:00';
+    const m = Math.floor(seconds / 60);
+    const s = Math.floor(seconds % 60);
+    return `${m}:${s.toString().padStart(2, '0')}`;
+  }
+
+  getShortSellerName(short: ShortVideo): string {
+    const seller = short.sellerId as any;
+    if (seller?.profile) {
+      return `${seller.profile.firstName || ''} ${seller.profile.lastName || ''}`.trim();
+    }
+    return 'Seller';
   }
 }
