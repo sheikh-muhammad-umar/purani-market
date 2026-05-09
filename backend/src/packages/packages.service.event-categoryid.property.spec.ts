@@ -39,6 +39,7 @@ import { VehicleModelService } from '../brands/vehicle-model.service';
 import { VehicleVariantService } from '../brands/vehicle-variant.service';
 import { UserAction } from '../ai/enums/user-action.enum';
 import { ConfigService } from '@nestjs/config';
+import { daysToMs } from '../common/utils/time';
 
 // The six package-related event actions we must verify
 const PACKAGE_EVENT_ACTIONS = [
@@ -69,7 +70,7 @@ const arbRemainingQuantity = fc.integer({ min: 1, max: 20 });
 
 // Arbitrary for future expiry
 const arbFutureExpiresAt = fc.integer({ min: 1, max: 30 }).map((days) => {
-  return new Date(Date.now() + days * 24 * 60 * 60 * 1000);
+  return new Date(Date.now() + daysToMs(days));
 });
 
 describe('Property 8: Event CategoryId Completeness', () => {
@@ -227,7 +228,7 @@ describe('Property 8: Event CategoryId Completeness', () => {
           expiresAt:
             reason === 'expired'
               ? new Date(Date.now() - 1000)
-              : new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+              : new Date(Date.now() + daysToMs(7)),
         };
 
         const mockPackagePurchaseModel: any = jest.fn();

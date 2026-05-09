@@ -37,6 +37,7 @@ import {
   DELETION_REASON_INACTIVE_CLEANUP,
   DELETION_REASON_MAX_REJECTIONS,
 } from '../common/constants/index.js';
+import { daysToMs } from '../common/utils/time.js';
 
 @Injectable()
 export class ListingLifecycleService {
@@ -144,9 +145,7 @@ export class ListingLifecycleService {
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async handleStaleDeactivatedListings(): Promise<number> {
-    const cutoff = new Date(
-      Date.now() - this.deactivatedCleanupDays * 24 * 60 * 60 * 1000,
-    );
+    const cutoff = new Date(Date.now() - daysToMs(this.deactivatedCleanupDays));
     const staleListings = await this.listingModel
       .find({
         status: ListingStatus.INACTIVE,
@@ -214,10 +213,8 @@ export class ListingLifecycleService {
     const now = new Date();
 
     for (const days of LISTING_EXPIRY_REMINDER_DAYS) {
-      const windowStart = new Date(
-        now.getTime() + (days - 1) * 24 * 60 * 60 * 1000,
-      );
-      const windowEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+      const windowStart = new Date(now.getTime() + daysToMs(days - 1));
+      const windowEnd = new Date(now.getTime() + daysToMs(days));
 
       const listings = await this.listingModel
         .find({
@@ -256,10 +253,8 @@ export class ListingLifecycleService {
     const now = new Date();
 
     for (const days of FEATURED_EXPIRY_REMINDER_DAYS) {
-      const windowStart = new Date(
-        now.getTime() + (days - 1) * 24 * 60 * 60 * 1000,
-      );
-      const windowEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+      const windowStart = new Date(now.getTime() + daysToMs(days - 1));
+      const windowEnd = new Date(now.getTime() + daysToMs(days));
 
       const listings = await this.listingModel
         .find({
@@ -298,10 +293,8 @@ export class ListingLifecycleService {
     const now = new Date();
 
     for (const days of PACKAGE_EXPIRY_REMINDER_DAYS) {
-      const windowStart = new Date(
-        now.getTime() + (days - 1) * 24 * 60 * 60 * 1000,
-      );
-      const windowEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+      const windowStart = new Date(now.getTime() + daysToMs(days - 1));
+      const windowEnd = new Date(now.getTime() + daysToMs(days));
 
       const purchases = await this.packagePurchaseModel
         .find({
@@ -479,7 +472,7 @@ export class ListingLifecycleService {
 
   @Cron(CronExpression.EVERY_DAY_AT_4AM)
   async handleStaleRejectedListings(): Promise<number> {
-    const cutoff = new Date(Date.now() - this.activeDays * 24 * 60 * 60 * 1000);
+    const cutoff = new Date(Date.now() - daysToMs(this.activeDays));
 
     const staleListings = await this.listingModel
       .find({
@@ -535,12 +528,8 @@ export class ListingLifecycleService {
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
   async handleStaleReservedListings(): Promise<number> {
-    const cutoff = new Date(
-      Date.now() - STALE_RESERVED_DAYS * 24 * 60 * 60 * 1000,
-    );
-    const newExpiresAt = new Date(
-      Date.now() + this.activeDays * 24 * 60 * 60 * 1000,
-    );
+    const cutoff = new Date(Date.now() - daysToMs(STALE_RESERVED_DAYS));
+    const newExpiresAt = new Date(Date.now() + daysToMs(this.activeDays));
 
     const staleListings = await this.listingModel
       .find({
@@ -590,9 +579,7 @@ export class ListingLifecycleService {
 
   @Cron(CronExpression.EVERY_DAY_AT_5AM)
   async handleStalePendingReviewListings(): Promise<number> {
-    const cutoff = new Date(
-      Date.now() - STALE_PENDING_REVIEW_DAYS * 24 * 60 * 60 * 1000,
-    );
+    const cutoff = new Date(Date.now() - daysToMs(STALE_PENDING_REVIEW_DAYS));
 
     const staleListings = await this.listingModel
       .find({
@@ -605,9 +592,7 @@ export class ListingLifecycleService {
     if (staleListings.length === 0) return 0;
 
     const now = new Date();
-    const newExpiresAt = new Date(
-      now.getTime() + this.activeDays * 24 * 60 * 60 * 1000,
-    );
+    const newExpiresAt = new Date(now.getTime() + daysToMs(this.activeDays));
 
     const ids = staleListings.map((l) => l._id);
     const result = await this.listingModel.updateMany(

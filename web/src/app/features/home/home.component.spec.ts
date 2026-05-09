@@ -132,6 +132,7 @@ describe('HomeComponent', () => {
       shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      'browser',
     );
   });
 
@@ -177,6 +178,7 @@ describe('HomeComponent', () => {
       shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      'browser',
     );
     component.ngOnInit();
     const chips = component.categoryChips();
@@ -207,6 +209,7 @@ describe('HomeComponent', () => {
       shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      'browser',
     );
     component.ngOnInit();
     expect(component.loadingCategories()).toBe(false);
@@ -223,6 +226,7 @@ describe('HomeComponent', () => {
       shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      'browser',
     );
     component.ngOnInit();
     expect(component.loadingFeatured()).toBe(false);
@@ -238,6 +242,7 @@ describe('HomeComponent', () => {
       shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      'browser',
     );
     component.ngOnInit();
     expect(component.loadingRecommendations()).toBe(false);
@@ -287,6 +292,7 @@ describe('HomeComponent', () => {
       shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      'browser',
     );
     component.ngOnInit();
 

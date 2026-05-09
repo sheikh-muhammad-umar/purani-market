@@ -26,6 +26,7 @@ import { User } from '../users/schemas/user.schema';
 import { ProductListing } from '../listings/schemas/product-listing.schema';
 import { PaymentsService } from '../payments/payments.service';
 import { AdminTrackerService } from '../ai/admin-tracker.service';
+import { daysToMs } from '../common/utils/time';
 
 // Arbitrary for PaymentStatus
 const arbPaymentStatus = fc.constantFrom(
@@ -49,13 +50,11 @@ const arbExpiresAt = fc.boolean().map((isFuture) => {
   const now = new Date();
   if (isFuture) {
     // 1 hour to 30 days in the future
-    const offset =
-      Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000) + 3600000;
+    const offset = Math.floor(Math.random() * daysToMs(30)) + 3600000;
     return new Date(now.getTime() + offset);
   } else {
     // 1 hour to 30 days in the past
-    const offset =
-      Math.floor(Math.random() * 30 * 24 * 60 * 60 * 1000) + 3600000;
+    const offset = Math.floor(Math.random() * daysToMs(30)) + 3600000;
     return new Date(now.getTime() - offset);
   }
 });

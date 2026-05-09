@@ -9,6 +9,7 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { ActivatedRoute } from '@angular/router';
 import { Listing, User, PackagePurchase } from '../../../core/models';
+import { daysToMs } from '../../../core/utils/time';
 
 function makeListing(overrides: Partial<Listing> = {}): Listing {
   return {
@@ -82,7 +83,7 @@ function makePurchase(overrides: Partial<PackagePurchase> = {}): PackagePurchase
     paymentStatus: overrides.paymentStatus ?? 'completed',
     paymentTransactionId: 'tx1',
     activatedAt: new Date(),
-    expiresAt: overrides.expiresAt ?? new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
+    expiresAt: overrides.expiresAt ?? new Date(Date.now() + daysToMs(30)),
     createdAt: new Date(),
     updatedAt: new Date(),
   };
@@ -117,7 +118,7 @@ describe('MyListingsComponent', () => {
       favoriteCount: 30,
       status: 'active',
       isFeatured: true,
-      featuredUntil: new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+      featuredUntil: new Date(Date.now() + daysToMs(5)),
     }),
   ];
 
@@ -319,7 +320,7 @@ describe('MyListingsComponent', () => {
   });
 
   it('should compute days until a future date', () => {
-    const future = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+    const future = new Date(Date.now() + daysToMs(5));
     expect(component.daysUntil(future)).toBe(5);
   });
 

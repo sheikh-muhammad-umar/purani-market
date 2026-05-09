@@ -24,6 +24,7 @@ import {
   IdVerificationStats,
   IdVerificationTimeSeriesEntry,
 } from '../../../core/models/id-verification.model';
+import { daysToMs } from '../../../core/utils/time';
 
 export interface MetricCard {
   label: string;
@@ -33,7 +34,7 @@ export interface MetricCard {
 }
 
 /** Default lookback period in milliseconds (30 days) */
-const DEFAULT_LOOKBACK_MS = 30 * 24 * 60 * 60 * 1000;
+const DEFAULT_LOOKBACK_MS = daysToMs(30);
 
 @Component({
   selector: 'app-analytics-dashboard',

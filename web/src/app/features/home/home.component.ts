@@ -1,4 +1,5 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal, computed, Inject, PLATFORM_ID } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { Observable, map, shareReplay } from 'rxjs';
@@ -80,16 +81,24 @@ export class HomeComponent implements OnInit {
       })),
   );
 
+  private readonly isBrowser: boolean;
+
   constructor(
     private readonly categoriesService: CategoriesService,
     private readonly listingsService: ListingsService,
     private readonly shortsService: ShortsService,
     private readonly recommendationsService: RecommendationsService,
     public readonly authService: AuthService,
-  ) {}
+    @Inject(PLATFORM_ID) platformId: object,
+  ) {
+    this.isBrowser = isPlatformBrowser(platformId);
+  }
 
   ngOnInit(): void {
     this.loadCategories();
+
+    if (!this.isBrowser) return;
+
     this.loadFeatured();
     this.loadShorts();
     this.loadRecommendations();

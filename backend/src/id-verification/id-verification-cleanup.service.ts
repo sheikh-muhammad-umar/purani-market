@@ -9,6 +9,7 @@ import {
   IdVerificationStatus,
 } from './schemas/id-verification.schema.js';
 import { ID_VERIFICATION_AUTO_EXPIRE_REASON } from '../common/constants/app.constants.js';
+import { daysToMs } from '../common/utils/time.js';
 
 @Injectable()
 export class IdVerificationCleanupService {
@@ -29,7 +30,7 @@ export class IdVerificationCleanupService {
 
   @Cron(CronExpression.EVERY_DAY_AT_5AM)
   async expireStaleVerifications(): Promise<number> {
-    const cutoff = new Date(Date.now() - this.staleDays * 24 * 60 * 60 * 1000);
+    const cutoff = new Date(Date.now() - daysToMs(this.staleDays));
 
     const result = await this.verificationModel
       .updateMany(

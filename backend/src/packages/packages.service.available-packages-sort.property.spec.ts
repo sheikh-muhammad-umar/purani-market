@@ -24,6 +24,7 @@ import { User } from '../users/schemas/user.schema';
 import { ProductListing } from '../listings/schemas/product-listing.schema';
 import { PaymentsService } from '../payments/payments.service';
 import { AdminTrackerService } from '../ai/admin-tracker.service';
+import { daysToMs } from '../common/utils/time';
 
 // Generate a valid/available purchase (completed, qty > 0, future expiry)
 // with a random expiresAt in the future
@@ -36,7 +37,7 @@ function arbAvailablePurchase(
       // Random future offset: 1 minute to 90 days
       futureOffsetMs: fc.integer({
         min: 60_000,
-        max: 90 * 24 * 60 * 60 * 1000,
+        max: daysToMs(90),
       }),
       remainingQuantity: fc.integer({ min: 1, max: 20 }),
       type: fc.constantFrom(AdPackageType.FEATURED_ADS, AdPackageType.AD_SLOTS),

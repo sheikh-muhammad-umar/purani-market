@@ -3,6 +3,7 @@ import { describe, it, expect, beforeEach, vi, afterEach } from 'vitest';
 import { ConversationListComponent } from './conversation-list.component';
 import { MessagingService, ConversationsResponse } from '../../../core/services/messaging.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
+import { daysToMs } from '../../../core/utils/time';
 import { AuthService } from '../../../core/auth';
 import { ActivatedRoute, Router } from '@angular/router';
 import { Conversation } from '../../../core/models';
@@ -171,7 +172,7 @@ describe('ConversationListComponent', () => {
   });
 
   it('should format time as days ago', () => {
-    const threeDaysAgo = new Date(Date.now() - 3 * 24 * 60 * 60 * 1000);
+    const threeDaysAgo = new Date(Date.now() - daysToMs(3));
     messagingServiceMock.getConversations.mockReturnValue(
       of({ data: [makeConversation({ _id: 'days', lastMessageAt: threeDaysAgo })], total: 1 }),
     );
@@ -180,7 +181,7 @@ describe('ConversationListComponent', () => {
   });
 
   it('should show date string for messages older than a week', () => {
-    const twoWeeksAgo = new Date(Date.now() - 14 * 24 * 60 * 60 * 1000);
+    const twoWeeksAgo = new Date(Date.now() - daysToMs(14));
     messagingServiceMock.getConversations.mockReturnValue(
       of({ data: [makeConversation({ _id: 'old', lastMessageAt: twoWeeksAgo })], total: 1 }),
     );

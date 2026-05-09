@@ -55,6 +55,7 @@ import { UserAction } from '../ai/enums/user-action.enum.js';
 import { AdPackageType } from '../packages/schemas/ad-package.schema.js';
 import { OTHER_OPTION_ID, LISTING_PUBLIC_SELECT } from './constants/index.js';
 import { PaginatedListings } from './interfaces/paginated-listings.interface.js';
+import { daysToMs } from '../common/utils/time.js';
 
 export type { PaginatedListings };
 
@@ -458,9 +459,7 @@ export class ListingsService {
       (listing.status === ListingStatus.EXPIRED ||
         listing.status === ListingStatus.INACTIVE)
     ) {
-      updateFields.expiresAt = new Date(
-        Date.now() + this.activeDays * 24 * 60 * 60 * 1000,
-      );
+      updateFields.expiresAt = new Date(Date.now() + daysToMs(this.activeDays));
     }
     const updated = await this.listingModel
       .findByIdAndUpdate(id, { $set: updateFields }, { new: true })
@@ -669,9 +668,7 @@ export class ListingsService {
     });
 
     // Set default expiry — will be overridden if a package extends it
-    const expiresAt = new Date(
-      Date.now() + this.activeDays * 24 * 60 * 60 * 1000,
-    );
+    const expiresAt = new Date(Date.now() + daysToMs(this.activeDays));
     listing.expiresAt = expiresAt;
 
     // Apply package if purchaseId is provided

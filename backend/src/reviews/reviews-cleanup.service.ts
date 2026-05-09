@@ -8,6 +8,7 @@ import {
   ReviewDocument,
   ReviewStatus,
 } from './schemas/review.schema.js';
+import { daysToMs } from '../common/utils/time.js';
 
 @Injectable()
 export class ReviewsCleanupService {
@@ -28,7 +29,7 @@ export class ReviewsCleanupService {
 
   @Cron(CronExpression.EVERY_DAY_AT_6AM)
   async autoApproveStaleReviews(): Promise<number> {
-    const cutoff = new Date(Date.now() - this.staleDays * 24 * 60 * 60 * 1000);
+    const cutoff = new Date(Date.now() - daysToMs(this.staleDays));
 
     const result = await this.reviewModel
       .updateMany(

@@ -37,6 +37,7 @@ import {
 } from '../packages/schemas/package-purchase.schema';
 import { AdminTrackerService } from '../ai/admin-tracker.service';
 import { ConfigService } from '@nestjs/config';
+import { daysToMs } from '../common/utils/time';
 
 // Arbitrary for the transition type to exercise
 const arbTransitionType = fc.constantFrom(
@@ -98,7 +99,7 @@ describe('Property 6: Permanent Consumption (Non-Restoration)', () => {
             price: 500,
             paymentMethod: PaymentMethod.JAZZCASH,
             paymentStatus: PaymentStatus.COMPLETED,
-            expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000),
+            expiresAt: new Date(Date.now() + daysToMs(7)),
           };
 
           // Track ALL calls to PackagePurchase model methods

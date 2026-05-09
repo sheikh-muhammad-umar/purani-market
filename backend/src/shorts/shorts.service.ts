@@ -48,6 +48,7 @@ import {
   DEFAULT_CURRENCY,
 } from '../common/constants/app.constants.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { daysToMs, daysFromNow, startOfMonth } from '../common/utils/time.js';
 
 @Injectable()
 export class ShortsService {
@@ -117,7 +118,7 @@ export class ShortsService {
     const durationDays = purchase
       ? purchase.duration
       : SHORTS_FREE_DURATION_DAYS;
-    const expiresAt = new Date(Date.now() + durationDays * 24 * 60 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + daysToMs(durationDays));
 
     // Create short record
     const short = new this.shortVideoModel({
@@ -770,7 +771,7 @@ export class ShortsService {
       paymentMethod: dto.paymentMethod,
       transactionId: dto.transactionId,
       paymentStatus: PaymentStatus.PENDING,
-      expiresAt: new Date(Date.now() + pkg.duration * 24 * 60 * 60 * 1000),
+      expiresAt: new Date(Date.now() + daysToMs(pkg.duration)),
     });
 
     await purchase.save();
@@ -885,15 +886,13 @@ export class ShortsService {
     }
 
     // Check free shorts limit (monthly)
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    const monthStart = startOfMonth();
 
     const monthlyCount = await this.shortVideoModel
       .countDocuments({
         sellerId: new Types.ObjectId(sellerId),
         isPaid: false,
-        createdAt: { $gte: startOfMonth },
+        createdAt: { $gte: monthStart },
       })
       .exec();
 
@@ -918,9 +917,7 @@ export class ShortsService {
   }> {
     const sellerObjId = new Types.ObjectId(sellerId);
 
-    const startOfMonth = new Date();
-    startOfMonth.setDate(1);
-    startOfMonth.setHours(0, 0, 0, 0);
+    const monthStart = startOfMonth();
 
     const [
       totalShorts,
@@ -951,7 +948,7 @@ export class ShortsService {
         .countDocuments({
           sellerId: sellerObjId,
           isPaid: false,
-          createdAt: { $gte: startOfMonth },
+          createdAt: { $gte: monthStart },
         })
         .exec(),
       this.shortVideoModel
@@ -1039,10 +1036,8 @@ export class ShortsService {
     const now = new Date();
 
     for (const days of SHORTS_EXPIRY_REMINDER_DAYS) {
-      const windowStart = new Date(
-        now.getTime() + (days - 1) * 24 * 60 * 60 * 1000,
-      );
-      const windowEnd = new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+      const windowStart = new Date(now.getTime() + daysToMs(days - 1));
+      const windowEnd = new Date(now.getTime() + daysToMs(days));
 
       const shorts = await this.shortVideoModel
         .find({
@@ -1085,7 +1080,7 @@ export class ShortsService {
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
   async cleanupDeletedShorts(): Promise<number> {
     // Permanently remove shorts deleted more than 30 days ago
-    const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const cutoff = new Date(Date.now() - daysToMs(30));
     const toDelete = await this.shortVideoModel
       .find({
         status: ShortVideoStatus.DELETED,

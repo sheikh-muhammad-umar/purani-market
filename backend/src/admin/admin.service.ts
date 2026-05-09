@@ -62,6 +62,7 @@ import {
   TimeSeriesEntry,
   CategoryAnalytics,
 } from './interfaces/admin.interfaces.js';
+import { daysToMs } from '../common/utils/time.js';
 
 export type {
   PaginatedUsers,
@@ -598,9 +599,7 @@ export class AdminService {
 
     listing.status = ListingStatus.ACTIVE;
     // Start the expiry clock from approval, not creation
-    listing.expiresAt = new Date(
-      Date.now() + this.activeDays * 24 * 60 * 60 * 1000,
-    );
+    listing.expiresAt = new Date(Date.now() + daysToMs(this.activeDays));
     await listing.save();
 
     this.syncToEs(listing);
@@ -665,7 +664,7 @@ export class AdminService {
     dateTo?: string,
   ): Promise<AnalyticsData> {
     const now = new Date();
-    const thirtyDaysAgo = new Date(now.getTime() - 30 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(now.getTime() - daysToMs(30));
     const from = dateFrom
       ? new Date(dateFrom)
       : new Date(now.getFullYear(), now.getMonth() - 6, 1);

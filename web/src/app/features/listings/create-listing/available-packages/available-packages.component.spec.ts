@@ -6,6 +6,7 @@ import { PackagesService } from '../../../../core/services/packages.service';
 import { ActivityTrackerService } from '../../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../../core/enums/tracking-events';
 import { PackagePurchase } from '../../../../core/models';
+import { daysToMs } from '../../../../core/utils/time';
 
 function makePurchase(overrides: Partial<PackagePurchase> = {}): PackagePurchase {
   return {
@@ -21,7 +22,7 @@ function makePurchase(overrides: Partial<PackagePurchase> = {}): PackagePurchase
     paymentMethod: overrides.paymentMethod ?? 'jazzcash',
     paymentStatus: overrides.paymentStatus ?? 'completed',
     paymentTransactionId: overrides.paymentTransactionId ?? 'tx1',
-    expiresAt: overrides.expiresAt ?? new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
+    expiresAt: overrides.expiresAt ?? new Date(Date.now() + daysToMs(15)),
     createdAt: overrides.createdAt ?? new Date(),
     updatedAt: overrides.updatedAt ?? new Date(),
   };
@@ -38,7 +39,7 @@ describe('AvailablePackagesComponent', () => {
     type: 'ad_slots',
     remainingQuantity: 2,
     quantity: 5,
-    expiresAt: new Date(Date.now() + 3 * 24 * 60 * 60 * 1000),
+    expiresAt: new Date(Date.now() + daysToMs(3)),
   });
   const mockPackages: PackagePurchase[] = [pkg1, pkg2];
 

@@ -6,6 +6,7 @@ import { ConfirmModalService } from '../../../shared/components/confirm-modal/co
 import { FormatDurationPipe } from '../../../shared/pipes/format-duration.pipe';
 import { FormatStatusPipe } from '../../../shared/pipes/format-status.pipe';
 import { ROUTES } from '../../../core/constants/routes';
+import { daysToMs } from '../../../core/utils/time';
 
 @Component({
   selector: 'app-my-shorts',
@@ -73,6 +74,6 @@ export class MyShortsComponent implements OnInit {
 
   isExpiringSoon(expiresAt: string): boolean {
     const diff = new Date(expiresAt).getTime() - Date.now();
-    return diff > 0 && diff < 2 * 24 * 60 * 60 * 1000; // 2 days
+    return diff > 0 && diff < daysToMs(2); // 2 days
   }
 }

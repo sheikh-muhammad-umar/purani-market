@@ -25,6 +25,7 @@ import {
 } from './notifications.service.js';
 import { EmailService } from '../auth/services/email.service.js';
 import { SendNotificationDto } from './dto/send-notification.dto.js';
+import { daysToMs } from '../common/utils/time.js';
 
 const BATCH_SIZE = 100;
 
@@ -154,7 +155,7 @@ export class BroadcastService {
     limit: number;
   }> {
     const userObjId = new Types.ObjectId(userId);
-    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const thirtyDaysAgo = new Date(Date.now() - daysToMs(30));
     const filter: Record<string, any> = {
       userId: userObjId,
       createdAt: { $gte: thirtyDaysAgo },

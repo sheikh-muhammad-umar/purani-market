@@ -3,6 +3,7 @@ import { of, throwError } from 'rxjs';
 import { MyPackagesComponent } from './my-packages.component';
 import { PackagesService } from '../../../core/services/packages.service';
 import { CategoriesService } from '../../../core/services/categories.service';
+import { daysToMs } from '../../../core/utils/time';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { PackagePurchase } from '../../../core/models';
 
@@ -21,7 +22,7 @@ function makePurchase(overrides: Partial<PackagePurchase> = {}): PackagePurchase
     paymentStatus: overrides.paymentStatus ?? 'completed',
     paymentTransactionId: overrides.paymentTransactionId ?? 'txn1',
     activatedAt: overrides.activatedAt ?? new Date('2024-06-01'),
-    expiresAt: overrides.expiresAt ?? new Date(Date.now() + 5 * 24 * 60 * 60 * 1000),
+    expiresAt: overrides.expiresAt ?? new Date(Date.now() + daysToMs(5)),
     createdAt: overrides.createdAt ?? new Date('2024-06-01'),
     updatedAt: overrides.updatedAt ?? new Date('2024-06-01'),
   };
@@ -177,7 +178,7 @@ describe('MyPackagesComponent', () => {
   });
 
   it('should calculate remaining days', () => {
-    const futureDate = new Date(Date.now() + 5 * 24 * 60 * 60 * 1000);
+    const futureDate = new Date(Date.now() + daysToMs(5));
     const days = component.getRemainingDays(futureDate);
     expect(days).toBeGreaterThanOrEqual(4);
     expect(days).toBeLessThanOrEqual(6);

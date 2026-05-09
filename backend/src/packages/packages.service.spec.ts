@@ -17,6 +17,7 @@ import { User } from '../users/schemas/user.schema';
 import { ProductListing } from '../listings/schemas/product-listing.schema';
 import { PaymentsService } from '../payments/payments.service';
 import { AdminTrackerService } from '../ai/admin-tracker.service';
+import { daysToMs } from '../common/utils/time';
 
 describe('PackagesService', () => {
   let service: PackagesService;
@@ -670,7 +671,7 @@ describe('PackagesService', () => {
 
   describe('applyPackageToListing', () => {
     const categoryId = new Types.ObjectId();
-    const futureDate = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000);
+    const futureDate = new Date(Date.now() + daysToMs(7));
 
     it('should atomically decrement and return purchase + packageDoc on success', async () => {
       const updatedPurchase = {

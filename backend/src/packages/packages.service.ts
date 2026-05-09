@@ -35,6 +35,7 @@ import { PAYMENT_ROUTES } from '../payments/constants.js';
 import { ApplyFailureReason } from './enums/apply-failure-reason.enum.js';
 import { PurchaseResult } from './interfaces/purchase-result.interface.js';
 import { AdLimitCheck } from './interfaces/ad-limit-check.interface.js';
+import { daysToMs } from '../common/utils/time.js';
 
 export type { PurchaseResult, AdLimitCheck };
 
@@ -373,9 +374,7 @@ export class PackagesService {
     if (verification.status === 'completed') {
       const now = new Date();
       for (const purchase of purchases) {
-        const expiresAt = new Date(
-          now.getTime() + purchase.duration * 24 * 60 * 60 * 1000,
-        );
+        const expiresAt = new Date(now.getTime() + daysToMs(purchase.duration));
         await this.packagePurchaseModel.updateOne(
           { _id: purchase._id },
           {

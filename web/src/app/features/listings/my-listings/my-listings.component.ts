@@ -24,6 +24,7 @@ import { extractPackageDetails } from '../../../core/utils/package-details';
 import { FormatDurationPipe } from '../../../shared/pipes/format-duration.pipe';
 import { FormatStatusPipe } from '../../../shared/pipes/format-status.pipe';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { daysToMs } from '../../../core/utils/time';
 
 interface AnalyticsCard {
   label: string;
@@ -372,6 +373,6 @@ export class MyListingsComponent implements OnInit {
   isShortExpiringSoon(expiresAt?: string): boolean {
     if (!expiresAt) return false;
     const diff = new Date(expiresAt).getTime() - Date.now();
-    return diff > 0 && diff < 2 * 24 * 60 * 60 * 1000;
+    return diff > 0 && diff < daysToMs(2);
   }
 }

@@ -134,14 +134,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
   ) {}
 
   ngOnInit(): void {
-    if (this.authService.getAccessToken() && !this.authService.user()) {
-      this.authService.fetchCurrentUser().subscribe();
-    }
-
-    this.loadProvinces();
-    this.restoreLocationFromStorage();
-
-    // Track current URL for page detection signals
+    // Track current URL for page detection signals (safe on server)
     this.currentUrl.set(this.router.url);
     this.subs.push(
       this.router.events
@@ -151,6 +144,16 @@ export class HeaderComponent implements OnInit, OnDestroy {
           this.closeAccountMenu();
         }),
     );
+
+    // Everything below requires browser APIs (localStorage, WebSocket, etc.)
+    if (!this.isBrowser) return;
+
+    if (this.authService.getAccessToken() && !this.authService.user()) {
+      this.authService.fetchCurrentUser().subscribe();
+    }
+
+    this.loadProvinces();
+    this.restoreLocationFromStorage();
 
     const userId = this.authService.user()?._id;
     if (userId) {

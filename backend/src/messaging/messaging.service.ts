@@ -24,6 +24,7 @@ import {
 import { CreateConversationDto } from './dto/create-conversation.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
 import { INACTIVE_CONVERSATION_RETENTION_DAYS } from '../common/constants/app.constants.js';
+import { daysToMs } from '../common/utils/time.js';
 
 /** Options for sending a rich message (image, voice, location). */
 export interface SendMessageOptions {
@@ -209,7 +210,7 @@ export class MessagingService {
 
     // Hide conversations for non-active listings older than 30 days
     const cutoff = new Date(
-      Date.now() - INACTIVE_CONVERSATION_RETENTION_DAYS * 24 * 60 * 60 * 1000,
+      Date.now() - daysToMs(INACTIVE_CONVERSATION_RETENTION_DAYS),
     );
 
     return conversations.filter((conv) => {

@@ -27,6 +27,7 @@ import { ProductListing } from '../listings/schemas/product-listing.schema';
 import { PaymentsService } from '../payments/payments.service';
 import { ERROR } from '../common/constants/error-messages';
 import { AdminTrackerService } from '../ai/admin-tracker.service';
+import { daysToMs } from '../common/utils/time';
 
 // Arbitrary for AdPackageType
 const arbPackageType = fc.constantFrom(
@@ -40,7 +41,7 @@ const arbRemainingQuantity = fc.integer({ min: 1, max: 20 });
 // Arbitrary for expiresAt: always in the future for otherwise-valid purchases
 const arbFutureExpiresAt = fc.integer({ min: 1, max: 30 }).map((days) => {
   const now = new Date();
-  return new Date(now.getTime() + days * 24 * 60 * 60 * 1000);
+  return new Date(now.getTime() + daysToMs(days));
 });
 
 // Generate two distinct ObjectIds guaranteed to be different
