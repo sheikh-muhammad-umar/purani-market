@@ -18,6 +18,7 @@ import {
   PackagePurchase,
   PackagePurchaseDocument,
   PaymentStatus,
+  PurchaseType,
 } from './schemas/package-purchase.schema.js';
 import { User, UserDocument } from '../users/schemas/user.schema.js';
 import {
@@ -35,10 +36,10 @@ import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { PAYMENT_ROUTES } from '../payments/constants.js';
 import { ApplyFailureReason } from './enums/apply-failure-reason.enum.js';
 import { PurchaseResult } from './interfaces/purchase-result.interface.js';
-import { AdLimitCheck } from './interfaces/ad-limit-check.interface.js';
+import { ListingLimitCheck } from './interfaces/ad-limit-check.interface.js';
 import { daysToMs } from '../common/utils/time.js';
 
-export type { PurchaseResult, AdLimitCheck };
+export type { PurchaseResult, ListingLimitCheck };
 
 @Injectable()
 export class PackagesService {
@@ -137,6 +138,7 @@ export class PackagesService {
     const now = new Date();
     return this.packagePurchaseModel
       .find({
+        purchaseType: PurchaseType.ADS,
         sellerId: new Types.ObjectId(sellerId),
         categoryId: new Types.ObjectId(categoryId),
         paymentStatus: PaymentStatus.COMPLETED,
@@ -302,6 +304,7 @@ export class PackagesService {
       }
       totalAmount += price;
       const purchase = new this.packagePurchaseModel({
+        purchaseType: PurchaseType.ADS,
         sellerId: new Types.ObjectId(sellerId),
         packageId: pkg._id,
         categoryId: item.categoryId
@@ -312,6 +315,7 @@ export class PackagesService {
         remainingQuantity: pkg.quantity,
         duration: pkg.duration,
         price,
+        currency: DEFAULT_CURRENCY,
         paymentMethod: dto.paymentMethod,
         paymentStatus: PaymentStatus.PENDING,
       });
@@ -388,7 +392,7 @@ export class PackagesService {
         if (purchase.type === AdPackageType.AD_SLOTS) {
           await this.userModel.updateOne(
             { _id: purchase.sellerId },
-            { $inc: { adLimit: purchase.quantity } },
+            { $inc: { listingLimit: purchase.quantity } },
           );
         }
       }
@@ -429,6 +433,7 @@ export class PackagesService {
     const now = new Date();
     const activePurchase = await this.packagePurchaseModel
       .findOne({
+        purchaseType: PurchaseType.ADS,
         sellerId: new Types.ObjectId(sellerId),
         type: AdPackageType.FEATURED_ADS,
         paymentStatus: PaymentStatus.COMPLETED,
@@ -465,18 +470,18 @@ export class PackagesService {
     return updated!;
   }
 
-  async checkAdLimit(sellerId: string): Promise<AdLimitCheck> {
+  async checkListingLimit(sellerId: string): Promise<ListingLimitCheck> {
     const user = await this.userModel.findById(sellerId).exec();
     if (!user) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
-    const canPost = user.activeAdCount < user.adLimit;
+    const canPost = user.activeListingCount < user.listingLimit;
     return {
       canPost,
-      activeAdCount: user.activeAdCount,
-      adLimit: user.adLimit,
-      message: canPost ? undefined : ERROR.PAYMENT_AD_LIMIT_REACHED,
+      activeListingCount: user.activeListingCount,
+      listingLimit: user.listingLimit,
+      message: canPost ? undefined : ERROR.LISTING_LIMIT_REACHED,
     };
   }
 

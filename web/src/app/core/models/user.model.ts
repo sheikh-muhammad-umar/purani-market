@@ -72,8 +72,8 @@ export interface User {
   mfa: MfaSettings;
   notificationPreferences: NotificationPreferences;
   deviceTokens: DeviceToken[];
-  adLimit: number;
-  activeAdCount: number;
+  listingLimit: number;
+  activeListingCount: number;
   status: UserStatus;
   createdAt: Date;
   updatedAt: Date;

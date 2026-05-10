@@ -507,14 +507,17 @@ export class ListingsService {
     if (!updated) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
-    // Only decrement activeAdCount if the listing was in a state that counts as active
+    // Only decrement activeListingCount if the listing was in a state that counts as active
     if (
       listing.status === ListingStatus.ACTIVE ||
       listing.status === ListingStatus.RESERVED ||
       listing.status === ListingStatus.PENDING_REVIEW
     ) {
       await this.userModel
-        .updateOne({ _id: listing.sellerId }, { $inc: { activeAdCount: -1 } })
+        .updateOne(
+          { _id: listing.sellerId },
+          { $inc: { activeListingCount: -1 } },
+        )
         .exec();
     }
 
@@ -588,7 +591,7 @@ export class ListingsService {
     if (!seller) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
-    if (seller.activeAdCount >= seller.adLimit) {
+    if (seller.activeListingCount >= seller.listingLimit) {
       throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
     if (!seller.phone || !seller.phoneVerified) {
@@ -684,7 +687,7 @@ export class ListingsService {
     await this.userModel
       .updateOne(
         { _id: new Types.ObjectId(sellerId) },
-        { $inc: { activeAdCount: 1 } },
+        { $inc: { activeListingCount: 1 } },
       )
       .exec();
     this.syncToEs(saved);

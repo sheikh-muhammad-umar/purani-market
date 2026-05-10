@@ -127,7 +127,7 @@ export class ShortVideo {
   @Prop({ type: Date })
   deletedAt?: Date;
 
-  @Prop({ type: Types.ObjectId, ref: 'ShortsPackagePurchase' })
+  @Prop({ type: Types.ObjectId, ref: 'PackagePurchase' })
   purchaseId?: Types.ObjectId;
 
   @Prop({ type: Boolean, default: false })

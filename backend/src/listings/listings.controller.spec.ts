@@ -201,9 +201,9 @@ describe('ListingsController', () => {
       expect(result).toBe(mockListing);
     });
 
-    it('should propagate ForbiddenException when ad limit reached', async () => {
+    it('should propagate ForbiddenException when listing limit reached', async () => {
       mockListingsService.create!.mockRejectedValue(
-        new ForbiddenException('Ad limit reached'),
+        new ForbiddenException('Listing limit reached'),
       );
       await expect(
         controller.createListing(sellerId.toString(), validCreateDto),

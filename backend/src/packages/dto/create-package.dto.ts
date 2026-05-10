@@ -8,9 +8,24 @@ import {
   IsBoolean,
   Min,
   ValidateNested,
+  Validate,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AdPackageType } from '../schemas/ad-package.schema.js';
+import { getPackageDurations } from '../constants/package-durations.js';
+
+@ValidatorConstraint({ name: 'isAllowedDuration', async: false })
+export class IsAllowedDurationConstraint implements ValidatorConstraintInterface {
+  validate(value: number): boolean {
+    return getPackageDurations().includes(value);
+  }
+
+  defaultMessage(): string {
+    return `duration must be one of: ${getPackageDurations().join(', ')}`;
+  }
+}
 
 export class CategoryPricingDto {
   @IsString()
@@ -31,7 +46,7 @@ export class CreatePackageDto {
   type!: AdPackageType;
 
   @IsNumber()
-  @IsEnum([7, 15, 30])
+  @Validate(IsAllowedDurationConstraint)
   duration!: number;
 
   @IsNumber()

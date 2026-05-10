@@ -196,7 +196,7 @@
                   </td>
                   <td class="stat-cell">{{ listing.viewCount | number }}</td>
                   <td class="stat-cell">{{ listing.favoriteCount | number }}</td>
-                  <td class="date-cell">{{ formatDate(listing.createdAt) }}</td>
+                  <td class="date-cell">{{ listing.createdAt | date: 'MMM d, y' }}</td>
                   <td class="actions-cell">
                     @if (actionLoading() === listing._id) {
                       <span class="spinner"></span>
@@ -369,7 +369,7 @@
                     >
                     {{ short.favoriteCount }}</span
                   >
-                  <span>{{ formatDate(short.createdAt) }}</span>
+                  <span>{{ short.createdAt | date: 'MMM d, y' }}</span>
                 </div>
                 @if (short.price) {
                   <span class="short-price-tag"
@@ -381,7 +381,7 @@
                     class="short-expiry"
                     [class.expiring-soon]="isShortExpiringSoon(short.expiresAt)"
                   >
-                    Expires: {{ formatDate(short.expiresAt) }}
+                    Expires: {{ short.expiresAt | date: 'MMM d, y' }}
                   </p>
                 }
                 @if (short.status === 'rejected' && short.rejectionReason) {

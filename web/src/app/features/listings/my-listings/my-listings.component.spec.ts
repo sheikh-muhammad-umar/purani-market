@@ -61,8 +61,8 @@ function makeUser(overrides: Partial<User> = {}): User {
       packageAlerts: true,
     },
     deviceTokens: [],
-    adLimit: overrides.adLimit ?? 10,
-    activeAdCount: overrides.activeAdCount ?? 3,
+    listingLimit: overrides.listingLimit ?? 10,
+    activeListingCount: overrides.activeListingCount ?? 3,
     status: 'active',
     createdAt: new Date(),
     updatedAt: new Date(),
@@ -190,7 +190,7 @@ describe('MyListingsComponent', () => {
 
   it('should compute ad slots meter from user data', () => {
     expect(component.freeSlotLimit()).toBe(10);
-    expect(component.activeAdCount()).toBe(3);
+    expect(component.activeListingCount()).toBe(3);
     expect(component.slotsUsed()).toBe(3);
   });
 

@@ -70,19 +70,18 @@ export interface ShortsPackage {
   quantity: number;
   duration: number;
   price: number;
-  maxVideoLength: number;
   isActive: boolean;
   description?: string;
 }
 
 export interface ShortsPackagePurchase {
   _id: string;
+  purchaseType: 'shorts';
   packageId: { _id: string; name: string };
   quantity: number;
   remainingQuantity: number;
   duration: number;
-  maxVideoLength: number;
-  amountPaid: number;
+  price: number;
   paymentStatus: string;
   expiresAt?: string;
   createdAt: string;

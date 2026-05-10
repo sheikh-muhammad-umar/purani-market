@@ -56,6 +56,18 @@ export default () => ({
     robotsCrawlDelay: parseInt(process.env.ROBOTS_CRAWL_DELAY || '1', 10),
   },
 
+  // ─── Packages ────────────────────────────────────────────────
+  packages: {
+    durations: (process.env.PACKAGE_DURATIONS || '7,15,30')
+      .split(',')
+      .map((d) => parseInt(d.trim(), 10))
+      .filter((d) => d > 0),
+    shortsDurations: (process.env.SHORTS_PACKAGE_DURATIONS || '7,15,30,60,90')
+      .split(',')
+      .map((d) => parseInt(d.trim(), 10))
+      .filter((d) => d > 0),
+  },
+
   // ─── Listing Lifecycle ────────────────────────────────────────
   lifecycle: {
     stalePendingPaymentHours: parseInt(
@@ -127,7 +139,10 @@ export default () => ({
       process.env.LISTING_DEACTIVATED_CLEANUP_DAYS || '7',
       10,
     ),
-    defaultAdLimit: parseInt(process.env.DEFAULT_AD_LIMIT || '10', 10),
+    defaultListingLimit: parseInt(
+      process.env.DEFAULT_LISTING_LIMIT || '10',
+      10,
+    ),
   },
 
   review: {

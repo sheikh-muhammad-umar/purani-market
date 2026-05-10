@@ -44,7 +44,7 @@ export class ListingLifecycleService {
   private readonly logger = new Logger(ListingLifecycleService.name);
   private readonly activeDays: number;
   private readonly deactivatedCleanupDays: number;
-  private readonly defaultAdLimit: number;
+  private readonly defaultListingLimit: number;
 
   constructor(
     @InjectModel(ProductListing.name)
@@ -64,8 +64,8 @@ export class ListingLifecycleService {
     this.deactivatedCleanupDays = this.configService.get<number>(
       'listing.deactivatedCleanupDays',
     )!;
-    this.defaultAdLimit = this.configService.get<number>(
-      'listing.defaultAdLimit',
+    this.defaultListingLimit = this.configService.get<number>(
+      'listing.defaultListingLimit',
     )!;
   }
 
@@ -92,7 +92,7 @@ export class ListingLifecycleService {
       { $set: { status: ListingStatus.EXPIRED, updatedAt: now } },
     );
 
-    // Decrement activeAdCount for each seller and send notifications
+    // Decrement activeListingCount for each seller and send notifications
     const sellerDecrements = new Map<string, number>();
     for (const listing of expiredListings) {
       const sid = listing.sellerId.toString();
@@ -127,12 +127,12 @@ export class ListingLifecycleService {
       this.removeFromEs(listing._id.toString());
     }
 
-    // Batch decrement activeAdCount per seller
+    // Batch decrement activeListingCount per seller
     for (const [sellerId, count] of sellerDecrements) {
       await this.userModel
         .updateOne(
           { _id: new Types.ObjectId(sellerId) },
-          { $inc: { activeAdCount: -count } },
+          { $inc: { activeListingCount: -count } },
         )
         .exec();
     }
@@ -327,7 +327,7 @@ export class ListingLifecycleService {
     return sent;
   }
 
-  // ─── 6. Handle expired AD_SLOTS packages — reduce seller adLimit ───
+  // ─── 6. Handle expired AD_SLOTS packages — reduce seller listingLimit ───
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM)
   async handleExpiredAdSlotPackages(): Promise<number> {
@@ -351,21 +351,21 @@ export class ListingLifecycleService {
       const pkg = purchase.packageId as unknown as AdPackageDocument;
       const slotsToRemove = pkg?.quantity ?? purchase.quantity;
 
-      // Reduce seller's adLimit (floor at default 10)
+      // Reduce seller's listingLimit (floor at default 10)
       const seller = await this.userModel
         .findById(purchase.sellerId)
-        .select('adLimit activeAdCount')
+        .select('listingLimit activeListingCount')
         .exec();
 
       if (seller) {
         const newLimit = Math.max(
-          this.defaultAdLimit,
-          seller.adLimit - slotsToRemove,
+          this.defaultListingLimit,
+          seller.listingLimit - slotsToRemove,
         );
         await this.userModel
           .updateOne(
             { _id: purchase.sellerId },
-            { $set: { adLimit: newLimit } },
+            { $set: { listingLimit: newLimit } },
           )
           .exec();
 
@@ -389,9 +389,9 @@ export class ListingLifecycleService {
             {
               purchaseId: purchase._id.toString(),
               slotsRemoved: slotsToRemove,
-              previousAdLimit: seller.adLimit,
-              newAdLimit: newLimit,
-              activeAdCount: seller.activeAdCount,
+              previousListingLimit: seller.listingLimit,
+              newListingLimit: newLimit,
+              activeListingCount: seller.activeListingCount,
             },
           )
           .catch((err) =>
@@ -649,18 +649,18 @@ export class ListingLifecycleService {
     return result.deletedCount;
   }
 
-  // ─── 12. Guard activeAdCount consistency (floor at 0) ───
+  // ─── 12. Guard activeListingCount consistency (floor at 0) ───
 
   @Cron(CronExpression.EVERY_DAY_AT_6AM)
-  async fixNegativeActiveAdCounts(): Promise<number> {
+  async fixNegativeActiveListingCounts(): Promise<number> {
     const result = await this.userModel.updateMany(
-      { activeAdCount: { $lt: 0 } },
-      { $set: { activeAdCount: 0 } },
+      { activeListingCount: { $lt: 0 } },
+      { $set: { activeListingCount: 0 } },
     );
 
     if (result.modifiedCount > 0) {
       this.logger.warn(
-        `Fixed ${result.modifiedCount} users with negative activeAdCount`,
+        `Fixed ${result.modifiedCount} users with negative activeListingCount`,
       );
     }
     return result.modifiedCount;

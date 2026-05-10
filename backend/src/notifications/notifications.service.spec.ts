@@ -323,15 +323,15 @@ describe('NotificationsService', () => {
     });
   });
 
-  describe('sendAdLimitReachedNotification', () => {
+  describe('sendListingLimitReachedNotification', () => {
     it('should send with correct payload', async () => {
       const spy = jest.spyOn(service, 'sendToUser');
-      await service.sendAdLimitReachedNotification(userId.toString());
+      await service.sendListingLimitReachedNotification(userId.toString());
 
       expect(spy).toHaveBeenCalledWith(userId.toString(), 'packageAlerts', {
-        title: 'Free ad limit reached',
-        body: 'You have reached your free ad limit. Purchase a package to post more ads.',
-        data: { type: 'ad_limit_reached' },
+        title: 'Listing limit reached',
+        body: 'You have reached your listing limit. Purchase a package to post more listings.',
+        data: { type: 'listing_limit_reached' },
       });
     });
   });

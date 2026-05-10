@@ -112,7 +112,7 @@ export const API = {
   ADMIN_USER_BY_ID: (id: string) => `/admin/users/${id}`,
   ADMIN_USER_STATUS: (id: string) => `/admin/users/${id}/status`,
   ADMIN_USER_ROLE: (id: string) => `/admin/users/${id}/role`,
-  ADMIN_USER_AD_LIMIT: (id: string) => `/admin/users/${id}/ad-limit`,
+  ADMIN_USER_LISTING_LIMIT: (id: string) => `/admin/users/${id}/listing-limit`,
   ADMIN_USER_PERMISSIONS: (id: string) => `/admin/users/${id}/permissions`,
   ADMIN_USER_ACTIVITY: (id: string) => `/admin/users/${id}/activity`,
   ADMIN_ACTIVITY: '/admin/activity',

@@ -4,9 +4,22 @@ import {
   IsOptional,
   IsBoolean,
   Min,
-  Max,
-  IsIn,
+  Validate,
+  ValidatorConstraint,
+  ValidatorConstraintInterface,
 } from 'class-validator';
+import { getShortsDurations } from '../../packages/constants/package-durations.js';
+
+@ValidatorConstraint({ name: 'isAllowedShortsDuration', async: false })
+export class IsAllowedShortsDurationConstraint implements ValidatorConstraintInterface {
+  validate(value: number): boolean {
+    return getShortsDurations().includes(value);
+  }
+
+  defaultMessage(): string {
+    return `duration must be one of: ${getShortsDurations().join(', ')}`;
+  }
+}
 
 export class CreateShortsPackageDto {
   @IsString()
@@ -17,18 +30,12 @@ export class CreateShortsPackageDto {
   quantity!: number;
 
   @IsNumber()
-  @IsIn([7, 15, 30, 60, 90])
+  @Validate(IsAllowedShortsDurationConstraint)
   duration!: number;
 
   @IsNumber()
   @Min(0)
   price!: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(15)
-  @Max(60)
-  maxVideoLength?: number;
 
   @IsOptional()
   @IsBoolean()

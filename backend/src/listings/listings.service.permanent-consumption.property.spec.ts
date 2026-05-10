@@ -156,8 +156,8 @@ describe('Property 6: Permanent Consumption (Non-Restoration)', () => {
                 _id: sellerId,
                 email: 'seller@test.com',
                 role: 'seller',
-                adLimit: 10,
-                activeAdCount: 1,
+                listingLimit: 10,
+                activeListingCount: 1,
               }),
             }),
             updateOne: jest.fn().mockReturnValue({

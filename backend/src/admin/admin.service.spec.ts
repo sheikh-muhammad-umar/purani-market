@@ -37,7 +37,7 @@ describe('AdminService', () => {
     email: 'test@example.com',
     role: UserRole.USER,
     status: UserStatus.ACTIVE,
-    adLimit: 10,
+    listingLimit: 10,
     save: jest.fn().mockResolvedValue(undefined),
   };
 
@@ -478,19 +478,19 @@ describe('AdminService', () => {
     });
   });
 
-  describe('updateAdLimit', () => {
-    it('should update ad limit', async () => {
-      const updatedUser = { ...mockUser, adLimit: 25 };
+  describe('updateListingLimit', () => {
+    it('should update listing limit', async () => {
+      const updatedUser = { ...mockUser, listingLimit: 25 };
       userModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue(updatedUser),
       });
 
-      const result = await service.updateAdLimit(mockUserId, 25);
+      const result = await service.updateListingLimit(mockUserId, 25);
 
-      expect(result.adLimit).toBe(25);
+      expect(result.listingLimit).toBe(25);
       expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
         mockUserId,
-        { $set: { adLimit: 25 } },
+        { $set: { listingLimit: 25 } },
         { new: true },
       );
     });
@@ -500,9 +500,9 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      await expect(service.updateAdLimit('nonexistent', 25)).rejects.toThrow(
-        NotFoundException,
-      );
+      await expect(
+        service.updateListingLimit('nonexistent', 25),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 
@@ -938,8 +938,8 @@ describe('AdminService', () => {
       userModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue({
           _id: sellerId,
-          activeAdCount: 7,
-          adLimit: 10,
+          activeListingCount: 7,
+          listingLimit: 10,
         }),
       });
       packagePurchaseModel.aggregate.mockReturnValue({
@@ -949,8 +949,8 @@ describe('AdminService', () => {
       const result = await service.getSellerAdInfo(sellerId.toString());
 
       expect(result.sellerId).toBe(sellerId.toString());
-      expect(result.activeAdCount).toBe(7);
-      expect(result.adLimit).toBe(10);
+      expect(result.activeListingCount).toBe(7);
+      expect(result.listingLimit).toBe(10);
       expect(result.remainingFreeSlots).toBe(3);
       expect(result.activePackageSlots).toBe(15);
     });
@@ -960,8 +960,8 @@ describe('AdminService', () => {
       userModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue({
           _id: sellerId,
-          activeAdCount: 10,
-          adLimit: 10,
+          activeListingCount: 10,
+          listingLimit: 10,
         }),
       });
       packagePurchaseModel.aggregate.mockReturnValue({

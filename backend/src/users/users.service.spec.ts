@@ -35,8 +35,8 @@ describe('UsersService', () => {
     },
     socialLogins: [],
     deviceTokens: [],
-    adLimit: 10,
-    activeAdCount: 0,
+    listingLimit: 10,
+    activeListingCount: 0,
     status: 'active',
     __v: 0,
     toObject: function () {

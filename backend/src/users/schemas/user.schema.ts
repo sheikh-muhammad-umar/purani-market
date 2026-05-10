@@ -200,10 +200,10 @@ export class User {
   deviceTokens!: DeviceToken[];
 
   @Prop({ type: Number, default: 10 })
-  adLimit!: number;
+  listingLimit!: number;
 
   @Prop({ type: Number, default: 0 })
-  activeAdCount!: number;
+  activeListingCount!: number;
 
   @Prop({ type: String, enum: UserStatus, default: UserStatus.ACTIVE })
   status!: UserStatus;

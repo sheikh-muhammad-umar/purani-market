@@ -184,11 +184,11 @@ export class NotificationsService {
     });
   }
 
-  async sendAdLimitReachedNotification(userId: string): Promise<boolean> {
+  async sendListingLimitReachedNotification(userId: string): Promise<boolean> {
     return this.sendToUser(userId, NotificationType.PACKAGE_ALERTS, {
-      title: 'Free ad limit reached',
-      body: 'You have reached your free ad limit. Purchase a package to post more ads.',
-      data: { type: 'ad_limit_reached' },
+      title: 'Listing limit reached',
+      body: 'You have reached your listing limit. Purchase a package to post more listings.',
+      data: { type: 'listing_limit_reached' },
     });
   }
 
@@ -259,11 +259,11 @@ export class NotificationsService {
     userId: string,
     packageName: string,
     slotsLost: number,
-    newAdLimit: number,
+    newListingLimit: number,
   ): Promise<boolean> {
     return this.sendToUser(userId, NotificationType.PACKAGE_ALERTS, {
       title: 'Ad slots package expired',
-      body: `Your "${packageName}" package has expired. Your ad limit has been reduced by ${slotsLost} to ${newAdLimit}.`,
+      body: `Your "${packageName}" package has expired. Your listing limit has been reduced by ${slotsLost} to ${newListingLimit}.`,
       data: { type: 'ad_slots_expired' },
     });
   }

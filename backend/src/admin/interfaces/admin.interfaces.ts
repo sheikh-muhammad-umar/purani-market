@@ -71,8 +71,8 @@ export interface PaginatedPurchases {
 
 export interface SellerAdInfo {
   sellerId: string;
-  activeAdCount: number;
-  adLimit: number;
+  activeListingCount: number;
+  listingLimit: number;
   remainingFreeSlots: number;
   activePackageSlots: number;
 }

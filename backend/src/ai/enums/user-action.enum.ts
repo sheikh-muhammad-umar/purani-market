@@ -80,7 +80,7 @@ export enum UserAction {
   // Admin actions
   ADMIN_USER_STATUS_CHANGE = 'admin_user_status_change',
   ADMIN_USER_ROLE_CHANGE = 'admin_user_role_change',
-  ADMIN_USER_AD_LIMIT_CHANGE = 'admin_user_ad_limit_change',
+  ADMIN_USER_LISTING_LIMIT_CHANGE = 'admin_user_listing_limit_change',
   ADMIN_LISTING_APPROVE = 'admin_listing_approve',
   ADMIN_LISTING_REJECT = 'admin_listing_reject',
   ADMIN_CATEGORY_CREATE = 'admin_category_create',

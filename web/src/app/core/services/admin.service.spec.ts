@@ -147,12 +147,12 @@ describe('AdminService', () => {
     });
   });
 
-  it('should call PATCH /admin/users/:id/ad-limit', () => {
+  it('should call PATCH /admin/users/:id/listing-limit', () => {
     httpMock.patch.mockReturnValue(of(undefined));
-    service.updateAdLimit('u1', 20).subscribe();
+    service.updateListingLimit('u1', 20).subscribe();
     expect(httpMock.patch).toHaveBeenCalledWith(
-      expect.stringContaining('/admin/users/u1/ad-limit'),
-      { adLimit: 20 },
+      expect.stringContaining('/admin/users/u1/listing-limit'),
+      { listingLimit: 20 },
     );
   });
 

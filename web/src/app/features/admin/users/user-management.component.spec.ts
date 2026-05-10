@@ -10,8 +10,8 @@ const mockUsers: AdminUser[] = [
     role: 'seller',
     status: 'active',
     profile: { firstName: 'Alice', lastName: 'Smith', avatar: '' },
-    adLimit: 10,
-    activeAdCount: 3,
+    listingLimit: 10,
+    activeListingCount: 3,
     createdAt: '2024-01-15T00:00:00Z',
     lastLoginAt: '2024-06-01T00:00:00Z',
     listingsCount: 5,
@@ -24,8 +24,8 @@ const mockUsers: AdminUser[] = [
     role: 'buyer',
     status: 'suspended',
     profile: { firstName: 'Bob', lastName: '', avatar: '' },
-    adLimit: 10,
-    activeAdCount: 0,
+    listingLimit: 10,
+    activeListingCount: 0,
     createdAt: '2024-03-20T00:00:00Z',
     listingsCount: 0,
     conversationsCount: 2,
@@ -46,7 +46,7 @@ describe('UserManagementComponent', () => {
     getUsers: ReturnType<typeof vi.fn>;
     updateUserStatus: ReturnType<typeof vi.fn>;
     updateUserRole: ReturnType<typeof vi.fn>;
-    updateAdLimit: ReturnType<typeof vi.fn>;
+    updateListingLimit: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(() => {
@@ -54,7 +54,7 @@ describe('UserManagementComponent', () => {
       getUsers: vi.fn().mockReturnValue(of(mockResponse)),
       updateUserStatus: vi.fn().mockReturnValue(of(undefined)),
       updateUserRole: vi.fn().mockReturnValue(of(undefined)),
-      updateAdLimit: vi.fn().mockReturnValue(of(undefined)),
+      updateListingLimit: vi.fn().mockReturnValue(of(undefined)),
     };
     component = new UserManagementComponent(adminService as unknown as AdminService);
   });
@@ -188,42 +188,42 @@ describe('UserManagementComponent', () => {
     expect(component.users()[0].role).toBe('seller'); // unchanged
   });
 
-  it('should update ad limit', () => {
+  it('should update listing limit', () => {
     component.ngOnInit();
-    const user = component.users()[0]; // adLimit: 10
-    component.updateAdLimit(user, '20');
-    expect(adminService.updateAdLimit).toHaveBeenCalledWith('u1', 20);
-    expect(component.users()[0].adLimit).toBe(20);
+    const user = component.users()[0]; // listingLimit: 10
+    component.updateListingLimit(user, '20');
+    expect(adminService.updateListingLimit).toHaveBeenCalledWith('u1', 20);
+    expect(component.users()[0].listingLimit).toBe(20);
   });
 
-  it('should not update ad limit for invalid input', () => {
+  it('should not update listing limit for invalid input', () => {
     component.ngOnInit();
     const user = component.users()[0];
-    component.updateAdLimit(user, 'abc');
-    expect(adminService.updateAdLimit).not.toHaveBeenCalled();
+    component.updateListingLimit(user, 'abc');
+    expect(adminService.updateListingLimit).not.toHaveBeenCalled();
   });
 
-  it('should not update ad limit for negative value', () => {
+  it('should not update listing limit for negative value', () => {
     component.ngOnInit();
     const user = component.users()[0];
-    component.updateAdLimit(user, '-5');
-    expect(adminService.updateAdLimit).not.toHaveBeenCalled();
+    component.updateListingLimit(user, '-5');
+    expect(adminService.updateListingLimit).not.toHaveBeenCalled();
   });
 
-  it('should not update ad limit if same value', () => {
+  it('should not update listing limit if same value', () => {
     component.ngOnInit();
     const user = component.users()[0];
-    component.updateAdLimit(user, '10');
-    expect(adminService.updateAdLimit).not.toHaveBeenCalled();
+    component.updateListingLimit(user, '10');
+    expect(adminService.updateListingLimit).not.toHaveBeenCalled();
   });
 
-  it('should handle ad limit update error', () => {
-    adminService.updateAdLimit.mockReturnValue(throwError(() => new Error('fail')));
+  it('should handle listing limit update error', () => {
+    adminService.updateListingLimit.mockReturnValue(throwError(() => new Error('fail')));
     component.ngOnInit();
     const user = component.users()[0];
-    component.updateAdLimit(user, '20');
+    component.updateListingLimit(user, '20');
     expect(component.actionLoading()).toBeNull();
-    expect(component.users()[0].adLimit).toBe(10); // unchanged
+    expect(component.users()[0].listingLimit).toBe(10); // unchanged
   });
 
   it('should get user display name', () => {

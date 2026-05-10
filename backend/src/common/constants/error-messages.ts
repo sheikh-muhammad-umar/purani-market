@@ -71,8 +71,8 @@ export const ERROR = {
   PAYMENT_PACKAGE_UNAVAILABLE: 'Package is not available',
   PAYMENT_NO_FEATURED_PACKAGE:
     'No active featured ad package available. Please purchase a featured ads package.',
-  PAYMENT_AD_LIMIT_REACHED:
-    'You have reached your ad limit. Please purchase an ad package to post more ads.',
+  LISTING_LIMIT_REACHED:
+    'You have reached your listing limit. Please purchase a package to post more listings.',
   PAYMENT_ALREADY_FEATURED: 'Listing is already featured',
   PAYMENT_OWN_LISTING_ONLY: 'You can only feature your own listings',
 

@@ -225,14 +225,14 @@ export class UserManagementComponent implements OnInit {
     });
   }
 
-  updateAdLimit(user: AdminUser, value: string): void {
+  updateListingLimit(user: AdminUser, value: string): void {
     const limit = parseInt(value, 10);
-    if (isNaN(limit) || limit < 0 || limit === user.adLimit) return;
+    if (isNaN(limit) || limit < 0 || limit === user.listingLimit) return;
     this.actionLoading.set(user._id);
-    this.adminService.updateAdLimit(user._id, limit).subscribe({
+    this.adminService.updateListingLimit(user._id, limit).subscribe({
       next: () => {
         this.users.update((list) =>
-          list.map((u) => (u._id === user._id ? { ...u, adLimit: limit } : u)),
+          list.map((u) => (u._id === user._id ? { ...u, listingLimit: limit } : u)),
         );
         this.actionLoading.set(null);
       },

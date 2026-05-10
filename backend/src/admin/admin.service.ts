@@ -389,12 +389,12 @@ export class AdminService {
         this.removeFromEs(listing._id.toString());
       }
 
-      // Reset activeAdCount to 0 since all listings are now inactive
+      // Reset activeListingCount to 0 since all listings are now inactive
       if (activeListings.length > 0) {
         await this.userModel
           .updateOne(
             { _id: new Types.ObjectId(userId) },
-            { $inc: { activeAdCount: -activeListings.length } },
+            { $inc: { activeListingCount: -activeListings.length } },
           )
           .exec();
       }
@@ -423,9 +423,12 @@ export class AdminService {
     return user;
   }
 
-  async updateAdLimit(userId: string, adLimit: number): Promise<UserDocument> {
+  async updateListingLimit(
+    userId: string,
+    listingLimit: number,
+  ): Promise<UserDocument> {
     const user = await this.userModel
-      .findByIdAndUpdate(userId, { $set: { adLimit } }, { new: true })
+      .findByIdAndUpdate(userId, { $set: { listingLimit } }, { new: true })
       .exec();
 
     if (!user) {
@@ -835,12 +838,15 @@ export class AdminService {
       .exec();
 
     const activePackageSlots = activePackages[0]?.totalSlots || 0;
-    const remainingFreeSlots = Math.max(0, user.adLimit - user.activeAdCount);
+    const remainingFreeSlots = Math.max(
+      0,
+      user.listingLimit - user.activeListingCount,
+    );
 
     return {
       sellerId,
-      activeAdCount: user.activeAdCount,
-      adLimit: user.adLimit,
+      activeListingCount: user.activeListingCount,
+      listingLimit: user.listingLimit,
       remainingFreeSlots,
       activePackageSlots,
     };

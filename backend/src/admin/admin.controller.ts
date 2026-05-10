@@ -21,7 +21,7 @@ import { UserAction } from '../ai/schemas/user-activity.schema.js';
 import { ListUsersQueryDto } from './dto/list-users-query.dto.js';
 import { UpdateUserStatusDto } from './dto/update-user-status.dto.js';
 import { UpdateUserRoleDto } from './dto/update-user-role.dto.js';
-import { UpdateAdLimitDto } from './dto/update-ad-limit.dto.js';
+import { UpdateListingLimitDto } from './dto/update-listing-limit.dto.js';
 import { RejectListingDto } from './dto/reject-listing.dto.js';
 import { UpdatePermissionsDto } from './dto/update-permissions.dto.js';
 import { CreateRejectionReasonDto } from './dto/create-rejection-reason.dto.js';
@@ -135,26 +135,33 @@ export class AdminController {
     return { message: `User role updated to ${dto.role}`, userId: user._id };
   }
 
-  @Patch('users/:id/ad-limit')
-  async updateAdLimit(
+  @Patch('users/:id/listing-limit')
+  async updateListingLimit(
     @Param('id') id: string,
-    @Body() dto: UpdateAdLimitDto,
+    @Body() dto: UpdateListingLimitDto,
     @CurrentUser('sub') adminId: string,
     @Req() req: any,
   ) {
     const oldUser = await this.adminService.findUserById(id);
-    const previousAdLimit = oldUser.adLimit;
-    const user = await this.adminService.updateAdLimit(id, dto.adLimit);
+    const previousListingLimit = oldUser.listingLimit;
+    const user = await this.adminService.updateListingLimit(
+      id,
+      dto.listingLimit,
+    );
     this.tracker.track(
       adminId,
-      UserAction.ADMIN_USER_AD_LIMIT_CHANGE,
-      { targetUserId: id, previousAdLimit, newAdLimit: dto.adLimit },
+      UserAction.ADMIN_USER_LISTING_LIMIT_CHANGE,
+      {
+        targetUserId: id,
+        previousListingLimit,
+        newListingLimit: dto.listingLimit,
+      },
       req,
     );
     return {
-      message: `Ad limit updated to ${dto.adLimit}`,
+      message: `Listing limit updated to ${dto.listingLimit}`,
       userId: user._id,
-      adLimit: user.adLimit,
+      listingLimit: user.listingLimit,
     };
   }
 

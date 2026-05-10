@@ -32,7 +32,6 @@
         <ul class="package-features">
           <li>{{ pkg.quantity }} shorts</li>
           <li>Active for {{ pkg.duration }} days</li>
-          <li>Max {{ pkg.maxVideoLength }}s per video</li>
         </ul>
         @if (pkg.description) {
           <p class="package-desc">{{ pkg.description }}</p>
@@ -55,7 +54,7 @@
             </span>
           </div>
           <div class="purchase-meta">
-            <span>{{ CURRENCY_SYMBOL }} {{ purchase.amountPaid }}</span>
+            <span>{{ CURRENCY_SYMBOL }} {{ purchase.price }}</span>
             <span [class.expired]="isExpired(purchase.expiresAt)">
               {{
                 isExpired(purchase.expiresAt)

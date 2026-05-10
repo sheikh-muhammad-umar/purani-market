@@ -85,8 +85,8 @@ export class MyListingsComponent implements OnInit {
     ];
   });
 
-  freeSlotLimit = computed(() => this.user()?.adLimit ?? 10);
-  activeAdCount = computed(() => this.user()?.activeAdCount ?? 0);
+  freeSlotLimit = computed(() => this.user()?.listingLimit ?? 10);
+  activeListingCount = computed(() => this.user()?.activeListingCount ?? 0);
 
   paidSlots = computed(() => {
     const now = new Date();
@@ -102,7 +102,7 @@ export class MyListingsComponent implements OnInit {
   });
 
   totalSlots = computed(() => this.freeSlotLimit() + this.paidSlots());
-  slotsUsed = computed(() => this.activeAdCount());
+  slotsUsed = computed(() => this.activeListingCount());
   slotPercent = computed(() => {
     const total = this.totalSlots();
     return total > 0 ? Math.min(100, Math.round((this.slotsUsed() / total) * 100)) : 0;

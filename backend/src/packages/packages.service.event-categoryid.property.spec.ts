@@ -487,8 +487,8 @@ describe('Property 8: Event CategoryId Completeness', () => {
                 _id: sellerId,
                 email: 'test@test.com',
                 role: 'seller',
-                adLimit: 10,
-                activeAdCount: 1,
+                listingLimit: 10,
+                activeListingCount: 1,
               }),
             }),
             updateOne: jest.fn().mockReturnValue({

@@ -61,7 +61,7 @@ class EnvironmentVariables {
   @Type(() => Number)
   @IsNumber()
   @IsOptional()
-  DEFAULT_AD_LIMIT = 10;
+  DEFAULT_LISTING_LIMIT = 10;
 
   @Type(() => Number)
   @IsNumber()

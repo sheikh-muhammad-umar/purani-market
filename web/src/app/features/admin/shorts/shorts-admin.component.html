@@ -80,8 +80,8 @@
               </td>
               <td>{{ short.video.duration | formatDuration }}</td>
               <td>{{ short.viewCount }}</td>
-              <td>{{ formatDate(short.createdAt) }}</td>
-              <td>{{ short.expiresAt ? formatDate(short.expiresAt) : '—' }}</td>
+              <td>{{ short.createdAt | date: 'd MMM y' }}</td>
+              <td>{{ short.expiresAt ? (short.expiresAt | date: 'd MMM y') : '—' }}</td>
               <td>
                 <div class="action-btns">
                   @if (short.status === 'pending_review') {
@@ -135,7 +135,6 @@
             <div class="package-details">
               <p>Quantity: {{ pkg.quantity }} shorts</p>
               <p>Duration: {{ pkg.duration }} days</p>
-              <p>Max Length: {{ pkg.maxVideoLength }}s</p>
               <p>Price: {{ CURRENCY_SYMBOL }} {{ pkg.price }}</p>
             </div>
             <div class="package-actions">
@@ -165,11 +164,9 @@
               <div class="form-group">
                 <label>Duration (days)</label>
                 <select [(ngModel)]="pkgForm.duration">
-                  <option [value]="7">7</option>
-                  <option [value]="15">15</option>
-                  <option [value]="30">30</option>
-                  <option [value]="60">60</option>
-                  <option [value]="90">90</option>
+                  @for (opt of shortsDurationOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
                 </select>
               </div>
             </div>
@@ -177,10 +174,6 @@
               <div class="form-group">
                 <label>Price ({{ CURRENCY_SYMBOL }})</label>
                 <input type="number" [(ngModel)]="pkgForm.price" min="0" />
-              </div>
-              <div class="form-group">
-                <label>Max Video Length (s)</label>
-                <input type="number" [(ngModel)]="pkgForm.maxVideoLength" min="15" max="60" />
               </div>
             </div>
             <div class="form-group">

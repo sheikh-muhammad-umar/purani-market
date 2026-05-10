@@ -54,8 +54,8 @@ export interface AdminUser {
     lastName: string;
     avatar: string;
   };
-  adLimit: number;
-  activeAdCount: number;
+  listingLimit: number;
+  activeListingCount: number;
   createdAt: string;
   lastLoginAt?: string;
   listingsCount: number;
@@ -124,7 +124,7 @@ export interface AdminPackagesResponse {
 export interface CreatePackagePayload {
   name: string;
   type: PackageType;
-  duration: 7 | 15 | 30;
+  duration: number;
   quantity: number;
   defaultPrice: number;
   categoryPricing?: { categoryId: string; price: number }[];
@@ -134,7 +134,7 @@ export interface CreatePackagePayload {
 export interface UpdatePackagePayload {
   name?: string;
   type?: PackageType;
-  duration?: 7 | 15 | 30;
+  duration?: number;
   quantity?: number;
   defaultPrice?: number;
   categoryPricing?: { categoryId: string; price: number }[];
@@ -273,9 +273,9 @@ export class AdminService {
     return this.http.patch<void>(`${this.baseUrl}${API.ADMIN_USER_ROLE(userId)}`, { role });
   }
 
-  updateAdLimit(userId: string, limit: number): Observable<void> {
-    return this.http.patch<void>(`${this.baseUrl}${API.ADMIN_USER_AD_LIMIT(userId)}`, {
-      adLimit: limit,
+  updateListingLimit(userId: string, limit: number): Observable<void> {
+    return this.http.patch<void>(`${this.baseUrl}${API.ADMIN_USER_LISTING_LIMIT(userId)}`, {
+      listingLimit: limit,
     });
   }
 

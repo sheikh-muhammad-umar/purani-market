@@ -148,8 +148,8 @@ describe('PackagesService', () => {
       findById: jest.fn().mockReturnValue({
         exec: jest.fn().mockResolvedValue({
           _id: sellerId,
-          activeAdCount: 5,
-          adLimit: 10,
+          activeListingCount: 5,
+          listingLimit: 10,
         }),
       }),
       updateOne: jest.fn().mockReturnValue({
@@ -464,10 +464,10 @@ describe('PackagesService', () => {
           }),
         }),
       );
-      // Ad slots should increase seller's ad limit
+      // Ad slots should increase seller's listing limit
       expect(mockUserModel.updateOne).toHaveBeenCalledWith(
         { _id: sellerId },
-        { $inc: { adLimit: 10 } },
+        { $inc: { listingLimit: 10 } },
       );
     });
 
@@ -576,12 +576,12 @@ describe('PackagesService', () => {
     });
   });
 
-  describe('checkAdLimit', () => {
+  describe('checkListingLimit', () => {
     it('should return canPost true when under limit', async () => {
-      const result = await service.checkAdLimit(sellerId.toString());
+      const result = await service.checkListingLimit(sellerId.toString());
       expect(result.canPost).toBe(true);
-      expect(result.activeAdCount).toBe(5);
-      expect(result.adLimit).toBe(10);
+      expect(result.activeListingCount).toBe(5);
+      expect(result.listingLimit).toBe(10);
       expect(result.message).toBeUndefined();
     });
 
@@ -589,14 +589,14 @@ describe('PackagesService', () => {
       mockUserModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue({
           _id: sellerId,
-          activeAdCount: 10,
-          adLimit: 10,
+          activeListingCount: 10,
+          listingLimit: 10,
         }),
       });
 
-      const result = await service.checkAdLimit(sellerId.toString());
+      const result = await service.checkListingLimit(sellerId.toString());
       expect(result.canPost).toBe(false);
-      expect(result.message).toContain('ad limit');
+      expect(result.message).toContain('listing limit');
     });
 
     it('should throw NotFoundException for unknown seller', async () => {
@@ -605,7 +605,7 @@ describe('PackagesService', () => {
       });
 
       await expect(
-        service.checkAdLimit(new Types.ObjectId().toString()),
+        service.checkListingLimit(new Types.ObjectId().toString()),
       ).rejects.toThrow(NotFoundException);
     });
   });

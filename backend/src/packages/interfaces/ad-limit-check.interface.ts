@@ -1,6 +1,6 @@
-export interface AdLimitCheck {
+export interface ListingLimitCheck {
   canPost: boolean;
-  activeAdCount: number;
-  adLimit: number;
+  activeListingCount: number;
+  listingLimit: number;
   message?: string;
 }

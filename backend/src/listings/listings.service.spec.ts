@@ -82,8 +82,8 @@ describe('ListingsService', () => {
     _id: sellerId,
     email: 'seller@example.com',
     role: 'seller',
-    adLimit: 10,
-    activeAdCount: 0,
+    listingLimit: 10,
+    activeListingCount: 0,
     phone: '+923001234567',
     phoneVerified: true,
   };
@@ -529,7 +529,7 @@ describe('ListingsService', () => {
       expect(result.status).toBe(ListingStatus.DELETED);
       expect(mockUserModel.updateOne).toHaveBeenCalledWith(
         { _id: sellerId },
-        { $inc: { activeAdCount: -1 } },
+        { $inc: { activeListingCount: -1 } },
       );
     });
 
@@ -631,9 +631,11 @@ describe('ListingsService', () => {
       );
     });
 
-    it('should throw ForbiddenException when seller has reached ad limit', async () => {
+    it('should throw ForbiddenException when seller has reached listing limit', async () => {
       mockUserModel.findById = jest.fn().mockReturnValue({
-        exec: jest.fn().mockResolvedValue({ ...mockSeller, activeAdCount: 10 }),
+        exec: jest
+          .fn()
+          .mockResolvedValue({ ...mockSeller, activeListingCount: 10 }),
       });
       await expect(
         service.create(sellerId.toString(), validCreateDto),
@@ -661,19 +663,23 @@ describe('ListingsService', () => {
       );
     });
 
-    it('should increment seller activeAdCount after creation', async () => {
+    it('should increment seller activeListingCount after creation', async () => {
       await service.create(sellerId.toString(), validCreateDto);
       expect(mockUserModel.updateOne).toHaveBeenCalledWith(
         { _id: expect.any(Types.ObjectId) },
-        { $inc: { activeAdCount: 1 } },
+        { $inc: { activeListingCount: 1 } },
       );
     });
 
-    it('should allow seller with activeAdCount below adLimit', async () => {
+    it('should allow seller with activeListingCount below listingLimit', async () => {
       mockUserModel.findById = jest.fn().mockReturnValue({
         exec: jest
           .fn()
-          .mockResolvedValue({ ...mockSeller, activeAdCount: 9, adLimit: 10 }),
+          .mockResolvedValue({
+            ...mockSeller,
+            activeListingCount: 9,
+            listingLimit: 10,
+          }),
       });
       const result = await service.create(sellerId.toString(), validCreateDto);
       expect(result).toBe(mockListing);

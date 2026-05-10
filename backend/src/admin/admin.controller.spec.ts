@@ -22,7 +22,7 @@ describe('AdminController', () => {
         .mockResolvedValue({ count: 0, packages: [] }),
       updateUserStatus: jest.fn(),
       updateUserRole: jest.fn(),
-      updateAdLimit: jest.fn(),
+      updateListingLimit: jest.fn(),
       getPendingListings: jest.fn(),
       approveListing: jest.fn(),
       rejectListing: jest.fn(),
@@ -35,7 +35,7 @@ describe('AdminController', () => {
         _id: new Types.ObjectId(mockUserId),
         status: UserStatus.ACTIVE,
         role: UserRole.USER,
-        adLimit: 10,
+        listingLimit: 10,
         permissions: [],
       }),
       findListingById: jest.fn().mockResolvedValue({
@@ -186,25 +186,28 @@ describe('AdminController', () => {
     });
   });
 
-  describe('updateAdLimit', () => {
-    it('should update ad limit', async () => {
-      adminService.updateAdLimit.mockResolvedValue({
+  describe('updateListingLimit', () => {
+    it('should update listing limit', async () => {
+      adminService.updateListingLimit.mockResolvedValue({
         _id: new Types.ObjectId(mockUserId),
-        adLimit: 25,
+        listingLimit: 25,
       });
 
-      const result = await controller.updateAdLimit(
+      const result = await controller.updateListingLimit(
         mockUserId,
         {
-          adLimit: 25,
+          listingLimit: 25,
         },
         'admin-id',
         {},
       );
 
       expect(result.message).toContain('25');
-      expect(result.adLimit).toBe(25);
-      expect(adminService.updateAdLimit).toHaveBeenCalledWith(mockUserId, 25);
+      expect(result.listingLimit).toBe(25);
+      expect(adminService.updateListingLimit).toHaveBeenCalledWith(
+        mockUserId,
+        25,
+      );
     });
   });
 
@@ -450,8 +453,8 @@ describe('AdminController', () => {
       const sellerId = new Types.ObjectId().toString();
       const adInfo = {
         sellerId,
-        activeAdCount: 7,
-        adLimit: 10,
+        activeListingCount: 7,
+        listingLimit: 10,
         remainingFreeSlots: 3,
         activePackageSlots: 15,
       };

@@ -151,7 +151,7 @@
             </div>
             <div class="uc-stat">
               <span class="uc-stat-val"
-                >{{ user.activitySummary?.activeListingsCount ?? 0 }}/{{ user.adLimit }}</span
+                >{{ user.activitySummary?.activeListingsCount ?? 0 }}/{{ user.listingLimit }}</span
               >
               <span class="uc-stat-label">Ads Used</span>
             </div>
@@ -196,15 +196,15 @@
                 ></app-custom-select>
               </div>
               <div class="uc-action-item">
-                <span class="uc-action-label">Ad Limit</span>
+                <span class="uc-action-label">Listing Limit</span>
                 <input
                   type="number"
                   class="uc-limit-input"
-                  [value]="user.adLimit"
+                  [value]="user.listingLimit"
                   min="0"
-                  (change)="updateAdLimit(user, $any($event.target).value)"
+                  (change)="updateListingLimit(user, $any($event.target).value)"
                   [disabled]="actionLoading() === user._id"
-                  aria-label="Ad limit"
+                  aria-label="Listing limit"
                 />
               </div>
             </div>

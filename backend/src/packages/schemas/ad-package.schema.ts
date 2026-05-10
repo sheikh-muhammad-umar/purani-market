@@ -27,7 +27,7 @@ export class AdPackage {
   @Prop({ type: String, enum: AdPackageType, required: true })
   type!: AdPackageType;
 
-  @Prop({ type: Number, required: true, enum: [7, 15, 30] })
+  @Prop({ type: Number, required: true, min: 1 })
   duration!: number;
 
   @Prop({ type: Number, required: true, min: 1 })

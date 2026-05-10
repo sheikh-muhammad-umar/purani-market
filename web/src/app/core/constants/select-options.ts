@@ -9,6 +9,7 @@ import {
   SearchSortOption,
 } from './enums';
 import { PAYMENT_METHOD_CONFIG } from './app';
+import { environment } from '../../../environments/environment';
 
 export interface SelectOption {
   value: string | number;
@@ -58,11 +59,17 @@ export const PACKAGE_TYPE_FILTER_OPTIONS: SelectOption[] = [
   ...PACKAGE_TYPE_OPTIONS,
 ];
 
-export const DURATION_OPTIONS: SelectOption[] = [
-  { value: 7, label: '7 days' },
-  { value: 15, label: '15 days' },
-  { value: 30, label: '30 days' },
-];
+export const DURATION_OPTIONS: SelectOption[] = environment.packageDurations.map((d) => ({
+  value: d,
+  label: `${d} days`,
+}));
+
+export const SHORTS_DURATION_OPTIONS: SelectOption[] = environment.shortsPackageDurations.map(
+  (d) => ({
+    value: d,
+    label: `${d} days`,
+  }),
+);
 
 // ─── Payment ─────────────────────────────────────────────
 export const PAYMENT_METHOD_OPTIONS: SelectOption[] = [
@@ -155,7 +162,7 @@ export const ACTION_FILTER_OPTIONS: SelectOption[] = [
   // Admin
   { value: 'admin_user_status_change', label: 'Admin: User Status' },
   { value: 'admin_user_role_change', label: 'Admin: User Role' },
-  { value: 'admin_user_ad_limit_change', label: 'Admin: Ad Limit' },
+  { value: 'admin_user_listing_limit_change', label: 'Admin: Listing Limit' },
   { value: 'admin_listing_approve', label: 'Admin: Approve Listing' },
   { value: 'admin_listing_reject', label: 'Admin: Reject Listing' },
   { value: 'admin_category_create', label: 'Admin: Create Category' },

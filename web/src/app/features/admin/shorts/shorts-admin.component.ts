@@ -5,6 +5,7 @@ import { ShortsService, ShortVideo, ShortsPackage } from '../../../core/services
 import { FormatDurationPipe } from '../../../shared/pipes/format-duration.pipe';
 import { FormatStatusPipe } from '../../../shared/pipes/format-status.pipe';
 import { CURRENCY_SYMBOL } from '../../../core/constants/app';
+import { SHORTS_DURATION_OPTIONS } from '../../../core/constants/select-options';
 
 @Component({
   selector: 'app-shorts-admin',
@@ -15,6 +16,7 @@ import { CURRENCY_SYMBOL } from '../../../core/constants/app';
 })
 export class ShortsAdminComponent implements OnInit {
   readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
+  readonly shortsDurationOptions = SHORTS_DURATION_OPTIONS;
   readonly activeTab = signal<'moderation' | 'all' | 'packages'>('moderation');
   readonly shorts = signal<ShortVideo[]>([]);
   readonly packages = signal<ShortsPackage[]>([]);
@@ -36,7 +38,6 @@ export class ShortsAdminComponent implements OnInit {
     quantity: 5,
     duration: 30,
     price: 500,
-    maxVideoLength: 60,
     description: '',
   };
 
@@ -130,7 +131,6 @@ export class ShortsAdminComponent implements OnInit {
       quantity: pkg.quantity,
       duration: pkg.duration,
       price: pkg.price,
-      maxVideoLength: pkg.maxVideoLength,
       description: pkg.description || '',
     };
   }
@@ -143,7 +143,6 @@ export class ShortsAdminComponent implements OnInit {
       quantity: 5,
       duration: 30,
       price: 500,
-      maxVideoLength: 60,
       description: '',
     };
   }
@@ -151,14 +150,14 @@ export class ShortsAdminComponent implements OnInit {
   savePackage(): void {
     const editing = this.editingPackage();
     if (editing) {
-      this.shortsService.adminUpdatePackage(editing._id, this.pkgForm as any).subscribe({
+      this.shortsService.adminUpdatePackage(editing._id, this.pkgForm).subscribe({
         next: () => {
           this.loadPackages();
           this.closePackageModal();
         },
       });
     } else {
-      this.shortsService.adminCreatePackage(this.pkgForm as any).subscribe({
+      this.shortsService.adminCreatePackage(this.pkgForm).subscribe({
         next: () => {
           this.loadPackages();
           this.closePackageModal();
@@ -168,7 +167,7 @@ export class ShortsAdminComponent implements OnInit {
   }
 
   togglePackageStatus(pkg: ShortsPackage): void {
-    this.shortsService.adminUpdatePackage(pkg._id, { isActive: !pkg.isActive } as any).subscribe({
+    this.shortsService.adminUpdatePackage(pkg._id, { isActive: !pkg.isActive }).subscribe({
       next: () => this.loadPackages(),
     });
   }
@@ -183,13 +182,5 @@ export class ShortsAdminComponent implements OnInit {
   getSellerContact(short: ShortVideo): string {
     const s = short.sellerId as any;
     return s?.email || s?.phone || '';
-  }
-
-  formatDate(date: string): string {
-    return new Date(date).toLocaleDateString('en-PK', {
-      day: 'numeric',
-      month: 'short',
-      year: 'numeric',
-    });
   }
 }

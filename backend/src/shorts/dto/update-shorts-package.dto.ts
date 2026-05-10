@@ -4,9 +4,9 @@ import {
   IsOptional,
   IsBoolean,
   Min,
-  Max,
-  IsIn,
+  Validate,
 } from 'class-validator';
+import { IsAllowedShortsDurationConstraint } from './create-shorts-package.dto.js';
 
 export class UpdateShortsPackageDto {
   @IsOptional()
@@ -20,19 +20,13 @@ export class UpdateShortsPackageDto {
 
   @IsOptional()
   @IsNumber()
-  @IsIn([7, 15, 30, 60, 90])
+  @Validate(IsAllowedShortsDurationConstraint)
   duration?: number;
 
   @IsOptional()
   @IsNumber()
   @Min(0)
   price?: number;
-
-  @IsOptional()
-  @IsNumber()
-  @Min(15)
-  @Max(60)
-  maxVideoLength?: number;
 
   @IsOptional()
   @IsBoolean()

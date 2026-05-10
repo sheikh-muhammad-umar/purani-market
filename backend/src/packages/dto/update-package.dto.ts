@@ -7,10 +7,14 @@ import {
   IsBoolean,
   Min,
   ValidateNested,
+  Validate,
 } from 'class-validator';
 import { Type } from 'class-transformer';
 import { AdPackageType } from '../schemas/ad-package.schema.js';
-import { CategoryPricingDto } from './create-package.dto.js';
+import {
+  CategoryPricingDto,
+  IsAllowedDurationConstraint,
+} from './create-package.dto.js';
 
 export class UpdatePackageDto {
   @IsOptional()
@@ -23,7 +27,7 @@ export class UpdatePackageDto {
 
   @IsOptional()
   @IsNumber()
-  @IsEnum([7, 15, 30])
+  @Validate(IsAllowedDurationConstraint)
   duration?: number;
 
   @IsOptional()

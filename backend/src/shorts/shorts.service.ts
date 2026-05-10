@@ -19,10 +19,11 @@ import {
   ShortsPackageDocument,
 } from './schemas/shorts-package.schema.js';
 import {
-  ShortsPackagePurchase,
-  ShortsPackagePurchaseDocument,
+  PackagePurchase,
+  PackagePurchaseDocument,
   PaymentStatus,
-} from './schemas/shorts-package-purchase.schema.js';
+  PurchaseType,
+} from '../packages/schemas/package-purchase.schema.js';
 import { ShortLike, ShortLikeDocument } from './schemas/short-like.schema.js';
 import { User, UserDocument } from '../users/schemas/user.schema.js';
 import { StorageService } from '../listings/storage.service.js';
@@ -60,8 +61,8 @@ export class ShortsService {
     private readonly shortVideoModel: Model<ShortVideoDocument>,
     @InjectModel(ShortsPackage.name)
     private readonly shortsPackageModel: Model<ShortsPackageDocument>,
-    @InjectModel(ShortsPackagePurchase.name)
-    private readonly shortsPurchaseModel: Model<ShortsPackagePurchaseDocument>,
+    @InjectModel(PackagePurchase.name)
+    private readonly shortsPurchaseModel: Model<PackagePurchaseDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
     @InjectModel(ShortLike.name)
@@ -725,7 +726,6 @@ export class ShortsService {
       quantity: dto.quantity,
       duration: dto.duration,
       price: dto.price,
-      maxVideoLength: dto.maxVideoLength ?? 60,
       isActive: dto.isActive ?? true,
       description: dto.description,
     });
@@ -754,23 +754,23 @@ export class ShortsService {
   async purchasePackage(
     sellerId: string,
     dto: PurchaseShortsPackageDto,
-  ): Promise<ShortsPackagePurchaseDocument> {
+  ): Promise<PackagePurchaseDocument> {
     const pkg = await this.shortsPackageModel.findById(dto.packageId).exec();
     if (!pkg || !pkg.isActive) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const purchase = new this.shortsPurchaseModel({
+      purchaseType: PurchaseType.SHORTS,
       sellerId: new Types.ObjectId(sellerId),
       packageId: pkg._id,
       quantity: pkg.quantity,
       remainingQuantity: pkg.quantity,
       duration: pkg.duration,
-      maxVideoLength: pkg.maxVideoLength,
-      amountPaid: pkg.price,
+      price: pkg.price,
       currency: DEFAULT_CURRENCY,
       paymentMethod: dto.paymentMethod,
-      transactionId: dto.transactionId,
+      paymentTransactionId: dto.transactionId,
       paymentStatus: PaymentStatus.PENDING,
       expiresAt: new Date(Date.now() + daysToMs(pkg.duration)),
     });
@@ -792,11 +792,10 @@ export class ShortsService {
     return purchase;
   }
 
-  async getMyPurchases(
-    sellerId: string,
-  ): Promise<ShortsPackagePurchaseDocument[]> {
+  async getMyPurchases(sellerId: string): Promise<PackagePurchaseDocument[]> {
     return this.shortsPurchaseModel
       .find({
+        purchaseType: PurchaseType.SHORTS,
         sellerId: new Types.ObjectId(sellerId),
         paymentStatus: PaymentStatus.COMPLETED,
       })
@@ -858,7 +857,7 @@ export class ShortsService {
   ): Promise<{
     canPost: boolean;
     reason?: string;
-    purchase?: ShortsPackagePurchaseDocument;
+    purchase?: PackagePurchaseDocument;
   }> {
     // If a purchase ID is provided, validate it
     if (purchaseId) {
@@ -1136,6 +1135,7 @@ export class ShortsService {
     const now = new Date();
     const expired = await this.shortsPurchaseModel
       .find({
+        purchaseType: PurchaseType.SHORTS,
         paymentStatus: PaymentStatus.COMPLETED,
         expiresAt: { $lte: now },
         remainingQuantity: { $gte: 0 },
