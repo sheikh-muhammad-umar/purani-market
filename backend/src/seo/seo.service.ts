@@ -44,6 +44,7 @@ import {
   STATIC_PAGE_SEO,
 } from '../common/constants/index.js';
 import type { FaqEntry } from '../common/constants/index.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 
 @Injectable()
 export class SeoService {
@@ -286,7 +287,7 @@ export class SeoService {
 
     const listing = await this.listingModel.findById(id).lean().exec();
     if (!listing) {
-      throw new NotFoundException('Listing not found');
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const seller = await this.userModel
@@ -294,7 +295,7 @@ export class SeoService {
       .lean()
       .exec();
     if (!seller) {
-      throw new NotFoundException('Seller not found');
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const sellerName =
@@ -364,7 +365,7 @@ export class SeoService {
 
     const seller = await this.userModel.findById(id).lean().exec();
     if (!seller) {
-      throw new NotFoundException('Seller not found');
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const name =
@@ -539,7 +540,7 @@ export class SeoService {
 
     const pageConfig = STATIC_PAGE_SEO[slug];
     if (!pageConfig) {
-      throw new NotFoundException('Page not found');
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const dto = new PageSeoDto();

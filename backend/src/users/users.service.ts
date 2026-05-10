@@ -4,6 +4,7 @@ import { Model, Types } from 'mongoose';
 import { User, UserDocument } from './schemas/user.schema.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 
 @Injectable()
 export class UsersService {
@@ -14,7 +15,7 @@ export class UsersService {
   async findById(id: string | Types.ObjectId): Promise<UserDocument> {
     const user = await this.userModel.findById(id).exec();
     if (!user) {
-      throw new NotFoundException(ERROR.USER_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     return user;
   }
@@ -60,7 +61,7 @@ export class UsersService {
       .exec();
 
     if (!user) {
-      throw new NotFoundException(ERROR.USER_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     return user;
@@ -81,7 +82,7 @@ export class UsersService {
 
   async getPublicProfile(userId: string): Promise<Record<string, any>> {
     if (!Types.ObjectId.isValid(userId)) {
-      throw new NotFoundException(ERROR.USER_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     const user = await this.userModel
       .findById(userId)
@@ -89,7 +90,7 @@ export class UsersService {
       .lean()
       .exec();
     if (!user) {
-      throw new NotFoundException(ERROR.USER_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     return {
       name:

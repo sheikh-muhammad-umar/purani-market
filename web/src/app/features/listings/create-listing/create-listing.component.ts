@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NumberToWordsPipe } from '../../../shared/pipes/number-to-words.pipe';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -26,7 +27,7 @@ import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
 import { listingSlug } from '../../../core/utils/slug';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
-import { DEFAULT_CURRENCY } from '../../../core/constants/app';
+import { DEFAULT_CURRENCY, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { saveState, loadState, clearState } from '../../../core/utils/state-persistence';
 import { computeFileHash } from '../../../core/utils/file-hash';
@@ -53,6 +54,7 @@ export interface MediaItem {
     RouterLink,
     AvailablePackagesComponent,
     PromoBannerComponent,
+    NumberToWordsPipe,
   ],
   templateUrl: './create-listing.component.html',
   styleUrls: ['./create-listing.component.scss'],
@@ -61,6 +63,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   readonly conditionOptions = CONDITION_OPTIONS;
   readonly ROUTES = ROUTES;
   readonly DEFAULT_CURRENCY = DEFAULT_CURRENCY;
+  readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
   readonly ERROR_MSG = ERROR_MSG;
   readonly OTHER_ID = OTHER_OPTION_ID;
 
@@ -412,7 +415,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.phoneSending.set(false);
-          this.phoneError.set(err?.error?.message ?? 'Failed to send OTP. Please try again.');
+          this.phoneError.set('Failed to send OTP. Please try again.');
         },
       });
   }
@@ -442,7 +445,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.phoneSending.set(false);
-        this.phoneError.set(err?.error?.message ?? 'Invalid OTP. Please try again.');
+        this.phoneError.set('Invalid OTP. Please try again.');
       },
     });
   }
@@ -464,7 +467,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.phoneSending.set(false);
-        this.phoneError.set(err?.error?.message ?? 'Failed to resend OTP.');
+        this.phoneError.set('Failed to resend OTP.');
       },
     });
   }
@@ -1129,7 +1132,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
       },
       error: (err) => {
         this.submitting.set(false);
-        const message = err?.error?.message ?? ERROR_MSG.LISTING_CREATE_FAILED;
+        const message = ERROR_MSG.LISTING_CREATE_FAILED;
         this.error.set(message);
 
         // If the error is package-related, clear the selection and refresh available packages

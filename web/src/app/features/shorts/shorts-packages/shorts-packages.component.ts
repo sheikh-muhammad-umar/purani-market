@@ -51,7 +51,7 @@ export class ShortsPackagesComponent implements OnInit {
           });
         },
         error: (err) => {
-          alert(err.error?.message || 'Purchase failed');
+          alert('Purchase failed');
         },
       });
     }

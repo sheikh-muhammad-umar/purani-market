@@ -10,6 +10,7 @@ import { MessagingService } from './messaging.service';
 import { Conversation } from './schemas/conversation.schema';
 import { Message } from './schemas/message.schema';
 import { ProductListing } from '../listings/schemas/product-listing.schema';
+import { ShortVideo } from '../shorts/schemas/short-video.schema';
 
 describe('MessagingService', () => {
   let service: MessagingService;
@@ -122,6 +123,18 @@ describe('MessagingService', () => {
           provide: getModelToken(ProductListing.name),
           useValue: mockListingModel,
         },
+        {
+          provide: getModelToken(ShortVideo.name),
+          useValue: {
+            findById: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                lean: jest.fn().mockReturnValue({
+                  exec: jest.fn().mockResolvedValue(null),
+                }),
+              }),
+            }),
+          },
+        },
       ],
     }).compile();
 
@@ -173,15 +186,15 @@ describe('MessagingService', () => {
       expect(result.message).toBeUndefined();
     });
 
-    it('should throw NotFoundException for invalid listing ID', async () => {
+    it('should throw BadRequestException for invalid listing ID', async () => {
       await expect(
         service.createConversation(buyerId.toString(), {
           productListingId: 'invalid-id',
         }),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(BadRequestException);
     });
 
-    it('should throw NotFoundException when listing does not exist', async () => {
+    it('should throw BadRequestException when listing does not exist', async () => {
       mockListingModel.findById.mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
       });
@@ -190,7 +203,7 @@ describe('MessagingService', () => {
         service.createConversation(buyerId.toString(), {
           productListingId: new Types.ObjectId().toString(),
         }),
-      ).rejects.toThrow(NotFoundException);
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('should throw BadRequestException when seller tries to start conversation on own listing', async () => {

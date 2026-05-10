@@ -356,7 +356,7 @@ describe('CreateListingComponent', () => {
 
     component.submit();
 
-    expect(component.error()).toBe('Ad limit reached');
+    expect(component.error()).toBe('Failed to create listing. Please try again.');
     expect(component.submitting()).toBe(false);
   });
 

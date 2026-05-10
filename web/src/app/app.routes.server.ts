@@ -32,6 +32,6 @@ export const serverRoutes: ServerRoute[] = [
   { path: 'packages/**', renderMode: RenderMode.Client },
   { path: 'reviews/**', renderMode: RenderMode.Client },
 
-  // Fallback — client-side rendering for any unmatched routes
-  { path: '**', renderMode: RenderMode.Client },
+  // 404 — server-rendered so crawlers get a proper 404 status code
+  { path: '**', renderMode: RenderMode.Server },
 ];

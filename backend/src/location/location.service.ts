@@ -16,6 +16,7 @@ import { LISTING_PUBLIC_SELECT } from '../listings/constants/index.js';
 import { Province, ProvinceDocument } from './schemas/province.schema.js';
 import { City, CityDocument } from './schemas/city.schema.js';
 import { Area, AreaDocument } from './schemas/area.schema.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 
 export interface NearbyResult {
   data: ProductListingDocument[];
@@ -251,19 +252,19 @@ export class LocationService {
 
   async findProvinceById(id: string): Promise<ProvinceDocument> {
     const doc = await this.provinceModel.findById(id).lean().exec();
-    if (!doc) throw new NotFoundException('Province not found');
+    if (!doc) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     return doc as ProvinceDocument;
   }
 
   async findCityById(id: string): Promise<CityDocument> {
     const doc = await this.cityModel.findById(id).lean().exec();
-    if (!doc) throw new NotFoundException('City not found');
+    if (!doc) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     return doc as CityDocument;
   }
 
   async findAreaById(id: string): Promise<AreaDocument> {
     const doc = await this.areaModel.findById(id).lean().exec();
-    if (!doc) throw new NotFoundException('Area not found');
+    if (!doc) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     return doc as AreaDocument;
   }
 
@@ -271,8 +272,7 @@ export class LocationService {
 
   async createProvince(name: string): Promise<ProvinceDocument> {
     const exists = await this.provinceModel.findOne({ name }).exec();
-    if (exists)
-      throw new ConflictException(`Province "${name}" already exists`);
+    if (exists) throw new ConflictException(PUBLIC_ERROR.CONFLICT);
     return this.provinceModel.create({ name });
   }
 
@@ -280,7 +280,7 @@ export class LocationService {
     const doc = await this.provinceModel
       .findByIdAndUpdate(id, { name }, { new: true })
       .exec();
-    if (!doc) throw new NotFoundException('Province not found');
+    if (!doc) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     // Cascade: update denormalized name on all listings in this province
     await this.listingModel
       .updateMany(
@@ -295,26 +295,20 @@ export class LocationService {
     const cities = await this.cityModel
       .countDocuments({ provinceId: new Types.ObjectId(id) })
       .exec();
-    if (cities > 0)
-      throw new BadRequestException(
-        `Cannot delete province with ${cities} cities. Delete cities first.`,
-      );
+    if (cities > 0) throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     const result = await this.provinceModel.findByIdAndDelete(id).exec();
-    if (!result) throw new NotFoundException('Province not found');
+    if (!result) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
   }
 
   // ── Admin CRUD: Cities ────────────────────────────────────────────
 
   async createCity(name: string, provinceId: string): Promise<CityDocument> {
     const province = await this.provinceModel.findById(provinceId).exec();
-    if (!province) throw new NotFoundException('Province not found');
+    if (!province) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     const exists = await this.cityModel
       .findOne({ name, provinceId: new Types.ObjectId(provinceId) })
       .exec();
-    if (exists)
-      throw new ConflictException(
-        `City "${name}" already exists in this province`,
-      );
+    if (exists) throw new ConflictException(PUBLIC_ERROR.CONFLICT);
     return this.cityModel.create({
       name,
       provinceId: new Types.ObjectId(provinceId),
@@ -325,7 +319,7 @@ export class LocationService {
     const doc = await this.cityModel
       .findByIdAndUpdate(id, { name }, { new: true })
       .exec();
-    if (!doc) throw new NotFoundException('City not found');
+    if (!doc) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     // Cascade: update denormalized name on all listings in this city
     await this.listingModel
       .updateMany(
@@ -340,12 +334,9 @@ export class LocationService {
     const areas = await this.areaModel
       .countDocuments({ cityId: new Types.ObjectId(id) })
       .exec();
-    if (areas > 0)
-      throw new BadRequestException(
-        `Cannot delete city with ${areas} areas. Delete areas first.`,
-      );
+    if (areas > 0) throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     const result = await this.cityModel.findByIdAndDelete(id).exec();
-    if (!result) throw new NotFoundException('City not found');
+    if (!result) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
   }
 
   // ── Admin CRUD: Areas ─────────────────────────────────────────────
@@ -357,12 +348,11 @@ export class LocationService {
     blockPhases: string[] = [],
   ): Promise<AreaDocument> {
     const city = await this.cityModel.findById(cityId).exec();
-    if (!city) throw new NotFoundException('City not found');
+    if (!city) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     const exists = await this.areaModel
       .findOne({ name, cityId: new Types.ObjectId(cityId) })
       .exec();
-    if (exists)
-      throw new ConflictException(`Area "${name}" already exists in this city`);
+    if (exists) throw new ConflictException(PUBLIC_ERROR.CONFLICT);
     return this.areaModel.create({
       name,
       cityId: new Types.ObjectId(cityId),
@@ -378,7 +368,7 @@ export class LocationService {
     const doc = await this.areaModel
       .findByIdAndUpdate(id, updates, { new: true })
       .exec();
-    if (!doc) throw new NotFoundException('Area not found');
+    if (!doc) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     // Cascade: update denormalized name on all listings in this area
     if (updates.name) {
       await this.listingModel
@@ -393,7 +383,7 @@ export class LocationService {
 
   async deleteArea(id: string): Promise<void> {
     const result = await this.areaModel.findByIdAndDelete(id).exec();
-    if (!result) throw new NotFoundException('Area not found');
+    if (!result) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
   }
 
   // ── Admin Stats ───────────────────────────────────────────────────

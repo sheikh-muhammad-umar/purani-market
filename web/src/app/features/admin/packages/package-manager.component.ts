@@ -8,13 +8,7 @@ import {
   AdminPurchasesParams,
 } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
-import {
-  AdPackage,
-  PackagePurchase,
-  PackageType,
-  PaymentStatus,
-  CategoryPricing,
-} from '../../../core/models';
+import { AdPackage, PackagePurchase, PackageType, PaymentStatus } from '../../../core/models';
 import { Category } from '../../../core/models/category.model';
 import {
   PACKAGE_TYPE_OPTIONS,
@@ -29,6 +23,19 @@ import {
 } from '../../../shared/components/custom-select/custom-select.component';
 import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
 import { saveState, loadState } from '../../../core/utils/state-persistence';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
+import {
+  PackageTab,
+  FormPanel,
+  CategoryPricingGroup,
+  PricingDisplayGroup,
+} from './package-manager.interfaces';
+
+/** Display labels for package types used in template */
+const PACKAGE_TYPE_LABELS: Record<string, string> = {
+  [PackageTypeEnum.FEATURED_ADS]: 'Featured',
+  [PackageTypeEnum.AD_SLOTS]: 'Ad Slots',
+};
 
 @Component({
   selector: 'app-package-manager',
@@ -38,6 +45,9 @@ import { saveState, loadState } from '../../../core/utils/state-persistence';
   styleUrls: ['./package-manager.component.scss'],
 })
 export class PackageManagerComponent implements OnInit {
+  readonly PackageTypeEnum = PackageTypeEnum;
+  readonly PACKAGE_TYPE_LABELS = PACKAGE_TYPE_LABELS;
+
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly saving = signal(false);
@@ -46,17 +56,30 @@ export class PackageManagerComponent implements OnInit {
   readonly purchasesTotal = signal(0);
   readonly categories = signal<Category[]>([]);
 
-  // Sorting
-  pkgSortCol = '';
-  pkgSortDir: 'asc' | 'desc' = 'asc';
+  // Sorting as signals for reactive template binding
+  readonly pkgSortCol = signal('');
+  readonly pkgSortDir = signal<'asc' | 'desc'>('asc');
 
   readonly categoryOptions = computed<SelectOption[]>(() => [
     { value: '', label: 'Select category' },
     ...this.categories().map((c) => ({ value: c._id, label: c.name })),
   ]);
 
-  activeTab: 'packages' | 'purchases' = 'packages';
-  activePanel: 'none' | 'create' | 'edit' = 'none';
+  /** Map of categoryId → name for O(1) lookups in template */
+  readonly categoryNameMap = computed<Map<string, string>>(() => {
+    const map = new Map<string, string>();
+    for (const c of this.categories()) {
+      map.set(c._id, c.name);
+    }
+    return map;
+  });
+
+  readonly totalPurchasePages = computed(
+    () => Math.ceil(this.purchasesTotal() / this.purchaseLimit) || 1,
+  );
+
+  activeTab: PackageTab = 'packages';
+  activePanel: FormPanel = 'none';
   editingPackage: AdPackage | null = null;
   expandedPackageIds = new Set<string>();
 
@@ -67,7 +90,7 @@ export class PackageManagerComponent implements OnInit {
   formQuantity = 5;
   formDefaultPrice = 500;
   formIsActive = true;
-  formCategoryPricing: { categoryIds: string[]; price: number }[] = [];
+  formCategoryPricing: CategoryPricingGroup[] = [];
   pricingCatSearch: string[] = [];
 
   // Purchase filters
@@ -79,18 +102,16 @@ export class PackageManagerComponent implements OnInit {
   purchaseFilterStatus: PaymentStatus | '' = '';
 
   readonly typeOptions: SelectOption[] = PACKAGE_TYPE_OPTIONS;
-
   readonly durationOptions: SelectOption[] = DURATION_OPTIONS;
-
   readonly purchaseTypeOptions: SelectOption[] = PACKAGE_TYPE_FILTER_OPTIONS;
-
   readonly purchaseStatusOptions: SelectOption[] = PAYMENT_STATUS_OPTIONS;
+
   purchasePage = 1;
   readonly purchaseLimit = 10;
 
   constructor(
-    readonly adminService: AdminService,
-    readonly categoriesService: CategoriesService,
+    private readonly adminService: AdminService,
+    private readonly categoriesService: CategoriesService,
   ) {}
 
   ngOnInit(): void {
@@ -112,7 +133,7 @@ export class PackageManagerComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load packages.');
+        this.error.set(ERROR_MSG.PACKAGES_LOAD_FAILED);
         this.loading.set(false);
       },
     });
@@ -145,13 +166,13 @@ export class PackageManagerComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load purchases.');
+        this.error.set(ERROR_MSG.PURCHASES_LOAD_FAILED);
         this.loading.set(false);
       },
     });
   }
 
-  switchTab(tab: 'packages' | 'purchases'): void {
+  switchTab(tab: PackageTab): void {
     this.activeTab = tab;
     this.activePanel = 'none';
     saveState('package-manager', { activeTab: tab });
@@ -160,13 +181,11 @@ export class PackageManagerComponent implements OnInit {
     }
   }
 
-  // --- Create ---
   openCreateForm(): void {
     this.resetForm();
     this.activePanel = 'create';
   }
 
-  // --- Edit ---
   openEditForm(pkg: AdPackage): void {
     this.editingPackage = pkg;
     this.formName = pkg.name;
@@ -198,11 +217,7 @@ export class PackageManagerComponent implements OnInit {
       isActive: this.formIsActive,
     };
     if (this.formCategoryPricing.length > 0) {
-      payload.categoryPricing = this.formCategoryPricing
-        .flatMap((cp) =>
-          cp.categoryIds.filter((id) => id).map((id) => ({ categoryId: id, price: cp.price })),
-        )
-        .filter((cp) => cp.price > 0);
+      payload.categoryPricing = this.flattenCategoryPricing(this.formCategoryPricing);
     }
     this.saving.set(true);
     this.adminService.createPackage(payload).subscribe({
@@ -213,7 +228,7 @@ export class PackageManagerComponent implements OnInit {
       },
       error: () => {
         this.saving.set(false);
-        this.error.set('Failed to create package.');
+        this.error.set(ERROR_MSG.PACKAGE_CREATE_FAILED);
       },
     });
   }
@@ -227,11 +242,7 @@ export class PackageManagerComponent implements OnInit {
       quantity: this.formQuantity,
       defaultPrice: this.formDefaultPrice,
       isActive: this.formIsActive,
-      categoryPricing: this.formCategoryPricing
-        .flatMap((cp) =>
-          cp.categoryIds.filter((id) => id).map((id) => ({ categoryId: id, price: cp.price })),
-        )
-        .filter((cp) => cp.price > 0),
+      categoryPricing: this.flattenCategoryPricing(this.formCategoryPricing),
     };
     this.saving.set(true);
     this.adminService.updatePackage(this.editingPackage._id, payload).subscribe({
@@ -243,33 +254,35 @@ export class PackageManagerComponent implements OnInit {
       },
       error: () => {
         this.saving.set(false);
-        this.error.set('Failed to update package.');
+        this.error.set(ERROR_MSG.PACKAGE_UPDATE_FAILED);
       },
     });
   }
 
   // --- Category Pricing ---
   addCategoryPrice(): void {
-    this.formCategoryPricing.push({ categoryIds: [], price: 0 });
-    this.pricingCatSearch.push('');
+    this.formCategoryPricing = [...this.formCategoryPricing, { categoryIds: [], price: 0 }];
+    this.pricingCatSearch = [...this.pricingCatSearch, ''];
   }
 
   removeCategoryPrice(index: number): void {
-    this.formCategoryPricing.splice(index, 1);
-    this.pricingCatSearch.splice(index, 1);
+    this.formCategoryPricing = this.formCategoryPricing.filter(
+      (_: CategoryPricingGroup, i: number) => i !== index,
+    );
+    this.pricingCatSearch = this.pricingCatSearch.filter((_: string, i: number) => i !== index);
   }
 
-  togglePricingCategory(row: { categoryIds: string[]; price: number }, catId: string): void {
+  togglePricingCategory(row: CategoryPricingGroup, catId: string): void {
     const idx = row.categoryIds.indexOf(catId);
     if (idx >= 0) {
-      row.categoryIds.splice(idx, 1);
+      row.categoryIds = row.categoryIds.filter((id: string) => id !== catId);
     } else {
-      row.categoryIds.push(catId);
+      row.categoryIds = [...row.categoryIds, catId];
     }
   }
 
   getCategoryName(catId: string): string {
-    return this.categories().find((c) => c._id === catId)?.name ?? catId;
+    return this.categoryNameMap().get(catId) ?? catId;
   }
 
   togglePackageExpand(pkgId: string): void {
@@ -284,7 +297,7 @@ export class PackageManagerComponent implements OnInit {
     return this.expandedPackageIds.has(pkgId);
   }
 
-  getGroupedPricing(pkg: any): { price: number; categories: string[] }[] {
+  getGroupedPricing(pkg: AdPackage): PricingDisplayGroup[] {
     if (!pkg.categoryPricing?.length) return [];
     const groups = new Map<number, string[]>();
     for (const cp of pkg.categoryPricing) {
@@ -299,21 +312,6 @@ export class PackageManagerComponent implements OnInit {
       price,
       categories: cats,
     }));
-  }
-
-  private groupCategoryPricing(
-    flat: { categoryId: string; price: number }[],
-  ): { categoryIds: string[]; price: number }[] {
-    const groups = new Map<number, string[]>();
-    for (const cp of flat) {
-      const existing = groups.get(cp.price);
-      if (existing) {
-        existing.push(cp.categoryId);
-      } else {
-        groups.set(cp.price, [cp.categoryId]);
-      }
-    }
-    return Array.from(groups.entries()).map(([price, categoryIds]) => ({ categoryIds, price }));
   }
 
   filteredCategoriesForRow(index: number): Category[] {
@@ -350,22 +348,18 @@ export class PackageManagerComponent implements OnInit {
     }
   }
 
-  get totalPurchasePages(): number {
-    return Math.ceil(this.purchasesTotal() / this.purchaseLimit) || 1;
-  }
-
   trackByIndex(index: number): number {
     return index;
   }
 
   sortPackages(col: string): void {
-    if (this.pkgSortCol === col) {
-      this.pkgSortDir = this.pkgSortDir === 'asc' ? 'desc' : 'asc';
+    if (this.pkgSortCol() === col) {
+      this.pkgSortDir.set(this.pkgSortDir() === 'asc' ? 'desc' : 'asc');
     } else {
-      this.pkgSortCol = col;
-      this.pkgSortDir = 'asc';
+      this.pkgSortCol.set(col);
+      this.pkgSortDir.set('asc');
     }
-    const dir = this.pkgSortDir === 'asc' ? 1 : -1;
+    const dir = this.pkgSortDir() === 'asc' ? 1 : -1;
     this.packages.update((pkgs) =>
       [...pkgs].sort((a: any, b: any) => {
         const va = a[col];
@@ -376,9 +370,36 @@ export class PackageManagerComponent implements OnInit {
     );
   }
 
-  sortIcon(col: string, currentCol: string, currentDir: string): string {
-    if (col !== currentCol) return 'unfold_more';
-    return currentDir === 'asc' ? 'expand_less' : 'expand_more';
+  getSortIcon(col: string): string {
+    if (col !== this.pkgSortCol()) return 'unfold_more';
+    return this.pkgSortDir() === 'asc' ? 'expand_less' : 'expand_more';
+  }
+
+  private flattenCategoryPricing(
+    groups: CategoryPricingGroup[],
+  ): { categoryId: string; price: number }[] {
+    return groups
+      .flatMap((cp) =>
+        cp.categoryIds
+          .filter((id: string) => id)
+          .map((id: string) => ({ categoryId: id, price: cp.price })),
+      )
+      .filter((cp) => cp.price > 0);
+  }
+
+  private groupCategoryPricing(
+    flat: { categoryId: string; price: number }[],
+  ): CategoryPricingGroup[] {
+    const groups = new Map<number, string[]>();
+    for (const cp of flat) {
+      const existing = groups.get(cp.price);
+      if (existing) {
+        existing.push(cp.categoryId);
+      } else {
+        groups.set(cp.price, [cp.categoryId]);
+      }
+    }
+    return Array.from(groups.entries()).map(([price, categoryIds]) => ({ categoryIds, price }));
   }
 
   private resetForm(): void {

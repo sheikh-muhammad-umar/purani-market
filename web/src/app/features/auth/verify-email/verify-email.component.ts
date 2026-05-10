@@ -48,12 +48,10 @@ export class VerifyEmailComponent implements OnInit {
           },
           error: (err) => {
             this.loading.set(false);
-            this.errorMessage.set(
-              err.error?.message || 'Verification failed. The link may have expired.',
-            );
+            this.errorMessage.set('Verification failed. The link may have expired.');
             this.tracker.trackAnonymous(TrackingEvent.OTP_FAILED, {
               channel: OtpChannel.EMAIL,
-              reason: err.error?.message || 'verification_failed',
+              reason: 'verification_failed',
             });
           },
         });

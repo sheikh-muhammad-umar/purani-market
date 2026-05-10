@@ -18,6 +18,7 @@ import {
   AttributeDefinition,
 } from '../../../core/models';
 import { ATTRIBUTE_TYPE_OPTIONS } from '../../../core/constants/select-options';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 import {
   CustomSelectComponent,
   SelectOption,
@@ -177,7 +178,7 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
           }
         },
         error: () => {
-          this.error.set('Failed to load categories. Please try again.');
+          this.error.set(ERROR_MSG.CATEGORIES_LOAD_FAILED);
           this.loading.set(false);
         },
       });
@@ -282,7 +283,7 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.saving.set(false);
-          this.error.set('Failed to create category.');
+          this.error.set(ERROR_MSG.CATEGORY_CREATE_FAILED);
         },
       });
   }
@@ -322,7 +323,7 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.saving.set(false);
-          this.error.set('Failed to update category.');
+          this.error.set(ERROR_MSG.CATEGORY_UPDATE_FAILED);
         },
       });
   }
@@ -344,7 +345,7 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.saving.set(false);
-          this.error.set('Failed to delete category.');
+          this.error.set(ERROR_MSG.CATEGORY_DELETE_FAILED);
         },
       });
   }
@@ -381,13 +382,13 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
               },
               error: () => {
                 this.saving.set(false);
-                this.error.set('Failed to reorder.');
+                this.error.set(ERROR_MSG.CATEGORY_REORDER_FAILED);
               },
             });
         },
         error: () => {
           this.saving.set(false);
-          this.error.set('Failed to reorder.');
+          this.error.set(ERROR_MSG.CATEGORY_REORDER_FAILED);
         },
       });
   }
@@ -552,7 +553,7 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.saving.set(false);
-          const msg = err?.error?.message || 'Failed to create attribute definition.';
+          const msg = ERROR_MSG.ATTRIBUTE_CREATE_FAILED;
           this.attributeWarning.set(msg);
         },
       });
@@ -604,7 +605,7 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
           },
           error: (err) => {
             this.saving.set(false);
-            const msg = err?.error?.message || 'Failed to update attributes.';
+            const msg = ERROR_MSG.ATTRIBUTE_UPDATE_FAILED;
             this.attributeWarning.set(msg);
           },
         });
@@ -634,7 +635,7 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
           },
           error: () => {
             this.saving.set(false);
-            this.attributeWarning.set('Failed to update attributes.');
+            this.attributeWarning.set(ERROR_MSG.ATTRIBUTE_UPDATE_FAILED);
           },
         });
     }
@@ -676,7 +677,7 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.saving.set(false);
-          this.error.set('Failed to update features.');
+          this.error.set(ERROR_MSG.FEATURES_UPDATE_FAILED);
         },
       });
   }

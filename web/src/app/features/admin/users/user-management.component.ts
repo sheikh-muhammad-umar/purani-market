@@ -9,6 +9,7 @@ import {
   ROLE_CHANGE_OPTIONS,
   STATUS_OPTIONS,
 } from '../../../core/constants/select-options';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 import {
   CustomSelectComponent,
   SelectOption,
@@ -152,7 +153,7 @@ export class UserManagementComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load users. Please try again.');
+        this.error.set(ERROR_MSG.USERS_LOAD_FAILED);
         this.loading.set(false);
       },
     });

@@ -8,6 +8,7 @@ import { Listing } from '../../core/models';
 import { TAB, TabType } from '../../core/constants/enums';
 import { VerificationBadgesComponent } from '../../shared/components/verification-badges/verification-badges.component';
 import { ListingUrlPipe } from '../../shared/pipes/listing-url.pipe';
+import { extractIdFromSlug } from '../../core/utils/slug';
 
 @Component({
   selector: 'app-seller-profile',
@@ -36,7 +37,8 @@ export class SellerProfileComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    this.sellerId = this.route.snapshot.paramMap.get('id') || '';
+    const rawParam = this.route.snapshot.paramMap.get('id') || '';
+    this.sellerId = extractIdFromSlug(rawParam);
     if (this.sellerId) {
       this.loadProfile();
       this.loadListings();

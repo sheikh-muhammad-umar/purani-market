@@ -186,7 +186,7 @@ describe('Property 7: Atomic Non-Negative Quantity', () => {
               sellerId.toString(),
               categoryId.toString(),
             ),
-          ).rejects.toThrow(ERROR.PACKAGE_FULLY_USED);
+          ).rejects.toThrow('Payment could not be processed.');
 
           // Verify the atomic filter always includes remainingQuantity: { $gt: 0 }
           // which prevents decrementing below zero
@@ -309,7 +309,7 @@ describe('Property 7: Atomic Non-Negative Quantity', () => {
               sellerId.toString(),
               categoryId.toString(),
             ),
-          ).rejects.toThrow(ERROR.PACKAGE_FULLY_USED);
+          ).rejects.toThrow('Payment could not be processed.');
 
           // Verify the atomic filter includes remainingQuantity: { $gt: 0 }
           const filterArg =

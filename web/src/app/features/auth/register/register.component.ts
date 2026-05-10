@@ -166,7 +166,7 @@ export class RegisterComponent {
         },
         error: (err) => {
           this.loading.set(false);
-          this.errorMessage.set(err.error?.message || 'Registration failed. Please try again.');
+          this.errorMessage.set('Registration failed. Please try again.');
         },
       });
   }
@@ -208,9 +208,7 @@ export class RegisterComponent {
             },
             error: (err) => {
               this.loading.set(false);
-              this.errorMessage.set(
-                err.error?.message || `${provider} sign-up failed. Please try again.`,
-              );
+              this.errorMessage.set(`${provider} sign-up failed. Please try again.`);
             },
           });
       })

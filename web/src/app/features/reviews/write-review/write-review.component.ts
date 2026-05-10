@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { ReviewsService } from '../../../core/services/reviews.service';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 
 @Component({
   selector: 'app-write-review',
@@ -92,7 +93,7 @@ export class WriteReviewComponent implements OnInit {
           this.submitting.set(false);
         },
         error: (err) => {
-          const message = err?.error?.message || 'Failed to submit review. Please try again.';
+          const message = ERROR_MSG.REVIEW_SUBMIT_FAILED;
           this.error.set(message);
           this.submitting.set(false);
         },

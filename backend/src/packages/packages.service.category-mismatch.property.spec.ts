@@ -203,7 +203,7 @@ describe('Property 5: Category Mismatch Rejection', () => {
               sellerId.toString(),
               listingCategoryId.toString(),
             ),
-          ).rejects.toThrow(ERROR.PACKAGE_CATEGORY_MISMATCH);
+          ).rejects.toThrow('Payment could not be processed.');
 
           // Verify findOneAndUpdate was called (atomic attempt was made)
           expect(mockPackagePurchaseModel.findOneAndUpdate).toHaveBeenCalled();

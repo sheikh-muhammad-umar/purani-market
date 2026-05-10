@@ -22,7 +22,7 @@
     @if (activeTab() === TAB.ADS) {
       @if (loading()) {
         <div class="favorites-grid">
-          @for (i of [1, 2, 3, 4]; track i) {
+          @for (i of SKELETON_ITEMS; track i) {
             <div class="card" style="padding: 0; overflow: hidden">
               <div class="skeleton-image"></div>
               <div style="padding: 12px">
@@ -88,7 +88,16 @@
                         {{ listing.location.city }}</span
                       >
                     }
-                    <span class="card-condition">{{ listing.condition }}</span>
+                    @if (listing.sellerVerified) {
+                      <span class="verified-badge"
+                        ><span
+                          class="material-symbols-rounded"
+                          style="font-size: 14px; vertical-align: middle"
+                          >verified</span
+                        >
+                        Verified</span
+                      >
+                    }
                   </div>
                 </div>
               </div>
@@ -102,7 +111,7 @@
     @if (activeTab() === TAB.SHORTS) {
       @if (loadingShorts()) {
         <div class="favorites-grid">
-          @for (i of [1, 2, 3, 4]; track i) {
+          @for (i of SKELETON_ITEMS; track i) {
             <div class="card" style="padding: 0; overflow: hidden">
               <div class="skeleton-image" style="aspect-ratio: 9/16"></div>
             </div>
@@ -113,7 +122,7 @@
           <span class="material-symbols-rounded empty-icon-mat">play_circle</span>
           <h3>No favorite shorts yet</h3>
           <p>Like shorts by tapping the heart icon while watching</p>
-          <a routerLink="/shorts" class="btn btn-primary">Browse Shorts</a>
+          <a [routerLink]="ROUTES.SHORTS" class="btn btn-primary">Browse Shorts</a>
         </div>
       } @else {
         <div class="shorts-grid">

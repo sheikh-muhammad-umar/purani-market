@@ -17,6 +17,7 @@ import { MessagingService } from '../../../core/services/messaging.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { LocationService } from '../../../core/services/location.service';
+import { CategoriesService } from '../../../core/services/categories.service';
 import { RecentSearchesService } from '../../../core/services/recent-searches.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
@@ -30,12 +31,10 @@ import { STORAGE_SELECTED_LOCATION } from '../../../core/constants/storage-keys'
 import { DEFAULT_COUNTRY } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import {
-  MOBILE_BREAKPOINT,
-  SEARCH_PLACEHOLDER_MOBILE,
-  SEARCH_PLACEHOLDER_DESKTOP,
   SEARCH_BLUR_DELAY,
   LOGOUT_DELAY,
   SCROLL_THRESHOLD,
+  PLACEHOLDER_ROTATE_INTERVAL,
 } from './header.constants';
 
 @Component({
@@ -58,11 +57,8 @@ export class HeaderComponent implements OnInit, OnDestroy {
   locationDropdownOpen = signal(false);
   searchDropdownOpen = signal(false);
   searchQuery = signal('');
-  searchPlaceholder = signal(
-    this.isBrowser && window.innerWidth < MOBILE_BREAKPOINT
-      ? SEARCH_PLACEHOLDER_MOBILE
-      : SEARCH_PLACEHOLDER_DESKTOP,
-  );
+  searchPlaceholder = signal('');
+  placeholderAnimating = signal(false);
   provinces = signal<Province[]>([]);
   cities = signal<City[]>([]);
   areas = signal<Area[]>([]);
@@ -87,6 +83,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   private searchBlurTimeout: ReturnType<typeof setTimeout> | null = null;
   private logoutTimeout: ReturnType<typeof setTimeout> | null = null;
+  private placeholderInterval: ReturnType<typeof setInterval> | null = null;
+  private categoryNames: string[] = [];
+  private categoryIndex = 0;
 
   // Page detection — computed from router URL to avoid recalculating every CD cycle
   private currentUrl = signal('');
@@ -128,6 +127,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     public readonly loginModal: LoginModalService,
     private readonly locationService: LocationService,
+    private readonly categoriesService: CategoriesService,
     public readonly recentSearches: RecentSearchesService,
     private readonly tracker: ActivityTrackerService,
     public readonly notificationCount: NotificationCountService,
@@ -154,6 +154,7 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
     this.loadProvinces();
     this.restoreLocationFromStorage();
+    this.startPlaceholderRotation();
 
     const userId = this.authService.user()?._id;
     if (userId) {
@@ -166,12 +167,35 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.subs.forEach((s) => s.unsubscribe());
     if (this.searchBlurTimeout) clearTimeout(this.searchBlurTimeout);
     if (this.logoutTimeout) clearTimeout(this.logoutTimeout);
+    if (this.placeholderInterval) clearInterval(this.placeholderInterval);
   }
 
   private refreshUnreadCount(): void {
     if (!this.authService.isAuthenticated()) return;
     this.messagingService.getUnreadCount().subscribe({
       next: (res) => this.unreadCount.set(res.count),
+      error: () => {},
+    });
+  }
+
+  private startPlaceholderRotation(): void {
+    this.categoriesService.getAll().subscribe({
+      next: (categories) => {
+        this.categoryNames = categories
+          .filter((c) => c.level === 1 && c.isActive)
+          .map((c) => c.name);
+        if (this.categoryNames.length > 0) {
+          this.searchPlaceholder.set(this.categoryNames[0]);
+          this.placeholderInterval = setInterval(() => {
+            this.placeholderAnimating.set(true);
+            setTimeout(() => {
+              this.categoryIndex = (this.categoryIndex + 1) % this.categoryNames.length;
+              this.searchPlaceholder.set(this.categoryNames[this.categoryIndex]);
+              this.placeholderAnimating.set(false);
+            }, 300);
+          }, PLACEHOLDER_ROTATE_INTERVAL);
+        }
+      },
       error: () => {},
     });
   }
@@ -238,16 +262,6 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.searchDropdownOpen.set(false);
   }
 
-  @HostListener('window:resize')
-  onResize(): void {
-    if (!this.isBrowser) return;
-    this.searchPlaceholder.set(
-      window.innerWidth < MOBILE_BREAKPOINT
-        ? SEARCH_PLACEHOLDER_MOBILE
-        : SEARCH_PLACEHOLDER_DESKTOP,
-    );
-  }
-
   @HostListener('window:scroll')
   onScroll(): void {
     if (!this.isBrowser) return;
@@ -267,6 +281,9 @@ export class HeaderComponent implements OnInit, OnDestroy {
     }
     if (!target.closest('.header-search') && !target.closest('.mobile-search-wrap')) {
       this.searchDropdownOpen.set(false);
+    }
+    if (!target.closest('.account-dropdown-wrap')) {
+      this.accountMenuOpen.set(false);
     }
   }
 

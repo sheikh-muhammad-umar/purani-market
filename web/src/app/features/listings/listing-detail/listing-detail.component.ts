@@ -9,7 +9,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { LoginModalService } from '../../../shared/components/login-modal/login-modal.service';
 import { Listing, Review } from '../../../core/models';
 import { VerificationBadgesComponent } from '../../../shared/components/verification-badges/verification-badges.component';
-import { extractIdFromSlug } from '../../../core/utils/slug';
+import { extractIdFromSlug, slugify } from '../../../core/utils/slug';
 import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
@@ -37,6 +37,14 @@ export class ListingDetailComponent implements OnInit {
   loading = signal(true);
   error = signal('');
   currentImageIndex = signal(0);
+
+  readonly sellerPath = computed(() => {
+    const l = this.listing();
+    if (!l?.sellerId) return '';
+    const name = l.sellerName || 'seller';
+    const slug = slugify(name);
+    return `/seller/${slug}-${l.sellerId}`;
+  });
 
   // Reviews
   reviews = signal<Review[]>([]);
@@ -431,5 +439,21 @@ export class ListingDetailComponent implements OnInit {
     }
 
     return confirmed;
+  }
+
+  getWhatsAppLink(phone: string, title: string): string {
+    const cleaned = phone.replace(/[^0-9+]/g, '').replace(/^0/, '92');
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const message = encodeURIComponent(
+      `Hi, I'm interested in your listing: "${title}" on Marketplace.\n${url}`,
+    );
+    return `https://wa.me/${cleaned}?text=${message}`;
+  }
+
+  trackContact(listingId: string, type: string): void {
+    this.tracker.track(TrackingEvent.CONTACT, {
+      productListingId: listingId,
+      metadata: { type },
+    });
   }
 }

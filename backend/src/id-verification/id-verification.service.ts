@@ -14,6 +14,7 @@ import {
 import { User, UserDocument } from '../users/schemas/user.schema.js';
 import { StorageService } from '../listings/storage.service.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { computeBufferHash } from '../common/utils/file-hash.js';
 
 const UPLOAD_FOLDER = 'id-verification';
@@ -54,12 +55,12 @@ export class IdVerificationService {
     });
 
     if (existing) {
-      throw new BadRequestException(ERROR.VERIFICATION_ALREADY_PENDING);
+      throw new BadRequestException(PUBLIC_ERROR.ID_VERIFICATION_FAILED);
     }
 
     const user = await this.userModel.findById(userId).lean();
     if (user?.idVerified) {
-      throw new BadRequestException(ERROR.VERIFICATION_ALREADY_VERIFIED);
+      throw new BadRequestException(PUBLIC_ERROR.ID_VERIFICATION_FAILED);
     }
 
     // Reject duplicate images
@@ -70,7 +71,7 @@ export class IdVerificationService {
       computeBufferHash(files.selfieBack.buffer),
     ];
     if (new Set(hashes).size !== hashes.length) {
-      throw new BadRequestException(ERROR.DUPLICATE_IMAGE_DETECTED);
+      throw new BadRequestException(PUBLIC_ERROR.ID_VERIFICATION_FAILED);
     }
 
     const [
@@ -214,22 +215,20 @@ export class IdVerificationService {
     rejectionReason?: string,
   ): Promise<IdVerificationDocument> {
     if (status === IdVerificationStatus.PENDING) {
-      throw new BadRequestException(ERROR.VERIFICATION_CANNOT_SET_PENDING);
+      throw new BadRequestException(PUBLIC_ERROR.ID_VERIFICATION_FAILED);
     }
 
     if (status === IdVerificationStatus.REJECTED && !rejectionReason) {
-      throw new BadRequestException(
-        ERROR.VERIFICATION_REJECTION_REASON_REQUIRED,
-      );
+      throw new BadRequestException(PUBLIC_ERROR.ID_VERIFICATION_FAILED);
     }
 
     const verification = await this.verificationModel.findById(verificationId);
     if (!verification) {
-      throw new NotFoundException(ERROR.VERIFICATION_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     if (verification.status !== IdVerificationStatus.PENDING) {
-      throw new BadRequestException(ERROR.VERIFICATION_ALREADY_REVIEWED);
+      throw new BadRequestException(PUBLIC_ERROR.ID_VERIFICATION_FAILED);
     }
 
     verification.status = status;
@@ -259,7 +258,7 @@ export class IdVerificationService {
       .lean();
 
     if (!verification) {
-      throw new NotFoundException(ERROR.VERIFICATION_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     return verification as IdVerificationDocument;

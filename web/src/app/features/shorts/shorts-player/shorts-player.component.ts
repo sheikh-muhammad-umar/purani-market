@@ -16,7 +16,9 @@ import { ShortsService, ShortVideo } from '../../../core/services/shorts.service
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ROUTES } from '../../../core/constants/routes';
-import { DEFAULT_CURRENCY } from '../../../core/constants/app';
+import { CURRENCY_SYMBOL } from '../../../core/constants/app';
+import { sellerSlug } from '../../../core/utils/slug';
+import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
   selector: 'app-shorts-player',
@@ -27,7 +29,8 @@ import { DEFAULT_CURRENCY } from '../../../core/constants/app';
 })
 export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestroy {
   readonly ROUTES = ROUTES;
-  readonly DEFAULT_CURRENCY = DEFAULT_CURRENCY;
+  readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
+  readonly sellerSlug = sellerSlug;
   @Input() short!: ShortVideo;
   @Input() isActive = false;
   @Input() muted = true;
@@ -42,6 +45,10 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
   readonly sellerInitial = computed(() =>
     (this.short?.sellerId?.profile?.firstName?.[0] || 'S').toUpperCase(),
   );
+  readonly isOwner = computed(() => {
+    const user = this.authService.user();
+    return !!user && user._id === this.short?.sellerId?._id;
+  });
 
   private animationFrame: number | null = null;
   private viewInitialized = false;
@@ -50,6 +57,7 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
     private readonly shortsService: ShortsService,
     private readonly router: Router,
     private readonly tracker: ActivityTrackerService,
+    private readonly authService: AuthService,
   ) {}
 
   ngAfterViewInit(): void {
@@ -199,5 +207,14 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
         queryParams: { shortId: this.short._id },
       });
     }
+  }
+
+  getWhatsAppLink(phone: string, title: string): string {
+    const cleaned = phone.replace(/[^0-9+]/g, '').replace(/^0/, '92');
+    const url = typeof window !== 'undefined' ? window.location.href : '';
+    const message = encodeURIComponent(
+      `Hi, I'm interested in your short: "${title}" on Marketplace.\n${url}`,
+    );
+    return `https://wa.me/${cleaned}?text=${message}`;
   }
 }

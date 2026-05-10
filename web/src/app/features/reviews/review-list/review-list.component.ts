@@ -3,6 +3,7 @@ import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ReviewsService, ReviewsResponse } from '../../../core/services/reviews.service';
 import { Review } from '../../../core/models';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 
 @Component({
   selector: 'app-review-list',
@@ -57,7 +58,7 @@ export class ReviewListComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load reviews. Please try again.');
+        this.error.set(ERROR_MSG.REVIEWS_LOAD_FAILED);
         this.loading.set(false);
       },
     });

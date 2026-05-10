@@ -121,7 +121,7 @@ export class SettingsComponent implements OnInit {
         },
         error: (err) => {
           this.emailChanging.set(false);
-          this.emailChangeError.set(err.error?.message || 'Failed to initiate email change.');
+          this.emailChangeError.set('Failed to initiate email change.');
         },
       });
   }
@@ -158,7 +158,7 @@ export class SettingsComponent implements OnInit {
         },
         error: (err) => {
           this.phoneChanging.set(false);
-          this.phoneChangeError.set(err.error?.message || 'Failed to initiate phone change.');
+          this.phoneChangeError.set('Failed to initiate phone change.');
         },
       });
   }
@@ -186,7 +186,7 @@ export class SettingsComponent implements OnInit {
         },
         error: (err) => {
           this.otpVerifying.set(false);
-          this.phoneChangeError.set(err.error?.message || 'Invalid OTP. Please try again.');
+          this.phoneChangeError.set('Invalid OTP. Please try again.');
         },
       });
   }
@@ -210,7 +210,7 @@ export class SettingsComponent implements OnInit {
         },
         error: (err) => {
           this.mfaLoading.set(false);
-          this.errorMessage.set(err.error?.message || 'Failed to enable MFA.');
+          this.errorMessage.set('Failed to enable MFA.');
         },
       });
     }

@@ -156,7 +156,7 @@ export class IdVerificationComponent implements OnInit {
       },
       error: (err) => {
         this.submitting.set(false);
-        this.error.set(err.error?.message || ERROR_MSG.VERIFICATION_SUBMIT_FAILED);
+        this.error.set(ERROR_MSG.VERIFICATION_SUBMIT_FAILED);
       },
     });
   }

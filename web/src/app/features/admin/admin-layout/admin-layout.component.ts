@@ -2,12 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
 import { ROUTES } from '../../../core/constants/routes';
-
-interface NavItem {
-  label: string;
-  icon: string;
-  path: string;
-}
+import { NavItem } from './admin-layout.interfaces';
 
 @Component({
   selector: 'app-admin-layout',
@@ -19,25 +14,28 @@ interface NavItem {
 export class AdminLayoutComponent {
   readonly ROUTES = ROUTES;
 
+  readonly exactMatchOptions = { exact: true };
+  readonly prefixMatchOptions = { exact: false };
+
   readonly navItems: NavItem[] = [
     { label: 'Dashboard', icon: 'dashboard', path: ROUTES.ADMIN },
-    { label: 'Users', icon: 'group', path: `${ROUTES.ADMIN}/users` },
-    { label: 'Listings', icon: 'list_alt', path: `${ROUTES.ADMIN}/listings` },
-    { label: 'Moderation', icon: 'gavel', path: `${ROUTES.ADMIN}/moderation` },
-    { label: 'Categories', icon: 'category', path: `${ROUTES.ADMIN}/categories` },
-    { label: 'Brands', icon: 'branding_watermark', path: `${ROUTES.ADMIN}/brands` },
-    { label: 'Vehicles', icon: 'directions_car', path: `${ROUTES.ADMIN}/vehicles` },
-    { label: 'Packages', icon: 'inventory_2', path: `${ROUTES.ADMIN}/packages` },
-    { label: 'Payments', icon: 'payments', path: `${ROUTES.ADMIN}/payments` },
-    { label: 'Locations', icon: 'location_on', path: `${ROUTES.ADMIN}/locations` },
-    { label: 'Activity', icon: 'timeline', path: `${ROUTES.ADMIN}/activity` },
-    { label: 'Rejection Reasons', icon: 'rule', path: `${ROUTES.ADMIN}/rejection-reasons` },
-    { label: 'Deletion Reasons', icon: 'delete_sweep', path: `${ROUTES.ADMIN}/deletion-reasons` },
-    { label: 'ID Verifications', icon: 'verified_user', path: `${ROUTES.ADMIN}/id-verifications` },
-    { label: 'Notifications', icon: 'notifications', path: `${ROUTES.ADMIN}/notifications` },
-    { label: 'Experiments', icon: 'science', path: `${ROUTES.ADMIN}/experiments` },
-    { label: 'Shorts', icon: 'play_circle', path: `${ROUTES.ADMIN}/shorts` },
-    { label: 'Shorts Analytics', icon: 'analytics', path: `${ROUTES.ADMIN}/shorts-analytics` },
+    { label: 'Users', icon: 'group', path: ROUTES.ADMIN_USERS },
+    { label: 'Listings', icon: 'list_alt', path: ROUTES.ADMIN_LISTINGS },
+    { label: 'Shorts', icon: 'play_circle', path: ROUTES.ADMIN_SHORTS },
+    { label: 'Shorts Analytics', icon: 'analytics', path: ROUTES.ADMIN_SHORTS_ANALYTICS },
+    { label: 'Moderation', icon: 'gavel', path: ROUTES.ADMIN_MODERATION },
+    { label: 'ID Verifications', icon: 'verified_user', path: ROUTES.ADMIN_ID_VERIFICATIONS },
+    { label: 'Activity', icon: 'timeline', path: ROUTES.ADMIN_ACTIVITY },
+    { label: 'Payments', icon: 'payments', path: ROUTES.ADMIN_PAYMENTS },
+    { label: 'Packages', icon: 'inventory_2', path: ROUTES.ADMIN_PACKAGES },
+    { label: 'Notifications', icon: 'notifications', path: ROUTES.ADMIN_NOTIFICATIONS },
+    { label: 'Categories', icon: 'category', path: ROUTES.ADMIN_CATEGORIES },
+    { label: 'Locations', icon: 'location_on', path: ROUTES.ADMIN_LOCATIONS },
+    { label: 'Brands', icon: 'branding_watermark', path: ROUTES.ADMIN_BRANDS },
+    { label: 'Vehicles', icon: 'directions_car', path: ROUTES.ADMIN_VEHICLES },
+    { label: 'Deletion Reasons', icon: 'delete_sweep', path: ROUTES.ADMIN_DELETION_REASONS },
+    { label: 'Rejection Reasons', icon: 'rule', path: ROUTES.ADMIN_REJECTION_REASONS },
+    { label: 'Experiments', icon: 'science', path: ROUTES.ADMIN_EXPERIMENTS },
   ];
 
   sidebarCollapsed = false;

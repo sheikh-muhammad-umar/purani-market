@@ -40,9 +40,15 @@ ConversationSchema.index({ productListingId: 1 });
 ConversationSchema.index({ shortVideoId: 1 });
 ConversationSchema.index(
   { buyerId: 1, sellerId: 1, productListingId: 1 },
-  { unique: true, sparse: true },
+  {
+    unique: true,
+    partialFilterExpression: { productListingId: { $type: 'objectId' } },
+  },
 );
 ConversationSchema.index(
   { buyerId: 1, sellerId: 1, shortVideoId: 1 },
-  { unique: true, sparse: true },
+  {
+    unique: true,
+    partialFilterExpression: { shortVideoId: { $type: 'objectId' } },
+  },
 );

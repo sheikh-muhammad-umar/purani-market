@@ -18,6 +18,7 @@ import {
 } from '../listings/schemas/product-listing.schema.js';
 import { CreateReviewDto } from './dto/create-review.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { PROHIBITED_WORDS } from '../common/constants/app.constants.js';
 
 @Injectable()
@@ -38,16 +39,16 @@ export class ReviewsService {
     const { productListingId, rating, text } = dto;
 
     if (!Types.ObjectId.isValid(productListingId)) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const listing = await this.listingModel.findById(productListingId).exec();
     if (!listing) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     if (listing.sellerId.toString() === reviewerId) {
-      throw new ForbiddenException(ERROR.CANNOT_REVIEW_OWN_LISTING);
+      throw new ForbiddenException(PUBLIC_ERROR.REVIEW_FAILED);
     }
 
     // Check if buyer has had a conversation with the seller about this listing
@@ -60,7 +61,7 @@ export class ReviewsService {
       .exec();
 
     if (!conversation) {
-      throw new BadRequestException(ERROR.REVIEW_REQUIRES_CONVERSATION);
+      throw new BadRequestException(PUBLIC_ERROR.REVIEW_FAILED);
     }
 
     // Check for prohibited content
@@ -80,7 +81,7 @@ export class ReviewsService {
       return await review.save();
     } catch (error: any) {
       if (error.code === 11000) {
-        throw new ConflictException(ERROR.REVIEW_DUPLICATE);
+        throw new ConflictException(PUBLIC_ERROR.REVIEW_FAILED);
       }
       throw error;
     }
@@ -91,7 +92,7 @@ export class ReviewsService {
     limit = 20,
   ): Promise<ReviewDocument[]> {
     if (!Types.ObjectId.isValid(listingId)) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     return this.reviewModel
@@ -117,7 +118,7 @@ export class ReviewsService {
     totalReviews: number;
   }> {
     if (!Types.ObjectId.isValid(sellerId)) {
-      throw new NotFoundException(ERROR.SELLER_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const reviews = await this.reviewModel

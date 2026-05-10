@@ -6,6 +6,7 @@ import { User, NotificationPreferences } from '../../../core/models/user.model';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ROUTES } from '../../../core/constants/routes';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 
 interface NotificationToggle {
   key: keyof NotificationPreferences;
@@ -75,7 +76,7 @@ export class NotificationPrefsComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Failed to load notification preferences.');
+        this.errorMessage.set(ERROR_MSG.NOTIFICATION_PREFS_LOAD_FAILED);
         this.loading.set(false);
       },
     });
@@ -124,7 +125,7 @@ export class NotificationPrefsComponent implements OnInit {
           // Revert optimistic update
           this.user.set(currentUser);
           this.saving.set(null);
-          this.errorMessage.set(err.error?.message || 'Failed to update preference.');
+          this.errorMessage.set(ERROR_MSG.NOTIFICATION_PREFS_UPDATE_FAILED);
         },
       });
   }

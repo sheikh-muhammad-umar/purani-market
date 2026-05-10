@@ -9,6 +9,10 @@ import {
 } from './schemas/conversation.schema.js';
 import { Message, MessageSchema } from './schemas/message.schema.js';
 import { User, UserSchema } from '../users/schemas/user.schema.js';
+import {
+  ShortVideo,
+  ShortVideoSchema,
+} from '../shorts/schemas/short-video.schema.js';
 import { MessagingService } from './messaging.service.js';
 import { MessagingController } from './messaging.controller.js';
 import { MessagingGateway } from './messaging.gateway.js';
@@ -23,6 +27,7 @@ import { ListingsModule } from '../listings/listings.module.js';
       { name: Conversation.name, schema: ConversationSchema },
       { name: Message.name, schema: MessageSchema },
       { name: User.name, schema: UserSchema },
+      { name: ShortVideo.name, schema: ShortVideoSchema },
     ]),
     JwtModule.registerAsync({
       imports: [ConfigModule],

@@ -5,9 +5,10 @@ import { Subscription } from 'rxjs';
 import { MessagingService } from '../../../core/services/messaging.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/auth';
-import { Conversation, ConversationListing } from '../../../core/models';
+import { Conversation, ConversationListing, ConversationShort } from '../../../core/models';
 import { ListingStatus } from '../../../core/constants/enums';
 import { CURRENCY_SYMBOL, PLACEHOLDER_IMAGE } from '../../../core/constants/app';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
 import { CONVERSATION_SKELETON_ITEMS, LISTING_STATUS_LABELS } from '../messaging.constants';
 import { ConversationView } from '../interfaces/conversation-view.interface';
@@ -86,14 +87,14 @@ export class ConversationListComponent implements OnInit, OnDestroy {
                 this.router.navigate([ROUTES.MESSAGING, convId]);
               },
               error: () => {
-                this.error.set('Failed to start conversation');
+                this.error.set(ERROR_MSG.CONVERSATION_START_FAILED);
                 this.loading.set(false);
               },
             });
         }
       },
       error: () => {
-        this.error.set('Failed to load conversations');
+        this.error.set(ERROR_MSG.CONVERSATIONS_LOAD_FAILED);
         this.loading.set(false);
       },
     });
@@ -111,7 +112,7 @@ export class ConversationListComponent implements OnInit, OnDestroy {
         });
       },
       error: () => {
-        this.error.set('Failed to load conversations');
+        this.error.set(ERROR_MSG.CONVERSATIONS_LOAD_FAILED);
         this.loading.set(false);
       },
     });
@@ -144,21 +145,36 @@ export class ConversationListComponent implements OnInit, OnDestroy {
         ? (conv.productListingId as ConversationListing)
         : null;
 
+    const short =
+      conv.shortVideoId && typeof conv.shortVideoId === 'object'
+        ? (conv.shortVideoId as ConversationShort)
+        : null;
+
     const status = listing?.status ?? ListingStatus.ACTIVE;
-    const isActive = status === ListingStatus.ACTIVE;
+    const isActive = short ? true : status === ListingStatus.ACTIVE;
+
+    const title = listing?.title ?? short?.title ?? short?.description ?? this.fallbackTitle(conv);
+    const price = listing?.price
+      ? `${CURRENCY_SYMBOL} ${Number(listing.price.amount).toLocaleString()}`
+      : '';
+    const image =
+      listing?.images?.[0]?.thumbnailUrl ||
+      listing?.images?.[0]?.url ||
+      short?.video?.thumbnailUrl ||
+      PLACEHOLDER_IMAGE;
 
     return {
       id: conv._id,
       routerLink: ROUTES.MESSAGING_CHAT(conv._id),
-      title: listing?.title ?? this.fallbackTitle(conv.productListingId),
-      price: listing?.price
-        ? `${CURRENCY_SYMBOL} ${Number(listing.price.amount).toLocaleString()}`
-        : '',
-      image: listing?.images?.[0]?.thumbnailUrl || listing?.images?.[0]?.url || PLACEHOLDER_IMAGE,
+      title,
+      price,
+      image,
       status,
-      statusLabel: isActive
-        ? ''
-        : (LISTING_STATUS_LABELS[status as ListingStatus] ?? 'Unavailable'),
+      statusLabel: short
+        ? 'Short'
+        : isActive
+          ? ''
+          : (LISTING_STATUS_LABELS[status as ListingStatus] ?? 'Unavailable'),
       isActive,
       timeAgo: this.formatTimeAgo(conv.lastMessageAt),
       preview: conv.lastMessagePreview || 'No messages yet',
@@ -166,9 +182,10 @@ export class ConversationListComponent implements OnInit, OnDestroy {
     };
   }
 
-  private fallbackTitle(pid: string | ConversationListing): string {
+  private fallbackTitle(conv: Conversation): string {
+    const pid = conv.productListingId;
     const id = typeof pid === 'string' ? pid : (pid?._id ?? '');
-    return 'Listing #' + id.slice(0, 8);
+    return id ? 'Listing #' + id.slice(0, 8) : 'Short video';
   }
 
   private formatTimeAgo(date: Date): string {

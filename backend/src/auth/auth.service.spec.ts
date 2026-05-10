@@ -404,7 +404,7 @@ describe('AuthService', () => {
       try {
         await service.login('wrong@example.com', undefined, 'password123');
       } catch (e: any) {
-        expect(e.message).toBe('Invalid credentials');
+        expect(e.message).toBe('Authentication failed.');
       }
     });
 
@@ -420,7 +420,7 @@ describe('AuthService', () => {
       try {
         await service.login('test@example.com', undefined, 'wrongpassword');
       } catch (e: any) {
-        expect(e.message).toBe('Invalid credentials');
+        expect(e.message).toBe('Authentication failed.');
       }
     });
 

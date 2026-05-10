@@ -136,7 +136,7 @@
               <p>Quantity: {{ pkg.quantity }} shorts</p>
               <p>Duration: {{ pkg.duration }} days</p>
               <p>Max Length: {{ pkg.maxVideoLength }}s</p>
-              <p>Price: {{ DEFAULT_CURRENCY }} {{ pkg.price }}</p>
+              <p>Price: {{ CURRENCY_SYMBOL }} {{ pkg.price }}</p>
             </div>
             <div class="package-actions">
               <button class="btn-edit" (click)="editPackage(pkg)">Edit</button>
@@ -175,7 +175,7 @@
             </div>
             <div class="form-row">
               <div class="form-group">
-                <label>Price ({{ DEFAULT_CURRENCY }})</label>
+                <label>Price ({{ CURRENCY_SYMBOL }})</label>
                 <input type="number" [(ngModel)]="pkgForm.price" min="0" />
               </div>
               <div class="form-group">

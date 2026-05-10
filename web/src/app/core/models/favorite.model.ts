@@ -16,6 +16,7 @@ export interface FavoriteListingPopulated {
   location: ListingLocation;
   createdAt: Date;
   isFeatured: boolean;
+  sellerVerified?: boolean;
 }
 
 export interface Favorite {

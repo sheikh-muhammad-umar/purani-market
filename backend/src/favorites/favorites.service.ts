@@ -12,6 +12,7 @@ import {
   ProductListingDocument,
 } from '../listings/schemas/product-listing.schema.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 
 @Injectable()
 export class FavoritesService {
@@ -27,12 +28,12 @@ export class FavoritesService {
     productListingId: string,
   ): Promise<FavoriteDocument> {
     if (!Types.ObjectId.isValid(productListingId)) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const listing = await this.listingModel.findById(productListingId).exec();
     if (!listing) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     try {
@@ -54,7 +55,7 @@ export class FavoritesService {
     } catch (error: any) {
       // Handle duplicate key error (unique compound index)
       if (error.code === 11000) {
-        throw new ConflictException('Listing is already in your favorites');
+        throw new ConflictException(PUBLIC_ERROR.CONFLICT);
       }
       throw error;
     }
@@ -69,7 +70,7 @@ export class FavoritesService {
       .populate({
         path: 'productListingId',
         select:
-          'title price status images condition location createdAt isFeatured',
+          'title price status images condition location createdAt isFeatured sellerVerified',
       })
       .sort({ createdAt: -1 })
       .limit(limit)
@@ -95,18 +96,16 @@ export class FavoritesService {
 
   async removeFavorite(favoriteId: string, userId: string): Promise<void> {
     if (!Types.ObjectId.isValid(favoriteId)) {
-      throw new NotFoundException(ERROR.FAVORITE_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const favorite = await this.favoriteModel.findById(favoriteId).exec();
     if (!favorite) {
-      throw new NotFoundException(ERROR.FAVORITE_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     if (favorite.userId.toString() !== userId) {
-      throw new ForbiddenException(
-        'You are not authorized to remove this favorite',
-      );
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
 
     await this.favoriteModel.deleteOne({ _id: favorite._id }).exec();

@@ -221,6 +221,16 @@
   gap: var(--space-1);
 }
 
+.section-icon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  .material-symbols-rounded {
+    font-size: 22px;
+  }
+}
+
 .city-label {
   font-size: var(--text-base);
   font-weight: 400;

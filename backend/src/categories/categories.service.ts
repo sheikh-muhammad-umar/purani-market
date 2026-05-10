@@ -23,6 +23,7 @@ import {
   CACHE_TTL_CATEGORY_TREE,
 } from '../common/constants/index.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 
 export interface CategoryTreeNode {
   _id: string;
@@ -73,11 +74,11 @@ export class CategoriesService {
 
   async findById(id: string): Promise<CategoryDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException(ERROR.CATEGORY_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     const category = await this.categoryModel.findById(id).exec();
     if (!category) {
-      throw new NotFoundException(ERROR.CATEGORY_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     return category;
   }
@@ -87,9 +88,7 @@ export class CategoriesService {
     if (dto.parentId) {
       const parent = await this.findById(dto.parentId);
       if (parent.level >= 3) {
-        throw new BadRequestException(
-          'Maximum category nesting depth is 3 levels',
-        );
+        throw new BadRequestException(PUBLIC_ERROR.CATEGORY_ACTION_FAILED);
       }
       level = parent.level + 1;
     }
@@ -134,9 +133,7 @@ export class CategoriesService {
       .find({ parentId: category._id })
       .exec();
     if (children.length > 0) {
-      throw new BadRequestException(
-        'Cannot delete a category that has subcategories',
-      );
+      throw new BadRequestException(PUBLIC_ERROR.CATEGORY_ACTION_FAILED);
     }
     await this.categoryModel.deleteOne({ _id: category._id }).exec();
     await this.invalidateCache();
@@ -161,9 +158,7 @@ export class CategoriesService {
         .filter((a) => parentKeys.has(a.key))
         .map((a) => a.key);
       if (duplicates.length > 0) {
-        throw new BadRequestException(
-          `Attributes already defined in a parent category: ${duplicates.join(', ')}`,
-        );
+        throw new BadRequestException(PUBLIC_ERROR.CATEGORY_ACTION_FAILED);
       }
     }
 
@@ -201,9 +196,7 @@ export class CategoriesService {
 
     const missing = defIds.filter((did) => !defMap.has(did));
     if (missing.length > 0) {
-      throw new BadRequestException(
-        `Attribute definitions not found: ${missing.join(', ')}`,
-      );
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
 
     // Build attributes: definition provides the base, assignment can override values
@@ -235,9 +228,7 @@ export class CategoriesService {
         .filter((a) => parentKeys.has(a.key))
         .map((a) => a.key);
       if (duplicates.length > 0) {
-        throw new BadRequestException(
-          `Attributes already defined in a parent category: ${duplicates.join(', ')}`,
-        );
+        throw new BadRequestException(PUBLIC_ERROR.CATEGORY_ACTION_FAILED);
       }
     }
 

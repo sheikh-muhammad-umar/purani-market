@@ -73,7 +73,7 @@ export class LoginModalComponent {
       },
       error: (err) => {
         this.loading.set(false);
-        const message = err.error?.message || 'Invalid credentials. Please try again.';
+        const message = 'Invalid credentials. Please try again.';
         this.errorMessage.set(message);
         this.tracker.trackAnonymous(TrackingEvent.LOGIN_FAILED, {
           method: LOGIN_METHOD_EMAIL,

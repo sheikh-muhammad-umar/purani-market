@@ -8,6 +8,7 @@ import { Favorite, FavoriteListingPopulated } from '../../../core/models';
 import { PLACEHOLDER_IMAGE, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { TAB, TabType } from '../../../core/constants/enums';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 
 @Component({
   selector: 'app-favorites-list',
@@ -20,6 +21,7 @@ export class FavoritesListComponent implements OnInit {
   readonly ROUTES = ROUTES;
   readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
   readonly TAB = TAB;
+  readonly SKELETON_ITEMS = [1, 2, 3, 4];
   readonly activeTab = signal<TabType>(TAB.ADS);
   readonly favorites = signal<Favorite[]>([]);
   readonly likedShorts = signal<ShortVideo[]>([]);
@@ -47,7 +49,7 @@ export class FavoritesListComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load favorites. Please try again.');
+        this.error.set(ERROR_MSG.FAVORITES_LOAD_FAILED);
         this.loading.set(false);
       },
     });
@@ -84,7 +86,7 @@ export class FavoritesListComponent implements OnInit {
   }
 
   formatPrice(listing: FavoriteListingPopulated): string {
-    return `${listing.price.currency} ${listing.price.amount.toLocaleString()}`;
+    return `${CURRENCY_SYMBOL} ${listing.price.amount.toLocaleString()}`;
   }
 
   removeFavorite(favorite: Favorite): void {

@@ -15,3 +15,6 @@ export const LOGOUT_DELAY = 150;
 
 /** Scroll threshold (px) to trigger the scrolled header state */
 export const SCROLL_THRESHOLD = 10;
+
+/** Interval (ms) for rotating the search placeholder category name */
+export const PLACEHOLDER_ROTATE_INTERVAL = 3000;

@@ -149,7 +149,7 @@ describe('FavoritesListComponent', () => {
   it('should format price correctly', () => {
     const listing = makeListing({ price: { amount: 500000, currency: 'PKR' } });
     const formatted = component.formatPrice(listing);
-    expect(formatted).toContain('PKR');
+    expect(formatted).toContain('Rs');
     expect(formatted).toContain('500');
   });
 

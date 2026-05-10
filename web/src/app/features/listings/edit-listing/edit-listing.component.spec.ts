@@ -317,7 +317,7 @@ describe('EditListingComponent', () => {
       .fn()
       .mockReturnValue(throwError(() => ({ error: { message: 'Forbidden' } })));
     component.submit();
-    expect(component.error()).toBe('Forbidden');
+    expect(component.error()).toBe('Failed to update listing.');
     expect(component.submitting()).toBe(false);
   });
 

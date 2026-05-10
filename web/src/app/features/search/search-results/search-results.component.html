@@ -464,7 +464,7 @@
                   <div class="listing-info">
                     <h4 class="listing-title">{{ ad.title | truncateText: 50 }}</h4>
                     <p class="listing-price price">
-                      {{ ad.price.amount | priceFormat: ad.price.currency }}
+                      {{ ad.price.amount | priceFormat }}
                     </p>
                     <div class="listing-bottom-row">
                       <p class="listing-location">
@@ -509,7 +509,7 @@
               <div class="listing-info">
                 <h4 class="listing-title">{{ listing.title | truncateText: 50 }}</h4>
                 <p class="listing-price price">
-                  {{ listing.price.amount | priceFormat: listing.price.currency }}
+                  {{ listing.price.amount | priceFormat }}
                 </p>
                 <div class="listing-bottom-row">
                   <p class="listing-location">

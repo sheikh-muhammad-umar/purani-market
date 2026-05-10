@@ -4,7 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { ShortsService, ShortVideo, ShortsPackage } from '../../../core/services/shorts.service';
 import { FormatDurationPipe } from '../../../shared/pipes/format-duration.pipe';
 import { FormatStatusPipe } from '../../../shared/pipes/format-status.pipe';
-import { DEFAULT_CURRENCY } from '../../../core/constants/app';
+import { CURRENCY_SYMBOL } from '../../../core/constants/app';
 
 @Component({
   selector: 'app-shorts-admin',
@@ -14,7 +14,7 @@ import { DEFAULT_CURRENCY } from '../../../core/constants/app';
   styleUrl: './shorts-admin.component.scss',
 })
 export class ShortsAdminComponent implements OnInit {
-  readonly DEFAULT_CURRENCY = DEFAULT_CURRENCY;
+  readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
   readonly activeTab = signal<'moderation' | 'all' | 'packages'>('moderation');
   readonly shorts = signal<ShortVideo[]>([]);
   readonly packages = signal<ShortsPackage[]>([]);

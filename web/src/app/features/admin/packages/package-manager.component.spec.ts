@@ -95,7 +95,7 @@ describe('PackageManagerComponent', () => {
     adminService.getAdminPackages.mockReturnValue(throwError(() => new Error('fail')));
     component.ngOnInit();
     expect(component.loading()).toBe(false);
-    expect(component.error()).toBe('Failed to load packages.');
+    expect(component.error()).toBe('Failed to load packages. Please try again.');
   });
 
   it('should handle load categories error gracefully', () => {
@@ -326,12 +326,12 @@ describe('PackageManagerComponent', () => {
   it('should calculate total purchase pages', () => {
     component.ngOnInit();
     component.purchasesTotal.set(25);
-    expect(component.totalPurchasePages).toBe(3);
+    expect(component.totalPurchasePages()).toBe(3);
   });
 
   it('should return 1 for zero total pages', () => {
     component.purchasesTotal.set(0);
-    expect(component.totalPurchasePages).toBe(1);
+    expect(component.totalPurchasePages()).toBe(1);
   });
 
   it('trackByIndex should return the index', () => {

@@ -55,7 +55,7 @@ export class MfaComponent implements OnInit {
       },
       error: (err) => {
         this.setupLoading.set(false);
-        this.errorMessage.set(err.error?.message || 'Failed to enable MFA.');
+        this.errorMessage.set('Failed to enable MFA.');
       },
     });
   }
@@ -82,7 +82,7 @@ export class MfaComponent implements OnInit {
       },
       error: (err) => {
         this.loading.set(false);
-        this.errorMessage.set(err.error?.message || 'Invalid verification code. Please try again.');
+        this.errorMessage.set('Invalid verification code. Please try again.');
       },
     });
   }

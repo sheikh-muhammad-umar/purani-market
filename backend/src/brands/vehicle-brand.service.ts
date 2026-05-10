@@ -18,6 +18,7 @@ import {
   UpdateVehicleBrandDto,
 } from './dto/vehicle-brand.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 
 @Injectable()
 export class VehicleBrandService {
@@ -33,7 +34,7 @@ export class VehicleBrandService {
     activeOnly = true,
   ): Promise<VehicleBrandDocument[]> {
     if (!Types.ObjectId.isValid(categoryId)) {
-      throw new BadRequestException(ERROR.INVALID_CATEGORY_ID);
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
     const filter: Record<string, any> = {
       categoryId: new Types.ObjectId(categoryId),
@@ -70,10 +71,10 @@ export class VehicleBrandService {
 
   async findById(id: string): Promise<VehicleBrandDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException(ERROR.VEHICLE_BRAND_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     const brand = await this.vehicleBrandModel.findById(id).lean().exec();
-    if (!brand) throw new NotFoundException(ERROR.VEHICLE_BRAND_NOT_FOUND);
+    if (!brand) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     return brand;
   }
 
@@ -94,7 +95,7 @@ export class VehicleBrandService {
     const brand = await this.vehicleBrandModel
       .findByIdAndUpdate(id, { $set: dto }, { new: true })
       .exec();
-    if (!brand) throw new NotFoundException(ERROR.VEHICLE_BRAND_NOT_FOUND);
+    if (!brand) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     return brand;
   }
 
@@ -104,11 +105,9 @@ export class VehicleBrandService {
       .countDocuments({ brandId: new Types.ObjectId(id) })
       .exec();
     if (modelCount > 0) {
-      throw new BadRequestException(
-        `Cannot delete brand with ${modelCount} model(s). Delete models first.`,
-      );
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
     const result = await this.vehicleBrandModel.findByIdAndDelete(id).exec();
-    if (!result) throw new NotFoundException(ERROR.VEHICLE_BRAND_NOT_FOUND);
+    if (!result) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
   }
 }

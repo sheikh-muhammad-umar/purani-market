@@ -6,9 +6,18 @@ export interface ConversationListing {
   status: string;
 }
 
+export interface ConversationShort {
+  _id: string;
+  title?: string;
+  description?: string;
+  video: { thumbnailUrl?: string; url: string };
+  status?: string;
+}
+
 export interface Conversation {
   _id: string;
   productListingId: string | ConversationListing;
+  shortVideoId?: string | ConversationShort;
   buyerId: string;
   sellerId: string;
   lastMessageAt: Date;

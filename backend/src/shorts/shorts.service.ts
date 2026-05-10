@@ -48,6 +48,7 @@ import {
   DEFAULT_CURRENCY,
 } from '../common/constants/app.constants.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { daysToMs, daysFromNow, startOfMonth } from '../common/utils/time.js';
 
 @Injectable()
@@ -192,14 +193,14 @@ export class ShortsService {
 
   async getShortById(id: string): Promise<ShortVideoDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException(ERROR.SHORT_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     const short = await this.shortVideoModel
       .findById(id)
       .populate('sellerId', 'profile.firstName profile.lastName profile.avatar')
       .exec();
     if (!short || short.status === ShortVideoStatus.DELETED) {
-      throw new NotFoundException(ERROR.SHORT_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     return short;
   }
@@ -370,10 +371,10 @@ export class ShortsService {
   async deleteShort(id: string, sellerId: string): Promise<void> {
     const short = await this.shortVideoModel.findById(id).exec();
     if (!short) {
-      throw new NotFoundException(ERROR.SHORT_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     if (short.sellerId.toString() !== sellerId) {
-      throw new ForbiddenException(ERROR.SHORT_NOT_AUTHORIZED);
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
     short.status = ShortVideoStatus.DELETED;
     short.deletedAt = new Date();
@@ -387,13 +388,13 @@ export class ShortsService {
   ): Promise<ShortVideoDocument> {
     const short = await this.shortVideoModel.findById(id).exec();
     if (!short) {
-      throw new NotFoundException(ERROR.SHORT_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     if (short.sellerId.toString() !== sellerId) {
-      throw new ForbiddenException(ERROR.SHORT_NOT_AUTHORIZED);
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
     if (short.status === ShortVideoStatus.DELETED) {
-      throw new BadRequestException(ERROR.SHORT_CANNOT_EDIT_DELETED);
+      throw new BadRequestException(PUBLIC_ERROR.SHORT_ACTION_FAILED);
     }
 
     // Update fields
@@ -627,10 +628,10 @@ export class ShortsService {
   async adminApproveShort(id: string): Promise<ShortVideoDocument> {
     const short = await this.shortVideoModel.findById(id).exec();
     if (!short) {
-      throw new NotFoundException(ERROR.SHORT_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     if (short.status !== ShortVideoStatus.PENDING_REVIEW) {
-      throw new BadRequestException(ERROR.SHORT_NOT_PENDING);
+      throw new BadRequestException(PUBLIC_ERROR.SHORT_ACTION_FAILED);
     }
 
     short.status = ShortVideoStatus.ACTIVE;
@@ -666,10 +667,10 @@ export class ShortsService {
   ): Promise<ShortVideoDocument> {
     const short = await this.shortVideoModel.findById(id).exec();
     if (!short) {
-      throw new NotFoundException(ERROR.SHORT_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     if (short.status !== ShortVideoStatus.PENDING_REVIEW) {
-      throw new BadRequestException(ERROR.SHORT_NOT_PENDING);
+      throw new BadRequestException(PUBLIC_ERROR.SHORT_ACTION_FAILED);
     }
 
     short.status = ShortVideoStatus.REJECTED;
@@ -705,7 +706,7 @@ export class ShortsService {
   async adminDeleteShort(id: string): Promise<void> {
     const short = await this.shortVideoModel.findById(id).exec();
     if (!short) {
-      throw new NotFoundException(ERROR.SHORT_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     short.status = ShortVideoStatus.DELETED;
     short.deletedAt = new Date();
@@ -737,7 +738,7 @@ export class ShortsService {
   ): Promise<ShortsPackageDocument> {
     const pkg = await this.shortsPackageModel.findById(id).exec();
     if (!pkg) {
-      throw new NotFoundException(ERROR.SHORT_PACKAGE_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     Object.assign(pkg, dto);
     return pkg.save();
@@ -756,7 +757,7 @@ export class ShortsService {
   ): Promise<ShortsPackagePurchaseDocument> {
     const pkg = await this.shortsPackageModel.findById(dto.packageId).exec();
     if (!pkg || !pkg.isActive) {
-      throw new NotFoundException(ERROR.SHORT_PACKAGE_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const purchase = new this.shortsPurchaseModel({
@@ -807,7 +808,7 @@ export class ShortsService {
   async confirmPayment(purchaseId: string): Promise<void> {
     const purchase = await this.shortsPurchaseModel.findById(purchaseId).exec();
     if (!purchase) {
-      throw new NotFoundException(ERROR.PURCHASE_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     purchase.paymentStatus = PaymentStatus.COMPLETED;
     await purchase.save();
@@ -839,15 +840,15 @@ export class ShortsService {
 
   private validateShortFile(file: Express.Multer.File): void {
     if (!file) {
-      throw new BadRequestException(ERROR.NO_FILE_PROVIDED);
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
     if (
       !(SHORTS_ALLOWED_MIMETYPES as readonly string[]).includes(file.mimetype)
     ) {
-      throw new BadRequestException(ERROR.SHORT_INVALID_FORMAT);
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
     if (file.size > SHORTS_MAX_FILE_SIZE) {
-      throw new BadRequestException(ERROR.SHORT_SIZE_EXCEEDED);
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
   }
 

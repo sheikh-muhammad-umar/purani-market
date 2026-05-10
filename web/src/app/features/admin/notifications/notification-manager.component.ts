@@ -28,6 +28,7 @@ import {
   DEFAULT_STATUS_COLOR,
 } from '../../../core/constants/notification-options';
 import { UserRole } from '../../../core/constants/enums';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 
 const PAGE_SIZE = 20;
 
@@ -174,7 +175,7 @@ export class NotificationManagerComponent implements OnInit {
           this.loading.set(false);
         },
         error: () => {
-          this.errorMessage.set('Failed to load notifications.');
+          this.errorMessage.set(ERROR_MSG.NOTIFICATIONS_LOAD_FAILED);
           this.loading.set(false);
         },
       });
@@ -227,7 +228,7 @@ export class NotificationManagerComponent implements OnInit {
         },
         error: (err) => {
           this.sending.set(false);
-          this.errorMessage.set(err.error?.message || 'Failed to send notification.');
+          this.errorMessage.set(ERROR_MSG.NOTIFICATION_SEND_FAILED);
         },
       });
   }

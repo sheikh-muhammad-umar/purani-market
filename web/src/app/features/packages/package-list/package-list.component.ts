@@ -9,6 +9,7 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
 import { AdPackage, PackageType, Category } from '../../../core/models';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { CURRENCY_SYMBOL, PACKAGE_TYPE_LABELS } from '../../../core/constants/app';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
 import { PackageType as PackageTypeEnum, TAB, TabType } from '../../../core/constants/enums';
 
@@ -86,7 +87,7 @@ export class PackageListComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load packages. Please try again.');
+        this.error.set(ERROR_MSG.PACKAGES_LOAD_FAILED);
         this.loading.set(false);
       },
     });

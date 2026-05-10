@@ -31,6 +31,7 @@ import { PurchasePackageDto } from './dto/purchase-package.dto.js';
 import { CreatePackageDto } from './dto/create-package.dto.js';
 import { UpdatePackageDto } from './dto/update-package.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { PAYMENT_ROUTES } from '../payments/constants.js';
 import { ApplyFailureReason } from './enums/apply-failure-reason.enum.js';
 import { PurchaseResult } from './interfaces/purchase-result.interface.js';
@@ -80,12 +81,12 @@ export class PackagesService {
     dto: UpdatePackageDto,
   ): Promise<AdPackageDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException(ERROR.PACKAGE_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const pkg = await this.adPackageModel.findById(id).exec();
     if (!pkg) {
-      throw new NotFoundException(ERROR.PACKAGE_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     if (dto.name !== undefined) pkg.name = dto.name;
@@ -113,11 +114,11 @@ export class PackagesService {
 
   async findById(id: string): Promise<AdPackageDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException(ERROR.PACKAGE_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     const pkg = await this.adPackageModel.findById(id).exec();
     if (!pkg) {
-      throw new NotFoundException(ERROR.PACKAGE_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     return pkg;
   }
@@ -207,11 +208,11 @@ export class PackagesService {
       .exec();
 
     if (!purchase) {
-      throw new NotFoundException(ERROR.PURCHASE_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     if (purchase.sellerId.toString() !== sellerId) {
-      throw new ForbiddenException(ERROR.PACKAGE_OWN_ONLY);
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
 
     // Determine failure reason and track it
@@ -255,7 +256,7 @@ export class PackagesService {
         ),
       );
 
-    throw new BadRequestException(errorMessage);
+    throw new BadRequestException(PUBLIC_ERROR.PAYMENT_FAILED);
   }
 
   async getMyPurchases(
@@ -281,16 +282,14 @@ export class PackagesService {
     dto: PurchasePackageDto,
   ): Promise<PurchaseResult> {
     if (!dto.items || dto.items.length === 0) {
-      throw new BadRequestException(ERROR.PAYMENT_PURCHASE_ITEM_REQUIRED);
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
     const purchases: PackagePurchaseDocument[] = [];
     let totalAmount = 0;
     for (const item of dto.items) {
       const pkg = await this.findById(item.packageId);
       if (!pkg.isActive) {
-        throw new BadRequestException(
-          `${ERROR.PAYMENT_PACKAGE_UNAVAILABLE}: "${pkg.name}"`,
-        );
+        throw new BadRequestException(PUBLIC_ERROR.PACKAGE_UNAVAILABLE);
       }
       let price = pkg.defaultPrice;
       if (item.categoryId && Types.ObjectId.isValid(item.categoryId)) {
@@ -352,7 +351,7 @@ export class PackagesService {
       payload.session_id; // Stripe redirect
 
     if (!transactionId) {
-      throw new BadRequestException(ERROR.PAYMENT_TXN_ID_REQUIRED);
+      throw new BadRequestException(PUBLIC_ERROR.PAYMENT_FAILED);
     }
 
     const purchases = await this.packagePurchaseModel
@@ -360,7 +359,7 @@ export class PackagesService {
       .exec();
 
     if (purchases.length === 0) {
-      throw new NotFoundException(ERROR.PAYMENT_NO_PURCHASES_FOR_TXN);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     // Derive payment method from the stored purchase rather than the callback
@@ -411,20 +410,20 @@ export class PackagesService {
     sellerId: string,
   ): Promise<ProductListingDocument> {
     if (!Types.ObjectId.isValid(listingId)) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const listing = await this.listingModel.findById(listingId).exec();
     if (!listing) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     if (listing.sellerId.toString() !== sellerId) {
-      throw new ForbiddenException(ERROR.PAYMENT_OWN_LISTING_ONLY);
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
 
     if (listing.isFeatured) {
-      throw new BadRequestException(ERROR.PAYMENT_ALREADY_FEATURED);
+      throw new BadRequestException(PUBLIC_ERROR.LISTING_ACTION_FAILED);
     }
 
     const now = new Date();
@@ -439,7 +438,7 @@ export class PackagesService {
       .exec();
 
     if (!activePurchase) {
-      throw new BadRequestException(ERROR.PAYMENT_NO_FEATURED_PACKAGE);
+      throw new BadRequestException(PUBLIC_ERROR.PACKAGE_UNAVAILABLE);
     }
 
     await this.packagePurchaseModel.updateOne(
@@ -469,7 +468,7 @@ export class PackagesService {
   async checkAdLimit(sellerId: string): Promise<AdLimitCheck> {
     const user = await this.userModel.findById(sellerId).exec();
     if (!user) {
-      throw new NotFoundException(ERROR.SELLER_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const canPost = user.activeAdCount < user.adLimit;

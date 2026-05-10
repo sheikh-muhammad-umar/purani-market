@@ -127,17 +127,26 @@
           </div>
         }
         <div class="search-divider"></div>
-        <input
-          #desktopSearch
-          type="text"
-          class="search-input"
-          placeholder="{{ searchPlaceholder() }}"
-          (keyup.enter)="goToSearch(desktopSearch.value)"
-          (input)="searchQuery.set(desktopSearch.value)"
-          (focus)="onSearchFocus()"
-          (blur)="onSearchBlur()"
-          autocomplete="off"
-        />
+        <div class="search-input-wrap">
+          <input
+            #desktopSearch
+            type="text"
+            class="search-input"
+            (keyup.enter)="goToSearch(desktopSearch.value)"
+            (input)="searchQuery.set(desktopSearch.value)"
+            (focus)="onSearchFocus()"
+            (blur)="onSearchBlur()"
+            autocomplete="off"
+          />
+          @if (!searchQuery()) {
+            <span class="animated-placeholder">
+              Find
+              <span class="placeholder-category" [class.slide-up]="placeholderAnimating()">{{
+                searchPlaceholder()
+              }}</span>
+            </span>
+          }
+        </div>
         @if (searchQuery()) {
           <button
             class="search-clear-btn"
@@ -386,17 +395,26 @@
         </div>
       }
       <div class="mobile-search-wrap">
-        <input
-          #mobileSearch
-          type="text"
-          class="search-input"
-          placeholder="Search..."
-          (keyup.enter)="goToSearch(mobileSearch.value)"
-          (input)="searchQuery.set(mobileSearch.value)"
-          (focus)="onSearchFocus()"
-          (blur)="onSearchBlur()"
-          autocomplete="off"
-        />
+        <div class="search-input-wrap">
+          <input
+            #mobileSearch
+            type="text"
+            class="search-input"
+            (keyup.enter)="goToSearch(mobileSearch.value)"
+            (input)="searchQuery.set(mobileSearch.value)"
+            (focus)="onSearchFocus()"
+            (blur)="onSearchBlur()"
+            autocomplete="off"
+          />
+          @if (!searchQuery()) {
+            <span class="animated-placeholder">
+              Find
+              <span class="placeholder-category" [class.slide-up]="placeholderAnimating()">{{
+                searchPlaceholder()
+              }}</span>
+            </span>
+          }
+        </div>
         @if (searchQuery()) {
           <button
             class="search-clear-btn"

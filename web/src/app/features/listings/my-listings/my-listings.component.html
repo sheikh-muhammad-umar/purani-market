@@ -175,7 +175,7 @@
                         >{{ listing.title }}</a
                       >
                       <span class="listing-price"
-                        >{{ DEFAULT_CURRENCY }} {{ listing.price.amount | number }}</span
+                        >{{ CURRENCY_SYMBOL }} {{ listing.price.amount | number }}</span
                       >
                     </div>
                   </td>
@@ -373,7 +373,7 @@
                 </div>
                 @if (short.price) {
                   <span class="short-price-tag"
-                    >{{ short.currency || DEFAULT_CURRENCY }} {{ short.price | number }}</span
+                    >{{ short.currency || CURRENCY_SYMBOL }} {{ short.price | number }}</span
                   >
                 }
                 @if (short.expiresAt) {

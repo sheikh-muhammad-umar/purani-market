@@ -151,6 +151,15 @@
   color: var(--secondary, #f14a03);
 }
 
+.price-in-words {
+  display: block;
+  font-size: var(--text-xs, 12px);
+  color: var(--text-muted);
+  margin-top: 4px;
+  font-style: italic;
+  text-transform: capitalize;
+}
+
 .char-count {
   font-size: var(--text-xs, 12px);
   color: var(--text-muted);

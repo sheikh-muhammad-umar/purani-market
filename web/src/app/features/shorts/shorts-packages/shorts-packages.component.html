@@ -49,7 +49,7 @@
       @for (purchase of purchases(); track purchase._id) {
         <div class="purchase-item">
           <div class="purchase-info">
-            <span class="purchase-name">{{ purchase.packageId?.name || 'Package' }}</span>
+            <span class="purchase-name">{{ purchase.packageId.name || 'Package' }}</span>
             <span class="purchase-remaining">
               {{ purchase.remainingQuantity }}/{{ purchase.quantity }} remaining
             </span>

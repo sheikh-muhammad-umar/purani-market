@@ -117,7 +117,7 @@ describe('ConversationListComponent', () => {
       authServiceMock as unknown as AuthService,
     );
     component.ngOnInit();
-    expect(component.error()).toBe('Failed to load conversations');
+    expect(component.error()).toBe('Failed to load conversations.');
     expect(component.loading()).toBe(false);
   });
 

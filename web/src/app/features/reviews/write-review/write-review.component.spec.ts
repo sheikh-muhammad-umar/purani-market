@@ -147,7 +147,7 @@ describe('WriteReviewComponent', () => {
     component.onTextChange('Good product');
     component.submit();
 
-    expect(component.error()).toBe('You must have a conversation first');
+    expect(component.error()).toBe('Failed to submit review. Please try again.');
     expect(component.success()).toBe(false);
     expect(component.submitting()).toBe(false);
   });

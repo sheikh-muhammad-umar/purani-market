@@ -62,10 +62,10 @@ export class VerifyPhoneComponent {
         },
         error: (err) => {
           this.loading.set(false);
-          this.errorMessage.set(err.error?.message || 'Invalid or expired verification code.');
+          this.errorMessage.set('Invalid or expired verification code.');
           this.tracker.trackAnonymous(TrackingEvent.OTP_FAILED, {
             channel: OtpChannel.PHONE,
-            reason: err.error?.message || 'verification_failed',
+            reason: 'verification_failed',
           });
         },
       });

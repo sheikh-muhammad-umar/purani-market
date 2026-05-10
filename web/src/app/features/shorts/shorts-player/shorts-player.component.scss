@@ -125,6 +125,13 @@ video {
 
   &.liked .action-icon {
     color: #ef4444;
+    .material-symbols-rounded {
+      font-variation-settings:
+        'FILL' 1,
+        'wght' 400,
+        'GRAD' 0,
+        'opsz' 24;
+    }
   }
 }
 .action-icon {
@@ -139,6 +146,21 @@ video {
   font-size: 11px;
   text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
 }
+
+.whatsapp-action {
+  color: #25d366;
+}
+
+.owner-badge {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.7);
+  background: rgba(255, 255, 255, 0.15);
+  padding: 6px 10px;
+  border-radius: 20px;
+  text-align: center;
+  white-space: nowrap;
+}
+
 .progress-bar {
   position: absolute;
   bottom: 0;

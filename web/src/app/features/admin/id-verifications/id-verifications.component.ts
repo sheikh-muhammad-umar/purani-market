@@ -200,7 +200,7 @@ export class IdVerificationsComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.actionLoading.set(null);
-          this.error.set(err.error?.message || ERROR_MSG.VERIFICATION_APPROVE_FAILED);
+          this.error.set(ERROR_MSG.VERIFICATION_APPROVE_FAILED);
         },
       });
   }
@@ -235,7 +235,7 @@ export class IdVerificationsComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.actionLoading.set(null);
-          this.error.set(err.error?.message || ERROR_MSG.VERIFICATION_REJECT_FAILED);
+          this.error.set(ERROR_MSG.VERIFICATION_REJECT_FAILED);
         },
       });
   }

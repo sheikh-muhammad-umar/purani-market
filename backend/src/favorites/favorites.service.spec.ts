@@ -135,7 +135,7 @@ describe('FavoritesService', () => {
 
       await expect(
         service.addFavorite(userId.toString(), listingId.toString()),
-      ).rejects.toThrow('Listing is already in your favorites');
+      ).rejects.toThrow('This action has already been performed.');
     });
 
     it('should rethrow non-duplicate errors', async () => {

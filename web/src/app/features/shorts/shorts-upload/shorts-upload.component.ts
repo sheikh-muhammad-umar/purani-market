@@ -2,6 +2,7 @@ import { Component, signal, computed, ViewChild, ElementRef } from '@angular/cor
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
+import { NumberToWordsPipe } from '../../../shared/pipes/number-to-words.pipe';
 import { ShortsService, ShortsStats } from '../../../core/services/shorts.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { LocationService } from '../../../core/services/location.service';
@@ -27,7 +28,14 @@ import { Category, Province, City, Area, Listing } from '../../../core/models';
 @Component({
   selector: 'app-shorts-upload',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, CustomSelectComponent, PromoBannerComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    CustomSelectComponent,
+    PromoBannerComponent,
+    NumberToWordsPipe,
+  ],
   templateUrl: './shorts-upload.component.html',
   styleUrl: './shorts-upload.component.scss',
 })
@@ -446,7 +454,7 @@ export class ShortsUploadComponent {
         this.tracker.track(TrackingEvent.SHORT_UPLOAD_FAIL, {
           metadata: { error: err.error?.message },
         });
-        this.error.set(err.error?.message || 'Upload failed. Please try again.');
+        this.error.set('Upload failed. Please try again.');
       },
     });
   }

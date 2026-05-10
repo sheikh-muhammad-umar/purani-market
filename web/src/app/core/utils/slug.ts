@@ -23,6 +23,20 @@ export function listingSlug(listing: { _id: string; title: string }): string {
 }
 
 /**
+ * Build an SEO-friendly seller path segment: "{name-slug}-{id}"
+ * e.g. "ali-khan-69c6f2471c01acea72b7c329"
+ */
+export function sellerSlug(seller: {
+  _id: string;
+  profile?: { firstName?: string; lastName?: string };
+}): string {
+  const name =
+    `${seller.profile?.firstName || ''} ${seller.profile?.lastName || ''}`.trim() || 'seller';
+  const slug = slugify(name);
+  return `${slug}-${seller._id}`;
+}
+
+/**
  * Extract the MongoDB ObjectId from a slug-id string.
  * Handles both "some-title-64a1b2c3d4e5f6" and plain "64a1b2c3d4e5f6".
  */

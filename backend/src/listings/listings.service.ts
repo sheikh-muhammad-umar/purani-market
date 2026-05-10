@@ -20,6 +20,7 @@ import {
   SEO_SELLER_FALLBACK_NAME,
 } from '../common/constants/index.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { exactMatchRegex } from '../common/utils/sanitize-regex.js';
 import { UserRole, isAdminRole } from '../common/enums/user-role.enum.js';
 import {
@@ -217,11 +218,11 @@ export class ListingsService {
 
   async findById(id: string | Types.ObjectId): Promise<ProductListingDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     const listing = await this.listingModel.findById(id).exec();
     if (!listing) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     return listing;
   }
@@ -235,16 +236,16 @@ export class ListingsService {
     req?: any,
   ): Promise<ProductListingDocument> {
     if (!Types.ObjectId.isValid(id)) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     const listing = await this.listingModel.findById(id).exec();
     if (!listing) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     // Deleted listings are never visible
     if (listing.status === ListingStatus.DELETED) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     // Only active/sold listings are publicly visible
@@ -257,7 +258,7 @@ export class ListingsService {
       !isOwner &&
       !isAdmin
     ) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     // Increment views only for active listings, deduplicated per visitor
@@ -318,7 +319,7 @@ export class ListingsService {
     const listing = await this.findById(id);
     this.assertOwnership(listing, sellerId);
     if (listing.status === ListingStatus.DELETED) {
-      throw new BadRequestException(ERROR.LISTING_CANNOT_UPDATE_DELETED);
+      throw new BadRequestException(PUBLIC_ERROR.LISTING_ACTION_FAILED);
     }
     const updateFields: Record<string, any> = {};
     if (dto.title !== undefined) updateFields.title = dto.title;
@@ -409,7 +410,7 @@ export class ListingsService {
     if (listing.status === ListingStatus.REJECTED) {
       const rejCount = (listing as any).rejectionCount || 0;
       if (rejCount >= 3) {
-        throw new BadRequestException(ERROR.LISTING_MAX_REJECTIONS);
+        throw new BadRequestException(PUBLIC_ERROR.LISTING_ACTION_FAILED);
       }
       updateFields.rejectionReason = undefined;
       updateFields.rejectionReasonIds = [];
@@ -426,7 +427,7 @@ export class ListingsService {
       .findByIdAndUpdate(id, { $set: updateFields }, { new: true })
       .exec();
     if (!updated) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     this.syncToEs(updated);
     return updated;
@@ -440,9 +441,7 @@ export class ListingsService {
     const listing = await this.findById(id);
     this.assertOwnership(listing, sellerId);
     if (listing.status === ListingStatus.DELETED) {
-      throw new BadRequestException(
-        'Cannot update status of a deleted listing',
-      );
+      throw new BadRequestException(PUBLIC_ERROR.LISTING_ACTION_FAILED);
     }
     const updateFields: Record<string, any> = {
       status,
@@ -465,7 +464,7 @@ export class ListingsService {
       .findByIdAndUpdate(id, { $set: updateFields }, { new: true })
       .exec();
     if (!updated) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     // Track packaged listing lifecycle events
@@ -491,12 +490,10 @@ export class ListingsService {
     const isOwner = listing.sellerId.toString() === userId;
     const isAdmin = isAdminRole(userRole);
     if (!isOwner && !isAdmin) {
-      throw new ForbiddenException(
-        'You are not authorized to delete this listing',
-      );
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
     if (listing.status === ListingStatus.DELETED) {
-      throw new BadRequestException('Listing is already deleted');
+      throw new BadRequestException(PUBLIC_ERROR.LISTING_ACTION_FAILED);
     }
     const updateData: Record<string, any> = {
       status: ListingStatus.DELETED,
@@ -508,7 +505,7 @@ export class ListingsService {
       .findByIdAndUpdate(id, { $set: updateData }, { new: true })
       .exec();
     if (!updated) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     // Only decrement activeAdCount if the listing was in a state that counts as active
     if (
@@ -541,15 +538,11 @@ export class ListingsService {
     const listing = await this.findById(id);
     this.assertOwnership(listing, sellerId);
     if (listing.status !== ListingStatus.REJECTED) {
-      throw new BadRequestException(
-        'Only rejected listings can be resubmitted for review',
-      );
+      throw new BadRequestException(PUBLIC_ERROR.LISTING_ACTION_FAILED);
     }
     const rejCount = (listing as any).rejectionCount || 0;
     if (rejCount >= 3) {
-      throw new BadRequestException(
-        'This listing has reached the maximum number of review attempts. Unfortunately, it cannot be resubmitted. You may delete it and create a new listing.',
-      );
+      throw new BadRequestException(PUBLIC_ERROR.LISTING_ACTION_FAILED);
     }
     const updated = await this.listingModel
       .findByIdAndUpdate(
@@ -570,7 +563,7 @@ export class ListingsService {
       )
       .exec();
     if (!updated) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     return updated;
   }
@@ -582,28 +575,24 @@ export class ListingsService {
   ): Promise<ProductListingDocument> {
     this.validateNoPhoneNumbers(dto.title, dto.description);
     if (!Types.ObjectId.isValid(dto.categoryId)) {
-      throw new BadRequestException(ERROR.INVALID_CATEGORY_ID);
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
     const category = await this.categoryModel.findById(dto.categoryId).exec();
     if (!category) {
-      throw new BadRequestException(ERROR.CATEGORY_NOT_FOUND);
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
     this.validateCategoryAttributes(dto.categoryAttributes ?? {}, category);
     const categoryPath = await this.buildCategoryPath(category);
     await this.validateBrandFields(dto, category, categoryPath);
     const seller = await this.userModel.findById(sellerId).exec();
     if (!seller) {
-      throw new NotFoundException(ERROR.SELLER_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     if (seller.activeAdCount >= seller.adLimit) {
-      throw new ForbiddenException(
-        'You have reached your free ad limit. Please purchase an ad package to post more ads.',
-      );
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
     if (!seller.phone || !seller.phoneVerified) {
-      throw new ForbiddenException(
-        'A verified phone number is required to post ads. Please add and verify your phone number.',
-      );
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
     const status = moderationEnabled
       ? ListingStatus.PENDING_REVIEW
@@ -854,9 +843,7 @@ export class ListingsService {
     sellerId: string,
   ): void {
     if (listing.sellerId.toString() !== sellerId) {
-      throw new ForbiddenException(
-        'You are not authorized to modify this listing',
-      );
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
   }
 
@@ -871,29 +858,21 @@ export class ListingsService {
         def.required &&
         (value === undefined || value === null || value === '')
       ) {
-        throw new BadRequestException(
-          `Category attribute "${def.name}" is required`,
-        );
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
       }
       if (value === undefined || value === null) continue;
       switch (def.type) {
         case AttributeType.TEXT:
           if (typeof value !== 'string')
-            throw new BadRequestException(
-              `Category attribute "${def.name}" must be a string`,
-            );
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
           break;
         case AttributeType.NUMBER:
           if (typeof value !== 'number')
-            throw new BadRequestException(
-              `Category attribute "${def.name}" must be a number`,
-            );
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
           break;
         case AttributeType.BOOLEAN:
           if (typeof value !== 'boolean')
-            throw new BadRequestException(
-              `Category attribute "${def.name}" must be a boolean`,
-            );
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
           break;
         case AttributeType.SELECT:
           if (
@@ -901,22 +880,16 @@ export class ListingsService {
             def.options.length > 0 &&
             !def.options.includes(value)
           ) {
-            throw new BadRequestException(
-              `Category attribute "${def.name}" must be one of: ${def.options.join(', ')}`,
-            );
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
           }
           break;
         case AttributeType.MULTISELECT:
           if (!Array.isArray(value))
-            throw new BadRequestException(
-              `Category attribute "${def.name}" must be an array`,
-            );
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
           if (def.options && def.options.length > 0) {
             for (const v of value) {
               if (!def.options.includes(v)) {
-                throw new BadRequestException(
-                  `Category attribute "${def.name}" contains invalid option: ${v}`,
-                );
+                throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
               }
             }
           }
@@ -955,14 +928,12 @@ export class ListingsService {
     if (isVehicle) {
       // Vehicle brand is mandatory
       if (!dto.vehicleBrandId && !dto.vehicleBrandName) {
-        throw new BadRequestException('Brand is required for this category');
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
       }
       // If "other" brand, only name is needed
       if (dto.vehicleBrandId === OTHER_OPTION_ID) {
         if (!dto.vehicleBrandName) {
-          throw new BadRequestException(
-            'Brand name is required when selecting "Other"',
-          );
+          throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
         }
         dto.vehicleBrandId = undefined;
         dto.modelId = undefined;
@@ -977,13 +948,11 @@ export class ListingsService {
       }
       // Model is mandatory for vehicles (unless "other")
       if (!dto.modelId && !dto.modelName) {
-        throw new BadRequestException('Model is required for this category');
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
       }
       if (dto.modelId === OTHER_OPTION_ID) {
         if (!dto.modelName) {
-          throw new BadRequestException(
-            'Model name is required when selecting "Other"',
-          );
+          throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
         }
         dto.modelId = undefined;
         dto.variantId = undefined;
@@ -1005,13 +974,11 @@ export class ListingsService {
     } else {
       // Simple brand (mobile phones, future categories, etc.) — mandatory
       if (!dto.brandId && !dto.brandName) {
-        throw new BadRequestException('Brand is required for this category');
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
       }
       if (dto.brandId === OTHER_OPTION_ID) {
         if (!dto.brandName) {
-          throw new BadRequestException(
-            'Brand name is required when selecting "Other"',
-          );
+          throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
         }
         dto.brandId = undefined;
         return;
@@ -1068,9 +1035,7 @@ export class ListingsService {
         /0092[\s\-]?[0-9]{10}\b/,
       ];
       if (patterns.some((p) => p.test(normalized))) {
-        throw new BadRequestException(
-          `Phone numbers are not allowed in the ${field}. Buyers will contact you through the app.`,
-        );
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
       }
 
       // Strategy 2: Strip ALL non-digits, scan for Pakistani mobile patterns
@@ -1081,9 +1046,7 @@ export class ListingsService {
         /00920[3][0-9]{9}/, // 009203xxxxxxxxx
       ];
       if (digitPatterns.some((p) => p.test(digits))) {
-        throw new BadRequestException(
-          `Phone numbers are not allowed in the ${field}. Buyers will contact you through the app.`,
-        );
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
       }
     };
     check(title, 'title');

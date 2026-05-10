@@ -44,12 +44,8 @@
   <section class="home-section" aria-label="Featured ads">
     <div class="section-header">
       <h2 class="section-title">
-        <span aria-hidden="true"
-          ><span
-            class="mat-icon"
-            style="font-size: 20px; vertical-align: middle; color: var(--accent)"
-            >auto_awesome</span
-          ></span
+        <span class="section-icon" style="color: var(--accent)"
+          ><span class="material-symbols-rounded">auto_awesome</span></span
         >
         Featured Ads
       </h2>
@@ -73,7 +69,7 @@
         @for (listing of featuredListings(); track listing._id) {
           <a
             class="listing-card"
-            [routerLink]="['/listings', listing | listingUrl]"
+            [routerLink]="[ROUTES.LISTINGS, listing | listingUrl]"
             role="listitem"
           >
             <div class="listing-img-wrap">
@@ -84,7 +80,7 @@
             </div>
             <div class="listing-info">
               <p class="listing-price">
-                {{ listing.price.amount | priceFormat: listing.price.currency }}
+                {{ listing.price.amount | priceFormat }}
               </p>
               <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
               <p class="listing-location">
@@ -110,12 +106,8 @@
     <section class="home-section" aria-label="Short videos">
       <div class="section-header">
         <h2 class="section-title">
-          <span aria-hidden="true"
-            ><span
-              class="mat-icon"
-              style="font-size: 20px; vertical-align: middle; color: var(--primary)"
-              >play_circle</span
-            ></span
+          <span class="section-icon" style="color: var(--primary)"
+            ><span class="material-symbols-rounded">play_circle</span></span
           >
           Shorts
         </h2>
@@ -125,7 +117,7 @@
         @for (short of shorts(); track short._id) {
           <a
             class="short-card"
-            [routerLink]="['/shorts']"
+            [routerLink]="[ROUTES.SHORTS]"
             [queryParams]="{ id: short._id }"
             role="listitem"
           >
@@ -168,11 +160,7 @@
   <section class="home-section" aria-label="Recommended for you">
     <div class="section-header">
       <h2 class="section-title">
-        <span aria-hidden="true"
-          ><span class="mat-icon" style="font-size: 20px; vertical-align: middle"
-            >recommend</span
-          ></span
-        >
+        <span class="section-icon"><span class="material-symbols-rounded">thumb_up</span></span>
         Recommended for You
       </h2>
       <a [routerLink]="ROUTES.SEARCH" class="see-all-link">See all →</a>
@@ -192,7 +180,7 @@
         @for (listing of recommendations(); track listing._id) {
           <a
             class="listing-card masonry-item"
-            [routerLink]="['/listings', listing | listingUrl]"
+            [routerLink]="[ROUTES.LISTINGS, listing | listingUrl]"
             role="listitem"
           >
             <div class="listing-img-wrap">
@@ -203,7 +191,7 @@
             </div>
             <div class="listing-info">
               <p class="listing-price">
-                {{ listing.price.amount | priceFormat: listing.price.currency }}
+                {{ listing.price.amount | priceFormat }}
               </p>
               <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
               <p class="listing-location">
@@ -230,11 +218,7 @@
   <section class="home-section" aria-label="Listings near you">
     <div class="section-header">
       <h2 class="section-title">
-        <span aria-hidden="true"
-          ><span class="mat-icon" style="font-size: 14px; vertical-align: middle"
-            >location_on</span
-          ></span
-        >
+        <span class="section-icon"><span class="material-symbols-rounded">location_on</span></span>
         Near You
         @if (userCity()) {
           <span class="city-label">({{ userCity() }})</span>
@@ -260,7 +244,7 @@
         @for (listing of nearbyListings(); track listing._id) {
           <a
             class="listing-card"
-            [routerLink]="['/listings', listing | listingUrl]"
+            [routerLink]="[ROUTES.LISTINGS, listing | listingUrl]"
             role="listitem"
           >
             <div class="listing-img-wrap">
@@ -268,7 +252,7 @@
             </div>
             <div class="listing-info">
               <p class="listing-price">
-                {{ listing.price.amount | priceFormat: listing.price.currency }}
+                {{ listing.price.amount | priceFormat }}
               </p>
               <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
               <p class="listing-location">

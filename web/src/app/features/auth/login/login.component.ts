@@ -3,7 +3,6 @@ import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink, Router } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { switchMap } from 'rxjs';
 import { AuthService, AuthTokens } from '../../../core/auth/auth.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { SocialAuthService } from '../../../core/services/social-auth.service';
@@ -11,6 +10,7 @@ import { SocialProvider } from '../../../core/enums/social-provider';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ROUTES } from '../../../core/constants/routes';
 import { LOGIN_METHOD_EMAIL, LOGIN_METHOD_PHONE } from '../../../core/constants/app';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 
 const SOCIAL_LOGIN_PREFIX = 'social:';
 
@@ -43,7 +43,7 @@ export class LoginComponent {
     this.loginForm = this.fb.group({
       email: ['', [Validators.required, Validators.email]],
       phone: [''],
-      password: ['', [Validators.required, Validators.minLength(8)]],
+      password: ['', [Validators.required]],
     });
   }
 
@@ -92,14 +92,13 @@ export class LoginComponent {
             this.handlePostLogin(this.usePhone() ? LOGIN_METHOD_PHONE : LOGIN_METHOD_EMAIL);
           }
         },
-        error: (err) => {
+        error: (err: { status: number }) => {
           this.loading.set(false);
-          const message = err.error?.message || 'Invalid credentials. Please try again.';
-          this.errorMessage.set(message);
+          this.errorMessage.set(ERROR_MSG.LOGIN_FAILED);
           this.tracker.trackAnonymous(TrackingEvent.LOGIN_FAILED, {
             method: this.usePhone() ? LOGIN_METHOD_PHONE : LOGIN_METHOD_EMAIL,
             identifier: this.usePhone() ? this.loginForm.value.phone : this.loginForm.value.email,
-            errorMessage: message,
+            errorMessage: ERROR_MSG.LOGIN_FAILED,
             statusCode: err.status,
             ...this.tracker.getDeviceInfo(),
             timestamp: new Date().toISOString(),
@@ -138,11 +137,9 @@ export class LoginComponent {
                 metadata: { provider },
               });
             },
-            error: (err) => {
+            error: () => {
               this.loading.set(false);
-              this.errorMessage.set(
-                err.error?.message || `${provider} login failed. Please try again.`,
-              );
+              this.errorMessage.set(`${provider} login failed. Please try again.`);
             },
           });
       })

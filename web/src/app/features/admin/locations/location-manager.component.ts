@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { ApiService } from '../../../core/services/api.service';
 import { API } from '../../../core/constants/api-endpoints';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 
 interface Province {
@@ -28,11 +29,6 @@ interface Stats {
   areas: number;
 }
 
-const ERR_ADD_PROVINCE = 'Failed to add province';
-const ERR_ADD_CITY = 'Failed to add city';
-const ERR_ADD_AREA = 'Failed to add area';
-const ERR_RENAME = 'Failed to rename';
-const ERR_DELETE = 'Failed to delete';
 const ERR_UPDATE_AREA = 'Failed to update area';
 
 @Component({
@@ -169,7 +165,7 @@ export class LocationManagerComponent implements OnInit, OnDestroy {
           this.showAddProvince = false;
           this.loadStats();
         },
-        error: (e) => this.actionError.set(e?.error?.message || ERR_ADD_PROVINCE),
+        error: (e) => this.actionError.set(ERROR_MSG.LOCATION_ADD_PROVINCE_FAILED),
       });
   }
 
@@ -187,7 +183,7 @@ export class LocationManagerComponent implements OnInit, OnDestroy {
           this.showAddCity = false;
           this.loadStats();
         },
-        error: (e) => this.actionError.set(e?.error?.message || ERR_ADD_CITY),
+        error: (e) => this.actionError.set(ERROR_MSG.LOCATION_ADD_CITY_FAILED),
       });
   }
 
@@ -205,7 +201,7 @@ export class LocationManagerComponent implements OnInit, OnDestroy {
           this.showAddArea = false;
           this.loadStats();
         },
-        error: (e) => this.actionError.set(e?.error?.message || ERR_ADD_AREA),
+        error: (e) => this.actionError.set(ERROR_MSG.LOCATION_ADD_AREA_FAILED),
       });
   }
 
@@ -230,7 +226,7 @@ export class LocationManagerComponent implements OnInit, OnDestroy {
           if (this.selectedProvince()?._id === updated._id) this.selectedProvince.set(updated);
           this.cancelEdit();
         },
-        error: (e) => this.actionError.set(e?.error?.message || ERR_RENAME),
+        error: (e) => this.actionError.set(ERROR_MSG.LOCATION_RENAME_FAILED),
       });
   }
 
@@ -245,7 +241,7 @@ export class LocationManagerComponent implements OnInit, OnDestroy {
           if (this.selectedCity()?._id === updated._id) this.selectedCity.set(updated);
           this.cancelEdit();
         },
-        error: (e) => this.actionError.set(e?.error?.message || ERR_RENAME),
+        error: (e) => this.actionError.set(ERROR_MSG.LOCATION_RENAME_FAILED),
       });
   }
 
@@ -260,7 +256,7 @@ export class LocationManagerComponent implements OnInit, OnDestroy {
           if (this.selectedArea()?._id === updated._id) this.selectedArea.set(updated);
           this.cancelEdit();
         },
-        error: (e) => this.actionError.set(e?.error?.message || ERR_RENAME),
+        error: (e) => this.actionError.set(ERROR_MSG.LOCATION_RENAME_FAILED),
       });
   }
 
@@ -287,7 +283,7 @@ export class LocationManagerComponent implements OnInit, OnDestroy {
           }
           this.loadStats();
         },
-        error: (e) => this.actionError.set(e?.error?.message || ERR_DELETE),
+        error: (e) => this.actionError.set(ERROR_MSG.LOCATION_DELETE_FAILED),
       });
   }
 
@@ -312,7 +308,7 @@ export class LocationManagerComponent implements OnInit, OnDestroy {
           }
           this.loadStats();
         },
-        error: (e) => this.actionError.set(e?.error?.message || ERR_DELETE),
+        error: (e) => this.actionError.set(ERROR_MSG.LOCATION_DELETE_FAILED),
       });
   }
 
@@ -333,7 +329,7 @@ export class LocationManagerComponent implements OnInit, OnDestroy {
           if (this.selectedArea()?._id === a._id) this.selectedArea.set(null);
           this.loadStats();
         },
-        error: (e) => this.actionError.set(e?.error?.message || ERR_DELETE),
+        error: (e) => this.actionError.set(ERROR_MSG.LOCATION_DELETE_FAILED),
       });
   }
 
@@ -377,7 +373,7 @@ export class LocationManagerComponent implements OnInit, OnDestroy {
           this.savingArea.set(false);
         },
         error: (e) => {
-          this.actionError.set(e?.error?.message || ERR_UPDATE_AREA);
+          this.actionError.set(ERR_UPDATE_AREA);
           this.savingArea.set(false);
         },
       });

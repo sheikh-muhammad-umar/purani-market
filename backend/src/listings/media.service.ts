@@ -15,6 +15,7 @@ import {
 import { StorageService } from './storage.service.js';
 import { MediaType } from './dto/upload-media.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 
 export const ALLOWED_IMAGE_MIMETYPES = [
   'image/jpeg',
@@ -61,21 +62,21 @@ export class MediaService {
 
   validateFile(file: Express.Multer.File, type: MediaType): void {
     if (!file) {
-      throw new BadRequestException(ERROR.NO_FILE_PROVIDED);
+      throw new BadRequestException(PUBLIC_ERROR.LISTING_UPLOAD_FAILED);
     }
     if (type === MediaType.IMAGE) {
       if (!ALLOWED_IMAGE_MIMETYPES.includes(file.mimetype)) {
-        throw new BadRequestException(ERROR.INVALID_IMAGE_FORMAT);
+        throw new BadRequestException(PUBLIC_ERROR.LISTING_UPLOAD_FAILED);
       }
       if (file.size > MAX_IMAGE_SIZE) {
-        throw new BadRequestException(ERROR.IMAGE_SIZE_EXCEEDED);
+        throw new BadRequestException(PUBLIC_ERROR.LISTING_UPLOAD_FAILED);
       }
     } else if (type === MediaType.VIDEO) {
       if (!ALLOWED_VIDEO_MIMETYPES.includes(file.mimetype)) {
-        throw new BadRequestException(ERROR.INVALID_VIDEO_FORMAT);
+        throw new BadRequestException(PUBLIC_ERROR.LISTING_UPLOAD_FAILED);
       }
       if (file.size > MAX_VIDEO_SIZE) {
-        throw new BadRequestException(ERROR.VIDEO_SIZE_EXCEEDED);
+        throw new BadRequestException(PUBLIC_ERROR.LISTING_UPLOAD_FAILED);
       }
     }
   }
@@ -85,14 +86,10 @@ export class MediaService {
       type === MediaType.IMAGE &&
       listing.images.length >= MAX_IMAGES_PER_LISTING
     ) {
-      throw new BadRequestException(
-        `Maximum ${MAX_IMAGES_PER_LISTING} images exceeded`,
-      );
+      throw new BadRequestException(PUBLIC_ERROR.LISTING_UPLOAD_FAILED);
     }
     if (type === MediaType.VIDEO && listing.video) {
-      throw new BadRequestException(
-        `Maximum ${MAX_VIDEOS_PER_LISTING} video allowed`,
-      );
+      throw new BadRequestException(PUBLIC_ERROR.LISTING_UPLOAD_FAILED);
     }
   }
 
@@ -107,7 +104,7 @@ export class MediaService {
       .map((img) => img.hash)
       .filter(Boolean);
     if (existingHashes.includes(fileHash)) {
-      throw new BadRequestException(ERROR.DUPLICATE_IMAGE_DETECTED);
+      throw new BadRequestException(PUBLIC_ERROR.LISTING_UPLOAD_FAILED);
     }
 
     const compressed = await sharp(file.buffer)
@@ -181,11 +178,11 @@ export class MediaService {
     listingId: string,
   ): Promise<ProductListingDocument> {
     if (!Types.ObjectId.isValid(listingId)) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     const listing = await this.listingModel.findById(listingId).exec();
     if (!listing) {
-      throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     return listing;
   }
@@ -195,7 +192,7 @@ export class MediaService {
     sellerId: string,
   ): void {
     if (listing.sellerId.toString() !== sellerId) {
-      throw new ForbiddenException(ERROR.NOT_AUTHORIZED_UPLOAD);
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
   }
 }

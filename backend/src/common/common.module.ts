@@ -5,6 +5,7 @@ import { TransformInterceptor } from './interceptors/transform.interceptor.js';
 import { LoggingInterceptor } from './interceptors/logging.interceptor.js';
 import { AppValidationPipe } from './pipes/validation.pipe.js';
 import { CsrfMiddleware } from './middleware/csrf.middleware.js';
+import { RequestIdMiddleware } from './middleware/request-id.middleware.js';
 
 @Module({
   providers: [
@@ -28,6 +29,9 @@ import { CsrfMiddleware } from './middleware/csrf.middleware.js';
 })
 export class CommonModule implements NestModule {
   configure(consumer: MiddlewareConsumer): void {
+    // Request ID must run first — other middleware/interceptors depend on it
+    consumer.apply(RequestIdMiddleware).forRoutes('*');
+
     consumer
       .apply(CsrfMiddleware)
       .exclude(

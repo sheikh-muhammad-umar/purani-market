@@ -9,6 +9,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ROUTES } from '../../../core/constants/routes';
 import { API } from '../../../core/constants/api-endpoints';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { NotificationCountService } from '../../../core/services/notification-count.service';
 
@@ -62,7 +63,7 @@ export class UserProfileComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.errorMessage.set('Failed to load profile.');
+        this.errorMessage.set(ERROR_MSG.PROFILE_LOAD_FAILED);
         this.loading.set(false);
       },
     });
@@ -141,7 +142,7 @@ export class UserProfileComponent implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.errorMessage.set(err.error?.message || 'Failed to update profile.');
+        this.errorMessage.set(ERROR_MSG.PROFILE_UPDATE_FAILED);
       },
     });
   }

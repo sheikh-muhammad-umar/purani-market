@@ -2,6 +2,7 @@ import { Component, signal, computed, OnInit } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink, ActivatedRoute } from '@angular/router';
+import { NumberToWordsPipe } from '../../../shared/pipes/number-to-words.pipe';
 import { ShortsService, ShortVideo } from '../../../core/services/shorts.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { LocationService } from '../../../core/services/location.service';
@@ -12,12 +13,13 @@ import {
 } from '../../../shared/components/custom-select/custom-select.component';
 import { ROUTES } from '../../../core/constants/routes';
 import { CURRENCY_SYMBOL } from '../../../core/constants/app';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { Category, Province, City, Area, Listing } from '../../../core/models';
 
 @Component({
   selector: 'app-shorts-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, CustomSelectComponent],
+  imports: [CommonModule, FormsModule, RouterLink, CustomSelectComponent, NumberToWordsPipe],
   templateUrl: './shorts-edit.component.html',
   styleUrl: './shorts-edit.component.scss',
 })
@@ -134,7 +136,7 @@ export class ShortsEditComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load short video.');
+        this.error.set(ERROR_MSG.SHORT_LOAD_FAILED);
         this.loading.set(false);
       },
     });
@@ -337,7 +339,7 @@ export class ShortsEditComponent implements OnInit {
       },
       error: (err) => {
         this.saving.set(false);
-        this.error.set(err.error?.message || 'Failed to update short. Please try again.');
+        this.error.set(ERROR_MSG.SHORT_UPDATE_FAILED);
       },
     });
   }

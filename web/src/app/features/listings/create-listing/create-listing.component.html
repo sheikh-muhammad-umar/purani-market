@@ -269,7 +269,7 @@
 
             <div class="form-row">
               <div class="form-group">
-                <label class="form-label" for="price">Price ({{ DEFAULT_CURRENCY }}) *</label>
+                <label class="form-label" for="price">Price ({{ CURRENCY_SYMBOL }}) *</label>
                 <input
                   id="price"
                   class="form-input"
@@ -281,6 +281,11 @@
                   (keydown)="onPriceKeydown($event)"
                   (input)="onPriceInput($event)"
                 />
+                @if (detailsForm.get('price')?.value) {
+                  <span class="price-in-words">{{
+                    detailsForm.get('price')?.value | numberToWords
+                  }}</span>
+                }
                 @if (
                   detailsForm.get('price')?.touched &&
                   detailsForm.get('price')?.errors?.['required']
@@ -1079,7 +1084,7 @@
                 <div class="detail-row">
                   <span class="detail-label">Price</span>
                   <span class="price"
-                    >{{ DEFAULT_CURRENCY }} {{ detailsForm.get('price')?.value | number }}</span
+                    >{{ CURRENCY_SYMBOL }} {{ detailsForm.get('price')?.value | number }}</span
                   >
                 </div>
                 <div class="detail-row">

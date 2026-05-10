@@ -37,7 +37,9 @@
             class="nav-item"
             [routerLink]="item.path"
             routerLinkActive="active"
-            [routerLinkActiveOptions]="{ exact: item.path === ROUTES.ADMIN }"
+            [routerLinkActiveOptions]="
+              item.path === ROUTES.ADMIN ? exactMatchOptions : prefixMatchOptions
+            "
             [attr.aria-label]="item.label"
             (click)="closeMobileMenu()"
           >

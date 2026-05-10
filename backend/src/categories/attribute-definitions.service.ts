@@ -12,6 +12,7 @@ import {
 } from './schemas/attribute-definition.schema.js';
 import { CreateAttributeDefinitionDto } from './dto/create-attribute-definition.dto.js';
 import { UpdateAttributeDefinitionDto } from './dto/update-attribute-definition.dto.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 
 @Injectable()
 export class AttributeDefinitionsService {
@@ -26,7 +27,7 @@ export class AttributeDefinitionsService {
 
   async findById(id: string): Promise<AttributeDefinitionDocument> {
     const doc = await this.model.findById(id).exec();
-    if (!doc) throw new NotFoundException('Attribute definition not found');
+    if (!doc) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     return doc;
   }
 

@@ -17,9 +17,8 @@ import {
   TAB,
   TabType,
 } from '../../../core/constants/enums';
-import { PLACEHOLDER_IMAGE, PAGE_SIZE_LARGE } from '../../../core/constants/app';
+import { PLACEHOLDER_IMAGE, PAGE_SIZE_LARGE, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
-import { DEFAULT_CURRENCY } from '../../../core/constants/app';
 import { extractPackageDetails } from '../../../core/utils/package-details';
 import { FormatDurationPipe } from '../../../shared/pipes/format-duration.pipe';
 import { FormatStatusPipe } from '../../../shared/pipes/format-status.pipe';
@@ -48,7 +47,7 @@ interface FeaturedAdInfo {
 export class MyListingsComponent implements OnInit {
   readonly ListingStatus = ListingStatus;
   readonly ROUTES = ROUTES;
-  readonly DEFAULT_CURRENCY = DEFAULT_CURRENCY;
+  readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
   readonly TAB = TAB;
   readonly SKELETON_ITEMS = [1, 2, 3, 4, 5];
   readonly mainTab = signal<TabType>(TAB.ADS);

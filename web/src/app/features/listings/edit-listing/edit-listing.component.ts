@@ -1,5 +1,6 @@
 import { Component, OnInit, OnDestroy, signal, computed, HostListener } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { NumberToWordsPipe } from '../../../shared/pipes/number-to-words.pipe';
 import {
   ReactiveFormsModule,
   FormBuilder,
@@ -25,7 +26,7 @@ import {
 import { extractIdFromSlug, listingSlug } from '../../../core/utils/slug';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
-import { DEFAULT_CURRENCY } from '../../../core/constants/app';
+import { DEFAULT_CURRENCY, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { saveState, loadState, clearState } from '../../../core/utils/state-persistence';
@@ -36,13 +37,14 @@ import { mapLinkValidator } from '../../../core/utils/map-link';
 @Component({
   selector: 'app-edit-listing',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CustomSelectComponent],
+  imports: [CommonModule, ReactiveFormsModule, CustomSelectComponent, NumberToWordsPipe],
   templateUrl: './edit-listing.component.html',
   styleUrls: ['../create-listing/create-listing.component.scss'],
 })
 export class EditListingComponent implements OnInit, OnDestroy {
   readonly conditionOptions = CONDITION_OPTIONS;
   readonly DEFAULT_CURRENCY = DEFAULT_CURRENCY;
+  readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
   readonly ERROR_MSG = ERROR_MSG;
   readonly OTHER_ID = OTHER_OPTION_ID;
   private readonly DRAFT_KEY = 'edit-listing-step';
@@ -815,7 +817,7 @@ export class EditListingComponent implements OnInit, OnDestroy {
         },
         error: (err) => {
           this.submitting.set(false);
-          this.error.set(err?.error?.message ?? ERROR_MSG.LISTING_UPDATE_FAILED);
+          this.error.set(ERROR_MSG.LISTING_UPDATE_FAILED);
         },
       });
   }

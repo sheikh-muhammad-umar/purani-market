@@ -196,6 +196,9 @@
         placeholder="Enter price..."
         required
       />
+      @if (price) {
+        <span class="price-in-words">{{ price | numberToWords }}</span>
+      }
     </div>
   </div>
 

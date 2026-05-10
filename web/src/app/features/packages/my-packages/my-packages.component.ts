@@ -16,6 +16,7 @@ import {
 } from '../../../core/constants/enums';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { CURRENCY_SYMBOL, PAYMENT_METHOD_CONFIG } from '../../../core/constants/app';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
 
 /** Milliseconds in one day. */
@@ -122,7 +123,7 @@ export class MyPackagesComponent implements OnInit {
         }
       },
       error: () => {
-        this.error.set('Failed to load your packages. Please try again.');
+        this.error.set(ERROR_MSG.MY_PACKAGES_LOAD_FAILED);
         this.loading.set(false);
         this.pendingFilterChange = false;
       },

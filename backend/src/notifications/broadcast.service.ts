@@ -26,6 +26,7 @@ import {
 import { EmailService } from '../auth/services/email.service.js';
 import { SendNotificationDto } from './dto/send-notification.dto.js';
 import { daysToMs } from '../common/utils/time.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 
 const BATCH_SIZE = 100;
 
@@ -130,7 +131,7 @@ export class BroadcastService {
       .findById(id)
       .lean()
       .exec();
-    if (!notification) throw new NotFoundException('Notification not found');
+    if (!notification) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
 
     const readCount = await this.userNotificationModel
       .countDocuments({

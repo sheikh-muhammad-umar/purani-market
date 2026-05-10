@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -21,8 +22,12 @@ import {
   ProductListingDocument,
   ListingStatus,
 } from '../listings/schemas/product-listing.schema.js';
+import {
+  ShortVideo,
+  ShortVideoDocument,
+} from '../shorts/schemas/short-video.schema.js';
 import { CreateConversationDto } from './dto/create-conversation.dto.js';
-import { ERROR } from '../common/constants/error-messages.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { INACTIVE_CONVERSATION_RETENTION_DAYS } from '../common/constants/app.constants.js';
 import { daysToMs } from '../common/utils/time.js';
 
@@ -51,6 +56,8 @@ const MESSAGES_PER_PAGE = 20;
 
 @Injectable()
 export class MessagingService {
+  private readonly logger = new Logger(MessagingService.name);
+
   constructor(
     @InjectModel(Conversation.name)
     private readonly conversationModel: Model<ConversationDocument>,
@@ -58,6 +65,8 @@ export class MessagingService {
     private readonly messageModel: Model<MessageDocument>,
     @InjectModel(ProductListing.name)
     private readonly listingModel: Model<ProductListingDocument>,
+    @InjectModel(ShortVideo.name)
+    private readonly shortVideoModel: Model<ShortVideoDocument>,
   ) {}
 
   async createConversation(
@@ -70,9 +79,7 @@ export class MessagingService {
     const { productListingId, shortVideoId, message } = dto;
 
     if (!productListingId && !shortVideoId) {
-      throw new BadRequestException(
-        'Either productListingId or shortVideoId is required',
-      );
+      throw new BadRequestException(PUBLIC_ERROR.MESSAGING_FAILED);
     }
 
     let sellerId: Types.ObjectId;
@@ -81,20 +88,20 @@ export class MessagingService {
     if (productListingId) {
       // Listing-based conversation
       if (!Types.ObjectId.isValid(productListingId)) {
-        throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+        throw new BadRequestException(PUBLIC_ERROR.MESSAGING_FAILED);
       }
 
       const listing = await this.listingModel.findById(productListingId).exec();
       if (!listing) {
-        throw new NotFoundException(ERROR.LISTING_NOT_FOUND);
+        throw new BadRequestException(PUBLIC_ERROR.MESSAGING_FAILED);
       }
 
       if (listing.sellerId.toString() === userId) {
-        throw new BadRequestException(ERROR.CANNOT_MESSAGE_OWN_LISTING);
+        throw new BadRequestException(PUBLIC_ERROR.MESSAGING_NOT_ALLOWED);
       }
 
       if (listing.status !== ListingStatus.ACTIVE) {
-        throw new BadRequestException(ERROR.LISTING_NOT_ACTIVE_MESSAGING);
+        throw new BadRequestException(PUBLIC_ERROR.MESSAGING_NOT_ALLOWED);
       }
 
       sellerId = listing.sellerId;
@@ -122,41 +129,84 @@ export class MessagingService {
     } else {
       // Short-based conversation
       if (!Types.ObjectId.isValid(shortVideoId!)) {
-        throw new NotFoundException('Short video not found');
+        throw new BadRequestException(PUBLIC_ERROR.MESSAGING_FAILED);
       }
 
-      const short = await this.conversationModel.db
-        .collection('short_videos')
-        .findOne({ _id: new Types.ObjectId(shortVideoId!) });
+      const short = await this.shortVideoModel
+        .findById(shortVideoId!)
+        .select('sellerId')
+        .lean()
+        .exec();
 
       if (!short) {
-        throw new NotFoundException('Short video not found');
+        throw new BadRequestException(PUBLIC_ERROR.MESSAGING_FAILED);
       }
 
       sellerId = new Types.ObjectId(short.sellerId.toString());
 
       if (sellerId.toString() === userId) {
-        throw new BadRequestException(
-          'You cannot message yourself about your own short',
-        );
+        throw new BadRequestException(PUBLIC_ERROR.MESSAGING_NOT_ALLOWED);
       }
 
       // Try to find existing conversation for this short
+      const shortObjId = new Types.ObjectId(shortVideoId!);
       let conversation = await this.conversationModel
         .findOne({
-          buyerId,
-          sellerId,
-          shortVideoId: new Types.ObjectId(shortVideoId!),
+          shortVideoId: shortObjId,
+          $or: [
+            { buyerId, sellerId },
+            { buyerId: sellerId, sellerId: buyerId },
+          ],
         })
         .exec();
 
+      // Fallback: find any conversation for this short involving the current user
+      if (!conversation) {
+        conversation = await this.conversationModel
+          .findOne({
+            shortVideoId: shortObjId,
+            $or: [{ buyerId }, { sellerId: buyerId }],
+          })
+          .exec();
+      }
+
       if (!conversation) {
         conversation = new this.conversationModel({
-          shortVideoId: new Types.ObjectId(shortVideoId!),
+          shortVideoId: shortObjId,
           buyerId,
           sellerId,
         });
-        await conversation.save();
+        try {
+          await conversation.save();
+        } catch (err: any) {
+          if (err.code === 11000) {
+            // Duplicate key on productListingId index (non-sparse legacy index)
+            // Find the existing conversation between these users for shorts
+            conversation = await this.conversationModel
+              .findOne({
+                buyerId,
+                sellerId,
+                productListingId: { $exists: false },
+                shortVideoId: shortObjId,
+              })
+              .exec();
+            // If still not found, try without shortVideoId filter
+            if (!conversation) {
+              conversation = await this.conversationModel
+                .findOne({
+                  buyerId,
+                  sellerId,
+                  productListingId: null,
+                })
+                .exec();
+            }
+            if (!conversation) {
+              throw new BadRequestException(PUBLIC_ERROR.MESSAGING_FAILED);
+            }
+          } else {
+            throw err;
+          }
+        }
       }
 
       const savedMessage = await this.optionallySendMessage(
@@ -232,7 +282,7 @@ export class MessagingService {
     totalPages: number;
   }> {
     if (!Types.ObjectId.isValid(conversationId)) {
-      throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const conversation = await this.conversationModel
@@ -240,7 +290,7 @@ export class MessagingService {
       .exec();
 
     if (!conversation) {
-      throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     // Verify user is a participant
@@ -249,7 +299,7 @@ export class MessagingService {
       conversation.buyerId.toString() !== userObjectId &&
       conversation.sellerId.toString() !== userObjectId
     ) {
-      throw new ForbiddenException(ERROR.NOT_CONVERSATION_PARTICIPANT);
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
 
     const limit = MESSAGES_PER_PAGE;
@@ -286,21 +336,21 @@ export class MessagingService {
     options?: SendMessageOptions,
   ): Promise<MessageDocument> {
     if (!Types.ObjectId.isValid(conversationId)) {
-      throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const conversation = await this.conversationModel
       .findById(conversationId)
       .exec();
     if (!conversation) {
-      throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     if (
       conversation.buyerId.toString() !== userId &&
       conversation.sellerId.toString() !== userId
     ) {
-      throw new ForbiddenException(ERROR.NOT_CONVERSATION_PARTICIPANT);
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
 
     // Check listing is still active
@@ -309,7 +359,7 @@ export class MessagingService {
       .select('status')
       .exec();
     if (listing && listing.status !== ListingStatus.ACTIVE) {
-      throw new BadRequestException(ERROR.LISTING_NOT_ACTIVE_MESSAGING);
+      throw new BadRequestException(PUBLIC_ERROR.MESSAGING_NOT_ALLOWED);
     }
 
     const msgType = options?.type || MessageType.TEXT;
@@ -389,19 +439,19 @@ export class MessagingService {
     userId: string,
   ): Promise<{ marked: number }> {
     if (!Types.ObjectId.isValid(conversationId)) {
-      throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     const conversation = await this.conversationModel
       .findById(conversationId)
       .exec();
     if (!conversation) {
-      throw new NotFoundException(ERROR.CONVERSATION_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     if (
       conversation.buyerId.toString() !== userId &&
       conversation.sellerId.toString() !== userId
     ) {
-      throw new ForbiddenException(ERROR.NOT_CONVERSATION_PARTICIPANT);
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
 
     const result = await this.messageModel

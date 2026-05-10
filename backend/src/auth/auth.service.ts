@@ -37,6 +37,7 @@ import { JwtPayload } from './strategies/jwt.strategy.js';
 import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
 import { ERROR } from '../common/constants/error-messages.js';
+import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { OtpReason } from '../common/enums/otp-reason.enum.js';
 import { RecommendationService } from '../ai/recommendation.service.js';
 import { UserAction } from '../ai/enums/user-action.enum.js';
@@ -88,7 +89,7 @@ export class AuthService {
     dto: RegisterDto,
   ): Promise<{ message: string; userId: string }> {
     if (!dto.email && !dto.phone) {
-      throw new BadRequestException('Either email or phone is required');
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
 
     // Check for duplicates
@@ -97,9 +98,7 @@ export class AuthService {
         .findOne({ email: dto.email })
         .exec();
       if (existingEmail) {
-        throw new ConflictException(
-          'Unable to complete registration. Please try a different email or phone.',
-        );
+        throw new ConflictException(PUBLIC_ERROR.CONFLICT);
       }
     }
     if (dto.phone) {
@@ -107,9 +106,7 @@ export class AuthService {
         .findOne({ phone: dto.phone })
         .exec();
       if (existingPhone) {
-        throw new ConflictException(
-          'Unable to complete registration. Please try a different email or phone.',
-        );
+        throw new ConflictException(PUBLIC_ERROR.CONFLICT);
       }
     }
 
@@ -172,11 +169,11 @@ export class AuthService {
       .exec();
 
     if (!record) {
-      throw new BadRequestException('Invalid or expired verification token');
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
     if (record.expiresAt < new Date()) {
-      throw new BadRequestException('Verification token has expired');
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
     // Mark token as used
@@ -203,7 +200,7 @@ export class AuthService {
   async verifyPhone(phone: string, otp: string): Promise<{ message: string }> {
     const user = await this.userModel.findOne({ phone }).exec();
     if (!user) {
-      throw new NotFoundException(ERROR.USER_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     const record = await this.verificationTokenModel
@@ -216,17 +213,17 @@ export class AuthService {
       .exec();
 
     if (!record) {
-      throw new BadRequestException('Invalid or expired OTP');
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
     if (record.expiresAt < new Date()) {
-      throw new BadRequestException('OTP has expired');
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
     // Compare OTP hash
     const isValid = await bcrypt.compare(otp, record.token);
     if (!isValid) {
-      throw new BadRequestException('Invalid OTP code');
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
     // Mark token as used
@@ -260,7 +257,7 @@ export class AuthService {
     channel?: OtpChannel,
   ): Promise<{ message: string }> {
     if (!email && !phone) {
-      throw new BadRequestException('Either email or phone is required');
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
 
     let user: UserDocument | null;
@@ -293,9 +290,7 @@ export class AuthService {
       .exec();
 
     if (recentCount >= MAX_RESENDS_PER_HOUR) {
-      throw new BadRequestException(
-        'Maximum resend limit reached. Please try again later.',
-      );
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
 
     // Invalidate previous tokens
@@ -449,7 +444,7 @@ export class AuthService {
     userId?: string;
   }> {
     if (!email && !phone) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
 
     // Find user by email or phone
@@ -461,19 +456,17 @@ export class AuthService {
     }
 
     if (!user || !user.passwordHash) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
 
     if (user.status === UserStatus.SUSPENDED) {
-      throw new ForbiddenException(
-        'Your account has been suspended. Please contact support.',
-      );
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
 
     // Verify password
     const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
 
     // Check if MFA is enabled — return partial response requiring MFA verification
@@ -548,7 +541,7 @@ export class AuthService {
       firstName = payload.firstName || dto.firstName || '';
       lastName = payload.lastName || dto.lastName || '';
     } else {
-      throw new BadRequestException('Unsupported social login provider');
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
 
     // 1. Check if user exists with matching social login
@@ -624,7 +617,7 @@ export class AuthService {
       });
       const payload = ticket.getPayload();
       if (!payload || !payload.email) {
-        throw new UnauthorizedException('Google token missing email');
+        throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
       }
       return {
         email: payload.email,
@@ -634,7 +627,7 @@ export class AuthService {
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) throw error;
-      throw new UnauthorizedException('Invalid Google token');
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
   }
 
@@ -649,7 +642,7 @@ export class AuthService {
         `https://graph.facebook.com/me?fields=id,email,first_name,last_name&access_token=${encodeURIComponent(accessToken)}`,
       );
       if (!response.ok) {
-        throw new UnauthorizedException('Invalid Facebook token');
+        throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
       }
       const data = (await response.json()) as {
         id?: string;
@@ -658,9 +651,7 @@ export class AuthService {
         last_name?: string;
       };
       if (!data.id || !data.email) {
-        throw new UnauthorizedException(
-          'Facebook token missing required fields',
-        );
+        throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
       }
       return {
         email: data.email,
@@ -670,7 +661,7 @@ export class AuthService {
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) throw error;
-      throw new UnauthorizedException('Invalid Facebook token');
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
   }
 
@@ -687,7 +678,7 @@ export class AuthService {
         ignoreExpiration: false,
       });
       if (!payload.sub) {
-        throw new UnauthorizedException('Apple token missing subject');
+        throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
       }
       return {
         email: payload.email || `${payload.sub}@privaterelay.appleid.com`,
@@ -697,7 +688,7 @@ export class AuthService {
       };
     } catch (error) {
       if (error instanceof UnauthorizedException) throw error;
-      throw new UnauthorizedException('Invalid Apple token');
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
   }
 
@@ -709,23 +700,23 @@ export class AuthService {
     try {
       payload = this.jwtService.verify<JwtPayload>(refreshToken);
     } catch {
-      throw new UnauthorizedException('Invalid or expired refresh token');
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
 
     if (payload.type !== 'refresh') {
-      throw new UnauthorizedException('Invalid token type');
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
 
     // Check if refresh token exists in Redis
     const storedUserId = await this.redis.get(`rt:${payload.jti}`);
     if (!storedUserId) {
-      throw new UnauthorizedException('Refresh token has been revoked');
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
 
     // Find user
     const user = await this.userModel.findById(payload.sub).exec();
     if (!user) {
-      throw new UnauthorizedException(ERROR.USER_NOT_FOUND);
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
 
     // Invalidate old refresh token
@@ -761,7 +752,7 @@ export class AuthService {
       try {
         payload = this.jwtService.decode(accessToken);
       } catch {
-        throw new UnauthorizedException('Invalid token');
+        throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
       }
     }
 
@@ -784,11 +775,11 @@ export class AuthService {
   ): Promise<{ secret: string; qrCodeUrl: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
-      throw new NotFoundException(ERROR.USER_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     if (user.mfa?.enabled) {
-      throw new BadRequestException('MFA is already enabled');
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
 
     const secret = generateTotpSecret();
@@ -820,20 +811,16 @@ export class AuthService {
   }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
-      throw new UnauthorizedException('Invalid credentials');
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
 
     if (!user.mfa?.enabled || !user.mfa?.totpSecret) {
-      throw new BadRequestException('MFA is not enabled for this account');
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
 
     // Check if account is locked
     if (user.mfa.lockedUntil && user.mfa.lockedUntil > new Date()) {
-      const remainingMs = user.mfa.lockedUntil.getTime() - Date.now();
-      const remainingMin = Math.ceil(remainingMs / 60000);
-      throw new ForbiddenException(
-        `Account is temporarily locked. Try again in ${remainingMin} minutes.`,
-      );
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
 
     // Verify the TOTP code
@@ -872,12 +859,10 @@ export class AuthService {
       await this.userModel.findByIdAndUpdate(userId, updateFields).exec();
 
       if (failedAttempts >= MFA_MAX_FAILED_ATTEMPTS) {
-        throw new ForbiddenException(
-          `Account locked for ${MFA_LOCKOUT_MINUTES} minutes due to too many failed attempts.`,
-        );
+        throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
       }
 
-      throw new UnauthorizedException('Invalid MFA code');
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
 
     // Reset failed attempts on success
@@ -971,11 +956,11 @@ export class AuthService {
       .exec();
 
     if (!record) {
-      throw new BadRequestException('Invalid or expired password reset token');
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
     if (record.expiresAt < new Date()) {
-      throw new BadRequestException('Password reset token has expired');
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
     // Mark token as used
@@ -1022,13 +1007,13 @@ export class AuthService {
   ): Promise<{ message: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
-      throw new NotFoundException(ERROR.USER_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     // Check if new email is already in use
     const existing = await this.userModel.findOne({ email: newEmail }).exec();
     if (existing) {
-      throw new ConflictException('Email is already in use');
+      throw new ConflictException(PUBLIC_ERROR.CONFLICT);
     }
 
     // Enforce rate limit: max 3 change requests per 24 hours
@@ -1069,7 +1054,7 @@ export class AuthService {
       .exec();
 
     if (!user || !user.pendingEmailChange) {
-      throw new BadRequestException('Invalid or expired email change token');
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
     if (user.pendingEmailChange.expiresAt < new Date()) {
@@ -1079,7 +1064,7 @@ export class AuthService {
           $unset: { pendingEmailChange: 1 },
         })
         .exec();
-      throw new BadRequestException('Email change token has expired');
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
     // Check if new email is still available
@@ -1090,7 +1075,7 @@ export class AuthService {
       })
       .exec();
     if (existing) {
-      throw new ConflictException('Email is already in use');
+      throw new ConflictException(PUBLIC_ERROR.CONFLICT);
     }
 
     const oldEmail = user.email;
@@ -1130,13 +1115,13 @@ export class AuthService {
   ): Promise<{ message: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
-      throw new NotFoundException(ERROR.USER_NOT_FOUND);
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
     // Check if new phone is already in use
     const existing = await this.userModel.findOne({ phone: newPhone }).exec();
     if (existing) {
-      throw new ConflictException('Phone number is already in use');
+      throw new ConflictException(PUBLIC_ERROR.CONFLICT);
     }
 
     // Enforce rate limit: max 3 change requests per 24 hours
@@ -1176,7 +1161,7 @@ export class AuthService {
   ): Promise<{ message: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user || !user.pendingPhoneChange) {
-      throw new BadRequestException('No pending phone change request');
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
     if (user.pendingPhoneChange.expiresAt < new Date()) {
@@ -1186,7 +1171,7 @@ export class AuthService {
           $unset: { pendingPhoneChange: 1 },
         })
         .exec();
-      throw new BadRequestException('Phone change OTP has expired');
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
     // Verify OTP
@@ -1198,7 +1183,7 @@ export class AuthService {
           $inc: { 'pendingPhoneChange.attempts': 1 },
         })
         .exec();
-      throw new BadRequestException('Invalid OTP code');
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
     // Check if new phone is still available
@@ -1209,7 +1194,7 @@ export class AuthService {
       })
       .exec();
     if (existing) {
-      throw new ConflictException('Phone number is already in use');
+      throw new ConflictException(PUBLIC_ERROR.CONFLICT);
     }
 
     const newPhone = user.pendingPhoneChange.newPhone;
@@ -1242,9 +1227,7 @@ export class AuthService {
     if (changeCount && changeCount.count >= MAX_CHANGE_REQUESTS_PER_DAY) {
       // Check if the reset window has passed
       if (changeCount.resetAt && changeCount.resetAt > new Date()) {
-        throw new BadRequestException(
-          'Maximum change requests reached. Please try again later.',
-        );
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
       }
     }
   }

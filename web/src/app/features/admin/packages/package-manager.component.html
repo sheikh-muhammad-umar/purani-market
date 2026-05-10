@@ -67,33 +67,29 @@
               <tr>
                 <th style="padding-left: 46px" class="sortable" (click)="sortPackages('name')">
                   Name
-                  <span class="material-symbols-rounded sort-icon">{{
-                    sortIcon('name', pkgSortCol, pkgSortDir)
-                  }}</span>
+                  <span class="material-symbols-rounded sort-icon">{{ getSortIcon('name') }}</span>
                 </th>
                 <th class="sortable" (click)="sortPackages('type')">
                   Type
-                  <span class="material-symbols-rounded sort-icon">{{
-                    sortIcon('type', pkgSortCol, pkgSortDir)
-                  }}</span>
+                  <span class="material-symbols-rounded sort-icon">{{ getSortIcon('type') }}</span>
                 </th>
                 <th class="sortable" (click)="sortPackages('duration')">
                   Duration
                   <span class="material-symbols-rounded sort-icon">{{
-                    sortIcon('duration', pkgSortCol, pkgSortDir)
+                    getSortIcon('duration')
                   }}</span>
                 </th>
                 <th>Qty</th>
                 <th class="sortable" (click)="sortPackages('defaultPrice')">
                   Price
                   <span class="material-symbols-rounded sort-icon">{{
-                    sortIcon('defaultPrice', pkgSortCol, pkgSortDir)
+                    getSortIcon('defaultPrice')
                   }}</span>
                 </th>
                 <th class="sortable" (click)="sortPackages('isActive')">
                   Status
                   <span class="material-symbols-rounded sort-icon">{{
-                    sortIcon('isActive', pkgSortCol, pkgSortDir)
+                    getSortIcon('isActive')
                   }}</span>
                 </th>
                 <th>Actions</th>
@@ -120,9 +116,11 @@
                     </span>
                   </td>
                   <td>
-                    <span class="type-badge" [class.featured]="pkg.type === 'featured_ads'">{{
-                      pkg.type === 'featured_ads' ? 'Featured' : 'Ad Slots'
-                    }}</span>
+                    <span
+                      class="type-badge"
+                      [class.featured]="pkg.type === PackageTypeEnum.FEATURED_ADS"
+                      >{{ PACKAGE_TYPE_LABELS[pkg.type] || pkg.type }}</span
+                    >
                   </td>
                   <td>{{ pkg.duration }} days</td>
                   <td>{{ pkg.quantity }}</td>
@@ -375,9 +373,11 @@
             <tr>
               <td>{{ p.sellerId }}</td>
               <td>
-                <span class="type-badge" [class.featured]="p.type === 'featured_ads'">{{
-                  p.type === 'featured_ads' ? 'Featured' : 'Ad Slots'
-                }}</span>
+                <span
+                  class="type-badge"
+                  [class.featured]="p.type === PackageTypeEnum.FEATURED_ADS"
+                  >{{ PACKAGE_TYPE_LABELS[p.type] || p.type }}</span
+                >
               </td>
               <td>{{ p.quantity }}</td>
               <td>{{ p.remainingQuantity }}</td>
@@ -400,11 +400,11 @@
         <button class="btn-secondary" (click)="prevPurchasePage()" [disabled]="purchasePage <= 1">
           ← Prev
         </button>
-        <span class="page-info">Page {{ purchasePage }} of {{ totalPurchasePages }}</span>
+        <span class="page-info">Page {{ purchasePage }} of {{ totalPurchasePages() }}</span>
         <button
           class="btn-secondary"
           (click)="nextPurchasePage()"
-          [disabled]="purchasePage >= totalPurchasePages"
+          [disabled]="purchasePage >= totalPurchasePages()"
         >
           Next →
         </button>

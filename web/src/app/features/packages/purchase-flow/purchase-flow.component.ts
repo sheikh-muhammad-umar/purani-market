@@ -10,6 +10,7 @@ import {
   CURRENCY_SYMBOL,
   PACKAGE_TYPE_LABELS,
 } from '../../../core/constants/app';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
 import { PackageType } from '../../../core/constants/enums';
 
@@ -59,7 +60,7 @@ export class PurchaseFlowComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Failed to load package details.');
+        this.error.set(ERROR_MSG.PACKAGE_DETAILS_LOAD_FAILED);
         this.loading.set(false);
       },
     });

@@ -14,6 +14,7 @@ import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/auth';
 import { Conversation, ConversationListing } from '../../../core/models';
 import { PLACEHOLDER_IMAGE, CURRENCY_SYMBOL } from '../../../core/constants/app';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
 import { SKELETON_ITEMS } from '../messaging.constants';
 import { ChatWindowComponent } from '../chat-window/chat-window.component';
@@ -139,9 +140,8 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
                 this.loadConversations();
               }
             },
-            error: (err: any) => {
-              const msg = err?.error?.message || 'Could not start conversation';
-              alert(msg);
+            error: () => {
+              alert(ERROR_MSG.CONVERSATION_START_FAILED);
               this.loadConversations();
             },
           });

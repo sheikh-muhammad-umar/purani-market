@@ -212,7 +212,7 @@ export class ExperimentsDashboardComponent implements OnInit {
         },
         error: (err) => {
           this.creating.set(false);
-          this.error.set(err.error?.message || 'Failed to create experiment.');
+          this.error.set('Failed to create experiment.');
         },
       });
   }

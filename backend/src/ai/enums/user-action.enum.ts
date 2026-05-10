@@ -47,6 +47,18 @@ export enum UserAction {
   PACKAGE_PURCHASE = 'package_purchase',
   PAYMENT_ATTEMPT = 'payment_attempt',
 
+  // Package management (frontend)
+  PACKAGE_APPLY = 'package_apply',
+  PACKAGE_LIST_VIEWED = 'package_list_viewed',
+  PACKAGE_CONFIRM_MODAL_SHOWN = 'package_confirm_modal_shown',
+  PACKAGE_CONFIRM_MODAL_CONFIRMED = 'package_confirm_modal_confirmed',
+  PACKAGE_CONFIRM_MODAL_CANCELLED = 'package_confirm_modal_cancelled',
+  PACKAGE_NONE_AVAILABLE = 'package_none_available',
+  PACKAGE_PURCHASE_CTA_CLICKED = 'package_purchase_cta_clicked',
+  PACKAGE_PURCHASE_INITIATED = 'package_purchase_initiated',
+  MY_PACKAGES_VIEWED = 'my_packages_viewed',
+  MY_PACKAGES_FILTER_CHANGED = 'my_packages_filter_changed',
+
   // Location
   LOCATION_CHANGE = 'location_change',
 
@@ -115,6 +127,23 @@ export enum UserAction {
   SHORT_EXPIRED = 'short_expired',
   SHORT_DELETED = 'short_deleted',
   SHORT_VIEWED = 'short_viewed',
+  SHORT_VIEW = 'short_view',
+  SHORT_UPLOAD_START = 'short_upload_start',
+  SHORT_UPLOAD_SUCCESS = 'short_upload_success',
+  SHORT_UPLOAD_FAIL = 'short_upload_fail',
+  SHORT_EDIT = 'short_edit',
+  SHORT_DELETE = 'short_delete',
+  SHORT_LIKE = 'short_like',
+  SHORT_UNLIKE = 'short_unlike',
+  SHORT_CHAT_CLICK = 'short_chat_click',
+  SHORT_CALL_CLICK = 'short_call_click',
+  SHORT_SELLER_CLICK = 'short_seller_click',
+  SHORT_FEED_FILTER = 'short_feed_filter',
+  SHORT_SHARE = 'short_share',
+  SHORT_PACKAGE_VIEW = 'short_package_view',
+  SHORT_PACKAGE_PURCHASE = 'short_package_purchase',
+  SHORT_CAMERA_RECORD = 'short_camera_record',
+  SHORT_LIMIT_REACHED = 'short_limit_reached',
   SHORTS_PACKAGE_PURCHASED = 'shorts_package_purchased',
   SHORTS_PACKAGE_EXPIRED = 'shorts_package_expired',
 }
