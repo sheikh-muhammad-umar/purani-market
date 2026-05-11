@@ -5,31 +5,18 @@ import {
   AdminService,
   CreatePackagePayload,
   UpdatePackagePayload,
-  AdminPurchasesParams,
 } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
-import { AdPackage, PackagePurchase, PackageType, PaymentStatus } from '../../../core/models';
+import { AdPackage, PackageType } from '../../../core/models';
 import { Category } from '../../../core/models/category.model';
-import {
-  PACKAGE_TYPE_OPTIONS,
-  PACKAGE_TYPE_FILTER_OPTIONS,
-  DURATION_OPTIONS,
-  PAYMENT_STATUS_OPTIONS,
-} from '../../../core/constants/select-options';
-import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { PACKAGE_TYPE_OPTIONS, DURATION_OPTIONS } from '../../../core/constants/select-options';
 import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
 import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
-import { saveState, loadState } from '../../../core/utils/state-persistence';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
-import {
-  PackageTab,
-  FormPanel,
-  CategoryPricingGroup,
-  PricingDisplayGroup,
-} from './package-manager.interfaces';
+import { FormPanel, CategoryPricingGroup, PricingDisplayGroup } from './package-manager.interfaces';
 
 /** Display labels for package types used in template */
 const PACKAGE_TYPE_LABELS: Record<string, string> = {
@@ -40,7 +27,7 @@ const PACKAGE_TYPE_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-package-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent, DatePickerComponent],
+  imports: [CommonModule, FormsModule, CustomSelectComponent],
   templateUrl: './package-manager.component.html',
   styleUrls: ['./package-manager.component.scss'],
 })
@@ -52,8 +39,6 @@ export class PackageManagerComponent implements OnInit {
   readonly error = signal<string | null>(null);
   readonly saving = signal(false);
   readonly packages = signal<AdPackage[]>([]);
-  readonly purchases = signal<PackagePurchase[]>([]);
-  readonly purchasesTotal = signal(0);
   readonly categories = signal<Category[]>([]);
 
   // Sorting as signals for reactive template binding
@@ -74,11 +59,6 @@ export class PackageManagerComponent implements OnInit {
     return map;
   });
 
-  readonly totalPurchasePages = computed(
-    () => Math.ceil(this.purchasesTotal() / this.purchaseLimit) || 1,
-  );
-
-  activeTab: PackageTab = 'packages';
   activePanel: FormPanel = 'none';
   editingPackage: AdPackage | null = null;
   expandedPackageIds = new Set<string>();
@@ -93,21 +73,8 @@ export class PackageManagerComponent implements OnInit {
   formCategoryPricing: CategoryPricingGroup[] = [];
   pricingCatSearch: string[] = [];
 
-  // Purchase filters
-  purchaseFilterStartDate = '';
-  purchaseFilterEndDate = '';
-  readonly today = new Date().toISOString().split('T')[0];
-  purchaseFilterSellerId = '';
-  purchaseFilterType: PackageType | '' = '';
-  purchaseFilterStatus: PaymentStatus | '' = '';
-
   readonly typeOptions: SelectOption[] = PACKAGE_TYPE_OPTIONS;
   readonly durationOptions: SelectOption[] = DURATION_OPTIONS;
-  readonly purchaseTypeOptions: SelectOption[] = PACKAGE_TYPE_FILTER_OPTIONS;
-  readonly purchaseStatusOptions: SelectOption[] = PAYMENT_STATUS_OPTIONS;
-
-  purchasePage = 1;
-  readonly purchaseLimit = 10;
 
   constructor(
     private readonly adminService: AdminService,
@@ -115,10 +82,6 @@ export class PackageManagerComponent implements OnInit {
   ) {}
 
   ngOnInit(): void {
-    const saved = loadState<{ activeTab: string }>('package-manager');
-    if (saved.activeTab === 'purchases') {
-      this.activeTab = 'purchases';
-    }
     this.loadPackages();
     this.loadCategories();
   }
@@ -144,41 +107,6 @@ export class PackageManagerComponent implements OnInit {
       next: (cats) => this.categories.set(cats),
       error: () => {},
     });
-  }
-
-  loadPurchases(): void {
-    this.loading.set(true);
-    const params: AdminPurchasesParams = {
-      page: this.purchasePage,
-      limit: this.purchaseLimit,
-    };
-    if (this.purchaseFilterStartDate) params.startDate = this.purchaseFilterStartDate;
-    if (this.purchaseFilterEndDate) params.endDate = this.purchaseFilterEndDate;
-    if (this.purchaseFilterSellerId) params.sellerId = this.purchaseFilterSellerId;
-    if (this.purchaseFilterType) params.type = this.purchaseFilterType;
-    if (this.purchaseFilterStatus) params.status = this.purchaseFilterStatus;
-
-    this.adminService.getAdminPurchases(params).subscribe({
-      next: (res: any) => {
-        const unwrapped = res && res.data && res.statusCode ? res.data : res;
-        this.purchases.set(unwrapped.data ?? unwrapped ?? []);
-        this.purchasesTotal.set(unwrapped.total ?? 0);
-        this.loading.set(false);
-      },
-      error: () => {
-        this.error.set(ERROR_MSG.PURCHASES_LOAD_FAILED);
-        this.loading.set(false);
-      },
-    });
-  }
-
-  switchTab(tab: PackageTab): void {
-    this.activeTab = tab;
-    this.activePanel = 'none';
-    saveState('package-manager', { activeTab: tab });
-    if (tab === 'purchases') {
-      this.loadPurchases();
-    }
   }
 
   openCreateForm(): void {
@@ -318,34 +246,6 @@ export class PackageManagerComponent implements OnInit {
     const q = (this.pricingCatSearch[index] || '').toLowerCase().trim();
     if (!q) return this.categories();
     return this.categories().filter((c) => c.name.toLowerCase().includes(q));
-  }
-
-  // --- Purchase Filters ---
-  applyPurchaseFilters(): void {
-    this.purchasePage = 1;
-    this.loadPurchases();
-  }
-
-  resetPurchaseFilters(): void {
-    this.purchaseFilterStartDate = '';
-    this.purchaseFilterEndDate = '';
-    this.purchaseFilterSellerId = '';
-    this.purchaseFilterType = '';
-    this.purchaseFilterStatus = '';
-    this.purchasePage = 1;
-    this.loadPurchases();
-  }
-
-  nextPurchasePage(): void {
-    this.purchasePage++;
-    this.loadPurchases();
-  }
-
-  prevPurchasePage(): void {
-    if (this.purchasePage > 1) {
-      this.purchasePage--;
-      this.loadPurchases();
-    }
   }
 
   trackByIndex(index: number): number {

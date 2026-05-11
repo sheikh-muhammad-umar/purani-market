@@ -1,4 +1,3 @@
-export type PackageTab = 'packages' | 'purchases';
 export type FormPanel = 'none' | 'create' | 'edit';
 
 export interface CategoryPricingGroup {

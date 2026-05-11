@@ -1,195 +1,307 @@
 <div class="shorts-admin">
-  <h1>Shorts Management</h1>
-
   <!-- Tabs -->
   <div class="tabs">
-    <button
-      [class.active]="activeTab() === 'moderation'"
-      (click)="activeTab.set('moderation'); loadShorts('pending_review')"
-    >
-      Moderation Queue
+    <button [class.active]="activeTab() === 'all'" (click)="switchTab('all')">
+      <span class="material-symbols-rounded tab-icon">play_circle</span> All Shorts
     </button>
-    <button [class.active]="activeTab() === 'all'" (click)="activeTab.set('all'); loadShorts()">
-      All Shorts
-    </button>
-    <button
-      [class.active]="activeTab() === 'packages'"
-      (click)="activeTab.set('packages'); loadPackages()"
-    >
-      Packages
+    <button [class.active]="activeTab() === 'moderation'" (click)="switchTab('moderation')">
+      <span class="material-symbols-rounded tab-icon">gavel</span> Moderation Queue
+      @if (pendingCount() > 0) {
+        <span class="tab-badge">{{ pendingCount() }}</span>
+      }
     </button>
   </div>
 
-  <!-- Moderation / All Shorts -->
-  @if (activeTab() === 'moderation' || activeTab() === 'all') {
-    <!-- Filters -->
-    <div class="filters">
-      <select [(ngModel)]="statusFilter" (ngModelChange)="loadShorts($event)">
-        <option value="">All Statuses</option>
-        <option value="pending_review">Pending Review</option>
-        <option value="active">Active</option>
-        <option value="rejected">Rejected</option>
-        <option value="expired">Expired</option>
-      </select>
+  <!-- ALL SHORTS TAB -->
+  @if (activeTab() === 'all') {
+    <div class="page-header">
+      <h1>All Shorts</h1>
+      @if (!loading()) {
+        <span class="count-badge">{{ total() }} shorts</span>
+      }
     </div>
+
+    <!-- Toolbar -->
+    <div class="admin-toolbar">
+      <div class="admin-search">
+        <input
+          type="text"
+          placeholder="Search shorts..."
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="applyFilters()"
+        />
+        <button (click)="applyFilters()">
+          <span class="material-symbols-rounded" style="font-size: 18px">search</span>
+        </button>
+      </div>
+      <button
+        class="filter-toggle-btn"
+        [class.active]="filtersOpen || hasActiveFilters"
+        (click)="filtersOpen = !filtersOpen"
+      >
+        <span class="material-symbols-rounded" style="font-size: 18px">filter_list</span> Filters
+        @if (activeFilterCount > 0) {
+          <span class="filter-badge">{{ activeFilterCount }}</span>
+        }
+      </button>
+      <app-custom-select
+        [options]="sortOptions"
+        [(ngModel)]="sortBy"
+        (ngModelChange)="applyFilters()"
+        placeholder="Sort"
+      ></app-custom-select>
+    </div>
+
+    <!-- Filters Panel -->
+    @if (filtersOpen) {
+      <div class="filters-panel">
+        <div class="filters-grid">
+          <div class="filter-group">
+            <label class="filter-label">Status</label>
+            <app-custom-select
+              [options]="statusOptions"
+              [(ngModel)]="statusFilter"
+              (ngModelChange)="applyFilters()"
+              placeholder="All Statuses"
+            ></app-custom-select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Category</label>
+            <app-custom-select
+              [options]="categoryOptions"
+              [(ngModel)]="filterCategory"
+              (ngModelChange)="applyFilters()"
+              placeholder="All Categories"
+              [searchable]="true"
+            ></app-custom-select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">From</label>
+            <app-date-picker
+              [(ngModel)]="filterDateFrom"
+              [max]="filterDateTo || today"
+              (ngModelChange)="applyFilters()"
+            ></app-date-picker>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">To</label>
+            <app-date-picker
+              [(ngModel)]="filterDateTo"
+              [min]="filterDateFrom"
+              [max]="today"
+              (ngModelChange)="applyFilters()"
+            ></app-date-picker>
+          </div>
+        </div>
+        @if (hasActiveFilters) {
+          <button class="clear-filters-btn" (click)="clearFilters()">
+            <span class="material-symbols-rounded" style="font-size: 16px">close</span> Clear all
+          </button>
+        }
+      </div>
+    }
 
     @if (loading()) {
-      <div class="loading">Loading...</div>
+      <div class="loading-state"><div class="spinner"></div></div>
     }
-
-    <div class="shorts-table">
-      <table>
-        <thead>
-          <tr>
-            <th>Preview</th>
-            <th>Seller</th>
-            <th>Caption</th>
-            <th>Status</th>
-            <th>Duration</th>
-            <th>Views</th>
-            <th>Created</th>
-            <th>Expires</th>
-            <th>Actions</th>
-          </tr>
-        </thead>
-        <tbody>
-          @for (short of shorts(); track short._id) {
-            <tr>
-              <td>
-                <div class="thumb-cell">
-                  @if (short.video.thumbnailUrl) {
-                    <img [src]="short.video.thumbnailUrl" alt="thumb" class="thumb-img" />
-                  } @else {
-                    <div class="thumb-placeholder">
-                      <span class="material-symbols-rounded">videocam</span>
-                    </div>
-                  }
-                </div>
-              </td>
-              <td>
-                <div class="seller-cell">
-                  <span>{{ getSellerName(short) }}</span>
-                  <small>{{ getSellerContact(short) }}</small>
-                </div>
-              </td>
-              <td class="caption-cell">{{ short.title || short.description || '—' }}</td>
-              <td>
-                <span class="status-badge" [class]="short.status">
-                  {{ short.status | formatStatus }}
-                </span>
-              </td>
-              <td>{{ short.video.duration | formatDuration }}</td>
-              <td>{{ short.viewCount }}</td>
-              <td>{{ short.createdAt | date: 'd MMM y' }}</td>
-              <td>{{ short.expiresAt ? (short.expiresAt | date: 'd MMM y') : '—' }}</td>
-              <td>
-                <div class="action-btns">
-                  @if (short.status === 'pending_review') {
-                    <button class="btn-approve" (click)="approveShort(short._id)">✓ Approve</button>
-                    <button class="btn-reject" (click)="openRejectModal(short)">✗ Reject</button>
-                  }
-                  <button class="btn-view" (click)="openPreview(short)">
-                    <span class="material-symbols-rounded" style="font-size: 14px">play_arrow</span>
-                    View
-                  </button>
-                  <button class="btn-delete" (click)="deleteShort(short._id)">🗑</button>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
 
     @if (!loading() && shorts().length === 0) {
-      <div class="empty">No shorts found.</div>
-    }
-
-    <!-- Pagination -->
-    @if (total() > limit) {
-      <div class="pagination">
-        <button [disabled]="page() <= 1" (click)="changePage(page() - 1)">← Prev</button>
-        <span>Page {{ page() }} of {{ totalPages() }}</span>
-        <button [disabled]="page() >= totalPages()" (click)="changePage(page() + 1)">Next →</button>
+      <div class="empty-state">
+        @if (hasActiveFilters) {
+          No shorts match your filters.
+          <button class="btn-retry" (click)="clearFilters()">Clear</button>
+        } @else {
+          No shorts found.
+        }
       </div>
     }
-  }
 
-  <!-- Packages Tab -->
-  @if (activeTab() === 'packages') {
-    <div class="packages-section">
-      <div class="section-header">
-        <h2>Shorts Packages</h2>
-        <button class="btn-primary" (click)="showCreatePackage.set(true)">+ Create Package</button>
-      </div>
-
-      <div class="packages-grid">
-        @for (pkg of packages(); track pkg._id) {
-          <div class="package-card" [class.inactive]="!pkg.isActive">
-            <div class="package-header">
-              <h3>{{ pkg.name }}</h3>
-              <span class="package-status" [class.active]="pkg.isActive">
-                {{ pkg.isActive ? 'Active' : 'Inactive' }}
-              </span>
+    @if (!loading() && shorts().length > 0) {
+      <div class="card-list">
+        @for (short of shorts(); track short._id) {
+          <div class="short-card">
+            <div class="short-thumb" (click)="openPreview(short)">
+              @if (short.video.thumbnailUrl) {
+                <img [src]="short.video.thumbnailUrl" [alt]="short.title || 'Short'" />
+              } @else {
+                <div class="thumb-placeholder">
+                  <span class="material-symbols-rounded">videocam</span>
+                </div>
+              }
+              <div class="thumb-play-overlay">
+                <span class="material-symbols-rounded">play_arrow</span>
+              </div>
+              <span class="duration-badge">{{ short.video.duration | formatDuration }}</span>
             </div>
-            <div class="package-details">
-              <p>Quantity: {{ pkg.quantity }} shorts</p>
-              <p>Duration: {{ pkg.duration }} days</p>
-              <p>Price: {{ CURRENCY_SYMBOL }} {{ pkg.price }}</p>
+            <div class="short-info">
+              <span class="short-title">{{ short.title || short.description || '—' }}</span>
+              <span class="short-seller">{{ getSellerName(short) }}</span>
             </div>
-            <div class="package-actions">
-              <button class="btn-edit" (click)="editPackage(pkg)">Edit</button>
-              <button class="btn-toggle" (click)="togglePackageStatus(pkg)">
-                {{ pkg.isActive ? 'Deactivate' : 'Activate' }}
+            <div class="short-stats">
+              <div class="stat-item">
+                <span class="stat-value">{{ short.viewCount | number }}</span>
+                <span class="stat-label">Views</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value">{{ short.createdAt | date: 'd MMM' }}</span>
+                <span class="stat-label">Created</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value">{{
+                  short.expiresAt ? (short.expiresAt | date: 'd MMM') : '—'
+                }}</span>
+                <span class="stat-label">Expires</span>
+              </div>
+            </div>
+            <span class="short-status-badge" [attr.data-status]="short.status">
+              {{ short.status | formatStatus }}
+            </span>
+            <div class="short-actions">
+              <button class="btn-action btn-play" (click)="openPreview(short)" title="Play">
+                <span class="material-symbols-rounded" style="font-size: 16px">play_arrow</span>
+              </button>
+              <button
+                class="btn-action btn-delete-sm"
+                (click)="deleteShort(short._id)"
+                title="Delete"
+              >
+                <span class="material-symbols-rounded" style="font-size: 16px">delete</span>
               </button>
             </div>
           </div>
         }
       </div>
 
-      <!-- Create/Edit Package Modal -->
-      @if (showCreatePackage() || editingPackage()) {
-        <div class="modal-overlay" (click)="closePackageModal()">
-          <div class="modal" (click)="$event.stopPropagation()">
-            <h3>{{ editingPackage() ? 'Edit Package' : 'Create Package' }}</h3>
-            <div class="form-group">
-              <label>Name</label>
-              <input [(ngModel)]="pkgForm.name" placeholder="e.g. Starter Pack" />
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Quantity</label>
-                <input type="number" [(ngModel)]="pkgForm.quantity" min="1" />
-              </div>
-              <div class="form-group">
-                <label>Duration (days)</label>
-                <select [(ngModel)]="pkgForm.duration">
-                  @for (opt of shortsDurationOptions; track opt.value) {
-                    <option [value]="opt.value">{{ opt.label }}</option>
-                  }
-                </select>
-              </div>
-            </div>
-            <div class="form-row">
-              <div class="form-group">
-                <label>Price ({{ CURRENCY_SYMBOL }})</label>
-                <input type="number" [(ngModel)]="pkgForm.price" min="0" />
-              </div>
-            </div>
-            <div class="form-group">
-              <label>Description</label>
-              <textarea [(ngModel)]="pkgForm.description" rows="2"></textarea>
-            </div>
-            <div class="modal-actions">
-              <button class="btn-secondary" (click)="closePackageModal()">Cancel</button>
-              <button class="btn-primary" (click)="savePackage()">
-                {{ editingPackage() ? 'Update' : 'Create' }}
-              </button>
-            </div>
-          </div>
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button class="btn-page" (click)="changePage(page() - 1)" [disabled]="page() <= 1">
+            ← Prev
+          </button>
+          <span class="page-info">Page {{ page() }} of {{ totalPages() }}</span>
+          <button
+            class="btn-page"
+            (click)="changePage(page() + 1)"
+            [disabled]="page() >= totalPages()"
+          >
+            Next →
+          </button>
         </div>
       }
+    }
+  }
+
+  <!-- MODERATION TAB -->
+  @if (activeTab() === 'moderation') {
+    <div class="page-header">
+      <h1>Moderation Queue</h1>
+      @if (!modLoading()) {
+        <span class="count-badge">{{ pendingCount() }} pending</span>
+      }
     </div>
+
+    @if (modLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading pending shorts...</p>
+      </div>
+    }
+
+    @if (!modLoading()) {
+      <!-- Toolbar -->
+      <div class="admin-toolbar">
+        <div class="admin-search mod-search">
+          <input type="text" placeholder="Search by title..." [(ngModel)]="modSearchQuery" />
+        </div>
+        <div class="sort-btns">
+          <button
+            class="sort-btn"
+            [class.active]="modSortCol === 'createdAt'"
+            (click)="sortModerationShorts('createdAt')"
+          >
+            Date
+            <span class="material-symbols-rounded sort-icon">{{ modSortIcon('createdAt') }}</span>
+          </button>
+          <button
+            class="sort-btn"
+            [class.active]="modSortCol === 'viewCount'"
+            (click)="sortModerationShorts('viewCount')"
+          >
+            Views
+            <span class="material-symbols-rounded sort-icon">{{ modSortIcon('viewCount') }}</span>
+          </button>
+          <button
+            class="sort-btn"
+            [class.active]="modSortCol === 'title'"
+            (click)="sortModerationShorts('title')"
+          >
+            Title <span class="material-symbols-rounded sort-icon">{{ modSortIcon('title') }}</span>
+          </button>
+        </div>
+      </div>
+
+      @if (filteredPendingShorts.length === 0) {
+        <div class="empty-state">
+          {{ modSearchQuery ? 'No shorts match your search.' : 'No pending shorts to review.' }}
+        </div>
+      }
+
+      <div class="card-list">
+        @for (short of filteredPendingShorts; track short._id) {
+          <div class="short-card moderation-card">
+            <div class="short-thumb" (click)="openPreview(short)">
+              @if (short.video.thumbnailUrl) {
+                <img [src]="short.video.thumbnailUrl" [alt]="short.title || 'Short'" />
+              } @else {
+                <div class="thumb-placeholder">
+                  <span class="material-symbols-rounded">videocam</span>
+                </div>
+              }
+              <div class="thumb-play-overlay">
+                <span class="material-symbols-rounded">play_arrow</span>
+              </div>
+              <span class="duration-badge">{{ short.video.duration | formatDuration }}</span>
+            </div>
+            <div class="short-body">
+              <div class="short-top">
+                <span class="short-title">{{ short.title || short.description || '—' }}</span>
+              </div>
+              <div class="short-meta-grid">
+                <span class="short-meta">
+                  <span class="meta-label">Seller</span>{{ getSellerName(short) }}
+                </span>
+                <span class="short-meta">
+                  <span class="meta-label">Contact</span>{{ getSellerContact(short) }}
+                </span>
+                <span class="short-meta">
+                  <span class="meta-label">Submitted</span>{{ short.createdAt | date: 'd MMM y' }}
+                </span>
+              </div>
+              <div class="short-actions">
+                <button
+                  class="btn-action btn-approve"
+                  [disabled]="modActionLoading() === short._id"
+                  (click)="approveShort(short._id)"
+                >
+                  <span class="material-symbols-rounded" style="font-size: 14px">check_circle</span>
+                  Approve
+                </button>
+                <button
+                  class="btn-action btn-reject"
+                  [disabled]="modActionLoading() === short._id"
+                  (click)="openRejectModal(short)"
+                >
+                  <span class="material-symbols-rounded" style="font-size: 14px">cancel</span>
+                  Reject
+                </button>
+                <button class="btn-action btn-play" (click)="openPreview(short)">
+                  <span class="material-symbols-rounded" style="font-size: 14px">play_arrow</span>
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    }
   }
 
   <!-- Reject Modal -->
@@ -207,7 +319,7 @@
         </div>
         <div class="modal-actions">
           <button class="btn-secondary" (click)="rejectingShort.set(null)">Cancel</button>
-          <button class="btn-reject" (click)="confirmReject()">Reject</button>
+          <button class="btn-action btn-reject" (click)="confirmReject()">Reject</button>
         </div>
       </div>
     </div>

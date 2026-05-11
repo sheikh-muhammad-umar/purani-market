@@ -1,0 +1,126 @@
+<div class="package-purchases">
+  <div class="page-header">
+    <h1>Package Purchases</h1>
+  </div>
+
+  <!-- Error -->
+  @if (error()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+      <button class="btn-retry" (click)="loadPurchases()">Retry</button>
+    </div>
+  }
+
+  <!-- Loading -->
+  @if (loading() && !error()) {
+    <div class="loading-state">
+      <div class="spinner" aria-label="Loading"></div>
+      <p>Loading...</p>
+    </div>
+  }
+
+  @if (!loading() && !error()) {
+    <div class="filters-bar">
+      <div class="form-group compact">
+        <label>Start Date</label>
+        <app-date-picker
+          [(ngModel)]="purchaseFilterStartDate"
+          [max]="purchaseFilterEndDate || today"
+        ></app-date-picker>
+      </div>
+      <div class="form-group compact">
+        <label>End Date</label>
+        <app-date-picker
+          [(ngModel)]="purchaseFilterEndDate"
+          [min]="purchaseFilterStartDate"
+          [max]="today"
+        ></app-date-picker>
+      </div>
+      <div class="form-group compact">
+        <label>Seller ID</label>
+        <input type="text" [(ngModel)]="purchaseFilterSellerId" placeholder="Seller ID" />
+      </div>
+      <div class="form-group compact">
+        <label>Type</label>
+        <app-custom-select
+          [options]="purchaseTypeOptions"
+          [(ngModel)]="purchaseFilterType"
+          placeholder="All"
+        ></app-custom-select>
+      </div>
+      <div class="form-group compact">
+        <label>Status</label>
+        <app-custom-select
+          [options]="purchaseStatusOptions"
+          [(ngModel)]="purchaseFilterStatus"
+          placeholder="All"
+        ></app-custom-select>
+      </div>
+      <div class="filter-actions">
+        <button class="btn-primary" (click)="applyPurchaseFilters()">Apply</button>
+        <button class="btn-secondary" (click)="resetPurchaseFilters()">Reset</button>
+      </div>
+    </div>
+
+    @if ((purchases() || []).length === 0) {
+      <div class="empty-list">No purchases found.</div>
+    }
+
+    @if ((purchases() || []).length > 0) {
+      <table class="data-table" aria-label="Package purchases">
+        <thead>
+          <tr>
+            <th>Seller</th>
+            <th>Type</th>
+            <th>Qty</th>
+            <th>Remaining</th>
+            <th>Price</th>
+            <th>Payment</th>
+            <th>Status</th>
+            <th>Date</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (p of purchases(); track $index) {
+            <tr>
+              <td>{{ p.sellerId }}</td>
+              <td>
+                <span
+                  class="type-badge"
+                  [class.featured]="p.type === PackageTypeEnum.FEATURED_ADS"
+                  >{{ PACKAGE_TYPE_LABELS[p.type] || p.type }}</span
+                >
+              </td>
+              <td>{{ p.quantity }}</td>
+              <td>{{ p.remainingQuantity }}</td>
+              <td class="price-cell">Rs {{ p.price | number }}</td>
+              <td>{{ p.paymentMethod }}</td>
+              <td>
+                <span class="payment-status" [attr.data-status]="p.paymentStatus">{{
+                  p.paymentStatus
+                }}</span>
+              </td>
+              <td>{{ p.createdAt | date: 'mediumDate' }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    }
+
+    @if ((purchases() || []).length > 0) {
+      <div class="pagination">
+        <button class="btn-secondary" (click)="prevPurchasePage()" [disabled]="purchasePage <= 1">
+          ← Prev
+        </button>
+        <span class="page-info">Page {{ purchasePage }} of {{ totalPurchasePages() }}</span>
+        <button
+          class="btn-secondary"
+          (click)="nextPurchasePage()"
+          [disabled]="purchasePage >= totalPurchasePages()"
+        >
+          Next →
+        </button>
+      </div>
+    }
+  }
+</div>

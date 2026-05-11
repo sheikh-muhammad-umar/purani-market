@@ -112,6 +112,38 @@
   color: var(--primary);
 }
 
+.nav-dropdown-toggle {
+  width: 100%;
+  border: none;
+  background: none;
+  cursor: pointer;
+  font-family: inherit;
+}
+
+.nav-chevron {
+  margin-left: auto;
+  font-size: 18px;
+  color: var(--text-muted);
+  transition: transform 0.15s;
+}
+
+.nav-group.expanded .nav-chevron {
+  color: var(--primary);
+}
+
+.nav-children {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+  padding-left: 12px;
+  margin-top: 2px;
+}
+
+.nav-child {
+  padding: 7px 10px 7px 22px;
+  font-size: 12px;
+}
+
 .admin-content {
   flex: 1;
   min-width: 0; /* prevent flex overflow */

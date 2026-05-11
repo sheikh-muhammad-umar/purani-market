@@ -1,13 +1,21 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
-import { AdminService } from '../../../core/services/admin.service';
+import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
+import { AdminService, PendingListing } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { LocationService } from '../../../core/services/location.service';
+import { Category } from '../../../core/models/category.model';
 import { saveState, loadState } from '../../../core/utils/state-persistence';
 import { ListingStatus } from '../../../core/constants/enums';
 import { PAGE_SIZE_DEFAULT } from '../../../core/constants/app';
+import {
+  CONDITION_FILTER_OPTIONS,
+  REVIEW_COUNT_OPTIONS,
+} from '../../../core/constants/select-options';
+import { ERROR_MSG } from '../../../core/constants/error-messages';
+import { buildMapEmbedUrl } from '../../../core/utils/map-link';
 import {
   CustomSelectComponent,
   SelectOption,
@@ -40,6 +48,10 @@ interface AdminListing {
   styleUrl: './all-listings.component.scss',
 })
 export class AllListingsComponent implements OnInit {
+  // --- Tab state ---
+  activeTab = signal<'all' | 'moderation'>('all');
+
+  // --- All Listings state ---
   readonly loading = signal(true);
   readonly listings = signal<AdminListing[]>([]);
   readonly total = signal(0);
@@ -109,10 +121,106 @@ export class AllListingsComponent implements OnInit {
     return c;
   }
 
+  // --- Moderation Queue state ---
+  readonly pendingListings = signal<PendingListing[]>([]);
+  readonly pendingCount = signal(0);
+  readonly modLoading = signal(true);
+  readonly modError = signal<string | null>(null);
+  readonly modTotalListings = signal(0);
+  readonly modActionLoading = signal<string | null>(null);
+
+  rejectingId: string | null = null;
+  expandedId: string | null = null;
+  selectedRejectReasonIds: Record<string, string[]> = {};
+  rejectCustomNote: Record<string, string> = {};
+  availableReasons: { _id: string; title: string; description?: string }[] = [];
+
+  // Moderation sorting
+  modSortCol = '';
+  modSortDir: 'asc' | 'desc' = 'asc';
+  modSearchQuery = '';
+
+  // Moderation filters
+  modFilterCondition = '';
+  modFilterCategory = '';
+  modFilterDateFrom = '';
+  modFilterDateTo = '';
+  modFilterReviewCount = '';
+  modFiltersOpen = false;
+
+  conditionOptions = CONDITION_FILTER_OPTIONS;
+  reviewCountOptions = REVIEW_COUNT_OPTIONS;
+  modCategoryOptions: SelectOption[] = [{ value: '', label: 'All Categories' }];
+
+  get modHasActiveFilters(): boolean {
+    return !!(
+      this.modFilterCondition ||
+      this.modFilterCategory ||
+      this.modFilterDateFrom ||
+      this.modFilterDateTo ||
+      this.modFilterReviewCount ||
+      this.modSearchQuery
+    );
+  }
+
+  get modActiveFilterCount(): number {
+    let count = 0;
+    if (this.modFilterCondition) count++;
+    if (this.modFilterCategory) count++;
+    if (this.modFilterDateFrom || this.modFilterDateTo) count++;
+    if (this.modFilterReviewCount) count++;
+    if (this.modSearchQuery) count++;
+    return count;
+  }
+
+  get filteredPendingListings(): PendingListing[] {
+    let result = this.pendingListings();
+
+    // Text search
+    const q = this.modSearchQuery.toLowerCase().trim();
+    if (q) {
+      result = result.filter(
+        (l) =>
+          l.title.toLowerCase().includes(q) ||
+          l.sellerEmail?.toLowerCase().includes(q) ||
+          l.sellerName?.toLowerCase().includes(q),
+      );
+    }
+
+    // Condition filter
+    if (this.modFilterCondition) {
+      result = result.filter((l) => l.condition === this.modFilterCondition);
+    }
+
+    // Category filter
+    if (this.modFilterCategory) {
+      result = result.filter((l) => l.categoryId === this.modFilterCategory);
+    }
+
+    // Date range filter
+    if (this.modFilterDateFrom) {
+      const from = new Date(this.modFilterDateFrom + 'T00:00:00').getTime();
+      result = result.filter((l) => new Date(l.createdAt).getTime() >= from);
+    }
+    if (this.modFilterDateTo) {
+      const to = new Date(this.modFilterDateTo + 'T23:59:59').getTime();
+      result = result.filter((l) => new Date(l.createdAt).getTime() <= to);
+    }
+
+    // Review count filter
+    if (this.modFilterReviewCount !== '') {
+      const count = parseInt(this.modFilterReviewCount, 10);
+      result = result.filter((l) => (l.rejectionCount || 0) === count);
+    }
+
+    return result;
+  }
+
   constructor(
     private readonly adminService: AdminService,
     private readonly categoriesService: CategoriesService,
     private readonly locationService: LocationService,
+    private readonly sanitizer: DomSanitizer,
   ) {}
 
   private readonly stateKey = 'admin-all-listings';
@@ -128,12 +236,27 @@ export class AllListingsComponent implements OnInit {
     this.loadProvinces();
     this.loadRejectionReasons();
     this.loadDeletionReasons();
+    this.loadPendingListings();
+    this.loadModerationRejectionReasons();
   }
 
+  // --- Tab switching ---
+  switchTab(tab: 'all' | 'moderation'): void {
+    this.activeTab.set(tab);
+    if (tab === 'moderation' && this.pendingListings().length === 0 && !this.modLoading()) {
+      this.loadPendingListings();
+    }
+  }
+
+  // --- All Listings methods ---
   loadCategories(): void {
     this.categoriesService.getAll().subscribe({
       next: (cats) => {
         this.categoryOptions = [
+          { value: '', label: 'All Categories' },
+          ...cats.map((c) => ({ value: c._id, label: c.name })),
+        ];
+        this.modCategoryOptions = [
           { value: '', label: 'All Categories' },
           ...cats.map((c) => ({ value: c._id, label: c.name })),
         ];
@@ -272,7 +395,7 @@ export class AllListingsComponent implements OnInit {
       ? new Date(d).toLocaleDateString('en-PK', { month: 'short', day: 'numeric', year: 'numeric' })
       : '—';
   }
-  formatPrice(l: AdminListing): string {
+  formatPrice(l: AdminListing | PendingListing): string {
     return l.price ? `${l.price.currency} ${l.price.amount.toLocaleString()}` : '—';
   }
 
@@ -288,5 +411,168 @@ export class AllListingsComponent implements OnInit {
 
   getStatusColor(status: string): string {
     return AllListingsComponent.STATUS_COLOR_MAP[status] || '#636e72';
+  }
+
+  // --- Moderation Queue methods ---
+  loadModerationRejectionReasons(): void {
+    this.adminService.getRejectionReasons().subscribe({
+      next: (reasons) => {
+        this.availableReasons = reasons;
+      },
+    });
+  }
+
+  loadPendingListings(): void {
+    this.modLoading.set(true);
+    this.modError.set(null);
+    this.adminService.getPendingListings().subscribe({
+      next: (res: any) => {
+        const data = res && res.data && res.statusCode ? res.data : res;
+        const listings = data.listings ?? data.data ?? [];
+        const sorted = [...listings].sort(
+          (a: any, b: any) => new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime(),
+        );
+        this.pendingListings.set(sorted);
+        this.modTotalListings.set(data.total ?? sorted.length);
+        this.pendingCount.set(data.total ?? sorted.length);
+        this.modLoading.set(false);
+      },
+      error: () => {
+        this.modError.set(ERROR_MSG.PENDING_LISTINGS_LOAD_FAILED);
+        this.modLoading.set(false);
+      },
+    });
+  }
+
+  toggleExpand(id: string): void {
+    this.expandedId = this.expandedId === id ? null : id;
+  }
+
+  approveListing(listing: PendingListing): void {
+    this.modActionLoading.set(listing._id);
+    this.adminService.approveListing(listing._id).subscribe({
+      next: () => {
+        this.pendingListings.update((list) => list.filter((l) => l._id !== listing._id));
+        this.modTotalListings.update((t) => t - 1);
+        this.pendingCount.update((c) => c - 1);
+        this.modActionLoading.set(null);
+      },
+      error: () => {
+        this.modActionLoading.set(null);
+      },
+    });
+  }
+
+  startReject(listing: PendingListing): void {
+    this.rejectingId = listing._id;
+    this.expandedId = listing._id;
+    if (!this.selectedRejectReasonIds[listing._id]) {
+      this.selectedRejectReasonIds[listing._id] = [];
+    }
+    if (!this.rejectCustomNote[listing._id]) {
+      this.rejectCustomNote[listing._id] = '';
+    }
+    setTimeout(() => {
+      const el = document.getElementById('reject-form-' + listing._id);
+      el?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    }, 100);
+  }
+
+  cancelReject(): void {
+    this.rejectingId = null;
+  }
+
+  toggleRejectReason(listingId: string, reasonId: string): void {
+    const list = this.selectedRejectReasonIds[listingId] || [];
+    const idx = list.indexOf(reasonId);
+    if (idx >= 0) {
+      list.splice(idx, 1);
+    } else {
+      list.push(reasonId);
+    }
+    this.selectedRejectReasonIds[listingId] = [...list];
+  }
+
+  confirmReject(listing: PendingListing): void {
+    const reasons = this.selectedRejectReasonIds[listing._id];
+    if (!reasons || reasons.length === 0) return;
+    this.modActionLoading.set(listing._id);
+    const payload = {
+      rejectionReasonIds: reasons,
+      customNote: (this.rejectCustomNote[listing._id] || '').trim() || undefined,
+    };
+    this.adminService.rejectListing(listing._id, payload).subscribe({
+      next: () => {
+        this.pendingListings.update((list) => list.filter((l) => l._id !== listing._id));
+        this.modTotalListings.update((t) => t - 1);
+        this.pendingCount.update((c) => c - 1);
+        this.rejectingId = null;
+        delete this.selectedRejectReasonIds[listing._id];
+        delete this.rejectCustomNote[listing._id];
+        this.modActionLoading.set(null);
+      },
+      error: () => {
+        this.modActionLoading.set(null);
+      },
+    });
+  }
+
+  getThumbnail(listing: PendingListing): string {
+    if (listing.images && listing.images.length > 0) {
+      return listing.images[0].thumbnailUrl || listing.images[0].url;
+    }
+    return '';
+  }
+
+  objectKeys(obj: any): string[] {
+    if (!obj || typeof obj !== 'object') return [];
+    return Object.keys(obj).filter((k) => obj[k] !== '' && obj[k] !== null && obj[k] !== undefined);
+  }
+
+  formatAttrKey(key: string): string {
+    return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  private mapEmbedCache = new Map<string, SafeResourceUrl>();
+
+  getMapEmbedUrl(mapLink: string): SafeResourceUrl {
+    const cached = this.mapEmbedCache.get(mapLink);
+    if (cached) return cached;
+
+    const safe = this.sanitizer.bypassSecurityTrustResourceUrl(buildMapEmbedUrl(mapLink));
+    this.mapEmbedCache.set(mapLink, safe);
+    return safe;
+  }
+
+  sortModerationListings(col: string): void {
+    if (this.modSortCol === col) {
+      this.modSortDir = this.modSortDir === 'asc' ? 'desc' : 'asc';
+    } else {
+      this.modSortCol = col;
+      this.modSortDir = 'asc';
+    }
+    const dir = this.modSortDir === 'asc' ? 1 : -1;
+    this.pendingListings.update((list) =>
+      [...list].sort((a: any, b: any) => {
+        let va = col === 'price' ? a.price?.amount : a[col];
+        let vb = col === 'price' ? b.price?.amount : b[col];
+        if (typeof va === 'string') return (va || '').localeCompare(vb || '') * dir;
+        return ((va ?? 0) - (vb ?? 0)) * dir;
+      }),
+    );
+  }
+
+  modSortIcon(col: string): string {
+    if (col !== this.modSortCol) return 'unfold_more';
+    return this.modSortDir === 'asc' ? 'expand_less' : 'expand_more';
+  }
+
+  clearModFilters(): void {
+    this.modFilterCondition = '';
+    this.modFilterCategory = '';
+    this.modFilterDateFrom = '';
+    this.modFilterDateTo = '';
+    this.modFilterReviewCount = '';
+    this.modSearchQuery = '';
   }
 }

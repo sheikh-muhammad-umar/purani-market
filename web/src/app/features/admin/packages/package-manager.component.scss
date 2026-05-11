@@ -18,35 +18,6 @@
   }
 }
 
-.tabs {
-  display: flex;
-  gap: 4px;
-  margin-bottom: 24px;
-  border-bottom: 2px solid var(--border);
-}
-
-.tab-btn {
-  padding: 10px 20px;
-  border: none;
-  background: none;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--text-secondary);
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  margin-bottom: -2px;
-  font-family: 'Inter', sans-serif;
-
-  &.active {
-    color: var(--primary);
-    border-bottom-color: var(--primary);
-  }
-
-  &:hover:not(.active) {
-    color: var(--text-primary);
-  }
-}
-
 .btn-primary {
   padding: 8px 16px;
   background: var(--primary);
@@ -504,19 +475,6 @@
     h1 {
       font-size: 20px;
     }
-  }
-  .tabs {
-    overflow-x: auto;
-    -webkit-overflow-scrolling: touch;
-    scrollbar-width: none;
-    &::-webkit-scrollbar {
-      display: none;
-    }
-  }
-  .tab-btn {
-    white-space: nowrap;
-    padding: 10px 14px;
-    font-size: 13px;
   }
   .filters-bar {
     flex-direction: column;

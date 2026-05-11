@@ -1,0 +1,89 @@
+<div class="shorts-packages-admin">
+  <div class="page-header">
+    <h1>Shorts Packages</h1>
+    <button class="btn-primary" (click)="showCreatePackage.set(true)">+ Create Package</button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading packages...</p>
+    </div>
+  }
+
+  @if (!loading()) {
+    <div class="packages-grid">
+      @for (pkg of packages(); track pkg._id) {
+        <div class="package-card" [class.inactive]="!pkg.isActive">
+          <div class="package-header">
+            <h3>{{ pkg.name }}</h3>
+            <span class="package-status" [class.active]="pkg.isActive">
+              {{ pkg.isActive ? 'Active' : 'Inactive' }}
+            </span>
+          </div>
+          <div class="package-details">
+            <p>Quantity: {{ pkg.quantity }} shorts</p>
+            <p>Duration: {{ pkg.duration }} days</p>
+            <p>Price: {{ CURRENCY_SYMBOL }} {{ pkg.price }}</p>
+            @if (pkg.description) {
+              <p class="pkg-desc">{{ pkg.description }}</p>
+            }
+          </div>
+          <div class="package-actions">
+            <button class="btn-edit" (click)="editPackage(pkg)">Edit</button>
+            <button class="btn-toggle" (click)="togglePackageStatus(pkg)">
+              {{ pkg.isActive ? 'Deactivate' : 'Activate' }}
+            </button>
+          </div>
+        </div>
+      }
+
+      @if (packages().length === 0) {
+        <div class="empty-state">No shorts packages found. Create one to get started.</div>
+      }
+    </div>
+  }
+
+  <!-- Create/Edit Package Modal -->
+  @if (showCreatePackage() || editingPackage()) {
+    <div class="modal-overlay" (click)="closePackageModal()">
+      <div class="modal" (click)="$event.stopPropagation()">
+        <h3>{{ editingPackage() ? 'Edit Package' : 'Create Package' }}</h3>
+        <div class="form-group">
+          <label>Name</label>
+          <input [(ngModel)]="pkgForm.name" placeholder="e.g. Starter Pack" />
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Quantity</label>
+            <input type="number" [(ngModel)]="pkgForm.quantity" min="1" />
+          </div>
+          <div class="form-group">
+            <label>Duration (days)</label>
+            <select [(ngModel)]="pkgForm.duration">
+              @for (opt of shortsDurationOptions; track opt.value) {
+                <option [value]="opt.value">{{ opt.label }}</option>
+              }
+            </select>
+          </div>
+        </div>
+        <div class="form-row">
+          <div class="form-group">
+            <label>Price ({{ CURRENCY_SYMBOL }})</label>
+            <input type="number" [(ngModel)]="pkgForm.price" min="0" />
+          </div>
+        </div>
+        <div class="form-group">
+          <label>Description</label>
+          <textarea [(ngModel)]="pkgForm.description" rows="2"></textarea>
+        </div>
+        <div class="modal-actions">
+          <button class="btn-secondary" (click)="closePackageModal()">Cancel</button>
+          <button class="btn-primary" (click)="savePackage()">
+            {{ editingPackage() ? 'Update' : 'Create' }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+</div>

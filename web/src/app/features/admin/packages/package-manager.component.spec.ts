@@ -105,22 +105,6 @@ describe('PackageManagerComponent', () => {
     expect(component.categories().length).toBe(0);
   });
 
-  // --- Tab switching ---
-  it('should switch to purchases tab and load purchases', () => {
-    component.ngOnInit();
-    component.switchTab('purchases');
-    expect(component.activeTab).toBe('purchases');
-    expect(adminService.getAdminPurchases).toHaveBeenCalled();
-  });
-
-  it('should switch back to packages tab', () => {
-    component.ngOnInit();
-    component.switchTab('purchases');
-    component.switchTab('packages');
-    expect(component.activeTab).toBe('packages');
-    expect(component.activePanel).toBe('none');
-  });
-
   // --- Create ---
   it('should open create form with defaults', () => {
     component.openCreateForm();
@@ -268,70 +252,6 @@ describe('PackageManagerComponent', () => {
     component.ngOnInit();
     expect(component.getCategoryName('c1')).toBe('Electronics');
     expect(component.getCategoryName('unknown')).toBe('unknown');
-  });
-
-  // --- Purchase Filters ---
-  it('should apply purchase filters and reset page', () => {
-    component.ngOnInit();
-    component.switchTab('purchases');
-    component.purchaseFilterType = 'featured_ads';
-    component.purchasePage = 3;
-    component.applyPurchaseFilters();
-    expect(component.purchasePage).toBe(1);
-    expect(adminService.getAdminPurchases).toHaveBeenCalled();
-  });
-
-  it('should reset purchase filters', () => {
-    component.ngOnInit();
-    component.switchTab('purchases');
-    component.purchaseFilterType = 'featured_ads';
-    component.purchaseFilterStatus = 'completed';
-    component.resetPurchaseFilters();
-    expect(component.purchaseFilterType).toBe('');
-    expect(component.purchaseFilterStatus).toBe('');
-    expect(component.purchasePage).toBe(1);
-  });
-
-  it('should handle purchase load error', () => {
-    adminService.getAdminPurchases.mockReturnValue(throwError(() => new Error('fail')));
-    component.ngOnInit();
-    component.switchTab('purchases');
-    expect(component.error()).toBe('Failed to load purchases.');
-  });
-
-  // --- Pagination ---
-  it('should go to next purchase page', () => {
-    component.ngOnInit();
-    component.switchTab('purchases');
-    component.nextPurchasePage();
-    expect(component.purchasePage).toBe(2);
-  });
-
-  it('should go to previous purchase page', () => {
-    component.ngOnInit();
-    component.switchTab('purchases');
-    component.purchasePage = 3;
-    component.prevPurchasePage();
-    expect(component.purchasePage).toBe(2);
-  });
-
-  it('should not go below page 1', () => {
-    component.ngOnInit();
-    component.switchTab('purchases');
-    component.purchasePage = 1;
-    component.prevPurchasePage();
-    expect(component.purchasePage).toBe(1);
-  });
-
-  it('should calculate total purchase pages', () => {
-    component.ngOnInit();
-    component.purchasesTotal.set(25);
-    expect(component.totalPurchasePages()).toBe(3);
-  });
-
-  it('should return 1 for zero total pages', () => {
-    component.purchasesTotal.set(0);
-    expect(component.totalPurchasePages()).toBe(1);
   });
 
   it('trackByIndex should return the index', () => {

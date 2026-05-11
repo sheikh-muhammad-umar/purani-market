@@ -23,11 +23,19 @@ export class AdminLayoutComponent {
     { label: 'Listings', icon: 'list_alt', path: ROUTES.ADMIN_LISTINGS },
     { label: 'Shorts', icon: 'play_circle', path: ROUTES.ADMIN_SHORTS },
     { label: 'Shorts Analytics', icon: 'analytics', path: ROUTES.ADMIN_SHORTS_ANALYTICS },
-    { label: 'Moderation', icon: 'gavel', path: ROUTES.ADMIN_MODERATION },
     { label: 'ID Verifications', icon: 'verified_user', path: ROUTES.ADMIN_ID_VERIFICATIONS },
     { label: 'Activity', icon: 'timeline', path: ROUTES.ADMIN_ACTIVITY },
     { label: 'Payments', icon: 'payments', path: ROUTES.ADMIN_PAYMENTS },
-    { label: 'Packages', icon: 'inventory_2', path: ROUTES.ADMIN_PACKAGES },
+    {
+      label: 'Packages',
+      icon: 'inventory_2',
+      path: ROUTES.ADMIN_PACKAGES,
+      children: [
+        { label: 'Listings', icon: 'list_alt', path: ROUTES.ADMIN_PACKAGES_LISTINGS },
+        { label: 'Shorts', icon: 'play_circle', path: ROUTES.ADMIN_PACKAGES_SHORTS },
+        { label: 'Purchases', icon: 'receipt_long', path: ROUTES.ADMIN_PACKAGES_PURCHASES },
+      ],
+    },
     { label: 'Notifications', icon: 'notifications', path: ROUTES.ADMIN_NOTIFICATIONS },
     { label: 'Categories', icon: 'category', path: ROUTES.ADMIN_CATEGORIES },
     { label: 'Locations', icon: 'location_on', path: ROUTES.ADMIN_LOCATIONS },
@@ -38,8 +46,13 @@ export class AdminLayoutComponent {
     { label: 'Experiments', icon: 'science', path: ROUTES.ADMIN_EXPERIMENTS },
   ];
 
+  expandedNavItem: string | null = null;
   sidebarCollapsed = false;
   mobileMenuOpen = false;
+
+  toggleNavDropdown(path: string): void {
+    this.expandedNavItem = this.expandedNavItem === path ? null : path;
+  }
 
   toggleSidebar(): void {
     this.sidebarCollapsed = !this.sidebarCollapsed;

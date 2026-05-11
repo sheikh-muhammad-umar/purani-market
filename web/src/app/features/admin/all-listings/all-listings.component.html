@@ -1,224 +1,690 @@
 <div class="al-page">
-  <div class="page-header">
-    <h1>All Listings</h1>
-    @if (!loading()) {
-      <span class="al-count">{{ total() }} listings</span>
-    }
-  </div>
-
-  <!-- Toolbar -->
-  <div class="admin-toolbar">
-    <div class="admin-search">
-      <input
-        type="text"
-        placeholder="Search listings..."
-        [(ngModel)]="searchQuery"
-        (keyup.enter)="applyFilters()"
-      />
-      <button (click)="applyFilters()">
-        <span class="material-symbols-rounded" style="font-size: 18px">search</span>
-      </button>
-    </div>
-    <button
-      class="filter-toggle-btn"
-      [class.active]="filtersOpen || hasActiveFilters"
-      (click)="filtersOpen = !filtersOpen"
-    >
-      <span class="material-symbols-rounded" style="font-size: 18px">filter_list</span> Filters
-      @if (activeFilterCount > 0) {
-        <span class="filter-badge">{{ activeFilterCount }}</span>
+  <div class="tabs">
+    <button [class.active]="activeTab() === 'all'" (click)="switchTab('all')">
+      <span class="material-symbols-rounded" style="font-size: 16px">list_alt</span> All Listings
+    </button>
+    <button [class.active]="activeTab() === 'moderation'" (click)="switchTab('moderation')">
+      <span class="material-symbols-rounded" style="font-size: 16px">gavel</span> Moderation Queue
+      @if (pendingCount() > 0) {
+        <span class="tab-badge">{{ pendingCount() }}</span>
       }
     </button>
-    <app-custom-select
-      [options]="sortOptions"
-      [(ngModel)]="sortBy"
-      (ngModelChange)="applyFilters()"
-      placeholder="Sort"
-    ></app-custom-select>
   </div>
 
-  <!-- Filters -->
-  @if (filtersOpen) {
-    <div class="filters-panel">
-      <div class="filters-grid">
-        <div class="filter-group">
-          <label class="filter-label">Status</label>
-          <app-custom-select
-            [options]="statusOptions"
-            [(ngModel)]="filterStatus"
-            (ngModelChange)="applyFilters()"
-            placeholder="All Status"
-          ></app-custom-select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Category</label>
-          <app-custom-select
-            [options]="categoryOptions"
-            [(ngModel)]="filterCategory"
-            (ngModelChange)="applyFilters()"
-            placeholder="All Categories"
-            [searchable]="true"
-          ></app-custom-select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Province</label>
-          <app-custom-select
-            [options]="provinceOptions"
-            [(ngModel)]="filterProvince"
-            (ngModelChange)="onProvinceChange()"
-            placeholder="All Provinces"
-            [searchable]="true"
-          ></app-custom-select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">City</label>
-          <app-custom-select
-            [options]="cityOptions"
-            [(ngModel)]="filterCity"
-            (ngModelChange)="applyFilters()"
-            placeholder="All Cities"
-            [searchable]="true"
-          ></app-custom-select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Rejection Reason</label>
-          <app-custom-select
-            [options]="rejectionReasonOptions"
-            [(ngModel)]="filterRejectionReason"
-            (ngModelChange)="applyFilters()"
-            placeholder="All"
-            [searchable]="true"
-          ></app-custom-select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">Deletion Reason</label>
-          <app-custom-select
-            [options]="deletionReasonOptions"
-            [(ngModel)]="filterDeletionReason"
-            (ngModelChange)="applyFilters()"
-            placeholder="All"
-            [searchable]="true"
-          ></app-custom-select>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">From</label>
-          <app-date-picker
-            [(ngModel)]="filterDateFrom"
-            [max]="filterDateTo || today"
-            (ngModelChange)="applyFilters()"
-          ></app-date-picker>
-        </div>
-        <div class="filter-group">
-          <label class="filter-label">To</label>
-          <app-date-picker
-            [(ngModel)]="filterDateTo"
-            [min]="filterDateFrom"
-            [max]="today"
-            (ngModelChange)="applyFilters()"
-          ></app-date-picker>
-        </div>
+  @if (activeTab() === 'all') {
+    <div class="page-header">
+      <h1>All Listings</h1>
+      @if (!loading()) {
+        <span class="al-count">{{ total() }} listings</span>
+      }
+    </div>
+
+    <!-- Toolbar -->
+    <div class="admin-toolbar">
+      <div class="admin-search">
+        <input
+          type="text"
+          placeholder="Search listings..."
+          [(ngModel)]="searchQuery"
+          (keyup.enter)="applyFilters()"
+        />
+        <button (click)="applyFilters()">
+          <span class="material-symbols-rounded" style="font-size: 18px">search</span>
+        </button>
       </div>
-      @if (hasActiveFilters) {
-        <button class="clear-filters-btn" (click)="clearFilters()">
-          <span class="material-symbols-rounded" style="font-size: 16px">close</span> Clear all
-        </button>
-      }
+      <button
+        class="filter-toggle-btn"
+        [class.active]="filtersOpen || hasActiveFilters"
+        (click)="filtersOpen = !filtersOpen"
+      >
+        <span class="material-symbols-rounded" style="font-size: 18px">filter_list</span> Filters
+        @if (activeFilterCount > 0) {
+          <span class="filter-badge">{{ activeFilterCount }}</span>
+        }
+      </button>
+      <app-custom-select
+        [options]="sortOptions"
+        [(ngModel)]="sortBy"
+        (ngModelChange)="applyFilters()"
+        placeholder="Sort"
+      ></app-custom-select>
     </div>
-  }
 
-  @if (loading()) {
-    <div class="loading-state"><div class="spinner"></div></div>
-  }
-
-  @if (!loading() && listings().length === 0) {
-    <div class="empty-state">
-      @if (hasActiveFilters) {
-        No listings match your filters.
-        <button class="btn-retry" (click)="clearFilters()">Clear</button>
-      } @else {
-        No listings found.
-      }
-    </div>
-  }
-
-  @if (!loading() && listings().length > 0) {
-    <div class="al-list">
-      @for (listing of listings(); track listing._id) {
-        <div class="al-card">
-          <div class="al-thumb">
-            @if (listing.images?.length) {
-              <img
-                [src]="listing.images![0].thumbnailUrl || listing.images![0].url"
-                [alt]="listing.title"
-              />
-            } @else {
-              <div class="al-no-img">No Image</div>
-            }
+    <!-- Filters -->
+    @if (filtersOpen) {
+      <div class="filters-panel">
+        <div class="filters-grid">
+          <div class="filter-group">
+            <label class="filter-label">Status</label>
+            <app-custom-select
+              [options]="statusOptions"
+              [(ngModel)]="filterStatus"
+              (ngModelChange)="applyFilters()"
+              placeholder="All Status"
+            ></app-custom-select>
           </div>
-          <div class="al-body">
-            <div class="al-top">
-              <a class="al-title" [routerLink]="'/listings/' + listing._id">{{ listing.title }}</a>
-              <span class="al-price">{{ formatPrice(listing) }}</span>
-            </div>
-            <div class="al-meta-grid">
-              <span class="al-meta"
-                ><span class="al-meta-label">Status</span
-                ><span class="al-status" [style.color]="getStatusColor(listing.status)">{{
-                  listing.status
-                }}</span></span
-              >
-              <span class="al-meta"
-                ><span class="al-meta-label">Seller</span>{{ listing.sellerName }}</span
-              >
-              <span class="al-meta"
-                ><span class="al-meta-label">Category</span>{{ listing.categoryName }}</span
-              >
-              <span class="al-meta"
-                ><span class="al-meta-label">Location</span
-                >{{ listing.location?.city || '—' }}</span
-              >
-              <span class="al-meta"
-                ><span class="al-meta-label">Created</span>{{ formatDate(listing.createdAt) }}</span
-              >
-              <span class="al-meta"
-                ><span class="al-meta-label">Views</span>{{ listing.viewCount || 0 }}</span
-              >
-            </div>
-            @if (listing.rejectionReason) {
-              <div class="al-reason al-reject">
-                <span class="material-symbols-rounded" style="font-size: 13px">block</span>
-                {{ listing.rejectionReason }}
-              </div>
-            }
-            @if (listing.deletionReason) {
-              <div class="al-reason al-delete">
-                <span class="material-symbols-rounded" style="font-size: 13px">delete</span>
-                {{ listing.deletionReason }}
-              </div>
-            }
-            @if (listing.isFeatured) {
-              <span class="al-featured-badge"
-                ><span
-                  class="material-symbols-rounded"
-                  style="font-size: 14px; vertical-align: middle"
-                  >star</span
-                >
-                Featured</span
-              >
-            }
+          <div class="filter-group">
+            <label class="filter-label">Category</label>
+            <app-custom-select
+              [options]="categoryOptions"
+              [(ngModel)]="filterCategory"
+              (ngModelChange)="applyFilters()"
+              placeholder="All Categories"
+              [searchable]="true"
+            ></app-custom-select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Province</label>
+            <app-custom-select
+              [options]="provinceOptions"
+              [(ngModel)]="filterProvince"
+              (ngModelChange)="onProvinceChange()"
+              placeholder="All Provinces"
+              [searchable]="true"
+            ></app-custom-select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">City</label>
+            <app-custom-select
+              [options]="cityOptions"
+              [(ngModel)]="filterCity"
+              (ngModelChange)="applyFilters()"
+              placeholder="All Cities"
+              [searchable]="true"
+            ></app-custom-select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Rejection Reason</label>
+            <app-custom-select
+              [options]="rejectionReasonOptions"
+              [(ngModel)]="filterRejectionReason"
+              (ngModelChange)="applyFilters()"
+              placeholder="All"
+              [searchable]="true"
+            ></app-custom-select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">Deletion Reason</label>
+            <app-custom-select
+              [options]="deletionReasonOptions"
+              [(ngModel)]="filterDeletionReason"
+              (ngModelChange)="applyFilters()"
+              placeholder="All"
+              [searchable]="true"
+            ></app-custom-select>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">From</label>
+            <app-date-picker
+              [(ngModel)]="filterDateFrom"
+              [max]="filterDateTo || today"
+              (ngModelChange)="applyFilters()"
+            ></app-date-picker>
+          </div>
+          <div class="filter-group">
+            <label class="filter-label">To</label>
+            <app-date-picker
+              [(ngModel)]="filterDateTo"
+              [min]="filterDateFrom"
+              [max]="today"
+              (ngModelChange)="applyFilters()"
+            ></app-date-picker>
           </div>
         </div>
-      }
-    </div>
-
-    @if (totalPages() > 1) {
-      <div class="pagination">
-        <button class="btn-page" (click)="goToPage(page - 1)" [disabled]="page <= 1">← Prev</button>
-        <span class="page-info">Page {{ page }} of {{ totalPages() }}</span>
-        <button class="btn-page" (click)="goToPage(page + 1)" [disabled]="page >= totalPages()">
-          Next →
-        </button>
+        @if (hasActiveFilters) {
+          <button class="clear-filters-btn" (click)="clearFilters()">
+            <span class="material-symbols-rounded" style="font-size: 16px">close</span> Clear all
+          </button>
+        }
       </div>
     }
+
+    @if (loading()) {
+      <div class="loading-state"><div class="spinner"></div></div>
+    }
+
+    @if (!loading() && listings().length === 0) {
+      <div class="empty-state">
+        @if (hasActiveFilters) {
+          No listings match your filters.
+          <button class="btn-retry" (click)="clearFilters()">Clear</button>
+        } @else {
+          No listings found.
+        }
+      </div>
+    }
+
+    @if (!loading() && listings().length > 0) {
+      <div class="al-list">
+        @for (listing of listings(); track listing._id) {
+          <div class="al-card">
+            <div class="al-thumb">
+              @if (listing.images?.length) {
+                <img
+                  [src]="listing.images![0].thumbnailUrl || listing.images![0].url"
+                  [alt]="listing.title"
+                />
+              } @else {
+                <div class="al-no-img">No Image</div>
+              }
+            </div>
+            <div class="al-body">
+              <div class="al-top">
+                <a class="al-title" [routerLink]="'/listings/' + listing._id">{{
+                  listing.title
+                }}</a>
+                <span class="al-price">{{ formatPrice(listing) }}</span>
+              </div>
+              <div class="al-meta-grid">
+                <span class="al-meta"
+                  ><span class="al-meta-label">Status</span
+                  ><span class="al-status" [style.color]="getStatusColor(listing.status)">{{
+                    listing.status
+                  }}</span></span
+                >
+                <span class="al-meta"
+                  ><span class="al-meta-label">Seller</span>{{ listing.sellerName }}</span
+                >
+                <span class="al-meta"
+                  ><span class="al-meta-label">Category</span>{{ listing.categoryName }}</span
+                >
+                <span class="al-meta"
+                  ><span class="al-meta-label">Location</span
+                  >{{ listing.location?.city || '—' }}</span
+                >
+                <span class="al-meta"
+                  ><span class="al-meta-label">Created</span
+                  >{{ formatDate(listing.createdAt) }}</span
+                >
+                <span class="al-meta"
+                  ><span class="al-meta-label">Views</span>{{ listing.viewCount || 0 }}</span
+                >
+              </div>
+              @if (listing.rejectionReason) {
+                <div class="al-reason al-reject">
+                  <span class="material-symbols-rounded" style="font-size: 13px">block</span>
+                  {{ listing.rejectionReason }}
+                </div>
+              }
+              @if (listing.deletionReason) {
+                <div class="al-reason al-delete">
+                  <span class="material-symbols-rounded" style="font-size: 13px">delete</span>
+                  {{ listing.deletionReason }}
+                </div>
+              }
+              @if (listing.isFeatured) {
+                <span class="al-featured-badge"
+                  ><span
+                    class="material-symbols-rounded"
+                    style="font-size: 14px; vertical-align: middle"
+                    >star</span
+                  >
+                  Featured</span
+                >
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (totalPages() > 1) {
+        <div class="pagination">
+          <button class="btn-page" (click)="goToPage(page - 1)" [disabled]="page <= 1">
+            ← Prev
+          </button>
+          <span class="page-info">Page {{ page }} of {{ totalPages() }}</span>
+          <button class="btn-page" (click)="goToPage(page + 1)" [disabled]="page >= totalPages()">
+            Next →
+          </button>
+        </div>
+      }
+    }
+  }
+
+  @if (activeTab() === 'moderation') {
+    <div class="mod-queue">
+      <div class="page-header">
+        <h1>Moderation Queue</h1>
+        @if (!modLoading()) {
+          <span class="al-count">{{ modTotalListings() }} pending</span>
+        }
+      </div>
+
+      @if (modLoading()) {
+        <div class="loading-state">
+          <div class="spinner"></div>
+          <p>Loading pending listings...</p>
+        </div>
+      }
+
+      @if (modError()) {
+        <div class="error-state">
+          <p>{{ modError() }}</p>
+          <button class="btn-retry" (click)="loadPendingListings()">Retry</button>
+        </div>
+      }
+
+      @if (!modLoading() && !modError()) {
+        <div class="listings-container">
+          @if (pendingListings().length > 0) {
+            <!-- Search + Filter Toggle -->
+            <div class="admin-toolbar">
+              <div class="admin-search mod-search">
+                <input
+                  type="text"
+                  placeholder="Search by title, seller..."
+                  [(ngModel)]="modSearchQuery"
+                />
+              </div>
+              <button
+                class="filter-toggle-btn"
+                [class.active]="modFiltersOpen || modHasActiveFilters"
+                (click)="modFiltersOpen = !modFiltersOpen"
+              >
+                <span class="material-symbols-rounded" style="font-size: 18px">filter_list</span>
+                Filters
+                @if (modActiveFilterCount > 0) {
+                  <span class="filter-badge">{{ modActiveFilterCount }}</span>
+                }
+              </button>
+              <div class="sort-btns">
+                <button
+                  class="sort-btn"
+                  [class.active]="modSortCol === 'createdAt'"
+                  (click)="sortModerationListings('createdAt')"
+                >
+                  Date
+                  <span class="material-symbols-rounded sort-icon">{{
+                    modSortIcon('createdAt')
+                  }}</span>
+                </button>
+                <button
+                  class="sort-btn"
+                  [class.active]="modSortCol === 'price'"
+                  (click)="sortModerationListings('price')"
+                >
+                  Price
+                  <span class="material-symbols-rounded sort-icon">{{ modSortIcon('price') }}</span>
+                </button>
+                <button
+                  class="sort-btn"
+                  [class.active]="modSortCol === 'title'"
+                  (click)="sortModerationListings('title')"
+                >
+                  Title
+                  <span class="material-symbols-rounded sort-icon">{{ modSortIcon('title') }}</span>
+                </button>
+                <button
+                  class="sort-btn"
+                  [class.active]="modSortCol === 'rejectionCount'"
+                  (click)="sortModerationListings('rejectionCount')"
+                >
+                  Reviews
+                  <span class="material-symbols-rounded sort-icon">{{
+                    modSortIcon('rejectionCount')
+                  }}</span>
+                </button>
+              </div>
+            </div>
+
+            <!-- Expandable Filters Panel -->
+            @if (modFiltersOpen) {
+              <div class="filters-panel">
+                <div class="filters-grid">
+                  <div class="filter-group">
+                    <label class="filter-label">Condition</label>
+                    <app-custom-select
+                      [options]="conditionOptions"
+                      [(ngModel)]="modFilterCondition"
+                      placeholder="All Conditions"
+                    ></app-custom-select>
+                  </div>
+                  <div class="filter-group">
+                    <label class="filter-label">Category</label>
+                    <app-custom-select
+                      [options]="modCategoryOptions"
+                      [(ngModel)]="modFilterCategory"
+                      placeholder="All Categories"
+                      [searchable]="true"
+                    ></app-custom-select>
+                  </div>
+                  <div class="filter-group">
+                    <label class="filter-label">From</label>
+                    <app-date-picker
+                      [(ngModel)]="modFilterDateFrom"
+                      [max]="modFilterDateTo || today"
+                    ></app-date-picker>
+                  </div>
+                  <div class="filter-group">
+                    <label class="filter-label">To</label>
+                    <app-date-picker
+                      [(ngModel)]="modFilterDateTo"
+                      [min]="modFilterDateFrom"
+                      [max]="today"
+                    ></app-date-picker>
+                  </div>
+                  <div class="filter-group">
+                    <label class="filter-label">Reviews</label>
+                    <app-custom-select
+                      [options]="reviewCountOptions"
+                      [(ngModel)]="modFilterReviewCount"
+                      placeholder="All"
+                    ></app-custom-select>
+                  </div>
+                </div>
+                @if (modHasActiveFilters) {
+                  <button class="clear-filters-btn" (click)="clearModFilters()">
+                    <span class="material-symbols-rounded" style="font-size: 16px">close</span>
+                    Clear all filters
+                  </button>
+                }
+              </div>
+            }
+          }
+
+          @if (filteredPendingListings.length === 0) {
+            <div class="empty-state">
+              <p>
+                {{
+                  modSearchQuery || modHasActiveFilters
+                    ? 'No listings match your filters.'
+                    : 'No pending listings to review.'
+                }}
+              </p>
+              @if (modHasActiveFilters) {
+                <button class="btn-retry" (click)="clearModFilters()">Clear Filters</button>
+              }
+            </div>
+          }
+
+          @for (listing of filteredPendingListings; track listing._id) {
+            <div class="listing-card" [class.expanded]="expandedId === listing._id">
+              <!-- Summary Row -->
+              <div class="listing-summary" (click)="toggleExpand(listing._id)">
+                <div class="listing-thumbnail">
+                  @if (getThumbnail(listing)) {
+                    <img
+                      [src]="getThumbnail(listing)"
+                      [alt]="listing.title"
+                      class="thumbnail-img"
+                    />
+                  }
+                  @if (!getThumbnail(listing)) {
+                    <div class="thumbnail-placeholder">No Image</div>
+                  }
+                </div>
+                <div class="listing-details">
+                  <div class="listing-header">
+                    <h3 class="listing-title">{{ listing.title }}</h3>
+                    <span class="listing-price">{{ formatPrice(listing) }}</span>
+                  </div>
+                  <div class="listing-meta-grid">
+                    <span class="meta-cell"
+                      ><span class="meta-label">Seller</span
+                      ><span class="meta-value">{{ listing.sellerName }}</span></span
+                    >
+                    <span class="meta-cell"
+                      ><span class="meta-label">Category</span
+                      ><span class="meta-value">{{ listing.categoryName }}</span></span
+                    >
+                    <span class="meta-cell"
+                      ><span class="meta-label">Location</span
+                      ><span class="meta-value"
+                        >{{ listing.location?.area ? listing.location?.area + ', ' : ''
+                        }}{{ listing.location?.city || '—' }}
+                        @if (listing.location?.mapLink) {
+                          <span
+                            class="material-symbols-rounded"
+                            style="
+                              font-size: 14px;
+                              vertical-align: middle;
+                              margin-left: 4px;
+                              color: var(--primary);
+                            "
+                            title="Has map link"
+                            >map</span
+                          >
+                        }
+                      </span></span
+                    >
+                    <span class="meta-cell"
+                      ><span class="meta-label">Submitted</span
+                      ><span class="meta-value">{{ formatDate(listing.createdAt) }}</span></span
+                    >
+                    <span class="meta-cell"
+                      ><span class="meta-label">Review</span
+                      ><span class="meta-value">
+                        @if (listing.rejectionCount) {
+                          <span
+                            class="review-badge"
+                            [class.max-reviews]="listing.rejectionCount >= 3"
+                            >#{{ listing.rejectionCount + 1 }}</span
+                          >
+                        } @else {
+                          <span class="review-badge">#1</span>
+                        }
+                      </span></span
+                    >
+                  </div>
+                </div>
+                <button
+                  class="expand-btn"
+                  (click)="$event.stopPropagation(); toggleExpand(listing._id)"
+                >
+                  <span class="material-symbols-rounded">{{
+                    expandedId === listing._id ? 'expand_less' : 'expand_more'
+                  }}</span>
+                </button>
+                @if (expandedId !== listing._id) {
+                  <div class="summary-actions" (click)="$event.stopPropagation()">
+                    <button
+                      class="btn-action btn-approve"
+                      [disabled]="modActionLoading() === listing._id"
+                      (click)="approveListing(listing)"
+                      title="Approve"
+                    >
+                      <span class="material-symbols-rounded" style="font-size: 16px"
+                        >check_circle</span
+                      >
+                      Approve
+                    </button>
+                    @if (rejectingId !== listing._id) {
+                      <button
+                        class="btn-action btn-reject"
+                        [disabled]="modActionLoading() === listing._id"
+                        (click)="startReject(listing)"
+                        title="Reject"
+                      >
+                        <span class="material-symbols-rounded" style="font-size: 16px">cancel</span>
+                        Reject
+                      </button>
+                    }
+                  </div>
+                }
+              </div>
+
+              <!-- Expanded Detail Panel -->
+              @if (expandedId === listing._id) {
+                <div class="listing-detail-panel">
+                  @if (listing.images.length) {
+                    <div class="detail-section">
+                      <h4>Images ({{ listing.images.length }})</h4>
+                      <div class="detail-images">
+                        @for (img of listing.images; track $index) {
+                          <img
+                            [src]="img.thumbnailUrl || img.url"
+                            [alt]="listing.title"
+                            class="detail-img"
+                          />
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <div class="detail-section">
+                    <h4>Description</h4>
+                    <p class="detail-description">{{ listing.description }}</p>
+                  </div>
+
+                  @if (
+                    listing.categoryAttributes && objectKeys(listing.categoryAttributes).length > 0
+                  ) {
+                    <div class="detail-section">
+                      <h4>Attributes</h4>
+                      <div class="detail-attrs">
+                        @for (key of objectKeys(listing.categoryAttributes); track key) {
+                          <div class="detail-attr">
+                            <span class="attr-label">{{ formatAttrKey(key) }}</span>
+                            <span class="attr-value">{{
+                              listing.categoryAttributes[key] || '—'
+                            }}</span>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  @if (listing.selectedFeatures?.length) {
+                    <div class="detail-section">
+                      <h4>Features</h4>
+                      <div class="detail-features">
+                        @for (f of listing.selectedFeatures; track f) {
+                          <span class="feature-chip">{{ f }}</span>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <div class="detail-section detail-row-grid">
+                    <div>
+                      <h4>Location</h4>
+                      <p>
+                        {{ listing.location?.area ? listing.location?.area + ', ' : ''
+                        }}{{ listing.location?.city || '—' }}
+                      </p>
+                      @if (listing.location?.mapLink) {
+                        <a
+                          [href]="listing.location!.mapLink!"
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          class="map-link-badge"
+                        >
+                          <span
+                            class="material-symbols-rounded"
+                            style="font-size: 16px; vertical-align: middle"
+                            >map</span
+                          >
+                          View on Maps
+                          <span
+                            class="material-symbols-rounded"
+                            style="font-size: 14px; vertical-align: middle"
+                            >open_in_new</span
+                          >
+                        </a>
+                        <div class="map-embed-container">
+                          <iframe
+                            [src]="getMapEmbedUrl(listing.location!.mapLink!)"
+                            width="100%"
+                            height="200"
+                            style="border: 0; border-radius: 8px"
+                            allowfullscreen
+                            loading="lazy"
+                            referrerpolicy="no-referrer-when-downgrade"
+                            title="Location map"
+                          ></iframe>
+                        </div>
+                      }
+                    </div>
+                    <div>
+                      <h4>Seller Contact</h4>
+                      <p>{{ listing.sellerName }}</p>
+                      @if (listing.sellerEmail) {
+                        <p>{{ listing.sellerEmail }}</p>
+                      }
+                      @if (listing.contactInfo?.phone) {
+                        <p>{{ listing.contactInfo?.phone }}</p>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="detail-actions">
+                    <button
+                      class="btn-action btn-approve"
+                      [disabled]="modActionLoading() === listing._id"
+                      (click)="approveListing(listing)"
+                    >
+                      <span class="material-symbols-rounded" style="font-size: 16px"
+                        >check_circle</span
+                      >
+                      Approve
+                    </button>
+
+                    @if (rejectingId !== listing._id) {
+                      <button
+                        class="btn-action btn-reject"
+                        [disabled]="modActionLoading() === listing._id"
+                        (click)="startReject(listing)"
+                      >
+                        <span class="material-symbols-rounded" style="font-size: 16px">cancel</span>
+                        Reject
+                      </button>
+                    }
+
+                    @if (rejectingId === listing._id) {
+                      <div class="reject-form" [id]="'reject-form-' + listing._id">
+                        <div class="reject-reasons-list">
+                          @for (reason of availableReasons; track reason._id) {
+                            <label
+                              class="reject-reason-item"
+                              [class.selected]="
+                                selectedRejectReasonIds[listing._id]?.includes(reason._id)
+                              "
+                            >
+                              <input
+                                type="checkbox"
+                                [checked]="
+                                  selectedRejectReasonIds[listing._id]?.includes(reason._id)
+                                "
+                                (change)="toggleRejectReason(listing._id, reason._id)"
+                              />
+                              <span>{{ reason.title }}</span>
+                            </label>
+                          }
+                        </div>
+                        <input
+                          type="text"
+                          class="reject-reason-input"
+                          placeholder="Additional note (optional)..."
+                          [(ngModel)]="rejectCustomNote[listing._id]"
+                        />
+                        <div class="reject-buttons">
+                          <button
+                            class="btn-action btn-confirm-reject"
+                            [disabled]="
+                              modActionLoading() === listing._id ||
+                              !selectedRejectReasonIds[listing._id]?.length
+                            "
+                            (click)="confirmReject(listing)"
+                          >
+                            Reject
+                          </button>
+                          <button
+                            class="btn-action btn-cancel"
+                            [disabled]="modActionLoading() === listing._id"
+                            (click)="cancelReject()"
+                          >
+                            Cancel
+                          </button>
+                        </div>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
   }
 </div>

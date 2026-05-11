@@ -25,11 +25,7 @@ export const ADMIN_ROUTES: Routes = [
         loadComponent: () =>
           import('./all-listings/all-listings.component').then((m) => m.AllListingsComponent),
       },
-      {
-        path: 'moderation',
-        loadComponent: () =>
-          import('./listings/moderation-queue.component').then((m) => m.ModerationQueueComponent),
-      },
+
       {
         path: 'categories',
         loadComponent: () =>
@@ -47,8 +43,32 @@ export const ADMIN_ROUTES: Routes = [
       },
       {
         path: 'packages',
-        loadComponent: () =>
-          import('./packages/package-manager.component').then((m) => m.PackageManagerComponent),
+        children: [
+          {
+            path: '',
+            redirectTo: 'listings',
+            pathMatch: 'full',
+          },
+          {
+            path: 'listings',
+            loadComponent: () =>
+              import('./packages/package-manager.component').then((m) => m.PackageManagerComponent),
+          },
+          {
+            path: 'shorts',
+            loadComponent: () =>
+              import('./shorts-packages/shorts-packages-admin.component').then(
+                (m) => m.ShortsPackagesAdminComponent,
+              ),
+          },
+          {
+            path: 'purchases',
+            loadComponent: () =>
+              import('./packages/purchases/package-purchases.component').then(
+                (m) => m.PackagePurchasesComponent,
+              ),
+          },
+        ],
       },
       {
         path: 'payments',
