@@ -160,6 +160,15 @@
               <button class="btn-action btn-play" (click)="openPreview(short)" title="Play">
                 <span class="material-symbols-rounded" style="font-size: 16px">play_arrow</span>
               </button>
+              @if (short.status === 'rejected') {
+                <button
+                  class="btn-action btn-approve"
+                  (click)="approveShort(short._id)"
+                  title="Re-approve"
+                >
+                  <span class="material-symbols-rounded" style="font-size: 16px">check_circle</span>
+                </button>
+              }
               <button
                 class="btn-action btn-delete-sm"
                 (click)="deleteShort(short._id)"
@@ -169,6 +178,12 @@
               </button>
             </div>
           </div>
+          @if (short.status === 'rejected' && short.rejectionReason) {
+            <div class="rejection-reason-bar">
+              <span class="material-symbols-rounded" style="font-size: 14px">block</span>
+              {{ short.rejectionReason }}
+            </div>
+          }
         }
       </div>
 

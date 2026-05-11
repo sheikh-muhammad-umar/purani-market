@@ -54,6 +54,44 @@
       </div>
     </section>
 
+    <!-- Action Required -->
+    @if (pendingListings() > 0 || pendingVerifications() > 0 || pendingShorts() > 0) {
+      <section class="action-section">
+        <h2><span class="material-symbols-rounded">priority_high</span> Needs Attention</h2>
+        <div class="action-cards">
+          @if (pendingListings() > 0) {
+            <a
+              class="action-card action-warning"
+              [routerLink]="ROUTES.ADMIN_LISTINGS"
+              [queryParams]="{ tab: 'moderation' }"
+            >
+              <span class="action-count">{{ pendingListings() }}</span>
+              <span class="action-label">Listings pending review</span>
+              <span class="material-symbols-rounded action-arrow">arrow_forward</span>
+            </a>
+          }
+          @if (pendingShorts() > 0) {
+            <a
+              class="action-card action-warning"
+              [routerLink]="ROUTES.ADMIN_SHORTS"
+              [queryParams]="{ tab: 'moderation' }"
+            >
+              <span class="action-count">{{ pendingShorts() }}</span>
+              <span class="action-label">Shorts pending review</span>
+              <span class="material-symbols-rounded action-arrow">arrow_forward</span>
+            </a>
+          }
+          @if (pendingVerifications() > 0) {
+            <a class="action-card action-info" [routerLink]="ROUTES.ADMIN_ID_VERIFICATIONS">
+              <span class="action-count">{{ pendingVerifications() }}</span>
+              <span class="action-label">ID verifications pending</span>
+              <span class="material-symbols-rounded action-arrow">arrow_forward</span>
+            </a>
+          }
+        </div>
+      </section>
+    }
+
     <!-- Trends -->
     @if (timeSeries(); as ts) {
       <section class="charts-section">
@@ -84,41 +122,6 @@
                         class="bar"
                         [style.height.%]="
                           getBarHeight(point.value, getMaxTimeSeriesValue(ts.registrations))
-                        "
-                      ></div>
-                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
-                    </div>
-                  }
-                </div>
-              </div>
-            } @else {
-              <p class="no-data">No data available</p>
-            }
-          </div>
-
-          <div class="chart-card">
-            <div class="chart-header">
-              <h3>Listings</h3>
-              @if (ts.listings.length > 0) {
-                <span class="chart-total">Total: {{ getSeriesTotal(ts.listings) | number }}</span>
-              }
-            </div>
-            @if (ts.listings.length > 0) {
-              <div class="bar-chart-wrap">
-                <div class="y-axis">
-                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.listings) }}</span>
-                  <span class="y-label">0</span>
-                </div>
-                <div class="bar-chart">
-                  @for (point of ts.listings; track $index) {
-                    <div class="bar-column">
-                      @if (point.value > 0) {
-                        <span class="bar-value">{{ point.value }}</span>
-                      }
-                      <div
-                        class="bar bar-listings"
-                        [style.height.%]="
-                          getBarHeight(point.value, getMaxTimeSeriesValue(ts.listings))
                         "
                       ></div>
                       <span class="bar-label">{{ formatShortDate(point.date) }}</span>
@@ -571,248 +574,6 @@
         <p class="no-data">No voice search data yet.</p>
       </div>
     }
-
-    <!-- ═══════════════════════════════════════════════════ -->
-    <!-- CONTENT & MARKETPLACE                              -->
-    <!-- ═══════════════════════════════════════════════════ -->
-
-    <h2 class="section-group-title">
-      <span class="material-symbols-rounded">storefront</span> Content &amp; Marketplace
-    </h2>
-
-    <!-- Listings by Category -->
-    @if (categoryAnalytics().length > 0) {
-      <section class="category-section">
-        <h2>Listings by Category</h2>
-        <div class="category-list">
-          <div class="section-toolbar">
-            <div class="search-mini">
-              <span class="material-symbols-rounded">search</span>
-              <input type="text" placeholder="Search categories..." [(ngModel)]="categorySearch" />
-            </div>
-          </div>
-          <div class="scroll-body">
-            <div class="category-row category-row-header">
-              <span class="category-name sortable" (click)="toggleCategorySort('name')">
-                Category
-                <span class="material-symbols-rounded sort-icon">{{
-                  getSortIcon(categorySortBy === 'name', categorySortDir)
-                }}</span>
-              </span>
-              <div class="category-bar-wrapper"></div>
-              <span class="category-pct sortable" (click)="toggleCategorySort('pct')">
-                Share
-                <span class="material-symbols-rounded sort-icon">{{
-                  getSortIcon(categorySortBy === 'pct', categorySortDir)
-                }}</span>
-              </span>
-              <span class="category-count sortable" (click)="toggleCategorySort('count')">
-                Count
-                <span class="material-symbols-rounded sort-icon">{{
-                  getSortIcon(categorySortBy === 'count', categorySortDir)
-                }}</span>
-              </span>
-            </div>
-            @for (cat of filteredCategories; track $index) {
-              <div class="category-row">
-                <span class="category-name">{{ cat.categoryName }}</span>
-                <div class="category-bar-wrapper">
-                  <div class="category-bar" [style.width.%]="getBarWidth(cat.listingCount)"></div>
-                </div>
-                <span class="category-pct">{{ getCategoryPercent(cat.listingCount) }}%</span>
-                <span class="category-count">{{ cat.listingCount }}</span>
-              </div>
-            }
-            @if (filteredCategories.length === 0) {
-              <p class="no-data">No matching categories</p>
-            }
-          </div>
-        </div>
-      </section>
-    }
-
-    <!-- Price Trends by Category -->
-    <section class="charts-section">
-      <h2>Price Trends by Category</h2>
-      @if (priceTrends(); as pt) {
-        @if (pt.categories.length > 0 || pt.recentChanges.length > 0) {
-          <div class="price-trends-card">
-            <div class="price-trends-summary">
-              <div
-                class="price-summary-stat"
-                [appTooltip]="'Total price changes tracked in the selected period'"
-              >
-                <span class="material-symbols-rounded">swap_vert</span>
-                <div class="price-summary-info">
-                  <span class="price-summary-value">{{ pt.totalPriceChanges | number }}</span>
-                  <span class="price-summary-label">Price Changes</span>
-                </div>
-              </div>
-              @if (pt.avgPriceIncrease > 0) {
-                <div
-                  class="price-summary-stat up"
-                  [appTooltip]="'Average amount when sellers increase prices'"
-                >
-                  <div class="price-summary-info">
-                    <span class="price-summary-value"
-                      >{{ CURRENCY_SYMBOL }} {{ pt.avgPriceIncrease | number }}</span
-                    >
-                    <span class="price-summary-label">Avg Increase</span>
-                  </div>
-                </div>
-              }
-              @if (pt.avgPriceDecrease < 0) {
-                <div
-                  class="price-summary-stat down"
-                  [appTooltip]="'Average amount when sellers decrease prices'"
-                >
-                  <div class="price-summary-info">
-                    <span class="price-summary-value"
-                      >{{ CURRENCY_SYMBOL }} {{ pt.avgPriceDecrease | number }}</span
-                    >
-                    <span class="price-summary-label">Avg Decrease</span>
-                  </div>
-                </div>
-              }
-            </div>
-            @if (pt.categories.length > 0) {
-              <div class="section-toolbar">
-                <div class="search-mini">
-                  <span class="material-symbols-rounded">search</span>
-                  <input
-                    type="text"
-                    placeholder="Search categories..."
-                    [(ngModel)]="priceTrendSearch"
-                  />
-                </div>
-              </div>
-              <div class="price-trends-table">
-                <div class="scroll-body">
-                  <div class="price-trends-header">
-                    <span class="pt-col-name sortable" (click)="togglePriceTrendSort('name')">
-                      Category
-                      <span class="material-symbols-rounded sort-icon">{{
-                        getSortIcon(priceTrendSortBy === 'name', priceTrendSortDir)
-                      }}</span>
-                    </span>
-                    <span class="pt-col-num sortable" (click)="togglePriceTrendSort('changes')">
-                      Edits
-                      <span class="material-symbols-rounded sort-icon">{{
-                        getSortIcon(priceTrendSortBy === 'changes', priceTrendSortDir)
-                      }}</span>
-                    </span>
-                    <span class="pt-col-price">Before</span>
-                    <span class="pt-col-price">After</span>
-                    <span class="pt-col-diff sortable" (click)="togglePriceTrendSort('diff')">
-                      Diff%
-                      <span class="material-symbols-rounded sort-icon">{{
-                        getSortIcon(priceTrendSortBy === 'diff', priceTrendSortDir)
-                      }}</span>
-                    </span>
-                    <span class="pt-col-dir">Trend</span>
-                  </div>
-                  @for (cat of filteredPriceTrends; track cat.categoryId) {
-                    <div class="price-trends-row">
-                      <span class="pt-col-name">{{ cat.categoryName }}</span>
-                      <span class="pt-col-num">{{ cat.totalChanges | number }}</span>
-                      <span class="pt-col-price">{{ cat.avgPreviousPrice | number }}</span>
-                      <span class="pt-col-price">{{ cat.avgNewPrice | number }}</span>
-                      <span
-                        class="pt-col-diff"
-                        [class.up]="cat.direction === 'up'"
-                        [class.down]="cat.direction === 'down'"
-                      >
-                        {{ cat.avgDiffPct }}%
-                      </span>
-                      <span class="pt-col-dir">
-                        <div class="pt-bar-track">
-                          <div
-                            class="pt-bar-fill"
-                            [class.up]="cat.direction === 'up'"
-                            [class.down]="cat.direction === 'down'"
-                            [style.width.%]="
-                              getBarHeight(cat.totalChanges, getMaxPriceChanges(pt.categories))
-                            "
-                          ></div>
-                        </div>
-                      </span>
-                    </div>
-                  }
-                  @if (filteredPriceTrends.length === 0) {
-                    <p class="no-data">No matching categories</p>
-                  }
-                </div>
-              </div>
-            }
-          </div>
-        } @else {
-          <div class="chart-card">
-            <p class="no-data">
-              No price changes tracked yet. Data will appear when sellers update listing prices.
-            </p>
-          </div>
-        }
-
-        @if (pt.recentChanges.length > 0) {
-          <div class="recent-changes-section">
-            <h2>Recent Price Changes</h2>
-            <div class="data-table-card scrollable-table">
-              <div class="section-toolbar">
-                <div class="search-mini">
-                  <span class="material-symbols-rounded">search</span>
-                  <input
-                    type="text"
-                    placeholder="Search by listing or category..."
-                    [(ngModel)]="recentPriceSearch"
-                  />
-                </div>
-              </div>
-              <div class="table-scroll-body">
-                <table class="data-table">
-                  <thead>
-                    <tr>
-                      <th class="col-title">Listing</th>
-                      <th class="col-term">Category</th>
-                      <th class="col-price">Before</th>
-                      <th class="col-price">After</th>
-                      <th class="col-num">Diff</th>
-                      <th class="col-count">Date</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    @for (item of filteredRecentPriceChanges; track $index) {
-                      <tr>
-                        <td class="col-title">{{ item.title }}</td>
-                        <td class="col-term">{{ item.categoryName }}</td>
-                        <td class="col-price">{{ item.previousPrice | number }}</td>
-                        <td class="col-price">{{ item.newPrice | number }}</td>
-                        <td
-                          class="col-num"
-                          [class.text-up]="item.diff > 0"
-                          [class.text-down]="item.diff < 0"
-                        >
-                          {{ item.diff > 0 ? '+' : '' }}{{ item.diff | number }}
-                        </td>
-                        <td class="col-count">{{ formatShortDate(item.date) }}</td>
-                      </tr>
-                    }
-                    @if (filteredRecentPriceChanges.length === 0) {
-                      <tr>
-                        <td colspan="6" class="no-data">No matching results</td>
-                      </tr>
-                    }
-                  </tbody>
-                </table>
-              </div>
-            </div>
-          </div>
-        }
-      } @else {
-        <div class="chart-card">
-          <p class="no-data">Loading price trend data...</p>
-        </div>
-      }
-    </section>
 
     <!-- ═══════════════════════════════════════════════════ -->
     <!-- PLATFORM & SECURITY                                -->

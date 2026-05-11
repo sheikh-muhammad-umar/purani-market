@@ -6,6 +6,8 @@ import {
   ShortsPackage,
   ShortsPackagePurchase,
 } from '../../../core/services/shorts.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ROUTES } from '../../../core/constants/routes';
 import { CURRENCY_SYMBOL } from '../../../core/constants/app';
 
@@ -23,9 +25,13 @@ export class ShortsPackagesComponent implements OnInit {
   readonly purchases = signal<ShortsPackagePurchase[]>([]);
   readonly loading = signal(true);
 
-  constructor(private readonly shortsService: ShortsService) {}
+  constructor(
+    private readonly shortsService: ShortsService,
+    private readonly tracker: ActivityTrackerService,
+  ) {}
 
   ngOnInit(): void {
+    this.tracker.track(TrackingEvent.SHORT_PACKAGE_VIEW, {});
     this.shortsService.getAvailablePackages().subscribe({
       next: (pkgs) => {
         this.packages.set(pkgs);

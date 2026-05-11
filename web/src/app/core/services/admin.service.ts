@@ -404,13 +404,24 @@ export class AdminService {
     return this.http.patch<AdPackage>(`${this.baseUrl}${API.PACKAGE_BY_ID(id)}`, payload);
   }
 
+  // --- Shorts (admin) ---
+  getPendingShortsCount(): Observable<number> {
+    const params = new HttpParams().set('status', 'pending_review').set('limit', '1');
+    return this.http.get<any>(`${this.baseUrl}${API.SHORTS_ADMIN_LIST}`, { params }).pipe(
+      map((res) => {
+        const data = res && res.data && res.statusCode ? res.data : res;
+        return data.total ?? 0;
+      }),
+    );
+  }
+
   // --- Purchase & Payment Management ---
   getAdminPurchases(params: AdminPurchasesParams = {}): Observable<AdminPurchasesResponse> {
     let httpParams = new HttpParams();
     if (params.page) httpParams = httpParams.set('page', params.page.toString());
     if (params.limit) httpParams = httpParams.set('limit', params.limit.toString());
-    if (params.startDate) httpParams = httpParams.set('startDate', params.startDate);
-    if (params.endDate) httpParams = httpParams.set('endDate', params.endDate);
+    if (params.startDate) httpParams = httpParams.set('dateFrom', params.startDate);
+    if (params.endDate) httpParams = httpParams.set('dateTo', params.endDate);
     if (params.sellerId) httpParams = httpParams.set('sellerId', params.sellerId);
     if (params.type) httpParams = httpParams.set('type', params.type);
     if (params.status) httpParams = httpParams.set('status', params.status);

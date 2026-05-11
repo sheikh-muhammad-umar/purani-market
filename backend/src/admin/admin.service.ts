@@ -716,8 +716,13 @@ export class AdminService {
       if (dateTo) filter.createdAt.$lte = new Date(dateTo);
     }
 
-    if (sellerId && Types.ObjectId.isValid(sellerId)) {
-      filter.sellerId = new Types.ObjectId(sellerId);
+    if (sellerId) {
+      if (Types.ObjectId.isValid(sellerId)) {
+        filter.sellerId = new Types.ObjectId(sellerId);
+      } else {
+        // Search by transaction ID if not a valid ObjectId
+        filter.paymentTransactionId = { $regex: sellerId, $options: 'i' };
+      }
     }
 
     if (type) {

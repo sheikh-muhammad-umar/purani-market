@@ -7,6 +7,8 @@ import { ShortsService, ShortVideo } from '../../../core/services/shorts.service
 import { CategoriesService } from '../../../core/services/categories.service';
 import { LocationService } from '../../../core/services/location.service';
 import { ListingsService } from '../../../core/services/listings.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
 import {
   CustomSelectComponent,
   SelectOption,
@@ -114,6 +116,7 @@ export class ShortsEditComponent implements OnInit {
     private readonly categoriesService: CategoriesService,
     private readonly locationService: LocationService,
     private readonly listingsService: ListingsService,
+    private readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
@@ -335,6 +338,9 @@ export class ShortsEditComponent implements OnInit {
     this.shortsService.updateShort(this.shortId, data).subscribe({
       next: () => {
         this.saving.set(false);
+        this.tracker.track(TrackingEvent.SHORT_EDIT, {
+          metadata: { shortId: this.shortId },
+        });
         this.router.navigate([ROUTES.LISTINGS_MY], { queryParams: { tab: 'shorts' } });
       },
       error: (err) => {

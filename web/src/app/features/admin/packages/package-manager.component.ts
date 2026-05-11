@@ -41,6 +41,46 @@ export class PackageManagerComponent implements OnInit {
   readonly packages = signal<AdPackage[]>([]);
   readonly categories = signal<Category[]>([]);
 
+  // Search & filter
+  searchQuery = '';
+  filterType: PackageType | '' = '';
+  filterStatus: 'active' | 'inactive' | '' = '';
+
+  readonly typeFilterOptions: SelectOption[] = [
+    { value: '', label: 'All Types' },
+    ...PACKAGE_TYPE_OPTIONS,
+  ];
+
+  readonly statusFilterOptions: SelectOption[] = [
+    { value: '', label: 'All Status' },
+    { value: 'active', label: 'Active' },
+    { value: 'inactive', label: 'Inactive' },
+  ];
+
+  get filteredPackages(): AdPackage[] {
+    let result = this.packages();
+
+    // Search
+    const q = this.searchQuery.toLowerCase().trim();
+    if (q) {
+      result = result.filter((p) => p.name.toLowerCase().includes(q));
+    }
+
+    // Type filter
+    if (this.filterType) {
+      result = result.filter((p) => p.type === this.filterType);
+    }
+
+    // Status filter
+    if (this.filterStatus === 'active') {
+      result = result.filter((p) => p.isActive);
+    } else if (this.filterStatus === 'inactive') {
+      result = result.filter((p) => !p.isActive);
+    }
+
+    return result;
+  }
+
   // Sorting as signals for reactive template binding
   readonly pkgSortCol = signal('');
   readonly pkgSortDir = signal<'asc' | 'desc'>('asc');

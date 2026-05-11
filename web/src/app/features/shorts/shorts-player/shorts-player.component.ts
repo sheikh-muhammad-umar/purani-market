@@ -217,4 +217,31 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
     );
     return `https://wa.me/${cleaned}?text=${message}`;
   }
+
+  onSellerClick(): void {
+    this.tracker.track(TrackingEvent.SHORT_SELLER_CLICK, {
+      metadata: { shortId: this.short._id, sellerId: this.short.sellerId._id },
+    });
+  }
+
+  onCallClick(): void {
+    this.tracker.track(TrackingEvent.SHORT_CALL_CLICK, {
+      metadata: { shortId: this.short._id, sellerId: this.short.sellerId._id },
+    });
+  }
+
+  shareShort(): void {
+    this.tracker.track(TrackingEvent.SHORT_SHARE, {
+      metadata: { shortId: this.short._id, sellerId: this.short.sellerId._id },
+    });
+
+    const url = `${window.location.origin}/shorts?id=${this.short._id}`;
+    const title = this.short.title || this.short.description || 'Check out this short';
+
+    if (navigator.share) {
+      navigator.share({ title, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).catch(() => {});
+    }
+  }
 }

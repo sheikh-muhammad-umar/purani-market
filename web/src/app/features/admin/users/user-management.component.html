@@ -215,7 +215,83 @@
                 Manage Permissions
               </button>
             }
+
+            <button class="uc-btn uc-btn-detail" (click)="openUserDetail(user)">
+              <span class="material-symbols-rounded uc-btn-icon">{{
+                selectedUserId() === user._id ? 'expand_less' : 'info'
+              }}</span>
+              {{ selectedUserId() === user._id ? 'Hide Details' : 'View Details' }}
+            </button>
           </div>
+
+          <!-- User Detail Panel -->
+          @if (selectedUserId() === user._id) {
+            <div class="uc-detail-panel">
+              @if (detailLoading()) {
+                <div class="uc-detail-loading">Loading...</div>
+              } @else if (userDetail(); as detail) {
+                <div class="uc-detail-sections">
+                  <!-- Summary -->
+                  <div class="uc-detail-section">
+                    <h4>Account Info</h4>
+                    <div class="uc-detail-grid">
+                      <span class="uc-detail-item"
+                        ><span class="uc-detail-label">Joined</span
+                        >{{ user.createdAt | date: 'mediumDate' }}</span
+                      >
+                      <span class="uc-detail-item"
+                        ><span class="uc-detail-label">Last Login</span
+                        >{{ userDisplayMap().get(user._id)?.lastLogin }}</span
+                      >
+                      <span class="uc-detail-item"
+                        ><span class="uc-detail-label">Active Listings</span
+                        >{{ user.activeListingCount }} / {{ user.listingLimit }}</span
+                      >
+                      <span class="uc-detail-item"
+                        ><span class="uc-detail-label">Violations</span
+                        >{{ user.activitySummary?.violationsCount ?? 0 }}</span
+                      >
+                    </div>
+                  </div>
+
+                  <!-- Active Packages -->
+                  @if (detail.packages.length > 0) {
+                    <div class="uc-detail-section">
+                      <h4>Active Packages</h4>
+                      <div class="uc-detail-packages">
+                        @for (pkg of detail.packages; track pkg.name) {
+                          <div class="uc-detail-pkg">
+                            <span class="uc-detail-pkg-name">{{ pkg.name }}</span>
+                            <span class="uc-detail-pkg-meta"
+                              >{{ pkg.type }} · Expires
+                              {{ pkg.expiresAt | date: 'mediumDate' }}</span
+                            >
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+
+                  <!-- Recent Activity -->
+                  @if (detail.activity.length > 0) {
+                    <div class="uc-detail-section">
+                      <h4>Recent Activity</h4>
+                      <div class="uc-detail-activity">
+                        @for (act of detail.activity; track $index) {
+                          <div class="uc-activity-row">
+                            <span class="uc-activity-action">{{ act.action }}</span>
+                            <span class="uc-activity-date">{{
+                              act.createdAt | date: 'short'
+                            }}</span>
+                          </div>
+                        }
+                      </div>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
         </div>
       }
     </div>

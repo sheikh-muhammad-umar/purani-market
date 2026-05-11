@@ -1,0 +1,112 @@
+<div class="analytics-page">
+  <div class="page-header">
+    <h1>Listings Analytics</h1>
+    <div class="date-range">
+      <app-date-picker [(ngModel)]="dateFrom" [max]="dateTo || today"></app-date-picker>
+      <span class="date-sep">to</span>
+      <app-date-picker [(ngModel)]="dateTo" [min]="dateFrom" [max]="today"></app-date-picker>
+      <button class="btn-apply" (click)="applyDateRange()">Apply</button>
+      <button class="btn-export" (click)="exportCSV()" [disabled]="loading()">
+        <span class="material-symbols-rounded" style="font-size: 16px">download</span> Export
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  }
+
+  @if (!loading()) {
+    <!-- Metric Cards -->
+    <div class="metrics-grid">
+      @for (card of metrics(); track card.label) {
+        <div class="metric-card">
+          <span class="metric-icon material-symbols-rounded">{{ card.icon }}</span>
+          <div class="metric-body">
+            <span class="metric-value">
+              {{ card.format === 'currency' ? CURRENCY_SYMBOL + ' ' : ''
+              }}{{ formatNumber(card.value) }}
+            </span>
+            <span class="metric-label">{{ card.label }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Listings Over Time -->
+    @if (listingsTimeSeries().length > 0) {
+      <div class="chart-card">
+        <h3>Listings Over Time</h3>
+        <div class="chart-bars">
+          @for (point of listingsTimeSeries(); track point.date) {
+            <div class="bar-col" [title]="point.date + ': ' + point.value">
+              <div class="bar" [style.height.%]="(point.value / maxListingCount()) * 100"></div>
+              <span class="bar-label">{{ point.date | date: 'd' }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Category Breakdown -->
+    @if (categoryAnalytics().length > 0) {
+      <div class="chart-card">
+        <h3>Category Breakdown</h3>
+        <div class="category-list">
+          @for (cat of categoryAnalytics(); track cat.categoryId) {
+            <div class="category-row">
+              <span class="cat-name">{{ cat.categoryName || cat.categoryId }}</span>
+              <div class="cat-bar-wrap">
+                <div
+                  class="cat-bar"
+                  [style.width.%]="(cat.listingCount / maxCategoryCount()) * 100"
+                ></div>
+              </div>
+              <span class="cat-count">{{ cat.listingCount }}</span>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Price Trends -->
+    @if (priceTrends()?.categories?.length) {
+      <div class="chart-card">
+        <h3>Price Trends by Category</h3>
+        <div class="price-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Category</th>
+                <th>Avg Price</th>
+                <th>Change</th>
+                <th>Direction</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of priceTrends()!.categories; track item.categoryId) {
+                <tr>
+                  <td>{{ item.categoryName }}</td>
+                  <td class="price-cell">
+                    {{ CURRENCY_SYMBOL }} {{ item.avgNewPrice | number: '1.0-0' }}
+                  </td>
+                  <td
+                    [class.positive]="item.direction === 'up'"
+                    [class.negative]="item.direction === 'down'"
+                  >
+                    {{ item.avgDiffPct > 0 ? '+' : '' }}{{ item.avgDiffPct | number: '1.1-1' }}%
+                  </td>
+                  <td>
+                    <span class="direction-badge" [attr.data-dir]="item.direction">
+                      {{ item.direction }}
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </div>
+    }
+  }
+</div>

@@ -22,7 +22,15 @@ export class AdminLayoutComponent {
     { label: 'Users', icon: 'group', path: ROUTES.ADMIN_USERS },
     { label: 'Listings', icon: 'list_alt', path: ROUTES.ADMIN_LISTINGS },
     { label: 'Shorts', icon: 'play_circle', path: ROUTES.ADMIN_SHORTS },
-    { label: 'Shorts Analytics', icon: 'analytics', path: ROUTES.ADMIN_SHORTS_ANALYTICS },
+    {
+      label: 'Analytics',
+      icon: 'analytics',
+      path: ROUTES.ADMIN_ANALYTICS,
+      children: [
+        { label: 'Listings', icon: 'list_alt', path: ROUTES.ADMIN_ANALYTICS_LISTINGS },
+        { label: 'Shorts', icon: 'play_circle', path: ROUTES.ADMIN_ANALYTICS_SHORTS },
+      ],
+    },
     { label: 'ID Verifications', icon: 'verified_user', path: ROUTES.ADMIN_ID_VERIFICATIONS },
     { label: 'Activity', icon: 'timeline', path: ROUTES.ADMIN_ACTIVITY },
     { label: 'Payments', icon: 'payments', path: ROUTES.ADMIN_PAYMENTS },

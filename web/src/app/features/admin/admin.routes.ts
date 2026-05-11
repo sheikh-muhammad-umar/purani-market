@@ -128,11 +128,28 @@ export const ADMIN_ROUTES: Routes = [
           import('./shorts/shorts-admin.component').then((m) => m.ShortsAdminComponent),
       },
       {
-        path: 'shorts-analytics',
-        loadComponent: () =>
-          import('./shorts-analytics/shorts-analytics.component').then(
-            (m) => m.ShortsAnalyticsComponent,
-          ),
+        path: 'analytics',
+        children: [
+          {
+            path: '',
+            redirectTo: 'listings',
+            pathMatch: 'full',
+          },
+          {
+            path: 'listings',
+            loadComponent: () =>
+              import('./analytics-listings/listings-analytics.component').then(
+                (m) => m.ListingsAnalyticsComponent,
+              ),
+          },
+          {
+            path: 'shorts',
+            loadComponent: () =>
+              import('./shorts-analytics/shorts-analytics.component').then(
+                (m) => m.ShortsAnalyticsComponent,
+              ),
+          },
+        ],
       },
     ],
   },

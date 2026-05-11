@@ -1,7 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AdminService, PendingListing } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
@@ -128,6 +128,10 @@ export class AllListingsComponent implements OnInit {
   readonly modError = signal<string | null>(null);
   readonly modTotalListings = signal(0);
   readonly modActionLoading = signal<string | null>(null);
+  readonly bulkProcessing = signal(false);
+
+  // Bulk selection
+  selectedIds = new Set<string>();
 
   rejectingId: string | null = null;
   expandedId: string | null = null;
@@ -224,8 +228,15 @@ export class AllListingsComponent implements OnInit {
   ) {}
 
   private readonly stateKey = 'admin-all-listings';
+  private readonly route = inject(ActivatedRoute);
 
   ngOnInit(): void {
+    // Check if navigated with ?tab=moderation
+    const tab = this.route.snapshot.queryParams['tab'];
+    if (tab === 'moderation') {
+      this.activeTab.set('moderation');
+    }
+
     const saved = loadState<{ filterStatus: string; sortBy: string; page: number }>(this.stateKey);
     if (saved.filterStatus) this.filterStatus = saved.filterStatus;
     if (saved.sortBy) this.sortBy = saved.sortBy;
@@ -461,6 +472,59 @@ export class AllListingsComponent implements OnInit {
         this.modActionLoading.set(null);
       },
     });
+  }
+
+  // --- Bulk Actions ---
+  toggleSelect(id: string): void {
+    if (this.selectedIds.has(id)) {
+      this.selectedIds.delete(id);
+    } else {
+      this.selectedIds.add(id);
+    }
+    this.selectedIds = new Set(this.selectedIds);
+  }
+
+  toggleSelectAll(): void {
+    const pending = this.filteredPendingListings;
+    if (this.selectedIds.size === pending.length) {
+      this.selectedIds = new Set();
+    } else {
+      this.selectedIds = new Set(pending.map((l) => l._id));
+    }
+  }
+
+  get allSelected(): boolean {
+    const pending = this.filteredPendingListings;
+    return pending.length > 0 && this.selectedIds.size === pending.length;
+  }
+
+  bulkApprove(): void {
+    if (this.selectedIds.size === 0) return;
+    this.bulkProcessing.set(true);
+    const ids = Array.from(this.selectedIds);
+    let completed = 0;
+
+    for (const id of ids) {
+      this.adminService.approveListing(id).subscribe({
+        next: () => {
+          completed++;
+          this.pendingListings.update((list) => list.filter((l) => l._id !== id));
+          this.pendingCount.update((c) => c - 1);
+          this.modTotalListings.update((t) => t - 1);
+          if (completed === ids.length) {
+            this.selectedIds = new Set();
+            this.bulkProcessing.set(false);
+          }
+        },
+        error: () => {
+          completed++;
+          if (completed === ids.length) {
+            this.selectedIds = new Set();
+            this.bulkProcessing.set(false);
+          }
+        },
+      });
+    }
   }
 
   startReject(listing: PendingListing): void {

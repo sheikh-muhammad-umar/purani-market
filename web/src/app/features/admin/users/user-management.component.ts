@@ -40,6 +40,11 @@ export class UserManagementComponent implements OnInit {
   readonly pageSize = signal(10);
   readonly actionLoading = signal<string | null>(null);
 
+  // User detail panel
+  readonly selectedUserId = signal<string | null>(null);
+  readonly userDetail = signal<any>(null);
+  readonly detailLoading = signal(false);
+
   searchQuery = '';
   roleFilter: UserRole | '' = '';
   statusFilter: UserStatus | '' = '';
@@ -245,6 +250,35 @@ export class UserManagementComponent implements OnInit {
   getUserName(user: AdminUser): string {
     const name = `${user.profile.firstName} ${user.profile.lastName}`.trim();
     return name || 'Unknown User';
+  }
+
+  // --- User Detail Panel ---
+  openUserDetail(user: AdminUser): void {
+    if (this.selectedUserId() === user._id) {
+      this.closeUserDetail();
+      return;
+    }
+    this.selectedUserId.set(user._id);
+    this.detailLoading.set(true);
+    this.adminService.getUserActivity(user._id, 1, 10).subscribe({
+      next: (activity: any) => {
+        this.userDetail.set({
+          user,
+          activity: activity?.data ?? activity ?? [],
+          packages: user.activePackages?.packages ?? [],
+        });
+        this.detailLoading.set(false);
+      },
+      error: () => {
+        this.userDetail.set({ user, activity: [], packages: [] });
+        this.detailLoading.set(false);
+      },
+    });
+  }
+
+  closeUserDetail(): void {
+    this.selectedUserId.set(null);
+    this.userDetail.set(null);
   }
 
   getUserContact(user: AdminUser): string {

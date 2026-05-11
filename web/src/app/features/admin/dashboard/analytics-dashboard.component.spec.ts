@@ -79,6 +79,9 @@ describe('AnalyticsDashboardComponent', () => {
       getIdVerificationStats: vi
         .fn()
         .mockReturnValue(of({ total: 0, pending: 0, approved: 0, rejected: 0 })),
+      getPendingListings: vi.fn().mockReturnValue(of({ total: 0, listings: [] })),
+      getPendingShortsCount: vi.fn().mockReturnValue(of(0)),
+      getUsers: vi.fn().mockReturnValue(of({ total: 0, users: [] })),
     };
     component = new AnalyticsDashboardComponent(adminService as unknown as AdminService);
   });

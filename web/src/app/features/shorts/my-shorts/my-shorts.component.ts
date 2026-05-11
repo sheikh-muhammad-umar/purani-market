@@ -3,6 +3,8 @@ import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ShortsService, ShortVideo, ShortsStats } from '../../../core/services/shorts.service';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { FormatDurationPipe } from '../../../shared/pipes/format-duration.pipe';
 import { FormatStatusPipe } from '../../../shared/pipes/format-status.pipe';
 import { ROUTES } from '../../../core/constants/routes';
@@ -24,6 +26,7 @@ export class MyShortsComponent implements OnInit {
   constructor(
     private readonly shortsService: ShortsService,
     private readonly confirmModal: ConfirmModalService,
+    private readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
@@ -57,6 +60,7 @@ export class MyShortsComponent implements OnInit {
     if (confirmed) {
       this.shortsService.deleteShort(id).subscribe({
         next: () => {
+          this.tracker.track(TrackingEvent.SHORT_DELETE, { metadata: { shortId: id } });
           this.shorts.update((list) => list.filter((s) => s._id !== id));
           this.loadData();
         },

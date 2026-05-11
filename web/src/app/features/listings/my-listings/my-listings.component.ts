@@ -362,6 +362,7 @@ export class MyListingsComponent implements OnInit {
     if (confirmed) {
       this.shortsService.deleteShort(id).subscribe({
         next: () => {
+          this.tracker.track(TrackingEvent.SHORT_DELETE, { metadata: { shortId: id } });
           this.shorts.update((list) => list.filter((s) => s._id !== id));
           this.loadShorts();
         },

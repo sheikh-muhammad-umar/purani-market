@@ -611,11 +611,31 @@ export class ShortsService {
     if (query.sellerId) {
       filter.sellerId = new Types.ObjectId(query.sellerId);
     }
+    if (query.categoryId) {
+      filter.categoryId = new Types.ObjectId(query.categoryId);
+    }
+    if (query.search) {
+      const regex = new RegExp(query.search, 'i');
+      filter.$or = [{ title: regex }, { description: regex }];
+    }
+    if (query.dateFrom || query.dateTo) {
+      filter.createdAt = {};
+      if (query.dateFrom) filter.createdAt.$gte = new Date(query.dateFrom);
+      if (query.dateTo)
+        filter.createdAt.$lte = new Date(query.dateTo + 'T23:59:59');
+    }
+
+    // Sorting
+    let sortObj: Record<string, 1 | -1> = { createdAt: -1 };
+    if (query.sort) {
+      const dir = query.order === 'asc' ? 1 : -1;
+      sortObj = { [query.sort]: dir };
+    }
 
     const [data, total] = await Promise.all([
       this.shortVideoModel
         .find(filter)
-        .sort({ createdAt: -1 })
+        .sort(sortObj)
         .skip(skip)
         .limit(limit)
         .populate('sellerId', 'profile.firstName profile.lastName email phone')

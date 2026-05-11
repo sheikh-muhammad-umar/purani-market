@@ -327,6 +327,25 @@
               </div>
             </div>
 
+            <!-- Bulk Actions Bar -->
+            <div class="bulk-bar">
+              <label class="bulk-select-all">
+                <input type="checkbox" [checked]="allSelected" (change)="toggleSelectAll()" />
+                Select All
+              </label>
+              @if (selectedIds.size > 0) {
+                <span class="bulk-count">{{ selectedIds.size }} selected</span>
+                <button
+                  class="btn-action btn-approve"
+                  [disabled]="bulkProcessing()"
+                  (click)="bulkApprove()"
+                >
+                  <span class="material-symbols-rounded" style="font-size: 14px">check_circle</span>
+                  Approve All ({{ selectedIds.size }})
+                </button>
+              }
+            </div>
+
             <!-- Expandable Filters Panel -->
             @if (modFiltersOpen) {
               <div class="filters-panel">
@@ -398,7 +417,19 @@
           }
 
           @for (listing of filteredPendingListings; track listing._id) {
-            <div class="listing-card" [class.expanded]="expandedId === listing._id">
+            <div
+              class="listing-card"
+              [class.expanded]="expandedId === listing._id"
+              [class.selected]="selectedIds.has(listing._id)"
+            >
+              <!-- Checkbox -->
+              <div class="listing-checkbox" (click)="$event.stopPropagation()">
+                <input
+                  type="checkbox"
+                  [checked]="selectedIds.has(listing._id)"
+                  (change)="toggleSelect(listing._id)"
+                />
+              </div>
               <!-- Summary Row -->
               <div class="listing-summary" (click)="toggleExpand(listing._id)">
                 <div class="listing-thumbnail">
