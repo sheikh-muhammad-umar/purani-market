@@ -1,9 +1,11 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
 import { CURRENCY_SYMBOL } from '../../../core/constants/app';
+import { ROUTES } from '../../../core/constants/routes';
 import {
   AdminService,
   MetricsSummary,
@@ -39,11 +41,12 @@ const DEFAULT_LOOKBACK_MS = daysToMs(30);
 @Component({
   selector: 'app-analytics-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePickerComponent, TooltipDirective],
+  imports: [CommonModule, FormsModule, RouterLink, DatePickerComponent, TooltipDirective],
   templateUrl: './analytics-dashboard.component.html',
   styleUrls: ['./analytics-dashboard.component.scss'],
 })
-export class AnalyticsDashboardComponent implements OnInit {
+export class AnalyticsDashboardComponent implements OnInit, OnDestroy {
+  readonly ROUTES = ROUTES;
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
   readonly exporting = signal(false);
@@ -60,6 +63,11 @@ export class AnalyticsDashboardComponent implements OnInit {
   readonly priceTrends = signal<PriceTrendsData | null>(null);
   readonly voiceSearchStats = signal<VoiceSearchAnalytics | null>(null);
   readonly idVerificationStats = signal<IdVerificationStats | null>(null);
+
+  // Action-required quick stats
+  readonly pendingListings = signal(0);
+  readonly pendingShorts = signal(0);
+  readonly pendingVerifications = signal(0);
 
   startDate = '';
   endDate = '';
@@ -212,7 +220,19 @@ export class AnalyticsDashboardComponent implements OnInit {
     this.loadPriceTrends();
     this.loadVoiceSearchStats();
     this.loadIdVerificationStats();
+    this.loadActionItems();
+
+    // Refresh pending counts every 60 seconds
+    this.actionItemsInterval = setInterval(() => this.loadActionItems(), 60_000);
   }
+
+  ngOnDestroy(): void {
+    if (this.actionItemsInterval) {
+      clearInterval(this.actionItemsInterval);
+    }
+  }
+
+  private actionItemsInterval: ReturnType<typeof setInterval> | null = null;
 
   loadAnalytics(): void {
     this.loading.set(true);
@@ -576,6 +596,7 @@ export class AnalyticsDashboardComponent implements OnInit {
     this.adminService.getIdVerificationStats().subscribe({
       next: (data) => {
         this.idVerificationStats.set(data);
+        this.pendingVerifications.set(data.pending ?? 0);
       },
       error: () => {
         this.idVerificationStats.set({
@@ -586,6 +607,23 @@ export class AnalyticsDashboardComponent implements OnInit {
           timeSeries: [],
         });
       },
+    });
+  }
+
+  private loadActionItems(): void {
+    // Pending listings
+    this.adminService.getPendingListings().subscribe({
+      next: (res: any) => {
+        const data = res && res.data && res.statusCode ? res.data : res;
+        this.pendingListings.set(data.total ?? data.listings?.length ?? 0);
+      },
+      error: () => {},
+    });
+
+    // Pending shorts
+    this.adminService.getPendingShortsCount().subscribe({
+      next: (count) => this.pendingShorts.set(count),
+      error: () => {},
     });
   }
 

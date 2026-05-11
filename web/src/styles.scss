@@ -1192,6 +1192,26 @@ select.form-input,
     'opsz' 24;
 }
 
+/* Icon size utilities */
+.icon-xs {
+  font-size: 14px !important;
+}
+.icon-sm {
+  font-size: 16px !important;
+}
+.icon-md {
+  font-size: 20px !important;
+}
+.icon-lg {
+  font-size: 24px !important;
+}
+.icon-xl {
+  font-size: 28px !important;
+}
+.icon-2xl {
+  font-size: 32px !important;
+}
+
 /* ============================================
    GLOBAL TOOLTIP
    ============================================ */

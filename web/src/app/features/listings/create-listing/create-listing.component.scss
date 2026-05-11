@@ -695,9 +695,29 @@
 .feature-toggle {
   align-items: flex-start;
 
+  // Properly size the checkbox
+  input[type='checkbox'] {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    accent-color: var(--primary);
+    margin-top: 3px; // align with first line of text
+    cursor: pointer;
+  }
+
   div {
     strong {
       font-size: var(--text-base);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+
+      // Icon matches the heading text size
+      .material-symbols-rounded {
+        font-size: 1.1em; // relative to strong's font-size so it always matches
+        line-height: 1;
+        flex-shrink: 0;
+      }
     }
   }
 

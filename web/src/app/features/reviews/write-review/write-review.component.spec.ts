@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { WriteReviewComponent } from './write-review.component';
 import { ReviewsService } from '../../../core/services/reviews.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 describe('WriteReviewComponent', () => {
   let component: WriteReviewComponent;
@@ -10,6 +11,7 @@ describe('WriteReviewComponent', () => {
   };
   let route: { snapshot: { queryParams: Record<string, string> } };
   let router: { navigate: ReturnType<typeof vi.fn> };
+  let toastMock: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
     reviewsService = {
@@ -17,11 +19,13 @@ describe('WriteReviewComponent', () => {
     };
     route = { snapshot: { queryParams: { listingId: 'listing1' } } };
     router = { navigate: vi.fn() };
+    toastMock = { success: vi.fn(), error: vi.fn() };
 
     component = new WriteReviewComponent(
       reviewsService as unknown as ReviewsService,
       route as any,
       router as any,
+      toastMock as unknown as ToastService,
     );
   });
 
@@ -40,6 +44,7 @@ describe('WriteReviewComponent', () => {
       reviewsService as unknown as ReviewsService,
       route as any,
       router as any,
+      toastMock as unknown as ToastService,
     );
     component.ngOnInit();
     expect(component.productListingId()).toBeNull();
@@ -82,6 +87,7 @@ describe('WriteReviewComponent', () => {
       reviewsService as unknown as ReviewsService,
       route as any,
       router as any,
+      toastMock as unknown as ToastService,
     );
     component.ngOnInit();
     component.setRating(4);

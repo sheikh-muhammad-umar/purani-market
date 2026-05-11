@@ -104,6 +104,19 @@ export class AuthService {
     });
   }
 
+  sendEmailOtp(targetEmail?: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(
+      `${this.apiUrl}${API.AUTH_SEND_EMAIL_OTP}`,
+      targetEmail ? { targetEmail } : {},
+    );
+  }
+
+  verifyEmailOtp(otp: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_VERIFY_EMAIL_OTP}`, {
+      otp,
+    });
+  }
+
   // --- Password Recovery ---
 
   forgotPassword(email: string): Observable<{ message: string }> {

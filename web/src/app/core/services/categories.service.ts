@@ -88,6 +88,7 @@ export class CategoriesService {
   }
 
   updateAttributes(id: string, attributes: CategoryAttribute[]): Observable<Category> {
+    this.invalidateCache();
     return this.api.patch<Category>(API.CATEGORY_ATTRIBUTES(id), { attributes });
   }
 
@@ -103,10 +104,12 @@ export class CategoriesService {
       allowOther?: boolean;
     }>,
   ): Observable<Category> {
+    this.invalidateCache();
     return this.api.patch<Category>(API.CATEGORY_ASSIGN_ATTRIBUTES(id), { attributes });
   }
 
   updateFeatures(id: string, features: string[]): Observable<Category> {
+    this.invalidateCache();
     return this.api.patch<Category>(API.CATEGORY_FEATURES(id), { features });
   }
 

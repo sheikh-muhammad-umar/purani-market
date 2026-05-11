@@ -1118,10 +1118,29 @@ export class AuthService {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
-    // Check if new phone is already in use
+    // Check if new phone is already in use by another user
     const existing = await this.userModel.findOne({ phone: newPhone }).exec();
-    if (existing) {
+    if (existing && existing._id.toString() !== userId) {
       throw new ConflictException(PUBLIC_ERROR.CONFLICT);
+    }
+
+    // If the phone belongs to this same user and is already verified, nothing to do
+    if (existing && existing._id.toString() === userId && user.phoneVerified) {
+      return { message: 'Phone number is already verified.' };
+    }
+
+    // If the phone belongs to this same user but is unverified, send a
+    // standard phone verification OTP (not a "change" OTP) so verifyPhone()
+    // can be used to confirm it.
+    if (existing && existing._id.toString() === userId && !user.phoneVerified) {
+      await this.sendPhoneVerification(user._id, newPhone);
+      this.trackOtp(
+        UserAction.OTP_SENT,
+        userId,
+        OtpChannel.SMS,
+        OtpReason.REGISTRATION,
+      );
+      return { message: 'OTP sent to your phone number' };
     }
 
     // Enforce rate limit: max 3 change requests per 24 hours
@@ -1255,6 +1274,141 @@ export class AuthService {
     });
 
     await this.emailService.sendVerificationEmail(email, token);
+  }
+
+  // ─── Email OTP (used when user is already logged in) ───────────────────────
+
+  /**
+   * Sends an email OTP. If targetEmail is provided, the OTP is sent to that
+   * address and stored on the token. The user's email is NOT changed yet —
+   * it is only updated after successful OTP verification.
+   */
+  async sendEmailOtp(
+    userId: string,
+    targetEmail?: string,
+  ): Promise<{ message: string }> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    const sendTo = targetEmail ?? user.email;
+    if (!sendTo) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    // If sending to a new address, check it isn't already taken by another account
+    if (targetEmail && targetEmail !== user.email) {
+      const existing = await this.userModel
+        .findOne({ email: targetEmail, _id: { $ne: user._id } })
+        .exec();
+      if (existing) {
+        throw new ConflictException(PUBLIC_ERROR.CONFLICT);
+      }
+    }
+
+    // If sending to current email and already verified, nothing to do
+    if (!targetEmail && user.emailVerified) {
+      return { message: 'Email is already verified.' };
+    }
+
+    // Rate limit
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentCount = await this.verificationTokenModel
+      .countDocuments({
+        userId: user._id,
+        type: VerificationType.EMAIL_OTP,
+        createdAt: { $gte: oneHourAgo },
+      })
+      .exec();
+    if (recentCount >= MAX_RESENDS_PER_HOUR) {
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+
+    // Invalidate previous OTPs
+    await this.verificationTokenModel
+      .updateMany(
+        { userId: user._id, type: VerificationType.EMAIL_OTP, used: false },
+        { used: true },
+      )
+      .exec();
+
+    const otp = this.generateOtp();
+    const otpHash = await bcrypt.hash(otp, BCRYPT_COST_FACTOR);
+    const expiresAt = new Date(
+      Date.now() + PHONE_OTP_EXPIRY_MINUTES * 60 * 1000,
+    );
+
+    await this.verificationTokenModel.create({
+      userId: user._id,
+      type: VerificationType.EMAIL_OTP,
+      token: otpHash,
+      expiresAt,
+      ...(targetEmail ? { targetEmail } : {}),
+    });
+
+    await this.emailService.sendOtpEmail(sendTo, otp);
+
+    this.trackOtp(
+      UserAction.OTP_SENT,
+      userId,
+      OtpChannel.EMAIL,
+      OtpReason.RESEND,
+    );
+
+    return { message: 'Verification code sent to your email.' };
+  }
+
+  async verifyEmailOtp(
+    userId: string,
+    otp: string,
+  ): Promise<{ message: string }> {
+    const record = await this.verificationTokenModel
+      .findOne({
+        userId: new Types.ObjectId(userId),
+        type: VerificationType.EMAIL_OTP,
+        used: false,
+      })
+      .sort({ createdAt: -1 })
+      .exec();
+
+    if (!record || record.expiresAt < new Date()) {
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
+    }
+
+    const isValid = await bcrypt.compare(otp, record.token);
+    if (!isValid) {
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
+    }
+
+    record.used = true;
+    await record.save();
+
+    // If a targetEmail was stored, update the user's email to that address now
+    const update: Record<string, any> = { emailVerified: true };
+    if (record.targetEmail) {
+      const existing = await this.userModel
+        .findOne({
+          email: record.targetEmail,
+          _id: { $ne: new Types.ObjectId(userId) },
+        })
+        .exec();
+      if (existing) {
+        throw new ConflictException(PUBLIC_ERROR.CONFLICT);
+      }
+      update.email = record.targetEmail;
+    }
+
+    await this.userModel.findByIdAndUpdate(userId, update).exec();
+
+    this.trackOtp(
+      UserAction.OTP_VERIFIED,
+      userId,
+      OtpChannel.EMAIL,
+      OtpReason.REGISTRATION,
+    );
+
+    return { message: 'Email verified successfully.' };
   }
 
   private async sendPhoneVerification(

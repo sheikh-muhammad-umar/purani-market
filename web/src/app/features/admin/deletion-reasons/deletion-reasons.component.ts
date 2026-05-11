@@ -2,22 +2,22 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../../core/services/admin.service';
-import {
-  CustomSelectComponent,
-  SelectOption,
-} from '../../../shared/components/custom-select/custom-select.component';
+import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { ToastService } from '../../../core/services/toast.service';
 
 interface DeletionReason {
   _id: string;
   title: string;
   description?: string;
+  requiresNote: boolean;
+  sortOrder: number;
   isActive: boolean;
 }
 
 @Component({
   selector: 'app-deletion-reasons',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './deletion-reasons.component.html',
   styleUrl: './deletion-reasons.component.scss',
 })
@@ -26,49 +26,22 @@ export class DeletionReasonsComponent implements OnInit {
   readonly reasons = signal<DeletionReason[]>([]);
   readonly saving = signal(false);
 
+  showForm = false;
   editingId: string | null = null;
-  editTitle = '';
-  editDescription = '';
-  newTitle = '';
-  newDescription = '';
-  showAddForm = false;
-  deletingId: string | null = null;
 
-  searchQuery = '';
-  filterStatus = '';
-  sortBy = 'default';
+  formTitle = '';
+  formDescription = '';
+  formRequiresNote = false;
+  formSortOrder = 0;
 
-  readonly statusOptions: SelectOption[] = [
-    { value: '', label: 'All' },
-    { value: 'active', label: 'Active' },
-    { value: 'inactive', label: 'Inactive' },
-  ];
-
-  readonly sortOptions: SelectOption[] = [
-    { value: 'default', label: 'Default' },
-    { value: 'az', label: 'A → Z' },
-    { value: 'za', label: 'Z → A' },
-  ];
-
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly confirmModal: ConfirmModalService,
+    private readonly toast: ToastService,
+  ) {}
 
   ngOnInit(): void {
     this.loadReasons();
-  }
-
-  get filteredReasons(): DeletionReason[] {
-    let result = this.reasons();
-    const q = this.searchQuery.toLowerCase().trim();
-    if (q)
-      result = result.filter(
-        (r) => r.title.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q),
-      );
-    if (this.filterStatus === 'active') result = result.filter((r) => r.isActive);
-    else if (this.filterStatus === 'inactive') result = result.filter((r) => !r.isActive);
-    if (this.sortBy === 'az') result = [...result].sort((a, b) => a.title.localeCompare(b.title));
-    else if (this.sortBy === 'za')
-      result = [...result].sort((a, b) => b.title.localeCompare(a.title));
-    return result;
   }
 
   loadReasons(): void {
@@ -80,89 +53,84 @@ export class DeletionReasonsComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
+        this.toast.error('Failed to load deletion reasons.');
       },
     });
   }
 
-  startAdd(): void {
-    this.showAddForm = true;
-    this.newTitle = '';
-    this.newDescription = '';
-  }
-  cancelAdd(): void {
-    this.showAddForm = false;
-  }
-
-  saveNew(): void {
-    if (!this.newTitle.trim()) return;
-    this.saving.set(true);
-    this.adminService
-      .createDeletionReason({
-        title: this.newTitle.trim(),
-        description: this.newDescription.trim() || undefined,
-      })
-      .subscribe({
-        next: () => {
-          this.showAddForm = false;
-          this.saving.set(false);
-          this.loadReasons();
-        },
-        error: () => {
-          this.saving.set(false);
-        },
-      });
-  }
-
-  startEdit(reason: DeletionReason): void {
+  editReason(reason: DeletionReason): void {
     this.editingId = reason._id;
-    this.editTitle = reason.title;
-    this.editDescription = reason.description || '';
+    this.formTitle = reason.title;
+    this.formDescription = reason.description || '';
+    this.formRequiresNote = reason.requiresNote ?? false;
+    this.formSortOrder = reason.sortOrder ?? 0;
+    this.showForm = true;
   }
-  cancelEdit(): void {
+
+  cancelForm(): void {
+    this.showForm = false;
     this.editingId = null;
+    this.formTitle = '';
+    this.formDescription = '';
+    this.formRequiresNote = false;
+    this.formSortOrder = 0;
   }
 
-  saveEdit(): void {
-    if (!this.editingId || !this.editTitle.trim()) return;
+  saveReason(): void {
+    if (!this.formTitle.trim()) return;
     this.saving.set(true);
-    this.adminService
-      .updateDeletionReason(this.editingId, {
-        title: this.editTitle.trim(),
-        description: this.editDescription.trim() || undefined,
-      })
-      .subscribe({
-        next: () => {
-          this.editingId = null;
-          this.saving.set(false);
-          this.loadReasons();
-        },
-        error: () => {
-          this.saving.set(false);
-        },
-      });
+
+    const body = {
+      title: this.formTitle.trim(),
+      description: this.formDescription.trim() || undefined,
+      requiresNote: this.formRequiresNote,
+      sortOrder: this.formSortOrder,
+    };
+
+    const req$ = this.editingId
+      ? this.adminService.updateDeletionReason(this.editingId, body)
+      : this.adminService.createDeletionReason(body);
+
+    req$.subscribe({
+      next: () => {
+        this.toast.success(this.editingId ? 'Reason updated.' : 'Reason created.');
+        this.saving.set(false);
+        this.cancelForm();
+        this.loadReasons();
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('Failed to save reason.');
+      },
+    });
   }
 
-  toggleActive(reason: DeletionReason): void {
+  async deleteReason(reason: DeletionReason): Promise<void> {
+    const confirmed = await this.confirmModal.confirm({
+      title: 'Delete Deletion Reason',
+      message: `Delete "${reason.title}"? This cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
+    this.adminService.deleteDeletionReason(reason._id).subscribe({
+      next: () => {
+        this.toast.success('Reason deleted.');
+        this.loadReasons();
+      },
+      error: () => this.toast.error('Failed to delete reason.'),
+    });
+  }
+
+  async toggleActive(reason: DeletionReason): Promise<void> {
     this.adminService.updateDeletionReason(reason._id, { isActive: !reason.isActive }).subscribe({
       next: () => {
+        this.toast.success(reason.isActive ? 'Reason deactivated.' : 'Reason activated.');
         this.loadReasons();
       },
+      error: () => this.toast.error('Failed to update reason.'),
     });
-  }
-
-  deleteReason(reason: DeletionReason): void {
-    this.deletingId = reason._id;
-  }
-  confirmDelete(): void {
-    if (!this.deletingId) return;
-    this.adminService.deleteDeletionReason(this.deletingId).subscribe({
-      next: () => {
-        this.deletingId = null;
-        this.loadReasons();
-      },
-    });
-  }
-  cancelDelete(): void {
-    this.deletingId = null;
   }
 }

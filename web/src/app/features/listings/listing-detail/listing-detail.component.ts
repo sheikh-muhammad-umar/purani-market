@@ -20,6 +20,7 @@ import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { buildMapEmbedUrl } from '../../../core/utils/map-link';
 import { extractPackageDetails } from '../../../core/utils/package-details';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-listing-detail',
@@ -57,7 +58,6 @@ export class ListingDetailComponent implements OnInit {
   favoriteAnimating = signal(false);
 
   // Share
-  shareToastVisible = signal(false);
   sharePopupOpen = signal(false);
 
   // Lightbox
@@ -84,6 +84,7 @@ export class ListingDetailComponent implements OnInit {
     public readonly loginModal: LoginModalService,
     public readonly tracker: ActivityTrackerService,
     private readonly confirmModal: ConfirmModalService,
+    private readonly toast: ToastService,
   ) {}
 
   mapEmbedUrl = computed<SafeResourceUrl | null>(() => {
@@ -329,8 +330,7 @@ export class ListingDetailComponent implements OnInit {
       case 'copy':
         navigator.clipboard.writeText(window.location.href);
         this.sharePopupOpen.set(false);
-        this.shareToastVisible.set(true);
-        setTimeout(() => this.shareToastVisible.set(false), 2000);
+        this.toast.success('Link copied to clipboard');
         return;
     }
 
@@ -373,6 +373,7 @@ export class ListingDetailComponent implements OnInit {
       next: (updated) => {
         this.actionLoading.set(false);
         this.listing.set(updated);
+        this.toast.success('Listing deactivated successfully.');
         this.tracker.track(TrackingEvent.LISTING_STATUS_CHANGE, {
           productListingId: listing._id,
           metadata: {
@@ -382,7 +383,10 @@ export class ListingDetailComponent implements OnInit {
           },
         });
       },
-      error: () => this.actionLoading.set(false),
+      error: () => {
+        this.actionLoading.set(false);
+        this.toast.error('Failed to deactivate listing. Please try again.');
+      },
     });
   }
 
@@ -399,13 +403,17 @@ export class ListingDetailComponent implements OnInit {
     this.listingsService.deleteListing(listing._id).subscribe({
       next: () => {
         this.actionLoading.set(false);
+        this.toast.success('Listing deleted successfully.');
         this.tracker.track(TrackingEvent.LISTING_DELETE, {
           productListingId: listing._id,
           metadata: { previousStatus: listing.status },
         });
         this.listing.set({ ...listing, status: 'deleted' as any });
       },
-      error: () => this.actionLoading.set(false),
+      error: () => {
+        this.actionLoading.set(false);
+        this.toast.error('Failed to delete listing. Please try again.');
+      },
     });
   }
 

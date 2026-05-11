@@ -14,6 +14,11 @@ import { HeaderComponent } from './shared/components/header/header.component';
 import { FooterComponent } from './shared/components/footer/footer.component';
 import { LoginModalComponent } from './shared/components/login-modal/login-modal.component';
 import { ConfirmModalComponent } from './shared/components/confirm-modal/confirm-modal.component';
+import { ToastContainerComponent } from './shared/components/toast-container/toast-container.component';
+import { EmailVerificationModalComponent } from './shared/components/email-verification-modal/email-verification-modal.component';
+import { EmailVerificationModalService } from './shared/components/email-verification-modal/email-verification-modal.service';
+import { PhoneVerificationModalComponent } from './shared/components/phone-verification-modal/phone-verification-modal.component';
+import { PhoneVerificationModalService } from './shared/components/phone-verification-modal/phone-verification-modal.service';
 import { ROUTES } from './core/constants/routes';
 
 @Component({
@@ -25,6 +30,9 @@ import { ROUTES } from './core/constants/routes';
     FooterComponent,
     LoginModalComponent,
     ConfirmModalComponent,
+    ToastContainerComponent,
+    EmailVerificationModalComponent,
+    PhoneVerificationModalComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',
@@ -35,6 +43,9 @@ export class App implements OnInit, OnDestroy {
   private scrolling = false;
   private navSub?: Subscription;
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+
+  readonly emailVerificationModal = inject(EmailVerificationModalService);
+  readonly phoneVerificationModal = inject(PhoneVerificationModalService);
 
   constructor(private readonly router: Router) {}
 

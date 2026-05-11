@@ -1,0 +1,129 @@
+<div class="evm-overlay" (click)="close()">
+  <div
+    class="evm-card"
+    (click)="$event.stopPropagation()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="evm-title"
+  >
+    <button class="evm-close" (click)="close()" aria-label="Close">
+      <span class="material-symbols-rounded">close</span>
+    </button>
+
+    <div class="evm-icon-wrap">
+      <span class="material-symbols-rounded evm-icon">
+        {{ step() === 'change' ? 'edit' : 'mark_email_unread' }}
+      </span>
+    </div>
+
+    <!-- ── Verify step ─────────────────────────────────────────────────────── -->
+    @if (step() === 'verify') {
+      <h2 id="evm-title" class="evm-title">Verify your email</h2>
+
+      <p class="evm-desc">
+        This feature requires a verified email address.
+        @if (pendingEmail()) {
+          We've sent a 6-digit code to <strong>{{ pendingEmail() }}</strong
+          >.
+        } @else {
+          We've sent a 6-digit code to your email address.
+        }
+      </p>
+
+      @if (error()) {
+        <div class="evm-alert evm-alert-error">{{ error() }}</div>
+      }
+
+      <form [formGroup]="otpForm" (ngSubmit)="submitOtp()" class="evm-form">
+        <div class="evm-field">
+          <label class="evm-label" for="evm-otp">Verification Code</label>
+          <input
+            id="evm-otp"
+            class="evm-input evm-otp-input"
+            formControlName="otp"
+            placeholder="000000"
+            maxlength="6"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+          />
+          @if (otpForm.get('otp')?.touched && otpForm.get('otp')?.errors?.['pattern']) {
+            <span class="evm-error-text">Code must be 6 digits</span>
+          }
+        </div>
+
+        <button
+          class="evm-btn-primary"
+          type="submit"
+          [disabled]="otpForm.invalid || verifying() || sending()"
+        >
+          @if (verifying()) {
+            <span class="evm-spinner"></span> Verifying...
+          } @else {
+            <span class="material-symbols-rounded">check_circle</span> Verify
+          }
+        </button>
+
+        <button
+          type="button"
+          class="evm-btn-secondary"
+          (click)="sendOtp()"
+          [disabled]="sending() || resendCooldown() > 0"
+        >
+          @if (sending()) {
+            <span class="evm-spinner evm-spinner-dark"></span> Sending...
+          } @else if (resendCooldown() > 0) {
+            Resend in {{ resendCooldown() }}s
+          } @else {
+            <span class="material-symbols-rounded">refresh</span> Resend code
+          }
+        </button>
+
+        <button type="button" class="evm-btn-change" (click)="openChangeEmail()">
+          <span class="material-symbols-rounded">edit</span> Wrong email? Change it
+        </button>
+      </form>
+    }
+
+    <!-- ── Change email step ───────────────────────────────────────────────── -->
+    @if (step() === 'change') {
+      <h2 id="evm-title" class="evm-title">Update email address</h2>
+
+      <p class="evm-desc">
+        Enter the correct email address. We'll send a new verification code to it.
+      </p>
+
+      @if (error()) {
+        <div class="evm-alert evm-alert-error">{{ error() }}</div>
+      }
+
+      <form [formGroup]="emailForm" (ngSubmit)="submitEmailChange()" class="evm-form">
+        <div class="evm-field">
+          <label class="evm-label" for="evm-email">Email Address</label>
+          <input
+            id="evm-email"
+            type="email"
+            class="evm-input"
+            formControlName="email"
+            placeholder="you@example.com"
+            inputmode="email"
+            autocomplete="email"
+          />
+          @if (emailForm.get('email')?.touched && emailForm.get('email')?.errors?.['required']) {
+            <span class="evm-error-text">Email is required</span>
+          }
+          @if (emailForm.get('email')?.touched && emailForm.get('email')?.errors?.['email']) {
+            <span class="evm-error-text">Enter a valid email address</span>
+          }
+        </div>
+
+        <button class="evm-btn-primary" type="submit" [disabled]="emailForm.invalid">
+          <span class="material-symbols-rounded">send</span> Update & Send Code
+        </button>
+
+        <button type="button" class="evm-btn-secondary" (click)="cancelChangeEmail()">
+          <span class="material-symbols-rounded">arrow_back</span> Back
+        </button>
+      </form>
+    }
+  </div>
+</div>

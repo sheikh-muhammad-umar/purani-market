@@ -11,6 +11,7 @@ import { jwtInterceptor } from './core/auth';
 import { unwrapInterceptor } from './core/interceptors/unwrap.interceptor';
 import { apiKeyInterceptor } from './core/interceptors/api-key.interceptor';
 import { csrfInterceptor } from './core/interceptors/csrf.interceptor';
+import { emailVerificationInterceptor } from './core/interceptors/email-verification.interceptor';
 
 export const appConfig: ApplicationConfig = {
   providers: [
@@ -23,7 +24,13 @@ export const appConfig: ApplicationConfig = {
     ),
     provideHttpClient(
       withFetch(),
-      withInterceptors([apiKeyInterceptor, csrfInterceptor, jwtInterceptor, unwrapInterceptor]),
+      withInterceptors([
+        apiKeyInterceptor,
+        csrfInterceptor,
+        jwtInterceptor,
+        unwrapInterceptor,
+        emailVerificationInterceptor,
+      ]),
     ),
     provideClientHydration(withHttpTransferCacheOptions({})),
   ],

@@ -1,108 +1,8 @@
-<!-- Phone Verification Gate -->
+<!-- Phone check loading -->
 @if (phoneCheckLoading()) {
   <div class="wizard-page">
     <div class="wizard-container">
       <div class="loading-center"><div class="spinner spinner-lg"></div></div>
-    </div>
-  </div>
-} @else if (!phoneVerified()) {
-  <div class="wizard-page">
-    <div class="wizard-container">
-      <div class="phone-verify-card">
-        <div class="phone-verify-icon">
-          <span class="material-symbols-rounded">smartphone</span>
-        </div>
-        <h2>Verify Your Phone Number</h2>
-        <p class="phone-verify-desc">
-          A verified phone number is required to post ads. Your phone number will be shown to buyers
-          as contact info.
-        </p>
-
-        @if (phoneError()) {
-          <div class="alert alert-error">{{ phoneError() }}</div>
-        }
-        @if (phoneSuccess()) {
-          <div class="alert alert-success">{{ phoneSuccess() }}</div>
-        }
-
-        @if (phoneStep() === 'add') {
-          <form [formGroup]="phoneForm" (ngSubmit)="submitPhone()" class="phone-form">
-            <div class="form-group">
-              <label class="form-label" for="phone">Phone Number</label>
-              <input
-                id="phone"
-                class="form-input"
-                formControlName="phone"
-                placeholder="03001234567"
-                maxlength="11"
-              />
-              @if (
-                phoneForm.get('phone')?.touched && phoneForm.get('phone')?.errors?.['required']
-              ) {
-                <span class="form-error">Phone number is required</span>
-              }
-              @if (phoneForm.get('phone')?.touched && phoneForm.get('phone')?.errors?.['pattern']) {
-                <span class="form-error">Enter a valid 11-digit phone number starting with 0</span>
-              }
-            </div>
-            <button
-              class="btn btn-primary"
-              type="submit"
-              [disabled]="phoneForm.invalid || phoneSending()"
-            >
-              @if (phoneSending()) {
-                <span class="spinner"></span> Sending OTP...
-              } @else {
-                Send OTP
-              }
-            </button>
-          </form>
-        }
-
-        @if (phoneStep() === 'verify') {
-          <p class="otp-info">
-            Enter the 6-digit code sent to <strong>{{ pendingPhone() }}</strong>
-          </p>
-          <form [formGroup]="otpForm" (ngSubmit)="submitOtp()" class="phone-form">
-            <div class="form-group">
-              <label class="form-label" for="otp">OTP Code</label>
-              <input
-                id="otp"
-                class="form-input otp-input"
-                formControlName="otp"
-                placeholder="000000"
-                maxlength="6"
-                inputmode="numeric"
-                autocomplete="one-time-code"
-              />
-              @if (otpForm.get('otp')?.touched && otpForm.get('otp')?.errors?.['pattern']) {
-                <span class="form-error">OTP must be a 6-digit code</span>
-              }
-            </div>
-            <div class="otp-actions">
-              <button
-                class="btn btn-primary"
-                type="submit"
-                [disabled]="otpForm.invalid || phoneSending()"
-              >
-                @if (phoneSending()) {
-                  <span class="spinner"></span> Verifying...
-                } @else {
-                  Verify
-                }
-              </button>
-              <button
-                class="btn btn-outline"
-                type="button"
-                (click)="resendOtp()"
-                [disabled]="phoneSending()"
-              >
-                Resend OTP
-              </button>
-            </div>
-          </form>
-        }
-      </div>
     </div>
   </div>
 } @else {
@@ -1213,12 +1113,7 @@
                 />
                 <div>
                   <strong
-                    ><span
-                      class="material-symbols-rounded"
-                      style="font-size: 14px; vertical-align: middle"
-                      >star</span
-                    >
-                    Feature this ad</strong
+                    ><span class="material-symbols-rounded">star</span> Feature this ad</strong
                   >
                   @if (featuredSlotsRemaining() > 0) {
                     <p class="feature-desc">

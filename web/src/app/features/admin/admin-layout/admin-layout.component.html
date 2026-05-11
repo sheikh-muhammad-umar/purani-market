@@ -32,59 +32,69 @@
       </div>
 
       <nav class="sidebar-nav">
-        @for (item of navItems; track item.path) {
-          @if (item.children) {
-            <div class="nav-group" [class.expanded]="expandedNavItem === item.path">
-              <button
-                class="nav-item nav-dropdown-toggle"
-                routerLinkActive="active"
-                [routerLinkActiveOptions]="prefixMatchOptions"
-                [attr.aria-label]="item.label"
-                (click)="toggleNavDropdown(item.path)"
-              >
-                <span class="nav-icon material-symbols-rounded">{{ item.icon }}</span>
-                @if (!sidebarCollapsed) {
-                  <span class="nav-label">{{ item.label }}</span>
-                  <span class="nav-chevron material-symbols-rounded">
-                    {{ expandedNavItem === item.path ? 'expand_less' : 'expand_more' }}
-                  </span>
-                }
-              </button>
-              @if (!sidebarCollapsed && expandedNavItem === item.path) {
-                <div class="nav-children">
-                  @for (child of item.children; track child.path) {
-                    <a
-                      class="nav-item nav-child"
-                      [routerLink]="child.path"
-                      routerLinkActive="active"
-                      [routerLinkActiveOptions]="prefixMatchOptions"
-                      [attr.aria-label]="child.label"
-                      (click)="closeMobileMenu()"
-                    >
-                      <span class="nav-icon material-symbols-rounded">{{ child.icon }}</span>
-                      <span class="nav-label">{{ child.label }}</span>
-                    </a>
+        @for (section of navSections; track section.title) {
+          <div class="nav-section">
+            @if (!sidebarCollapsed) {
+              <span class="nav-section-title">{{ section.title }}</span>
+            } @else {
+              <span class="nav-section-divider"></span>
+            }
+
+            @for (item of section.items; track item.path) {
+              @if (item.children) {
+                <div class="nav-group" [class.expanded]="expandedNavItem === item.path">
+                  <button
+                    class="nav-item nav-dropdown-toggle"
+                    routerLinkActive="active"
+                    [routerLinkActiveOptions]="prefixMatchOptions"
+                    [attr.aria-label]="item.label"
+                    (click)="toggleNavDropdown(item.path)"
+                  >
+                    <span class="nav-icon material-symbols-rounded">{{ item.icon }}</span>
+                    @if (!sidebarCollapsed) {
+                      <span class="nav-label">{{ item.label }}</span>
+                      <span class="nav-chevron material-symbols-rounded">
+                        {{ expandedNavItem === item.path ? 'expand_less' : 'expand_more' }}
+                      </span>
+                    }
+                  </button>
+                  @if (!sidebarCollapsed && expandedNavItem === item.path) {
+                    <div class="nav-children">
+                      @for (child of item.children; track child.path) {
+                        <a
+                          class="nav-item nav-child"
+                          [routerLink]="child.path"
+                          routerLinkActive="active"
+                          [routerLinkActiveOptions]="prefixMatchOptions"
+                          [attr.aria-label]="child.label"
+                          (click)="closeMobileMenu()"
+                        >
+                          <span class="nav-icon material-symbols-rounded">{{ child.icon }}</span>
+                          <span class="nav-label">{{ child.label }}</span>
+                        </a>
+                      }
+                    </div>
                   }
                 </div>
+              } @else {
+                <a
+                  class="nav-item"
+                  [routerLink]="item.path"
+                  routerLinkActive="active"
+                  [routerLinkActiveOptions]="
+                    item.path === ROUTES.ADMIN ? exactMatchOptions : prefixMatchOptions
+                  "
+                  [attr.aria-label]="item.label"
+                  (click)="closeMobileMenu()"
+                >
+                  <span class="nav-icon material-symbols-rounded">{{ item.icon }}</span>
+                  @if (!sidebarCollapsed) {
+                    <span class="nav-label">{{ item.label }}</span>
+                  }
+                </a>
               }
-            </div>
-          } @else {
-            <a
-              class="nav-item"
-              [routerLink]="item.path"
-              routerLinkActive="active"
-              [routerLinkActiveOptions]="
-                item.path === ROUTES.ADMIN ? exactMatchOptions : prefixMatchOptions
-              "
-              [attr.aria-label]="item.label"
-              (click)="closeMobileMenu()"
-            >
-              <span class="nav-icon material-symbols-rounded">{{ item.icon }}</span>
-              @if (!sidebarCollapsed) {
-                <span class="nav-label">{{ item.label }}</span>
-              }
-            </a>
-          }
+            }
+          </div>
         }
       </nav>
     </div>
@@ -95,12 +105,12 @@
       <button class="mobile-menu-btn" (click)="toggleMobileMenu()" aria-label="Open admin menu">
         ☰
       </button>
-      <span class="mobile-topbar-title"
-        ><span class="material-symbols-rounded" style="font-size: 18px; vertical-align: middle"
+      <span class="mobile-topbar-title">
+        <span class="material-symbols-rounded" style="font-size: 18px; vertical-align: middle"
           >admin_panel_settings</span
         >
-        Admin Panel</span
-      >
+        Admin Panel
+      </span>
     </div>
     <router-outlet></router-outlet>
   </main>

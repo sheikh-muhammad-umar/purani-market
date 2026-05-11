@@ -18,6 +18,7 @@ import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
 import { SKELETON_ITEMS } from '../messaging.constants';
 import { ChatWindowComponent } from '../chat-window/chat-window.component';
+import { ToastService } from '../../../core/services/toast.service';
 
 /** Precomputed view data for a single conversation row. */
 interface ConversationView {
@@ -71,6 +72,7 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
     private readonly router: Router,
     private readonly route: ActivatedRoute,
     readonly authService: AuthService,
+    private readonly toast: ToastService,
   ) {}
 
   ngOnInit(): void {
@@ -141,7 +143,7 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
               }
             },
             error: () => {
-              alert(ERROR_MSG.CONVERSATION_START_FAILED);
+              this.toast.error(ERROR_MSG.CONVERSATION_START_FAILED);
               this.loadConversations();
             },
           });

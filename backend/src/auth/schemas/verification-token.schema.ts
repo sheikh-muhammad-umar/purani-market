@@ -25,6 +25,10 @@ export class VerificationToken {
   @Prop({ type: Boolean, default: false })
   used!: boolean;
 
+  /** Optional: target email address when sending OTP to a new/different address */
+  @Prop({ type: String })
+  targetEmail?: string;
+
   createdAt!: Date;
   updatedAt!: Date;
 }

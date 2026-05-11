@@ -32,7 +32,10 @@ export class SettingsComponent implements OnInit {
   emailChanging = signal(false);
   emailChangeSuccess = signal('');
   emailChangeError = signal('');
-  emailVerificationSent = signal(false);
+  emailOtpSent = signal(false);
+  emailOtpVerifying = signal(false);
+  emailResendCooldown = signal(0);
+  private emailCooldownTimer?: ReturnType<typeof setInterval>;
 
   // Phone change
   showPhoneChange = signal(false);
@@ -45,6 +48,9 @@ export class SettingsComponent implements OnInit {
   // OTP verification for phone
   otpForm: FormGroup;
   otpVerifying = signal(false);
+
+  // OTP verification for email
+  emailOtpForm: FormGroup;
 
   // MFA
   mfaLoading = signal(false);
@@ -59,6 +65,10 @@ export class SettingsComponent implements OnInit {
   ) {
     this.emailForm = this.fb.group({
       newEmail: ['', [Validators.required, Validators.email]],
+    });
+
+    this.emailOtpForm = this.fb.group({
+      otp: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
     });
 
     this.phoneForm = this.fb.group({
@@ -93,9 +103,12 @@ export class SettingsComponent implements OnInit {
   toggleEmailChange(): void {
     this.showEmailChange.update((v) => !v);
     this.emailForm.reset();
+    this.emailOtpForm.reset();
     this.emailChangeSuccess.set('');
     this.emailChangeError.set('');
-    this.emailVerificationSent.set(false);
+    this.emailOtpSent.set(false);
+    clearInterval(this.emailCooldownTimer);
+    this.emailResendCooldown.set(0);
   }
 
   onEmailChangeSubmit(): void {
@@ -107,23 +120,91 @@ export class SettingsComponent implements OnInit {
     this.emailChanging.set(true);
     this.emailChangeError.set('');
 
-    this.http
-      .post<{ message: string }>(`${this.apiUrl}${API.AUTH_CHANGE_EMAIL}`, {
-        newEmail: this.emailForm.value.newEmail,
-      })
-      .subscribe({
-        next: (res) => {
-          this.emailChanging.set(false);
-          this.emailVerificationSent.set(true);
-          this.emailChangeSuccess.set(
-            res.message || 'Verification link sent to your new email address.',
-          );
-        },
-        error: (err) => {
-          this.emailChanging.set(false);
-          this.emailChangeError.set('Failed to initiate email change.');
-        },
-      });
+    const newEmail: string = this.emailForm.value.newEmail;
+
+    this.authService.sendEmailOtp(newEmail).subscribe({
+      next: () => {
+        this.emailChanging.set(false);
+        this.emailOtpSent.set(true);
+        this.emailChangeSuccess.set(`Verification code sent to ${newEmail}`);
+        this.startEmailCooldown(60);
+      },
+      error: (err) => {
+        this.emailChanging.set(false);
+        const isConflict = err?.status === 409;
+        this.emailChangeError.set(
+          isConflict
+            ? 'This email is already in use by another account.'
+            : 'Failed to send verification code. Please try again.',
+        );
+      },
+    });
+  }
+
+  resendEmailCode(): void {
+    if (this.emailResendCooldown() > 0 || this.emailChanging()) return;
+    this.emailChanging.set(true);
+    this.emailChangeError.set('');
+    this.emailChangeSuccess.set('');
+
+    const newEmail: string = this.emailForm.value.newEmail;
+
+    this.authService.sendEmailOtp(newEmail).subscribe({
+      next: () => {
+        this.emailChanging.set(false);
+        this.emailChangeSuccess.set(`Code resent to ${newEmail}`);
+        this.startEmailCooldown(60);
+      },
+      error: () => {
+        this.emailChanging.set(false);
+        this.emailChangeError.set('Failed to resend code. Please try again.');
+      },
+    });
+  }
+
+  onEmailOtpVerifySubmit(): void {
+    if (this.emailOtpForm.invalid) {
+      this.emailOtpForm.markAllAsTouched();
+      return;
+    }
+
+    this.emailOtpVerifying.set(true);
+    this.emailChangeError.set('');
+
+    this.authService.verifyEmailOtp(this.emailOtpForm.value.otp).subscribe({
+      next: () => {
+        this.emailOtpVerifying.set(false);
+        this.emailChangeSuccess.set('Email updated and verified successfully.');
+        this.emailOtpSent.set(false);
+        this.showEmailChange.set(false);
+        clearInterval(this.emailCooldownTimer);
+        this.emailResendCooldown.set(0);
+        // Invalidate cache so the next fetch hits the API and updates
+        // the global authService.user() signal used by the header etc.
+        this.authService.invalidateUserCache();
+        this.authService.fetchCurrentUser().subscribe({
+          next: (user) => this.user.set(user),
+        });
+      },
+      error: () => {
+        this.emailOtpVerifying.set(false);
+        this.emailChangeError.set('Invalid code. Please try again.');
+      },
+    });
+  }
+
+  private startEmailCooldown(seconds: number): void {
+    this.emailResendCooldown.set(seconds);
+    clearInterval(this.emailCooldownTimer);
+    this.emailCooldownTimer = setInterval(() => {
+      const remaining = this.emailResendCooldown() - 1;
+      if (remaining <= 0) {
+        clearInterval(this.emailCooldownTimer);
+        this.emailResendCooldown.set(0);
+      } else {
+        this.emailResendCooldown.set(remaining);
+      }
+    }, 1000);
   }
 
   // --- Phone Change ---
@@ -182,7 +263,10 @@ export class SettingsComponent implements OnInit {
           this.phoneChangeSuccess.set(res.message || 'Phone number updated successfully.');
           this.phoneOtpSent.set(false);
           this.showPhoneChange.set(false);
-          this.loadUser();
+          this.authService.invalidateUserCache();
+          this.authService.fetchCurrentUser().subscribe({
+            next: (user) => this.user.set(user),
+          });
         },
         error: (err) => {
           this.otpVerifying.set(false);

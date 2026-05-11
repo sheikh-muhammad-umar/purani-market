@@ -20,7 +20,11 @@
   <!-- Seller info & description overlay -->
   <div class="overlay-bottom" (click)="$event.stopPropagation()">
     <div class="seller-info">
-      <a [routerLink]="ROUTES.SELLER(sellerSlug(short.sellerId))" class="seller-link">
+      <a
+        [routerLink]="ROUTES.SELLER(sellerSlug(short.sellerId))"
+        class="seller-link"
+        (click)="onSellerClick()"
+      >
         <div class="seller-avatar">
           @if (short.sellerId.profile.avatar) {
             <img [src]="short.sellerId.profile.avatar" alt="avatar" />
@@ -59,13 +63,22 @@
       <span class="action-icon"><span class="material-symbols-rounded">visibility</span></span>
       <span class="action-count">{{ short.viewCount }}</span>
     </button>
+    <button class="action-btn" title="Share" (click)="shareShort()">
+      <span class="action-icon"><span class="material-symbols-rounded">share</span></span>
+      <span class="action-count">Share</span>
+    </button>
     @if (!isOwner()) {
       <button class="action-btn" title="Message" (click)="startChat()">
         <span class="action-icon"><span class="material-symbols-rounded">chat_bubble</span></span>
         <span class="action-count">Chat</span>
       </button>
       @if (short.sellerId.phone) {
-        <a [href]="'tel:' + short.sellerId.phone" class="action-btn" title="Call">
+        <a
+          [href]="'tel:' + short.sellerId.phone"
+          class="action-btn"
+          title="Call"
+          (click)="onCallClick()"
+        >
           <span class="action-icon"><span class="material-symbols-rounded">call</span></span>
           <span class="action-count">Call</span>
         </a>

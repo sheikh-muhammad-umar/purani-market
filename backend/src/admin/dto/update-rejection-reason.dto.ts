@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsBoolean, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsNumber,
+  MaxLength,
+  Min,
+} from 'class-validator';
 
 export class UpdateRejectionReasonDto {
   @IsOptional()
@@ -14,4 +21,13 @@ export class UpdateRejectionReasonDto {
   @IsOptional()
   @IsBoolean()
   isActive?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  requiresNote?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  sortOrder?: number;
 }

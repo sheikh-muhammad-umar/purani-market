@@ -18,6 +18,7 @@ import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ROUTES } from '../../../core/constants/routes';
 import { CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { sellerSlug } from '../../../core/utils/slug';
+import { ToastService } from '../../../core/services/toast.service';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
@@ -58,6 +59,7 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
     private readonly router: Router,
     private readonly tracker: ActivityTrackerService,
     private readonly authService: AuthService,
+    private readonly toast: ToastService,
   ) {}
 
   ngAfterViewInit(): void {
@@ -216,5 +218,35 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
       `Hi, I'm interested in your short: "${title}" on Marketplace.\n${url}`,
     );
     return `https://wa.me/${cleaned}?text=${message}`;
+  }
+
+  onSellerClick(): void {
+    this.tracker.track(TrackingEvent.SHORT_SELLER_CLICK, {
+      metadata: { shortId: this.short._id, sellerId: this.short.sellerId._id },
+    });
+  }
+
+  onCallClick(): void {
+    this.tracker.track(TrackingEvent.SHORT_CALL_CLICK, {
+      metadata: { shortId: this.short._id, sellerId: this.short.sellerId._id },
+    });
+  }
+
+  shareShort(): void {
+    this.tracker.track(TrackingEvent.SHORT_SHARE, {
+      metadata: { shortId: this.short._id, sellerId: this.short.sellerId._id },
+    });
+
+    const url = `${window.location.origin}/shorts?id=${this.short._id}`;
+    const title = this.short.title || this.short.description || 'Check out this short';
+
+    if (navigator.share) {
+      navigator.share({ title, url }).catch(() => {});
+    } else {
+      navigator.clipboard.writeText(url).then(
+        () => this.toast.success('Link copied to clipboard'),
+        () => {},
+      );
+    }
   }
 }

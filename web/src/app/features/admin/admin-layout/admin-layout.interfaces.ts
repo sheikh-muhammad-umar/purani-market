@@ -4,3 +4,8 @@ export interface NavItem {
   path: string;
   children?: NavItem[];
 }
+
+export interface NavSection {
+  title: string;
+  items: NavItem[];
+}

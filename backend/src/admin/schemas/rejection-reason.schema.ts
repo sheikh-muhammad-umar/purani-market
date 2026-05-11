@@ -13,6 +13,12 @@ export class RejectionReason {
   @Prop({ type: String, maxlength: 500 })
   description?: string;
 
+  @Prop({ type: Boolean, default: false })
+  requiresNote!: boolean;
+
+  @Prop({ type: Number, default: 0 })
+  sortOrder!: number;
+
   @Prop({ type: Boolean, default: true })
   isActive!: boolean;
 

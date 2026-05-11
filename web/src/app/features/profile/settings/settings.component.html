@@ -48,7 +48,7 @@
               <div class="alert alert-error" role="alert">{{ emailChangeError() }}</div>
             }
 
-            @if (!emailVerificationSent()) {
+            @if (!emailOtpSent()) {
               <form [formGroup]="emailForm" (ngSubmit)="onEmailChangeSubmit()" novalidate>
                 <div class="form-group">
                   <label for="newEmail" class="form-label">New Email Address</label>
@@ -71,7 +71,7 @@
                   }
                 </div>
                 <p class="info-text-left">
-                  A verification link will be sent to the new email. Your current email stays active
+                  A 6-digit code will be sent to the new email. Your current email stays active
                   until verified.
                 </p>
                 <button type="submit" class="btn btn-primary btn-sm" [disabled]="emailChanging()">
@@ -79,14 +79,61 @@
                     <span class="spinner" aria-hidden="true"></span>
                     Sending...
                   } @else {
-                    Send Verification
+                    Send Code
                   }
                 </button>
               </form>
             } @else {
-              <p class="info-text-left">
-                Check your new email for the verification link. The link is valid for 24 hours.
-              </p>
+              <form [formGroup]="emailOtpForm" (ngSubmit)="onEmailOtpVerifySubmit()" novalidate>
+                <div class="form-group">
+                  <label for="emailOtp" class="form-label">Enter 6-digit Code</label>
+                  <input
+                    id="emailOtp"
+                    type="text"
+                    formControlName="otp"
+                    class="form-input otp-input"
+                    placeholder="000000"
+                    maxlength="6"
+                    inputmode="numeric"
+                    autocomplete="one-time-code"
+                  />
+                  @if (emailOtpForm.get('otp')?.touched && emailOtpForm.get('otp')?.errors) {
+                    <span class="form-error">
+                      @if (emailOtpForm.get('otp')?.errors?.['required']) {
+                        Code is required
+                      } @else if (emailOtpForm.get('otp')?.errors?.['pattern']) {
+                        Code must be 6 digits
+                      }
+                    </span>
+                  }
+                </div>
+                <div class="otp-actions">
+                  <button
+                    type="submit"
+                    class="btn btn-primary btn-sm"
+                    [disabled]="emailOtpVerifying()"
+                  >
+                    @if (emailOtpVerifying()) {
+                      <span class="spinner" aria-hidden="true"></span>
+                      Verifying...
+                    } @else {
+                      Verify Code
+                    }
+                  </button>
+                  <button
+                    type="button"
+                    class="btn btn-outline btn-sm"
+                    (click)="resendEmailCode()"
+                    [disabled]="emailChanging() || emailResendCooldown() > 0"
+                  >
+                    @if (emailResendCooldown() > 0) {
+                      Resend in {{ emailResendCooldown() }}s
+                    } @else {
+                      Resend Code
+                    }
+                  </button>
+                </div>
+              </form>
             }
           </div>
         }

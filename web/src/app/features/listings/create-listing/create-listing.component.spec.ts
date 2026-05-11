@@ -1,5 +1,5 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { FormBuilder } from '@angular/forms';
 import { CreateListingComponent, MediaItem } from './create-listing.component';
 import { CategoriesService } from '../../../core/services/categories.service';
@@ -9,6 +9,7 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { LocationService } from '../../../core/services/location.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { BrandsService } from '../../../core/services/brands.service';
+import { PhoneVerificationModalService } from '../../../shared/components/phone-verification-modal/phone-verification-modal.service';
 import { Category, CategoryAttribute } from '../../../core/models';
 
 function makeCategory(overrides: Partial<Category> = {}): Category {
@@ -44,6 +45,7 @@ describe('CreateListingComponent', () => {
   let locationService: { getCities: ReturnType<typeof vi.fn> };
   let trackerMock: { track: ReturnType<typeof vi.fn> };
   let brandsService: { getByCategory: ReturnType<typeof vi.fn> };
+  let phoneVerificationModalMock: { open: ReturnType<typeof vi.fn>; onVerified$: Subject<void> };
 
   const mockCategories: Category[] = [
     makeCategory({ _id: 'c1', name: 'Vehicles', slug: 'vehicles', level: 1 }),
@@ -109,6 +111,11 @@ describe('CreateListingComponent', () => {
       checkVehicleCategory: vi.fn().mockReturnValue(of({ hasVehicleBrands: false })),
     };
 
+    phoneVerificationModalMock = {
+      open: vi.fn(),
+      onVerified$: new Subject<void>(),
+    };
+
     component = new CreateListingComponent(
       new FormBuilder(),
       router as any,
@@ -119,6 +126,7 @@ describe('CreateListingComponent', () => {
       locationService as unknown as LocationService,
       trackerMock as unknown as ActivityTrackerService,
       brandsService as unknown as BrandsService,
+      phoneVerificationModalMock as unknown as PhoneVerificationModalService,
     );
     component.ngOnInit();
   });
@@ -401,6 +409,7 @@ describe('CreateListingComponent', () => {
       locationService as unknown as LocationService,
       trackerMock as unknown as ActivityTrackerService,
       brandsService as unknown as BrandsService,
+      phoneVerificationModalMock as unknown as PhoneVerificationModalService,
     );
     comp.ngOnInit();
     expect(comp.allCategories().length).toBe(0);

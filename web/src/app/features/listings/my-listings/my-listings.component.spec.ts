@@ -7,6 +7,7 @@ import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { ToastService } from '../../../core/services/toast.service';
 import { ActivatedRoute } from '@angular/router';
 import { Listing, User, PackagePurchase } from '../../../core/models';
 import { daysToMs } from '../../../core/utils/time';
@@ -106,6 +107,7 @@ describe('MyListingsComponent', () => {
   let authService: { fetchCurrentUser: ReturnType<typeof vi.fn> };
   let trackerMock: { track: ReturnType<typeof vi.fn> };
   let confirmModalMock: { confirmPackageWarning: ReturnType<typeof vi.fn> };
+  let toastMock: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let routeMock: { snapshot: { queryParams: Record<string, string> } };
 
   const mockListings: Listing[] = [
@@ -151,6 +153,11 @@ describe('MyListingsComponent', () => {
       confirmPackageWarning: vi.fn().mockResolvedValue(true),
     };
 
+    toastMock = {
+      success: vi.fn(),
+      error: vi.fn(),
+    };
+
     routeMock = { snapshot: { queryParams: {} } };
 
     component = new MyListingsComponent(
@@ -160,6 +167,7 @@ describe('MyListingsComponent', () => {
       authService as unknown as AuthService,
       trackerMock as unknown as ActivityTrackerService,
       confirmModalMock as unknown as ConfirmModalService,
+      toastMock as unknown as ToastService,
       routeMock as unknown as ActivatedRoute,
       'browser',
     );

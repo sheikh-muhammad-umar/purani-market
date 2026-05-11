@@ -12,6 +12,7 @@ import { API } from '../../../core/constants/api-endpoints';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { NotificationCountService } from '../../../core/services/notification-count.service';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-user-profile',
@@ -41,6 +42,7 @@ export class UserProfileComponent implements OnInit {
     public readonly authService: AuthService,
     private readonly http: HttpClient,
     private readonly router: Router,
+    private readonly toast: ToastService,
   ) {
     this.profileForm = this.fb.group({
       firstName: ['', [Validators.required, Validators.maxLength(50)]],
@@ -139,10 +141,12 @@ export class UserProfileComponent implements OnInit {
         this.saving.set(false);
         this.editing.set(false);
         this.successMessage.set('Profile updated successfully.');
+        this.toast.success('Profile updated successfully.');
       },
       error: (err) => {
         this.saving.set(false);
         this.errorMessage.set(ERROR_MSG.PROFILE_UPDATE_FAILED);
+        this.toast.error(ERROR_MSG.PROFILE_UPDATE_FAILED);
       },
     });
   }

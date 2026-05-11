@@ -28,6 +28,22 @@ export class ListShortsQueryDto {
 
   @IsOptional()
   @IsString()
+  dateFrom?: string;
+
+  @IsOptional()
+  @IsString()
+  dateTo?: string;
+
+  @IsOptional()
+  @IsString()
+  sort?: string;
+
+  @IsOptional()
+  @IsString()
+  order?: 'asc' | 'desc';
+
+  @IsOptional()
+  @IsString()
   provinceId?: string;
 
   @IsOptional()

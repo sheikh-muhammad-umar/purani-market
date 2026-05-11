@@ -151,10 +151,10 @@ export class DeviceToken {
 export class User {
   _id!: Types.ObjectId;
 
-  @Prop({ type: String, unique: true, sparse: true })
+  @Prop({ type: String })
   email?: string;
 
-  @Prop({ type: String, unique: true, sparse: true })
+  @Prop({ type: String })
   phone?: string;
 
   @Prop({ type: String })
@@ -221,6 +221,6 @@ export class User {
 export const UserSchema = SchemaFactory.createForClass(User);
 
 // Indexes
-UserSchema.index({ email: 1 });
-UserSchema.index({ phone: 1 });
+UserSchema.index({ email: 1 }, { unique: true, sparse: true });
+UserSchema.index({ phone: 1 }, { unique: true, sparse: true });
 UserSchema.index({ 'socialLogins.provider': 1, 'socialLogins.providerId': 1 });

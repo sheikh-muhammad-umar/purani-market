@@ -716,8 +716,13 @@ export class AdminService {
       if (dateTo) filter.createdAt.$lte = new Date(dateTo);
     }
 
-    if (sellerId && Types.ObjectId.isValid(sellerId)) {
-      filter.sellerId = new Types.ObjectId(sellerId);
+    if (sellerId) {
+      if (Types.ObjectId.isValid(sellerId)) {
+        filter.sellerId = new Types.ObjectId(sellerId);
+      } else {
+        // Search by transaction ID if not a valid ObjectId
+        filter.paymentTransactionId = { $regex: sellerId, $options: 'i' };
+      }
     }
 
     if (type) {
@@ -986,7 +991,7 @@ export class AdminService {
     const filter = activeOnly ? { isActive: true } : {};
     return this.rejectionReasonModel
       .find(filter)
-      .sort({ createdAt: 1 })
+      .sort({ sortOrder: 1, createdAt: 1 })
       .lean()
       .exec();
   }
@@ -1001,6 +1006,7 @@ export class AdminService {
     title: string;
     description?: string;
     isActive?: boolean;
+    requiresNote?: boolean;
     sortOrder?: number;
   }): Promise<any> {
     return await new this.rejectionReasonModel(data).save();
@@ -1012,6 +1018,7 @@ export class AdminService {
       title: string;
       description: string;
       isActive: boolean;
+      requiresNote: boolean;
       sortOrder: number;
     }>,
   ): Promise<any> {
@@ -1815,7 +1822,7 @@ export class AdminService {
     const filter = activeOnly ? { isActive: true } : {};
     return this.deletionReasonModel
       .find(filter)
-      .sort({ createdAt: 1 })
+      .sort({ sortOrder: 1, createdAt: 1 })
       .lean()
       .exec();
   }
@@ -1830,13 +1837,21 @@ export class AdminService {
     title: string;
     description?: string;
     isActive?: boolean;
+    requiresNote?: boolean;
+    sortOrder?: number;
   }): Promise<any> {
     return await new this.deletionReasonModel(data).save();
   }
 
   async updateDeletionReason(
     id: string,
-    data: Partial<{ title: string; description: string; isActive: boolean }>,
+    data: Partial<{
+      title: string;
+      description: string;
+      isActive: boolean;
+      requiresNote: boolean;
+      sortOrder: number;
+    }>,
   ): Promise<any> {
     const reason = await this.deletionReasonModel
       .findByIdAndUpdate(id, { $set: data }, { new: true })

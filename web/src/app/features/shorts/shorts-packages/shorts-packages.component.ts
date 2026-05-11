@@ -6,8 +6,12 @@ import {
   ShortsPackage,
   ShortsPackagePurchase,
 } from '../../../core/services/shorts.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ROUTES } from '../../../core/constants/routes';
 import { CURRENCY_SYMBOL } from '../../../core/constants/app';
+import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-shorts-packages',
@@ -23,9 +27,15 @@ export class ShortsPackagesComponent implements OnInit {
   readonly purchases = signal<ShortsPackagePurchase[]>([]);
   readonly loading = signal(true);
 
-  constructor(private readonly shortsService: ShortsService) {}
+  constructor(
+    private readonly shortsService: ShortsService,
+    private readonly tracker: ActivityTrackerService,
+    private readonly confirmModal: ConfirmModalService,
+    private readonly toast: ToastService,
+  ) {}
 
   ngOnInit(): void {
+    this.tracker.track(TrackingEvent.SHORT_PACKAGE_VIEW, {});
     this.shortsService.getAvailablePackages().subscribe({
       next: (pkgs) => {
         this.packages.set(pkgs);
@@ -39,22 +49,28 @@ export class ShortsPackagesComponent implements OnInit {
     });
   }
 
-  purchasePackage(pkg: ShortsPackage): void {
-    // In a real app, this would open a payment modal
-    if (confirm(`Purchase "${pkg.name}" for ${CURRENCY_SYMBOL} ${pkg.price}?`)) {
-      this.shortsService.purchasePackage(pkg._id, 'manual').subscribe({
-        next: () => {
-          alert('Package purchased! Payment confirmation pending.');
-          // Reload purchases
-          this.shortsService.getMyPurchases().subscribe({
-            next: (purchases) => this.purchases.set(purchases),
-          });
-        },
-        error: (err) => {
-          alert('Purchase failed');
-        },
-      });
-    }
+  async purchasePackage(pkg: ShortsPackage): Promise<void> {
+    const confirmed = await this.confirmModal.confirm({
+      title: 'Confirm Purchase',
+      message: `Purchase "${pkg.name}" for ${CURRENCY_SYMBOL} ${pkg.price}?`,
+      confirmText: 'Purchase',
+      cancelText: 'Cancel',
+      variant: 'info',
+    });
+
+    if (!confirmed) return;
+
+    this.shortsService.purchasePackage(pkg._id, 'manual').subscribe({
+      next: () => {
+        this.toast.success('Package purchased! Payment confirmation pending.');
+        this.shortsService.getMyPurchases().subscribe({
+          next: (purchases) => this.purchases.set(purchases),
+        });
+      },
+      error: () => {
+        this.toast.error('Purchase failed. Please try again.');
+      },
+    });
   }
 
   isExpired(expiresAt?: string): boolean {

@@ -13,35 +13,41 @@ describe('AdminLayoutComponent', () => {
   });
 
   it('should have navigation items', () => {
-    expect(component.navItems.length).toBeGreaterThan(0);
+    const allItems = component.navSections.flatMap((s) => s.items);
+    expect(allItems.length).toBeGreaterThan(0);
   });
 
   it('should include Dashboard nav item', () => {
-    const dashboard = component.navItems.find((n) => n.label === 'Dashboard');
+    const allItems = component.navSections.flatMap((s) => s.items);
+    const dashboard = allItems.find((n) => n.label === 'Dashboard');
     expect(dashboard).toBeDefined();
     expect(dashboard!.path).toBe('/admin');
   });
 
   it('should include Users nav item', () => {
-    const users = component.navItems.find((n) => n.label === 'Users');
+    const allItems = component.navSections.flatMap((s) => s.items);
+    const users = allItems.find((n) => n.label === 'Users');
     expect(users).toBeDefined();
     expect(users!.path).toBe('/admin/users');
   });
 
   it('should include Listings nav item', () => {
-    const listings = component.navItems.find((n) => n.label === 'Listings');
+    const allItems = component.navSections.flatMap((s) => s.items);
+    const listings = allItems.find((n) => n.label === 'Listings');
     expect(listings).toBeDefined();
     expect(listings!.path).toBe('/admin/listings');
   });
 
   it('should include Categories nav item', () => {
-    const categories = component.navItems.find((n) => n.label === 'Categories');
+    const allItems = component.navSections.flatMap((s) => s.items);
+    const categories = allItems.find((n) => n.label === 'Categories');
     expect(categories).toBeDefined();
     expect(categories!.path).toBe('/admin/categories');
   });
 
   it('should include Packages nav item', () => {
-    const packages = component.navItems.find((n) => n.label === 'Packages');
+    const allItems = component.navSections.flatMap((s) => s.items);
+    const packages = allItems.find((n) => n.label === 'Packages');
     expect(packages).toBeDefined();
     expect(packages!.path).toBe('/admin/packages');
   });
@@ -59,7 +65,8 @@ describe('AdminLayoutComponent', () => {
   });
 
   it('should have icons for all nav items', () => {
-    component.navItems.forEach((item) => {
+    const allItems = component.navSections.flatMap((s) => s.items);
+    allItems.forEach((item) => {
       expect(item.icon).toBeTruthy();
     });
   });

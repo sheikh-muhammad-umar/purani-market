@@ -2,22 +2,22 @@ import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../../core/services/admin.service';
-import {
-  CustomSelectComponent,
-  SelectOption,
-} from '../../../shared/components/custom-select/custom-select.component';
+import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { ToastService } from '../../../core/services/toast.service';
 
 interface RejectionReason {
   _id: string;
   title: string;
   description?: string;
+  requiresNote: boolean;
+  sortOrder: number;
   isActive: boolean;
 }
 
 @Component({
   selector: 'app-rejection-reasons',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent],
+  imports: [CommonModule, FormsModule],
   templateUrl: './rejection-reasons.component.html',
   styleUrl: './rejection-reasons.component.scss',
 })
@@ -26,65 +26,22 @@ export class RejectionReasonsComponent implements OnInit {
   readonly reasons = signal<RejectionReason[]>([]);
   readonly saving = signal(false);
 
+  showForm = false;
   editingId: string | null = null;
-  editTitle = '';
-  editDescription = '';
 
-  newTitle = '';
-  newDescription = '';
-  showAddForm = false;
+  formTitle = '';
+  formDescription = '';
+  formRequiresNote = false;
+  formSortOrder = 0;
 
-  deletingId: string | null = null;
-
-  // Search, filter, sort
-  searchQuery = '';
-  filterStatus = '';
-  sortBy = 'default';
-
-  readonly statusOptions: SelectOption[] = [
-    { value: '', label: 'All' },
-    { value: 'active', label: 'Active' },
-    { value: 'inactive', label: 'Inactive' },
-  ];
-
-  readonly sortOptions: SelectOption[] = [
-    { value: 'default', label: 'Default' },
-    { value: 'az', label: 'A → Z' },
-    { value: 'za', label: 'Z → A' },
-  ];
-
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly confirmModal: ConfirmModalService,
+    private readonly toast: ToastService,
+  ) {}
 
   ngOnInit(): void {
     this.loadReasons();
-  }
-
-  get filteredReasons(): RejectionReason[] {
-    let result = this.reasons();
-
-    // Search
-    const q = this.searchQuery.toLowerCase().trim();
-    if (q) {
-      result = result.filter(
-        (r) => r.title.toLowerCase().includes(q) || r.description?.toLowerCase().includes(q),
-      );
-    }
-
-    // Status filter
-    if (this.filterStatus === 'active') {
-      result = result.filter((r) => r.isActive);
-    } else if (this.filterStatus === 'inactive') {
-      result = result.filter((r) => !r.isActive);
-    }
-
-    // Sort
-    if (this.sortBy === 'az') {
-      result = [...result].sort((a, b) => a.title.localeCompare(b.title));
-    } else if (this.sortBy === 'za') {
-      result = [...result].sort((a, b) => b.title.localeCompare(a.title));
-    }
-
-    return result;
   }
 
   loadReasons(): void {
@@ -96,93 +53,84 @@ export class RejectionReasonsComponent implements OnInit {
       },
       error: () => {
         this.loading.set(false);
+        this.toast.error('Failed to load rejection reasons.');
       },
     });
   }
 
-  startAdd(): void {
-    this.showAddForm = true;
-    this.newTitle = '';
-    this.newDescription = '';
-  }
-
-  cancelAdd(): void {
-    this.showAddForm = false;
-  }
-
-  saveNew(): void {
-    if (!this.newTitle.trim()) return;
-    this.saving.set(true);
-    this.adminService
-      .createRejectionReason({
-        title: this.newTitle.trim(),
-        description: this.newDescription.trim() || undefined,
-      })
-      .subscribe({
-        next: () => {
-          this.showAddForm = false;
-          this.saving.set(false);
-          this.loadReasons();
-        },
-        error: () => {
-          this.saving.set(false);
-        },
-      });
-  }
-
-  startEdit(reason: RejectionReason): void {
+  editReason(reason: RejectionReason): void {
     this.editingId = reason._id;
-    this.editTitle = reason.title;
-    this.editDescription = reason.description || '';
+    this.formTitle = reason.title;
+    this.formDescription = reason.description || '';
+    this.formRequiresNote = reason.requiresNote ?? false;
+    this.formSortOrder = reason.sortOrder ?? 0;
+    this.showForm = true;
   }
 
-  cancelEdit(): void {
+  cancelForm(): void {
+    this.showForm = false;
     this.editingId = null;
+    this.formTitle = '';
+    this.formDescription = '';
+    this.formRequiresNote = false;
+    this.formSortOrder = 0;
   }
 
-  saveEdit(): void {
-    if (!this.editingId || !this.editTitle.trim()) return;
+  saveReason(): void {
+    if (!this.formTitle.trim()) return;
     this.saving.set(true);
-    this.adminService
-      .updateRejectionReason(this.editingId, {
-        title: this.editTitle.trim(),
-        description: this.editDescription.trim() || undefined,
-      })
-      .subscribe({
-        next: () => {
-          this.editingId = null;
-          this.saving.set(false);
-          this.loadReasons();
-        },
-        error: () => {
-          this.saving.set(false);
-        },
-      });
+
+    const body = {
+      title: this.formTitle.trim(),
+      description: this.formDescription.trim() || undefined,
+      requiresNote: this.formRequiresNote,
+      sortOrder: this.formSortOrder,
+    };
+
+    const req$ = this.editingId
+      ? this.adminService.updateRejectionReason(this.editingId, body)
+      : this.adminService.createRejectionReason(body);
+
+    req$.subscribe({
+      next: () => {
+        this.toast.success(this.editingId ? 'Reason updated.' : 'Reason created.');
+        this.saving.set(false);
+        this.cancelForm();
+        this.loadReasons();
+      },
+      error: () => {
+        this.saving.set(false);
+        this.toast.error('Failed to save reason.');
+      },
+    });
   }
 
-  toggleActive(reason: RejectionReason): void {
+  async deleteReason(reason: RejectionReason): Promise<void> {
+    const confirmed = await this.confirmModal.confirm({
+      title: 'Delete Rejection Reason',
+      message: `Delete "${reason.title}"? This cannot be undone.`,
+      confirmText: 'Delete',
+      cancelText: 'Cancel',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
+    this.adminService.deleteRejectionReason(reason._id).subscribe({
+      next: () => {
+        this.toast.success('Reason deleted.');
+        this.loadReasons();
+      },
+      error: () => this.toast.error('Failed to delete reason.'),
+    });
+  }
+
+  async toggleActive(reason: RejectionReason): Promise<void> {
     this.adminService.updateRejectionReason(reason._id, { isActive: !reason.isActive }).subscribe({
       next: () => {
+        this.toast.success(reason.isActive ? 'Reason deactivated.' : 'Reason activated.');
         this.loadReasons();
       },
+      error: () => this.toast.error('Failed to update reason.'),
     });
-  }
-
-  deleteReason(reason: RejectionReason): void {
-    this.deletingId = reason._id;
-  }
-
-  confirmDelete(): void {
-    if (!this.deletingId) return;
-    this.adminService.deleteRejectionReason(this.deletingId).subscribe({
-      next: () => {
-        this.deletingId = null;
-        this.loadReasons();
-      },
-    });
-  }
-
-  cancelDelete(): void {
-    this.deletingId = null;
   }
 }

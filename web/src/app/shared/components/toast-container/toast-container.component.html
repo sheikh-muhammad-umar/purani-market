@@ -1,0 +1,30 @@
+<div class="toast-container" aria-live="polite" aria-atomic="true">
+  @for (toast of toastService.toasts(); track toast.id) {
+    <div class="toast-item" [attr.data-type]="toast.type" role="alert">
+      <span class="toast-icon material-symbols-rounded">
+        @switch (toast.type) {
+          @case ('success') {
+            check_circle
+          }
+          @case ('error') {
+            error
+          }
+          @case ('warning') {
+            warning
+          }
+          @case ('info') {
+            info
+          }
+        }
+      </span>
+      <span class="toast-message">{{ toast.message }}</span>
+      <button
+        class="toast-dismiss"
+        (click)="toastService.dismiss(toast.id)"
+        aria-label="Dismiss notification"
+      >
+        <span class="material-symbols-rounded">close</span>
+      </button>
+    </div>
+  }
+</div>

@@ -118,7 +118,7 @@ import { RouterLink } from '@angular/router';
         <li>Users requesting personal financial information</li>
         <li>Harassment or abusive behaviour</li>
         <li>Suspected stolen goods</li>
-        <li>Price manipulation or bid shilling</li>
+        <li>Price manipulation</li>
       </ul>
 
       <h2>Regulatory Compliance</h2>

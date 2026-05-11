@@ -1,0 +1,112 @@
+<div class="pvm-overlay" (click)="close()">
+  <div
+    class="pvm-card"
+    (click)="$event.stopPropagation()"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="pvm-title"
+  >
+    <button class="pvm-close" (click)="close()" aria-label="Close">
+      <span class="material-symbols-rounded">close</span>
+    </button>
+
+    <div class="pvm-icon-wrap">
+      <span class="material-symbols-rounded pvm-icon">smartphone</span>
+    </div>
+
+    <h2 id="pvm-title" class="pvm-title">Verify Your Phone Number</h2>
+
+    <p class="pvm-desc">
+      A verified phone number is required to post ads. It will be shown to buyers as contact info.
+    </p>
+
+    @if (error()) {
+      <div class="pvm-alert pvm-alert-error">{{ error() }}</div>
+    }
+    @if (success()) {
+      <div class="pvm-alert pvm-alert-success">{{ success() }}</div>
+    }
+
+    <!-- Step 1: Enter phone -->
+    @if (step() === 'add') {
+      <form [formGroup]="phoneForm" (ngSubmit)="submitPhone()" class="pvm-form">
+        <div class="pvm-field">
+          <label class="pvm-label" for="pvm-phone">Phone Number</label>
+          <input
+            id="pvm-phone"
+            class="pvm-input"
+            formControlName="phone"
+            placeholder="03001234567"
+            maxlength="11"
+            inputmode="tel"
+            autocomplete="tel"
+          />
+          @if (phoneForm.get('phone')?.touched && phoneForm.get('phone')?.errors?.['required']) {
+            <span class="pvm-error-text">Phone number is required</span>
+          }
+          @if (phoneForm.get('phone')?.touched && phoneForm.get('phone')?.errors?.['pattern']) {
+            <span class="pvm-error-text">Enter a valid 11-digit number starting with 0</span>
+          }
+        </div>
+
+        <button class="pvm-btn-primary" type="submit" [disabled]="phoneForm.invalid || sending()">
+          @if (sending()) {
+            <span class="pvm-spinner"></span> Sending OTP...
+          } @else {
+            <span class="material-symbols-rounded">send</span> Send OTP
+          }
+        </button>
+      </form>
+    }
+
+    <!-- Step 2: Enter OTP -->
+    @if (step() === 'verify') {
+      <p class="pvm-otp-info">
+        Enter the 6-digit code sent to <strong>{{ pendingPhone() }}</strong>
+      </p>
+
+      <form [formGroup]="otpForm" (ngSubmit)="submitOtp()" class="pvm-form">
+        <div class="pvm-field">
+          <label class="pvm-label" for="pvm-otp">OTP Code</label>
+          <input
+            id="pvm-otp"
+            class="pvm-input pvm-otp-input"
+            formControlName="otp"
+            placeholder="000000"
+            maxlength="6"
+            inputmode="numeric"
+            autocomplete="one-time-code"
+          />
+          @if (otpForm.get('otp')?.touched && otpForm.get('otp')?.errors?.['pattern']) {
+            <span class="pvm-error-text">OTP must be a 6-digit code</span>
+          }
+        </div>
+
+        <button class="pvm-btn-primary" type="submit" [disabled]="otpForm.invalid || sending()">
+          @if (sending()) {
+            <span class="pvm-spinner"></span> Verifying...
+          } @else {
+            <span class="material-symbols-rounded">check_circle</span> Verify
+          }
+        </button>
+
+        <button
+          type="button"
+          class="pvm-btn-secondary"
+          (click)="resendOtp()"
+          [disabled]="sending() || resendCooldown() > 0"
+        >
+          @if (resendCooldown() > 0) {
+            Resend in {{ resendCooldown() }}s
+          } @else {
+            <span class="material-symbols-rounded">refresh</span> Resend OTP
+          }
+        </button>
+
+        <button type="button" class="pvm-btn-change" (click)="changeNumber()">
+          <span class="material-symbols-rounded">edit</span> Wrong number? Change it
+        </button>
+      </form>
+    }
+  </div>
+</div>

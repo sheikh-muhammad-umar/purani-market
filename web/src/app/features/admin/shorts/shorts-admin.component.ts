@@ -1,6 +1,7 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import { ShortsService, ShortVideo } from '../../../core/services/shorts.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category } from '../../../core/models/category.model';
@@ -110,7 +111,13 @@ export class ShortsAdminComponent implements OnInit {
     private readonly categoriesService: CategoriesService,
   ) {}
 
+  private readonly route = inject(ActivatedRoute);
+
   ngOnInit(): void {
+    const tab = this.route.snapshot.queryParams['tab'];
+    if (tab === 'moderation') {
+      this.activeTab.set('moderation');
+    }
     this.loadShorts();
     this.loadPendingShorts();
     this.loadCategories();

@@ -15,6 +15,7 @@ import { PackagesService } from '../../../core/services/packages.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LocationService } from '../../../core/services/location.service';
 import { BrandsService } from '../../../core/services/brands.service';
+import { PhoneVerificationModalService } from '../../../shared/components/phone-verification-modal/phone-verification-modal.service';
 import { Category, CategoryAttribute, Province, City, Area } from '../../../core/models';
 import {
   VehicleModel,
@@ -67,16 +68,9 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   readonly ERROR_MSG = ERROR_MSG;
   readonly OTHER_ID = OTHER_OPTION_ID;
 
-  // Phone verification state
+  // Phone verification state — handled by PhoneVerificationModalService
   phoneVerified = signal(false);
   phoneCheckLoading = signal(true);
-  phoneStep = signal<'add' | 'verify'>('add');
-  phoneForm!: FormGroup;
-  otpForm!: FormGroup;
-  phoneSending = signal(false);
-  phoneError = signal('');
-  phoneSuccess = signal('');
-  pendingPhone = signal('');
 
   currentStep = signal(1);
   totalSteps = 5;
@@ -207,6 +201,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     private readonly locationService: LocationService,
     private readonly tracker: ActivityTrackerService,
     private readonly brandsService: BrandsService,
+    private readonly phoneVerificationModal: PhoneVerificationModalService,
   ) {}
 
   ngOnDestroy(): void {
@@ -335,14 +330,6 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   }
 
   ngOnInit(): void {
-    this.phoneForm = this.fb.group({
-      phone: ['', [Validators.required, Validators.pattern(/^0[0-9]{10}$/)]],
-    });
-
-    this.otpForm = this.fb.group({
-      otp: ['', [Validators.required, Validators.pattern(/^\d{6}$/)]],
-    });
-
     this.detailsForm = this.fb.group({
       title: ['', [Validators.required, Validators.maxLength(150)]],
       description: ['', [Validators.required, Validators.maxLength(5000)]],
@@ -357,24 +344,39 @@ export class CreateListingComponent implements OnInit, OnDestroy {
       mapLink: ['', mapLinkValidator()],
     });
 
-    // Check if user has a verified phone
-    this.authService
-      .fetchCurrentUser()
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: (user) => {
-          if (user.phone && user.phoneVerified) {
-            this.phoneVerified.set(true);
-            this.loadFeaturedSlots();
-          } else if (user.phone && !user.phoneVerified) {
-            // Has phone but not verified — go straight to OTP step
-            this.pendingPhone.set(user.phone);
-            this.phoneStep.set('verify');
-          }
-          this.phoneCheckLoading.set(false);
-        },
-        error: () => this.phoneCheckLoading.set(false),
-      });
+    // Check phone verification — use cached user first to avoid flash
+    const cachedUser = this.authService.user();
+    if (cachedUser) {
+      if (cachedUser.phone && cachedUser.phoneVerified) {
+        this.phoneVerified.set(true);
+        this.loadFeaturedSlots();
+      } else {
+        this.phoneVerificationModal.open();
+      }
+      this.phoneCheckLoading.set(false);
+    } else {
+      this.authService
+        .fetchCurrentUser()
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (user) => {
+            if (user.phone && user.phoneVerified) {
+              this.phoneVerified.set(true);
+              this.loadFeaturedSlots();
+            } else {
+              this.phoneVerificationModal.open();
+            }
+            this.phoneCheckLoading.set(false);
+          },
+          error: () => this.phoneCheckLoading.set(false),
+        });
+    }
+
+    // When phone is verified via modal, mark verified and load slots
+    this.phoneVerificationModal.onVerified$.pipe(takeUntil(this.destroy$)).subscribe(() => {
+      this.phoneVerified.set(true);
+      this.loadFeaturedSlots();
+    });
 
     this.categoriesService
       .getAll()
@@ -394,82 +396,6 @@ export class CreateListingComponent implements OnInit, OnDestroy {
         next: (provinces) => this.provinces.set(provinces),
         error: () => {},
       });
-  }
-
-  // --- Phone Verification ---
-  submitPhone(): void {
-    if (this.phoneForm.invalid || this.phoneSending()) return;
-    this.phoneSending.set(true);
-    this.phoneError.set('');
-    const phone = this.phoneForm.get('phone')!.value;
-
-    this.authService
-      .addPhone(phone)
-      .pipe(takeUntil(this.destroy$))
-      .subscribe({
-        next: () => {
-          this.phoneSending.set(false);
-          this.pendingPhone.set(phone);
-          this.phoneStep.set('verify');
-          this.phoneSuccess.set('OTP sent to ' + phone);
-        },
-        error: (err) => {
-          this.phoneSending.set(false);
-          this.phoneError.set('Failed to send OTP. Please try again.');
-        },
-      });
-  }
-
-  submitOtp(): void {
-    if (this.otpForm.invalid || this.phoneSending()) return;
-    this.phoneSending.set(true);
-    this.phoneError.set('');
-    const otp = this.otpForm.get('otp')!.value;
-    const phone = this.pendingPhone();
-
-    // If user already had a phone (just not verified), use verifyPhone
-    // If user added a new phone via change-phone, use verifyPhoneChange
-    const verify$ =
-      phone === this.authService.user()?.phone
-        ? this.authService.verifyPhone(phone, otp)
-        : this.authService.verifyPhoneChange(otp);
-
-    verify$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.phoneSending.set(false);
-        this.phoneVerified.set(true);
-        this.phoneSuccess.set('Phone verified successfully!');
-        this.loadFeaturedSlots();
-        // Refresh user data
-        this.authService.fetchCurrentUser().pipe(takeUntil(this.destroy$)).subscribe();
-      },
-      error: (err) => {
-        this.phoneSending.set(false);
-        this.phoneError.set('Invalid OTP. Please try again.');
-      },
-    });
-  }
-
-  resendOtp(): void {
-    this.phoneSending.set(true);
-    this.phoneError.set('');
-    const phone = this.pendingPhone();
-
-    const resend$ =
-      phone === this.authService.user()?.phone
-        ? this.authService.resendVerification(phone)
-        : this.authService.addPhone(phone);
-
-    resend$.pipe(takeUntil(this.destroy$)).subscribe({
-      next: () => {
-        this.phoneSending.set(false);
-        this.phoneSuccess.set('OTP resent to ' + phone);
-      },
-      error: (err) => {
-        this.phoneSending.set(false);
-        this.phoneError.set('Failed to resend OTP.');
-      },
-    });
   }
 
   private loadFeaturedSlots(): void {
@@ -1157,6 +1083,11 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     this.router.navigate([ROUTES.LISTINGS, slug]);
   }
 
+  private finishAfterMedia(listingId: string): void {
+    this.submitting.set(false);
+    this.navigateToListing(listingId);
+  }
+
   private uploadImages(listingId: string, index: number): void {
     const items = this.mediaItems();
     if (index >= items.length) {
@@ -1164,8 +1095,7 @@ export class CreateListingComponent implements OnInit, OnDestroy {
       if (video) {
         this.uploadVideo(listingId, video);
       } else {
-        this.submitting.set(false);
-        this.navigateToListing(listingId);
+        this.finishAfterMedia(listingId);
       }
       return;
     }
@@ -1192,12 +1122,10 @@ export class CreateListingComponent implements OnInit, OnDestroy {
 
     this.listingsService.uploadMedia(listingId, formData).subscribe({
       next: () => {
-        this.submitting.set(false);
-        this.navigateToListing(listingId);
+        this.finishAfterMedia(listingId);
       },
       error: () => {
-        this.submitting.set(false);
-        this.navigateToListing(listingId);
+        this.finishAfterMedia(listingId);
       },
     });
   }

@@ -31,11 +31,37 @@
           </button>
         </div>
 
-        @if ((packages() || []).length === 0) {
-          <div class="empty-list">No packages found. Create one to get started.</div>
+        <!-- Toolbar -->
+        <div class="pkg-toolbar">
+          <input
+            type="text"
+            class="pkg-search"
+            placeholder="Search packages..."
+            [(ngModel)]="searchQuery"
+          />
+          <app-custom-select
+            [options]="typeFilterOptions"
+            [(ngModel)]="filterType"
+            placeholder="All Types"
+          ></app-custom-select>
+          <app-custom-select
+            [options]="statusFilterOptions"
+            [(ngModel)]="filterStatus"
+            placeholder="All Status"
+          ></app-custom-select>
+        </div>
+
+        @if (filteredPackages.length === 0) {
+          <div class="empty-list">
+            {{
+              searchQuery || filterType || filterStatus
+                ? 'No packages match your filters.'
+                : 'No packages found. Create one to get started.'
+            }}
+          </div>
         }
 
-        @if ((packages() || []).length > 0) {
+        @if (filteredPackages.length > 0) {
           <table class="data-table" aria-label="Ad packages">
             <thead>
               <tr>
@@ -70,7 +96,7 @@
               </tr>
             </thead>
             <tbody>
-              @for (pkg of packages(); track pkg._id) {
+              @for (pkg of filteredPackages; track pkg._id) {
                 <tr [class.expanded]="isPackageExpanded(pkg._id)">
                   <td>
                     <span class="pkg-name-cell">

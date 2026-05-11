@@ -38,10 +38,10 @@ export class PackagePurchasesComponent implements OnInit {
   readonly error = signal<string | null>(null);
 
   // Purchase filters
+  purchaseFilterSearch = '';
   purchaseFilterStartDate = '';
   purchaseFilterEndDate = '';
   readonly today = new Date().toISOString().split('T')[0];
-  purchaseFilterSellerId = '';
   purchaseFilterType: PackageType | '' = '';
   purchaseFilterStatus: PaymentStatus | '' = '';
 
@@ -70,7 +70,7 @@ export class PackagePurchasesComponent implements OnInit {
     };
     if (this.purchaseFilterStartDate) params.startDate = this.purchaseFilterStartDate;
     if (this.purchaseFilterEndDate) params.endDate = this.purchaseFilterEndDate;
-    if (this.purchaseFilterSellerId) params.sellerId = this.purchaseFilterSellerId;
+    if (this.purchaseFilterSearch) params.sellerId = this.purchaseFilterSearch;
     if (this.purchaseFilterType) params.type = this.purchaseFilterType;
     if (this.purchaseFilterStatus) params.status = this.purchaseFilterStatus;
 
@@ -94,9 +94,9 @@ export class PackagePurchasesComponent implements OnInit {
   }
 
   resetPurchaseFilters(): void {
+    this.purchaseFilterSearch = '';
     this.purchaseFilterStartDate = '';
     this.purchaseFilterEndDate = '';
-    this.purchaseFilterSellerId = '';
     this.purchaseFilterType = '';
     this.purchaseFilterStatus = '';
     this.purchasePage = 1;

@@ -134,17 +134,41 @@ export const ACTION_FILTER_OPTIONS: SelectOption[] = [
   { value: 'listing_delete', label: 'Listing Delete' },
   { value: 'listing_status_change', label: 'Status Change' },
   { value: 'listing_feature', label: 'Feature Ad' },
+  { value: 'listing_price_change', label: 'Price Change' },
+  { value: 'listing_expired', label: 'Listing Expired' },
+  { value: 'listing_deactivated_cleanup', label: 'Listing Cleanup' },
   // Auth
   { value: 'login', label: 'Login' },
   { value: 'login_failed', label: 'Login Failed' },
   { value: 'register', label: 'Register' },
   { value: 'logout', label: 'Logout' },
+  { value: 'social_login', label: 'Social Login' },
+  // OTP / Verification
+  { value: 'otp_sent', label: 'OTP Sent' },
+  { value: 'otp_verified', label: 'OTP Verified' },
+  { value: 'otp_failed', label: 'OTP Failed' },
+  { value: 'otp_resent', label: 'OTP Resent' },
+  { value: 'otp_expired', label: 'OTP Expired' },
+  { value: 'email_verified', label: 'Email Verified' },
+  { value: 'phone_verified', label: 'Phone Verified' },
+  { value: 'whatsapp_otp_sent', label: 'WhatsApp OTP Sent' },
+  // Reviews
+  { value: 'review_create', label: 'Review Create' },
   // Messaging
   { value: 'message_sent', label: 'Message Sent' },
   { value: 'conversation_start', label: 'Conversation Start' },
-  // Payments
+  // Payments & Packages
   { value: 'package_purchase', label: 'Package Purchase' },
   { value: 'payment_attempt', label: 'Payment Attempt' },
+  { value: 'package_apply_success', label: 'Package Applied' },
+  { value: 'package_apply_failed', label: 'Package Apply Failed' },
+  { value: 'package_expired', label: 'Package Expired' },
+  { value: 'ad_slots_package_expired', label: 'Ad Slots Expired' },
+  { value: 'stale_payment_failed', label: 'Stale Payment Failed' },
+  // Packaged Listing Lifecycle
+  { value: 'packaged_listing_deleted', label: 'Packaged Listing Deleted' },
+  { value: 'packaged_listing_deactivated', label: 'Packaged Listing Deactivated' },
+  { value: 'packaged_listing_sold', label: 'Packaged Listing Sold' },
   // Location
   { value: 'location_change', label: 'Location Change' },
   // Voice Search
@@ -159,6 +183,25 @@ export const ACTION_FILTER_OPTIONS: SelectOption[] = [
   { value: 'app_banner_shown', label: 'App Banner Shown' },
   { value: 'app_banner_click', label: 'App Banner Click' },
   { value: 'app_banner_dismiss', label: 'App Banner Dismiss' },
+  // Shorts
+  { value: 'short_uploaded', label: 'Short Uploaded' },
+  { value: 'short_approved', label: 'Short Approved' },
+  { value: 'short_rejected', label: 'Short Rejected' },
+  { value: 'short_expired', label: 'Short Expired' },
+  { value: 'short_deleted', label: 'Short Deleted' },
+  { value: 'short_view', label: 'Short View' },
+  { value: 'short_like', label: 'Short Like' },
+  { value: 'short_unlike', label: 'Short Unlike' },
+  { value: 'short_share', label: 'Short Share' },
+  { value: 'short_chat_click', label: 'Short Chat Click' },
+  { value: 'short_call_click', label: 'Short Call Click' },
+  { value: 'short_limit_reached', label: 'Short Limit Reached' },
+  { value: 'shorts_package_purchased', label: 'Shorts Package Purchased' },
+  { value: 'shorts_package_expired', label: 'Shorts Package Expired' },
+  // ID Verification
+  { value: 'id_verification_submit', label: 'ID Verification Submit' },
+  { value: 'admin_id_verification_approve', label: 'Admin: ID Approve' },
+  { value: 'admin_id_verification_reject', label: 'Admin: ID Reject' },
   // Admin
   { value: 'admin_user_status_change', label: 'Admin: User Status' },
   { value: 'admin_user_role_change', label: 'Admin: User Role' },
@@ -175,6 +218,7 @@ export const ACTION_FILTER_OPTIONS: SelectOption[] = [
   { value: 'admin_location_delete', label: 'Admin: Delete Location' },
   { value: 'admin_package_create', label: 'Admin: Create Package' },
   { value: 'admin_package_update', label: 'Admin: Update Package' },
+  { value: 'admin_notification_send', label: 'Admin: Send Notification' },
   { value: 'admin_export_report', label: 'Admin: Export Report' },
   { value: 'admin_rejection_reason_create', label: 'Admin: Create Rejection Reason' },
   { value: 'admin_rejection_reason_update', label: 'Admin: Update Rejection Reason' },

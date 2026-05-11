@@ -7,7 +7,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
 import Redis from 'ioredis';
 import { User, UserDocument } from '../../users/schemas/user.schema.js';
-import { UserRole, isAdminRole } from '../../common/enums/user-role.enum.js';
+import { UserRole } from '../../common/enums/user-role.enum.js';
 
 export interface JwtPayload {
   sub: string;
@@ -15,6 +15,8 @@ export interface JwtPayload {
   phone?: string;
   role: string;
   permissions?: string[];
+  emailVerified?: boolean;
+  phoneVerified?: boolean;
   type: 'access' | 'refresh';
   jti: string;
 }
@@ -46,17 +48,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
       throw new UnauthorizedException('Token has been revoked');
     }
 
-    // Fetch fresh role & permissions from DB (so super_admin changes take effect immediately)
-    if (isAdminRole(payload.role)) {
-      const user = await this.userModel
-        .findById(payload.sub)
-        .select('role permissions')
-        .lean()
-        .exec();
-      if (user) {
-        payload.role = user.role;
-        payload.permissions = user.permissions || [];
-      }
+    // Always fetch fresh verification status + role from DB so guards
+    // reflect the current state even if the token was issued before verification.
+    const user = await this.userModel
+      .findById(payload.sub)
+      .select('role permissions emailVerified phoneVerified')
+      .lean()
+      .exec();
+
+    if (user) {
+      payload.role = user.role;
+      payload.permissions = user.permissions || [];
+      payload.emailVerified = user.emailVerified ?? false;
+      payload.phoneVerified = user.phoneVerified ?? false;
     }
 
     return payload;

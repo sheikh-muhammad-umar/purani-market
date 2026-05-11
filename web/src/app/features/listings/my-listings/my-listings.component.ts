@@ -23,6 +23,7 @@ import { extractPackageDetails } from '../../../core/utils/package-details';
 import { FormatDurationPipe } from '../../../shared/pipes/format-duration.pipe';
 import { FormatStatusPipe } from '../../../shared/pipes/format-status.pipe';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { ToastService } from '../../../core/services/toast.service';
 import { daysToMs } from '../../../core/utils/time';
 
 interface AnalyticsCard {
@@ -137,6 +138,7 @@ export class MyListingsComponent implements OnInit {
     private readonly authService: AuthService,
     private readonly tracker: ActivityTrackerService,
     private readonly confirmModal: ConfirmModalService,
+    private readonly toast: ToastService,
     private readonly route: ActivatedRoute,
     @Inject(PLATFORM_ID) platformId: object,
   ) {
@@ -236,13 +238,17 @@ export class MyListingsComponent implements OnInit {
     this.listingsService.updateStatus(listing._id, status).subscribe({
       next: () => {
         this.actionLoading.set(null);
+        this.toast.success(`Listing marked as ${status}.`);
         this.tracker.track(TrackingEvent.LISTING_STATUS_CHANGE, {
           productListingId: listing._id,
           metadata: { previousStatus: listing.status, newStatus: status, title: listing.title },
         });
         this.loadListings();
       },
-      error: () => this.actionLoading.set(null),
+      error: () => {
+        this.actionLoading.set(null);
+        this.toast.error('Failed to update listing status.');
+      },
     });
   }
 
@@ -251,13 +257,17 @@ export class MyListingsComponent implements OnInit {
     this.listingsService.featureListing(listing._id).subscribe({
       next: () => {
         this.actionLoading.set(null);
+        this.toast.success('Listing featured successfully!');
         this.tracker.track(TrackingEvent.LISTING_FEATURE, {
           productListingId: listing._id,
           metadata: { title: listing.title, previousFeatured: false, newFeatured: true },
         });
         this.loadAll();
       },
-      error: () => this.actionLoading.set(null),
+      error: () => {
+        this.actionLoading.set(null);
+        this.toast.error('Failed to feature listing.');
+      },
     });
   }
 
@@ -286,13 +296,17 @@ export class MyListingsComponent implements OnInit {
     this.listingsService.deleteListing(listingId).subscribe({
       next: () => {
         this.actionLoading.set(null);
+        this.toast.success('Listing deleted.');
         this.tracker.track(TrackingEvent.LISTING_DELETE, {
           productListingId: listingId,
           metadata: { previousStatus: this.listings().find((l) => l._id === listingId)?.status },
         });
         this.loadAll();
       },
-      error: () => this.actionLoading.set(null),
+      error: () => {
+        this.actionLoading.set(null);
+        this.toast.error('Failed to delete listing.');
+      },
     });
   }
 
@@ -362,6 +376,7 @@ export class MyListingsComponent implements OnInit {
     if (confirmed) {
       this.shortsService.deleteShort(id).subscribe({
         next: () => {
+          this.tracker.track(TrackingEvent.SHORT_DELETE, { metadata: { shortId: id } });
           this.shorts.update((list) => list.filter((s) => s._id !== id));
           this.loadShorts();
         },

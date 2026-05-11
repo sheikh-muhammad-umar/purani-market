@@ -7,6 +7,15 @@
 }
 <app-login-modal />
 <app-confirm-modal />
+<app-toast />
+
+@if (emailVerificationModal.isOpen()) {
+  <app-email-verification-modal />
+}
+
+@if (phoneVerificationModal.isOpen()) {
+  <app-phone-verification-modal />
+}
 
 @if (showScrollTop()) {
   <button class="scroll-top-btn" (click)="scrollToTop()" aria-label="Scroll to top">

@@ -152,6 +152,26 @@ export class AuthController {
     return this.authService.verifyEmailChange(dto.token);
   }
 
+  @Post('send-email-otp')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async sendEmailOtp(
+    @Body() dto: { targetEmail?: string },
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.authService.sendEmailOtp(user.sub, dto.targetEmail);
+  }
+
+  @Post('verify-email-otp')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async verifyEmailOtp(
+    @Body() dto: { otp: string },
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.authService.verifyEmailOtp(user.sub, dto.otp);
+  }
+
   @Post('change-phone')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)

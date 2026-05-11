@@ -16,8 +16,9 @@ export const ROUTES = {
   ADMIN_USERS: '/admin/users',
   ADMIN_LISTINGS: '/admin/listings',
   ADMIN_SHORTS: '/admin/shorts',
-  ADMIN_SHORTS_ANALYTICS: '/admin/shorts-analytics',
-
+  ADMIN_ANALYTICS: '/admin/analytics',
+  ADMIN_ANALYTICS_LISTINGS: '/admin/analytics/listings',
+  ADMIN_ANALYTICS_SHORTS: '/admin/analytics/shorts',
   ADMIN_ID_VERIFICATIONS: '/admin/id-verifications',
   ADMIN_ACTIVITY: '/admin/activity',
   ADMIN_PAYMENTS: '/admin/payments',
