@@ -23,6 +23,7 @@ import {
   CONTENT_ENTRANCE_DELAY_MS,
   DISMISS_DURATION_MS,
   PROGRESS_SPEEDS,
+  SPLASH_SHOWN_KEY,
 } from './app-loader.constants';
 
 /**
@@ -96,6 +97,17 @@ export class AppLoaderComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     if (!this.isBrowser || this.mode !== 'splash') return;
+
+    // Only show splash once per session — skip on refresh/navigation
+    try {
+      if (sessionStorage.getItem(SPLASH_SHOWN_KEY)) {
+        this.visible.set(false);
+        return;
+      }
+      sessionStorage.setItem(SPLASH_SHOWN_KEY, '1');
+    } catch {
+      // sessionStorage unavailable (private browsing edge cases) — show splash anyway
+    }
 
     this.entranceTimeout = setTimeout(
       () => this.contentEntered.set(true),

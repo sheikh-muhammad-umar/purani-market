@@ -67,3 +67,6 @@ export const PARTICLES: readonly Particle[] = Array.from({ length: PARTICLE_COUN
 
 /** Pre-split brand letters for template iteration */
 export const BRAND_LETTERS: readonly string[] = BRAND_NAME.split('');
+
+/** Key used in sessionStorage to track if splash has been shown this session */
+export const SPLASH_SHOWN_KEY = 'marketplace_splash_shown';
