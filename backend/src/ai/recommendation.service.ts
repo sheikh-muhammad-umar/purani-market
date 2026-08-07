@@ -1,7 +1,6 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, OnModuleDestroy } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
-import { Cron, CronExpression } from '@nestjs/schedule';
 import {
   UserActivity,
   UserActivityDocument,
@@ -14,17 +13,46 @@ import {
 } from '../listings/schemas/product-listing.schema.js';
 import { LISTING_PUBLIC_SELECT } from '../listings/constants/index.js';
 
+/** Max buffer size before flushing to DB */
+const BUFFER_FLUSH_SIZE = 50;
+
+/** Max time (ms) to hold buffered activities before flushing */
+const BUFFER_FLUSH_INTERVAL_MS = 5_000;
+
 @Injectable()
-export class RecommendationService {
+export class RecommendationService implements OnModuleDestroy {
   private readonly logger = new Logger(RecommendationService.name);
+
+  /** In-memory write buffer to batch activity inserts */
+  private activityBuffer: Record<string, any>[] = [];
+  private flushTimer: ReturnType<typeof setInterval> | null = null;
 
   constructor(
     @InjectModel(UserActivity.name)
     private readonly activityModel: Model<UserActivityDocument>,
     @InjectModel(ProductListing.name)
     private readonly listingModel: Model<ProductListingDocument>,
-  ) {}
+  ) {
+    // Start periodic flush timer
+    this.flushTimer = setInterval(() => {
+      void this.flushBuffer();
+    }, BUFFER_FLUSH_INTERVAL_MS);
+  }
 
+  async onModuleDestroy(): Promise<void> {
+    // Flush remaining buffered activities on shutdown
+    if (this.flushTimer) {
+      clearInterval(this.flushTimer);
+      this.flushTimer = null;
+    }
+    await this.flushBuffer();
+  }
+
+  /**
+   * Buffers an activity for batch insertion.
+   * High-frequency events (views, page_views, searches) are buffered.
+   * Critical events (purchases, auth) are written immediately.
+   */
   async trackActivity(
     userId: string | undefined,
     action: UserAction,
@@ -37,7 +65,7 @@ export class RecommendationService {
       userAgent?: string;
     },
   ): Promise<UserActivityDocument> {
-    const activity = new this.activityModel({
+    const doc: Record<string, any> = {
       userId: userId ? new Types.ObjectId(userId) : undefined,
       action,
       productListingId: data.productListingId
@@ -52,8 +80,59 @@ export class RecommendationService {
         : new Map(),
       ip: data.ip,
       userAgent: data.userAgent,
-    });
-    return activity.save();
+      createdAt: new Date(),
+    };
+
+    // Critical actions bypass buffer for immediate consistency
+    if (this.isCriticalAction(action)) {
+      const activity = new this.activityModel(doc);
+      return activity.save();
+    }
+
+    // Buffer high-frequency actions for batch insert
+    this.activityBuffer.push(doc);
+    if (this.activityBuffer.length >= BUFFER_FLUSH_SIZE) {
+      await this.flushBuffer();
+    }
+
+    return doc as any;
+  }
+
+  /**
+   * Flush buffered activities to MongoDB in a single bulk insert.
+   * Uses unordered insertMany for best throughput.
+   */
+  private async flushBuffer(): Promise<void> {
+    if (this.activityBuffer.length === 0) return;
+
+    const batch = this.activityBuffer.splice(0);
+    try {
+      await this.activityModel.insertMany(batch, { ordered: false });
+    } catch (error) {
+      this.logger.error(
+        `Failed to flush ${batch.length} buffered activities`,
+        error,
+      );
+      // Re-queue failed items (up to a limit to prevent memory leak)
+      if (this.activityBuffer.length < BUFFER_FLUSH_SIZE * 3) {
+        this.activityBuffer.unshift(...batch);
+      }
+    }
+  }
+
+  /**
+   * Critical actions that must be written immediately (auth, payments, admin).
+   */
+  private isCriticalAction(action: UserAction): boolean {
+    return (
+      action.startsWith('admin_') ||
+      action.startsWith('package_purchase') ||
+      action === UserAction.LOGIN ||
+      action === UserAction.REGISTER ||
+      action === UserAction.PAYMENT_ATTEMPT ||
+      action === UserAction.LISTING_CREATE ||
+      action === UserAction.LISTING_DELETE
+    );
   }
 
   async getRecommendations(
@@ -66,11 +145,14 @@ export class RecommendationService {
       return this.getColdStartRecommendations(safeLimit);
     }
 
-    const activityCount = await this.activityModel
-      .countDocuments({ userId: new Types.ObjectId(userId) })
+    // Use a fast existence check instead of full countDocuments
+    const hasActivity = await this.activityModel
+      .findOne({ userId: new Types.ObjectId(userId) })
+      .select('_id')
+      .lean()
       .exec();
 
-    if (activityCount === 0) {
+    if (!hasActivity) {
       return this.getColdStartRecommendations(safeLimit);
     }
 
@@ -83,39 +165,65 @@ export class RecommendationService {
   ): Promise<ProductListingDocument[]> {
     const userObjId = new Types.ObjectId(userId);
 
-    // Get dismissed listing IDs
-    const dismissedActivities = await this.activityModel
-      .find({ userId: userObjId, action: UserAction.DISMISS })
-      .select('productListingId')
-      .exec();
-    const dismissedIds = dismissedActivities
-      .filter((a) => a.productListingId)
-      .map((a) => a.productListingId!);
-
-    // Get categories the user has interacted with
-    const recentActivities = await this.activityModel
-      .find({
-        userId: userObjId,
-        action: {
-          $in: [UserAction.VIEW, UserAction.FAVORITE, UserAction.CONTACT],
+    // Single aggregation to get dismissed IDs + category preferences
+    const [userContext] = await this.activityModel
+      .aggregate([
+        {
+          $match: {
+            userId: userObjId,
+            action: {
+              $in: [
+                UserAction.VIEW,
+                UserAction.FAVORITE,
+                UserAction.CONTACT,
+                UserAction.DISMISS,
+              ],
+            },
+          },
         },
-      })
-      .sort({ createdAt: -1 })
-      .limit(50)
+        { $sort: { createdAt: -1 } },
+        { $limit: 100 },
+        {
+          $facet: {
+            dismissed: [
+              { $match: { action: UserAction.DISMISS } },
+              { $project: { productListingId: 1 } },
+            ],
+            interactions: [
+              {
+                $match: {
+                  action: { $ne: UserAction.DISMISS },
+                },
+              },
+              { $limit: 50 },
+              {
+                $project: {
+                  categoryId: 1,
+                  productListingId: 1,
+                },
+              },
+            ],
+          },
+        },
+      ])
       .exec();
 
+    const dismissedIds = (userContext?.dismissed || [])
+      .filter((a: any) => a.productListingId)
+      .map((a: any) => a.productListingId);
+
+    const interactions = userContext?.interactions || [];
     const categoryIds = [
       ...new Set(
-        recentActivities
-          .filter((a) => a.categoryId)
-          .map((a) => a.categoryId!.toString()),
+        interactions
+          .filter((a: any) => a.categoryId)
+          .map((a: any) => a.categoryId.toString()),
       ),
-    ].map((id) => new Types.ObjectId(id));
+    ].map((id) => new Types.ObjectId(id as string));
 
-    // Get viewed listing IDs to exclude already-seen items
-    const viewedIds = recentActivities
-      .filter((a) => a.productListingId)
-      .map((a) => a.productListingId!);
+    const viewedIds = interactions
+      .filter((a: any) => a.productListingId)
+      .map((a: any) => a.productListingId);
 
     const excludeIds = [...dismissedIds, ...viewedIds];
 
@@ -132,67 +240,35 @@ export class RecommendationService {
       filter.categoryId = { $in: categoryIds };
     }
 
-    // Mix of featured and non-featured, sorted by relevance then randomized
-    const [featured, regular] = await Promise.all([
-      this.listingModel
-        .find({ ...filter, isFeatured: true })
-        .select(LISTING_PUBLIC_SELECT)
-        .sort({ viewCount: -1 })
-        .limit(Math.ceil(limit / 3))
-        .exec(),
-      this.listingModel
-        .aggregate([
-          {
-            $match: {
-              ...filter,
-              $or: [{ isFeatured: false }, { isFeatured: { $exists: false } }],
-            },
-          },
-          { $sample: { size: limit } },
-        ])
-        .exec(),
-    ]);
-
-    // Merge: featured sprinkled in, then fill with regular
-    const featuredIds = new Set(featured.map((f) => f._id.toString()));
-    const mixed: any[] = [];
-    const regularFiltered = regular.filter(
-      (r: any) => !featuredIds.has(r._id.toString()),
-    );
-    let fi = 0,
-      ri = 0;
-    while (
-      mixed.length < limit &&
-      (fi < featured.length || ri < regularFiltered.length)
-    ) {
-      // Insert a featured ad every 3rd position
-      if (
-        fi < featured.length &&
-        (mixed.length % 3 === 0 || ri >= regularFiltered.length)
-      ) {
-        mixed.push(featured[fi++]);
-      } else if (ri < regularFiltered.length) {
-        mixed.push(regularFiltered[ri++]);
-      } else break;
-    }
-    return mixed as ProductListingDocument[];
+    return this.getMixedListings(filter, limit);
   }
 
   private async getColdStartRecommendations(
-    limit: number = 20,
+    limit: number,
   ): Promise<ProductListingDocument[]> {
     const filter: Record<string, any> = {
       status: ListingStatus.ACTIVE,
       deletedAt: { $exists: false },
     };
 
-    // Random mix of featured and regular
+    return this.getMixedListings(filter, limit);
+  }
+
+  /**
+   * Shared logic: mix featured (every 3rd slot) + random regular listings.
+   * Eliminates duplicated code between personalized and cold-start paths.
+   */
+  private async getMixedListings(
+    filter: Record<string, any>,
+    limit: number,
+  ): Promise<ProductListingDocument[]> {
     const [featured, regular] = await Promise.all([
       this.listingModel
         .find({ ...filter, isFeatured: true })
         .select(LISTING_PUBLIC_SELECT)
         .sort({ viewCount: -1 })
         .limit(Math.ceil(limit / 3))
+        .lean()
         .exec(),
       this.listingModel
         .aggregate([
@@ -207,13 +283,15 @@ export class RecommendationService {
         .exec(),
     ]);
 
-    const featuredIds = new Set(featured.map((f) => f._id.toString()));
-    const mixed: any[] = [];
+    const featuredIds = new Set(featured.map((f: any) => f._id.toString()));
     const regularFiltered = regular.filter(
       (r: any) => !featuredIds.has(r._id.toString()),
     );
-    let fi = 0,
-      ri = 0;
+
+    // Interleave: featured every 3rd position
+    const mixed: any[] = [];
+    let fi = 0;
+    let ri = 0;
     while (
       mixed.length < limit &&
       (fi < featured.length || ri < regularFiltered.length)
@@ -225,8 +303,11 @@ export class RecommendationService {
         mixed.push(featured[fi++]);
       } else if (ri < regularFiltered.length) {
         mixed.push(regularFiltered[ri++]);
-      } else break;
+      } else {
+        break;
+      }
     }
+
     return mixed as ProductListingDocument[];
   }
 
@@ -235,26 +316,5 @@ export class RecommendationService {
     productListingId: string,
   ): Promise<void> {
     await this.trackActivity(userId, UserAction.DISMISS, { productListingId });
-  }
-
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
-  async updateRecommendationModels(): Promise<void> {
-    this.logger.log('Starting daily recommendation model update...');
-
-    try {
-      // Clean up old activity data (older than 90 days)
-      const ninetyDaysAgo = new Date();
-      ninetyDaysAgo.setDate(ninetyDaysAgo.getDate() - 90);
-
-      const result = await this.activityModel
-        .deleteMany({ createdAt: { $lt: ninetyDaysAgo } })
-        .exec();
-
-      this.logger.log(
-        `Recommendation model update complete. Cleaned ${result.deletedCount} old activities.`,
-      );
-    } catch (error) {
-      this.logger.error('Failed to update recommendation models', error);
-    }
   }
 }

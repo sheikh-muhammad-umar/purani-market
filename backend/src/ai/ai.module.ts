@@ -1,6 +1,5 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ScheduleModule } from '@nestjs/schedule';
 import {
   UserActivity,
   UserActivitySchema,
@@ -15,7 +14,6 @@ import { ListingsModule } from '../listings/listings.module.js';
     MongooseModule.forFeature([
       { name: UserActivity.name, schema: UserActivitySchema },
     ]),
-    ScheduleModule.forRoot(),
     ListingsModule,
   ],
   controllers: [AiController],
