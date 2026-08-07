@@ -5,9 +5,7 @@
       <p class="auth-subtitle">Scan the QR code with your authenticator app</p>
 
       @if (setupLoading()) {
-        <div class="loading-center">
-          <span class="spinner spinner-lg" aria-hidden="true"></span>
-        </div>
+        <app-loader mode="inline" [loading]="true" message="Verifying..." />
       } @else if (setupData()) {
         <div class="qr-container">
           <img [src]="setupData()!.qrCodeUrl" alt="MFA QR Code" />

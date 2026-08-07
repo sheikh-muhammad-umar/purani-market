@@ -21,11 +21,18 @@ import { buildMapEmbedUrl } from '../../../core/utils/map-link';
 import { extractPackageDetails } from '../../../core/utils/package-details';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { ToastService } from '../../../core/services/toast.service';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 @Component({
   selector: 'app-listing-detail',
   standalone: true,
-  imports: [CommonModule, RouterLink, ListingUrlPipe, VerificationBadgesComponent],
+  imports: [
+    CommonModule,
+    RouterLink,
+    ListingUrlPipe,
+    VerificationBadgesComponent,
+    AppLoaderComponent,
+  ],
   templateUrl: './listing-detail.component.html',
   styleUrls: ['./listing-detail.component.scss'],
 })

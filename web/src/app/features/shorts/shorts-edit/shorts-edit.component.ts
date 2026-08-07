@@ -17,11 +17,19 @@ import { ROUTES } from '../../../core/constants/routes';
 import { CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { Category, Province, City, Area, Listing } from '../../../core/models';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 @Component({
   selector: 'app-shorts-edit',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, CustomSelectComponent, NumberToWordsPipe],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    CustomSelectComponent,
+    NumberToWordsPipe,
+    AppLoaderComponent,
+  ],
   templateUrl: './shorts-edit.component.html',
   styleUrl: './shorts-edit.component.scss',
 })

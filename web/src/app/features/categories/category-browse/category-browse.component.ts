@@ -4,11 +4,12 @@ import { CategoriesService } from '../../../core/services/categories.service';
 import { CategoryModalComponent } from '../../../shared/components/category-modal/category-modal.component';
 import { Category } from '../../../core/models';
 import { CATEGORY_ICONS_PATH, DEFAULT_CATEGORY_ICON } from '../../../core/constants/app';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 @Component({
   selector: 'app-category-browse',
   standalone: true,
-  imports: [CommonModule, CategoryModalComponent],
+  imports: [CommonModule, CategoryModalComponent, AppLoaderComponent],
   templateUrl: './category-browse.component.html',
   styleUrls: ['./category-browse.component.scss'],
 })

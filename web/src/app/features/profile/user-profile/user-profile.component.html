@@ -19,9 +19,7 @@
     </div>
 
     @if (loading()) {
-      <div class="loading-center">
-        <span class="spinner spinner-lg" aria-label="Loading profile"></span>
-      </div>
+      <app-loader mode="inline" [loading]="true" message="Loading profile..." />
     } @else {
       @if (successMessage()) {
         <div class="alert alert-success" role="status">{{ successMessage() }}</div>

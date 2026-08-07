@@ -14,13 +14,14 @@ import {
 } from '../../../core/models/id-verification.model';
 import { computeFileHash } from '../../../core/utils/file-hash';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 type CnicField = 'cnicFront' | 'cnicBack' | 'selfieFront' | 'selfieBack';
 
 @Component({
   selector: 'app-id-verification',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, AppLoaderComponent],
   templateUrl: './id-verification.component.html',
   styleUrl: './id-verification.component.scss',
 })

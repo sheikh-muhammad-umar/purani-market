@@ -32,9 +32,7 @@
   }
 
   @if (loading()) {
-    <div class="loading-center">
-      <span class="spinner spinner-lg" aria-label="Loading"></span>
-    </div>
+    <app-loader mode="inline" [loading]="true" message="Loading..." />
   } @else if (verifications().length === 0) {
     <div class="empty-state">
       <span class="material-symbols-rounded empty-icon">verified_user</span>

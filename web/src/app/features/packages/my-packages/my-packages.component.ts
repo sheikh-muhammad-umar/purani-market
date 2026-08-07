@@ -18,6 +18,7 @@ import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { CURRENCY_SYMBOL, PAYMENT_METHOD_CONFIG } from '../../../core/constants/app';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 /** Milliseconds in one day. */
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -35,7 +36,7 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 @Component({
   selector: 'app-my-packages',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, CustomSelectComponent],
+  imports: [CommonModule, FormsModule, RouterLink, CustomSelectComponent, AppLoaderComponent],
   templateUrl: './my-packages.component.html',
   styleUrls: ['./my-packages.component.scss'],
 })

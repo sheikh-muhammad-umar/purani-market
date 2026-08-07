@@ -13,13 +13,14 @@ import {
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
 import { PackageType } from '../../../core/constants/enums';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 export type PurchaseStep = 'details' | 'payment' | 'confirm';
 
 @Component({
   selector: 'app-purchase-flow',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, AppLoaderComponent],
   templateUrl: './purchase-flow.component.html',
   styleUrls: ['./purchase-flow.component.scss'],
 })

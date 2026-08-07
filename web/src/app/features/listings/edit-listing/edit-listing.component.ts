@@ -33,11 +33,18 @@ import { saveState, loadState, clearState } from '../../../core/utils/state-pers
 import { ListingCondition } from '../../../core/constants';
 import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
 import { mapLinkValidator } from '../../../core/utils/map-link';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 @Component({
   selector: 'app-edit-listing',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, CustomSelectComponent, NumberToWordsPipe],
+  imports: [
+    CommonModule,
+    ReactiveFormsModule,
+    CustomSelectComponent,
+    NumberToWordsPipe,
+    AppLoaderComponent,
+  ],
   templateUrl: './edit-listing.component.html',
   styleUrls: ['../create-listing/create-listing.component.scss'],
 })

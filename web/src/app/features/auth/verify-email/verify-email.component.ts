@@ -7,11 +7,12 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { OtpChannel } from '../../../core/enums/otp-channel';
 import { ROUTES } from '../../../core/constants/routes';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 @Component({
   selector: 'app-verify-email',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [CommonModule, RouterLink, AppLoaderComponent],
   templateUrl: './verify-email.component.html',
   styleUrl: './verify-email.component.scss',
 })

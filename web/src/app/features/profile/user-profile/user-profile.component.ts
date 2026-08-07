@@ -13,11 +13,12 @@ import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { NotificationCountService } from '../../../core/services/notification-count.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 @Component({
   selector: 'app-user-profile',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, AppLoaderComponent],
   templateUrl: './user-profile.component.html',
   styleUrl: './user-profile.component.scss',
 })

@@ -9,11 +9,12 @@ import { PLACEHOLDER_IMAGE, CURRENCY_SYMBOL } from '../../../core/constants/app'
 import { ROUTES } from '../../../core/constants/routes';
 import { TAB, TabType } from '../../../core/constants/enums';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 @Component({
   selector: 'app-favorites-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, ListingUrlPipe],
+  imports: [CommonModule, RouterLink, ListingUrlPipe, AppLoaderComponent],
   templateUrl: './favorites-list.component.html',
   styleUrls: ['./favorites-list.component.scss'],
 })

@@ -4,9 +4,7 @@
 
     @if (loading()) {
       <p class="info-text">Verifying your email address...</p>
-      <div class="loading-center">
-        <span class="spinner spinner-lg" aria-hidden="true"></span>
-      </div>
+      <app-loader mode="inline" [loading]="true" message="Verifying..." />
     } @else if (success()) {
       <div class="alert alert-success" role="alert">Your email has been verified successfully!</div>
       <p class="info-text">You now have full access to the marketplace.</p>

@@ -36,6 +36,7 @@ import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { mapLinkValidator } from '../../../core/utils/map-link';
 import { AvailablePackagesComponent } from './available-packages/available-packages.component';
 import { PromoBannerComponent } from '../../../shared/components/promo-banner/promo-banner.component';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 import { Subject, takeUntil, forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
@@ -56,6 +57,7 @@ export interface MediaItem {
     AvailablePackagesComponent,
     PromoBannerComponent,
     NumberToWordsPipe,
+    AppLoaderComponent,
   ],
   templateUrl: './create-listing.component.html',
   styleUrls: ['./create-listing.component.scss'],

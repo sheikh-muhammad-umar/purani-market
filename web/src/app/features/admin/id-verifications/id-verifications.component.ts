@@ -14,6 +14,7 @@ import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 const FALLBACK_USER = 'Unknown User';
 const FALLBACK_VALUE = '—';
@@ -30,7 +31,7 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 @Component({
   selector: 'app-id-verifications',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent],
+  imports: [CommonModule, FormsModule, CustomSelectComponent, AppLoaderComponent],
   templateUrl: './id-verifications.component.html',
   styleUrl: './id-verifications.component.scss',
 })

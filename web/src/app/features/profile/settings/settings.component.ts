@@ -1,4 +1,4 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -10,15 +10,16 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ROUTES } from '../../../core/constants/routes';
 import { API } from '../../../core/constants/api-endpoints';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 @Component({
   selector: 'app-settings',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, AppLoaderComponent],
   templateUrl: './settings.component.html',
   styleUrl: './settings.component.scss',
 })
-export class SettingsComponent implements OnInit {
+export class SettingsComponent implements OnInit, OnDestroy {
   readonly ROUTES = ROUTES;
   readonly UserStatus = UserStatus;
   user = signal<User | null>(null);
@@ -82,6 +83,10 @@ export class SettingsComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUser();
+  }
+
+  ngOnDestroy(): void {
+    clearInterval(this.emailCooldownTimer);
   }
 
   loadUser(): void {
@@ -237,7 +242,7 @@ export class SettingsComponent implements OnInit {
           this.phoneOtpSent.set(true);
           this.phoneChangeSuccess.set(res.message || 'OTP sent to your new phone number.');
         },
-        error: (err) => {
+        error: () => {
           this.phoneChanging.set(false);
           this.phoneChangeError.set('Failed to initiate phone change.');
         },
@@ -268,7 +273,7 @@ export class SettingsComponent implements OnInit {
             next: (user) => this.user.set(user),
           });
         },
-        error: (err) => {
+        error: () => {
           this.otpVerifying.set(false);
           this.phoneChangeError.set('Invalid OTP. Please try again.');
         },
@@ -292,7 +297,7 @@ export class SettingsComponent implements OnInit {
           this.successMessage.set('MFA setup initiated. Check your authenticator app.');
           this.loadUser();
         },
-        error: (err) => {
+        error: () => {
           this.mfaLoading.set(false);
           this.errorMessage.set('Failed to enable MFA.');
         },

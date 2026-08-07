@@ -1,0 +1,153 @@
+<!-- ==========================================
+     MODE: SPLASH (Full-screen intro)
+     ========================================== -->
+@if (mode === 'splash' && visible()) {
+  <div class="loader-overlay splash" [class.fade-out]="fadeOut()">
+    <div class="mesh-bg"></div>
+
+    <div class="grid-lines">
+      @for (i of gridLines; track i) {
+        <div class="grid-line" [style.--index]="i"></div>
+      }
+    </div>
+
+    <div class="particles">
+      @for (p of particles; track p.id) {
+        <div
+          class="particle"
+          [class]="'particle-' + p.type"
+          [style.--x]="p.x + '%'"
+          [style.--delay]="p.delay + 's'"
+          [style.--duration]="p.duration + 's'"
+          [style.--size]="p.size + 'px'"
+        ></div>
+      }
+    </div>
+
+    <div class="loader-content" [class.entered]="contentEntered()">
+      <!-- Logo -->
+      <div class="logo-wrapper">
+        <div class="logo-bg-blur"></div>
+        <div class="logo-container">
+          <svg class="logo-rings" viewBox="0 0 120 120">
+            <circle class="ring ring-outer" cx="60" cy="60" r="56" />
+            <circle class="ring ring-middle" cx="60" cy="60" r="46" />
+            <circle class="ring ring-inner" cx="60" cy="60" r="36" />
+          </svg>
+          <div class="logo-icon">
+            <span class="material-symbols-rounded">shopping_bag</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Brand -->
+      <div class="brand-section">
+        <h1 class="brand-name">
+          @for (letter of brandLetters; track $index) {
+            <span class="letter" [style.--i]="$index">{{ letter }}</span>
+          }
+        </h1>
+        <p class="brand-tagline">{{ brandTagline }}</p>
+      </div>
+
+      <!-- Feature pills -->
+      <div class="features-showcase">
+        @for (step of steps; track step.icon; let idx = $index) {
+          <div
+            class="feature-pill"
+            [class.active]="currentStep() === idx"
+            [class.past]="pastSteps().has(idx)"
+          >
+            <div class="pill-icon" [class]="'color-' + step.color">
+              <span class="material-symbols-rounded">{{ step.icon }}</span>
+            </div>
+            <span class="pill-text">{{ step.text }}</span>
+          </div>
+        }
+        <div class="step-dots">
+          @for (step of steps; track step.icon; let idx = $index) {
+            <div
+              class="dot"
+              [class.active]="currentStep() === idx"
+              [class.past]="pastSteps().has(idx)"
+            ></div>
+          }
+        </div>
+      </div>
+
+      <!-- Category cards -->
+      <div class="category-cards">
+        @for (cat of categories; track cat.icon; let idx = $index) {
+          <div class="cat-card" [style.--i]="idx" [class.highlight]="highlightedCat() === idx">
+            <span class="material-symbols-rounded">{{ cat.icon }}</span>
+            <span class="cat-label">{{ cat.label }}</span>
+          </div>
+        }
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-section">
+        <div class="progress-track">
+          <div class="progress-fill" [style.width.%]="progress()">
+            <div class="progress-shimmer"></div>
+          </div>
+        </div>
+        <span class="progress-text">{{ progressText() }}</span>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ==========================================
+     MODE: OVERLAY (Full-screen loading state)
+     ========================================== -->
+@if (mode === 'overlay' && loading) {
+  <div class="loader-overlay overlay-mode">
+    <div class="overlay-content">
+      <div class="spinner-rings">
+        <svg class="spinner-svg" viewBox="0 0 80 80">
+          <circle class="spinner-track" cx="40" cy="40" r="34" />
+          <circle class="spinner-arc arc-1" cx="40" cy="40" r="34" />
+          <circle class="spinner-arc arc-2" cx="40" cy="40" r="26" />
+        </svg>
+        <div class="spinner-center-icon">
+          <span class="material-symbols-rounded">shopping_bag</span>
+        </div>
+      </div>
+      @if (message) {
+        <p class="overlay-message">{{ message }}</p>
+      }
+      <div class="overlay-dots">
+        <span class="bounce-dot"></span>
+        <span class="bounce-dot"></span>
+        <span class="bounce-dot"></span>
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ==========================================
+     MODE: INLINE (Embedded in content areas)
+     ========================================== -->
+@if (mode === 'inline' && loading) {
+  <div class="inline-loader" [class]="'size-' + size">
+    <div class="spinner-rings inline-rings">
+      <svg class="spinner-svg" viewBox="0 0 80 80">
+        <circle class="spinner-track" cx="40" cy="40" r="34" />
+        <circle class="spinner-arc arc-1" cx="40" cy="40" r="34" />
+        <circle class="spinner-arc arc-2" cx="40" cy="40" r="26" />
+      </svg>
+      <div class="spinner-center-icon">
+        <span class="material-symbols-rounded">shopping_bag</span>
+      </div>
+    </div>
+    @if (message) {
+      <span class="inline-message">{{ message }}</span>
+    }
+    <div class="overlay-dots inline-dots">
+      <span class="bounce-dot"></span>
+      <span class="bounce-dot"></span>
+      <span class="bounce-dot"></span>
+    </div>
+  </div>
+}

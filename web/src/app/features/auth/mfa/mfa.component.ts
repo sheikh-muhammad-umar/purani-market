@@ -4,11 +4,12 @@ import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angula
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { AuthService, MfaEnableResponse } from '../../../core/auth/auth.service';
 import { ROUTES } from '../../../core/constants/routes';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 @Component({
   selector: 'app-mfa',
   standalone: true,
-  imports: [CommonModule, ReactiveFormsModule, RouterLink],
+  imports: [CommonModule, ReactiveFormsModule, RouterLink, AppLoaderComponent],
   templateUrl: './mfa.component.html',
   styleUrl: './mfa.component.scss',
 })

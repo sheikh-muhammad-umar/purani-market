@@ -19,6 +19,7 @@ import { EmailVerificationModalComponent } from './shared/components/email-verif
 import { EmailVerificationModalService } from './shared/components/email-verification-modal/email-verification-modal.service';
 import { PhoneVerificationModalComponent } from './shared/components/phone-verification-modal/phone-verification-modal.component';
 import { PhoneVerificationModalService } from './shared/components/phone-verification-modal/phone-verification-modal.service';
+import { AppLoaderComponent } from './shared/components/app-loader/app-loader.component';
 import { ROUTES } from './core/constants/routes';
 
 @Component({
@@ -33,6 +34,7 @@ import { ROUTES } from './core/constants/routes';
     ToastContainerComponent,
     EmailVerificationModalComponent,
     PhoneVerificationModalComponent,
+    AppLoaderComponent,
   ],
   templateUrl: './app.html',
   styleUrl: './app.scss',

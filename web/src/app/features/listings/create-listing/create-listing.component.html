@@ -2,7 +2,7 @@
 @if (phoneCheckLoading()) {
   <div class="wizard-page">
     <div class="wizard-container">
-      <div class="loading-center"><div class="spinner spinner-lg"></div></div>
+      <app-loader mode="inline" [loading]="true" message="Loading..." />
     </div>
   </div>
 } @else {

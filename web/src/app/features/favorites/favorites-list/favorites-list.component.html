@@ -21,18 +21,7 @@
     <!-- Ads Tab -->
     @if (activeTab() === TAB.ADS) {
       @if (loading()) {
-        <div class="favorites-grid">
-          @for (i of SKELETON_ITEMS; track i) {
-            <div class="card" style="padding: 0; overflow: hidden">
-              <div class="skeleton-image"></div>
-              <div style="padding: 12px">
-                <div class="skeleton-text" style="width: 80%"></div>
-                <div class="skeleton-text short" style="height: 1.2em; margin-top: 8px"></div>
-                <div class="skeleton-text medium" style="margin-top: 8px"></div>
-              </div>
-            </div>
-          }
-        </div>
+        <app-loader mode="inline" [loading]="true" message="Loading favorites..." />
       } @else if (error()) {
         <div class="error-state">
           <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
@@ -110,13 +99,7 @@
     <!-- Shorts Tab -->
     @if (activeTab() === TAB.SHORTS) {
       @if (loadingShorts()) {
-        <div class="favorites-grid">
-          @for (i of SKELETON_ITEMS; track i) {
-            <div class="card" style="padding: 0; overflow: hidden">
-              <div class="skeleton-image" style="aspect-ratio: 9/16"></div>
-            </div>
-          }
-        </div>
+        <app-loader mode="inline" [loading]="true" message="Loading favorites..." />
       } @else if (likedShorts().length === 0) {
         <div class="empty-state">
           <span class="material-symbols-rounded empty-icon-mat">play_circle</span>

@@ -326,7 +326,7 @@
       }
 
       @if (loadingShorts()) {
-        <div class="loading-center"><div class="spinner spinner-lg"></div></div>
+        <app-loader mode="inline" [loading]="true" message="Loading shorts..." />
       } @else if (shorts().length === 0) {
         <div class="empty-state">
           <span class="material-symbols-rounded empty-icon">play_circle</span>

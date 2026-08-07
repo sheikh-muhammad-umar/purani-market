@@ -3,7 +3,7 @@
     <a [routerLink]="ROUTES.PACKAGES" class="back-link">← Back to Packages</a>
 
     @if (loading()) {
-      <div class="loading-center"><div class="spinner spinner-lg"></div></div>
+      <app-loader mode="inline" [loading]="true" message="Loading packages..." />
     } @else if (error()) {
       <div class="error-state">
         <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>

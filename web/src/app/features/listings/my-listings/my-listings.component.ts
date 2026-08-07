@@ -25,6 +25,7 @@ import { FormatStatusPipe } from '../../../shared/pipes/format-status.pipe';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { ToastService } from '../../../core/services/toast.service';
 import { daysToMs } from '../../../core/utils/time';
+import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 interface AnalyticsCard {
   label: string;
@@ -41,7 +42,14 @@ interface FeaturedAdInfo {
 @Component({
   selector: 'app-my-listings',
   standalone: true,
-  imports: [CommonModule, RouterLink, ListingUrlPipe, FormatDurationPipe, FormatStatusPipe],
+  imports: [
+    CommonModule,
+    RouterLink,
+    ListingUrlPipe,
+    FormatDurationPipe,
+    FormatStatusPipe,
+    AppLoaderComponent,
+  ],
   templateUrl: './my-listings.component.html',
   styleUrls: ['./my-listings.component.scss'],
 })

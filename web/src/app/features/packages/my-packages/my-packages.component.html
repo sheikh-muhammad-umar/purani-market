@@ -63,7 +63,7 @@
       </div>
 
       @if (loading()) {
-        <div class="loading-center"><div class="spinner spinner-lg"></div></div>
+        <app-loader mode="inline" [loading]="true" message="Loading packages..." />
       } @else if (error()) {
         <div class="error-state">
           <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
@@ -172,7 +172,7 @@
     <!-- Shorts Packages Tab -->
     @if (mainTab() === TAB.SHORTS) {
       @if (loadingShorts()) {
-        <div class="loading-center"><div class="spinner spinner-lg"></div></div>
+        <app-loader mode="inline" [loading]="true" message="Loading shorts..." />
       } @else if (shortsPurchases().length === 0) {
         <div class="empty-state">
           <span class="empty-icon"><span class="material-symbols-rounded">play_circle</span></span>
