@@ -78,73 +78,46 @@
     @if (activeTab() === TAB.LISTINGS) {
       <h2 class="sp-section-title">Ads by this seller</h2>
       @if (listings().length === 0) {
-        <div class="empty-state">This seller has no active ads.</div>
+        <app-empty-state
+          icon="sell"
+          title="No active ads"
+          message="This seller doesn't have any listings up right now."
+          [compact]="true"
+        />
+      } @else {
+        <div class="auto-grid" role="list">
+          @for (listing of listings(); track listing._id) {
+            <app-listing-card role="listitem" [listing]="listing" [showTime]="true" />
+          }
+        </div>
       }
-      <div class="sp-listings-grid">
-        @for (listing of listings(); track listing._id) {
-          <a class="sp-listing-card" [routerLink]="listing | listingUrl">
-            <div class="sp-listing-img">
-              @if (listing.images.length) {
-                <img
-                  [src]="listing.images[0].thumbnailUrl || listing.images[0].url"
-                  [alt]="listing.title"
-                />
-              } @else {
-                <div class="sp-no-img">No Image</div>
-              }
-            </div>
-            <div class="sp-listing-info">
-              <span class="sp-listing-title">{{ listing.title }}</span>
-              <span class="sp-listing-price"
-                >{{ listing.price.currency }} {{ listing.price.amount | number }}</span
-              >
-              <span class="sp-listing-location"
-                >{{ listing.location.area ? listing.location.area + ', ' : ''
-                }}{{ listing.location.city || '' }}</span
-              >
-            </div>
-          </a>
-        }
-      </div>
     }
 
     <!-- Shorts Grid -->
     @if (activeTab() === TAB.SHORTS) {
       <h2 class="sp-section-title">Shorts by this seller</h2>
       @if (shorts().length === 0) {
-        <div class="empty-state">This seller has no shorts yet.</div>
+        <app-empty-state
+          icon="play_circle"
+          title="No shorts yet"
+          message="This seller hasn't posted any short videos."
+          [compact]="true"
+        />
+      } @else {
+        <div class="sp-shorts-grid" role="list">
+          @for (short of shorts(); track short._id) {
+            <app-short-card role="listitem" [short]="short" />
+          }
+        </div>
       }
-      <div class="sp-shorts-grid">
-        @for (short of shorts(); track short._id) {
-          <a class="sp-short-card" [routerLink]="['/shorts']" [queryParams]="{ id: short._id }">
-            <div class="sp-short-thumb">
-              @if (short.video.thumbnailUrl) {
-                <img [src]="short.video.thumbnailUrl" alt="Short video" />
-              } @else {
-                <div class="sp-no-img"><span class="material-symbols-rounded">videocam</span></div>
-              }
-              <span class="sp-short-duration">{{ formatShortDuration(short.video.duration) }}</span>
-            </div>
-            <div class="sp-short-info">
-              <span class="sp-short-caption">{{
-                short.title || short.description || 'Short video'
-              }}</span>
-              <span class="sp-short-views"
-                ><span
-                  class="material-symbols-rounded"
-                  style="font-size: 12px; vertical-align: middle"
-                  >visibility</span
-                >
-                {{ short.viewCount }} views</span
-              >
-            </div>
-          </a>
-        }
-      </div>
     }
   }
 
   @if (!loading() && !seller()) {
-    <div class="empty-state">Seller not found.</div>
+    <app-empty-state
+      icon="person_off"
+      title="Seller not found"
+      message="This profile may have been removed."
+    />
   }
 </div>

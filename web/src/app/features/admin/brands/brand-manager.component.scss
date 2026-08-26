@@ -59,7 +59,7 @@
   gap: 4px;
   padding: 7px 14px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border: none;
   border-radius: 8px;
   font-size: 13px;
@@ -104,7 +104,7 @@
 .btn-save {
   padding: 7px 14px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border: none;
   border-radius: 8px;
   font-size: 13px;
@@ -126,12 +126,11 @@
 }
 
 /* States */
-.loading-state,
-.empty-state {
+.loading-state {
   text-align: center;
-  padding: 40px;
+  padding: var(--space-5);
   color: var(--text-muted);
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 .spinner {
   width: 28px;
@@ -164,7 +163,7 @@
   border-radius: 10px;
   transition: all 0.15s;
   &:hover {
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+    box-shadow: var(--shadow-sm);
   }
   &.inactive {
     opacity: 0.4;
@@ -200,13 +199,13 @@
     color: var(--text-primary);
   }
   &.delete:hover {
-    background: rgba(231, 76, 60, 0.1);
-    color: #e74c3c;
+    background: var(--error-bg);
+    color: var(--error);
   }
   &.save {
     color: var(--primary);
     &:hover {
-      background: rgba(13, 165, 195, 0.1);
+      background: var(--primary-subtle);
     }
   }
 }
@@ -224,85 +223,7 @@
   }
 }
 
-/* Modal */
-.modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.5);
-  z-index: 1000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 16px;
-}
-.modal-box {
-  background: var(--card);
-  border-radius: 16px;
-  padding: 24px;
-  width: 100%;
-  max-width: 380px;
-  text-align: center;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.2);
-  animation: modalIn 0.2s ease-out;
-  h3 {
-    font-size: 16px;
-    font-weight: 700;
-    margin: 12px 0 8px;
-  }
-  p {
-    font-size: 13px;
-    color: var(--text-muted);
-    margin: 0 0 20px;
-  }
-}
-@keyframes modalIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
-}
-.modal-icon {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: rgba(231, 76, 60, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin: 0 auto;
-  .material-symbols-rounded {
-    font-size: 24px;
-    color: #e74c3c;
-  }
-}
-.modal-actions {
-  display: flex;
-  gap: 8px;
-  justify-content: center;
-}
-.modal-actions .btn-cancel {
-  flex: 1;
-}
-.btn-delete {
-  flex: 1;
-  padding: 8px 16px;
-  background: #e74c3c;
-  color: #fff;
-  border: none;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  cursor: pointer;
-  &:hover {
-    background: #c0392b;
-  }
-}
-
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .bm-toolbar {
     flex-direction: column;
     align-items: stretch;

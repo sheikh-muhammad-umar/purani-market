@@ -18,12 +18,15 @@
 
   <!-- Empty state -->
   @if (!loading() && !error() && packages().length === 0 && categoryId) {
-    <div class="empty-state">
-      <p>No packages available for this category.</p>
-      <a [routerLink]="ROUTES.PACKAGES" class="purchase-link" (click)="onPurchaseLinkClick()">
-        Purchase packages
-      </a>
-    </div>
+    <app-empty-state
+      icon="inventory_2"
+      title="No packages available"
+      message="There are no packages for this category yet."
+      actionText="Purchase packages"
+      [actionLink]="ROUTES.PACKAGES"
+      [compact]="true"
+      (actionClicked)="onPurchaseLinkClick()"
+    />
   }
 
   <!-- Package list -->

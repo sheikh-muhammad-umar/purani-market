@@ -15,7 +15,7 @@
       <div class="list-panel">
         <div class="list-header">
           <h2>Shorts Packages</h2>
-          <button class="btn-primary" (click)="openCreateForm()" [disabled]="saving()">
+          <button class="btn btn-primary" (click)="openCreateForm()" [disabled]="saving()">
             + New Package
           </button>
         </div>
@@ -157,13 +157,13 @@
 
             <div class="form-actions">
               <button
-                class="btn-primary"
+                class="btn btn-primary"
                 (click)="activePanel === 'create' ? submitCreate() : submitEdit()"
                 [disabled]="saving() || !pkgForm.name.trim()"
               >
                 {{ saving() ? 'Saving...' : activePanel === 'create' ? 'Create' : 'Save Changes' }}
               </button>
-              <button class="btn-secondary" (click)="cancelForm()" [disabled]="saving()">
+              <button class="btn btn-ghost" (click)="cancelForm()" [disabled]="saving()">
                 Cancel
               </button>
             </div>

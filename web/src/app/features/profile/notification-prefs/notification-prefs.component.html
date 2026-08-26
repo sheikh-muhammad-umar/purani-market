@@ -11,22 +11,20 @@
     </div>
 
     @if (loading()) {
-      <div class="prefs-skeleton card" style="padding: 20px">
+      <div class="prefs-skeleton card">
         @for (i of [1, 2, 3, 4, 5]; track i) {
-          <div
-            style="
-              display: flex;
-              justify-content: space-between;
-              align-items: center;
-              padding: 12px 0;
-              border-bottom: 1px solid var(--border);
-            "
-          >
-            <div style="flex: 1">
-              <div class="skeleton skeleton-text" style="width: 40%"></div>
-              <div class="skeleton skeleton-text short" style="margin-top: 4px; width: 60%"></div>
+          <div class="prefs-skeleton-row">
+            <div class="prefs-skeleton-info">
+              <app-skeleton variant="block" width="40%" height="0.85rem" />
+              <app-skeleton variant="block" width="60%" height="0.85rem" />
             </div>
-            <div class="skeleton" style="width: 44px; height: 24px; border-radius: 12px"></div>
+            <app-skeleton
+              class="prefs-skeleton-toggle"
+              variant="block"
+              width="44px"
+              height="24px"
+              radius="var(--radius-full)"
+            />
           </div>
         }
       </div>

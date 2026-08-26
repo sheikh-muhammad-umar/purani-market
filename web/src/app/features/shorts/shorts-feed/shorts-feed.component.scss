@@ -143,8 +143,8 @@
 
 .upload-btn {
   padding: 5px 12px;
-  background: var(--primary, #0da5c3);
-  color: #fff;
+  background: var(--primary);
+  color: var(--on-primary);
   border-radius: 20px;
   text-decoration: none;
   font-size: 11px;
@@ -184,8 +184,8 @@
   left: 0;
   width: 300px;
   max-width: calc(100vw - 32px);
-  background: var(--card, #fff);
-  border: 1px solid var(--border, #e4e4ed);
+  background: var(--card);
+  border: 1px solid var(--border);
   border-radius: 14px;
   box-shadow:
     0 16px 48px rgba(0, 0, 0, 0.2),
@@ -205,8 +205,8 @@
   align-items: center;
   gap: 8px;
   padding: 10px 12px;
-  border-bottom: 1px solid var(--border, #e4e4ed);
-  background: var(--background, #f7f7fc);
+  border-bottom: 1px solid var(--border);
+  background: var(--background);
 }
 
 .drilldown-back {
@@ -215,7 +215,7 @@
   justify-content: center;
   background: none;
   border: none;
-  color: var(--text-primary, #1a1a2e);
+  color: var(--text-primary);
   cursor: pointer;
   font-family: inherit;
   padding: 6px;
@@ -239,12 +239,12 @@
   flex: 1;
   min-width: 0;
   padding: 7px 10px;
-  border: 1.5px solid var(--border, #e4e4ed);
+  border: 1.5px solid var(--border);
   border-radius: 8px;
   font-size: 13px;
   font-family: inherit;
-  background: var(--surface, #fff);
-  color: var(--text-primary, #1a1a2e);
+  background: var(--surface);
+  color: var(--text-primary);
   outline: none;
   transition:
     border-color 0.2s,
@@ -256,7 +256,7 @@
   }
 
   &::placeholder {
-    color: var(--text-muted, #a0a3bd);
+    color: var(--text-muted);
   }
 }
 
@@ -264,7 +264,7 @@
   background: rgba(13, 165, 195, 0.1);
   border: none;
   font-size: 12px;
-  color: var(--primary, #0da5c3);
+  color: var(--primary);
   cursor: pointer;
   font-weight: 600;
   font-family: inherit;
@@ -295,7 +295,7 @@
   background: none;
   font-size: 14px;
   font-weight: 450;
-  color: var(--text-primary, #1a1a2e);
+  color: var(--text-primary);
   cursor: pointer;
   text-align: left;
   font-family: inherit;
@@ -305,20 +305,20 @@
   border-left: 3px solid transparent;
 
   &:hover {
-    background: var(--background, #f7f7fc);
-    border-left-color: var(--primary, #0da5c3);
+    background: var(--background);
+    border-left-color: var(--primary);
     padding-left: 19px;
   }
 
   .material-symbols-rounded {
-    color: var(--text-muted, #a0a3bd);
+    color: var(--text-muted);
     font-size: 16px;
     transition: transform 0.15s;
   }
 
   &:hover .material-symbols-rounded {
     transform: translateX(2px);
-    color: var(--primary, #0da5c3);
+    color: var(--primary);
   }
 }
 
@@ -326,7 +326,7 @@
   padding: 32px 20px;
   text-align: center;
   font-size: 13px;
-  color: var(--text-muted, #a0a3bd);
+  color: var(--text-muted);
 }
 
 // ─── Loading & Empty states ─────────────────────────────
@@ -346,8 +346,8 @@
 }
 
 .empty-overlay {
-  background: var(--background, #000);
-  color: var(--text-muted, #a0a3bd);
+  background: var(--background);
+  color: var(--text-muted);
   text-align: center;
   padding: 20px;
 }
@@ -356,7 +356,7 @@
   width: 36px;
   height: 36px;
   border: 3px solid rgba(255, 255, 255, 0.2);
-  border-top-color: var(--primary, #0da5c3);
+  border-top-color: var(--primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
 }
@@ -371,8 +371,8 @@
   display: inline-block;
   margin-top: 16px;
   padding: 10px 24px;
-  background: var(--primary, #0da5c3);
-  color: #fff;
+  background: var(--primary);
+  color: var(--on-primary);
   border-radius: 8px;
   text-decoration: none;
   font-weight: 500;
@@ -382,9 +382,9 @@
   display: inline-block;
   margin-top: 12px;
   padding: 8px 20px;
-  background: var(--surface, #fff);
-  color: var(--text-primary, #1a1a2e);
-  border: 1px solid var(--border, #e4e4ed);
+  background: var(--surface);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
   border-radius: 8px;
   cursor: pointer;
   font-family: inherit;

@@ -1,3 +1,6 @@
+/* Category tiles and the empty state come from shared primitives
+   (app-category-card, app-empty-state), so only the page shell lives here. */
+
 .category-browse-page {
   max-width: var(--max-width);
   margin: 0 auto;
@@ -10,7 +13,8 @@
 
 .page-title {
   font-size: var(--text-2xl);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-tight);
   color: var(--text-primary);
   margin-bottom: var(--space-half);
 }
@@ -20,145 +24,38 @@
   color: var(--text-secondary);
 }
 
-/* ---- Category Cards Grid ---- */
+/* Matches the home page's category grid so the two read as the same system */
 .categories-grid {
   display: grid;
-  gap: var(--space-2);
-  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-1);
+  grid-template-columns: repeat(auto-fill, minmax(148px, 1fr));
+  /* Rows sized to content leave a two-line label's row taller than its
+     neighbours. On an auto-height grid every 1fr row resolves to the tallest
+     row's content, so all tiles end up identical regardless of label length. */
+  grid-auto-rows: 1fr;
+}
 
-  @media (min-width: 768px) {
-    grid-template-columns: repeat(3, 1fr);
+@media (min-width: 768px) {
+  .categories-grid {
+    gap: var(--space-2);
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   }
-
-  @media (min-width: 1024px) {
-    grid-template-columns: repeat(4, 1fr);
-  }
-}
-
-/* ---- Category Card ---- */
-.category-card {
-  background: var(--card);
-  border-radius: var(--radius-lg);
-  box-shadow: var(--shadow-card);
-  overflow: hidden;
-  text-decoration: none;
-  color: inherit;
-  display: flex;
-  flex-direction: column;
-  transition:
-    box-shadow 0.2s ease,
-    transform 0.2s ease;
-  cursor: pointer;
-
-  &:hover {
-    box-shadow: var(--shadow-hover);
-    transform: scale(1.02);
-  }
-}
-
-.card-image-wrap {
-  position: relative;
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  overflow: hidden;
-  background: var(--background);
-
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    transition: transform 0.3s ease;
-  }
-
-  .category-card:hover & img {
-    transform: scale(1.05);
-  }
-}
-
-.card-content {
-  padding: var(--space-2);
-}
-
-.card-title {
-  font-size: var(--text-base);
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: var(--space-half);
-}
-
-.card-subtitle {
-  font-size: var(--text-sm);
-  color: var(--text-secondary);
-}
-
-/* ---- Skeleton Loading ---- */
-.category-card-skeleton {
-  background: var(--card);
-  border-radius: var(--radius-lg);
-  overflow: hidden;
-  box-shadow: var(--shadow-card);
-}
-
-.card-img-skeleton {
-  width: 100%;
-  aspect-ratio: 16 / 10;
-  border-radius: 0;
-}
-
-.card-title-skeleton {
-  height: 16px;
-  width: 70%;
-  margin: var(--space-2) var(--space-2) var(--space-half);
-}
-
-.card-sub-skeleton {
-  height: 12px;
-  width: 50%;
-  margin: 0 var(--space-2) var(--space-2);
-}
-
-/* ---- Empty State ---- */
-.empty-state {
-  text-align: center;
-  padding: var(--space-6);
-  color: var(--text-secondary);
-  font-size: var(--text-base);
 }
 
 @media (max-width: 767px) {
   .category-browse-page {
     padding: var(--space-2) var(--space-1);
-    padding-bottom: calc(var(--space-2) + 70px);
+  }
+
+  .page-header {
+    margin-bottom: var(--space-3);
   }
 
   .page-title {
     font-size: var(--text-xl);
   }
 
-  .categories-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: var(--space-1);
-  }
-
-  .category-card {
-    padding: var(--space-2);
-  }
-
-  .category-icon {
-    font-size: 2rem;
-  }
-
-  .category-name {
+  .page-subtitle {
     font-size: var(--text-sm);
-  }
-
-  .category-count {
-    font-size: var(--text-xs);
-  }
-}
-
-@media (max-width: 380px) {
-  .categories-grid {
-    gap: 6px;
   }
 }

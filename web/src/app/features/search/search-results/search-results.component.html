@@ -433,149 +433,65 @@
       </div>
 
       @if (loading()) {
-        <!-- Loading Skeleton -->
-        <div class="results-grid">
+        <div class="auto-grid" [class.force-single]="mobileColumns() === 1">
           @for (i of SKELETON_ITEMS; track i) {
-            <div class="listing-card-skeleton">
-              <div class="skeleton img-skeleton"></div>
-              <div class="skeleton text-skeleton title-sk"></div>
-              <div class="skeleton text-skeleton price-sk"></div>
-              <div class="skeleton text-skeleton loc-sk"></div>
-            </div>
+            <app-listing-card [loading]="true" />
           }
         </div>
       } @else if (hasResults()) {
         <!-- Featured Ads -->
         @if (featuredAds().length > 0) {
           <section class="featured-section" aria-label="Featured ads">
-            <h3 class="featured-title"><span aria-hidden="true">✨</span> Featured</h3>
-            <div class="featured-grid" [class.mobile-single]="mobileColumns() === 1" role="list">
+            <app-section-header title="Featured" icon="auto_awesome" iconColor="var(--accent)" />
+            <div class="auto-grid" [class.force-single]="mobileColumns() === 1" role="list">
               @for (ad of featuredAds(); track ad._id; let idx = $index) {
-                <a
-                  class="listing-card featured-card"
-                  [routerLink]="[ROUTES.LISTINGS, ad | listingUrl]"
-                  (click)="onResultClick(ad._id, idx)"
+                <app-listing-card
                   role="listitem"
-                >
-                  <div class="listing-img-wrap">
-                    <img [src]="ad | listingImage" [alt]="ad.title" loading="lazy" />
-                    <span class="badge badge-featured">Featured</span>
-                  </div>
-                  <div class="listing-info">
-                    <h4 class="listing-title">{{ ad.title | truncateText: 50 }}</h4>
-                    <p class="listing-price price">
-                      {{ ad.price.amount | priceFormat }}
-                    </p>
-                    <div class="listing-bottom-row">
-                      <p class="listing-location">
-                        <span
-                          class="material-symbols-rounded"
-                          style="font-size: 16px; vertical-align: middle"
-                          >location_on</span
-                        >
-                        {{ ad.location.city || 'Unknown' }}
-                      </p>
-                      @if (ad.sellerVerified) {
-                        <span class="listing-verified" [appTooltip]="VERIFIED_SELLER_TOOLTIP">
-                          <span class="material-symbols-rounded listing-verified-icon"
-                            >verified</span
-                          >
-                          Verified Seller
-                        </span>
-                      }
-                    </div>
-                  </div>
-                </a>
+                  [listing]="ad"
+                  [eager]="idx < 4"
+                  (click)="onResultClick(ad._id, idx)"
+                />
               }
             </div>
           </section>
         }
 
         <!-- Regular Results -->
-        <div class="results-grid" [class.mobile-single]="mobileColumns() === 1" role="list">
+        <div class="auto-grid" [class.force-single]="mobileColumns() === 1" role="list">
           @for (listing of results(); track listing._id; let idx = $index) {
-            <a
-              class="listing-card"
-              [routerLink]="[ROUTES.LISTINGS, listing | listingUrl]"
-              (click)="onResultClick(listing._id, idx)"
+            <app-listing-card
               role="listitem"
-            >
-              <div class="listing-img-wrap">
-                <img [src]="listing | listingImage" [alt]="listing.title" loading="lazy" />
-                @if (listing.isFeatured) {
-                  <span class="badge badge-featured">Featured</span>
-                }
-              </div>
-              <div class="listing-info">
-                <h4 class="listing-title">{{ listing.title | truncateText: 50 }}</h4>
-                <p class="listing-price price">
-                  {{ listing.price.amount | priceFormat }}
-                </p>
-                <div class="listing-bottom-row">
-                  <p class="listing-location">
-                    <span
-                      class="material-symbols-rounded"
-                      style="font-size: 16px; vertical-align: middle"
-                      >location_on</span
-                    >
-                    {{ listing.location.city || 'Unknown' }}
-                  </p>
-                  @if (listing.sellerVerified) {
-                    <span class="listing-verified" [appTooltip]="VERIFIED_SELLER_TOOLTIP">
-                      <span class="material-symbols-rounded listing-verified-icon">verified</span>
-                      Verified Seller
-                    </span>
-                  }
-                </div>
-              </div>
-            </a>
+              [listing]="listing"
+              [eager]="idx < 4 && featuredAds().length === 0"
+              (click)="onResultClick(listing._id, idx)"
+            />
           }
         </div>
 
-        <!-- Pagination -->
-        @if (totalPages() > 1) {
-          <nav class="pagination" aria-label="Search results pagination">
-            <button
-              class="btn btn-outline pagination-btn"
-              [disabled]="currentPage() <= 1"
-              (click)="loadPage(currentPage() - 1)"
-              aria-label="Previous page"
-            >
-              ← Previous
-            </button>
-            <span class="pagination-info">Page {{ currentPage() }} of {{ totalPages() }}</span>
-            <button
-              class="btn btn-outline pagination-btn"
-              [disabled]="currentPage() >= totalPages()"
-              (click)="loadPage(currentPage() + 1)"
-              aria-label="Next page"
-            >
-              Next →
-            </button>
-          </nav>
-        }
+        <app-pagination
+          [currentPage]="currentPage()"
+          [totalPages]="totalPages()"
+          label="Search results pagination"
+          (pageChange)="loadPage($event)"
+        />
       } @else {
-        <!-- No Results State -->
-        <div class="no-results">
-          <div class="no-results-icon" aria-hidden="true">
-            <span class="material-symbols-rounded" style="font-size: 48px">search</span>
-          </div>
-          <h2 class="no-results-title">No results found</h2>
-          <p class="no-results-text">
-            @if (query()) {
-              We couldn't find anything matching "<strong>{{ query() }}</strong
-              >".
-            } @else {
-              Try adjusting your filters or search for something else.
-            }
-          </p>
-
+        <app-empty-state
+          icon="search_off"
+          title="No results found"
+          [message]="
+            query()
+              ? 'We couldn\'t find anything matching “' + query() + '”.'
+              : 'Try adjusting your filters or search for something else.'
+          "
+          actionText="Back to home"
+          [actionLink]="ROUTES.HOME"
+        >
           @if (suggestedTerms().length > 0) {
-            <div class="suggestions-section">
+            <div class="suggestions-block">
               <p class="suggestions-label">Try searching for:</p>
               <div class="suggestion-chips">
                 @for (term of suggestedTerms(); track term) {
-                  <button class="suggestion-chip" (click)="selectSuggestion(term)">
+                  <button type="button" class="suggestion-chip" (click)="selectSuggestion(term)">
                     {{ term }}
                   </button>
                 }
@@ -584,7 +500,7 @@
           }
 
           @if (relatedCategories().length > 0) {
-            <div class="related-categories-section">
+            <div class="suggestions-block">
               <p class="suggestions-label">Browse related categories:</p>
               <div class="suggestion-chips">
                 @for (cat of relatedCategories(); track cat._id) {
@@ -598,9 +514,7 @@
               </div>
             </div>
           }
-
-          <a [routerLink]="ROUTES.HOME" class="btn btn-primary no-results-btn">Back to Home</a>
-        </div>
+        </app-empty-state>
       }
     </main>
   </div>

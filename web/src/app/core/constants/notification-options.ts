@@ -54,7 +54,7 @@ export const SORT_OPTIONS = [
 
 export const STATUS_COLORS: Record<string, string> = {
   sent: 'var(--success)',
-  sending: 'var(--warning, #f39c12)',
+  sending: 'var(--warning)',
   failed: 'var(--error)',
 };
 

@@ -148,7 +148,7 @@
 }
 
 .required {
-  color: var(--secondary, #f14a03);
+  color: var(--secondary);
 }
 
 .price-in-words {
@@ -222,7 +222,7 @@
 .btn-submit {
   padding: 12px 32px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border: none;
   border-radius: var(--radius-full, 100px);
   font-size: var(--text-base, 16px);

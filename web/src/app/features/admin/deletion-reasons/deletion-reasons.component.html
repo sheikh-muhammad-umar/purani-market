@@ -74,10 +74,11 @@
         <p>Loading...</p>
       </div>
     } @else if (reasons().length === 0 && !showForm) {
-      <div class="empty-state">
-        <span class="material-symbols-rounded">delete_sweep</span>
-        <p>No deletion reasons yet. Add one to get started.</p>
-      </div>
+      <app-empty-state
+        icon="delete_sweep"
+        title="No deletion reasons yet"
+        message="Add one to get started."
+      />
     } @else {
       <div class="items-list">
         @for (reason of reasons(); track reason._id) {

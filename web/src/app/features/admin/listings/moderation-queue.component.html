@@ -14,10 +14,13 @@
   }
 
   @if (error()) {
-    <div class="error-state">
-      <p>{{ error() }}</p>
-      <button class="btn-retry" (click)="loadPendingListings()">Retry</button>
-    </div>
+    <app-empty-state
+      icon="warning"
+      title="Couldn't load pending listings"
+      [message]="error() || ''"
+      actionText="Retry"
+      (actionClicked)="loadPendingListings()"
+    />
   }
 
   @if (!loading() && !error()) {
@@ -131,18 +134,16 @@
       }
 
       @if (filteredListings.length === 0) {
-        <div class="empty-state">
-          <p>
-            {{
-              searchQuery || hasActiveFilters
-                ? 'No listings match your filters.'
-                : 'No pending listings to review.'
-            }}
-          </p>
-          @if (hasActiveFilters) {
-            <button class="btn-retry" (click)="clearFilters()">Clear Filters</button>
-          }
-        </div>
+        @if (hasActiveFilters) {
+          <app-empty-state
+            icon="filter_alt_off"
+            title="No listings match your filters"
+            actionText="Clear Filters"
+            (actionClicked)="clearFilters()"
+          />
+        } @else {
+          <app-empty-state icon="gavel" title="No pending listings to review" />
+        }
       }
 
       @for (listing of filteredListings; track listing._id) {

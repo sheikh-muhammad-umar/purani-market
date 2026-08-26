@@ -16,6 +16,9 @@ import {
 } from '../../../shared/components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 import { VerificationBadgesComponent } from '../../../shared/components/verification-badges/verification-badges.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { AuthService } from '../../../core/auth/auth.service';
 
 @Component({
@@ -27,6 +30,9 @@ import { AuthService } from '../../../core/auth/auth.service';
     CustomSelectComponent,
     DatePickerComponent,
     VerificationBadgesComponent,
+    EmptyStateComponent,
+    PaginationComponent,
+    ModalComponent,
   ],
   templateUrl: './user-management.component.html',
   styleUrls: ['./user-management.component.scss'],

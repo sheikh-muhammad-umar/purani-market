@@ -1,0 +1,81 @@
+<form
+  class="hs"
+  [class.hs-compact]="variant() === 'compact'"
+  role="search"
+  (submit)="$event.preventDefault(); submit()"
+>
+  <!-- Visually hidden, but it gives the input a real accessible name. The
+       animated placeholder below cannot do that job: it is a sibling span. -->
+  <label class="hs-sr-only" [attr.for]="inputId">Search listings</label>
+
+  <div class="hs-field">
+    <input
+      #searchInput
+      [id]="inputId"
+      class="hs-input"
+      type="text"
+      name="q"
+      autocomplete="off"
+      [value]="query()"
+      [attr.aria-expanded]="recentsOpen()"
+      [attr.aria-controls]="recentsOpen() ? recentsId : null"
+      (input)="onInput($event)"
+      (focus)="onFocus()"
+      (blur)="onBlur()"
+    />
+
+    @if (!query()) {
+      <span class="hs-placeholder" aria-hidden="true">
+        <span class="hs-placeholder-static">Find</span>
+        @if (placeholderCategory()) {
+          <span class="hs-placeholder-word" [class.is-leaving]="placeholderAnimating()">{{
+            placeholderCategory()
+          }}</span>
+        }
+      </span>
+    }
+  </div>
+
+  @if (query()) {
+    <button type="button" class="hs-clear" (click)="clear()" aria-label="Clear search">
+      <span class="material-symbols-rounded" aria-hidden="true">close</span>
+    </button>
+  }
+
+  <app-voice-search [mobile]="variant() === 'compact'" (searched)="onVoiceResult($event)" />
+
+  <button type="submit" class="hs-submit" aria-label="Search">
+    <span class="material-symbols-rounded" aria-hidden="true">search</span>
+  </button>
+
+  @if (recentsOpen() && recentSearches.searches().length) {
+    <div class="hs-recents" [id]="recentsId">
+      <div class="hs-recents-head">
+        <span class="hs-recents-title">Recent searches</span>
+        <button type="button" class="hs-recents-clear" (click)="clearRecents($event)">
+          Clear all
+        </button>
+      </div>
+      <ul class="hs-recents-list">
+        @for (term of recentSearches.searches(); track term) {
+          <li class="hs-recents-row">
+            <button type="button" class="hs-recent" (click)="selectRecent(term)">
+              <span class="material-symbols-rounded hs-recent-icon" aria-hidden="true"
+                >history</span
+              >
+              <span class="hs-recent-text">{{ term }}</span>
+            </button>
+            <button
+              type="button"
+              class="hs-recent-remove"
+              (click)="removeRecent(term, $event)"
+              [attr.aria-label]="'Remove ' + term + ' from recent searches'"
+            >
+              <span class="material-symbols-rounded" aria-hidden="true">close</span>
+            </button>
+          </li>
+        }
+      </ul>
+    </div>
+  }
+</form>

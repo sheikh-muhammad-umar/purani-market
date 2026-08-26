@@ -102,12 +102,12 @@
 
 .pvm-alert-error {
   background: rgba(220, 38, 38, 0.1);
-  color: var(--error, #dc2626);
+  color: var(--error);
 }
 
 .pvm-alert-success {
   background: rgba(39, 174, 96, 0.1);
-  color: var(--success, #27ae60);
+  color: var(--success);
 }
 
 .pvm-form {
@@ -161,14 +161,14 @@
 
 .pvm-error-text {
   font-size: 0.78rem;
-  color: var(--error, #dc2626);
+  color: var(--error);
 }
 
 .pvm-btn-primary {
   width: 100%;
   padding: 0.8rem;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border: none;
   border-radius: 10px;
   font-size: 0.95rem;

@@ -1,5 +1,4 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BrandsService, Brand } from '../../../core/services/brands.service';
 import { saveState, loadState } from '../../../core/utils/state-persistence';
@@ -9,11 +8,13 @@ import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-brand-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent],
+  imports: [FormsModule, CustomSelectComponent, EmptyStateComponent, ModalComponent],
   templateUrl: './brand-manager.component.html',
   styleUrl: './brand-manager.component.scss',
 })

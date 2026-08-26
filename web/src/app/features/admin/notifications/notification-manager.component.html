@@ -184,14 +184,17 @@
 
   <!-- Empty -->
   @if (!loading() && notifications().length === 0) {
-    <div class="empty-state">
-      @if (hasActiveFilters) {
-        No notifications match your filters.
-        <button class="btn-retry" (click)="clearFilters()">Clear</button>
-      } @else {
-        No notifications sent yet. Click "Send New" to get started.
-      }
-    </div>
+    <app-empty-state
+      icon="notifications_off"
+      [title]="hasActiveFilters ? 'No matching notifications' : 'No notifications sent yet'"
+      [message]="
+        hasActiveFilters
+          ? 'No notifications match your filters.'
+          : 'Click &quot;Send New&quot; to get started.'
+      "
+      [actionText]="hasActiveFilters ? 'Clear' : ''"
+      (actionClicked)="clearFilters()"
+    />
   }
 
   <!-- Notification Cards -->
@@ -241,14 +244,11 @@
       }
     </div>
 
-    @if (totalPages() > 1) {
-      <div class="pagination">
-        <button class="btn-page" (click)="goToPage(page - 1)" [disabled]="page <= 1">← Prev</button>
-        <span class="page-info">Page {{ page }} of {{ totalPages() }}</span>
-        <button class="btn-page" (click)="goToPage(page + 1)" [disabled]="page >= totalPages()">
-          Next →
-        </button>
-      </div>
-    }
+    <app-pagination
+      [currentPage]="page"
+      [totalPages]="totalPages()"
+      label="Notification pages"
+      (pageChange)="goToPage($event)"
+    />
   }
 </div>

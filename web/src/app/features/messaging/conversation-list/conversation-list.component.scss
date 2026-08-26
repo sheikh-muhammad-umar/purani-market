@@ -9,7 +9,7 @@
 
   h1 {
     font-size: var(--text-xl);
-    font-weight: 700;
+    font-weight: var(--weight-bold);
     color: var(--text-primary);
   }
 }
@@ -22,14 +22,14 @@
 .search-input-wrap {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-1);
   background: var(--background);
   border: 1px solid var(--border);
-  border-radius: 100px;
-  padding: 8px 14px;
+  border-radius: var(--radius-full);
+  padding: var(--space-1) 14px;
 
   .material-symbols-rounded {
-    font-size: 20px;
+    font-size: var(--text-lg);
     color: var(--text-muted);
   }
 
@@ -38,7 +38,7 @@
     border: none;
     outline: none;
     background: transparent;
-    font-size: 14px;
+    font-size: var(--text-sm);
     font-family: inherit;
     color: var(--text-primary);
     &::placeholder {
@@ -51,7 +51,7 @@
 .loading-state {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: var(--space-1);
 }
 
 .skeleton-conversation {
@@ -59,7 +59,12 @@
   align-items: center;
   gap: 12px;
   padding: 14px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
+
+  /* Avatar and timestamp placeholders keep their intrinsic width */
+  > app-skeleton {
+    flex-shrink: 0;
+  }
 }
 
 .skeleton-content {
@@ -67,81 +72,6 @@
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-
-.skeleton-line {
-  height: 12px;
-  border-radius: 6px;
-  background: var(--border);
-  &.short {
-    width: 40%;
-  }
-  &.long {
-    width: 80%;
-  }
-}
-
-.skeleton-avatar {
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: var(--border);
-  flex-shrink: 0;
-}
-
-.skeleton-time {
-  width: 48px;
-  height: 12px;
-  border-radius: 6px;
-  background: var(--border);
-}
-
-.shimmer {
-  background: linear-gradient(90deg, var(--border) 25%, var(--background) 50%, var(--border) 75%);
-  background-size: 200% 100%;
-  animation: shimmer 1.5s infinite;
-}
-
-@keyframes shimmer {
-  0% {
-    background-position: 200% 0;
-  }
-  100% {
-    background-position: -200% 0;
-  }
-}
-
-.error-state,
-.empty-state {
-  text-align: center;
-  padding: var(--space-6) var(--space-2);
-  color: var(--text-secondary);
-
-  .empty-icon,
-  .error-icon {
-    font-size: 48px;
-    display: block;
-    margin-bottom: var(--space-2);
-  }
-  h2 {
-    font-size: var(--text-lg);
-    margin-bottom: 8px;
-  }
-}
-
-.retry-btn,
-.browse-btn {
-  background: var(--primary);
-  color: #fff;
-  border: none;
-  padding: 10px 24px;
-  border-radius: 8px;
-  font-size: 14px;
-  font-weight: 600;
-  cursor: pointer;
-  text-decoration: none;
-  display: inline-block;
-  margin-top: var(--space-2);
 }
 
 /* Conversation List */
@@ -156,10 +86,10 @@
   align-items: center;
   gap: 12px;
   padding: 14px;
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   text-decoration: none;
   color: inherit;
-  transition: background 0.15s;
+  transition: background var(--duration-fast) var(--ease-out);
   cursor: pointer;
   border-left: 3px solid transparent;
 
@@ -171,7 +101,7 @@
 .conversation-avatar {
   width: 48px;
   height: 48px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   overflow: hidden;
   flex-shrink: 0;
   background: var(--background);
@@ -203,8 +133,8 @@
 }
 
 .conversation-title {
-  font-size: 14px;
-  font-weight: 600;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
   color: var(--text-primary);
   max-width: 180px;
   overflow: hidden;
@@ -213,8 +143,8 @@
 }
 
 .conversation-price {
-  font-size: 12px;
-  font-weight: 700;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-bold);
   color: var(--primary);
   white-space: nowrap;
 }
@@ -236,27 +166,27 @@
 
 /* Unread */
 .conversation-item.unread {
-  background: rgba(13, 165, 195, 0.04);
+  background: rgba(var(--primary-rgb), 0.04);
   border-left-color: var(--primary);
 
   .conversation-title {
-    font-weight: 700;
+    font-weight: var(--weight-bold);
   }
   .conversation-preview {
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
     color: var(--text-primary);
   }
 }
 
 .unread-badge {
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 11px;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   min-width: 20px;
   height: 20px;
   padding: 0 6px;
-  border-radius: 10px;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -267,7 +197,7 @@
 @media (max-width: 767px) {
   .conversation-list-page {
     padding: var(--space-1);
-    padding-bottom: calc(var(--space-1) + 70px);
+    padding-bottom: calc(var(--space-1) + var(--mobile-nav-height));
   }
 
   .conversation-item {
@@ -284,7 +214,7 @@
     max-width: 140px;
   }
   .conversation-preview {
-    font-size: 12px;
+    font-size: var(--text-xs);
   }
   .conversation-time {
     font-size: 10px;
@@ -303,7 +233,7 @@
 .conversation-status-badge {
   display: inline-block;
   font-size: 10px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   padding: 1px 6px;
   border-radius: 4px;
   line-height: 1.4;
@@ -311,24 +241,24 @@
   width: fit-content;
 
   &.status-sold {
-    background: rgba(76, 175, 80, 0.12);
-    color: #2e7d32;
+    background: var(--success-bg);
+    color: var(--success-text);
   }
   &.status-deleted {
-    background: rgba(244, 67, 54, 0.1);
-    color: #c62828;
+    background: var(--error-bg);
+    color: var(--error-text);
   }
   &.status-expired {
-    background: rgba(255, 152, 0, 0.12);
-    color: #e65100;
+    background: var(--warning-bg);
+    color: var(--warning-text);
   }
   &.status-inactive {
-    background: rgba(158, 158, 158, 0.15);
-    color: #616161;
+    background: var(--badge-bg);
+    color: var(--badge-text);
   }
   // Catch-all for pending_review, rejected, reserved, etc.
   &:not(.status-sold):not(.status-deleted):not(.status-expired):not(.status-inactive) {
-    background: rgba(158, 158, 158, 0.15);
-    color: #616161;
+    background: var(--badge-bg);
+    color: var(--badge-text);
   }
 }

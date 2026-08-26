@@ -11,9 +11,7 @@
     <!-- Tabs -->
     <div class="packages-tabs">
       <button class="tab-btn" [class.active]="activeTab() === TAB.ADS" (click)="switchTab(TAB.ADS)">
-        <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
-          >list_alt</span
-        >
+        <span class="material-symbols-rounded inline-icon">list_alt</span>
         Ad Packages
       </button>
       <button
@@ -21,9 +19,7 @@
         [class.active]="activeTab() === TAB.SHORTS"
         (click)="switchTab(TAB.SHORTS)"
       >
-        <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
-          >play_circle</span
-        >
+        <span class="material-symbols-rounded inline-icon">play_circle</span>
         Shorts Packages
       </button>
     </div>
@@ -44,9 +40,7 @@
             [class.active]="selectedType() === 'featured_ads'"
             (click)="setType('featured_ads')"
           >
-            <span class="material-symbols-rounded" style="font-size: 14px; vertical-align: middle"
-              >star</span
-            >
+            <span class="material-symbols-rounded inline-icon inline-icon-sm">star</span>
             Featured Ads
           </button>
           <button
@@ -54,9 +48,7 @@
             [class.active]="selectedType() === 'ad_slots'"
             (click)="setType('ad_slots')"
           >
-            <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
-              >inventory_2</span
-            >
+            <span class="material-symbols-rounded inline-icon">inventory_2</span>
             Ad Slots
           </button>
         </div>
@@ -108,29 +100,28 @@
         <div class="packages-grid">
           @for (i of [1, 2, 3]; track i) {
             <div class="package-card-skeleton card">
-              <div class="skeleton-text short" style="height: 1em"></div>
-              <div class="skeleton-text" style="height: 0.8em; margin-top: 12px"></div>
-              <div class="skeleton-text medium" style="height: 0.8em; margin-top: 8px"></div>
-              <div class="skeleton-text short" style="height: 0.8em; margin-top: 8px"></div>
-              <div
-                class="skeleton-text"
-                style="height: 2em; width: 40%; margin-top: 16px; border-radius: 8px"
-              ></div>
+              <app-skeleton variant="block" width="40%" height="1em" />
+              <app-skeleton variant="block" width="80%" height="0.8em" />
+              <app-skeleton variant="block" width="60%" height="0.8em" />
+              <app-skeleton variant="block" width="40%" height="0.8em" />
+              <app-skeleton variant="block" width="40%" height="2em" radius="var(--radius-sm)" />
             </div>
           }
         </div>
       } @else if (error()) {
-        <div class="error-state">
-          <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
-          <p>{{ error() }}</p>
-          <button class="btn btn-primary" (click)="loadPackages()">Retry</button>
-        </div>
+        <app-empty-state
+          icon="warning"
+          title="Couldn't load packages"
+          [message]="error()!"
+          actionText="Retry"
+          (actionClicked)="loadPackages()"
+        />
       } @else if (filteredPackages().length === 0) {
-        <div class="empty-state">
-          <span class="empty-icon"><span class="material-symbols-rounded">inventory_2</span></span>
-          <h3>No packages available</h3>
-          <p>Check back later for new package offerings</p>
-        </div>
+        <app-empty-state
+          icon="inventory_2"
+          title="No packages available"
+          message="Check back later for new package offerings"
+        />
       } @else {
         <div class="packages-grid">
           @for (pkg of filteredPackages(); track pkg._id) {
@@ -141,11 +132,9 @@
                   [class.badge-featured]="pkg.type === 'featured_ads'"
                   [class.badge-success]="pkg.type === 'ad_slots'"
                 >
-                  <span
-                    class="material-symbols-rounded"
-                    style="font-size: 16px; vertical-align: middle"
-                    >{{ getTypeIcon(pkg.type) }}</span
-                  >
+                  <span class="material-symbols-rounded inline-icon">{{
+                    getTypeIcon(pkg.type)
+                  }}</span>
                   {{ getTypeLabel(pkg.type) }}
                 </span>
               </div>
@@ -202,29 +191,25 @@
         <div class="packages-grid">
           @for (i of [1, 2, 3]; track i) {
             <div class="package-card-skeleton card">
-              <div class="skeleton-text short" style="height: 1em"></div>
-              <div class="skeleton-text" style="height: 0.8em; margin-top: 12px"></div>
-              <div class="skeleton-text medium" style="height: 0.8em; margin-top: 8px"></div>
+              <app-skeleton variant="block" width="40%" height="1em" />
+              <app-skeleton variant="block" width="80%" height="0.8em" />
+              <app-skeleton variant="block" width="60%" height="0.8em" />
             </div>
           }
         </div>
       } @else if (shortsPackages().length === 0) {
-        <div class="empty-state">
-          <span class="empty-icon"><span class="material-symbols-rounded">play_circle</span></span>
-          <h3>No shorts packages available</h3>
-          <p>Check back later for new shorts package offerings</p>
-        </div>
+        <app-empty-state
+          icon="play_circle"
+          title="No shorts packages available"
+          message="Check back later for new shorts package offerings"
+        />
       } @else {
         <div class="packages-grid">
           @for (pkg of shortsPackages(); track pkg._id) {
             <div class="package-card card">
               <div class="package-badge">
                 <span class="badge badge-featured">
-                  <span
-                    class="material-symbols-rounded"
-                    style="font-size: 16px; vertical-align: middle"
-                    >play_circle</span
-                  >
+                  <span class="material-symbols-rounded inline-icon">play_circle</span>
                   Shorts
                 </span>
               </div>

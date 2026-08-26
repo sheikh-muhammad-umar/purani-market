@@ -9,13 +9,13 @@ import {
   computed,
   OnDestroy,
 } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { PackagesService } from '../../../../core/services/packages.service';
 import { ActivityTrackerService } from '../../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../../core/enums/tracking-events';
 import { PackagePurchase } from '../../../../core/models';
 import { PackageType as PackageTypeEnum } from '../../../../core/constants/enums';
 import { ROUTES } from '../../../../core/constants/routes';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { Subject, takeUntil } from 'rxjs';
 
 /** Milliseconds in one day — used for remaining-days calculation. */
@@ -37,7 +37,7 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 @Component({
   selector: 'app-available-packages',
   standalone: true,
-  imports: [RouterLink],
+  imports: [EmptyStateComponent],
   templateUrl: './available-packages.component.html',
   styleUrls: ['./available-packages.component.scss'],
 })

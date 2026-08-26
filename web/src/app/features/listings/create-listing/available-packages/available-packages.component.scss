@@ -5,12 +5,12 @@
     font-size: 1rem;
     font-weight: 600;
     margin-bottom: 0.75rem;
-    color: var(--text-primary, #1a1a2e);
+    color: var(--text-primary);
   }
 
   .helper-text {
     font-size: 0.875rem;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary);
     margin-bottom: 0.75rem;
   }
 
@@ -19,14 +19,14 @@
     align-items: center;
     gap: 0.5rem;
     padding: 1rem;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary);
     font-size: 0.875rem;
 
     .spinner {
       width: 1rem;
       height: 1rem;
-      border: 2px solid var(--border-color, #e5e7eb);
-      border-top-color: var(--primary, #6366f1);
+      border: 2px solid var(--border-color);
+      border-top-color: var(--primary);
       border-radius: 50%;
       animation: spin 0.6s linear infinite;
     }
@@ -34,37 +34,14 @@
 
   .error-state {
     padding: 0.75rem 1rem;
-    background: var(--error-bg, #fef2f2);
-    border: 1px solid var(--error-border, #fecaca);
+    background: var(--error-bg);
+    border: 1px solid var(--error-border);
     border-radius: 0.5rem;
-    color: var(--error-text, #dc2626);
+    color: var(--error-text);
     font-size: 0.875rem;
   }
 
-  .empty-state {
-    padding: 1.25rem;
-    background: var(--surface-secondary, #f9fafb);
-    border: 1px dashed var(--border-color, #d1d5db);
-    border-radius: 0.5rem;
-    text-align: center;
-
-    p {
-      color: var(--text-secondary, #6b7280);
-      font-size: 0.875rem;
-      margin-bottom: 0.5rem;
-    }
-
-    .purchase-link {
-      color: var(--primary, #6366f1);
-      font-weight: 500;
-      font-size: 0.875rem;
-      text-decoration: none;
-
-      &:hover {
-        text-decoration: underline;
-      }
-    }
-  }
+  /* The empty state is now app-empty-state. */
 
   .packages-list {
     display: flex;
@@ -74,27 +51,27 @@
 
   .package-card {
     padding: 0.75rem 1rem;
-    border: 1px solid var(--border-color, #e5e7eb);
+    border: 1px solid var(--border-color);
     border-radius: 0.5rem;
     cursor: pointer;
     transition:
       border-color 0.15s,
       box-shadow 0.15s;
-    background: var(--surface, #fff);
+    background: var(--surface);
 
     &:hover {
-      border-color: var(--primary, #6366f1);
+      border-color: var(--primary);
     }
 
     &:focus-visible {
-      outline: 2px solid var(--primary, #6366f1);
+      outline: 2px solid var(--primary);
       outline-offset: 2px;
     }
 
     &.selected {
-      border-color: var(--primary, #6366f1);
-      box-shadow: 0 0 0 1px var(--primary, #6366f1);
-      background: var(--primary-bg, #eef2ff);
+      border-color: var(--primary);
+      box-shadow: 0 0 0 1px var(--primary);
+      background: var(--primary-bg);
     }
 
     &.deselect-option {
@@ -102,7 +79,7 @@
       text-align: center;
 
       .deselect-label {
-        color: var(--text-secondary, #6b7280);
+        color: var(--text-secondary);
         font-size: 0.875rem;
       }
     }
@@ -118,7 +95,7 @@
   .package-name {
     font-weight: 500;
     font-size: 0.9375rem;
-    color: var(--text-primary, #1a1a2e);
+    color: var(--text-primary);
   }
 
   .package-type-badge {
@@ -126,12 +103,12 @@
     font-weight: 500;
     padding: 0.125rem 0.5rem;
     border-radius: 9999px;
-    background: var(--badge-bg, #e5e7eb);
-    color: var(--badge-text, #374151);
+    background: var(--badge-bg);
+    color: var(--badge-text);
 
     &.featured {
-      background: var(--warning-bg, #fef3c7);
-      color: var(--warning-text, #92400e);
+      background: var(--warning-bg);
+      color: var(--warning-text);
     }
   }
 
@@ -143,7 +120,7 @@
 
   .detail-item {
     font-size: 0.8125rem;
-    color: var(--text-secondary, #6b7280);
+    color: var(--text-secondary);
     display: flex;
     align-items: center;
     gap: 0.25rem;
@@ -154,7 +131,7 @@
   }
 
   .days-left {
-    color: var(--warning-text, #d97706);
+    color: var(--warning-text);
     font-weight: 500;
   }
 
@@ -162,7 +139,7 @@
     margin-top: 0.5rem;
     font-size: 0.8125rem;
     font-weight: 600;
-    color: var(--primary, #6366f1);
+    color: var(--primary);
   }
 }
 

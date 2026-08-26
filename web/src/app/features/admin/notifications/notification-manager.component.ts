@@ -12,6 +12,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { environment } from '../../../../environments/environment';
 import { API } from '../../../core/constants/api-endpoints';
 import { CustomSelectComponent } from '../../../shared/components/custom-select/custom-select.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import {
   AdminNotification,
   AdminNotificationListResponse,
@@ -35,7 +37,14 @@ const PAGE_SIZE = 20;
 @Component({
   selector: 'app-notification-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, CustomSelectComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    CustomSelectComponent,
+    EmptyStateComponent,
+    PaginationComponent,
+  ],
   templateUrl: './notification-manager.component.html',
   styleUrl: './notification-manager.component.scss',
 })

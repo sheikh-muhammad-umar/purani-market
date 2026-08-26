@@ -40,6 +40,8 @@ export const CATEGORY_ICONS_PATH = 'assets/category-icons';
 export const PLACEHOLDER_IMAGE = 'assets/placeholder.png';
 export const DEFAULT_CATEGORY_ICON = `${CATEGORY_ICONS_PATH}/default.jpg`;
 
+/** Explains what seller verification covers. Shown on verified badges. */
+export const VERIFIED_SELLER_TOOLTIP = 'Seller has verified email, phone, and ID';
 /** Package type display labels */
 export const PACKAGE_TYPE_LABELS: Record<string, string> = {
   featured_ads: 'Featured Ads',

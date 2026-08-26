@@ -30,11 +30,10 @@ import { DEFAULT_COUNTRY, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { SORT_OPTIONS, CONDITION_FILTER_OPTIONS } from '../../../core/constants/select-options';
 import { SearchSortOption } from '../../../core/constants/enums';
-import { PriceFormatPipe } from '../../../shared/pipes/price-format.pipe';
-import { TruncateTextPipe } from '../../../shared/pipes/truncate-text.pipe';
-import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
-import { ListingImagePipe } from '../../../shared/pipes/listing-image.pipe';
-import { TooltipDirective } from '../../../shared/directives/tooltip.directive';
+import { ListingCardComponent } from '../../../shared/components/listing-card/listing-card.component';
+import { SectionHeaderComponent } from '../../../shared/components/section-header/section-header.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { Listing, Category, CategoryAttribute } from '../../../core/models';
 import { VehicleModel, VehicleVariant, BrandOption } from '../../../core/models/brand.model';
 import { BrandsService } from '../../../core/services/brands.service';
@@ -61,13 +60,12 @@ import { AdBannerComponent } from '../../../shared/components/ad-banner/ad-banne
     CommonModule,
     RouterLink,
     FormsModule,
-    PriceFormatPipe,
-    TruncateTextPipe,
-    ListingUrlPipe,
-    ListingImagePipe,
     CustomSelectComponent,
-    TooltipDirective,
     AdBannerComponent,
+    ListingCardComponent,
+    SectionHeaderComponent,
+    EmptyStateComponent,
+    PaginationComponent,
   ],
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.scss'],
@@ -75,7 +73,6 @@ import { AdBannerComponent } from '../../../shared/components/ad-banner/ad-banne
 export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly ROUTES = ROUTES;
   readonly SKELETON_ITEMS = [1, 2, 3, 4, 5, 6, 7, 8];
-  readonly VERIFIED_SELLER_TOOLTIP = 'Seller has verified email, phone, and ID';
 
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 

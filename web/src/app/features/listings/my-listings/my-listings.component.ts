@@ -26,6 +26,9 @@ import { ConfirmModalService } from '../../../shared/components/confirm-modal/co
 import { ToastService } from '../../../core/services/toast.service';
 import { daysToMs } from '../../../core/utils/time';
 import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 
 interface AnalyticsCard {
   label: string;
@@ -49,6 +52,9 @@ interface FeaturedAdInfo {
     FormatDurationPipe,
     FormatStatusPipe,
     AppLoaderComponent,
+    EmptyStateComponent,
+    PaginationComponent,
+    SkeletonComponent,
   ],
   templateUrl: './my-listings.component.html',
   styleUrls: ['./my-listings.component.scss'],
@@ -124,6 +130,9 @@ export class MyListingsComponent implements OnInit {
       .map((l) => ({ listingId: l._id, title: l.title, expiresAt: new Date(l.featuredUntil!) }));
   });
 
+  /** Page count for the listings table. 1 or fewer hides the pagination control. */
+  totalPages = computed(() => Math.max(1, Math.ceil(this.total() / PAGE_SIZE_LARGE)));
+
   featuredSlotsRemaining = computed(() => {
     const now = new Date();
     return this.purchases()
@@ -184,6 +193,13 @@ export class MyListingsComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  /** Jump to an absolute page number and reload the table. */
+  loadPage(page: number): void {
+    if (page === this.page()) return;
+    this.page.set(page);
+    this.loadListings();
   }
 
   loadUser(): void {

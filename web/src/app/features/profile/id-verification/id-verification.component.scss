@@ -23,17 +23,17 @@
 .nav-link {
   padding: var(--space-1) var(--space-2);
   font-size: var(--text-sm);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   color: var(--text-secondary);
   border-radius: var(--radius-sm) var(--radius-sm) 0 0;
   transition:
-    color 0.2s ease,
-    background-color 0.2s ease;
+    color var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out);
   white-space: nowrap;
 
   &:hover {
     color: var(--primary);
-    background-color: rgba(13, 165, 195, 0.05);
+    background-color: rgba(var(--primary-rgb), 0.05);
   }
 
   &.active {
@@ -59,7 +59,8 @@
 .section-desc {
   font-size: var(--text-sm);
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: var(--leading-normal);
+  margin-bottom: var(--space-2);
 }
 
 // Status banners
@@ -78,55 +79,55 @@
 
 .status-title {
   font-size: var(--text-lg);
-  font-weight: 600;
-  margin-bottom: 4px;
+  font-weight: var(--weight-semibold);
+  margin-bottom: var(--space-half);
 }
 
 .status-desc {
   font-size: var(--text-sm);
   color: var(--text-secondary);
-  line-height: 1.5;
+  line-height: var(--leading-normal);
 }
 
 .status-meta {
   font-size: var(--text-xs);
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: var(--space-half);
 }
 
 .status-approved {
-  background: rgba(0, 184, 148, 0.08);
-  border: 1px solid rgba(0, 184, 148, 0.2);
+  background: var(--success-bg);
+  border: 1px solid var(--success-border);
 
   .status-icon {
-    color: #00b894;
+    color: var(--success);
   }
   .status-title {
-    color: #00b894;
+    color: var(--success-text);
   }
 }
 
 .status-pending {
-  background: rgba(253, 203, 110, 0.1);
-  border: 1px solid rgba(253, 203, 110, 0.3);
+  background: var(--warning-bg);
+  border: 1px solid var(--warning-border);
 
   .status-icon {
-    color: #fdcb6e;
+    color: var(--warning);
   }
   .status-title {
-    color: #f39c12;
+    color: var(--warning-text);
   }
 }
 
 .status-rejected {
-  background: rgba(214, 48, 49, 0.06);
-  border: 1px solid rgba(214, 48, 49, 0.15);
+  background: var(--error-bg);
+  border: 1px solid var(--error-border);
 
   .status-icon {
-    color: #d63031;
+    color: var(--error);
   }
   .status-title {
-    color: #d63031;
+    color: var(--error-text);
   }
 }
 
@@ -149,7 +150,7 @@
   align-items: center;
   gap: 6px;
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--text-primary);
 
   .material-symbols-rounded {
@@ -169,13 +170,13 @@
   border-radius: var(--radius-md);
   cursor: pointer;
   transition:
-    border-color 0.2s,
-    background-color 0.2s;
+    border-color var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out);
   min-height: 140px;
 
   &:hover {
     border-color: var(--primary);
-    background: rgba(13, 165, 195, 0.03);
+    background: rgba(var(--primary-rgb), 0.03);
   }
 }
 
@@ -186,7 +187,7 @@
 
 .upload-text {
   font-size: var(--text-sm);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   color: var(--text-primary);
 }
 
@@ -210,13 +211,14 @@
   display: block;
 }
 
+/* Overlay control on top of the uploaded image, so the dark scrim is intentional */
 .remove-btn {
   position: absolute;
   top: 6px;
   right: 6px;
   width: 28px;
   height: 28px;
-  border-radius: 50%;
+  border-radius: var(--radius-full);
   background: rgba(0, 0, 0, 0.6);
   color: #fff;
   border: none;
@@ -224,10 +226,10 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  transition: background 0.2s;
+  transition: background var(--duration-base) var(--ease-out);
 
   &:hover {
-    background: rgba(214, 48, 49, 0.9);
+    background: var(--error);
   }
 
   .material-symbols-rounded {
@@ -255,7 +257,7 @@
   align-items: center;
   gap: 6px;
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   margin-bottom: var(--space-1);
   color: var(--text-primary);
 
@@ -274,34 +276,27 @@
     font-size: var(--text-xs);
     color: var(--text-secondary);
     padding: 3px 0;
-    padding-left: 16px;
+    padding-left: var(--space-2);
     position: relative;
 
     &::before {
       content: '•';
       position: absolute;
-      left: 4px;
+      left: var(--space-half);
       color: var(--primary);
     }
   }
 }
 
-.btn {
-  display: inline-flex;
-  align-items: center;
-  gap: 8px;
-  justify-content: center;
-}
-
 // Responsive
-@media (max-width: 600px) {
+@media (max-width: 767px) {
   .upload-grid {
     grid-template-columns: 1fr;
   }
 
   .settings-page {
     padding: var(--space-2) var(--space-1);
-    padding-bottom: calc(var(--space-2) + 70px);
+    padding-bottom: calc(var(--space-2) + var(--mobile-nav-height));
   }
 
   .settings-title {

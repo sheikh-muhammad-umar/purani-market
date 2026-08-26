@@ -1,0 +1,287 @@
+:host {
+  display: block;
+  flex: 1;
+  min-width: 0;
+}
+
+.hs-sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  overflow: hidden;
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* The base form is chrome-free: in the desktop header it sits inside a shared
+   pill that already draws the border and focus ring, and a second border there
+   would double up. The compact variant below adds its own, since it stands
+   alone in the mobile row. */
+.hs {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  padding: 4px 4px 4px var(--space-1);
+  border-radius: var(--radius-full);
+  background: transparent;
+}
+
+.hs-field {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.hs-input {
+  width: 100%;
+  padding: 8px 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+}
+
+.hs-input:focus {
+  outline: none;
+}
+
+/* ---- Rotating placeholder ----
+   A sibling overlay rather than the input's own placeholder attribute, because
+   the category word animates. It is aria-hidden; the visually hidden <label>
+   carries the accessible name. */
+.hs-placeholder {
+  position: absolute;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  /* Matches the clip height so the word's ascenders are not shaved. */
+  line-height: 20px;
+  white-space: nowrap;
+  pointer-events: none;
+}
+
+.hs-placeholder-word {
+  display: inline-block;
+  animation: hs-word-in var(--duration-slow) var(--ease-out);
+  color: var(--text-secondary);
+}
+
+.hs-placeholder-word.is-leaving {
+  animation: hs-word-out var(--duration-slow) var(--ease-out) forwards;
+}
+
+@keyframes hs-word-in {
+  from {
+    opacity: 0;
+    transform: translateY(100%);
+  }
+}
+
+@keyframes hs-word-out {
+  to {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+/* ---- Buttons ---- */
+.hs-clear,
+.hs-submit {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  border: none;
+  cursor: pointer;
+  transition:
+    background-color var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
+}
+
+.hs-clear {
+  width: 30px;
+  height: 30px;
+  border-radius: var(--radius-full);
+  background: transparent;
+  color: var(--text-muted);
+}
+
+.hs-clear:hover {
+  background: var(--hover);
+  color: var(--text-primary);
+}
+
+.hs-clear .material-symbols-rounded {
+  font-size: 18px;
+}
+
+.hs-submit {
+  width: 34px;
+  height: 34px;
+  border-radius: var(--radius-full);
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.hs-submit:hover {
+  background: var(--primary-dark);
+}
+
+.hs-submit .material-symbols-rounded {
+  font-size: 20px;
+}
+
+/* ---- Recent searches ---- */
+.hs-recents {
+  position: absolute;
+  top: calc(100% + 6px);
+  left: 0;
+  right: 0;
+  z-index: var(--z-dropdown);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-dropdown);
+  overflow: hidden;
+}
+
+.hs-recents-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px var(--space-2) 6px;
+}
+
+.hs-recents-title {
+  font-size: 10px;
+  font-weight: var(--weight-bold);
+  letter-spacing: var(--tracking-wider);
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.hs-recents-clear {
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--primary);
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+}
+
+.hs-recents-clear:hover {
+  text-decoration: underline;
+}
+
+.hs-recents-list {
+  max-height: 280px;
+  padding: 0 var(--space-1) var(--space-1);
+  margin: 0;
+  list-style: none;
+  overflow-y: auto;
+}
+
+.hs-recents-row {
+  display: flex;
+  align-items: center;
+  border-radius: var(--radius-sm);
+}
+
+.hs-recents-row:hover {
+  background: var(--hover);
+}
+
+.hs-recent {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  flex: 1;
+  min-width: 0;
+  padding: 9px var(--space-1);
+  border: none;
+  background: none;
+  color: var(--text-primary);
+  font-family: var(--font-body);
+  font-size: var(--text-sm);
+  text-align: left;
+  cursor: pointer;
+}
+
+.hs-recent-icon {
+  flex-shrink: 0;
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.hs-recent-text {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Sibling of .hs-recent rather than nested inside it: a button cannot contain
+   another button, and the old markup used a span with a mousedown handler,
+   which no keyboard could reach. */
+.hs-recent-remove {
+  display: grid;
+  place-items: center;
+  flex-shrink: 0;
+  width: 28px;
+  height: 28px;
+  margin-right: 4px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+}
+
+.hs-recent-remove:hover {
+  background: var(--hover-strong);
+  color: var(--text-primary);
+}
+
+.hs-recent-remove .material-symbols-rounded {
+  font-size: 15px;
+}
+
+/* ---- Compact (mobile row) ---- */
+.hs-compact {
+  padding: 3px 3px 3px 10px;
+  border: 1px solid var(--border);
+  background: var(--surface-secondary);
+  transition:
+    border-color var(--duration-base) var(--ease-out),
+    box-shadow var(--duration-base) var(--ease-out);
+}
+
+.hs-compact:focus-within {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-ring);
+}
+
+.hs-compact .hs-input {
+  padding: 7px 0;
+}
+
+.hs-compact .hs-submit {
+  width: 30px;
+  height: 30px;
+}
+
+.hs-compact .hs-submit .material-symbols-rounded {
+  font-size: 18px;
+}

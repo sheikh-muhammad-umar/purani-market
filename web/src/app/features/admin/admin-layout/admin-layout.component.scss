@@ -3,11 +3,13 @@
   display: flex;
   min-height: calc(100vh - var(--header-height, 64px));
   margin: calc(-1 * var(--space-3)); /* negate app-main padding */
-  font-family: 'Inter', sans-serif;
+  font-family: var(--font-body);
 }
 
 /* Sidebar: stretches full height, nav sticks to viewport */
 .admin-sidebar {
+  /* Intentionally narrower than --sidebar-width (280px): the admin rail is a
+     deliberate compact choice and every admin page is laid out around 220px. */
   width: 220px;
   background: var(--background);
   color: var(--text-primary);
@@ -15,7 +17,7 @@
   display: flex;
   flex-direction: column;
   flex-shrink: 0;
-  z-index: 10;
+  z-index: var(--z-sticky);
 }
 
 .sidebar-inner {
@@ -29,8 +31,8 @@
 .sidebar-header {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 14px 12px;
+  gap: var(--space-1);
+  padding: var(--space-2) 12px;
   border-bottom: 1px solid var(--border);
   flex-shrink: 0;
 }
@@ -41,8 +43,8 @@
   color: var(--primary);
 }
 .sidebar-title {
-  font-size: 15px;
-  font-weight: 700;
+  font-size: var(--text-base);
+  font-weight: var(--weight-bold);
   white-space: nowrap;
   color: var(--text-primary);
 }
@@ -52,14 +54,16 @@
   background: var(--surface);
   border: none;
   color: var(--text-primary);
+  /* 26px square: between --btn-icon sizes and off the space scale, kept as-is so
+     the toggle still fits the 220px rail header next to the logo and title. */
   width: 26px;
   height: 26px;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   cursor: pointer;
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 13px;
+  font-size: var(--text-sm);
   flex-shrink: 0;
   &:hover {
     background: var(--hover);
@@ -70,23 +74,24 @@
   display: flex;
   flex-direction: column;
   padding: 6px;
+  /* 2px hairline gap — half of --space-half, no token maps onto it */
   gap: 2px;
   overflow-y: auto;
   flex: 1;
 }
 
 .nav-section {
-  margin-bottom: 4px;
+  margin-bottom: var(--space-half);
 }
 
 .nav-section-title {
   display: block;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   text-transform: uppercase;
-  letter-spacing: 0.8px;
+  letter-spacing: var(--tracking-wider);
   color: var(--text-muted);
-  padding: 12px 10px 4px;
+  padding: 12px 10px var(--space-half);
   user-select: none;
 }
 
@@ -94,7 +99,7 @@
   display: block;
   height: 1px;
   background: var(--border);
-  margin: 8px 6px;
+  margin: var(--space-1) 6px;
 }
 
 .nav-item {
@@ -105,20 +110,20 @@
   border-radius: 8px;
   color: var(--text-secondary);
   text-decoration: none;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
   transition:
-    background 0.15s,
-    color 0.15s;
+    background var(--duration-fast) var(--ease-out),
+    color var(--duration-fast) var(--ease-out);
   white-space: nowrap;
   &:hover {
     background: var(--surface);
     color: var(--text-primary);
   }
   &.active {
-    background: rgba(var(--primary-rgb, 0, 188, 212), 0.1);
+    background: var(--primary-subtle);
     color: var(--primary);
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
   }
 }
 
@@ -146,7 +151,7 @@
   margin-left: auto;
   font-size: 18px;
   color: var(--text-muted);
-  transition: transform 0.15s;
+  transition: transform var(--duration-fast) var(--ease-out);
 }
 
 .nav-group.expanded .nav-chevron {
@@ -163,7 +168,7 @@
 
 .nav-child {
   padding: 7px 10px 7px 22px;
-  font-size: 12px;
+  font-size: var(--text-xs);
 }
 
 .admin-content {
@@ -232,20 +237,21 @@
   .admin-layout {
     flex-direction: column;
     margin: calc(-1 * var(--space-2)) calc(-1 * var(--space-1));
-    margin-bottom: -70px; /* negate bottom nav padding */
+    margin-bottom: calc(-1 * var(--mobile-nav-height)); /* negate bottom nav padding */
   }
 
   .admin-sidebar {
     position: fixed;
     top: var(--header-height, 64px);
     left: 0;
-    width: min(280px, 80vw);
+    /* Full drawer width on mobile, unlike the compact 220px desktop rail */
+    width: min(var(--sidebar-width), 80vw);
     height: calc(100vh - var(--header-height, 64px));
     height: calc(100dvh - var(--header-height, 64px));
     transform: translateX(-100%);
-    transition: transform 0.28s cubic-bezier(0.4, 0, 0.2, 1);
-    z-index: 200;
-    box-shadow: 4px 0 24px rgba(0, 0, 0, 0.25);
+    transition: transform var(--duration-slow) var(--ease-in-out);
+    z-index: var(--z-dropdown);
+    box-shadow: var(--shadow-lg);
 
     &.mobile-open {
       transform: translateX(0);
@@ -259,30 +265,30 @@
   }
 
   .sidebar-header {
-    padding: 16px 14px;
+    padding: var(--space-2);
   }
 
+  /* Font size already matches --text-base from the base rule */
   .sidebar-title {
     display: block;
-    font-size: 16px;
   }
 
   .sidebar-toggle.show-mobile-close {
     width: 30px;
     height: 30px;
     border-radius: 8px;
-    font-size: 15px;
+    font-size: var(--text-base);
   }
 
   .sidebar-nav {
-    padding: 8px;
+    padding: var(--space-1);
   }
 
   .nav-item {
     justify-content: flex-start;
     padding: 11px 12px;
-    border-radius: 10px;
-    font-size: 14px;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-sm);
   }
 
   .nav-label {
@@ -300,17 +306,17 @@
     align-items: center;
     gap: 10px;
     padding: 12px 0;
-    margin-bottom: 4px;
+    margin-bottom: var(--space-half);
     position: sticky;
     top: 0;
     background: var(--background);
-    z-index: 50;
+    z-index: var(--z-sticky);
   }
 
   .mobile-topbar-title {
     display: block;
-    font-size: 15px;
-    font-weight: 700;
+    font-size: var(--text-base);
+    font-weight: var(--weight-bold);
     color: var(--text-primary);
   }
 
@@ -320,7 +326,7 @@
     justify-content: center;
     width: 36px;
     height: 36px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     border: 1px solid var(--border);
     background: var(--surface);
     color: var(--text-primary);
@@ -340,8 +346,9 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
-    z-index: 199;
+    background: var(--overlay);
+    /* One layer under the drawer (--z-dropdown) so it scrims the page, not the drawer */
+    z-index: var(--z-header);
     backdrop-filter: blur(2px);
     -webkit-backdrop-filter: blur(2px);
   }

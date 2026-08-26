@@ -151,12 +151,11 @@
   }
 
   @if (!loading() && filteredExperiments().length === 0) {
-    <div class="empty-state">
-      <span class="material-symbols-rounded" style="font-size: 48px; color: var(--text-muted)"
-        >science</span
-      >
-      <p>No experiments found.</p>
-    </div>
+    <app-empty-state
+      icon="science"
+      title="No experiments found"
+      message="Create an experiment to start testing variants."
+    />
   }
 
   <!-- Experiment Cards -->
@@ -255,91 +254,81 @@
 </div>
 
 <!-- Metrics Modal -->
-@if (selectedMetrics()) {
-  <div class="modal-overlay" (click)="closeMetrics()">
-    <div class="modal-content metrics-modal" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <div>
-          <h2>{{ selectedMetrics()!.experimentName }}</h2>
-          <span class="status-badge" [style.color]="getStatusColor(selectedMetrics()!.status)">
-            {{ selectedMetrics()!.status }}
-          </span>
-        </div>
-        <button class="modal-close" (click)="closeMetrics()">
-          <span class="material-symbols-rounded">close</span>
-        </button>
-      </div>
+@if (selectedMetrics(); as metrics) {
+  <app-modal [title]="metrics.experimentName" size="xl" (closed)="closeMetrics()">
+    <span class="status-badge exp-modal-status" [style.color]="getStatusColor(metrics.status)">
+      {{ metrics.status }}
+    </span>
 
-      <div class="metrics-summary">
-        <div class="metric-card">
-          <span class="metric-value">{{ selectedMetrics()!.totalSubjects }}</span>
-          <span class="metric-label">Total Subjects</span>
+    <div class="metrics-summary">
+      <div class="metric-card">
+        <span class="metric-value">{{ selectedMetrics()!.totalSubjects }}</span>
+        <span class="metric-label">Total Subjects</span>
+      </div>
+      @if (winningVariant(); as winner) {
+        <div class="metric-card winner">
+          <span class="metric-value">{{ winner.variantName }}</span>
+          <span class="metric-label">Leading ({{ winner.ctr }}% CTR)</span>
         </div>
-        @if (winningVariant(); as winner) {
-          <div class="metric-card winner">
-            <span class="metric-value">{{ winner.variantName }}</span>
-            <span class="metric-label">Leading ({{ winner.ctr }}% CTR)</span>
+      }
+    </div>
+
+    <div class="metrics-table-wrap">
+      <table class="metrics-table">
+        <thead>
+          <tr>
+            <th>Variant</th>
+            <th>Weight</th>
+            <th>Subjects</th>
+            <th>Impressions</th>
+            <th>Clicks</th>
+            <th>CTR</th>
+            <th>Avg Position</th>
+            <th>Favorites</th>
+            <th>Contacts</th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (v of selectedMetrics()!.variants; track v.variantId) {
+            <tr [class.winner-row]="winningVariant() === v">
+              <td class="variant-cell">
+                <strong>{{ v.variantName }}</strong>
+                <code>{{ v.variantId }}</code>
+              </td>
+              <td>{{ v.weight }}%</td>
+              <td>{{ v.subjects }}</td>
+              <td>{{ v.impressions }}</td>
+              <td>{{ v.clicks }}</td>
+              <td class="ctr-cell">
+                <strong>{{ v.ctr }}%</strong>
+              </td>
+              <td>{{ v.avgClickPosition > 0 ? v.avgClickPosition.toFixed(1) : '—' }}</td>
+              <td>{{ v.favorites }}</td>
+              <td>{{ v.contacts }}</td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Visual CTR Comparison -->
+    <div class="ctr-comparison">
+      <h4>Click-Through Rate Comparison</h4>
+      <div class="ctr-bars">
+        @for (v of selectedMetrics()!.variants; track v.variantId) {
+          <div class="ctr-bar-row">
+            <span class="ctr-bar-label">{{ v.variantName }}</span>
+            <div class="ctr-bar-track">
+              <div
+                class="ctr-bar-fill"
+                [style.width.%]="v.ctr"
+                [class.winner-bar]="winningVariant() === v"
+              ></div>
+            </div>
+            <span class="ctr-bar-value">{{ v.ctr }}%</span>
           </div>
         }
       </div>
-
-      <div class="metrics-table-wrap">
-        <table class="metrics-table">
-          <thead>
-            <tr>
-              <th>Variant</th>
-              <th>Weight</th>
-              <th>Subjects</th>
-              <th>Impressions</th>
-              <th>Clicks</th>
-              <th>CTR</th>
-              <th>Avg Position</th>
-              <th>Favorites</th>
-              <th>Contacts</th>
-            </tr>
-          </thead>
-          <tbody>
-            @for (v of selectedMetrics()!.variants; track v.variantId) {
-              <tr [class.winner-row]="winningVariant() === v">
-                <td class="variant-cell">
-                  <strong>{{ v.variantName }}</strong>
-                  <code>{{ v.variantId }}</code>
-                </td>
-                <td>{{ v.weight }}%</td>
-                <td>{{ v.subjects }}</td>
-                <td>{{ v.impressions }}</td>
-                <td>{{ v.clicks }}</td>
-                <td class="ctr-cell">
-                  <strong>{{ v.ctr }}%</strong>
-                </td>
-                <td>{{ v.avgClickPosition > 0 ? v.avgClickPosition.toFixed(1) : '—' }}</td>
-                <td>{{ v.favorites }}</td>
-                <td>{{ v.contacts }}</td>
-              </tr>
-            }
-          </tbody>
-        </table>
-      </div>
-
-      <!-- Visual CTR Comparison -->
-      <div class="ctr-comparison">
-        <h4>Click-Through Rate Comparison</h4>
-        <div class="ctr-bars">
-          @for (v of selectedMetrics()!.variants; track v.variantId) {
-            <div class="ctr-bar-row">
-              <span class="ctr-bar-label">{{ v.variantName }}</span>
-              <div class="ctr-bar-track">
-                <div
-                  class="ctr-bar-fill"
-                  [style.width.%]="v.ctr"
-                  [class.winner-bar]="winningVariant() === v"
-                ></div>
-              </div>
-              <span class="ctr-bar-value">{{ v.ctr }}%</span>
-            </div>
-          }
-        </div>
-      </div>
     </div>
-  </div>
+  </app-modal>
 }

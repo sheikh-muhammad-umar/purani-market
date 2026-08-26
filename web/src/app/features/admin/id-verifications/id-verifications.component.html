@@ -34,10 +34,15 @@
   @if (loading()) {
     <app-loader mode="inline" [loading]="true" message="Loading..." />
   } @else if (verifications().length === 0) {
-    <div class="empty-state">
-      <span class="material-symbols-rounded empty-icon">verified_user</span>
-      <p class="empty-text">No verification requests found</p>
-    </div>
+    <app-empty-state
+      icon="verified_user"
+      title="No verification requests found"
+      [message]="
+        searchQuery || statusFilter
+          ? 'Try a different search term or status filter.'
+          : 'New identity verification requests will appear here.'
+      "
+    />
   } @else {
     <!-- Desktop table view -->
     <div class="table-wrap desktop-only">
@@ -253,31 +258,14 @@
 
     <!-- Pagination -->
     @if (totalPages() > 1) {
-      <div class="pagination">
-        <button
-          class="btn btn-outline btn-xs"
-          [disabled]="currentPage() === 1"
-          (click)="goToPage(currentPage() - 1)"
-        >
-          ‹ Prev
-        </button>
-        @for (p of pages(); track p) {
-          <button
-            class="btn btn-xs"
-            [class.btn-primary]="p === currentPage()"
-            [class.btn-outline]="p !== currentPage()"
-            (click)="goToPage(p)"
-          >
-            {{ p }}
-          </button>
-        }
-        <button
-          class="btn btn-outline btn-xs"
-          [disabled]="currentPage() === totalPages()"
-          (click)="goToPage(currentPage() + 1)"
-        >
-          Next ›
-        </button>
+      <div class="pagination-bar">
+        <app-pagination
+          [currentPage]="currentPage()"
+          [totalPages]="totalPages()"
+          [siblings]="2"
+          label="Verification pages"
+          (pageChange)="goToPage($event)"
+        />
         <span class="pagination-info">{{ total() }} total</span>
       </div>
     }
@@ -285,32 +273,29 @@
 
   <!-- Approve Confirmation Modal -->
   @if (approvingVerification; as av) {
-    <div class="modal-overlay" (click)="cancelApprove()">
-      <div class="modal-content" (click)="$event.stopPropagation()">
-        <div class="modal-header">
-          <span class="material-symbols-rounded modal-icon modal-icon-success">check_circle</span>
-          <h3 class="modal-title">Approve Verification</h3>
-        </div>
+    <app-modal title="Approve Verification" size="sm" (closed)="cancelApprove()">
+      <div class="confirm-body">
+        <span class="material-symbols-rounded confirm-icon">check_circle</span>
         <p class="modal-body">
           Are you sure you want to approve the ID verification for
           <strong>{{ userNames().get(av._id) }}</strong
           >? This will mark the user as ID verified.
         </p>
-        <div class="modal-actions">
-          <button class="btn btn-outline btn-sm" (click)="cancelApprove()">Cancel</button>
-          <button
-            class="btn btn-success btn-sm"
-            [disabled]="actionLoading() === av._id"
-            (click)="confirmApprove()"
-          >
-            @if (actionLoading() === av._id) {
-              <span class="spinner spinner-xs"></span>
-            }
-            Yes, Approve
-          </button>
-        </div>
       </div>
-    </div>
+      <div slot="footer">
+        <button class="btn btn-outline btn-sm" (click)="cancelApprove()">Cancel</button>
+        <button
+          class="btn btn-success btn-sm"
+          [disabled]="actionLoading() === av._id"
+          (click)="confirmApprove()"
+        >
+          @if (actionLoading() === av._id) {
+            <span class="spinner spinner-xs"></span>
+          }
+          Yes, Approve
+        </button>
+      </div>
+    </app-modal>
   }
 
   <!-- Lightbox -->

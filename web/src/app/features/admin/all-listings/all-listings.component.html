@@ -144,14 +144,16 @@
     }
 
     @if (!loading() && listings().length === 0) {
-      <div class="empty-state">
-        @if (hasActiveFilters) {
-          No listings match your filters.
-          <button class="btn-retry" (click)="clearFilters()">Clear</button>
-        } @else {
-          No listings found.
-        }
-      </div>
+      @if (hasActiveFilters) {
+        <app-empty-state
+          icon="filter_alt_off"
+          title="No listings match your filters"
+          actionText="Clear"
+          (actionClicked)="clearFilters()"
+        />
+      } @else {
+        <app-empty-state icon="list_alt" title="No listings found" />
+      }
     }
 
     @if (!loading() && listings().length > 0) {
@@ -227,17 +229,12 @@
         }
       </div>
 
-      @if (totalPages() > 1) {
-        <div class="pagination">
-          <button class="btn-page" (click)="goToPage(page - 1)" [disabled]="page <= 1">
-            ← Prev
-          </button>
-          <span class="page-info">Page {{ page }} of {{ totalPages() }}</span>
-          <button class="btn-page" (click)="goToPage(page + 1)" [disabled]="page >= totalPages()">
-            Next →
-          </button>
-        </div>
-      }
+      <app-pagination
+        [currentPage]="page"
+        [totalPages]="totalPages()"
+        label="Listings pagination"
+        (pageChange)="goToPage($event)"
+      />
     }
   }
 
@@ -258,10 +255,13 @@
       }
 
       @if (modError()) {
-        <div class="error-state">
-          <p>{{ modError() }}</p>
-          <button class="btn-retry" (click)="loadPendingListings()">Retry</button>
-        </div>
+        <app-empty-state
+          icon="warning"
+          title="Couldn't load pending listings"
+          [message]="modError() || ''"
+          actionText="Retry"
+          (actionClicked)="loadPendingListings()"
+        />
       }
 
       @if (!modLoading() && !modError()) {
@@ -402,18 +402,16 @@
           }
 
           @if (filteredPendingListings.length === 0) {
-            <div class="empty-state">
-              <p>
-                {{
-                  modSearchQuery || modHasActiveFilters
-                    ? 'No listings match your filters.'
-                    : 'No pending listings to review.'
-                }}
-              </p>
-              @if (modHasActiveFilters) {
-                <button class="btn-retry" (click)="clearModFilters()">Clear Filters</button>
-              }
-            </div>
+            @if (modHasActiveFilters) {
+              <app-empty-state
+                icon="filter_alt_off"
+                title="No listings match your filters"
+                actionText="Clear Filters"
+                (actionClicked)="clearModFilters()"
+              />
+            } @else {
+              <app-empty-state icon="gavel" title="No pending listings to review" />
+            }
           }
 
           @for (listing of filteredPendingListings; track listing._id) {

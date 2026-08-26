@@ -15,9 +15,7 @@
         [class.active]="mainTab() === TAB.ADS"
         (click)="switchMainTab(TAB.ADS)"
       >
-        <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
-          >list_alt</span
-        >
+        <span class="material-symbols-rounded inline-icon">list_alt</span>
         My Ads
       </button>
       <button
@@ -25,9 +23,7 @@
         [class.active]="mainTab() === TAB.SHORTS"
         (click)="switchMainTab(TAB.SHORTS)"
       >
-        <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
-          >play_circle</span
-        >
+        <span class="material-symbols-rounded inline-icon">play_circle</span>
         My Shorts
       </button>
     </div>
@@ -120,32 +116,36 @@
               @for (i of SKELETON_ITEMS; track i) {
                 <tr>
                   <td class="listing-cell">
-                    <div
-                      class="skeleton"
-                      style="width: 56px; height: 56px; border-radius: 8px; flex-shrink: 0"
-                    ></div>
-                    <div style="flex: 1">
-                      <div class="skeleton-text" style="width: 70%"></div>
-                      <div class="skeleton-text short" style="margin-top: 4px"></div>
+                    <app-skeleton
+                      class="skeleton-thumb"
+                      variant="block"
+                      width="56px"
+                      height="56px"
+                      radius="var(--radius-sm)"
+                    />
+                    <div class="skeleton-meta">
+                      <app-skeleton variant="block" width="70%" height="1em" />
+                      <app-skeleton variant="block" width="40%" height="1em" />
                     </div>
                   </td>
-                  <td><div class="skeleton-text" style="width: 60px"></div></td>
-                  <td><div class="skeleton-text" style="width: 40px"></div></td>
-                  <td><div class="skeleton-text" style="width: 30px"></div></td>
-                  <td><div class="skeleton-text" style="width: 80px"></div></td>
-                  <td><div class="skeleton-text" style="width: 100px"></div></td>
+                  <td><app-skeleton variant="block" width="60px" height="1em" /></td>
+                  <td><app-skeleton variant="block" width="40px" height="1em" /></td>
+                  <td><app-skeleton variant="block" width="30px" height="1em" /></td>
+                  <td><app-skeleton variant="block" width="80px" height="1em" /></td>
+                  <td><app-skeleton variant="block" width="100px" height="1em" /></td>
                 </tr>
               }
             </tbody>
           </table>
         </div>
       } @else if (listings().length === 0) {
-        <div class="empty-state">
-          <span class="empty-icon"><span class="material-symbols-rounded">inventory_2</span></span>
-          <h3>No listings yet</h3>
-          <p>Start selling by posting your first ad</p>
-          <a [routerLink]="ROUTES.LISTINGS_CREATE" class="btn btn-primary">Post Your First Ad</a>
-        </div>
+        <app-empty-state
+          icon="inventory_2"
+          title="No listings yet"
+          message="Start selling by posting your first ad"
+          actionText="Post Your First Ad"
+          [actionLink]="ROUTES.LISTINGS_CREATE"
+        />
       } @else {
         <div class="listings-table-wrapper">
           <table class="listings-table" role="table">
@@ -185,11 +185,7 @@
                     }}</span>
                     @if (listing.isFeatured) {
                       <span class="badge badge-featured"
-                        ><span
-                          class="material-symbols-rounded"
-                          style="font-size: 14px; vertical-align: middle"
-                          >star</span
-                        >
+                        ><span class="material-symbols-rounded inline-icon-sm">star</span>
                         Featured</span
                       >
                     }
@@ -253,11 +249,7 @@
                             title="Feature this ad"
                             (click)="featureListing(listing)"
                           >
-                            <span
-                              class="material-symbols-rounded"
-                              style="font-size: 14px; vertical-align: middle"
-                              >star</span
-                            >
+                            <span class="material-symbols-rounded inline-icon-sm">star</span>
                             Feature
                           </button>
                         }
@@ -292,6 +284,13 @@
             </tbody>
           </table>
         </div>
+
+        <app-pagination
+          [currentPage]="page()"
+          [totalPages]="totalPages()"
+          label="Listings pagination"
+          (pageChange)="loadPage($event)"
+        />
       }
     }
     <!-- end ads tab -->
@@ -328,12 +327,13 @@
       @if (loadingShorts()) {
         <app-loader mode="inline" [loading]="true" message="Loading shorts..." />
       } @else if (shorts().length === 0) {
-        <div class="empty-state">
-          <span class="material-symbols-rounded empty-icon">play_circle</span>
-          <h3>No shorts yet</h3>
-          <p>Upload a short video to showcase your products</p>
-          <a [routerLink]="ROUTES.SHORTS_UPLOAD" class="btn btn-primary">Upload Short</a>
-        </div>
+        <app-empty-state
+          icon="play_circle"
+          title="No shorts yet"
+          message="Upload a short video to showcase your products"
+          actionText="Upload Short"
+          [actionLink]="ROUTES.SHORTS_UPLOAD"
+        />
       } @else {
         <div class="shorts-list">
           @for (short of shorts(); track short._id) {
@@ -354,19 +354,11 @@
                 <p class="short-title">{{ short.title || short.description || 'Short video' }}</p>
                 <div class="short-meta">
                   <span
-                    ><span
-                      class="material-symbols-rounded"
-                      style="font-size: 14px; vertical-align: middle"
-                      >visibility</span
-                    >
+                    ><span class="material-symbols-rounded inline-icon-sm">visibility</span>
                     {{ short.viewCount }}</span
                   >
                   <span
-                    ><span
-                      class="material-symbols-rounded"
-                      style="font-size: 14px; vertical-align: middle"
-                      >favorite</span
-                    >
+                    ><span class="material-symbols-rounded inline-icon-sm">favorite</span>
                     {{ short.favoriteCount }}</span
                   >
                   <span>{{ short.createdAt | date: 'MMM d, y' }}</span>

@@ -1,5 +1,4 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { ShortsService, ShortVideo, ShortsStats } from '../../../core/services/shorts.service';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
@@ -9,11 +8,19 @@ import { FormatDurationPipe } from '../../../shared/pipes/format-duration.pipe';
 import { FormatStatusPipe } from '../../../shared/pipes/format-status.pipe';
 import { ROUTES } from '../../../core/constants/routes';
 import { daysToMs } from '../../../core/utils/time';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 
 @Component({
   selector: 'app-my-shorts',
   standalone: true,
-  imports: [CommonModule, RouterLink, FormatDurationPipe, FormatStatusPipe],
+  imports: [
+    RouterLink,
+    FormatDurationPipe,
+    FormatStatusPipe,
+    EmptyStateComponent,
+    SkeletonComponent,
+  ],
   templateUrl: './my-shorts.component.html',
   styleUrl: './my-shorts.component.scss',
 })

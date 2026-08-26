@@ -1,4 +1,5 @@
-@import '../login/login.component.scss';
+/* The shared auth-panel styles are pulled in via this component's `styleUrls`
+   rather than a Sass `@import`, which Dart Sass 3.0 removes. */
 
 .form-row {
   display: flex;
@@ -39,7 +40,7 @@
   }
 
   &.invalid {
-    color: var(--error, #e74c3c);
+    color: var(--error);
   }
 
   .check-icon {

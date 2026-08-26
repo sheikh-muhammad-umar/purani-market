@@ -290,34 +290,9 @@
         @if (similarListings().length > 0) {
           <div class="detail-section">
             <h3>Similar items you might like</h3>
-            <div class="similar-carousel">
+            <div class="rail" role="list">
               @for (item of similarListings(); track item._id) {
-                <a [routerLink]="['/listings', item | listingUrl]" class="similar-card">
-                  <div class="similar-image">
-                    <img
-                      [src]="
-                        item.images[0]?.thumbnailUrl ||
-                        item.images[0]?.url ||
-                        'assets/placeholder.png'
-                      "
-                      [alt]="item.title"
-                    />
-                  </div>
-                  <div class="similar-info">
-                    <span class="similar-price"
-                      >{{ CURRENCY_SYMBOL }} {{ item.price.amount | number }}</span
-                    >
-                    <span class="similar-title">{{ item.title }}</span>
-                    <span class="similar-location"
-                      ><span
-                        class="material-symbols-rounded"
-                        style="font-size: 16px; vertical-align: middle"
-                        >location_on</span
-                      >
-                      {{ item.location.city }}</span
-                    >
-                  </div>
-                </a>
+                <app-listing-card class="rail-item" role="listitem" [listing]="item" />
               }
             </div>
           </div>
@@ -327,7 +302,7 @@
       <!-- RIGHT COLUMN: Price + Seller Sidebar -->
       <div class="detail-sidebar">
         <!-- Price Card -->
-        <div class="sidebar-card price-card">
+        <div class="sidebar-card price-card" #priceCard>
           <span class="price-label">Listed Price</span>
           <span class="price-big">{{ CURRENCY_SYMBOL }} {{ l.price.amount | number }}</span>
           <div class="price-card-buttons">
@@ -460,6 +435,72 @@
         </div>
       </div>
     </div>
+
+    <!-- Fixed contact bar (mobile/tablet only).
+         The sidebar stacks far below the fold once the layout is single-column,
+         so price and the contact actions are pinned within reach. -->
+    @if (l.status === ListingStatus.ACTIVE && !isOwner()) {
+      <div
+        class="action-bar"
+        [class.is-visible]="contactBarVisible()"
+        [attr.aria-hidden]="!contactBarVisible()"
+      >
+        <div class="action-bar-price">
+          <span class="action-bar-price-label">Price</span>
+          <span class="action-bar-price-value">{{ l.price.amount | priceFormat }}</span>
+        </div>
+
+        @if (authService.isAuthenticated()) {
+          <div class="action-bar-actions">
+            <a
+              [href]="'tel:' + l.contactInfo.phone"
+              class="btn btn-ghost btn-icon action-bar-icon"
+              aria-label="Call seller"
+              (click)="trackContact(l._id, 'call')"
+            >
+              <span class="material-symbols-rounded">call</span>
+            </a>
+            <a
+              [href]="getWhatsAppLink(l.contactInfo.phone, l.title)"
+              target="_blank"
+              rel="noopener"
+              class="btn btn-ghost btn-icon action-bar-icon action-bar-whatsapp"
+              aria-label="Contact on WhatsApp"
+              (click)="trackContact(l._id, 'whatsapp')"
+            >
+              <svg
+                width="20"
+                height="20"
+                viewBox="0 0 24 24"
+                fill="currentColor"
+                aria-hidden="true"
+              >
+                <path
+                  d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z"
+                />
+              </svg>
+            </a>
+            <a
+              [routerLink]="[ROUTES.MESSAGING]"
+              [queryParams]="{ listingId: l._id }"
+              class="btn btn-primary action-bar-cta"
+              (click)="trackContact(l._id, 'message')"
+            >
+              <span class="material-symbols-rounded">chat</span>
+              Message
+            </a>
+          </div>
+        } @else {
+          <button
+            type="button"
+            class="btn btn-primary action-bar-cta"
+            (click)="loginModal.open(ROUTES.LISTINGS + '/' + l._id)"
+          >
+            Sign in to contact
+          </button>
+        }
+      </div>
+    }
 
     <!-- Share Popup -->
     @if (sharePopupOpen()) {

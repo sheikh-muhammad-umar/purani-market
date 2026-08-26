@@ -1,5 +1,4 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AdminService, PendingListing } from '../../../core/services/admin.service';
@@ -10,6 +9,7 @@ import {
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import {
   CONDITION_FILTER_OPTIONS,
   REVIEW_COUNT_OPTIONS,
@@ -20,7 +20,7 @@ import { buildMapEmbedUrl } from '../../../core/utils/map-link';
 @Component({
   selector: 'app-moderation-queue',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent, DatePickerComponent],
+  imports: [FormsModule, CustomSelectComponent, DatePickerComponent, EmptyStateComponent],
   templateUrl: './moderation-queue.component.html',
   styleUrls: ['./moderation-queue.component.scss'],
 })

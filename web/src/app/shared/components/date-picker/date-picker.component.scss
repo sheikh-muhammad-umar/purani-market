@@ -134,7 +134,7 @@
 
   &.selected {
     background: var(--primary);
-    color: #fff;
+    color: var(--on-primary);
     font-weight: 600;
     &:hover {
       background: var(--primary-dark);

@@ -17,11 +17,20 @@ import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 @Component({
   selector: 'app-payment-transactions',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent, DatePickerComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CustomSelectComponent,
+    DatePickerComponent,
+    EmptyStateComponent,
+    PaginationComponent,
+  ],
   templateUrl: './payment-transactions.component.html',
   styleUrls: ['./payment-transactions.component.scss'],
 })
@@ -141,6 +150,14 @@ export class PaymentTransactionsComponent implements OnInit {
       this.persistState();
       this.loadPayments();
     }
+  }
+
+  /** Jump to an absolute page number. Used by the shared pagination control. */
+  goToPage(page: number): void {
+    if (page < 1 || page > this.totalPages || page === this.page) return;
+    this.page = page;
+    this.persistState();
+    this.loadPayments();
   }
 
   get totalPages(): number {

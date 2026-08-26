@@ -15,7 +15,11 @@
   </div>
 
   @if (!selectedCategoryId) {
-    <div class="empty-state">Select a category above to manage its brands.</div>
+    <app-empty-state
+      icon="category"
+      title="Select a category"
+      message="Choose a category above to manage its brands."
+    />
   }
 
   @if (selectedCategoryId) {
@@ -100,13 +104,15 @@
             }
           </div>
         } @empty {
-          <div class="empty-state">
-            @if (searchQuery) {
-              No brands match "{{ searchQuery }}".
-            } @else {
-              No brands in this category yet.
-            }
-          </div>
+          @if (searchQuery) {
+            <app-empty-state
+              icon="search_off"
+              title="No matching brands"
+              [message]="'No brands match “' + searchQuery + '”.'"
+            />
+          } @else {
+            <app-empty-state icon="sell" title="No brands in this category yet" />
+          }
         }
       </div>
     }
@@ -115,15 +121,11 @@
 
 <!-- Delete Modal -->
 @if (deletingId) {
-  <div class="modal-overlay" (click)="cancelDelete()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
-      <div class="modal-icon"><span class="material-symbols-rounded">warning</span></div>
-      <h3>Delete this brand?</h3>
-      <p>This action cannot be undone.</p>
-      <div class="modal-actions">
-        <button class="btn-cancel" (click)="cancelDelete()">Cancel</button>
-        <button class="btn-delete" (click)="confirmDelete()">Delete</button>
-      </div>
+  <app-modal title="Delete this brand?" size="sm" (closed)="cancelDelete()">
+    <p class="alert alert-warning">This action cannot be undone.</p>
+    <div slot="footer">
+      <button class="btn btn-ghost" (click)="cancelDelete()">Cancel</button>
+      <button class="btn btn-danger" (click)="confirmDelete()">Delete</button>
     </div>
-  </div>
+  </app-modal>
 }

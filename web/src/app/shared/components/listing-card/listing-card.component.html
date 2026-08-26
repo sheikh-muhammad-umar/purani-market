@@ -1,0 +1,107 @@
+@if (loading() || !listing()) {
+  <!-- Placeholder shares the real card's geometry so nothing shifts on load -->
+  <article class="lc lc-loading" aria-hidden="true">
+    <div class="lc-media" [style.aspect-ratio]="aspect()">
+      <app-skeleton variant="block" width="100%" height="100%" radius="0" />
+    </div>
+    <div class="lc-body">
+      <app-skeleton variant="block" width="45%" height="1.1rem" />
+      <app-skeleton variant="text" [lines]="2" />
+      <app-skeleton variant="block" width="60%" height="0.75rem" />
+    </div>
+  </article>
+} @else {
+  @let item = listing()!;
+
+  <article class="lc" [class.lc-inactive]="statusLabel()">
+    <div class="lc-media" [style.aspect-ratio]="aspect()">
+      <img
+        class="lc-img"
+        [src]="item | listingImage"
+        [alt]="item.title"
+        [attr.loading]="eager() ? 'eager' : 'lazy'"
+        [attr.fetchpriority]="eager() ? 'high' : 'auto'"
+        decoding="async"
+      />
+
+      @if (statusLabel()) {
+        <div class="lc-status-veil">
+          <span class="lc-status">{{ statusLabel() }}</span>
+        </div>
+      }
+
+      <div class="lc-media-top">
+        <div class="lc-flags">
+          @if (item.isFeatured) {
+            <span class="badge badge-featured lc-flag">
+              <span class="material-symbols-rounded lc-flag-icon">auto_awesome</span>
+              Featured
+            </span>
+          }
+          @if (showCondition() && conditionLabel()) {
+            <span class="badge badge-glass lc-flag">{{ conditionLabel() }}</span>
+          }
+        </div>
+
+        @if (showFavorite()) {
+          <button
+            type="button"
+            class="lc-fav"
+            [class.is-active]="favorited()"
+            [disabled]="favoritePending()"
+            [attr.aria-label]="favorited() ? 'Remove from favourites' : 'Save to favourites'"
+            [attr.aria-pressed]="favorited()"
+            (click)="onFavorite($event)"
+          >
+            @if (favoritePending()) {
+              <span class="lc-fav-spinner" aria-hidden="true"></span>
+            } @else {
+              <span class="material-symbols-rounded lc-fav-icon">favorite</span>
+            }
+          </button>
+        }
+      </div>
+
+      <!-- Overlaid on the image rather than placed in the body, because it is
+           conditional and would otherwise make verified cards taller than the
+           rest of the row. -->
+      @if (item.sellerVerified) {
+        <span class="badge badge-glass lc-verified" [appTooltip]="VERIFIED_SELLER_TOOLTIP">
+          <span class="material-symbols-rounded lc-verified-icon" aria-hidden="true">verified</span>
+          Verified seller
+        </span>
+      }
+    </div>
+
+    <div class="lc-body">
+      <p class="lc-price">{{ item.price.amount | priceFormat }}</p>
+
+      <h3 class="lc-title">
+        <a class="lc-link" [routerLink]="[ROUTES.LISTINGS, item | listingUrl]">
+          {{ item.title }}
+        </a>
+      </h3>
+
+      <div class="lc-foot">
+        <p class="lc-location">
+          <span class="material-symbols-rounded lc-location-icon">location_on</span>
+          <span class="lc-location-text">{{ locationLabel() }}</span>
+        </p>
+
+        @if (showTime() || showViews()) {
+          <p class="lc-meta">
+            @if (showViews()) {
+              <span class="lc-meta-item">
+                <span class="material-symbols-rounded lc-meta-icon">visibility</span>
+                {{ item.viewCount }}
+              </span>
+            }
+            @if (showTime()) {
+              <span class="lc-meta-item">{{ item.createdAt | dateFormat: 'relative' }}</span>
+            }
+          </p>
+        }
+      </div>
+    </div>
+  </article>
+}

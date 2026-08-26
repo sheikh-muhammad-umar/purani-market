@@ -14,6 +14,7 @@ import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { FormPanel, CategoryPricingGroup, PricingDisplayGroup } from './package-manager.interfaces';
@@ -27,7 +28,7 @@ const PACKAGE_TYPE_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-package-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent],
+  imports: [CommonModule, FormsModule, CustomSelectComponent, EmptyStateComponent],
   templateUrl: './package-manager.component.html',
   styleUrls: ['./package-manager.component.scss'],
 })

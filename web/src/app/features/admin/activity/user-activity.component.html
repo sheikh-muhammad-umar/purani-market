@@ -92,9 +92,11 @@
 
   <!-- Empty -->
   @if (!loading() && activities().length === 0) {
-    <div class="empty-state">
-      <p>No activity found matching your filters.</p>
-    </div>
+    <app-empty-state
+      icon="history"
+      title="No activity found"
+      message="No activity matches your filters."
+    />
   }
 
   <!-- Results -->
@@ -187,20 +189,11 @@
     </div>
 
     <!-- Pagination -->
-    @if (totalPages() > 1) {
-      <div class="pagination">
-        <button class="btn-secondary" (click)="goToPage(page - 1)" [disabled]="page <= 1">
-          ← Prev
-        </button>
-        <span class="page-info">Page {{ page }} of {{ totalPages() }}</span>
-        <button
-          class="btn-secondary"
-          (click)="goToPage(page + 1)"
-          [disabled]="page >= totalPages()"
-        >
-          Next →
-        </button>
-      </div>
-    }
+    <app-pagination
+      [currentPage]="page"
+      [totalPages]="totalPages()"
+      label="Activity log pages"
+      (pageChange)="goToPage($event)"
+    />
   }
 </div>

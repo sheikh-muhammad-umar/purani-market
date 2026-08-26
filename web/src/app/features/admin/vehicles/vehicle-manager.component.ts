@@ -1,5 +1,4 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import {
   BrandsService,
@@ -13,6 +12,8 @@ import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import { saveState, loadState } from '../../../core/utils/state-persistence';
 
 type ActiveTab = 'brands' | 'models' | 'variants';
@@ -20,7 +21,7 @@ type ActiveTab = 'brands' | 'models' | 'variants';
 @Component({
   selector: 'app-vehicle-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent],
+  imports: [FormsModule, CustomSelectComponent, EmptyStateComponent, ModalComponent],
   templateUrl: './vehicle-manager.component.html',
   styleUrl: './vehicle-manager.component.scss',
 })

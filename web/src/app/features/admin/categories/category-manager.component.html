@@ -1,7 +1,7 @@
 <div class="category-manager">
   <div class="page-header">
     <h1>Category Manager</h1>
-    <button class="btn-primary" (click)="openAddForm()" [disabled]="saving()">
+    <button class="btn btn-primary" (click)="openAddForm()" [disabled]="saving()">
       + Add Root Category
     </button>
   </div>
@@ -86,13 +86,13 @@
             </div>
             <div class="form-actions">
               <button
-                class="btn-primary"
+                class="btn btn-primary"
                 (click)="submitAdd()"
                 [disabled]="saving() || !formName.trim() || !formSlug.trim() || !formIcon.trim()"
               >
                 {{ saving() ? 'Saving...' : 'Create' }}
               </button>
-              <button class="btn-secondary" (click)="activePanel = 'none'" [disabled]="saving()">
+              <button class="btn btn-ghost" (click)="activePanel = 'none'" [disabled]="saving()">
                 Cancel
               </button>
             </div>
@@ -122,13 +122,13 @@
             </div>
             <div class="form-actions">
               <button
-                class="btn-primary"
+                class="btn btn-primary"
                 (click)="submitEdit()"
                 [disabled]="saving() || !formName.trim() || !formSlug.trim()"
               >
                 {{ saving() ? 'Saving...' : 'Save Changes' }}
               </button>
-              <button class="btn-secondary" (click)="activePanel = 'none'" [disabled]="saving()">
+              <button class="btn btn-ghost" (click)="activePanel = 'none'" [disabled]="saving()">
                 Cancel
               </button>
             </div>
@@ -296,7 +296,11 @@
                     <div class="attr-picker-empty">No matching attributes found.</div>
                   }
                 </div>
-                <button class="btn-add-option" (click)="openNewAttrForm()" style="margin-top: 8px">
+                <button
+                  class="btn-add-option"
+                  (click)="openNewAttrForm()"
+                  style="margin-top: var(--space-1)"
+                >
                   + Create New Attribute Definition
                 </button>
               </div>
@@ -367,13 +371,13 @@
                 }
                 <div class="form-actions">
                   <button
-                    class="btn-primary"
+                    class="btn btn-primary"
                     (click)="submitNewDefinition()"
                     [disabled]="saving() || !newAttrName.trim() || !newAttrKey.trim()"
                   >
                     {{ saving() ? 'Creating...' : 'Create & Add' }}
                   </button>
-                  <button class="btn-secondary" (click)="cancelNewAttrForm()">Cancel</button>
+                  <button class="btn btn-ghost" (click)="cancelNewAttrForm()">Cancel</button>
                 </div>
               </div>
             }
@@ -389,10 +393,10 @@
               </div>
             }
             <div class="form-actions">
-              <button class="btn-primary" (click)="saveAttributes()" [disabled]="saving()">
+              <button class="btn btn-primary" (click)="saveAttributes()" [disabled]="saving()">
                 {{ saving() ? 'Saving...' : 'Save Attributes' }}
               </button>
-              <button class="btn-secondary" (click)="activePanel = 'none'" [disabled]="saving()">
+              <button class="btn btn-ghost" (click)="activePanel = 'none'" [disabled]="saving()">
                 Cancel
               </button>
             </div>
@@ -438,10 +442,10 @@
             </div>
 
             <div class="form-actions">
-              <button class="btn-primary" (click)="saveFeatures()" [disabled]="saving()">
+              <button class="btn btn-primary" (click)="saveFeatures()" [disabled]="saving()">
                 {{ saving() ? 'Saving...' : 'Save Features' }}
               </button>
-              <button class="btn-secondary" (click)="activePanel = 'none'" [disabled]="saving()">
+              <button class="btn btn-ghost" (click)="activePanel = 'none'" [disabled]="saving()">
                 Cancel
               </button>
             </div>

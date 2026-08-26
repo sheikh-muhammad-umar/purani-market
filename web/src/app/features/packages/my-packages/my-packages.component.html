@@ -15,9 +15,7 @@
         [class.active]="mainTab() === TAB.ADS"
         (click)="switchMainTab(TAB.ADS)"
       >
-        <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
-          >list_alt</span
-        >
+        <span class="material-symbols-rounded inline-icon">list_alt</span>
         Ad Packages
       </button>
       <button
@@ -25,9 +23,7 @@
         [class.active]="mainTab() === TAB.SHORTS"
         (click)="switchMainTab(TAB.SHORTS)"
       >
-        <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
-          >play_circle</span
-        >
+        <span class="material-symbols-rounded inline-icon">play_circle</span>
         Shorts Packages
       </button>
     </div>
@@ -65,22 +61,23 @@
       @if (loading()) {
         <app-loader mode="inline" [loading]="true" message="Loading packages..." />
       } @else if (error()) {
-        <div class="error-state">
-          <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
-          <p>{{ error() }}</p>
-          <button class="btn btn-primary" (click)="loadPurchases()">Retry</button>
-        </div>
+        <app-empty-state
+          icon="warning"
+          title="Couldn't load packages"
+          [message]="error()!"
+          actionText="Retry"
+          (actionClicked)="loadPurchases()"
+        />
       } @else {
         @if (activeTab() === 'active') {
           @if (activePurchases().length === 0) {
-            <div class="empty-state">
-              <span class="empty-icon"
-                ><span class="material-symbols-rounded">inventory_2</span></span
-              >
-              <h3>No active packages</h3>
-              <p>Purchase a package to boost your listings</p>
-              <a [routerLink]="ROUTES.PACKAGES" class="btn btn-primary">Browse Packages</a>
-            </div>
+            <app-empty-state
+              icon="inventory_2"
+              title="No active packages"
+              message="Purchase a package to boost your listings"
+              actionText="Browse Packages"
+              [actionLink]="ROUTES.PACKAGES"
+            />
           } @else {
             <div class="purchases-grid">
               @for (purchase of activePurchases(); track purchase._id) {
@@ -135,11 +132,11 @@
 
         @if (activeTab() === 'history') {
           @if (historyPurchases().length === 0) {
-            <div class="empty-state">
-              <span class="empty-icon">📋</span>
-              <h3>No purchase history</h3>
-              <p>Your past and expired packages will appear here</p>
-            </div>
+            <app-empty-state
+              icon="receipt_long"
+              title="No purchase history"
+              message="Your past and expired packages will appear here"
+            />
           } @else {
             <div class="history-list">
               @for (purchase of historyPurchases(); track purchase._id) {
@@ -174,28 +171,21 @@
       @if (loadingShorts()) {
         <app-loader mode="inline" [loading]="true" message="Loading shorts..." />
       } @else if (shortsPurchases().length === 0) {
-        <div class="empty-state">
-          <span class="empty-icon"><span class="material-symbols-rounded">play_circle</span></span>
-          <h3>No shorts packages purchased</h3>
-          <p>Purchase a shorts package to upload more shorts and keep them active longer</p>
-          <a
-            [routerLink]="ROUTES.PACKAGES"
-            [queryParams]="{ tab: 'shorts' }"
-            class="btn btn-primary"
-            >Browse Shorts Packages</a
-          >
-        </div>
+        <app-empty-state
+          icon="play_circle"
+          title="No shorts packages purchased"
+          message="Purchase a shorts package to upload more shorts and keep them active longer"
+          actionText="Browse Shorts Packages"
+          [actionLink]="ROUTES.PACKAGES"
+          [actionQueryParams]="{ tab: 'shorts' }"
+        />
       } @else {
         <div class="purchases-grid">
           @for (purchase of shortsPurchases(); track purchase._id) {
             <div class="purchase-card card" [class.active-card]="isShortsPurchaseActive(purchase)">
               <div class="card-header">
                 <span class="badge badge-featured">
-                  <span
-                    class="material-symbols-rounded"
-                    style="font-size: 14px; vertical-align: middle"
-                    >play_circle</span
-                  >
+                  <span class="material-symbols-rounded inline-icon-sm">play_circle</span>
                   Shorts
                 </span>
                 @if (isShortsPurchaseActive(purchase)) {

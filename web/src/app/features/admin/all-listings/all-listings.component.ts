@@ -1,12 +1,10 @@
 import { Component, OnInit, signal, inject } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink, ActivatedRoute } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
 import { AdminService, PendingListing } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { LocationService } from '../../../core/services/location.service';
-import { Category } from '../../../core/models/category.model';
 import { saveState, loadState } from '../../../core/utils/state-persistence';
 import { ListingStatus } from '../../../core/constants/enums';
 import { PAGE_SIZE_DEFAULT } from '../../../core/constants/app';
@@ -21,6 +19,8 @@ import {
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 interface AdminListing {
   _id: string;
@@ -43,7 +43,14 @@ interface AdminListing {
 @Component({
   selector: 'app-all-listings',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, CustomSelectComponent, DatePickerComponent],
+  imports: [
+    FormsModule,
+    RouterLink,
+    CustomSelectComponent,
+    DatePickerComponent,
+    EmptyStateComponent,
+    PaginationComponent,
+  ],
   templateUrl: './all-listings.component.html',
   styleUrl: './all-listings.component.scss',
 })

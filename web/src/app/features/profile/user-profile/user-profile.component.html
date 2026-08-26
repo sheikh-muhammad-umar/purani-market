@@ -9,9 +9,7 @@
         <a [routerLink]="ROUTES.PROFILE_ID_VERIFICATION" class="nav-link">ID Verification</a>
         @if (authService.isAdmin()) {
           <a [routerLink]="ROUTES.ADMIN" class="nav-link admin-link">
-            <span class="material-symbols-rounded" style="font-size: 16px; vertical-align: middle"
-              >admin_panel_settings</span
-            >
+            <span class="material-symbols-rounded inline-icon">admin_panel_settings</span>
             Admin
           </a>
         }

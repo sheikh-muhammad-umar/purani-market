@@ -9,38 +9,35 @@ import {
   PLATFORM_ID,
 } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
-import { Router, RouterLink, NavigationEnd } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive, NavigationEnd } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { filter } from 'rxjs/operators';
 import { AuthService } from '../../../core/auth/auth.service';
 import { MessagingService } from '../../../core/services/messaging.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { ThemeService } from '../../../core/services/theme.service';
-import { LocationService } from '../../../core/services/location.service';
-import { CategoriesService } from '../../../core/services/categories.service';
-import { RecentSearchesService } from '../../../core/services/recent-searches.service';
-import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
-import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { LoginModalService } from '../login-modal/login-modal.service';
 import { AppBannerComponent } from '../app-banner/app-banner.component';
 import { NotificationBellComponent } from '../notification-bell/notification-bell.component';
 import { NotificationCountService } from '../../../core/services/notification-count.service';
-import { VoiceSearchComponent } from '../voice-search/voice-search.component';
-import { Province, City, Area } from '../../../core/models';
-import { STORAGE_SELECTED_LOCATION } from '../../../core/constants/storage-keys';
-import { DEFAULT_COUNTRY } from '../../../core/constants/app';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
+import { LocationPickerComponent } from '../location-picker/location-picker.component';
+import { HeaderSearchComponent } from '../header-search/header-search.component';
 import { ROUTES } from '../../../core/constants/routes';
-import {
-  SEARCH_BLUR_DELAY,
-  LOGOUT_DELAY,
-  SCROLL_THRESHOLD,
-  PLACEHOLDER_ROTATE_INTERVAL,
-} from './header.constants';
+import { LOGOUT_DELAY, SCROLL_THRESHOLD } from './header.constants';
 
 @Component({
   selector: 'app-header',
   standalone: true,
-  imports: [RouterLink, AppBannerComponent, NotificationBellComponent, VoiceSearchComponent],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    AppBannerComponent,
+    NotificationBellComponent,
+    LocationPickerComponent,
+    HeaderSearchComponent,
+  ],
   templateUrl: './header.component.html',
   styleUrls: ['./header.component.scss'],
 })
@@ -48,46 +45,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
   accountMenuOpen = signal(false);
   unreadCount = signal(0);
   scrolled = signal(false);
-  readonly defaultCountry = DEFAULT_COUNTRY;
   readonly ROUTES = ROUTES;
   private subs: Subscription[] = [];
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
 
-  // Location selector state
-  locationDropdownOpen = signal(false);
-  searchDropdownOpen = signal(false);
-  searchQuery = signal('');
-  searchPlaceholder = signal('');
-  placeholderAnimating = signal(false);
-  provinces = signal<Province[]>([]);
-  cities = signal<City[]>([]);
-  areas = signal<Area[]>([]);
-  selectedProvince = signal<Province | null>(null);
-  selectedCity = signal<City | null>(null);
-  selectedArea = signal<Area | null>(null);
-  locationLabel = signal(DEFAULT_COUNTRY);
-  locationSearch = signal('');
-
-  filteredProvinces = computed(() => {
-    const q = this.locationSearch().toLowerCase().trim();
-    return q ? this.provinces().filter((p) => p.name.toLowerCase().includes(q)) : this.provinces();
-  });
-  filteredCities = computed(() => {
-    const q = this.locationSearch().toLowerCase().trim();
-    return q ? this.cities().filter((c) => c.name.toLowerCase().includes(q)) : this.cities();
-  });
-  filteredAreas = computed(() => {
-    const q = this.locationSearch().toLowerCase().trim();
-    return q ? this.areas().filter((a) => a.name.toLowerCase().includes(q)) : this.areas();
-  });
-
-  private searchBlurTimeout: ReturnType<typeof setTimeout> | null = null;
-  private logoutTimeout: ReturnType<typeof setTimeout> | null = null;
-  private placeholderInterval: ReturnType<typeof setInterval> | null = null;
-  private categoryNames: string[] = [];
-  private categoryIndex = 0;
-
-  // Page detection — computed from router URL to avoid recalculating every CD cycle
+  // Page detection — computed from the router URL so it is not recalculated on
+  // every change-detection cycle.
   private currentUrl = signal('');
   readonly isAuthPage = computed(() => this.currentUrl().startsWith(ROUTES.AUTH));
   readonly isMessagingPage = computed(() => this.currentUrl().startsWith(ROUTES.MESSAGING));
@@ -99,23 +62,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
   readonly isAdminPage = computed(() => this.currentUrl().startsWith(ROUTES.ADMIN));
   readonly isShortsPage = computed(() => this.currentUrl().startsWith(ROUTES.SHORTS));
 
-  /** Combined computed for header scroll class and mobile search visibility */
-  readonly showScrolledHeader = computed(
-    () =>
-      this.scrolled() &&
-      !this.isAuthPage() &&
-      !this.isMessagingPage() &&
-      !this.isProfilePage() &&
-      !this.isAdminPage(),
+  /** Pages that own their own chrome and should not get the search row. */
+  private readonly isChromelessPage = computed(
+    () => this.isAuthPage() || this.isMessagingPage() || this.isProfilePage() || this.isAdminPage(),
   );
-  readonly showMobileSearch = computed(
-    () =>
-      !this.isAuthPage() &&
-      !this.isMessagingPage() &&
-      !this.isProfilePage() &&
-      !this.isAdminPage() &&
-      !this.isShortsPage(),
-  );
+
+  readonly showScrolledHeader = computed(() => this.scrolled() && !this.isChromelessPage());
+  readonly showSearch = computed(() => !this.isChromelessPage() && !this.isShortsPage());
   readonly isAuthenticated = computed(() => this.authService.isAuthenticated());
   readonly isAdmin = computed(() => this.authService.isAdmin());
 
@@ -126,15 +79,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
     public readonly themeService: ThemeService,
     private readonly router: Router,
     public readonly loginModal: LoginModalService,
-    private readonly locationService: LocationService,
-    private readonly categoriesService: CategoriesService,
-    public readonly recentSearches: RecentSearchesService,
-    private readonly tracker: ActivityTrackerService,
     public readonly notificationCount: NotificationCountService,
+    private readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
-    // Track current URL for page detection signals (safe on server)
+    // Track the current URL for the page-detection signals (safe on the server).
     this.currentUrl.set(this.router.url);
     this.subs.push(
       this.router.events
@@ -145,16 +95,12 @@ export class HeaderComponent implements OnInit, OnDestroy {
         }),
     );
 
-    // Everything below requires browser APIs (localStorage, WebSocket, etc.)
+    // Everything below needs browser APIs (localStorage, WebSocket).
     if (!this.isBrowser) return;
 
     if (this.authService.getAccessToken() && !this.authService.user()) {
       this.authService.fetchCurrentUser().subscribe();
     }
-
-    this.loadProvinces();
-    this.restoreLocationFromStorage();
-    this.startPlaceholderRotation();
 
     const userId = this.authService.user()?._id;
     if (userId) {
@@ -165,37 +111,13 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.subs.forEach((s) => s.unsubscribe());
-    if (this.searchBlurTimeout) clearTimeout(this.searchBlurTimeout);
     if (this.logoutTimeout) clearTimeout(this.logoutTimeout);
-    if (this.placeholderInterval) clearInterval(this.placeholderInterval);
   }
 
   private refreshUnreadCount(): void {
     if (!this.authService.isAuthenticated()) return;
     this.messagingService.getUnreadCount().subscribe({
       next: (res) => this.unreadCount.set(res.count),
-      error: () => {},
-    });
-  }
-
-  private startPlaceholderRotation(): void {
-    this.categoriesService.getAll().subscribe({
-      next: (categories) => {
-        this.categoryNames = categories
-          .filter((c) => c.level === 1 && c.isActive)
-          .map((c) => c.name);
-        if (this.categoryNames.length > 0) {
-          this.searchPlaceholder.set(this.categoryNames[0]);
-          this.placeholderInterval = setInterval(() => {
-            this.placeholderAnimating.set(true);
-            setTimeout(() => {
-              this.categoryIndex = (this.categoryIndex + 1) % this.categoryNames.length;
-              this.searchPlaceholder.set(this.categoryNames[this.categoryIndex]);
-              this.placeholderAnimating.set(false);
-            }, 300);
-          }, PLACEHOLDER_ROTATE_INTERVAL);
-        }
-      },
       error: () => {},
     });
   }
@@ -208,58 +130,28 @@ export class HeaderComponent implements OnInit, OnDestroy {
     this.accountMenuOpen.set(false);
   }
 
-  goToSearch(query: string): void {
-    const q = query?.trim();
-    if (q) {
-      this.recentSearches.add(q);
-      this.searchDropdownOpen.set(false);
-      this.router.navigate([ROUTES.SEARCH], { queryParams: { q } });
-    }
+  /** Formats a badge count, capping it so it cannot widen the icon. */
+  badgeCount(count: number, cap = 99): string {
+    return count > cap ? `${cap}+` : `${count}`;
   }
 
-  onVoiceSearchResult(transcript: string, inputEl: HTMLInputElement): void {
-    inputEl.value = transcript;
-    this.goToSearch(transcript);
-  }
-
-  clearSearch(inputEl: HTMLInputElement): void {
-    inputEl.value = '';
-    this.searchQuery.set('');
-    inputEl.focus();
-  }
-
-  onSearchFocus(): void {
-    if (this.recentSearches.searches().length > 0) {
-      this.searchDropdownOpen.set(true);
-    }
-  }
-
-  onSearchBlur(): void {
-    this.searchBlurTimeout = setTimeout(
-      () => this.searchDropdownOpen.set(false),
-      SEARCH_BLUR_DELAY,
-    );
-  }
-
-  selectRecentSearch(term: string, inputEl: HTMLInputElement): void {
-    inputEl.value = term;
-    this.goToSearch(term);
-  }
-
-  removeRecentSearch(term: string, event: MouseEvent): void {
-    event.stopPropagation();
+  /** Follows a link only when signed in, otherwise prompts for login. */
+  requireAuth(event: MouseEvent, target: string): void {
+    if (this.isAuthenticated()) return;
     event.preventDefault();
-    this.recentSearches.remove(term);
-    if (this.recentSearches.searches().length === 0) {
-      this.searchDropdownOpen.set(false);
-    }
+    this.loginModal.open(target);
   }
 
-  clearRecentSearches(event: MouseEvent): void {
-    event.stopPropagation();
-    event.preventDefault();
-    this.recentSearches.clear();
-    this.searchDropdownOpen.set(false);
+  /**
+   * Re-navigates to the current URL so page data refetches under the new
+   * location. Angular skips navigation to an unchanged URL, hence the bounce
+   * through `/` with `skipLocationChange` so the address bar is untouched.
+   */
+  onLocationChanged(): void {
+    const url = this.router.url;
+    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
+      this.router.navigateByUrl(url);
+    });
   }
 
   @HostListener('window:scroll')
@@ -270,209 +162,17 @@ export class HeaderComponent implements OnInit, OnDestroy {
 
   @HostListener('document:click', ['$event'])
   onDocumentClick(event: MouseEvent): void {
-    const target = event.target as HTMLElement;
-    if (
-      !target.closest('.search-location') &&
-      !target.closest('.location-dropdown') &&
-      !target.closest('.mobile-location-btn') &&
-      !target.closest('.mobile-location-dropdown')
-    ) {
-      this.locationDropdownOpen.set(false);
-    }
-    if (!target.closest('.header-search') && !target.closest('.mobile-search-wrap')) {
-      this.searchDropdownOpen.set(false);
-    }
-    if (!target.closest('.account-dropdown-wrap')) {
+    if (!(event.target as HTMLElement).closest('.account-menu')) {
       this.accountMenuOpen.set(false);
     }
   }
 
-  toggleLocationDropdown(): void {
-    this.locationDropdownOpen.update((open) => !open);
-    if (!this.locationDropdownOpen()) {
-      this.locationSearch.set('');
-    }
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    this.closeAccountMenu();
   }
 
-  private loadProvinces(): void {
-    this.locationService.getProvinces().subscribe({
-      next: (provinces) => this.provinces.set(provinces),
-      error: () => {},
-    });
-  }
-
-  selectProvince(province: Province): void {
-    this.selectedProvince.set(province);
-    this.selectedCity.set(null);
-    this.selectedArea.set(null);
-    this.cities.set([]);
-    this.areas.set([]);
-    this.locationSearch.set('');
-    this.locationService.getCities(province._id).subscribe({
-      next: (cities) => {
-        if (cities.length === 0) {
-          this.locationLabel.set(province.name);
-          this.locationDropdownOpen.set(false);
-          this.saveLocationToStorage();
-          this.reloadCurrentPage();
-        } else {
-          this.cities.set(cities);
-        }
-      },
-      error: () => {},
-    });
-  }
-
-  selectCity(city: City): void {
-    this.selectedCity.set(city);
-    this.selectedArea.set(null);
-    this.areas.set([]);
-    this.locationSearch.set('');
-    this.locationService.getAreas(city._id).subscribe({
-      next: (areas) => {
-        if (areas.length === 0) {
-          this.locationLabel.set(this.buildLabel(this.selectedProvince()?.name, city.name));
-          this.locationDropdownOpen.set(false);
-          this.saveLocationToStorage();
-          this.reloadCurrentPage();
-        } else {
-          this.areas.set(areas);
-        }
-      },
-      error: () => {},
-    });
-  }
-
-  selectArea(area: Area): void {
-    if (area.subareas.length === 0 && area.blockPhases.length === 0) {
-      this.locationLabel.set(this.buildLabel(this.selectedCity()?.name, area.name));
-      this.locationDropdownOpen.set(false);
-      this.selectedArea.set(area);
-      this.saveLocationToStorage();
-      this.reloadCurrentPage();
-    } else {
-      this.selectedArea.set(area);
-    }
-  }
-
-  selectSubItem(name: string): void {
-    this.applyLocation(this.buildLabel(this.selectedArea()?.name, name));
-  }
-
-  /** "All Pakistan" */
-  seeAllPakistan(): void {
-    this.selectedProvince.set(null);
-    this.selectedCity.set(null);
-    this.selectedArea.set(null);
-    this.cities.set([]);
-    this.areas.set([]);
-    this.applyLocation(DEFAULT_COUNTRY);
-  }
-
-  /** "All <Province>" */
-  seeAllInProvince(): void {
-    const p = this.selectedProvince();
-    if (!p) return;
-    this.applyLocation(p.name);
-  }
-
-  /** "All <City>" */
-  seeAllInCity(): void {
-    const c = this.selectedCity();
-    if (!c) return;
-    this.applyLocation(this.buildLabel(this.selectedProvince()?.name, c.name));
-  }
-
-  /** "All <Area>" */
-  seeAllInArea(): void {
-    const a = this.selectedArea();
-    if (!a) return;
-    this.applyLocation(this.buildLabel(this.selectedCity()?.name, a.name));
-  }
-
-  private applyLocation(fullLabel: string): void {
-    const previousLocation = this.locationLabel();
-    this.locationLabel.set(fullLabel);
-    this.locationDropdownOpen.set(false);
-    this.saveLocationToStorage();
-    this.tracker.track(TrackingEvent.LOCATION_CHANGE, {
-      metadata: { previousLocation, newLocation: fullLabel },
-    });
-    this.reloadCurrentPage();
-  }
-
-  goBackToProvinces(): void {
-    this.selectedProvince.set(null);
-    this.selectedCity.set(null);
-    this.selectedArea.set(null);
-    this.cities.set([]);
-    this.areas.set([]);
-    this.locationLabel.set(DEFAULT_COUNTRY);
-    this.locationSearch.set('');
-  }
-
-  goBackToCities(): void {
-    this.selectedCity.set(null);
-    this.selectedArea.set(null);
-    this.areas.set([]);
-    this.locationLabel.set(this.selectedProvince()?.name ?? DEFAULT_COUNTRY);
-    this.locationSearch.set('');
-  }
-
-  goBackToAreas(): void {
-    this.selectedArea.set(null);
-    this.locationLabel.set(this.selectedCity()?.name ?? DEFAULT_COUNTRY);
-    this.locationSearch.set('');
-  }
-
-  private buildLabel(parent: string | undefined, child: string): string {
-    return parent ? `${parent}, ${child}` : child;
-  }
-
-  private saveLocationToStorage(): void {
-    const state = {
-      label: this.locationLabel(),
-      province: this.selectedProvince(),
-      city: this.selectedCity(),
-      area: this.selectedArea(),
-    };
-    localStorage.setItem(STORAGE_SELECTED_LOCATION, JSON.stringify(state));
-  }
-
-  private reloadCurrentPage(): void {
-    const url = this.router.url;
-    this.router.navigateByUrl('/', { skipLocationChange: true }).then(() => {
-      this.router.navigateByUrl(url);
-    });
-  }
-
-  private restoreLocationFromStorage(): void {
-    try {
-      const raw = localStorage.getItem(STORAGE_SELECTED_LOCATION);
-      if (!raw) return;
-      const state = JSON.parse(raw);
-      if (state.label) this.locationLabel.set(state.label);
-      if (state.province) this.selectedProvince.set(state.province);
-      if (state.city) this.selectedCity.set(state.city);
-      if (state.area) this.selectedArea.set(state.area);
-
-      if (state.province?._id) {
-        this.locationService.getCities(state.province._id).subscribe({
-          next: (cities) => this.cities.set(cities),
-          error: () => {},
-        });
-      }
-      if (state.city?._id) {
-        this.locationService.getAreas(state.city._id).subscribe({
-          next: (areas) => this.areas.set(areas),
-          error: () => {},
-        });
-      }
-    } catch {
-      // corrupted data — ignore
-    }
-  }
-
+  private logoutTimeout: ReturnType<typeof setTimeout> | null = null;
   private loggingOut = false;
 
   logout(): void {

@@ -74,10 +74,11 @@
         <p>Loading...</p>
       </div>
     } @else if (reasons().length === 0 && !showForm) {
-      <div class="empty-state">
-        <span class="material-symbols-rounded">rule</span>
-        <p>No rejection reasons yet. Add one to get started.</p>
-      </div>
+      <app-empty-state
+        icon="rule"
+        title="No rejection reasons yet"
+        message="Add one to get started."
+      />
     } @else {
       <div class="items-list">
         @for (reason of reasons(); track reason._id) {

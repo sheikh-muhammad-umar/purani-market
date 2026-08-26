@@ -106,14 +106,13 @@
     }
 
     @if (!loading() && shorts().length === 0) {
-      <div class="empty-state">
-        @if (hasActiveFilters) {
-          No shorts match your filters.
-          <button class="btn-retry" (click)="clearFilters()">Clear</button>
-        } @else {
-          No shorts found.
-        }
-      </div>
+      <app-empty-state
+        icon="video_library"
+        [title]="hasActiveFilters ? 'No matching shorts' : 'No shorts found'"
+        [message]="hasActiveFilters ? 'No shorts match your filters.' : ''"
+        [actionText]="hasActiveFilters ? 'Clear' : ''"
+        (actionClicked)="clearFilters()"
+      />
     }
 
     @if (!loading() && shorts().length > 0) {
@@ -187,21 +186,12 @@
         }
       </div>
 
-      @if (totalPages() > 1) {
-        <div class="pagination">
-          <button class="btn-page" (click)="changePage(page() - 1)" [disabled]="page() <= 1">
-            ← Prev
-          </button>
-          <span class="page-info">Page {{ page() }} of {{ totalPages() }}</span>
-          <button
-            class="btn-page"
-            (click)="changePage(page() + 1)"
-            [disabled]="page() >= totalPages()"
-          >
-            Next →
-          </button>
-        </div>
-      }
+      <app-pagination
+        [currentPage]="page()"
+        [totalPages]="totalPages()"
+        label="Shorts pages"
+        (pageChange)="changePage($event)"
+      />
     }
   }
 
@@ -255,9 +245,13 @@
       </div>
 
       @if (filteredPendingShorts.length === 0) {
-        <div class="empty-state">
-          {{ modSearchQuery ? 'No shorts match your search.' : 'No pending shorts to review.' }}
-        </div>
+        <app-empty-state
+          icon="gavel"
+          [title]="modSearchQuery ? 'No matching shorts' : 'Moderation queue is clear'"
+          [message]="
+            modSearchQuery ? 'No shorts match your search.' : 'No pending shorts to review.'
+          "
+        />
       }
 
       <div class="card-list">
@@ -321,39 +315,31 @@
 
   <!-- Reject Modal -->
   @if (rejectingShort()) {
-    <div class="modal-overlay" (click)="rejectingShort.set(null)">
-      <div class="modal" (click)="$event.stopPropagation()">
-        <h3>Reject Short</h3>
-        <div class="form-group">
-          <label>Rejection Reason</label>
-          <textarea
-            [(ngModel)]="rejectionReason"
-            rows="3"
-            placeholder="Explain why this short is being rejected..."
-          ></textarea>
-        </div>
-        <div class="modal-actions">
-          <button class="btn-secondary" (click)="rejectingShort.set(null)">Cancel</button>
-          <button class="btn-action btn-reject" (click)="confirmReject()">Reject</button>
-        </div>
+    <app-modal title="Reject Short" size="sm" (closed)="rejectingShort.set(null)">
+      <div class="form-group">
+        <label>Rejection Reason</label>
+        <textarea
+          [(ngModel)]="rejectionReason"
+          rows="3"
+          placeholder="Explain why this short is being rejected..."
+        ></textarea>
       </div>
-    </div>
+      <div slot="footer">
+        <button class="btn btn-ghost" (click)="rejectingShort.set(null)">Cancel</button>
+        <button class="btn btn-danger" (click)="confirmReject()">Reject</button>
+      </div>
+    </app-modal>
   }
 
   <!-- Video Preview Modal -->
   @if (previewShort()) {
-    <div class="modal-overlay" (click)="previewShort.set(null)">
-      <div class="preview-modal" (click)="$event.stopPropagation()">
-        <video
-          [src]="previewShort()!.video.compressedUrl || previewShort()!.video.url"
-          controls
-          autoplay
-          class="preview-video"
-        ></video>
-        <button class="btn-close" (click)="previewShort.set(null)">
-          <span class="material-symbols-rounded">close</span>
-        </button>
-      </div>
-    </div>
+    <app-modal size="sm" (closed)="previewShort.set(null)">
+      <video
+        [src]="previewShort()!.video.compressedUrl || previewShort()!.video.url"
+        controls
+        autoplay
+        class="preview-video"
+      ></video>
+    </app-modal>
   }
 </div>

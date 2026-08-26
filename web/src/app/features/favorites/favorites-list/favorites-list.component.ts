@@ -1,26 +1,23 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
 import { FavoritesService } from '../../../core/services/favorites.service';
 import { ShortsService, ShortVideo } from '../../../core/services/shorts.service';
-import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
 import { Favorite, FavoriteListingPopulated } from '../../../core/models';
-import { PLACEHOLDER_IMAGE, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { TAB, TabType } from '../../../core/constants/enums';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
-import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
+import { ListingCardComponent } from '../../../shared/components/listing-card/listing-card.component';
+import { ShortCardComponent } from '../../../shared/components/short-card/short-card.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 
 @Component({
   selector: 'app-favorites-list',
   standalone: true,
-  imports: [CommonModule, RouterLink, ListingUrlPipe, AppLoaderComponent],
+  imports: [ListingCardComponent, ShortCardComponent, EmptyStateComponent],
   templateUrl: './favorites-list.component.html',
   styleUrls: ['./favorites-list.component.scss'],
 })
 export class FavoritesListComponent implements OnInit {
   readonly ROUTES = ROUTES;
-  readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
   readonly TAB = TAB;
   readonly SKELETON_ITEMS = [1, 2, 3, 4];
   readonly activeTab = signal<TabType>(TAB.ADS);
@@ -63,32 +60,8 @@ export class FavoritesListComponent implements OnInit {
     return favorite.productListingId;
   }
 
-  getImage(favorite: Favorite): string {
-    const listing = this.getListing(favorite);
-    if (!listing) return PLACEHOLDER_IMAGE;
-    return listing.images?.[0]?.thumbnailUrl || listing.images?.[0]?.url || PLACEHOLDER_IMAGE;
-  }
-
-  getStatusBadgeClass(status: string): string {
-    switch (status) {
-      case 'active':
-        return 'badge-success';
-      case 'sold':
-        return 'badge-sold';
-      case 'reserved':
-        return 'badge-warning';
-      case 'rejected':
-        return 'badge-error';
-      case 'pending_review':
-        return 'badge-pending';
-      default:
-        return '';
-    }
-  }
-
-  formatPrice(listing: FavoriteListingPopulated): string {
-    return `${CURRENCY_SYMBOL} ${listing.price.amount.toLocaleString()}`;
-  }
+  // Image resolution, price formatting and status badges now live in
+  // ListingCardComponent, so the local helpers for them have been removed.
 
   removeFavorite(favorite: Favorite): void {
     this.removingId.set(favorite._id);

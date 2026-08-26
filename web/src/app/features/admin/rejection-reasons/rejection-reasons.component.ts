@@ -4,6 +4,7 @@ import { FormsModule } from '@angular/forms';
 import { AdminService } from '../../../core/services/admin.service';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { ToastService } from '../../../core/services/toast.service';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 
 interface RejectionReason {
   _id: string;
@@ -17,7 +18,7 @@ interface RejectionReason {
 @Component({
   selector: 'app-rejection-reasons',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, EmptyStateComponent],
   templateUrl: './rejection-reasons.component.html',
   styleUrl: './rejection-reasons.component.scss',
 })

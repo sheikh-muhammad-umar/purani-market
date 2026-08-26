@@ -16,6 +16,8 @@ import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
 import {
   Experiment,
   ExperimentMetrics,
@@ -27,7 +29,14 @@ import {
 @Component({
   selector: 'app-experiments-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, ReactiveFormsModule, CustomSelectComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    ReactiveFormsModule,
+    CustomSelectComponent,
+    EmptyStateComponent,
+    ModalComponent,
+  ],
   templateUrl: './experiments-dashboard.component.html',
   styleUrl: './experiments-dashboard.component.scss',
 })
@@ -290,7 +299,7 @@ export class ExperimentsDashboardComponent implements OnInit {
       case 'running':
         return 'var(--success)';
       case 'paused':
-        return 'var(--warning, #f39c12)';
+        return 'var(--warning)';
       case 'completed':
         return 'var(--primary)';
       default:

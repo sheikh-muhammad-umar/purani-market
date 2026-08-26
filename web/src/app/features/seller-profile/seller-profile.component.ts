@@ -1,19 +1,27 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { UsersService, PublicSellerProfile } from '../../core/services/users.service';
 import { ListingsService } from '../../core/services/listings.service';
 import { ShortsService, ShortVideo } from '../../core/services/shorts.service';
 import { Listing } from '../../core/models';
 import { TAB, TabType } from '../../core/constants/enums';
 import { VerificationBadgesComponent } from '../../shared/components/verification-badges/verification-badges.component';
-import { ListingUrlPipe } from '../../shared/pipes/listing-url.pipe';
+import { ListingCardComponent } from '../../shared/components/listing-card/listing-card.component';
+import { ShortCardComponent } from '../../shared/components/short-card/short-card.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { extractIdFromSlug } from '../../core/utils/slug';
 
 @Component({
   selector: 'app-seller-profile',
   standalone: true,
-  imports: [CommonModule, RouterLink, VerificationBadgesComponent, ListingUrlPipe],
+  imports: [
+    CommonModule,
+    VerificationBadgesComponent,
+    ListingCardComponent,
+    ShortCardComponent,
+    EmptyStateComponent,
+  ],
   templateUrl: './seller-profile.component.html',
   styleUrl: './seller-profile.component.scss',
 })
@@ -82,12 +90,5 @@ export class SellerProfileComponent implements OnInit {
 
   formatDate(date: string): string {
     return new Date(date).toLocaleDateString('en-PK', { month: 'long', year: 'numeric' });
-  }
-
-  formatShortDuration(seconds?: number): string {
-    if (!seconds) return '0:00';
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}:${s.toString().padStart(2, '0')}`;
   }
 }

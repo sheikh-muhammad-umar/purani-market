@@ -1,513 +1,222 @@
 <app-banner />
+
+<a class="skip-link" href="#main">Skip to main content</a>
+
 <header class="app-header" [class.header-scrolled]="showScrolledHeader()">
-  <div class="header-container">
-    <!-- Logo -->
-    <a [routerLink]="ROUTES.HOME" class="logo">
-      <span class="logo-mark">M</span>
-      <span class="logo-text">Marketplace</span>
-      <span class="logo-text-mobile">Marketplace</span>
+  <div class="header-bar">
+    <a [routerLink]="ROUTES.HOME" class="brand" aria-label="Marketplace home">
+      <span class="brand-mark" aria-hidden="true">M</span>
+      <span class="brand-text">Marketplace</span>
     </a>
 
-    <!-- Search bar (desktop) -->
-    @if (!isAuthPage() && !isShortsPage()) {
+    <!-- Desktop search: location picker and query field share one pill -->
+    @if (showSearch()) {
       <div class="header-search">
-        <div class="search-location" (click)="toggleLocationDropdown()">
-          <span class="material-symbols-rounded" style="font-size: 18px">location_on</span>
-          {{ locationLabel() }}
-          <span class="material-symbols-rounded location-chevron" style="font-size: 16px"
-            >expand_more</span
-          >
-        </div>
-        @if (locationDropdownOpen()) {
-          <div class="location-dropdown">
-            <div class="location-dropdown-header">
-              @if (selectedArea()) {
-                <button class="location-back-btn" (click)="goBackToAreas()">
-                  <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span>
-                  {{ selectedArea()!.name }}
-                </button>
-              } @else if (selectedCity()) {
-                <button class="location-back-btn" (click)="goBackToCities()">
-                  <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span>
-                  {{ selectedCity()!.name }}
-                </button>
-              } @else if (selectedProvince()) {
-                <button class="location-back-btn" (click)="goBackToProvinces()">
-                  <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span>
-                  {{ selectedProvince()!.name }}
-                </button>
-              } @else {
-                <span class="location-dropdown-title">Select Location</span>
-              }
-              @if (!selectedProvince()) {
-                <button class="location-clear-btn" (click)="seeAllPakistan()">
-                  All {{ defaultCountry }}
-                </button>
-              } @else if (selectedProvince() && !selectedCity()) {
-                <button class="location-clear-btn" (click)="seeAllInProvince()">
-                  All {{ selectedProvince()!.name }}
-                </button>
-              } @else if (selectedCity() && !selectedArea()) {
-                <button class="location-clear-btn" (click)="seeAllInCity()">
-                  All {{ selectedCity()!.name }}
-                </button>
-              } @else if (selectedArea()) {
-                <button class="location-clear-btn" (click)="seeAllInArea()">
-                  All {{ selectedArea()!.name }}
-                </button>
-              }
-            </div>
-            <input
-              type="text"
-              class="location-search-input"
-              placeholder="Search location..."
-              [value]="locationSearch()"
-              (input)="locationSearch.set($any($event.target).value)"
-              (click)="$event.stopPropagation()"
-              autocomplete="off"
-            />
-            <div class="location-dropdown-list">
-              @if (!selectedProvince()) {
-                @for (province of filteredProvinces(); track province._id) {
-                  <button class="location-option" (click)="selectProvince(province)">
-                    {{ province.name }}
-                    <span class="material-symbols-rounded" style="font-size: 16px"
-                      >chevron_right</span
-                    >
-                  </button>
-                }
-                @if (filteredProvinces().length === 0) {
-                  <div class="location-empty">No match</div>
-                }
-              } @else if (!selectedCity()) {
-                @for (city of filteredCities(); track city._id) {
-                  <button class="location-option" (click)="selectCity(city)">
-                    {{ city.name }}
-                    <span class="material-symbols-rounded" style="font-size: 16px"
-                      >chevron_right</span
-                    >
-                  </button>
-                }
-                @if (filteredCities().length === 0) {
-                  <div class="location-empty">No match</div>
-                }
-              } @else if (!selectedArea()) {
-                @for (area of filteredAreas(); track area._id) {
-                  <button class="location-option" (click)="selectArea(area)">
-                    {{ area.name }}
-                    @if (area.subareas.length > 0 || area.blockPhases.length > 0) {
-                      <span class="material-symbols-rounded" style="font-size: 16px"
-                        >chevron_right</span
-                      >
-                    }
-                  </button>
-                }
-                @if (filteredAreas().length === 0) {
-                  <div class="location-empty">No match</div>
-                }
-              } @else {
-                @if (selectedArea()!.subareas.length > 0) {
-                  <div class="location-section-label">Subareas</div>
-                  @for (sub of selectedArea()!.subareas; track sub) {
-                    <button class="location-option" (click)="selectSubItem(sub)">
-                      {{ sub }}
-                    </button>
-                  }
-                }
-                @if (selectedArea()!.blockPhases.length > 0) {
-                  <div class="location-section-label">Blocks / Phases</div>
-                  @for (block of selectedArea()!.blockPhases; track block) {
-                    <button class="location-option" (click)="selectSubItem(block)">
-                      {{ block }}
-                    </button>
-                  }
-                }
-              }
-            </div>
-          </div>
-        }
-        <div class="search-divider"></div>
-        <div class="search-input-wrap">
-          <input
-            #desktopSearch
-            type="text"
-            class="search-input"
-            (keyup.enter)="goToSearch(desktopSearch.value)"
-            (input)="searchQuery.set(desktopSearch.value)"
-            (focus)="onSearchFocus()"
-            (blur)="onSearchBlur()"
-            autocomplete="off"
-          />
-          @if (!searchQuery()) {
-            <span class="animated-placeholder">
-              Find
-              <span class="placeholder-category" [class.slide-up]="placeholderAnimating()">{{
-                searchPlaceholder()
-              }}</span>
-            </span>
-          }
-        </div>
-        @if (searchQuery()) {
-          <button
-            class="search-clear-btn"
-            (click)="clearSearch(desktopSearch)"
-            type="button"
-            aria-label="Clear search"
-          >
-            <span class="material-symbols-rounded">close</span>
-          </button>
-        }
-        @if (searchDropdownOpen() && recentSearches.searches().length > 0) {
-          <div class="recent-searches-dropdown">
-            <div class="recent-searches-header">
-              <span>Recent Searches</span>
-              <button class="recent-clear-btn" (mousedown)="clearRecentSearches($event)">
-                Clear all
-              </button>
-            </div>
-            @for (term of recentSearches.searches(); track term) {
-              <button
-                class="recent-search-item"
-                (mousedown)="selectRecentSearch(term, desktopSearch)"
-              >
-                <span
-                  class="material-symbols-rounded"
-                  style="font-size: 16px; color: var(--text-muted)"
-                  >history</span
-                >
-                <span class="recent-search-text">{{ term }}</span>
-                <span class="recent-remove-btn" (mousedown)="removeRecentSearch(term, $event)">
-                  <span class="material-symbols-rounded" style="font-size: 14px">close</span>
-                </span>
-              </button>
-            }
-          </div>
-        }
-        <button class="search-circle" (click)="goToSearch(desktopSearch.value)">
-          <span class="material-symbols-rounded">search</span>
-        </button>
-        <!-- Voice Search Button -->
-        <app-voice-search (searched)="onVoiceSearchResult($event, desktopSearch)" />
+        <app-location-picker (changed)="onLocationChanged()" />
+        <span class="header-search-divider" aria-hidden="true"></span>
+        <app-header-search />
       </div>
     }
 
-    <!-- Mobile notification icon (profile page only) -->
-    @if (isProfilePage() && isAuthenticated()) {
-      <div class="mobile-profile-actions">
-        <app-notification-bell #mobileNotificationBell="notificationBell">
-          <button class="nav-icon" title="Notifications" (click)="mobileNotificationBell.toggle()">
-            <span class="material-symbols-rounded">notifications_none</span>
-            @if (mobileNotificationBell.unreadCount() > 0) {
-              <span class="icon-badge">{{
-                mobileNotificationBell.unreadCount() > 99
-                  ? '99+'
-                  : mobileNotificationBell.unreadCount()
-              }}</span>
-            }
-          </button>
-        </app-notification-bell>
-      </div>
-    }
+    <nav class="header-nav" aria-label="Account and shortcuts">
+      <button
+        type="button"
+        class="icon-btn header-theme"
+        (click)="themeService.toggle()"
+        [attr.aria-label]="
+          themeService.theme() === 'dark' ? 'Switch to light theme' : 'Switch to dark theme'
+        "
+      >
+        <span class="material-symbols-rounded" aria-hidden="true">{{
+          themeService.theme() === 'dark' ? 'light_mode' : 'dark_mode'
+        }}</span>
+      </button>
 
-    <!-- Desktop nav -->
-    <nav class="desktop-nav">
       @if (isAuthenticated()) {
-        <a [routerLink]="ROUTES.MESSAGING" class="nav-icon" title="Messages">
-          <span class="material-symbols-rounded">chat_bubble_outline</span>
+        <a
+          [routerLink]="ROUTES.MESSAGING"
+          class="icon-btn header-only-desktop"
+          aria-label="Messages"
+        >
+          <span class="material-symbols-rounded" aria-hidden="true">chat_bubble_outline</span>
           @if (unreadCount() > 0) {
-            <span class="icon-badge">{{ unreadCount() > 99 ? '99+' : unreadCount() }}</span>
+            <span class="icon-badge">
+              {{ badgeCount(unreadCount()) }}
+              <span class="sr-only">unread messages</span>
+            </span>
           }
         </a>
-        <a [routerLink]="ROUTES.SHORTS" class="nav-icon" title="Shorts">
-          <span class="material-symbols-rounded">play_circle</span>
+
+        <a [routerLink]="ROUTES.SHORTS" class="icon-btn header-only-desktop" aria-label="Shorts">
+          <span class="material-symbols-rounded" aria-hidden="true">play_circle</span>
         </a>
+
         <app-notification-bell #notificationBell="notificationBell">
-          <button class="nav-icon" title="Notifications" (click)="notificationBell.toggle()">
-            <span class="material-symbols-rounded">notifications_none</span>
+          <button
+            type="button"
+            class="icon-btn"
+            aria-label="Notifications"
+            (click)="notificationBell.toggle()"
+          >
+            <span class="material-symbols-rounded" aria-hidden="true">notifications_none</span>
             @if (notificationBell.unreadCount() > 0) {
-              <span class="icon-badge">{{
-                notificationBell.unreadCount() > 99 ? '99+' : notificationBell.unreadCount()
-              }}</span>
+              <span class="icon-badge">
+                {{ badgeCount(notificationBell.unreadCount()) }}
+                <span class="sr-only">unread notifications</span>
+              </span>
             }
           </button>
         </app-notification-bell>
 
-        <!-- Account dropdown -->
-        <div class="account-dropdown-wrap">
-          <button class="nav-icon account-trigger" (click)="toggleAccountMenu()">
-            <span class="avatar-circle">
-              <span class="material-symbols-rounded" style="font-size: 20px">person</span>
+        <div class="account-menu header-only-desktop">
+          <button
+            type="button"
+            class="icon-btn account-trigger"
+            (click)="toggleAccountMenu()"
+            [attr.aria-expanded]="accountMenuOpen()"
+            aria-haspopup="menu"
+            aria-controls="account-menu-panel"
+            aria-label="Account menu"
+          >
+            <span class="avatar" aria-hidden="true">
+              <span class="material-symbols-rounded">person</span>
             </span>
           </button>
+
           @if (accountMenuOpen()) {
-            <div class="account-dropdown" (click)="closeAccountMenu()">
-              <a [routerLink]="ROUTES.PROFILE" class="dropdown-item">
-                <span class="material-symbols-rounded">person</span> Profile
+            <div id="account-menu-panel" class="account-panel" role="menu">
+              <a [routerLink]="ROUTES.PROFILE" class="menu-item" role="menuitem">
+                <span class="material-symbols-rounded" aria-hidden="true">person</span> Profile
               </a>
-              <a [routerLink]="ROUTES.LISTINGS_MY" class="dropdown-item">
-                <span class="material-symbols-rounded">list_alt</span> My Ads
+              <a [routerLink]="ROUTES.LISTINGS_MY" class="menu-item" role="menuitem">
+                <span class="material-symbols-rounded" aria-hidden="true">list_alt</span> My ads
               </a>
-              <a [routerLink]="ROUTES.FAVORITES" class="dropdown-item">
-                <span class="material-symbols-rounded">favorite</span> Favourites
+              <a [routerLink]="ROUTES.FAVORITES" class="menu-item" role="menuitem">
+                <span class="material-symbols-rounded" aria-hidden="true">favorite</span> Favourites
               </a>
-              <a [routerLink]="ROUTES.PACKAGES" class="dropdown-item">
-                <span class="material-symbols-rounded">inventory_2</span> Packages
+              <a [routerLink]="ROUTES.PACKAGES" class="menu-item" role="menuitem">
+                <span class="material-symbols-rounded" aria-hidden="true">inventory_2</span>
+                Packages
               </a>
               @if (isAdmin()) {
-                <a [routerLink]="ROUTES.ADMIN" class="dropdown-item">
-                  <span class="material-symbols-rounded">admin_panel_settings</span> Admin Panel
+                <a [routerLink]="ROUTES.ADMIN" class="menu-item" role="menuitem">
+                  <span class="material-symbols-rounded" aria-hidden="true"
+                    >admin_panel_settings</span
+                  >
+                  Admin panel
                 </a>
               }
-              <div class="dropdown-divider"></div>
-              <a class="dropdown-item logout-item" (click)="logout()">
-                <span class="material-symbols-rounded">logout</span> Logout
-              </a>
+              <span class="menu-divider" role="separator"></span>
+              <!-- A button, not an anchor: logout is an action and needs to be
+                   reachable by keyboard. -->
+              <button
+                type="button"
+                class="menu-item menu-item-danger"
+                role="menuitem"
+                (click)="logout()"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">logout</span> Log out
+              </button>
             </div>
           }
         </div>
 
-        <a [routerLink]="ROUTES.LISTINGS_CREATE" class="post-ad-btn">
-          <span class="material-symbols-rounded" style="font-size: 18px">storefront</span>
+        <a [routerLink]="ROUTES.LISTINGS_CREATE" class="btn btn-primary btn-pill sell-cta">
+          <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
           Sell
         </a>
       } @else if (!isAuthPage()) {
-        <a [routerLink]="ROUTES.AUTH_LOGIN" class="nav-text-link">Login</a>
-        <a [routerLink]="ROUTES.AUTH_REGISTER" class="post-ad-btn">Register</a>
+        <a [routerLink]="ROUTES.AUTH_LOGIN" class="btn btn-ghost btn-pill header-only-desktop"
+          >Log in</a
+        >
+        <a [routerLink]="ROUTES.AUTH_REGISTER" class="btn btn-primary btn-pill">Register</a>
       }
     </nav>
   </div>
+
+  <!-- Mobile search row: same two components, compact variant -->
+  @if (showSearch() && !isShortsPage()) {
+    <div class="mobile-search">
+      <app-location-picker variant="compact" (changed)="onLocationChanged()" />
+      <app-header-search variant="compact" />
+    </div>
+  }
 </header>
 
-<!-- Mobile search bar -->
-@if (showMobileSearch()) {
-  <div class="mobile-search">
-    <div class="mobile-search-row">
-      <button class="mobile-location-btn" (click)="toggleLocationDropdown()">
-        <span class="material-symbols-rounded">location_on</span>
-        <span class="mobile-location-text">{{ locationLabel() }}</span>
-      </button>
-      @if (locationDropdownOpen()) {
-        <div class="mobile-location-dropdown">
-          <div class="location-dropdown-header">
-            @if (selectedArea()) {
-              <button class="location-back-btn" (click)="goBackToAreas()">
-                <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span>
-                {{ selectedArea()!.name }}
-              </button>
-            } @else if (selectedCity()) {
-              <button class="location-back-btn" (click)="goBackToCities()">
-                <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span>
-                {{ selectedCity()!.name }}
-              </button>
-            } @else if (selectedProvince()) {
-              <button class="location-back-btn" (click)="goBackToProvinces()">
-                <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span>
-                {{ selectedProvince()!.name }}
-              </button>
-            } @else {
-              <span class="location-dropdown-title">Select Location</span>
-            }
-            @if (!selectedProvince()) {
-              <button class="location-clear-btn" (click)="seeAllPakistan()">
-                All {{ defaultCountry }}
-              </button>
-            } @else if (selectedProvince() && !selectedCity()) {
-              <button class="location-clear-btn" (click)="seeAllInProvince()">
-                All {{ selectedProvince()!.name }}
-              </button>
-            } @else if (selectedCity() && !selectedArea()) {
-              <button class="location-clear-btn" (click)="seeAllInCity()">
-                All {{ selectedCity()!.name }}
-              </button>
-            } @else if (selectedArea()) {
-              <button class="location-clear-btn" (click)="seeAllInArea()">
-                All {{ selectedArea()!.name }}
-              </button>
-            }
-          </div>
-          <input
-            type="text"
-            class="location-search-input"
-            placeholder="Search location..."
-            [value]="locationSearch()"
-            (input)="locationSearch.set($any($event.target).value)"
-            (click)="$event.stopPropagation()"
-            autocomplete="off"
-          />
-          <div class="location-dropdown-list">
-            @if (!selectedProvince()) {
-              @for (province of filteredProvinces(); track province._id) {
-                <button class="location-option" (click)="selectProvince(province)">
-                  {{ province.name }}
-                  <span class="material-symbols-rounded" style="font-size: 16px"
-                    >chevron_right</span
-                  >
-                </button>
-              }
-              @if (filteredProvinces().length === 0) {
-                <div class="location-empty">No match</div>
-              }
-            } @else if (!selectedCity()) {
-              @for (city of filteredCities(); track city._id) {
-                <button class="location-option" (click)="selectCity(city)">
-                  {{ city.name }}
-                  <span class="material-symbols-rounded" style="font-size: 16px"
-                    >chevron_right</span
-                  >
-                </button>
-              }
-              @if (filteredCities().length === 0) {
-                <div class="location-empty">No match</div>
-              }
-            } @else if (!selectedArea()) {
-              @for (area of filteredAreas(); track area._id) {
-                <button class="location-option" (click)="selectArea(area)">
-                  {{ area.name }}
-                  @if (area.subareas.length > 0 || area.blockPhases.length > 0) {
-                    <span class="material-symbols-rounded" style="font-size: 16px"
-                      >chevron_right</span
-                    >
-                  }
-                </button>
-              }
-              @if (filteredAreas().length === 0) {
-                <div class="location-empty">No match</div>
-              }
-            } @else {
-              @if (selectedArea()!.subareas.length > 0) {
-                <div class="location-section-label">Subareas</div>
-                @for (sub of selectedArea()!.subareas; track sub) {
-                  <button class="location-option" (click)="selectSubItem(sub)">
-                    {{ sub }}
-                  </button>
-                }
-              }
-              @if (selectedArea()!.blockPhases.length > 0) {
-                <div class="location-section-label">Blocks / Phases</div>
-                @for (block of selectedArea()!.blockPhases; track block) {
-                  <button class="location-option" (click)="selectSubItem(block)">
-                    {{ block }}
-                  </button>
-                }
-              }
-            }
-          </div>
-        </div>
-      }
-      <div class="mobile-search-wrap">
-        <div class="search-input-wrap">
-          <input
-            #mobileSearch
-            type="text"
-            class="search-input"
-            (keyup.enter)="goToSearch(mobileSearch.value)"
-            (input)="searchQuery.set(mobileSearch.value)"
-            (focus)="onSearchFocus()"
-            (blur)="onSearchBlur()"
-            autocomplete="off"
-          />
-          @if (!searchQuery()) {
-            <span class="animated-placeholder">
-              Find
-              <span class="placeholder-category" [class.slide-up]="placeholderAnimating()">{{
-                searchPlaceholder()
-              }}</span>
-            </span>
-          }
-        </div>
-        @if (searchQuery()) {
-          <button
-            class="search-clear-btn"
-            (click)="clearSearch(mobileSearch)"
-            type="button"
-            aria-label="Clear search"
-          >
-            <span class="material-symbols-rounded">close</span>
-          </button>
-        }
-        @if (searchDropdownOpen() && recentSearches.searches().length > 0) {
-          <div class="recent-searches-dropdown mobile-recent">
-            <div class="recent-searches-header">
-              <span>Recent Searches</span>
-              <button class="recent-clear-btn" (mousedown)="clearRecentSearches($event)">
-                Clear all
-              </button>
-            </div>
-            @for (term of recentSearches.searches(); track term) {
-              <button
-                class="recent-search-item"
-                (mousedown)="selectRecentSearch(term, mobileSearch)"
-              >
-                <span
-                  class="material-symbols-rounded"
-                  style="font-size: 16px; color: var(--text-muted)"
-                  >history</span
-                >
-                <span class="recent-search-text">{{ term }}</span>
-                <span class="recent-remove-btn" (mousedown)="removeRecentSearch(term, $event)">
-                  <span class="material-symbols-rounded" style="font-size: 14px">close</span>
-                </span>
-              </button>
-            }
-          </div>
-        }
-        <button class="mobile-search-btn" (click)="goToSearch(mobileSearch.value)">
-          <span class="material-symbols-rounded" style="font-size: 18px">search</span>
-        </button>
-        <!-- Mobile Voice Search Button -->
-        <app-voice-search [mobile]="true" (searched)="onVoiceSearchResult($event, mobileSearch)" />
-      </div>
-    </div>
-  </div>
-}
-
-<!-- Mobile Bottom Navigation -->
+<!-- Mobile bottom navigation -->
 @if (!isAuthPage() && !isChatOpen()) {
-  <nav class="mobile-bottom-nav">
-    <a [routerLink]="ROUTES.HOME" class="bottom-nav-item">
-      <span class="material-symbols-rounded bottom-icon">home</span>
+  <nav class="bottom-nav" aria-label="Main">
+    <a
+      [routerLink]="ROUTES.HOME"
+      class="bottom-item"
+      routerLinkActive="is-active"
+      [routerLinkActiveOptions]="{ exact: true }"
+      #homeLink="routerLinkActive"
+      [attr.aria-current]="homeLink.isActive ? 'page' : null"
+    >
+      <span class="material-symbols-rounded bottom-icon" aria-hidden="true">home</span>
       <span class="bottom-label">Home</span>
     </a>
+
     <a
-      [routerLink]="isAuthenticated() ? ROUTES.MESSAGING : null"
-      (click)="!isAuthenticated() && loginModal.open(ROUTES.MESSAGING)"
-      class="bottom-nav-item"
+      [routerLink]="ROUTES.MESSAGING"
+      class="bottom-item"
+      routerLinkActive="is-active"
+      #chatLink="routerLinkActive"
+      [attr.aria-current]="chatLink.isActive ? 'page' : null"
+      (click)="requireAuth($event, ROUTES.MESSAGING)"
     >
-      <span class="material-symbols-rounded bottom-icon" style="position: relative">
-        chat_bubble_outline
+      <span class="bottom-icon-wrap">
+        <span class="material-symbols-rounded bottom-icon" aria-hidden="true"
+          >chat_bubble_outline</span
+        >
         @if (unreadCount() > 0) {
-          <span class="bottom-badge">{{ unreadCount() > 9 ? '9+' : unreadCount() }}</span>
+          <span class="bottom-badge">
+            {{ badgeCount(unreadCount(), 9) }}
+            <span class="sr-only">unread messages</span>
+          </span>
         }
       </span>
       <span class="bottom-label">Chat</span>
     </a>
+
     <a
-      [routerLink]="isAuthenticated() ? ROUTES.LISTINGS_CREATE : null"
-      (click)="!isAuthenticated() && loginModal.open(ROUTES.LISTINGS_CREATE)"
-      class="bottom-nav-item sell-item"
+      [routerLink]="ROUTES.LISTINGS_CREATE"
+      class="bottom-item bottom-sell"
+      (click)="requireAuth($event, ROUTES.LISTINGS_CREATE)"
     >
-      <span class="sell-btn">
-        <span class="sell-btn-inner">
-          <span class="material-symbols-rounded sell-icon">storefront</span>
-        </span>
+      <span class="sell-fab">
+        <span class="material-symbols-rounded" aria-hidden="true">storefront</span>
       </span>
-      <span class="bottom-label sell-label">Sell</span>
+      <span class="bottom-label bottom-label-sell">Sell</span>
     </a>
-    <a [routerLink]="ROUTES.SHORTS" class="bottom-nav-item">
-      <span class="material-symbols-rounded bottom-icon">play_circle</span>
+
+    <a
+      [routerLink]="ROUTES.SHORTS"
+      class="bottom-item"
+      routerLinkActive="is-active"
+      #shortsLink="routerLinkActive"
+      [attr.aria-current]="shortsLink.isActive ? 'page' : null"
+    >
+      <span class="material-symbols-rounded bottom-icon" aria-hidden="true">play_circle</span>
       <span class="bottom-label">Shorts</span>
     </a>
+
     <a
-      [routerLink]="isAuthenticated() ? ROUTES.PROFILE : null"
-      (click)="!isAuthenticated() && loginModal.open(ROUTES.PROFILE)"
-      class="bottom-nav-item"
+      [routerLink]="ROUTES.PROFILE"
+      class="bottom-item"
+      routerLinkActive="is-active"
+      #profileLink="routerLinkActive"
+      [attr.aria-current]="profileLink.isActive ? 'page' : null"
+      (click)="requireAuth($event, ROUTES.PROFILE)"
     >
-      <span class="material-symbols-rounded bottom-icon" style="position: relative">
-        person_outline
+      <span class="bottom-icon-wrap">
+        <span class="material-symbols-rounded bottom-icon" aria-hidden="true">person_outline</span>
         @if (notificationCount.unreadCount() > 0) {
-          <span class="bottom-badge">{{
-            notificationCount.unreadCount() > 9 ? '9+' : notificationCount.unreadCount()
-          }}</span>
+          <span class="bottom-badge">
+            {{ badgeCount(notificationCount.unreadCount(), 9) }}
+            <span class="sr-only">unread notifications</span>
+          </span>
         }
       </span>
       <span class="bottom-label">Account</span>

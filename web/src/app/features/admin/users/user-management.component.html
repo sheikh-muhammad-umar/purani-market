@@ -88,24 +88,27 @@
     </div>
   }
   @if (error()) {
-    <div class="error-state">
-      <p>{{ error() }}</p>
-      <button class="btn-retry" (click)="loadUsers()">Retry</button>
-    </div>
+    <app-empty-state
+      icon="warning"
+      title="Couldn't load users"
+      [message]="error() || ''"
+      actionText="Retry"
+      (actionClicked)="loadUsers()"
+    />
   }
 
   @if (!loading() && !error()) {
     @if ((users() || []).length === 0) {
-      <div class="empty-state">
-        @if (hasActiveFilters || searchQuery) {
-          No users match your filters.
-          <button class="btn-retry" style="margin-left: 8px" (click)="clearFilters()">
-            Clear Filters
-          </button>
-        } @else {
-          No users found.
-        }
-      </div>
+      @if (hasActiveFilters || searchQuery) {
+        <app-empty-state
+          icon="filter_alt_off"
+          title="No users match your filters"
+          actionText="Clear Filters"
+          (actionClicked)="clearFilters()"
+        />
+      } @else {
+        <app-empty-state icon="group" title="No users found" />
+      }
     }
 
     <div class="user-cards">
@@ -296,74 +299,54 @@
       }
     </div>
 
-    @if (totalPages() > 1) {
-      <div class="pagination">
-        <button
-          class="btn-page"
-          [disabled]="currentPage() === 1"
-          (click)="goToPage(currentPage() - 1)"
-        >
-          ← Prev
-        </button>
-        @for (page of pages(); track page) {
-          <button class="btn-page" [class.active]="page === currentPage()" (click)="goToPage(page)">
-            {{ page }}
-          </button>
-        }
-        <button
-          class="btn-page"
-          [disabled]="currentPage() === totalPages()"
-          (click)="goToPage(currentPage() + 1)"
-        >
-          Next →
-        </button>
-      </div>
-    }
+    <app-pagination
+      [currentPage]="currentPage()"
+      [totalPages]="totalPages()"
+      [siblings]="2"
+      label="Users pagination"
+      (pageChange)="goToPage($event)"
+    />
   }
 </div>
 
 <!-- Permissions Modal -->
 @if (permissionsUserId) {
-  <div class="modal-overlay" (click)="closePermissions()">
-    <div class="modal-content" (click)="$event.stopPropagation()">
-      <div class="modal-header">
-        <h2>Permissions — {{ permissionsUserName }}</h2>
-        <button class="modal-close" (click)="closePermissions()">
-          <span class="material-symbols-rounded">close</span>
-        </button>
-      </div>
-      <div class="modal-body">
-        @for (group of permissionGroups; track group.group) {
-          <div class="perm-group">
-            <label class="perm-group-header">
-              <input
-                type="checkbox"
-                [checked]="isGroupAllSelected(group.group)"
-                (change)="toggleGroupAll(group.group)"
-              />
-              <span class="perm-group-name">{{ formatGroupName(group.group) }}</span>
-            </label>
-            <div class="perm-items">
-              @for (perm of group.permissions; track perm.value) {
-                <label class="perm-item" [class.checked]="selectedPermissions.has(perm.value)">
-                  <input
-                    type="checkbox"
-                    [checked]="selectedPermissions.has(perm.value)"
-                    (change)="togglePermission(perm.value)"
-                  />
-                  <span>{{ formatActionName(perm.action) }}</span>
-                </label>
-              }
-            </div>
+  <app-modal
+    [title]="'Permissions — ' + permissionsUserName"
+    size="md"
+    (closed)="closePermissions()"
+  >
+    <div class="perm-groups">
+      @for (group of permissionGroups; track group.group) {
+        <div class="perm-group">
+          <label class="perm-group-header">
+            <input
+              type="checkbox"
+              [checked]="isGroupAllSelected(group.group)"
+              (change)="toggleGroupAll(group.group)"
+            />
+            <span class="perm-group-name">{{ formatGroupName(group.group) }}</span>
+          </label>
+          <div class="perm-items">
+            @for (perm of group.permissions; track perm.value) {
+              <label class="perm-item" [class.checked]="selectedPermissions.has(perm.value)">
+                <input
+                  type="checkbox"
+                  [checked]="selectedPermissions.has(perm.value)"
+                  (change)="togglePermission(perm.value)"
+                />
+                <span>{{ formatActionName(perm.action) }}</span>
+              </label>
+            }
           </div>
-        }
-      </div>
-      <div class="modal-footer">
-        <button class="btn-secondary" (click)="closePermissions()">Cancel</button>
-        <button class="btn-primary" [disabled]="savingPermissions" (click)="savePermissions()">
-          {{ savingPermissions ? 'Saving...' : 'Save Permissions' }}
-        </button>
-      </div>
+        </div>
+      }
     </div>
-  </div>
+    <div slot="footer">
+      <button class="btn btn-ghost" (click)="closePermissions()">Cancel</button>
+      <button class="btn btn-primary" [disabled]="savingPermissions" (click)="savePermissions()">
+        {{ savingPermissions ? 'Saving...' : 'Save Permissions' }}
+      </button>
+    </div>
+  </app-modal>
 }

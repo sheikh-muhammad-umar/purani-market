@@ -7,7 +7,7 @@
   @if (error()) {
     <div class="error-state">
       <p>{{ error() }}</p>
-      <button class="btn-retry" (click)="loadPackages()">Retry</button>
+      <button class="btn btn-primary" (click)="loadPackages()">Retry</button>
     </div>
   }
 
@@ -26,7 +26,7 @@
       <div class="list-panel">
         <div class="list-header">
           <h2>Ad Packages</h2>
-          <button class="btn-primary" (click)="openCreateForm()" [disabled]="saving()">
+          <button class="btn btn-primary" (click)="openCreateForm()" [disabled]="saving()">
             + New Package
           </button>
         </div>
@@ -52,13 +52,20 @@
         </div>
 
         @if (filteredPackages.length === 0) {
-          <div class="empty-list">
-            {{
+          <app-empty-state
+            icon="inventory_2"
+            [compact]="true"
+            [title]="
+              searchQuery || filterType || filterStatus
+                ? 'No matching packages'
+                : 'No packages found'
+            "
+            [message]="
               searchQuery || filterType || filterStatus
                 ? 'No packages match your filters.'
-                : 'No packages found. Create one to get started.'
-            }}
-          </div>
+                : 'Create one to get started.'
+            "
+          />
         }
 
         @if (filteredPackages.length > 0) {
@@ -290,13 +297,13 @@
 
             <div class="form-actions">
               <button
-                class="btn-primary"
+                class="btn btn-primary"
                 (click)="activePanel === 'create' ? submitCreate() : submitEdit()"
                 [disabled]="saving() || !formName.trim()"
               >
                 {{ saving() ? 'Saving...' : activePanel === 'create' ? 'Create' : 'Save Changes' }}
               </button>
-              <button class="btn-secondary" (click)="cancelForm()" [disabled]="saving()">
+              <button class="btn btn-ghost" (click)="cancelForm()" [disabled]="saving()">
                 Cancel
               </button>
             </div>

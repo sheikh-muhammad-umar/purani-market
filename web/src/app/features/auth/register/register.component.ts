@@ -30,7 +30,7 @@ const MIN_PASSWORD_LENGTH = 5;
   standalone: true,
   imports: [CommonModule, ReactiveFormsModule, RouterLink],
   templateUrl: './register.component.html',
-  styleUrl: './register.component.scss',
+  styleUrls: ['../login/login.component.scss', './register.component.scss'],
 })
 export class RegisterComponent {
   readonly ROUTES = ROUTES;

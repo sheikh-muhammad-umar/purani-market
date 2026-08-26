@@ -12,11 +12,13 @@ import { CURRENCY_SYMBOL, PACKAGE_TYPE_LABELS } from '../../../core/constants/ap
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
 import { PackageType as PackageTypeEnum, TAB, TabType } from '../../../core/constants/enums';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 
 @Component({
   selector: 'app-package-list',
   standalone: true,
-  imports: [RouterLink, FormsModule, CustomSelectComponent],
+  imports: [RouterLink, FormsModule, CustomSelectComponent, EmptyStateComponent, SkeletonComponent],
   templateUrl: './package-list.component.html',
   styleUrls: ['./package-list.component.scss'],
 })

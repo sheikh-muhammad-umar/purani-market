@@ -11,7 +11,7 @@
 
   <!-- Error toast -->
   @if (actionError()) {
-    <div class="error-toast">
+    <div class="alert alert-error error-toast">
       <span>{{ actionError() }}</span>
       <button (click)="actionError.set(null)">&times;</button>
     </div>

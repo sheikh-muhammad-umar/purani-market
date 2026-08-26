@@ -1,20 +1,20 @@
 .my-shorts-page {
   max-width: 800px;
   margin: 0 auto;
-  padding: 24px 16px;
+  padding: var(--space-3) var(--space-2);
 }
 .page-header {
   margin-bottom: 20px;
 }
 .back-link {
-  color: #6b7280;
+  color: var(--text-secondary);
   text-decoration: none;
-  font-size: 14px;
+  font-size: var(--text-sm);
 }
 .page-header h1 {
-  font-size: 24px;
-  font-weight: 700;
-  margin-top: 8px;
+  font-size: var(--text-xl);
+  font-weight: var(--weight-bold);
+  margin-top: var(--space-1);
 }
 .stats-grid {
   display: grid;
@@ -24,42 +24,24 @@
 }
 .stat-card {
   text-align: center;
-  padding: 12px 8px;
-  background: #f9fafb;
+  padding: 12px var(--space-1);
+  background: var(--surface-secondary);
   border-radius: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border);
 }
 .stat-value {
   display: block;
   font-size: 18px;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
 }
 .stat-label {
   font-size: 11px;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 .actions-bar {
   display: flex;
   gap: 12px;
-  margin-bottom: 24px;
-}
-.btn-primary {
-  padding: 10px 20px;
-  background: var(--primary, #0da5c3);
-  color: white;
-  border-radius: 8px;
-  text-decoration: none;
-  font-size: 14px;
-  font-weight: 500;
-}
-.btn-secondary {
-  padding: 10px 20px;
-  background: white;
-  color: #374151;
-  border: 1px solid #d1d5db;
-  border-radius: 8px;
-  text-decoration: none;
-  font-size: 14px;
+  margin-bottom: var(--space-3);
 }
 .shorts-grid {
   display: flex;
@@ -70,13 +52,13 @@
   display: flex;
   gap: 12px;
   padding: 12px;
-  border: 1px solid #e5e7eb;
-  border-radius: 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
   align-items: center;
 }
 .short-item.status-rejected {
-  border-color: #fecaca;
-  background: #fef2f2;
+  border-color: var(--error-border);
+  background: var(--error-bg);
 }
 .short-item.status-expired {
   opacity: 0.6;
@@ -87,6 +69,7 @@
   height: 120px;
   border-radius: 8px;
   overflow: hidden;
+  /* Permanently dark base behind letterboxed portrait video */
   background: #1f2937;
   flex-shrink: 0;
 }
@@ -95,57 +78,62 @@
   height: 100%;
   object-fit: cover;
 }
+.short-thumb-skeleton {
+  flex-shrink: 0;
+}
 .thumb-placeholder {
   display: flex;
   align-items: center;
   justify-content: center;
   height: 100%;
-  font-size: 24px;
+  font-size: var(--text-xl);
+  /* Sits on the permanently dark thumb background */
+  color: #fff;
 }
 .duration-badge {
   position: absolute;
-  bottom: 4px;
-  right: 4px;
+  bottom: var(--space-half);
+  right: var(--space-half);
   background: rgba(0, 0, 0, 0.7);
-  color: white;
+  color: #fff;
   font-size: 10px;
-  padding: 2px 4px;
+  padding: 2px var(--space-half);
   border-radius: 3px;
 }
 .status-badge {
   position: absolute;
-  top: 4px;
-  left: 4px;
+  top: var(--space-half);
+  left: var(--space-half);
   font-size: 9px;
   padding: 2px 6px;
   border-radius: 3px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   text-transform: uppercase;
 }
 .status-badge.active {
-  background: #d1fae5;
-  color: #065f46;
+  background: var(--success-bg);
+  color: var(--success-text);
 }
 .status-badge.pending_review {
-  background: #fef3c7;
-  color: #92400e;
+  background: var(--warning-bg);
+  color: var(--warning-text);
 }
 .status-badge.rejected {
-  background: #fee2e2;
-  color: #991b1b;
+  background: var(--error-bg);
+  color: var(--error-text);
 }
 .status-badge.expired {
-  background: #e5e7eb;
-  color: #374151;
+  background: var(--badge-bg);
+  color: var(--badge-text);
 }
 .short-details {
   flex: 1;
   min-width: 0;
 }
 .short-caption {
-  font-size: 14px;
-  font-weight: 500;
-  margin-bottom: 4px;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-medium);
+  margin-bottom: var(--space-half);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -153,46 +141,27 @@
 .short-meta {
   display: flex;
   gap: 12px;
-  font-size: 12px;
-  color: #6b7280;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+}
+.meta-icon {
+  font-size: var(--text-sm);
+  vertical-align: middle;
 }
 .expiry {
-  font-size: 12px;
-  color: #6b7280;
-  margin-top: 4px;
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  margin-top: var(--space-half);
 }
 .expiry.expiring-soon {
-  color: #dc2626;
-  font-weight: 500;
+  color: var(--error);
+  font-weight: var(--weight-medium);
 }
 .rejection-reason {
-  font-size: 12px;
-  color: #dc2626;
-  margin-top: 4px;
+  font-size: var(--text-xs);
+  color: var(--error);
+  margin-top: var(--space-half);
 }
 .short-actions {
   flex-shrink: 0;
-}
-.btn-delete {
-  padding: 6px 12px;
-  background: #fee2e2;
-  color: #dc2626;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-size: 12px;
-}
-.loading {
-  text-align: center;
-  padding: 40px;
-  color: #6b7280;
-}
-.empty-state {
-  text-align: center;
-  padding: 60px 20px;
-  color: #6b7280;
-}
-.empty-state .btn-primary {
-  display: inline-block;
-  margin-top: 16px;
 }

@@ -1,19 +1,20 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { CategoryModalComponent } from '../../../shared/components/category-modal/category-modal.component';
+import { CategoryCardComponent } from '../../../shared/components/category-card/category-card.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { Category } from '../../../core/models';
 import { CATEGORY_ICONS_PATH, DEFAULT_CATEGORY_ICON } from '../../../core/constants/app';
-import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 @Component({
   selector: 'app-category-browse',
   standalone: true,
-  imports: [CommonModule, CategoryModalComponent, AppLoaderComponent],
+  imports: [CategoryModalComponent, CategoryCardComponent, EmptyStateComponent],
   templateUrl: './category-browse.component.html',
   styleUrls: ['./category-browse.component.scss'],
 })
 export class CategoryBrowseComponent implements OnInit {
+  readonly SKELETON_ITEMS = Array.from({ length: 12 }, (_, i) => i);
   readonly allCategories = signal<Category[]>([]);
   readonly loading = signal(true);
 
@@ -38,6 +39,13 @@ export class CategoryBrowseComponent implements OnInit {
 
   getSubcategoryCount(categoryId: string): number {
     return this.allCategories().filter((c) => c.parentId === categoryId && c.isActive).length;
+  }
+
+  /** Empty string when there are none, so the card omits the line entirely. */
+  subcategoryLabel(categoryId: string): string {
+    const count = this.getSubcategoryCount(categoryId);
+    if (count === 0) return '';
+    return `${count} subcategor${count === 1 ? 'y' : 'ies'}`;
   }
 
   openCategoryModal(category: Category): void {

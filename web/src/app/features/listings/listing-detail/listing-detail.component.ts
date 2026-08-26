@@ -1,4 +1,12 @@
-import { Component, OnInit, signal, computed } from '@angular/core';
+import {
+  Component,
+  ElementRef,
+  OnDestroy,
+  OnInit,
+  ViewChild,
+  signal,
+  computed,
+} from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { DomSanitizer, SafeResourceUrl } from '@angular/platform-browser';
@@ -9,8 +17,9 @@ import { AuthService } from '../../../core/auth/auth.service';
 import { LoginModalService } from '../../../shared/components/login-modal/login-modal.service';
 import { Listing, Review } from '../../../core/models';
 import { VerificationBadgesComponent } from '../../../shared/components/verification-badges/verification-badges.component';
+import { ListingCardComponent } from '../../../shared/components/listing-card/listing-card.component';
 import { extractIdFromSlug, slugify } from '../../../core/utils/slug';
-import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
+import { PriceFormatPipe } from '../../../shared/pipes/price-format.pipe';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { PLACEHOLDER_IMAGE, CURRENCY_SYMBOL } from '../../../core/constants/app';
@@ -29,14 +38,15 @@ import { AppLoaderComponent } from '../../../shared/components/app-loader/app-lo
   imports: [
     CommonModule,
     RouterLink,
-    ListingUrlPipe,
+    PriceFormatPipe,
     VerificationBadgesComponent,
+    ListingCardComponent,
     AppLoaderComponent,
   ],
   templateUrl: './listing-detail.component.html',
   styleUrls: ['./listing-detail.component.scss'],
 })
-export class ListingDetailComponent implements OnInit {
+export class ListingDetailComponent implements OnInit, OnDestroy {
   readonly ROUTES = ROUTES;
   readonly ListingStatus = ListingStatus;
   readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
@@ -80,6 +90,46 @@ export class ListingDetailComponent implements OnInit {
 
   // Owner actions
   actionLoading = signal(false);
+
+  /**
+   * Whether the fixed mobile contact bar should be shown.
+   *
+   * On mobile the price card is reordered to sit just under the title, so the
+   * bar would duplicate a CTA that's already on screen. It is revealed only
+   * once that card scrolls out of view.
+   */
+  readonly contactBarVisible = signal(false);
+
+  private priceCardObserver?: IntersectionObserver;
+
+  /**
+   * Setter rather than a signal query with `effect()` on purpose: the spec
+   * constructs this component with `new`, which is outside an injection
+   * context. Angular only calls this setter during change detection, so manual
+   * construction is unaffected.
+   */
+  @ViewChild('priceCard')
+  set priceCardRef(ref: ElementRef<HTMLElement> | undefined) {
+    this.observePriceCard(ref?.nativeElement);
+  }
+
+  private observePriceCard(el: HTMLElement | undefined): void {
+    this.priceCardObserver?.disconnect();
+    this.priceCardObserver = undefined;
+
+    // Absent during server-side rendering
+    if (!el || typeof IntersectionObserver === 'undefined') return;
+
+    this.priceCardObserver = new IntersectionObserver(
+      (entries) => this.contactBarVisible.set(!entries[0].isIntersecting),
+      { threshold: 0 },
+    );
+    this.priceCardObserver.observe(el);
+  }
+
+  ngOnDestroy(): void {
+    this.priceCardObserver?.disconnect();
+  }
 
   constructor(
     private readonly route: ActivatedRoute,

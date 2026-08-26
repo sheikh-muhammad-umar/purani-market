@@ -22,6 +22,17 @@
   margin-top: var(--space-half);
 }
 
+/* Material Symbols sitting inline with label text */
+.inline-icon {
+  font-size: 16px;
+  vertical-align: middle;
+}
+
+.inline-icon-sm {
+  font-size: var(--text-sm);
+  vertical-align: middle;
+}
+
 /* Category Filter */
 .filter-bar {
   display: flex;
@@ -32,31 +43,14 @@
 
 .filter-label {
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--text-secondary);
   white-space: nowrap;
 }
 
-.filter-select {
-  padding: var(--space-half) var(--space-1);
-  border: 1px solid var(--border);
-  border-radius: var(--radius);
-  background: var(--surface);
-  color: var(--text-primary);
-  font-size: var(--text-sm);
-  min-width: 180px;
-  cursor: pointer;
-
-  &:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 2px rgba(var(--primary-rgb, 59, 130, 246), 0.15);
-  }
-}
-
 .main-tabs {
   display: flex;
-  gap: 4px;
+  gap: var(--space-half);
   margin-bottom: var(--space-3);
   border-bottom: 1px solid var(--border);
 }
@@ -71,12 +65,12 @@
   border-bottom: 2px solid transparent;
   cursor: pointer;
   font-size: var(--text-sm);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   font-family: inherit;
   color: var(--text-secondary);
   transition:
-    color 0.2s,
-    border-color 0.2s;
+    color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
 
   &.active {
     color: var(--primary);
@@ -100,14 +94,14 @@
   border: none;
   background: none;
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--text-secondary);
   cursor: pointer;
   border-bottom: 2px solid transparent;
   margin-bottom: -2px;
   transition:
-    color 0.2s ease,
-    border-color 0.2s ease;
+    color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out);
 
   &:hover {
     color: var(--primary);
@@ -117,29 +111,6 @@
     color: var(--primary);
     border-bottom-color: var(--primary);
   }
-}
-
-.empty-state,
-.error-state {
-  text-align: center;
-  padding: var(--space-8) var(--space-2);
-}
-
-.empty-icon,
-.error-icon {
-  font-size: 3rem;
-  display: block;
-  margin-bottom: var(--space-1);
-}
-
-.empty-state h3 {
-  margin-bottom: var(--space-1);
-}
-
-.empty-state p,
-.error-state p {
-  color: var(--text-secondary);
-  margin-bottom: var(--space-3);
 }
 
 /* Active Packages Grid */
@@ -174,7 +145,7 @@
 
 .remaining-days {
   font-size: var(--text-sm);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--accent);
 }
 
@@ -199,12 +170,12 @@
 }
 
 .meter-value {
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--text-primary);
 }
 
 .meter-bar {
-  height: 8px;
+  height: var(--space-1);
   background: var(--border);
   border-radius: var(--radius-full);
   overflow: hidden;
@@ -214,7 +185,7 @@
   height: 100%;
   background: var(--primary);
   border-radius: var(--radius-full);
-  transition: width 0.3s ease;
+  transition: width var(--duration-slow) var(--ease-out);
 }
 
 .detail-rows {
@@ -230,7 +201,7 @@
   color: var(--text-secondary);
 
   span:last-child {
-    font-weight: 500;
+    font-weight: var(--weight-medium);
     color: var(--text-primary);
   }
 }
@@ -266,7 +237,7 @@
 }
 
 .history-type {
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   font-size: var(--text-sm);
 }
 
@@ -284,20 +255,21 @@
 
 .history-price {
   font-size: var(--text-lg);
-  font-weight: 700;
+  font-weight: var(--weight-bold);
 }
 
+/* --info resolves to the same hue as --primary in both themes */
 .badge-pending {
   background-color: var(--info);
-  color: #fff;
+  color: var(--on-primary);
 }
 
 .badge-warning {
   background-color: var(--warning);
-  color: var(--text-primary);
+  color: var(--on-accent);
 }
 
-@media (max-width: 480px) {
+@media (max-width: 425px) {
   .page-header {
     flex-direction: column;
   }

@@ -23,9 +23,12 @@
 }
 
 /* Branding Panel */
+/* This panel is deliberately teal in both themes, so its colours are literals
+   rather than tokens. They are the AA-safe teals: white body text needs 4.5:1
+   and the old #0da5c3 end of the gradient only reached 2.92:1. */
 .auth-branding {
   flex: 0 0 380px;
-  background: linear-gradient(135deg, #0a8ba5, #0da5c3);
+  background: linear-gradient(135deg, #095c6b, #0a6d80);
   color: #fff;
   padding: var(--space-5) var(--space-4);
   display: flex;
@@ -44,7 +47,9 @@
   width: 36px;
   height: 36px;
   background: #fff;
-  color: #0da5c3;
+  /* Literal, not var(--primary): this white tile sits on the always-teal panel,
+     so in dark mode the token's light teal would wash out against it. */
+  color: #0a6d80;
   border-radius: var(--radius-sm);
   display: flex;
   align-items: center;
@@ -120,7 +125,7 @@
 
   &.active {
     background: var(--primary);
-    color: #fff;
+    color: var(--on-primary);
   }
 
   &:not(.active):hover {

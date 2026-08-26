@@ -1,14 +1,15 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { ReviewsService, ReviewsResponse } from '../../../core/services/reviews.service';
 import { Review } from '../../../core/models';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 
 @Component({
   selector: 'app-review-list',
   standalone: true,
-  imports: [CommonModule],
+  imports: [EmptyStateComponent, SkeletonComponent],
   templateUrl: './review-list.component.html',
   styleUrls: ['./review-list.component.scss'],
 })

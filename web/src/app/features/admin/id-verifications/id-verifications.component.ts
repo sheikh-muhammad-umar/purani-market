@@ -15,6 +15,9 @@ import {
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
 import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
 
 const FALLBACK_USER = 'Unknown User';
 const FALLBACK_VALUE = '—';
@@ -31,7 +34,15 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 @Component({
   selector: 'app-id-verifications',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent, AppLoaderComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CustomSelectComponent,
+    AppLoaderComponent,
+    EmptyStateComponent,
+    PaginationComponent,
+    ModalComponent,
+  ],
   templateUrl: './id-verifications.component.html',
   styleUrl: './id-verifications.component.scss',
 })

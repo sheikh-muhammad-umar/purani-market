@@ -12,6 +12,8 @@ import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../../shared/components/custom-select/custom-select.component';
+import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
 import { PackageType as PackageTypeEnum } from '../../../../core/constants/enums';
 import { ERROR_MSG } from '../../../../core/constants/error-messages';
 
@@ -24,7 +26,14 @@ const PACKAGE_TYPE_LABELS: Record<string, string> = {
 @Component({
   selector: 'app-package-purchases',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent, DatePickerComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CustomSelectComponent,
+    DatePickerComponent,
+    EmptyStateComponent,
+    PaginationComponent,
+  ],
   templateUrl: './package-purchases.component.html',
   styleUrls: ['./package-purchases.component.scss'],
 })
@@ -113,5 +122,12 @@ export class PackagePurchasesComponent implements OnInit {
       this.purchasePage--;
       this.loadPurchases();
     }
+  }
+
+  /** Jump to an absolute page number. Used by the shared pagination control. */
+  goToPurchasePage(page: number): void {
+    if (page < 1 || page > this.totalPurchasePages() || page === this.purchasePage) return;
+    this.purchasePage = page;
+    this.loadPurchases();
   }
 }

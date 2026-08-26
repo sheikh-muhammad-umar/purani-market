@@ -19,6 +19,7 @@ import { CURRENCY_SYMBOL, PAYMENT_METHOD_CONFIG } from '../../../core/constants/
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
 import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 
 /** Milliseconds in one day. */
 const MS_PER_DAY = 1000 * 60 * 60 * 24;
@@ -36,7 +37,14 @@ const DATE_FORMAT_OPTIONS: Intl.DateTimeFormatOptions = {
 @Component({
   selector: 'app-my-packages',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, CustomSelectComponent, AppLoaderComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    CustomSelectComponent,
+    AppLoaderComponent,
+    EmptyStateComponent,
+  ],
   templateUrl: './my-packages.component.html',
   styleUrls: ['./my-packages.component.scss'],
 })

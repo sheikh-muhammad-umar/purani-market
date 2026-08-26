@@ -1,5 +1,4 @@
 import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MessagingService } from '../../../core/services/messaging.service';
@@ -12,11 +11,13 @@ import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
 import { CONVERSATION_SKELETON_ITEMS, LISTING_STATUS_LABELS } from '../messaging.constants';
 import { ConversationView } from '../interfaces/conversation-view.interface';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 
 @Component({
   selector: 'app-conversation-list',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink, EmptyStateComponent, SkeletonComponent],
   templateUrl: './conversation-list.component.html',
   styleUrls: ['./conversation-list.component.scss'],
 })

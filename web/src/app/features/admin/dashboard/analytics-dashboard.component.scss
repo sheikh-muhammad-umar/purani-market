@@ -1,5 +1,5 @@
 .analytics-dashboard {
-  max-width: 1200px;
+  max-width: var(--content-width);
   margin: 0 auto;
 }
 
@@ -8,11 +8,11 @@
   justify-content: space-between;
   align-items: flex-start;
   flex-wrap: wrap;
-  gap: 16px;
-  margin-bottom: 24px;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
   h1 {
     font-size: 22px;
-    font-weight: 700;
+    font-weight: var(--weight-bold);
     color: var(--text-primary);
     margin: 0;
   }
@@ -28,7 +28,7 @@
 .date-range {
   display: flex;
   align-items: center;
-  gap: 8px;
+  gap: var(--space-1);
   label {
     font-size: 13px;
     color: var(--text-muted);
@@ -46,20 +46,21 @@
     &:focus {
       outline: none;
       border-color: var(--primary);
-      box-shadow: 0 0 0 3px rgba(13, 165, 195, 0.1);
+      box-shadow: var(--shadow-focus);
     }
   }
 }
 
 .btn-apply {
-  padding: 9px 16px;
+  padding: 9px var(--space-2);
   min-height: 38px;
   background: var(--primary);
-  color: #fff;
+  /* --on-primary, not white: primary lightens in dark mode and white drops to ~2.2:1 */
+  color: var(--on-primary);
   border: none;
   border-radius: 8px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   cursor: pointer;
   &:hover {
     opacity: 0.9;
@@ -70,11 +71,12 @@
   padding: 9px 20px;
   min-height: 38px;
   background: var(--secondary);
-  color: #fff;
+  /* --on-secondary pairs with the orange surface in both themes */
+  color: var(--on-secondary);
   border: none;
   border-radius: 8px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   cursor: pointer;
   &:hover {
     opacity: 0.9;
@@ -88,7 +90,7 @@
 .loading-state,
 .error-state {
   text-align: center;
-  padding: 48px 24px;
+  padding: var(--space-6) var(--space-3);
   color: var(--text-muted);
 }
 
@@ -109,13 +111,13 @@
 
 .btn-retry {
   margin-top: 12px;
-  padding: 8px 20px;
+  padding: var(--space-1) 20px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border: none;
   border-radius: 8px;
   cursor: pointer;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 /* Metrics */
@@ -123,7 +125,7 @@
   display: grid;
   grid-template-columns: repeat(3, 1fr);
   gap: 14px;
-  margin-bottom: 32px;
+  margin-bottom: var(--space-4);
 }
 
 .metric-card {
@@ -142,8 +144,8 @@
   flex-shrink: 0;
   width: 44px;
   height: 44px;
-  border-radius: 10px;
-  background: rgba(13, 165, 195, 0.1);
+  border-radius: var(--radius-sm);
+  background: var(--primary-subtle);
   color: var(--primary);
   display: flex;
   align-items: center;
@@ -155,11 +157,11 @@
 }
 .metric-value {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   color: var(--text-primary);
 }
 .metric-label {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--text-muted);
   margin-top: 2px;
 }
@@ -168,13 +170,13 @@
 .section-group-title {
   display: flex;
   align-items: center;
-  gap: 8px;
-  font-size: 14px;
-  font-weight: 700;
+  gap: var(--space-1);
+  font-size: var(--text-sm);
+  font-weight: var(--weight-bold);
   color: var(--text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.8px;
-  margin: 40px 0 20px;
+  letter-spacing: var(--tracking-wider);
+  margin: var(--space-5) 0 20px;
   padding-bottom: 10px;
   border-bottom: 1px solid var(--border);
   .material-symbols-rounded {
@@ -184,14 +186,14 @@
 
 /* Action Required Section */
 .action-section {
-  margin-bottom: 24px;
+  margin-bottom: var(--space-3);
 
   h2 {
     display: flex;
     align-items: center;
     gap: 6px;
     font-size: 15px;
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
     color: var(--text-primary);
     margin: 0 0 12px;
 
@@ -212,48 +214,42 @@
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 12px 16px;
-  border-radius: 10px;
+  padding: 12px var(--space-2);
+  border-radius: var(--radius-sm);
   text-decoration: none;
   transition:
-    transform 0.12s,
-    box-shadow 0.12s;
+    transform var(--duration-fast) var(--ease-out),
+    box-shadow var(--duration-fast) var(--ease-out);
   flex: 1;
   min-width: 200px;
 
   &:hover {
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08);
+    box-shadow: var(--shadow-card);
   }
 
   &.action-warning {
-    background: rgba(243, 156, 18, 0.08);
-    border: 1px solid rgba(243, 156, 18, 0.2);
-    color: #f39c12;
+    background: var(--warning-bg);
+    border: 1px solid var(--warning-border);
+    color: var(--warning-text);
   }
 
   &.action-info {
-    background: rgba(13, 165, 195, 0.08);
-    border: 1px solid rgba(13, 165, 195, 0.2);
-    color: var(--primary);
-  }
-
-  &.action-danger {
-    background: rgba(231, 76, 60, 0.08);
-    border: 1px solid rgba(231, 76, 60, 0.2);
-    color: #e74c3c;
+    background: var(--info-bg);
+    border: 1px solid var(--info-border);
+    color: var(--info-text);
   }
 }
 
 .action-count {
   font-size: 22px;
-  font-weight: 800;
+  font-weight: var(--weight-extrabold);
   line-height: 1;
 }
 
 .action-label {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   flex: 1;
   color: var(--text-primary);
 }
@@ -264,12 +260,12 @@
 }
 
 .charts-section {
-  margin-bottom: 32px;
+  margin-bottom: var(--space-4);
   h2 {
     font-size: 17px;
-    font-weight: 700;
+    font-weight: var(--weight-bold);
     color: var(--text-primary);
-    margin: 0 0 16px;
+    margin: 0 0 var(--space-2);
   }
 }
 
@@ -277,7 +273,7 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: 14px;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-3);
 }
 
 .chart-card {
@@ -288,7 +284,7 @@
   border: 1px solid var(--border);
   h3 {
     font-size: 13px;
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
     color: var(--text-primary);
     margin: 0;
   }
@@ -302,17 +298,17 @@
 }
 
 .chart-total {
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
   color: var(--text-muted);
   background: var(--background);
-  padding: 2px 8px;
-  border-radius: 6px;
+  padding: 2px var(--space-1);
+  border-radius: var(--radius-xs);
 }
 
 .bar-chart-wrap {
   display: flex;
-  gap: 4px;
+  gap: var(--space-half);
 }
 
 .y-axis {
@@ -355,13 +351,11 @@
   width: 100%;
   max-width: 28px;
   background: var(--primary);
-  border-radius: 4px 4px 0 0;
+  border-radius: var(--space-half) var(--space-half) 0 0;
   min-height: 2px;
-  transition: height 0.3s ease;
+  transition: height var(--duration-slow) var(--ease-out);
 }
-.bar-listings {
-  background: var(--secondary);
-}
+/* One brand token per series so the four charts stay distinguishable */
 .bar-conversations {
   background: var(--accent);
 }
@@ -372,7 +366,7 @@
 .bar-label {
   font-size: 9px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: var(--space-half);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -381,7 +375,7 @@
 
 .bar-value {
   font-size: 8px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--text-muted);
   margin-bottom: 2px;
   line-height: 1;
@@ -422,7 +416,7 @@
     border: none;
     background: none;
     outline: none;
-    font-size: 12px;
+    font-size: var(--text-xs);
     font-family: inherit;
     color: var(--text-primary);
     width: 100%;
@@ -434,19 +428,19 @@
 
 .sort-toggles {
   display: flex;
-  gap: 4px;
+  gap: var(--space-half);
 }
 
 .sort-btn {
   display: flex;
   align-items: center;
   gap: 2px;
-  padding: 4px 8px;
+  padding: var(--space-half) var(--space-1);
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   background: var(--surface);
   font-size: 11px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--text-muted);
   cursor: pointer;
   font-family: inherit;
@@ -457,34 +451,16 @@
   &.active {
     border-color: var(--primary);
     color: var(--primary);
-    background: rgba(13, 165, 195, 0.06);
+    background: var(--primary-subtle);
   }
 }
 
 .sort-icon {
-  font-size: 14px !important;
+  font-size: var(--text-sm) !important;
   vertical-align: middle;
 }
 
-.sortable {
-  cursor: pointer;
-  user-select: none;
-  display: inline-flex;
-  align-items: center;
-  gap: 2px;
-  &:hover {
-    color: var(--primary);
-  }
-  .sort-icon {
-    font-size: 13px !important;
-    color: var(--text-muted);
-    opacity: 0.6;
-  }
-  &:hover .sort-icon {
-    color: var(--primary);
-    opacity: 1;
-  }
-}
+// .sortable removed: no sortable table headers in this template.
 
 /* Scrollable body — shows ~10 rows, rest scrollable */
 .scroll-body {
@@ -508,11 +484,11 @@
 
 /* App Banner Stats */
 .banner-section {
-  margin-bottom: 32px;
+  margin-bottom: var(--space-4);
   h2 {
     font-size: 17px;
-    font-weight: 700;
-    margin: 0 0 16px;
+    font-weight: var(--weight-bold);
+    margin: 0 0 var(--space-2);
   }
 }
 
@@ -526,7 +502,7 @@
 .banner-summary {
   display: flex;
   align-items: center;
-  padding: 16px;
+  padding: var(--space-2);
 }
 
 .banner-stat {
@@ -538,8 +514,8 @@
 }
 
 .banner-stat-value {
-  font-size: 20px;
-  font-weight: 700;
+  font-size: var(--text-lg);
+  font-weight: var(--weight-bold);
   color: var(--text-primary);
   font-variant-numeric: tabular-nums;
 }
@@ -547,12 +523,12 @@
 .banner-stat-label {
   font-size: 11px;
   color: var(--text-muted);
-  font-weight: 500;
+  font-weight: var(--weight-medium);
 }
 
 .banner-divider {
   width: 1px;
-  height: 32px;
+  height: var(--space-4);
   background: var(--border);
   flex-shrink: 0;
 }
@@ -573,28 +549,30 @@
   }
   &.platform-header {
     background: var(--surface);
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
     font-size: 11px;
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.4px;
-    padding: 8px 20px;
+    padding: var(--space-1) 20px;
   }
 }
 
 .platform-name {
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--text-primary);
 }
 
 .platform-badge {
   display: inline-flex;
   padding: 2px 10px;
-  border-radius: 100px;
-  font-size: 12px;
-  font-weight: 600;
+  border-radius: var(--radius-full);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
   background: var(--surface);
   color: var(--text-secondary);
+  /* Store badges keep their fixed platform brand colours (iOS blue, Android
+     green, Huawei red) — these identify the vendor, so no token applies. */
   &.ios {
     background: rgba(0, 122, 255, 0.1);
     color: #007aff;
@@ -615,284 +593,11 @@
   font-variant-numeric: tabular-nums;
 }
 
-/* Category Analytics */
-.category-section {
-  margin-bottom: 32px;
-  h2 {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 16px;
-  }
-}
-
-.category-list {
-  background: var(--card);
-  border-radius: 12px;
-  box-shadow: var(--shadow-card);
-  border: 1px solid var(--border);
-  display: flex;
-  flex-direction: column;
-  gap: 0;
-  overflow: hidden;
-  .section-toolbar {
-    border-bottom: none;
-    padding: 12px 16px 8px;
-  }
-}
-
-.category-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1.5fr) 1fr 52px 56px;
-  align-items: center;
-  gap: 10px;
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--border);
-  &:last-child {
-    border-bottom: none;
-  }
-}
-
-.category-row-header {
-  background: var(--surface);
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--border);
-  position: sticky;
-  top: 0;
-  z-index: 1;
-  .category-name,
-  .category-pct,
-  .category-count {
-    font-size: 11px;
-    font-weight: 600;
-    color: var(--text-muted);
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-  }
-}
-
-.category-name {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.category-bar-wrapper {
-  height: 20px;
-  background: var(--background);
-  border-radius: 10px;
-  overflow: hidden;
-  min-width: 0;
-}
-
-.category-bar {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--primary-light));
-  border-radius: 10px;
-  transition: width 0.3s ease;
-  min-width: 2px;
-}
-
-.category-count {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-primary);
-  text-align: left;
-  font-variant-numeric: tabular-nums;
-}
-
-.category-pct {
-  font-size: 12px;
-  color: var(--text-muted);
-  text-align: left;
-  font-variant-numeric: tabular-nums;
-}
-
-/* Price Trends */
-.price-trends-card {
-  background: var(--card);
-  border-radius: 12px;
-  box-shadow: var(--shadow-card);
-  border: 1px solid var(--border);
-  overflow: hidden;
-}
-
-.price-trends-summary {
-  display: flex;
-  align-items: center;
-  gap: 0;
-  border-bottom: 1px solid var(--border);
-}
-
-.price-summary-stat {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding: 14px 16px;
-  border-right: 1px solid var(--border);
-  &:last-child {
-    border-right: none;
-  }
-  .material-symbols-rounded {
-    font-size: 22px;
-    color: var(--text-muted);
-  }
-  &.up .material-symbols-rounded {
-    color: var(--success, #22c55e);
-  }
-  &.down .material-symbols-rounded {
-    color: var(--danger, #ef4444);
-  }
-}
-
-.price-summary-info {
-  display: flex;
-  flex-direction: column;
-}
-
-.price-summary-value {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--text-primary);
-  font-variant-numeric: tabular-nums;
-}
-
-.price-summary-label {
-  font-size: 11px;
-  color: var(--text-muted);
-}
-
-.price-trends-table {
-  padding: 0;
-  overflow-x: auto;
-}
-
-.price-trends-card .section-toolbar {
-  padding: 10px 20px;
-}
-
-.price-trends-header,
-.price-trends-row {
-  display: grid;
-  grid-template-columns: minmax(100px, 1.5fr) 72px minmax(80px, 1fr) minmax(80px, 1fr) 64px 48px;
-  align-items: center;
-  gap: 12px;
-  padding: 10px 16px;
-  border-bottom: 1px solid var(--border);
-  font-size: 13px;
-}
-
-.price-trends-header {
-  background: var(--surface);
-  font-weight: 600;
-  font-size: 11px;
-  color: var(--text-muted);
-  text-transform: uppercase;
-  letter-spacing: 0.4px;
-  padding: 8px 16px;
-  white-space: nowrap;
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-.price-trends-row:last-child {
-  border-bottom: none;
-}
-
-.pt-col-name {
-  font-weight: 500;
-  color: var(--text-primary);
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  min-width: 0;
-}
-
-.pt-col-num {
-  text-align: left;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-secondary);
-}
-
-.pt-col-price {
-  text-align: left;
-  font-variant-numeric: tabular-nums;
-  color: var(--text-secondary);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.pt-col-diff {
-  text-align: left;
-  font-weight: 600;
-  font-variant-numeric: tabular-nums;
-  display: flex;
-  align-items: center;
-  justify-content: flex-start;
-  gap: 4px;
-  &.up {
-    color: var(--success, #22c55e);
-  }
-  &.down {
-    color: var(--danger, #ef4444);
-  }
-}
-
-.pt-dir-icon {
-  font-size: 16px;
-}
-
-.pt-col-dir {
-  padding-left: 8px;
-}
-
-.pt-bar-track {
-  height: 8px;
-  background: var(--background);
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.pt-bar-fill {
-  height: 100%;
-  border-radius: 4px;
-  background: var(--text-muted);
-  min-width: 2px;
-  transition: width 0.3s ease;
-  &.up {
-    background: var(--success, #22c55e);
-  }
-  &.down {
-    background: var(--danger, #ef4444);
-  }
-}
-
-.text-up {
-  color: var(--success, #22c55e) !important;
-  font-weight: 600;
-}
-.text-down {
-  color: var(--danger, #ef4444) !important;
-  font-weight: 600;
-}
-
-.recent-changes-section {
-  margin-top: 32px;
-  h2 {
-    font-size: 17px;
-    font-weight: 700;
-    color: var(--text-primary);
-    margin: 0 0 16px;
-  }
-}
+// Removed as unreferenced: the .category-section / .category-list / .category-row
+// grid, the .price-trends-* and .pt-* table, .price-summary-*, .text-up /
+// .text-down and .recent-changes-section. None of these class names appear in
+// analytics-dashboard.component.html (the category and price-trend panels moved
+// to listings-analytics), so the rules could never match.
 
 /* Guest vs Auth Comparison */
 .comparison-card {
@@ -918,17 +623,19 @@
     font-size: 28px;
     width: 44px;
     height: 44px;
-    border-radius: 10px;
+    border-radius: var(--radius-sm);
     display: flex;
     align-items: center;
     justify-content: center;
   }
+  /* Neutral badge tokens instead of a fixed grey wash, which was nearly
+     invisible on the dark card. */
   &.guest .material-symbols-rounded {
-    background: rgba(156, 163, 175, 0.15);
-    color: var(--text-muted);
+    background: var(--badge-bg);
+    color: var(--badge-text);
   }
   &.auth .material-symbols-rounded {
-    background: rgba(13, 165, 195, 0.1);
+    background: var(--primary-subtle);
     color: var(--primary);
   }
 }
@@ -940,18 +647,18 @@
 
 .comparison-total-value {
   font-size: 22px;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   color: var(--text-primary);
 }
 
 .comparison-total-label {
-  font-size: 12px;
+  font-size: var(--text-xs);
   color: var(--text-muted);
   margin-top: 2px;
 }
 
 .comparison-rows {
-  padding: 8px 0;
+  padding: var(--space-1) 0;
 }
 
 .comparison-row {
@@ -967,7 +674,7 @@
 
 .comparison-action {
   font-size: 13px;
-  font-weight: 500;
+  font-weight: var(--weight-medium);
   color: var(--text-primary);
 }
 
@@ -981,8 +688,8 @@
 
 .comparison-guest {
   color: var(--text-muted);
-  font-weight: 600;
-  min-width: 48px;
+  font-weight: var(--weight-semibold);
+  min-width: var(--space-6);
   text-align: left;
 }
 
@@ -992,8 +699,8 @@
 
 .comparison-auth {
   color: var(--primary);
-  font-weight: 600;
-  min-width: 48px;
+  font-weight: var(--weight-semibold);
+  min-width: var(--space-6);
   text-align: left;
 }
 
@@ -1035,7 +742,7 @@
   thead {
     position: sticky;
     top: 0;
-    z-index: 1;
+    z-index: var(--z-base);
   }
 
   thead tr {
@@ -1043,9 +750,9 @@
   }
 
   th {
-    padding: 10px 16px;
+    padding: 10px var(--space-2);
     font-size: 11px;
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
     color: var(--text-muted);
     text-transform: uppercase;
     letter-spacing: 0.4px;
@@ -1054,7 +761,7 @@
   }
 
   td {
-    padding: 10px 16px;
+    padding: 10px var(--space-2);
     color: var(--text-primary);
     border-bottom: 1px solid var(--border);
   }
@@ -1066,12 +773,12 @@
   .col-rank {
     width: 56px;
     text-align: left;
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
     color: var(--text-muted);
   }
 
   .col-term {
-    font-weight: 500;
+    font-weight: var(--weight-medium);
   }
 
   .col-count,
@@ -1079,11 +786,11 @@
     width: 80px;
     text-align: left;
     font-variant-numeric: tabular-nums;
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
   }
 
   .col-title {
-    font-weight: 500;
+    font-weight: var(--weight-medium);
     max-width: 300px;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -1094,7 +801,7 @@
     width: 100px;
     text-align: left;
     font-variant-numeric: tabular-nums;
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
     color: var(--success);
   }
 }
@@ -1103,7 +810,7 @@
 .mini-chart {
   display: flex;
   align-items: flex-end;
-  gap: 4px;
+  gap: var(--space-half);
   height: 100px;
   padding-top: 10px;
 }
@@ -1124,7 +831,7 @@
 
 .mini-chart-value {
   font-size: 8px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--text-muted);
   margin-bottom: 2px;
   line-height: 1;
@@ -1135,21 +842,23 @@
   max-width: 24px;
   border-radius: 3px 3px 0 0;
   min-height: 2px;
-  transition: height 0.3s ease;
+  transition: height var(--duration-slow) var(--ease-out);
 }
 
+/* Both tokens are always defined, so the literal hex fallbacks are gone.
+   The old --accent fallback was a violet that no longer matched the token. */
 .bar-failures {
-  background: var(--danger, #ef4444);
+  background: var(--danger);
 }
 
 .bar-hours {
-  background: var(--accent, #8b5cf6);
+  background: var(--accent);
 }
 
 .mini-chart-label {
   font-size: 8px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: var(--space-half);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -1172,8 +881,8 @@
 
 .h-bar-label {
   width: 120px;
-  font-size: 12px;
-  font-weight: 500;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
   color: var(--text-primary);
   flex-shrink: 0;
   overflow: hidden;
@@ -1183,36 +892,40 @@
 
 .h-bar-track {
   flex: 1;
-  height: 20px;
+  height: var(--text-lg);
   background: var(--background);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   overflow: hidden;
 }
 
 .h-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, var(--primary), var(--primary-light, var(--primary)));
-  border-radius: 10px;
+  background: linear-gradient(90deg, var(--primary), var(--primary-light));
+  border-radius: var(--radius-sm);
   min-width: 2px;
-  transition: width 0.3s ease;
+  transition: width var(--duration-slow) var(--ease-out);
 }
 
 .h-bar-value {
   width: 56px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
   color: var(--text-primary);
   text-align: left;
   font-variant-numeric: tabular-nums;
   flex-shrink: 0;
 }
 
-/* Device Distribution — Horizontal Bars */
+/* Device Distribution — Horizontal Bars.
+   These are chart series colours: the four device types have to stay visually
+   distinct, so each gets its own hue. Desktop/unknown map onto brand and
+   neutral tokens; mobile uses the amber accent; tablet stays literal violet
+   because the design system has no violet token. */
 .device-color-desktop {
   background: var(--primary);
 }
 .device-color-mobile {
-  background: #f59e0b;
+  background: var(--accent);
 }
 .device-color-tablet {
   background: #8b5cf6;
@@ -1221,21 +934,24 @@
   background: var(--text-muted);
 }
 
+/* Icon chips behind the series colour. The -bg/-text token pairs are used for
+   the amber chip because amber-on-amber-tint fails contrast in light mode. */
 .device-color-bg-desktop {
-  background: rgba(13, 165, 195, 0.1);
+  background: var(--primary-subtle);
   color: var(--primary);
 }
 .device-color-bg-mobile {
-  background: rgba(245, 158, 11, 0.1);
-  color: #f59e0b;
+  background: var(--warning-bg);
+  color: var(--warning-text);
 }
 .device-color-bg-tablet {
-  background: rgba(139, 92, 246, 0.1);
+  /* Violet has no token — left literal, see above */
+  background: rgba(139, 92, 246, 0.12);
   color: #8b5cf6;
 }
 .device-color-bg-unknown {
-  background: rgba(156, 163, 175, 0.1);
-  color: var(--text-muted);
+  background: var(--badge-bg);
+  color: var(--badge-text);
 }
 
 .device-h-bars {
@@ -1253,20 +969,20 @@
 .device-h-icon {
   width: 34px;
   height: 34px;
-  border-radius: 8px;
+  border-radius: var(--space-1);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
   .material-symbols-rounded {
-    font-size: 20px;
+    font-size: var(--text-lg);
   }
 }
 
 .device-h-label {
   width: 64px;
   font-size: 13px;
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
   color: var(--text-primary);
   flex-shrink: 0;
 }
@@ -1282,14 +998,14 @@
 .device-h-fill {
   height: 100%;
   border-radius: 11px;
-  min-width: 4px;
-  transition: width 0.3s ease;
+  min-width: var(--space-half);
+  transition: width var(--duration-slow) var(--ease-out);
 }
 
 .device-h-count {
   width: 52px;
-  font-size: 12px;
-  font-weight: 600;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
   color: var(--text-secondary);
   text-align: left;
   font-variant-numeric: tabular-nums;
@@ -1299,7 +1015,7 @@
 .device-h-pct {
   width: 40px;
   font-size: 13px;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   color: var(--text-primary);
   text-align: left;
   font-variant-numeric: tabular-nums;
@@ -1311,18 +1027,11 @@
   .metrics-grid {
     grid-template-columns: repeat(2, 1fr);
   }
-  .price-trends-header,
-  .price-trends-row {
-    grid-template-columns: minmax(90px, 1.2fr) 64px minmax(72px, 1fr) minmax(72px, 1fr) 56px 44px;
-    gap: 10px;
-    padding: 8px 12px;
-    font-size: 12px;
-  }
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .analytics-dashboard {
-    padding: 0 4px;
+    padding: 0 var(--space-half);
   }
   .dashboard-header {
     flex-direction: column;
@@ -1347,35 +1056,22 @@
     text-align: center;
   }
   .section-group-title {
-    font-size: 12px;
+    font-size: var(--text-xs);
     margin: 28px 0 14px;
-    padding-bottom: 8px;
+    padding-bottom: var(--space-1);
   }
   .charts-section {
-    margin-bottom: 24px;
-    h2 {
-      font-size: 15px;
-      margin-bottom: 12px;
-    }
-  }
-  .category-section {
-    margin-bottom: 24px;
+    margin-bottom: var(--space-3);
     h2 {
       font-size: 15px;
       margin-bottom: 12px;
     }
   }
   .banner-section {
-    margin-bottom: 24px;
+    margin-bottom: var(--space-3);
     h2 {
       font-size: 15px;
       margin-bottom: 12px;
-    }
-  }
-  .recent-changes-section {
-    margin-top: 24px;
-    h2 {
-      font-size: 15px;
     }
   }
   .charts-grid {
@@ -1412,64 +1108,13 @@
     font-size: 7px;
   }
 
-  /* Category */
-  .category-row {
-    grid-template-columns: minmax(0, 1.3fr) 1fr 44px 48px;
-    gap: 8px;
-    padding: 7px 12px;
-    font-size: 12px;
-  }
-  .category-row-header {
-    padding: 7px 12px;
-  }
-  .category-name {
-    font-size: 12px;
-  }
-  .category-bar-wrapper {
-    height: 16px;
-  }
-  .category-list .section-toolbar {
-    padding: 10px 12px 6px;
-  }
-
-  /* Price Trends */
-  .price-trends-summary {
-    flex-wrap: wrap;
-  }
-  .price-summary-stat {
-    padding: 10px 14px;
-    gap: 8px;
-    .material-symbols-rounded {
-      font-size: 20px;
-    }
-  }
-  .price-summary-value {
-    font-size: 15px;
-  }
-  .price-summary-label {
-    font-size: 10px;
-  }
-  .price-trends-header,
-  .price-trends-row {
-    grid-template-columns: minmax(80px, 1fr) 56px minmax(64px, 1fr) minmax(64px, 1fr) 52px;
-    gap: 10px;
-    padding: 8px 10px;
-    font-size: 11px;
-  }
-  .pt-col-dir {
-    display: none;
-  }
-  .price-trends-card .section-toolbar {
-    padding: 8px 12px;
-  }
-
   /* Guest vs Auth */
   .comparison-totals {
     grid-template-columns: 1fr;
   }
   .comparison-total-item {
     border-bottom: 1px solid var(--border);
-    padding: 14px 16px;
+    padding: 14px var(--space-2);
     &:last-child {
       border-bottom: none;
     }
@@ -1483,14 +1128,14 @@
     font-size: 18px;
   }
   .comparison-row {
-    padding: 8px 16px;
+    padding: var(--space-1) var(--space-2);
   }
   .comparison-action {
-    font-size: 12px;
+    font-size: var(--text-xs);
   }
   .comparison-values {
-    font-size: 12px;
-    gap: 8px;
+    font-size: var(--text-xs);
+    gap: var(--space-1);
   }
   .comparison-guest,
   .comparison-auth {
@@ -1499,10 +1144,10 @@
 
   /* Data Tables */
   .data-table {
-    font-size: 12px;
+    font-size: var(--text-xs);
     th,
     td {
-      padding: 8px 10px;
+      padding: var(--space-1) 10px;
     }
     .col-title {
       max-width: 140px;
@@ -1575,7 +1220,7 @@
   .banner-summary {
     padding: 14px;
     flex-wrap: wrap;
-    gap: 8px;
+    gap: var(--space-1);
   }
   .banner-stat-value {
     font-size: 18px;
@@ -1588,8 +1233,8 @@
   }
   .platform-row {
     grid-template-columns: 1fr repeat(3, 56px);
-    padding: 8px 12px;
-    font-size: 12px;
+    padding: var(--space-1) 12px;
+    font-size: var(--text-xs);
     &.platform-header {
       padding: 6px 12px;
       font-size: 10px;
@@ -1599,8 +1244,8 @@
   /* Toolbar */
   .section-toolbar {
     flex-wrap: wrap;
-    padding: 8px 12px;
-    gap: 8px;
+    padding: var(--space-1) 12px;
+    gap: var(--space-1);
   }
   .search-mini {
     max-width: 100%;
@@ -1622,7 +1267,7 @@
   }
 }
 
-@media (max-width: 480px) {
+@media (max-width: 424px) {
   .analytics-dashboard {
     padding: 0;
   }
@@ -1639,11 +1284,11 @@
   .metric-icon {
     width: 34px;
     height: 34px;
-    font-size: 20px;
-    border-radius: 8px;
+    font-size: var(--text-lg);
+    border-radius: var(--space-1);
   }
   .metric-value {
-    font-size: 16px;
+    font-size: var(--text-base);
   }
   .date-range {
     label {
@@ -1656,74 +1301,16 @@
   }
   .section-group-title {
     font-size: 11px;
-    margin: 24px 0 12px;
+    margin: var(--space-3) 0 12px;
     letter-spacing: 0.6px;
     .material-symbols-rounded {
-      font-size: 16px;
+      font-size: var(--space-2);
     }
   }
   .charts-section h2,
-  .category-section h2,
-  .banner-section h2,
-  .recent-changes-section h2 {
-    font-size: 14px;
+  .banner-section h2 {
+    font-size: var(--text-sm);
     margin-bottom: 10px;
-  }
-
-  /* Category */
-  .category-row {
-    grid-template-columns: minmax(0, 1.2fr) 1fr 36px 44px;
-    gap: 6px;
-    padding: 6px 10px;
-  }
-  .category-row-header {
-    padding: 6px 10px;
-    .category-name,
-    .category-pct,
-    .category-count {
-      font-size: 10px;
-    }
-  }
-  .category-name {
-    font-size: 11px;
-  }
-  .category-count {
-    font-size: 11px;
-  }
-  .category-pct {
-    font-size: 10px;
-  }
-  .category-bar-wrapper {
-    height: 14px;
-    border-radius: 7px;
-  }
-  .category-bar {
-    border-radius: 7px;
-  }
-
-  /* Price Trends */
-  .price-summary-stat {
-    padding: 10px 12px;
-    gap: 8px;
-    .material-symbols-rounded {
-      font-size: 20px;
-    }
-  }
-  .price-summary-value {
-    font-size: 14px;
-  }
-  .price-summary-label {
-    font-size: 10px;
-  }
-  .price-trends-header,
-  .price-trends-row {
-    grid-template-columns: minmax(70px, 1fr) 44px minmax(56px, 1fr) minmax(56px, 1fr) 48px;
-    gap: 8px;
-    padding: 6px 8px;
-    font-size: 10px;
-  }
-  .pt-col-name {
-    font-size: 11px;
   }
 
   /* Data Tables */
@@ -1731,7 +1318,7 @@
     font-size: 11px;
     th,
     td {
-      padding: 6px 8px;
+      padding: 6px var(--space-1);
     }
     .col-title {
       max-width: 100px;
@@ -1776,9 +1363,9 @@
   .device-h-icon {
     width: 28px;
     height: 28px;
-    border-radius: 6px;
+    border-radius: var(--radius-xs);
     .material-symbols-rounded {
-      font-size: 16px;
+      font-size: var(--space-2);
     }
   }
   .device-h-label {
@@ -1846,14 +1433,14 @@
     padding: 12px;
     gap: 10px;
     .material-symbols-rounded {
-      width: 32px;
-      height: 32px;
-      font-size: 20px;
-      border-radius: 8px;
+      width: var(--space-4);
+      height: var(--space-4);
+      font-size: var(--text-lg);
+      border-radius: var(--space-1);
     }
   }
   .comparison-total-value {
-    font-size: 16px;
+    font-size: var(--text-base);
   }
   .comparison-total-label {
     font-size: 11px;
@@ -1947,20 +1534,20 @@
     transform: translateX(-50%);
     padding: 6px 10px;
     background: var(--text-primary);
-    color: var(--background);
+    color: var(--text-inverse);
     font-size: 11px;
-    font-weight: 500;
+    font-weight: var(--weight-medium);
     line-height: 1.4;
-    border-radius: 6px;
+    border-radius: var(--radius-xs);
     white-space: nowrap;
     max-width: 280px;
     overflow: hidden;
     text-overflow: ellipsis;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.1s ease;
-    z-index: 50;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: opacity var(--duration-fast) var(--ease-out);
+    z-index: var(--z-tooltip);
+    box-shadow: var(--shadow-dropdown);
   }
 
   &:hover::after {
@@ -1981,20 +1568,20 @@
     transform: translateX(-50%);
     padding: 6px 10px;
     background: var(--text-primary);
-    color: var(--background);
+    color: var(--text-inverse);
     font-size: 11px;
-    font-weight: 500;
+    font-weight: var(--weight-medium);
     line-height: 1.4;
-    border-radius: 6px;
+    border-radius: var(--radius-xs);
     white-space: nowrap;
     max-width: 280px;
     overflow: hidden;
     text-overflow: ellipsis;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.1s ease;
-    z-index: 50;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: opacity var(--duration-fast) var(--ease-out);
+    z-index: var(--z-tooltip);
+    box-shadow: var(--shadow-dropdown);
   }
 
   &:hover::after {
@@ -2013,20 +1600,20 @@
     bottom: calc(100% + 6px);
     left: 50%;
     transform: translateX(-50%);
-    padding: 8px 12px;
+    padding: var(--space-1) 12px;
     background: var(--text-primary);
-    color: var(--background);
+    color: var(--text-inverse);
     font-size: 11px;
-    font-weight: 500;
-    line-height: 1.5;
-    border-radius: 6px;
+    font-weight: var(--weight-medium);
+    line-height: var(--leading-normal);
+    border-radius: var(--radius-xs);
     white-space: normal;
     max-width: 260px;
     pointer-events: none;
     opacity: 0;
-    transition: opacity 0.1s ease;
-    z-index: 50;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: opacity var(--duration-fast) var(--ease-out);
+    z-index: var(--z-tooltip);
+    box-shadow: var(--shadow-dropdown);
   }
 
   &:hover::after {
@@ -2046,29 +1633,29 @@
   }
 }
 
-@media (max-width: 600px) {
+@media (max-width: 767px) {
   .metrics-grid-4 {
     grid-template-columns: 1fr !important;
   }
 }
 
 .metric-card-warning {
-  border-left: 3px solid #f39c12;
+  border-left: 3px solid var(--warning);
 }
 
 .metric-card-success {
-  border-left: 3px solid #00b894;
+  border-left: 3px solid var(--success);
 }
 
 .metric-card-danger {
-  border-left: 3px solid #d63031;
+  border-left: 3px solid var(--error);
 }
 
 .verification-legend {
   display: flex;
-  gap: 16px;
-  padding: 8px 0 4px;
-  font-size: 12px;
+  gap: var(--space-2);
+  padding: var(--space-1) 0 var(--space-half);
+  font-size: var(--text-xs);
   color: var(--text-secondary);
 }
 
@@ -2085,16 +1672,18 @@
   display: inline-block;
 }
 
+/* Verification states use the semantic tokens, so the legend and the stacked
+   bars stay in sync with the rest of the app in both themes. */
 .legend-submitted {
-  background: #fdcb6e;
+  background: var(--warning);
 }
 
 .legend-approved {
-  background: #00b894;
+  background: var(--success);
 }
 
 .legend-rejected {
-  background: #d63031;
+  background: var(--error);
 }
 
 .bar-column-stacked {
@@ -2108,24 +1697,24 @@
   display: flex;
   flex-direction: column-reverse;
   align-items: center;
-  min-height: 4px;
+  min-height: var(--space-half);
 }
 
 .bar-id-approved {
-  background: #00b894 !important;
+  background: var(--success) !important;
   width: 100%;
   border-radius: 2px 2px 0 0;
   min-width: 14px;
 }
 
 .bar-id-rejected {
-  background: #d63031 !important;
+  background: var(--error) !important;
   width: 100%;
   min-width: 14px;
 }
 
 .bar-id-pending {
-  background: #fdcb6e !important;
+  background: var(--warning) !important;
   width: 100%;
   border-radius: 2px 2px 0 0;
   min-width: 14px;

@@ -119,7 +119,7 @@
     align-self: flex-end;
     .bubble-content {
       background: var(--primary);
-      color: #fff;
+      color: var(--on-primary);
       border-radius: 18px 18px 4px 18px;
     }
     .bubble-time {
@@ -423,7 +423,7 @@
   border: none;
   border-radius: 10px;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
@@ -656,7 +656,7 @@
   height: 42px;
   border-radius: 50%;
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border: none;
   display: flex;
   align-items: center;

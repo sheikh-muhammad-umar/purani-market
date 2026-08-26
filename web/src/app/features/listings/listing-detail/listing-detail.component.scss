@@ -39,7 +39,9 @@
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-3);
-  overflow: hidden;
+  /* No `overflow: hidden` here: it makes this element a scroll container, which
+     silently disables `position: sticky` on the sidebar. `minmax(0, 1fr)` plus
+     `min-width: 0` on the children is what actually contains the grid. */
 }
 
 @media (min-width: 1024px) {
@@ -63,7 +65,6 @@
   flex-direction: column;
   gap: var(--space-3);
   min-width: 0;
-  overflow: hidden;
 }
 
 /* Gallery */
@@ -236,20 +237,6 @@
   }
 }
 
-.share-toast {
-  position: fixed;
-  bottom: var(--space-4);
-  left: 50%;
-  transform: translateX(-50%);
-  background: var(--text-primary);
-  color: var(--surface);
-  padding: var(--space-1) var(--space-3);
-  border-radius: var(--radius-full);
-  font-size: var(--text-sm);
-  font-weight: 500;
-  z-index: 1100;
-}
-
 /* Share Popup */
 .share-overlay {
   position: fixed;
@@ -376,7 +363,7 @@
 }
 
 .condition-tag {
-  background: rgba(13, 165, 195, 0.1);
+  background: var(--primary-subtle);
   color: var(--primary);
   padding: 2px 8px;
   border-radius: var(--radius-full);
@@ -472,31 +459,6 @@
   color: var(--text-primary);
 }
 
-/* Specs */
-.specs-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-  gap: var(--space-1);
-}
-
-.spec-item {
-  display: flex;
-  flex-direction: column;
-  gap: 2px;
-  padding: var(--space-1);
-  background: var(--background);
-  border-radius: var(--radius-sm);
-  .spec-label {
-    font-size: var(--text-xs);
-    color: var(--text-muted);
-    text-transform: capitalize;
-  }
-  .spec-value {
-    font-size: var(--text-sm);
-    font-weight: 500;
-  }
-}
-
 /* Location */
 .location-label {
   font-size: var(--text-sm);
@@ -509,12 +471,6 @@
   border-radius: var(--radius-sm);
   overflow: hidden;
   background: var(--background);
-}
-
-.map-embed {
-  width: 100%;
-  height: 200px;
-  border: none;
 }
 
 .map-placeholder {
@@ -567,70 +523,108 @@
   }
 }
 
-/* Similar Items Carousel */
-.similar-carousel {
-  display: flex;
+/* Similar items use the shared .rail utility and app-listing-card, so the
+   bespoke carousel and card styles that were here have been removed. */
+
+/* ============================================
+   FIXED CONTACT BAR (below 1024px)
+   ============================================ */
+.action-bar {
+  display: none;
+  position: fixed;
+  left: 0;
+  right: 0;
+  /* Stacks directly above the app's mobile bottom nav */
+  bottom: var(--mobile-nav-height);
+  z-index: var(--z-sticky);
+  align-items: center;
   gap: var(--space-2);
-  overflow-x: auto;
-  scroll-snap-type: x mandatory;
-  scrollbar-width: none;
-  -webkit-overflow-scrolling: touch;
-  padding-bottom: var(--space-1);
-
-  &::-webkit-scrollbar {
-    display: none;
-  }
+  padding: var(--space-1) var(--space-2);
+  background: var(--surface);
+  border-top: 1px solid var(--border);
+  box-shadow: var(--shadow-lg);
+  /* Hidden until the inline price card scrolls away, so the two CTAs are never
+     on screen at once. Slides rather than pops. */
+  transform: translateY(calc(100% + var(--mobile-nav-height)));
+  pointer-events: none;
+  transition: transform var(--duration-slow) var(--ease-out);
 }
 
-.similar-card {
-  flex-shrink: 0;
-  width: 180px;
-  scroll-snap-align: start;
-  text-decoration: none;
-  color: inherit;
-  border-radius: var(--radius-md);
-  overflow: hidden;
-  border: 1px solid var(--border);
-  background: var(--card);
-  transition: box-shadow 0.2s;
-  &:hover {
-    box-shadow: var(--shadow-hover);
-  }
+.action-bar.is-visible {
+  transform: none;
+  pointer-events: auto;
 }
 
-.similar-image {
-  aspect-ratio: 1;
-  overflow: hidden;
-  background: var(--background);
-  img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-  }
-}
-
-.similar-info {
-  padding: var(--space-1);
+.action-bar-price {
   display: flex;
   flex-direction: column;
-  gap: 2px;
+  min-width: 0;
 }
 
-.similar-price {
-  font-weight: 800;
-  font-size: var(--text-sm);
-  color: var(--text-primary);
+.action-bar-price-label {
+  font-size: 10px;
+  font-weight: var(--weight-medium);
+  letter-spacing: var(--tracking-wide);
+  text-transform: uppercase;
+  color: var(--text-muted);
 }
-.similar-title {
-  font-size: var(--text-xs);
-  color: var(--text-secondary);
-  overflow: hidden;
-  text-overflow: ellipsis;
+
+.action-bar-price-value {
+  font-size: var(--text-base);
+  font-weight: var(--weight-extrabold);
+  letter-spacing: var(--tracking-tight);
+  color: var(--text-primary);
+  font-variant-numeric: tabular-nums;
   white-space: nowrap;
 }
-.similar-location {
-  font-size: 10px;
-  color: var(--text-muted);
+
+.action-bar-actions {
+  display: flex;
+  align-items: center;
+  gap: var(--space-1);
+  margin-left: auto;
+}
+
+.action-bar-icon {
+  display: grid;
+  place-items: center;
+}
+
+.action-bar-whatsapp {
+  color: #25d366;
+}
+
+.action-bar-cta {
+  gap: 6px;
+  margin-left: auto;
+  padding-inline: var(--space-2);
+  white-space: nowrap;
+
+  .material-symbols-rounded {
+    font-size: 18px;
+  }
+}
+
+@media (max-width: 1023px) {
+  .action-bar {
+    display: flex;
+  }
+
+  /* Reserve room so the bar never covers page content */
+  .detail-page {
+    padding-bottom: calc(var(--space-6) + var(--space-2));
+  }
+}
+
+@media (max-width: 380px) {
+  .action-bar {
+    gap: var(--space-1);
+    padding-inline: var(--space-1);
+  }
+
+  .action-bar-price-value {
+    font-size: var(--text-sm);
+  }
 }
 
 /* RIGHT SIDEBAR */
@@ -638,7 +632,21 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
-  top: calc(var(--header-height) + var(--space-2));
+  min-width: 0;
+}
+
+/* Follows the page while the long left column scrolls, so the contact actions
+   stay reachable. Only applied in the two-column layout — below 1024px the
+   sidebar is in normal flow and a fixed action bar handles contact instead. */
+@media (min-width: 1024px) {
+  .detail-sidebar {
+    position: sticky;
+    top: calc(var(--header-height) + var(--space-2));
+    /* Keeps a tall sidebar scrollable rather than clipped on short viewports */
+    max-height: calc(100vh - var(--header-height) - var(--space-4));
+    overflow-y: auto;
+    overscroll-behavior: contain;
+  }
 }
 
 .sidebar-card {
@@ -678,8 +686,8 @@
   align-items: center;
   gap: 8px;
   padding: 12px;
-  background: rgba(13, 165, 195, 0.05);
-  border: 1px solid rgba(13, 165, 195, 0.2);
+  background: var(--primary-subtle);
+  border: 1px solid var(--primary-ring);
   border-radius: var(--radius-sm);
   font-size: 13px;
   color: var(--primary);
@@ -766,7 +774,7 @@
   text-decoration: none;
   transition: background 0.15s;
   &:hover {
-    background: rgba(13, 165, 195, 0.1);
+    background: var(--primary-subtle);
   }
 }
 
@@ -820,29 +828,6 @@
 }
 .stat-value {
   font-weight: 600;
-}
-
-/* Skeleton */
-.detail-skeleton {
-  max-width: 720px;
-  margin: 0 auto;
-  padding: var(--space-2);
-  .skeleton-content {
-    padding: var(--space-2) 0;
-  }
-}
-
-.login-prompt {
-  color: var(--text-secondary);
-  font-size: var(--text-sm);
-  a {
-    color: var(--primary);
-    font-weight: 600;
-    text-decoration: none;
-    &:hover {
-      text-decoration: underline;
-    }
-  }
 }
 
 /* ---- MOBILE ---- */
@@ -917,8 +902,9 @@
     width: 36px;
     height: 36px;
     font-size: 1.2rem;
-    background: rgba(255, 255, 255, 0.8);
-    color: var(--text-primary);
+    /* Keeps the dark translucent treatment from the desktop rule. Overriding it
+       to a white background with var(--text-primary) made the arrows
+       near-invisible in dark mode. */
   }
 
   .gallery-counter {
@@ -989,25 +975,9 @@
     font-size: var(--text-xs);
   }
 
-  /* Specs */
-  .specs-grid {
-    grid-template-columns: 1fr 1fr;
-  }
-
   /* Map */
-  .map-embed,
   .map-placeholder {
     height: 180px;
-  }
-
-  /* Similar carousel */
-  .similar-carousel {
-    margin: 0 calc(-1 * var(--space-2));
-    padding: 0 var(--space-2) var(--space-1);
-  }
-
-  .similar-card {
-    width: 160px;
   }
 
   /* Sidebar: inline full-width cards */
@@ -1209,8 +1179,8 @@
     color: var(--success);
   }
   &[data-status='reserved'] {
-    background: rgba(13, 165, 195, 0.08);
-    border: 1px solid rgba(13, 165, 195, 0.25);
+    background: var(--primary-subtle);
+    border: 1px solid var(--primary-ring);
     color: var(--primary);
   }
 }

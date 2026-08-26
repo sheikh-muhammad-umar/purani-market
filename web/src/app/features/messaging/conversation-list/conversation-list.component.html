@@ -14,32 +14,35 @@
     <div class="loading-state">
       @for (i of SKELETON_ITEMS; track i) {
         <div class="skeleton-conversation">
-          <div class="skeleton-avatar shimmer"></div>
+          <app-skeleton variant="circle" width="48px" />
           <div class="skeleton-content">
-            <div class="skeleton-line short shimmer"></div>
-            <div class="skeleton-line long shimmer"></div>
+            <app-skeleton variant="block" width="40%" height="12px" />
+            <app-skeleton variant="block" width="80%" height="12px" />
           </div>
-          <div class="skeleton-time shimmer"></div>
+          <app-skeleton variant="block" width="48px" height="12px" />
         </div>
       }
     </div>
   }
 
   @if (error()) {
-    <div class="error-state">
-      <span class="error-icon"><span class="material-symbols-rounded">warning</span></span>
-      <p>{{ error() }}</p>
-      <button class="retry-btn" (click)="ngOnInit()">Try again</button>
-    </div>
+    <app-empty-state
+      icon="warning"
+      title="Couldn't load messages"
+      [message]="error()!"
+      actionText="Try again"
+      (actionClicked)="ngOnInit()"
+    />
   }
 
   @if (!loading() && !error() && conversationViews().length === 0) {
-    <div class="empty-state">
-      <span class="empty-icon">💬</span>
-      <h2>No conversations yet</h2>
-      <p>Start a conversation by messaging a seller on any listing.</p>
-      <a [routerLink]="ROUTES.HOME" class="browse-btn">Browse listings</a>
-    </div>
+    <app-empty-state
+      icon="forum"
+      title="No conversations yet"
+      message="Start a conversation by messaging a seller on any listing."
+      actionText="Browse listings"
+      [actionLink]="ROUTES.HOME"
+    />
   }
 
   @if (!loading() && !error() && conversationViews().length > 0) {

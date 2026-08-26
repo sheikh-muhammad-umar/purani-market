@@ -10,6 +10,8 @@ import {
 } from '../../../shared/components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
 import { ACTION_FILTER_OPTIONS } from '../../../core/constants/select-options';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 
 interface ActivityEntry {
   _id: string;
@@ -27,7 +29,14 @@ interface ActivityEntry {
 @Component({
   selector: 'app-user-activity',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent, DatePickerComponent],
+  imports: [
+    CommonModule,
+    FormsModule,
+    CustomSelectComponent,
+    DatePickerComponent,
+    EmptyStateComponent,
+    PaginationComponent,
+  ],
   templateUrl: './user-activity.component.html',
   styleUrl: './user-activity.component.scss',
 })

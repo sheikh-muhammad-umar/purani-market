@@ -1,19 +1,19 @@
 .analytics-page {
-  padding: 24px;
+  padding: var(--space-3);
 
   h1 {
-    font-size: 24px;
-    font-weight: 700;
+    font-size: var(--text-xl);
+    font-weight: var(--weight-bold);
     margin-bottom: 20px;
   }
 }
 
 .filter-bar {
-  margin-bottom: 24px;
-  padding: 16px;
+  margin-bottom: var(--space-3);
+  padding: var(--space-2);
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
 }
 
 .date-filters {
@@ -24,14 +24,14 @@
 
   label {
     font-size: 13px;
-    font-weight: 500;
+    font-weight: var(--weight-medium);
     color: var(--text-secondary);
   }
 
   input[type='date'] {
     padding: 7px 10px;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: var(--radius-xs);
     font-size: 13px;
     background: var(--surface);
     color: var(--text-primary);
@@ -39,22 +39,22 @@
 }
 
 .btn-apply {
-  padding: 7px 16px;
+  padding: 7px var(--space-2);
   background: var(--primary);
-  color: #fff;
+  color: var(--on-primary);
   border: none;
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   font-size: 13px;
   cursor: pointer;
-  font-weight: 500;
+  font-weight: var(--weight-medium);
 }
 
 .btn-clear {
-  padding: 7px 16px;
+  padding: 7px var(--space-2);
   background: none;
   color: var(--error);
   border: 1px solid var(--error);
-  border-radius: 6px;
+  border-radius: var(--radius-xs);
   font-size: 13px;
   cursor: pointer;
 }
@@ -63,14 +63,14 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
   gap: 12px;
-  margin-bottom: 24px;
+  margin-bottom: var(--space-3);
 }
 
 .stat-card {
-  padding: 16px;
+  padding: var(--space-2);
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   text-align: center;
 
   &.active {
@@ -84,7 +84,7 @@
 .stat-value {
   display: block;
   font-size: 22px;
-  font-weight: 700;
+  font-weight: var(--weight-bold);
   color: var(--text-primary);
 }
 
@@ -98,14 +98,14 @@
 .section-card {
   background: var(--card);
   border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-sm);
   padding: 20px;
   margin-bottom: 20px;
 
   h2 {
-    font-size: 16px;
-    font-weight: 600;
-    margin-bottom: 16px;
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    margin-bottom: var(--space-2);
   }
 }
 
@@ -113,7 +113,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 16px;
+  margin-bottom: var(--space-2);
 
   h2 {
     margin-bottom: 0;
@@ -122,20 +122,21 @@
 
 .sort-toggle {
   display: flex;
-  gap: 4px;
+  gap: var(--space-half);
 
   button {
     padding: 5px 12px;
     border: 1px solid var(--border);
-    border-radius: 6px;
+    border-radius: var(--radius-xs);
     background: none;
-    font-size: 12px;
+    font-size: var(--text-xs);
     cursor: pointer;
     color: var(--text-secondary);
 
     &.active {
       background: var(--primary);
-      color: #fff;
+      /* --on-primary, not white: primary lightens in dark mode */
+      color: var(--on-primary);
       border-color: var(--primary);
     }
   }
@@ -144,7 +145,7 @@
 .bar-chart {
   display: flex;
   align-items: flex-end;
-  gap: 4px;
+  gap: var(--space-half);
   height: 120px;
   padding-top: 10px;
 }
@@ -169,14 +170,14 @@
 .bar-label {
   font-size: 9px;
   color: var(--text-muted);
-  margin-top: 4px;
+  margin-top: var(--space-half);
   white-space: nowrap;
 }
 
 .bar-value {
   font-size: 9px;
   color: var(--text-secondary);
-  font-weight: 600;
+  font-weight: var(--weight-semibold);
 }
 
 .data-table {
@@ -186,16 +187,16 @@
 
   th {
     text-align: left;
-    padding: 8px;
+    padding: var(--space-1);
     border-bottom: 2px solid var(--border);
-    font-weight: 600;
+    font-weight: var(--weight-semibold);
     color: var(--text-secondary);
     font-size: 11px;
     text-transform: uppercase;
   }
 
   td {
-    padding: 8px;
+    padding: var(--space-1);
     border-bottom: 1px solid var(--border);
     color: var(--text-primary);
   }
@@ -217,7 +218,7 @@
   color: var(--text-muted);
 }
 
-@media (max-width: 768px) {
+@media (max-width: 767px) {
   .overview-grid {
     grid-template-columns: repeat(2, 1fr);
   }

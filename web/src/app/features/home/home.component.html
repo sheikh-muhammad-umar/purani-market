@@ -1,289 +1,229 @@
-<div class="home-page">
-  <!-- Hero Section -->
-  <section class="hero-section">
-    <div class="hero-content">
-      <h1 class="hero-headline">Buy and sell with <span class="hero-accent">confidence.</span></h1>
+<div class="home page">
+  <!-- ===== Hero ===== -->
+  <section class="hero">
+    <div class="hero-glow hero-glow-a" aria-hidden="true"></div>
+    <div class="hero-glow hero-glow-b" aria-hidden="true"></div>
+
+    <div class="hero-inner">
+      <span class="hero-eyebrow">
+        <span class="material-symbols-rounded hero-eyebrow-icon">verified_user</span>
+        Verified sellers · Secure messaging
+      </span>
+
+      <h1 class="hero-headline">Buy and sell with <span class="hero-accent">confidence</span></h1>
+
       <p class="hero-desc">
-        The premium local marketplace. Verified users, secure messaging, and a beautifully simple
-        way to discover what you need.
+        The premium local marketplace. Thousands of listings, verified users, and a beautifully
+        simple way to find exactly what you need.
       </p>
+
+      <app-search-bar class="hero-search" size="lg" />
+
       <div class="hero-actions">
-        <a [routerLink]="ROUTES.SEARCH" class="btn btn-primary hero-btn">Browse Listings</a>
-        <a [routerLink]="ROUTES.CATEGORIES" class="btn btn-outline hero-btn-outline"
-          >Learn How It Works</a
-        >
+        <a [routerLink]="ROUTES.SEARCH" class="hero-quick">
+          Browse all listings
+          <span class="material-symbols-rounded hero-quick-icon">arrow_forward</span>
+        </a>
+        <a [routerLink]="ROUTES.CATEGORIES" class="hero-quick hero-quick-muted">
+          Explore categories
+        </a>
       </div>
     </div>
   </section>
 
-  <!-- Browse by Category -->
-  <section class="category-section" aria-label="Browse categories">
-    <h2 class="section-heading">Browse by Category</h2>
-    @if (loadingCategories()) {
-      <div class="category-grid-browse">
-        @for (i of SKELETON_CATEGORIES; track i) {
-          <div class="cat-card-skeleton">
-            <div class="skeleton" style="width: 48px; height: 48px; border-radius: 12px"></div>
-            <div class="skeleton" style="width: 60px; height: 12px; margin-top: 8px"></div>
-          </div>
-        }
-      </div>
-    } @else {
-      <div class="category-grid-browse">
-        @for (chip of categoryChips(); track chip.id) {
-          <button class="cat-card" (click)="openCategoryModal(chip)">
-            <img class="cat-card-icon" [src]="chip.iconUrl" [alt]="chip.name" loading="lazy" />
-            <span class="cat-card-name">{{ chip.name }}</span>
-          </button>
-        }
-      </div>
-    }
-  </section>
+  <div class="home-sections stack">
+    <!-- ===== Browse by category ===== -->
+    <section aria-label="Browse categories">
+      <app-section-header
+        title="Browse by Category"
+        subtitle="Jump straight to what you need"
+        icon="grid_view"
+        linkText="All categories"
+        [link]="ROUTES.CATEGORIES"
+      />
 
-  <!-- Featured Ads -->
-  <section class="home-section" aria-label="Featured ads">
-    <div class="section-header">
-      <h2 class="section-title">
-        <span class="section-icon" style="color: var(--accent)"
-          ><span class="material-symbols-rounded">auto_awesome</span></span
-        >
-        Featured Ads
-      </h2>
-      <a [routerLink]="ROUTES.SEARCH" [queryParams]="{ featured: true }" class="see-all-link">
-        See all →
-      </a>
-    </div>
-    @if (loadingFeatured()) {
-      <div class="carousel-scroll">
-        @for (i of SKELETON_FEATURED; track i) {
-          <div class="listing-card-skeleton">
-            <div class="skeleton img-skeleton"></div>
-            <div class="skeleton text-skeleton title-sk"></div>
-            <div class="skeleton text-skeleton price-sk"></div>
-            <div class="skeleton text-skeleton loc-sk"></div>
-          </div>
-        }
-      </div>
-    } @else {
-      <div class="carousel-scroll" role="list">
-        @for (listing of featuredListings(); track listing._id) {
-          <a
-            class="listing-card"
-            [routerLink]="[ROUTES.LISTINGS, listing | listingUrl]"
-            role="listitem"
-          >
-            <div class="listing-img-wrap">
-              <img [src]="listing | listingImage" [alt]="listing.title" loading="lazy" />
-              @if (listing.isFeatured) {
-                <span class="badge badge-featured">Featured</span>
-              }
-            </div>
-            <div class="listing-info">
-              <p class="listing-price">
-                {{ listing.price.amount | priceFormat }}
-              </p>
-              <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
-              <p class="listing-location">
-                <span
-                  class="material-symbols-rounded"
-                  style="font-size: 16px; vertical-align: middle"
-                  >location_on</span
-                >
-                {{ listing.location.city || 'Unknown' }}
-              </p>
-            </div>
-          </a>
-        }
-        @if (featuredListings().length === 0) {
-          <p class="empty-state">No featured ads available right now.</p>
-        }
-      </div>
-    }
-  </section>
-
-  <!-- Shorts Carousel -->
-  @if (!loadingShorts() && shorts().length > 0) {
-    <section class="home-section" aria-label="Short videos">
-      <div class="section-header">
-        <h2 class="section-title">
-          <span class="section-icon" style="color: var(--primary)"
-            ><span class="material-symbols-rounded">play_circle</span></span
-          >
-          Shorts
-        </h2>
-        <a [routerLink]="ROUTES.SHORTS" class="see-all-link">See all →</a>
-      </div>
-      <div class="shorts-carousel" role="list">
-        @for (short of shorts(); track short._id) {
-          <a
-            class="short-card"
-            [routerLink]="[ROUTES.SHORTS]"
-            [queryParams]="{ id: short._id }"
-            role="listitem"
-          >
-            <div class="short-thumb">
-              <video
-                [src]="short.video.compressedUrl || short.video.url"
-                preload="metadata"
-                muted
-                playsinline
-              ></video>
-              <span class="short-duration">{{ formatShortDuration(short.video.duration) }}</span>
-            </div>
-            <div class="short-info">
-              <span class="short-title">{{
-                short.title || short.description || 'Short video'
-              }}</span>
-              <span class="short-date">{{ short.createdAt | date: 'mediumDate' }}</span>
-              @if (short.price) {
-                <span class="short-price"
-                  >{{ short.currency || CURRENCY_SYMBOL }} {{ short.price | number }}</span
-                >
-              } @else {
-                <span class="short-views"
-                  ><span
-                    class="material-symbols-rounded"
-                    style="font-size: 12px; vertical-align: middle"
-                    >visibility</span
-                  >
-                  {{ short.viewCount }}</span
-                >
-              }
-            </div>
-          </a>
-        }
-      </div>
+      @if (loadingCategories()) {
+        <div class="category-grid">
+          @for (i of SKELETON_CATEGORIES; track i) {
+            <app-category-card [loading]="true" />
+          }
+        </div>
+      } @else if (categoryChips().length === 0) {
+        <app-empty-state
+          icon="grid_view"
+          title="Categories aren't available right now"
+          message="Please try again in a moment."
+          [compact]="true"
+        />
+      } @else {
+        <div class="category-grid">
+          @for (chip of categoryChips(); track chip.id) {
+            <app-category-card
+              [name]="chip.name"
+              [iconUrl]="chip.iconUrl"
+              (selected)="openCategoryModal(chip)"
+            />
+          }
+        </div>
+      }
     </section>
-  }
 
-  <!-- Recommended for You -->
-  <section class="home-section" aria-label="Recommended for you">
-    <div class="section-header">
-      <h2 class="section-title">
-        <span class="section-icon"><span class="material-symbols-rounded">thumb_up</span></span>
-        Recommended for You
-      </h2>
-      <a [routerLink]="ROUTES.SEARCH" class="see-all-link">See all →</a>
-    </div>
-    @if (loadingRecommendations()) {
-      <div class="masonry-grid">
-        @for (i of SKELETON_GRID; track i) {
-          <div class="listing-card-skeleton">
-            <div class="skeleton img-skeleton" [style.height.px]="150 + (i % 3) * 40"></div>
-            <div class="skeleton text-skeleton title-sk"></div>
-            <div class="skeleton text-skeleton price-sk"></div>
+    <!-- ===== Featured ===== -->
+    <section aria-label="Featured ads">
+      <app-section-header
+        title="Featured Ads"
+        subtitle="Hand-picked listings from verified sellers"
+        icon="auto_awesome"
+        iconColor="var(--accent)"
+        linkText="See all"
+        [link]="ROUTES.SEARCH"
+        [linkQueryParams]="{ featured: true }"
+      />
+
+      @if (loadingFeatured()) {
+        <div class="rail">
+          @for (i of SKELETON_FEATURED; track i) {
+            <app-listing-card class="rail-item" [loading]="true" />
+          }
+        </div>
+      } @else if (featuredListings().length === 0) {
+        <app-empty-state
+          icon="auto_awesome"
+          title="No featured ads right now"
+          message="Check back soon, or browse everything that's currently listed."
+          actionText="Browse listings"
+          [actionLink]="ROUTES.SEARCH"
+          [compact]="true"
+        />
+      } @else {
+        <div class="rail" role="list">
+          @for (listing of featuredListings(); track listing._id; let idx = $index) {
+            <app-listing-card
+              class="rail-item"
+              role="listitem"
+              [listing]="listing"
+              [eager]="idx < 4"
+              [showTime]="true"
+            />
+          }
+        </div>
+      }
+    </section>
+
+    <!-- ===== Shorts ===== -->
+    @if (loadingShorts() || shorts().length > 0) {
+      <section aria-label="Short videos">
+        <app-section-header
+          title="Shorts"
+          subtitle="See items in motion before you buy"
+          icon="play_circle"
+          iconColor="var(--primary)"
+          linkText="See all"
+          [link]="ROUTES.SHORTS"
+        />
+
+        @if (loadingShorts()) {
+          <div class="rail">
+            @for (i of SKELETON_FEATURED; track i) {
+              <app-short-card class="rail-item-sm" [loading]="true" />
+            }
+          </div>
+        } @else {
+          <div class="rail" role="list">
+            @for (short of shorts(); track short._id) {
+              <app-short-card class="rail-item-sm" role="listitem" [short]="short" />
+            }
           </div>
         }
-      </div>
-    } @else {
-      <div class="masonry-grid" role="list">
-        @for (listing of recommendations(); track listing._id) {
-          <a
-            class="listing-card masonry-item"
-            [routerLink]="[ROUTES.LISTINGS, listing | listingUrl]"
-            role="listitem"
-          >
-            <div class="listing-img-wrap">
-              <img [src]="listing | listingImage" [alt]="listing.title" loading="lazy" />
-              @if (listing.isFeatured) {
-                <span class="badge badge-featured">Featured</span>
-              }
-            </div>
-            <div class="listing-info">
-              <p class="listing-price">
-                {{ listing.price.amount | priceFormat }}
-              </p>
-              <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
-              <p class="listing-location">
-                <span
-                  class="material-symbols-rounded"
-                  style="font-size: 16px; vertical-align: middle"
-                  >location_on</span
-                >
-                {{ listing.location.city || 'Unknown' }}
-              </p>
-            </div>
-          </a>
-        }
-        @if (recommendations().length === 0) {
-          <p class="empty-state">
-            No recommendations yet. Start browsing to get personalized suggestions!
-          </p>
-        }
-      </div>
+      </section>
     }
-  </section>
 
-  <!-- Near You -->
-  <section class="home-section" aria-label="Listings near you">
-    <div class="section-header">
-      <h2 class="section-title">
-        <span class="section-icon"><span class="material-symbols-rounded">location_on</span></span>
-        Near You
-        @if (userCity()) {
-          <span class="city-label">({{ userCity() }})</span>
-        }
-      </h2>
-      <a [routerLink]="ROUTES.SEARCH" [queryParams]="{ nearby: true }" class="see-all-link">
-        See all →
-      </a>
-    </div>
-    @if (loadingNearby()) {
-      <div class="carousel-scroll">
-        @for (i of SKELETON_GRID; track i) {
-          <div class="listing-card-skeleton">
-            <div class="skeleton img-skeleton"></div>
-            <div class="skeleton text-skeleton title-sk"></div>
-            <div class="skeleton text-skeleton price-sk"></div>
-            <div class="skeleton text-skeleton loc-sk"></div>
-          </div>
-        }
-      </div>
-    } @else {
-      <div class="carousel-scroll" role="list">
-        @for (listing of nearbyListings(); track listing._id) {
-          <a
-            class="listing-card"
-            [routerLink]="[ROUTES.LISTINGS, listing | listingUrl]"
-            role="listitem"
-          >
-            <div class="listing-img-wrap">
-              <img [src]="listing | listingImage" [alt]="listing.title" loading="lazy" />
-            </div>
-            <div class="listing-info">
-              <p class="listing-price">
-                {{ listing.price.amount | priceFormat }}
-              </p>
-              <h3 class="listing-title">{{ listing.title | truncateText: 50 }}</h3>
-              <p class="listing-location">
-                <span
-                  class="material-symbols-rounded"
-                  style="font-size: 16px; vertical-align: middle"
-                  >location_on</span
-                >
-                {{ listing.location.city || 'Unknown' }}, {{ listing.location.area || '' }}
-              </p>
-            </div>
-          </a>
-        }
-        @if (nearbyListings().length === 0 && !loadingNearby()) {
-          <p class="empty-state">
-            Enable location access to see listings near you, or browse by category above.
-          </p>
-        }
-      </div>
-    }
-  </section>
+    <!-- ===== Recommended ===== -->
+    <section aria-label="Recommended for you">
+      <app-section-header
+        title="Recommended for You"
+        subtitle="Based on what you've been viewing"
+        icon="thumb_up"
+        linkText="See all"
+        [link]="ROUTES.SEARCH"
+      />
 
-  <!-- Floating Post Ad Button -->
+      @if (loadingRecommendations()) {
+        <div class="auto-grid">
+          @for (i of SKELETON_GRID; track i) {
+            <app-listing-card [loading]="true" />
+          }
+        </div>
+      } @else if (recommendations().length === 0) {
+        <app-empty-state
+          icon="thumb_up"
+          title="No recommendations yet"
+          message="Start browsing and we'll suggest listings tailored to you."
+          actionText="Start browsing"
+          [actionLink]="ROUTES.SEARCH"
+          [compact]="true"
+        />
+      } @else {
+        <div class="auto-grid" role="list">
+          @for (listing of recommendations(); track listing._id) {
+            <app-listing-card role="listitem" [listing]="listing" [showTime]="true" />
+          }
+        </div>
+      }
+    </section>
+
+    <!-- ===== Near you ===== -->
+    <section aria-label="Listings near you">
+      <app-section-header
+        title="Near You"
+        [note]="userCity() ? '· ' + userCity() : ''"
+        subtitle="Fresh listings in your area"
+        icon="location_on"
+        linkText="See all"
+        [link]="ROUTES.SEARCH"
+        [linkQueryParams]="{ nearby: true }"
+      />
+
+      @if (loadingNearby()) {
+        <div class="rail">
+          @for (i of SKELETON_GRID; track i) {
+            <app-listing-card class="rail-item" [loading]="true" />
+          }
+        </div>
+      } @else if (nearbyListings().length === 0) {
+        <app-empty-state
+          icon="location_off"
+          title="Nothing nearby yet"
+          message="Pick a location from the header to see listings close to you."
+          actionText="Browse by category"
+          [actionLink]="ROUTES.CATEGORIES"
+          [compact]="true"
+        />
+      } @else {
+        <div class="rail" role="list">
+          @for (listing of nearbyListings(); track listing._id) {
+            <app-listing-card
+              class="rail-item"
+              role="listitem"
+              [listing]="listing"
+              [showTime]="true"
+            />
+          }
+        </div>
+      }
+    </section>
+  </div>
+
+  <!-- ===== Post ad FAB ===== -->
   @if (authService.isAuthenticated()) {
-    <a [routerLink]="ROUTES.LISTINGS_CREATE" class="fab-post-ad" aria-label="Post a new ad">
-      <span aria-hidden="true">+</span>
+    <a [routerLink]="ROUTES.LISTINGS_CREATE" class="fab" aria-label="Post a new ad">
+      <span class="material-symbols-rounded fab-icon">add</span>
+      <span class="fab-label">Post an ad</span>
     </a>
   }
 </div>
 
-<!-- Category Subcategory Modal -->
+<!-- Category subcategory modal -->
 @if (selectedCategory()) {
   <app-category-modal
     [allCategories]="categories()"

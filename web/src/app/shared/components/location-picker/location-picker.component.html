@@ -1,0 +1,108 @@
+<button
+  type="button"
+  class="lp-trigger"
+  [class.lp-trigger-compact]="variant() === 'compact'"
+  (click)="toggle()"
+  [attr.aria-expanded]="open()"
+  [attr.aria-controls]="panelId"
+  aria-haspopup="dialog"
+>
+  <span class="material-symbols-rounded lp-pin" aria-hidden="true">location_on</span>
+  <span class="lp-label">
+    <span class="lp-label-hint">Location</span>
+    <span class="lp-label-value">{{ label() }}</span>
+  </span>
+  <span class="material-symbols-rounded lp-chevron" aria-hidden="true">expand_more</span>
+</button>
+
+@if (open()) {
+  <div class="lp-panel" [id]="panelId" role="dialog" aria-label="Select location">
+    <div class="lp-head">
+      @if (level() === 'province') {
+        <span class="lp-title">Select location</span>
+      } @else {
+        <button type="button" class="lp-back" (click)="goBack()">
+          <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
+          <span class="lp-back-text">{{ currentName() }}</span>
+        </button>
+      }
+      <button type="button" class="lp-all" (click)="selectAllAtLevel()">
+        All {{ allLabel() }}
+      </button>
+    </div>
+
+    <div class="lp-search">
+      <span class="material-symbols-rounded lp-search-icon" aria-hidden="true">search</span>
+      <input
+        type="text"
+        class="lp-search-input"
+        placeholder="Search location"
+        aria-label="Search locations"
+        [value]="query()"
+        (input)="onQueryInput($event)"
+        autocomplete="off"
+      />
+    </div>
+
+    <div class="lp-list">
+      @switch (level()) {
+        @case ('province') {
+          @for (province of visibleProvinces(); track province._id) {
+            <button type="button" class="lp-option" (click)="selectProvince(province)">
+              <span class="lp-option-text">{{ province.name }}</span>
+              <span class="material-symbols-rounded lp-option-chevron" aria-hidden="true"
+                >chevron_right</span
+              >
+            </button>
+          } @empty {
+            <p class="lp-empty">No location matches “{{ query() }}”.</p>
+          }
+        }
+        @case ('city') {
+          @for (city of visibleCities(); track city._id) {
+            <button type="button" class="lp-option" (click)="selectCity(city)">
+              <span class="lp-option-text">{{ city.name }}</span>
+              <span class="material-symbols-rounded lp-option-chevron" aria-hidden="true"
+                >chevron_right</span
+              >
+            </button>
+          } @empty {
+            <p class="lp-empty">No location matches “{{ query() }}”.</p>
+          }
+        }
+        @case ('area') {
+          @for (area of visibleAreas(); track area._id) {
+            <button type="button" class="lp-option" (click)="selectArea(area)">
+              <span class="lp-option-text">{{ area.name }}</span>
+              @if (area.subareas.length || area.blockPhases.length) {
+                <span class="material-symbols-rounded lp-option-chevron" aria-hidden="true"
+                  >chevron_right</span
+                >
+              }
+            </button>
+          } @empty {
+            <p class="lp-empty">No location matches “{{ query() }}”.</p>
+          }
+        }
+        @case ('sub') {
+          @if (area()!.subareas.length) {
+            <p class="lp-group">Subareas</p>
+            @for (sub of area()!.subareas; track sub) {
+              <button type="button" class="lp-option" (click)="selectSubItem(sub)">
+                <span class="lp-option-text">{{ sub }}</span>
+              </button>
+            }
+          }
+          @if (area()!.blockPhases.length) {
+            <p class="lp-group">Blocks / Phases</p>
+            @for (block of area()!.blockPhases; track block) {
+              <button type="button" class="lp-option" (click)="selectSubItem(block)">
+                <span class="lp-option-text">{{ block }}</span>
+              </button>
+            }
+          }
+        }
+      }
+    </div>
+  </div>
+}

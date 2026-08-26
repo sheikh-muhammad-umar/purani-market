@@ -12,6 +12,9 @@ import {
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
 import { DatePickerComponent } from '../../../shared/components/date-picker/date-picker.component';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
 
 @Component({
   selector: 'app-shorts-admin',
@@ -23,6 +26,9 @@ import { DatePickerComponent } from '../../../shared/components/date-picker/date
     FormatStatusPipe,
     CustomSelectComponent,
     DatePickerComponent,
+    EmptyStateComponent,
+    PaginationComponent,
+    ModalComponent,
   ],
   templateUrl: './shorts-admin.component.html',
   styleUrl: './shorts-admin.component.scss',

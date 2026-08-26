@@ -1,5 +1,4 @@
 import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { User, NotificationPreferences } from '../../../core/models/user.model';
@@ -7,6 +6,7 @@ import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { ROUTES } from '../../../core/constants/routes';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 
 interface NotificationToggle {
   key: keyof NotificationPreferences;
@@ -17,7 +17,7 @@ interface NotificationToggle {
 @Component({
   selector: 'app-notification-prefs',
   standalone: true,
-  imports: [CommonModule, RouterLink],
+  imports: [RouterLink, SkeletonComponent],
   templateUrl: './notification-prefs.component.html',
   styleUrl: './notification-prefs.component.scss',
 })

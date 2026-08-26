@@ -37,7 +37,7 @@
 
   &.voice-active {
     background: var(--error);
-    color: #fff;
+    color: var(--on-error);
     transform: scale(1.15);
     animation: voice-pulse-btn 1s ease-in-out infinite;
   }
@@ -94,7 +94,7 @@
   left: 50%;
   transform: translateX(-50%);
   background: var(--error);
-  color: #fff;
+  color: var(--on-error);
   border-radius: 8px;
   padding: 8px 14px;
   font-size: 12px;
@@ -147,7 +147,7 @@
 
   &.voice-active {
     background: var(--error);
-    color: #fff;
+    color: var(--on-error);
     transform: scale(1.1);
   }
 }

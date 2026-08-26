@@ -110,48 +110,11 @@ describe('FavoritesListComponent', () => {
     expect(component.getListing(fav)).toBeNull();
   });
 
-  it('should return thumbnail image url', () => {
-    component.ngOnInit();
-    const url = component.getImage(component.favorites()[0]);
-    expect(url).toBe('thumb.jpg');
-  });
-
-  it('should fallback to full url when no thumbnail', () => {
-    const fav = makeFavorite({
-      productListingId: makeListing({
-        images: [{ url: 'full.jpg', thumbnailUrl: '', sortOrder: 0 }],
-      }),
-    });
-    expect(component.getImage(fav)).toBe('full.jpg');
-  });
-
-  it('should fallback to placeholder when no images', () => {
-    const fav = makeFavorite({
-      productListingId: makeListing({ images: [] }),
-    });
-    expect(component.getImage(fav)).toBe('assets/placeholder.png');
-  });
-
-  it('should return placeholder for unpopulated listing', () => {
-    const fav = makeFavorite({ productListingId: 'some-id' as any });
-    expect(component.getImage(fav)).toBe('assets/placeholder.png');
-  });
-
-  it('should return correct badge class for each status', () => {
-    expect(component.getStatusBadgeClass('active')).toBe('badge-success');
-    expect(component.getStatusBadgeClass('sold')).toBe('badge-sold');
-    expect(component.getStatusBadgeClass('reserved')).toBe('badge-warning');
-    expect(component.getStatusBadgeClass('rejected')).toBe('badge-error');
-    expect(component.getStatusBadgeClass('pending_review')).toBe('badge-pending');
-    expect(component.getStatusBadgeClass('unknown')).toBe('');
-  });
-
-  it('should format price correctly', () => {
-    const listing = makeListing({ price: { amount: 500000, currency: 'PKR' } });
-    const formatted = component.formatPrice(listing);
-    expect(formatted).toContain('Rs');
-    expect(formatted).toContain('500');
-  });
+  // Image resolution, price formatting and status labelling moved out of this
+  // component into ListingCardComponent and its pipes. The image and price
+  // cases now live in listing-image.pipe.spec.ts and price-format.pipe.spec.ts.
+  // Status is no longer expressed as a badge class: the card overlays a label
+  // for sold/reserved/expired/unavailable and shows nothing for active.
 
   it('should remove favorite and update list', () => {
     component.ngOnInit();

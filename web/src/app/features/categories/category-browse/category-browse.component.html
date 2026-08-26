@@ -5,38 +5,29 @@
   </header>
 
   @if (loading()) {
-    <app-loader mode="inline" [loading]="true" message="Loading categories..." />
+    <div class="categories-grid">
+      @for (i of SKELETON_ITEMS; track i) {
+        <app-category-card [loading]="true" />
+      }
+    </div>
+  } @else if (topLevelCategories().length === 0) {
+    <app-empty-state
+      icon="grid_view"
+      title="No categories available"
+      message="Categories aren't available at the moment. Please try again shortly."
+    />
   } @else {
     <div class="categories-grid" role="list" aria-label="Product categories">
       @for (category of topLevelCategories(); track category._id) {
-        <div
-          class="category-card"
+        <app-category-card
           role="listitem"
-          (click)="openCategoryModal(category)"
-          [attr.aria-label]="
-            category.name + ' - ' + getSubcategoryCount(category._id) + ' subcategories'
-          "
-          tabindex="0"
-          (keydown.enter)="openCategoryModal(category)"
-        >
-          <div class="card-image-wrap">
-            <img [src]="getCategoryImage(category)" [alt]="category.name" loading="lazy" />
-          </div>
-          <div class="card-content">
-            <h3 class="card-title">{{ category.name }}</h3>
-            @if (getSubcategoryCount(category._id) > 0) {
-              <p class="card-subtitle">{{ getSubcategoryCount(category._id) }} subcategories</p>
-            }
-          </div>
-        </div>
+          [name]="category.name"
+          [iconUrl]="getCategoryImage(category)"
+          [subtitle]="subcategoryLabel(category._id)"
+          (selected)="openCategoryModal(category)"
+        />
       }
     </div>
-
-    @if (topLevelCategories().length === 0) {
-      <div class="empty-state">
-        <p>No categories available at the moment.</p>
-      </div>
-    }
   }
 </div>
 

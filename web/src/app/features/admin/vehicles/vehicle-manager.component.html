@@ -115,13 +115,15 @@
             }
           </div>
         } @empty {
-          <div class="empty-state">
-            @if (brandSearch) {
-              No brands match "{{ brandSearch }}".
-            } @else {
-              No {{ vehicleType }} brands yet.
-            }
-          </div>
+          @if (brandSearch) {
+            <app-empty-state
+              icon="search_off"
+              title="No matching brands"
+              [message]="'No brands match “' + brandSearch + '”.'"
+            />
+          } @else {
+            <app-empty-state icon="sell" [title]="'No ' + vehicleType + ' brands yet'" />
+          }
         }
       </div>
     }
@@ -141,7 +143,11 @@
     </div>
 
     @if (!selectedBrandId) {
-      <div class="empty-state">Select a brand to manage its models.</div>
+      <app-empty-state
+        icon="sell"
+        title="Select a brand"
+        message="Choose a brand above to manage its models."
+      />
     }
 
     @if (selectedBrandId) {
@@ -223,13 +229,18 @@
               }
             </div>
           } @empty {
-            <div class="empty-state">
-              @if (modelSearch) {
-                No models match "{{ modelSearch }}".
-              } @else {
-                No models for {{ selectedBrandName }} yet.
-              }
-            </div>
+            @if (modelSearch) {
+              <app-empty-state
+                icon="search_off"
+                title="No matching models"
+                [message]="'No models match “' + modelSearch + '”.'"
+              />
+            } @else {
+              <app-empty-state
+                icon="directions_car"
+                [title]="'No models for ' + selectedBrandName + ' yet'"
+              />
+            }
           }
         </div>
       }
@@ -264,10 +275,18 @@
     </div>
 
     @if (!selectedBrandId) {
-      <div class="empty-state">Select a brand and model to manage variants.</div>
+      <app-empty-state
+        icon="sell"
+        title="Select a brand"
+        message="Choose a brand and model above to manage variants."
+      />
     }
     @if (selectedBrandId && !selectedModelId) {
-      <div class="empty-state">Select a model to manage its variants.</div>
+      <app-empty-state
+        icon="directions_car"
+        title="Select a model"
+        message="Choose a model above to manage its variants."
+      />
     }
 
     @if (selectedModelId) {
@@ -353,13 +372,18 @@
               }
             </div>
           } @empty {
-            <div class="empty-state">
-              @if (variantSearch) {
-                No variants match "{{ variantSearch }}".
-              } @else {
-                No variants for {{ selectedModelName }} yet.
-              }
-            </div>
+            @if (variantSearch) {
+              <app-empty-state
+                icon="search_off"
+                title="No matching variants"
+                [message]="'No variants match “' + variantSearch + '”.'"
+              />
+            } @else {
+              <app-empty-state
+                icon="tune"
+                [title]="'No variants for ' + selectedModelName + ' yet'"
+              />
+            }
           }
         </div>
       }
@@ -369,45 +393,37 @@
 
 <!-- Delete Brand Modal -->
 @if (deletingBrandId) {
-  <div class="modal-overlay" (click)="cancelDeleteBrand()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
-      <div class="modal-icon"><span class="material-symbols-rounded">warning</span></div>
-      <h3>Delete this brand?</h3>
-      <p>All models under this brand must be deleted first. This action cannot be undone.</p>
-      <div class="modal-actions">
-        <button class="btn-cancel" (click)="cancelDeleteBrand()">Cancel</button>
-        <button class="btn-delete" (click)="confirmDeleteBrand()">Delete</button>
-      </div>
+  <app-modal title="Delete this brand?" size="sm" (closed)="cancelDeleteBrand()">
+    <p class="alert alert-warning">
+      All models under this brand must be deleted first. This action cannot be undone.
+    </p>
+    <div slot="footer">
+      <button class="btn btn-ghost" (click)="cancelDeleteBrand()">Cancel</button>
+      <button class="btn btn-danger" (click)="confirmDeleteBrand()">Delete</button>
     </div>
-  </div>
+  </app-modal>
 }
 
 <!-- Delete Model Modal -->
 @if (deletingModelId) {
-  <div class="modal-overlay" (click)="cancelDeleteModel()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
-      <div class="modal-icon"><span class="material-symbols-rounded">warning</span></div>
-      <h3>Delete this model?</h3>
-      <p>All variants under this model must be deleted first. This action cannot be undone.</p>
-      <div class="modal-actions">
-        <button class="btn-cancel" (click)="cancelDeleteModel()">Cancel</button>
-        <button class="btn-delete" (click)="confirmDeleteModel()">Delete</button>
-      </div>
+  <app-modal title="Delete this model?" size="sm" (closed)="cancelDeleteModel()">
+    <p class="alert alert-warning">
+      All variants under this model must be deleted first. This action cannot be undone.
+    </p>
+    <div slot="footer">
+      <button class="btn btn-ghost" (click)="cancelDeleteModel()">Cancel</button>
+      <button class="btn btn-danger" (click)="confirmDeleteModel()">Delete</button>
     </div>
-  </div>
+  </app-modal>
 }
 
 <!-- Delete Variant Modal -->
 @if (deletingVariantId) {
-  <div class="modal-overlay" (click)="cancelDeleteVariant()">
-    <div class="modal-box" (click)="$event.stopPropagation()">
-      <div class="modal-icon"><span class="material-symbols-rounded">warning</span></div>
-      <h3>Delete this variant?</h3>
-      <p>This action cannot be undone.</p>
-      <div class="modal-actions">
-        <button class="btn-cancel" (click)="cancelDeleteVariant()">Cancel</button>
-        <button class="btn-delete" (click)="confirmDeleteVariant()">Delete</button>
-      </div>
+  <app-modal title="Delete this variant?" size="sm" (closed)="cancelDeleteVariant()">
+    <p class="alert alert-warning">This action cannot be undone.</p>
+    <div slot="footer">
+      <button class="btn btn-ghost" (click)="cancelDeleteVariant()">Cancel</button>
+      <button class="btn btn-danger" (click)="confirmDeleteVariant()">Delete</button>
     </div>
-  </div>
+  </app-modal>
 }

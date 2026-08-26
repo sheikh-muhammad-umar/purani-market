@@ -10,7 +10,7 @@
   @if (error()) {
     <div class="error-state">
       <p>{{ error() }}</p>
-      <button class="btn-retry" (click)="loadPayments()">Retry</button>
+      <button class="btn btn-primary" (click)="loadPayments()">Retry</button>
     </div>
   }
 
@@ -88,16 +88,17 @@
     }
 
     @if (payments().length === 0) {
-      <div class="empty-list">
-        @if (hasActiveFilters) {
-          No transactions match your filters.
-          <button class="btn-retry" style="margin-left: 8px" (click)="resetFilters()">
-            Clear Filters
-          </button>
-        } @else {
-          No payment transactions found.
-        }
-      </div>
+      <app-empty-state
+        icon="receipt_long"
+        [title]="hasActiveFilters ? 'No matching transactions' : 'No payment transactions found'"
+        [message]="
+          hasActiveFilters
+            ? 'No transactions match your filters.'
+            : 'Transactions appear here once sellers purchase a package.'
+        "
+        [actionText]="hasActiveFilters ? 'Clear Filters' : ''"
+        (actionClicked)="resetFilters()"
+      />
     }
 
     @if (payments().length > 0) {
@@ -148,13 +149,12 @@
     }
 
     @if (payments().length > 0) {
-      <div class="pagination">
-        <button class="btn-secondary" (click)="prevPage()" [disabled]="page <= 1">← Prev</button>
-        <span class="page-info">Page {{ page }} of {{ totalPages }}</span>
-        <button class="btn-secondary" (click)="nextPage()" [disabled]="page >= totalPages">
-          Next →
-        </button>
-      </div>
+      <app-pagination
+        [currentPage]="page"
+        [totalPages]="totalPages"
+        label="Payment transactions pages"
+        (pageChange)="goToPage($event)"
+      />
     }
   }
 </div>

@@ -1,18 +1,19 @@
 import { Component, OnInit, signal, computed, Inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
-import { CommonModule } from '@angular/common';
 import { Observable, map, shareReplay } from 'rxjs';
 import { CategoriesService } from '../../core/services/categories.service';
 import { ListingsService, ListingsResponse } from '../../core/services/listings.service';
 import { ShortsService, ShortVideo } from '../../core/services/shorts.service';
 import { RecommendationsService } from '../../core/services/recommendations.service';
 import { AuthService } from '../../core/auth/auth.service';
-import { PriceFormatPipe } from '../../shared/pipes/price-format.pipe';
-import { TruncateTextPipe } from '../../shared/pipes/truncate-text.pipe';
-import { ListingUrlPipe } from '../../shared/pipes/listing-url.pipe';
-import { ListingImagePipe } from '../../shared/pipes/listing-image.pipe';
 import { CategoryModalComponent } from '../../shared/components/category-modal/category-modal.component';
+import { SearchBarComponent } from '../../shared/components/search-bar/search-bar.component';
+import { ListingCardComponent } from '../../shared/components/listing-card/listing-card.component';
+import { ShortCardComponent } from '../../shared/components/short-card/short-card.component';
+import { CategoryCardComponent } from '../../shared/components/category-card/category-card.component';
+import { SectionHeaderComponent } from '../../shared/components/section-header/section-header.component';
+import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { Category, Listing } from '../../core/models';
 import { STORAGE_SELECTED_LOCATION } from '../../core/constants/storage-keys';
 import {
@@ -21,7 +22,6 @@ import {
   DEFAULT_CATEGORY_ICON,
   FEATURED_ADS_LIMIT,
   NEARBY_LISTINGS_LIMIT,
-  CURRENCY_SYMBOL,
 } from '../../core/constants/app';
 import { ROUTES } from '../../core/constants/routes';
 
@@ -36,20 +36,20 @@ interface CategoryChip {
   selector: 'app-home',
   standalone: true,
   imports: [
-    CommonModule,
     RouterLink,
-    PriceFormatPipe,
-    TruncateTextPipe,
-    ListingImagePipe,
     CategoryModalComponent,
-    ListingUrlPipe,
+    SearchBarComponent,
+    ListingCardComponent,
+    ShortCardComponent,
+    CategoryCardComponent,
+    SectionHeaderComponent,
+    EmptyStateComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
 })
 export class HomeComponent implements OnInit {
   readonly ROUTES = ROUTES;
-  readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
   readonly SKELETON_CATEGORIES = Array.from({ length: 8 }, (_, i) => i);
   readonly SKELETON_FEATURED = Array.from({ length: 4 }, (_, i) => i);
   readonly SKELETON_GRID = Array.from({ length: 6 }, (_, i) => i);
@@ -243,20 +243,5 @@ export class HomeComponent implements OnInit {
       },
       error: () => this.loadingNearby.set(false),
     });
-  }
-
-  formatShortDuration(seconds?: number): string {
-    if (!seconds) return '0:00';
-    const m = Math.floor(seconds / 60);
-    const s = Math.floor(seconds % 60);
-    return `${m}:${s.toString().padStart(2, '0')}`;
-  }
-
-  getShortSellerName(short: ShortVideo): string {
-    const seller = short.sellerId as any;
-    if (seller?.profile) {
-      return `${seller.profile.firstName || ''} ${seller.profile.lastName || ''}`.trim();
-    }
-    return 'Seller';
   }
 }
