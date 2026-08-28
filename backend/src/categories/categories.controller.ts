@@ -92,6 +92,13 @@ export class CategoriesController {
     return cat;
   }
 
+  @Get(':id/delete-impact')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async getDeleteImpact(@Param('id') id: string) {
+    return this.categoriesService.getDeleteImpact(id);
+  }
+
   @Delete(':id')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)

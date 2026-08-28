@@ -53,6 +53,7 @@ export const ERROR_MSG = {
   CATEGORY_CREATE_FAILED: 'Failed to create category.',
   CATEGORY_UPDATE_FAILED: 'Failed to update category.',
   CATEGORY_DELETE_FAILED: 'Failed to delete category.',
+  CATEGORY_DELETE_IMPACT_FAILED: 'Could not check what this delete would affect.',
   CATEGORY_REORDER_FAILED: 'Failed to reorder.',
   ATTRIBUTE_CREATE_FAILED: 'Failed to create attribute definition.',
   ATTRIBUTE_UPDATE_FAILED: 'Failed to update attributes.',

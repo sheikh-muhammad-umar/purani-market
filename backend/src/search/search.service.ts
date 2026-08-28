@@ -5,7 +5,10 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Model, Types } from 'mongoose';
 import Redis from 'ioredis';
 import { CategoriesService } from '../categories/categories.service.js';
-import { AttributeType } from '../categories/schemas/category.schema.js';
+import {
+  AttributeType,
+  CategoryAttribute,
+} from '../categories/schemas/category.schema.js';
 import {
   escapeRegex,
   exactMatchRegex,
@@ -22,6 +25,7 @@ import { SuggestionQueryDto } from './dto/suggestion-query.dto.js';
 import { CACHE_TTL_POPULAR_SEARCHES } from '../common/constants/index.js';
 import {
   SearchResult,
+  SearchFacet,
   SuggestionResult,
   RankingConfig,
   DEFAULT_RANKING_CONFIG,
@@ -29,6 +33,20 @@ import {
 
 const POPULAR_SEARCHES_KEY = 'search:popular';
 const DEFAULT_GEO_RADIUS_KM = 25;
+
+/** Attribute types the filter panel can show per-option counts or bounds for. */
+const FACETABLE_ATTRIBUTE_TYPES = new Set<string>([
+  AttributeType.SELECT,
+  AttributeType.MULTISELECT,
+  AttributeType.BOOLEAN,
+  AttributeType.NUMBER,
+  AttributeType.YEAR,
+  AttributeType.RANGE,
+  AttributeType.PROVINCE_CITY,
+]);
+
+/** Upper bound on distinct options returned per facet. */
+const FACET_BUCKET_LIMIT = 50;
 
 @Injectable()
 export class SearchService {
@@ -48,7 +66,13 @@ export class SearchService {
     const limit = query.limit || 20;
 
     try {
-      const result = await this.esSearch(query, page, limit);
+      // Facets are computed alongside the results so the filter panel can show
+      // per-option counts. They describe the whole filtered set, so they are
+      // independent of paging.
+      const [result, facets] = await Promise.all([
+        this.esSearch(query, page, limit),
+        this.buildFacets(query),
+      ]);
 
       // Progressive relaxation: if few results and filters can be relaxed
       if (result.total < limit && query.q && this.hasRelaxableFilters(query)) {
@@ -58,7 +82,7 @@ export class SearchService {
           limit,
           result,
         );
-        return relaxed;
+        return { ...relaxed, facets };
       }
 
       if (result.items.length === 0 && query.q) {
@@ -71,15 +95,28 @@ export class SearchService {
           totalPages: 0,
           suggestions: alternatives.suggestions,
           relatedCategories: alternatives.relatedCategories,
+          facets,
         };
       }
 
-      return result;
+      return { ...result, facets };
     } catch (error: any) {
       this.logger.error(`Search failed: ${error.message}`);
       this.logger.warn('Falling back to MongoDB search');
       return this.mongoFallbackSearch(query, page, limit);
     }
+  }
+
+  /**
+   * True when any category attribute filter carries a value the MongoDB
+   * fallback cannot express — a range object or a multi-value array.
+   */
+  private hasNonStringAttributeFilter(query: SearchQueryDto): boolean {
+    const filters = query.filters;
+    if (!filters || typeof filters !== 'object') return false;
+    return Object.values(filters).some(
+      (value) => value !== null && typeof value === 'object',
+    );
   }
 
   /**
@@ -201,8 +238,16 @@ export class SearchService {
         ? response.hits.total
         : (response.hits.total?.value ?? 0);
 
-    // If ES returned no results, fall back to MongoDB
-    if (total === 0) {
+    // If ES returned no results, fall back to MongoDB. This is a safety net for
+    // a stale or partially-synced index, NOT a way to widen a search.
+    //
+    // It must be skipped when category attribute filters are in play: the Mongo
+    // path can only express string equality (see the `typeof value === 'string'`
+    // guard in mongoFallbackSearch), so it silently drops range and multi-value
+    // filters. The result was that any filter combination legitimately matching
+    // nothing came back as the full unfiltered list, which reads to the user as
+    // "the filter did nothing".
+    if (total === 0 && !this.hasNonStringAttributeFilter(query)) {
       const mongoResult = await this.mongoFallbackSearch(query, page, limit);
       if (mongoResult.total > 0) return mongoResult;
     }
@@ -365,17 +410,33 @@ export class SearchService {
       filter.sellerVerified = true;
     }
 
-    // Dynamic category attribute filters
+    // Dynamic category attribute filters.
+    //
+    // Each value is matched against the attribute path itself and against the
+    // `province`/`city` sub-paths, because `province_city` attributes are stored
+    // as an object while every other string attribute is stored flat. Excluding
+    // keys by a `_province`/`_city` suffix (as this did before) silently dropped
+    // legitimate attributes whose own key ends that way — `registration_city`
+    // being exactly that case, which made the fallback return the whole
+    // unfiltered category.
     if (query.filters && typeof query.filters === 'object') {
+      const attributeClauses: Record<string, unknown>[] = [];
       for (const [key, value] of Object.entries(query.filters)) {
-        if (
-          value &&
-          typeof value === 'string' &&
-          !key.endsWith('_province') &&
-          !key.endsWith('_city')
-        ) {
-          filter[`categoryAttributes.${key}`] = exactMatchRegex(value);
-        }
+        if (!value || typeof value !== 'string') continue;
+        const pattern = exactMatchRegex(value);
+        attributeClauses.push({
+          $or: [
+            { [`categoryAttributes.${key}`]: pattern },
+            { [`categoryAttributes.${key}.city`]: pattern },
+            { [`categoryAttributes.${key}.province`]: pattern },
+          ],
+        });
+      }
+      if (attributeClauses.length > 0) {
+        filter.$and = [
+          ...((filter.$and as Record<string, unknown>[] | undefined) ?? []),
+          ...attributeClauses,
+        ];
       }
     }
 
@@ -696,15 +757,169 @@ export class SearchService {
       for (const filterDef of filterDefs) {
         const value = filters[filterDef.key];
         if (value === undefined || value === null) continue;
+        esFilters.push(...this.buildAttributeClauses(filterDef, value));
+      }
+    } catch (error: any) {
+      this.logger.warn(
+        `Failed to load category filters for ${categoryId}: ${error.message}`,
+      );
+    }
 
+    return esFilters;
+  }
+
+  /**
+   * Per-option result counts for the selected category's filterable attributes.
+   *
+   * Each facet is aggregated with every *other* active attribute filter applied
+   * but its own left out. Applying its own filter too would collapse a
+   * single-choice facet to just the chosen option, which is useless for deciding
+   * what to pick next; excluding it answers "how many results would I get if I
+   * switched this one option".
+   *
+   * Runs as a separate `size: 0` request and never fails the search: facets are
+   * a presentation nicety, so an aggregation problem degrades to no counts
+   * rather than an error page.
+   */
+  async buildFacets(query: SearchQueryDto): Promise<SearchFacet[]> {
+    if (!query.category) return [];
+
+    try {
+      const filterDefs = await this.categoriesService.getInheritedAttributes(
+        query.category,
+      );
+      const facetable = filterDefs.filter((def) =>
+        FACETABLE_ATTRIBUTE_TYPES.has(def.type),
+      );
+      if (facetable.length === 0) return [];
+
+      const supplied = query.filters ?? {};
+
+      // Clauses for every attribute that currently has a value, keyed so one can
+      // be excluded per facet.
+      const clausesByKey = new Map<string, any[]>();
+      for (const def of filterDefs) {
+        const value = supplied[def.key];
+        if (value === undefined || value === null) continue;
+        clausesByKey.set(def.key, this.buildAttributeClauses(def, value));
+      }
+
+      // Base query without any attribute filters; those are reapplied per facet.
+      const rankingConfig = this.parseRankingConfig(query.rankingConfig, query);
+      const baseQuery = await this.buildSearchQuery(
+        { ...query, filters: undefined },
+        rankingConfig,
+      );
+
+      const aggs: Record<string, any> = {};
+      for (const def of facetable) {
+        const others: any[] = [];
+        for (const [key, clauses] of clausesByKey) {
+          if (key === def.key) continue;
+          others.push(...clauses);
+        }
+
+        const attrPath = `categoryAttributes.${def.key}`;
+        const isNumeric =
+          def.type === AttributeType.NUMBER ||
+          def.type === AttributeType.YEAR ||
+          def.type === AttributeType.RANGE;
+        // Booleans are indexed as real booleans, so they have no keyword
+        // sub-field; everything else exact-matched needs `.keyword`.
+        const useRawPath = def.type === AttributeType.BOOLEAN;
+
+        aggs[`facet_${def.key}`] = {
+          filter:
+            others.length > 0
+              ? { bool: { filter: others } }
+              : { match_all: {} },
+          aggs: {
+            values: isNumeric
+              ? { stats: { field: attrPath } }
+              : {
+                  terms: {
+                    // Exact-match counts must come from the keyword sub-field;
+                    // the analyzed `text` field would bucket per token.
+                    field: useRawPath ? attrPath : `${attrPath}.keyword`,
+                    size: FACET_BUCKET_LIMIT,
+                  },
+                },
+          },
+        };
+      }
+
+      const response = await this.esService.search({
+        index: LISTINGS_INDEX,
+        size: 0,
+        query: baseQuery,
+        aggs,
+      });
+
+      const facets: SearchFacet[] = [];
+      for (const def of facetable) {
+        const agg = (response.aggregations as any)?.[`facet_${def.key}`];
+        const values = agg?.values;
+        if (!values) continue;
+
+        if (values.buckets) {
+          facets.push({
+            key: def.key,
+            type: def.type,
+            buckets: values.buckets.map((b: any) => ({
+              value: String(b.key_as_string ?? b.key),
+              count: b.doc_count as number,
+            })),
+          });
+        } else {
+          facets.push({
+            key: def.key,
+            type: def.type,
+            min: values.min ?? null,
+            max: values.max ?? null,
+          });
+        }
+      }
+      return facets;
+    } catch (error: any) {
+      this.logger.warn(`Failed to build facets: ${error.message}`);
+      return [];
+    }
+  }
+
+  /**
+   * ES clauses for a single attribute value.
+   *
+   * Extracted so the facet aggregations can rebuild the same clauses while
+   * leaving one attribute out, which is what lets a facet show the counts of its
+   * own alternatives.
+   */
+  private buildAttributeClauses(
+    filterDef: CategoryAttribute,
+    value: any,
+  ): any[] {
+    const esFilters: any[] = [];
+    {
+      {
         const attrPath = `categoryAttributes.${filterDef.key}`;
+
+        // String attributes are dynamically mapped as `text` + a `.keyword`
+        // sub-field. `term`/`terms` are not analyzed, so querying the `text`
+        // field for "Petrol" never matches the indexed token "petrol" — these
+        // filters silently returned nothing from ES and only appeared to work
+        // because the zero-result MongoDB fallback picked them up. Exact-match
+        // clauses must target the keyword sub-field.
+        const keywordPath = `${attrPath}.keyword`;
 
         switch (filterDef.type) {
           case AttributeType.RANGE: {
             const rangeClause: any = {};
             if (typeof value === 'object' && value !== null) {
-              if (value.min !== undefined) rangeClause.gte = value.min;
-              if (value.max !== undefined) rangeClause.lte = value.max;
+              // An empty string means "no bound set"; passing it through makes
+              // ES reject the whole range clause as a malformed number.
+              if (value.min !== undefined && value.min !== '')
+                rangeClause.gte = value.min;
+              if (value.max !== undefined && value.max !== '')
+                rangeClause.lte = value.max;
             }
             if (Object.keys(rangeClause).length > 0) {
               esFilters.push({ range: { [attrPath]: rangeClause } });
@@ -712,13 +927,25 @@ export class SearchService {
             break;
           }
           case AttributeType.SELECT: {
-            esFilters.push({ term: { [attrPath]: value } });
+            // `term` rejects arrays outright ("[term] query does not support
+            // array of values"), which threw for the whole search and dropped
+            // every filter via the Mongo fallback. A repeated query param is
+            // enough to trigger it, so treat multi-valued input as `terms`.
+            if (Array.isArray(value)) {
+              if (value.length > 0)
+                esFilters.push({ terms: { [keywordPath]: value } });
+            } else {
+              esFilters.push({ term: { [keywordPath]: value } });
+            }
             break;
           }
           case AttributeType.MULTISELECT: {
-            esFilters.push({
-              terms: { [attrPath]: Array.isArray(value) ? value : [value] },
-            });
+            const values = (Array.isArray(value) ? value : [value]).filter(
+              (v) => v !== '' && v !== null && v !== undefined,
+            );
+            if (values.length > 0) {
+              esFilters.push({ terms: { [keywordPath]: values } });
+            }
             break;
           }
           case AttributeType.BOOLEAN: {
@@ -726,12 +953,19 @@ export class SearchService {
             esFilters.push({ term: { [attrPath]: boolVal } });
             break;
           }
+          // YEAR behaves exactly like NUMBER: it is stored as a number and the
+          // UI offers a from/to pair. It previously had no case at all, so every
+          // year filter was silently discarded and the search came back
+          // unfiltered.
+          case AttributeType.YEAR:
           case AttributeType.NUMBER: {
             // Number attributes can be filtered as exact match or range
             if (typeof value === 'object' && value !== null) {
               const rangeClause: any = {};
-              if (value.min !== undefined) rangeClause.gte = value.min;
-              if (value.max !== undefined) rangeClause.lte = value.max;
+              if (value.min !== undefined && value.min !== '')
+                rangeClause.gte = value.min;
+              if (value.max !== undefined && value.max !== '')
+                rangeClause.lte = value.max;
               if (Object.keys(rangeClause).length > 0) {
                 esFilters.push({ range: { [attrPath]: rangeClause } });
               }
@@ -744,12 +978,37 @@ export class SearchService {
             esFilters.push({ match: { [attrPath]: value } });
             break;
           }
+          // Indexed as the most specific place name (see
+          // SearchSyncService.flattenAttributeValue), so an exact-match clause on
+          // the keyword sub-field is what applies here. This case was missing
+          // entirely, which meant choosing a province or city changed the URL and
+          // added a chip but never actually narrowed the results.
+          case AttributeType.PROVINCE_CITY: {
+            const name =
+              typeof value === 'object' && value !== null
+                ? value.city || value.province
+                : value;
+            if (typeof name === 'string' && name.trim() !== '') {
+              const refPath = `categoryAttributeRefs.${filterDef.key}`;
+              // The supplied name may be either a city or a province, so match
+              // both levels. `categoryAttributes.<key>` holds only the most
+              // specific name, which is why province-only filtering needs the
+              // structured companion path.
+              esFilters.push({
+                bool: {
+                  should: [
+                    { term: { [keywordPath]: name } },
+                    { term: { [`${refPath}.city.keyword`]: name } },
+                    { term: { [`${refPath}.province.keyword`]: name } },
+                  ],
+                  minimum_should_match: 1,
+                },
+              });
+            }
+            break;
+          }
         }
       }
-    } catch (error: any) {
-      this.logger.warn(
-        `Failed to load category filters for ${categoryId}: ${error.message}`,
-      );
     }
 
     return esFilters;

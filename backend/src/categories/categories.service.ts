@@ -2,6 +2,10 @@ import {
   Injectable,
   NotFoundException,
   BadRequestException,
+  Logger,
+  Optional,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -16,6 +20,11 @@ import {
   AttributeDefinition,
   AttributeDefinitionDocument,
 } from './schemas/attribute-definition.schema.js';
+import {
+  ProductListing,
+  ProductListingDocument,
+} from '../listings/schemas/product-listing.schema.js';
+import { SearchSyncService } from '../search/search-sync.service.js';
 import { CreateCategoryDto } from './dto/create-category.dto.js';
 import { UpdateCategoryDto } from './dto/update-category.dto.js';
 import {
@@ -40,14 +49,35 @@ export interface CategoryTreeNode {
   children: CategoryTreeNode[];
 }
 
+/** Consequences of deleting a category, shown to an admin before confirming. */
+export interface CategoryDeleteImpact {
+  categoryId: string;
+  categoryName: string;
+  childCount: number;
+  listingCount: number;
+  parentId: string | null;
+  parentName: string | null;
+  canDelete: boolean;
+}
+
+/** Upper bound on listings re-indexed inline after a reparent. */
+const CATEGORY_REINDEX_LIMIT = 5000;
+
 @Injectable()
 export class CategoriesService {
+  private readonly logger = new Logger(CategoriesService.name);
+
   constructor(
     @InjectModel(Category.name)
     private readonly categoryModel: Model<CategoryDocument>,
     @InjectModel(AttributeDefinition.name)
     private readonly attrDefModel: Model<AttributeDefinitionDocument>,
     @InjectRedis() private readonly redis: Redis,
+    @InjectModel(ProductListing.name)
+    private readonly listingModel: Model<ProductListingDocument>,
+    @Optional()
+    @Inject(forwardRef(() => SearchSyncService))
+    private readonly searchSync?: SearchSyncService,
   ) {}
 
   async getCategoryTree(): Promise<CategoryTreeNode[]> {
@@ -127,6 +157,49 @@ export class CategoriesService {
     return saved;
   }
 
+  /**
+   * What deleting a category would affect. Powers the admin confirmation step so
+   * the operator sees the listing count and where those listings will end up
+   * before committing.
+   */
+  async getDeleteImpact(id: string): Promise<CategoryDeleteImpact> {
+    const category = await this.findById(id);
+    const [childCount, listingCount] = await Promise.all([
+      this.categoryModel.countDocuments({ parentId: category._id }).exec(),
+      this.listingModel.countDocuments({ categoryId: category._id }).exec(),
+    ]);
+
+    let parentName: string | null = null;
+    if (category.parentId) {
+      const parent = await this.categoryModel
+        .findById(category.parentId)
+        .lean()
+        .exec();
+      parentName = parent?.name ?? null;
+    }
+
+    return {
+      categoryId: category._id.toString(),
+      categoryName: category.name,
+      childCount,
+      listingCount,
+      parentId: category.parentId ? category.parentId.toString() : null,
+      parentName,
+      // A root category has nowhere to move its listings to.
+      canDelete:
+        childCount === 0 && (listingCount === 0 || !!category.parentId),
+    };
+  }
+
+  /**
+   * Deletes a category, moving any listings it still holds up to its parent.
+   *
+   * Previously the listings were left pointing at a category id that no longer
+   * existed, so they vanished from category browsing and their `categoryPath`
+   * kept a dangling ancestor. Reparenting keeps them reachable under the parent
+   * instead. Root categories with listings are refused outright rather than
+   * orphaning the data.
+   */
   async delete(id: string): Promise<void> {
     const category = await this.findById(id);
     const children = await this.categoryModel
@@ -135,8 +208,75 @@ export class CategoriesService {
     if (children.length > 0) {
       throw new BadRequestException(PUBLIC_ERROR.CATEGORY_ACTION_FAILED);
     }
+
+    const listingCount = await this.listingModel
+      .countDocuments({ categoryId: category._id })
+      .exec();
+
+    if (listingCount > 0) {
+      if (!category.parentId) {
+        throw new BadRequestException(PUBLIC_ERROR.CATEGORY_ACTION_FAILED);
+      }
+      await this.reparentListings(category);
+    }
+
     await this.categoryModel.deleteOne({ _id: category._id }).exec();
     await this.invalidateCache();
+  }
+
+  /**
+   * Points every listing in `category` at its parent and rewrites
+   * `categoryPath` to the parent's ancestry, then refreshes the search index.
+   */
+  private async reparentListings(category: CategoryDocument): Promise<void> {
+    const parentId = category.parentId!;
+    const chain = await this.getCategoryChain(parentId.toString());
+    const parentPath = chain.map((cat) => cat._id);
+    const parent = chain[chain.length - 1];
+
+    await this.listingModel
+      .updateMany(
+        { categoryId: category._id },
+        {
+          $set: {
+            categoryId: parent._id,
+            categoryPath: parentPath,
+            updatedAt: new Date(),
+          },
+        },
+      )
+      .exec();
+
+    await this.reindexListingsForCategory(parent._id);
+  }
+
+  /**
+   * Re-indexes the moved listings so search reflects the new category.
+   *
+   * Real-time sync relies on a MongoDB change stream, which is unavailable on a
+   * standalone server, so the reindex is explicit here. Failures are logged
+   * rather than thrown: the reparenting has already been committed and must not
+   * be rolled back by a search outage.
+   */
+  private async reindexListingsForCategory(
+    categoryId: Types.ObjectId,
+  ): Promise<void> {
+    if (!this.searchSync) return;
+    try {
+      const listings = await this.listingModel
+        .find({ categoryId })
+        .limit(CATEGORY_REINDEX_LIMIT)
+        .exec();
+      for (const listing of listings) {
+        await this.searchSync.indexListing(listing);
+      }
+    } catch (err) {
+      this.logger.warn(
+        `Failed to reindex listings for category ${categoryId.toString()}: ${
+          (err as Error).message
+        }`,
+      );
+    }
   }
 
   async updateAttributes(

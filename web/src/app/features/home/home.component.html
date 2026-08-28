@@ -56,7 +56,7 @@
           [compact]="true"
         />
       } @else {
-        <div class="category-grid">
+        <div class="category-grid stagger">
           @for (chip of categoryChips(); track chip.id) {
             <app-category-card
               [name]="chip.name"
@@ -82,7 +82,7 @@
 
       @if (loadingFeatured()) {
         <div class="rail">
-          @for (i of SKELETON_FEATURED; track i) {
+          @for (i of SKELETON_RAIL; track i) {
             <app-listing-card class="rail-item" [loading]="true" />
           }
         </div>
@@ -96,7 +96,7 @@
           [compact]="true"
         />
       } @else {
-        <div class="rail" role="list">
+        <div class="rail stagger" role="list">
           @for (listing of featuredListings(); track listing._id; let idx = $index) {
             <app-listing-card
               class="rail-item"
@@ -104,6 +104,7 @@
               [listing]="listing"
               [eager]="idx < 4"
               [showTime]="true"
+              [showCondition]="false"
             />
           }
         </div>
@@ -124,12 +125,12 @@
 
         @if (loadingShorts()) {
           <div class="rail">
-            @for (i of SKELETON_FEATURED; track i) {
+            @for (i of SKELETON_RAIL; track i) {
               <app-short-card class="rail-item-sm" [loading]="true" />
             }
           </div>
         } @else {
-          <div class="rail" role="list">
+          <div class="rail stagger" role="list">
             @for (short of shorts(); track short._id) {
               <app-short-card class="rail-item-sm" role="listitem" [short]="short" />
             }
@@ -164,9 +165,14 @@
           [compact]="true"
         />
       } @else {
-        <div class="auto-grid" role="list">
+        <div class="auto-grid stagger" role="list">
           @for (listing of recommendations(); track listing._id) {
-            <app-listing-card role="listitem" [listing]="listing" [showTime]="true" />
+            <app-listing-card
+              role="listitem"
+              [listing]="listing"
+              [showTime]="true"
+              [showCondition]="false"
+            />
           }
         </div>
       }
@@ -186,7 +192,7 @@
 
       @if (loadingNearby()) {
         <div class="rail">
-          @for (i of SKELETON_GRID; track i) {
+          @for (i of SKELETON_RAIL; track i) {
             <app-listing-card class="rail-item" [loading]="true" />
           }
         </div>
@@ -200,13 +206,14 @@
           [compact]="true"
         />
       } @else {
-        <div class="rail" role="list">
+        <div class="rail stagger" role="list">
           @for (listing of nearbyListings(); track listing._id) {
             <app-listing-card
               class="rail-item"
               role="listitem"
               [listing]="listing"
               [showTime]="true"
+              [showCondition]="false"
             />
           }
         </div>

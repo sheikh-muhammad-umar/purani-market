@@ -101,21 +101,42 @@
 }
 
 .sp-tab {
+  position: relative;
   padding: 10px 20px;
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
   cursor: pointer;
   font-size: 14px;
   font-weight: 500;
   color: var(--text-secondary);
-  transition:
-    color 0.2s,
-    border-color 0.2s;
+  transition: color var(--duration-base) var(--ease-out);
+
+  /* Underline scales in from the centre rather than swapping a border colour,
+     which would appear at full width with no sense of movement. */
+  &::after {
+    content: '';
+    position: absolute;
+    inset: auto 0 -1px;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: var(--primary);
+    transform: scaleX(0);
+    transition:
+      transform var(--duration-base) var(--ease-out),
+      background-color var(--duration-base) var(--ease-out);
+  }
+
+  &.active::after {
+    transform: scaleX(1);
+  }
+
+  &:hover:not(.active)::after {
+    transform: scaleX(0.4);
+    background: var(--border-strong);
+  }
 
   &.active {
     color: var(--primary);
-    border-bottom-color: var(--primary);
   }
 
   &:hover:not(.active) {

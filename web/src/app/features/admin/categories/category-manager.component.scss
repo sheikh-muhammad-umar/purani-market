@@ -1003,3 +1003,211 @@
   border-color: rgba(156, 39, 176, 0.2);
   color: #ce93d8;
 }
+
+/* Delete confirmation modal */
+.confirm-overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: var(--space-3);
+  background: rgb(0 0 0 / 55%);
+  animation: confirm-fade-in 0.15s ease-out;
+}
+
+.confirm-dialog {
+  width: 100%;
+  max-width: 440px;
+  padding: var(--space-4);
+  border-radius: var(--radius-lg, 12px);
+  background: var(--surface);
+  box-shadow: 0 18px 48px rgb(0 0 0 / 28%);
+  animation: confirm-rise 0.18s ease-out;
+
+  h3 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-lg);
+    color: var(--text-primary);
+  }
+}
+
+.confirm-body {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.confirm-body-error {
+  color: var(--danger, #c0392b);
+}
+
+.confirm-facts {
+  margin: 0 0 var(--space-3);
+  padding: 0;
+  list-style: none;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  overflow: hidden;
+
+  li {
+    display: flex;
+    justify-content: space-between;
+    gap: var(--space-2);
+    padding: 8px 12px;
+    font-size: var(--text-sm);
+
+    &:not(:last-child) {
+      border-bottom: 1px solid var(--border);
+    }
+  }
+}
+
+.confirm-fact-label {
+  color: var(--text-muted);
+}
+
+.confirm-fact-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.confirm-note {
+  margin: 0 0 var(--space-3);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-2);
+}
+
+@keyframes confirm-fade-in {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes confirm-rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .confirm-overlay,
+  .confirm-dialog {
+    animation: none;
+  }
+}
+
+/* Inline save-error banner (load failures still replace the page) */
+.save-error-banner {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-3);
+  padding: 10px 14px;
+  border: 1px solid var(--danger, #c0392b);
+  border-radius: var(--radius-md, 8px);
+  background: color-mix(in srgb, var(--danger, #c0392b) 8%, transparent);
+  color: var(--danger, #c0392b);
+  font-size: var(--text-sm);
+
+  .material-symbols-rounded {
+    font-size: 20px;
+  }
+}
+
+.save-error-text {
+  flex: 1 1 auto;
+}
+
+.save-error-dismiss {
+  flex: 0 0 auto;
+  border: 0;
+  background: none;
+  color: inherit;
+  cursor: pointer;
+  font-size: var(--text-sm);
+  line-height: 1;
+  padding: 2px 4px;
+  border-radius: 4px;
+
+  &:hover {
+    background: color-mix(in srgb, var(--danger, #c0392b) 15%, transparent);
+  }
+}
+
+/* Category tree search */
+.tree-search {
+  position: relative;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-2) var(--space-2);
+}
+
+.tree-search-icon {
+  position: absolute;
+  left: calc(var(--space-2) + 8px);
+  font-size: 18px;
+  color: var(--text-muted);
+  pointer-events: none;
+}
+
+.tree-search-input {
+  width: 100%;
+  padding: 7px 30px 7px 32px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md, 8px);
+  background: var(--surface);
+  color: var(--text-primary);
+  font-size: var(--text-sm);
+
+  &::-webkit-search-cancel-button {
+    display: none;
+  }
+
+  &:focus {
+    outline: 2px solid var(--primary);
+    outline-offset: -1px;
+  }
+}
+
+.tree-search-clear {
+  position: absolute;
+  right: calc(var(--space-2) + 8px);
+  border: 0;
+  background: none;
+  color: var(--text-muted);
+  cursor: pointer;
+  font-size: var(--text-sm);
+  line-height: 1;
+
+  &:hover {
+    color: var(--text-primary);
+  }
+}
+
+.tree-search-hint {
+  margin: 0 0 var(--space-2);
+  padding: 0 var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+.inherited-table {
+  margin-top: var(--space-2);
+}

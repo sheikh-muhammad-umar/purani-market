@@ -201,18 +201,11 @@
               <span class="details-label">Condition</span>
               <span class="details-value">{{ l.condition | titlecase }}</span>
             </div>
-            @for (attr of l.categoryAttributes | keyvalue; track attr.key) {
-              @if (
-                !isArrayValue(attr.value) &&
-                attr.value !== '' &&
-                attr.value !== null &&
-                attr.value !== undefined
-              ) {
-                <div class="details-row">
-                  <span class="details-label">{{ formatLabel(attr.key) }}</span>
-                  <span class="details-value">{{ attr.value }}</span>
-                </div>
-              }
+            @for (row of detailAttributeRows(); track row.key) {
+              <div class="details-row">
+                <span class="details-label">{{ row.label }}</span>
+                <span class="details-value">{{ row.value }}</span>
+              </div>
             }
             <div class="details-row">
               <span class="details-label">Location</span>
@@ -292,7 +285,12 @@
             <h3>Similar items you might like</h3>
             <div class="rail" role="list">
               @for (item of similarListings(); track item._id) {
-                <app-listing-card class="rail-item" role="listitem" [listing]="item" />
+                <app-listing-card
+                  class="rail-item"
+                  role="listitem"
+                  [listing]="item"
+                  [showCondition]="false"
+                />
               }
             </div>
           </div>

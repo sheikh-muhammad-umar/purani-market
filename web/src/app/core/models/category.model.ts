@@ -32,6 +32,16 @@ export interface AttributeDefinition {
   allowOther?: boolean;
 }
 
+/** Consequences of deleting a category, shown before the admin confirms. */
+export interface CategoryDeleteImpact {
+  categoryId: string;
+  categoryName: string;
+  childCount: number;
+  listingCount: number;
+  parentId: string | null;
+  parentName: string | null;
+  canDelete: boolean;
+}
 export interface Category {
   _id: string;
   name: string;

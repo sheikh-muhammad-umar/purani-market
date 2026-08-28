@@ -40,12 +40,31 @@ import { AppLoaderComponent } from '../../../shared/components/app-loader/app-lo
 import { Subject, takeUntil, forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 
+import {
+  OTHER_OPTION_VALUE,
+  ProvinceCityValue,
+  RangeValue,
+  attributeErrorMessage,
+  attributeYearOptions,
+  buildAttributeValidators,
+  coerceAttributeValue,
+  initialAttributeValue,
+  isAttributeSatisfied,
+  isOtherSelected,
+} from '../../../core/utils/category-attributes';
+
 export interface MediaItem {
   file: File;
   preview: string;
   type: 'image' | 'video';
   hash?: string;
 }
+
+/**
+ * Fixed controls of `detailsForm`. Everything else in that group is a dynamic
+ * category attribute and is torn down when the category changes.
+ */
+const CREATE_BASE_DETAIL_KEYS = new Set(['title', 'description', 'price', 'condition']);
 
 @Component({
   selector: 'app-create-listing',
@@ -92,6 +111,8 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     () => this.selectedLevel3() ?? this.selectedLevel2() ?? this.selectedLevel1(),
   );
   categoryAttributes = signal<CategoryAttribute[]>([]);
+  /** Cities per `province_city` attribute key, loaded on province selection. */
+  attrCities = signal<Record<string, City[]>>({});
   categoryFeatures = signal<string[]>([]);
   selectedFeatures = signal<string[]>([]);
 
@@ -143,11 +164,9 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   // Custom dropdown state
   openDropdown = signal<string | null>(null);
 
-  // Year options for year-type attributes (current year down to 1970)
+  // Year options for year-type attributes (newest first, clamped to the attribute bounds)
   getYearOptions(attr: { rangeMin?: number; rangeMax?: number }): number[] {
-    const max = attr.rangeMax ?? new Date().getFullYear();
-    const min = attr.rangeMin ?? 1970;
-    return Array.from({ length: max - min + 1 }, (_, i) => max - i);
+    return attributeYearOptions(attr);
   }
 
   // Location state
@@ -429,7 +448,6 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     this.selectedLevel2.set(null);
     this.selectedLevel3.set(null);
     this.level3Categories.set([]);
-    this.selectedFeatures.set([]);
     this.selectedPurchaseId.set('');
     this.packageCategoryId.set(cat._id);
     const children = this.allCategories().filter((c) => c.parentId === cat._id && c.isActive);
@@ -441,7 +459,6 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   selectLevel2(cat: Category): void {
     this.selectedLevel2.set(cat);
     this.selectedLevel3.set(null);
-    this.selectedFeatures.set([]);
     this.selectedPurchaseId.set('');
     this.packageCategoryId.set(cat._id);
     const children = this.allCategories().filter((c) => c.parentId === cat._id && c.isActive);
@@ -452,7 +469,6 @@ export class CreateListingComponent implements OnInit, OnDestroy {
 
   selectLevel3(cat: Category): void {
     this.selectedLevel3.set(cat);
-    this.selectedFeatures.set([]);
     this.selectedPurchaseId.set('');
     this.packageCategoryId.set(cat._id);
     this.loadInheritedAttributes(cat._id);
@@ -467,13 +483,188 @@ export class CreateListingComponent implements OnInit, OnDestroy {
         next: ({ attributes, features }) => {
           this.categoryAttributes.set(attributes ?? []);
           this.categoryFeatures.set(features ?? []);
+          this.syncControlsToAttributes(attributes ?? []);
+          this.pruneSelectedFeatures(features ?? []);
+          this.hydrateAttributeCities();
         },
         error: () => {
+          // Leave the current selections alone on failure: a transient error
+          // should not silently discard what the seller already picked.
           this.categoryAttributes.set([]);
           this.categoryFeatures.set([]);
         },
       });
     this.loadBrandsForCategory();
+  }
+
+  /**
+   * Reconciles the dynamic half of `detailsForm` with the attributes the
+   * currently selected category defines.
+   *
+   * Controls were only added, never removed, so a stale control sharing a key
+   * with the new category carried its old value over, and controls the new
+   * category does not define stayed valid but were dropped at submit.
+   */
+  private syncControlsToAttributes(attributes: CategoryAttribute[]): void {
+    const wanted = new Set(attributes.map((a) => a.key));
+
+    for (const key of Object.keys(this.detailsForm.controls)) {
+      if (!CREATE_BASE_DETAIL_KEYS.has(key) && !wanted.has(key)) {
+        this.detailsForm.removeControl(key);
+      }
+    }
+
+    for (const attr of attributes) {
+      const existing = this.detailsForm.get(attr.key);
+      if (existing) {
+        existing.setValidators(buildAttributeValidators(attr));
+        existing.updateValueAndValidity({ emitEvent: false });
+      } else {
+        this.detailsForm.addControl(
+          attr.key,
+          new FormControl(initialAttributeValue(attr), buildAttributeValidators(attr)),
+        );
+      }
+    }
+  }
+
+  // --- multiselect ---
+  isMultiSelectSelected(key: string, option: string): boolean {
+    const value = this.getDynamicControl(key).value;
+    return Array.isArray(value) && value.includes(option);
+  }
+
+  toggleMultiSelectOption(key: string, option: string): void {
+    const ctrl = this.getDynamicControl(key);
+    const current: string[] = Array.isArray(ctrl.value) ? ctrl.value : [];
+    ctrl.setValue(
+      current.includes(option) ? current.filter((v) => v !== option) : [...current, option],
+    );
+    ctrl.markAsTouched();
+    this.saveDraft();
+  }
+
+  // --- range ---
+  getRangeBound(key: string, bound: 'min' | 'max'): number | string | null {
+    const value = this.getDynamicControl(key).value as RangeValue | null;
+    return value?.[bound] ?? null;
+  }
+
+  setRangeBound(key: string, bound: 'min' | 'max', raw: string): void {
+    const ctrl = this.getDynamicControl(key);
+    const current = (ctrl.value as RangeValue | null) ?? { min: null, max: null };
+    ctrl.setValue({ ...current, [bound]: raw === '' ? null : Number(raw) });
+    ctrl.markAsTouched();
+    this.saveDraft();
+  }
+
+  // --- province_city ---
+  getAttrProvinceId(key: string): string {
+    return (this.getDynamicControl(key).value as ProvinceCityValue | null)?.provinceId ?? '';
+  }
+
+  getAttrCityId(key: string): string {
+    return (this.getDynamicControl(key).value as ProvinceCityValue | null)?.cityId ?? '';
+  }
+
+  attrCitiesFor(key: string): City[] {
+    return this.attrCities()[key] ?? [];
+  }
+
+  onAttrProvinceChange(key: string, provinceId: string): void {
+    const ctrl = this.getDynamicControl(key);
+    // The name is stored alongside the id because search indexes and facets on
+    // the readable value, while the id keeps the reference rename-safe.
+    const province = this.provinces().find((p) => p._id === provinceId)?.name ?? '';
+    ctrl.setValue({ provinceId, cityId: '', province, city: '' });
+    ctrl.markAsTouched();
+    this.attrCities.update((map) => ({ ...map, [key]: [] }));
+    this.saveDraft();
+    if (!provinceId) return;
+    this.locationService
+      .getCities(provinceId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (cities) => this.attrCities.update((map) => ({ ...map, [key]: cities })),
+      });
+  }
+
+  onAttrCityChange(key: string, cityId: string): void {
+    const ctrl = this.getDynamicControl(key);
+    const current = (ctrl.value as ProvinceCityValue | null) ?? {
+      provinceId: '',
+      cityId: '',
+      province: '',
+      city: '',
+    };
+    const city = this.attrCitiesFor(key).find((c) => c._id === cityId)?.name ?? '';
+    ctrl.setValue({ ...current, cityId, city });
+    ctrl.markAsTouched();
+    this.saveDraft();
+  }
+
+  /** Reloads city lists for any `province_city` attribute restored from a draft. */
+  private hydrateAttributeCities(): void {
+    for (const attr of this.categoryAttributes()) {
+      if (attr.type !== 'province_city') continue;
+      const provinceId = this.getAttrProvinceId(attr.key);
+      if (!provinceId) continue;
+      this.locationService
+        .getCities(provinceId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (cities) => this.attrCities.update((map) => ({ ...map, [attr.key]: cities })),
+        });
+    }
+  }
+
+  // --- allowOther ---
+  isOtherChosen(attr: CategoryAttribute): boolean {
+    return isOtherSelected(attr, this.getDynamicControl(attr.key).value);
+  }
+
+  getOtherText(key: string): string {
+    const value = this.getDynamicControl(key).value;
+    return value === OTHER_OPTION_VALUE || typeof value !== 'string' ? '' : value;
+  }
+
+  selectOtherOption(key: string): void {
+    const ctrl = this.getDynamicControl(key);
+    ctrl.setValue(OTHER_OPTION_VALUE);
+    ctrl.markAsTouched();
+    this.openDropdown.set(null);
+    this.saveDraft();
+  }
+
+  /** Label for a select trigger; hides the "Other" sentinel from the seller. */
+  getSelectDisplay(attr: CategoryAttribute): string {
+    const value = this.getDynamicControl(attr.key).value;
+    if (value === OTHER_OPTION_VALUE) return 'Other';
+    return typeof value === 'string' ? value : '';
+  }
+
+  setOtherText(key: string, text: string): void {
+    const ctrl = this.getDynamicControl(key);
+    ctrl.setValue(text === '' ? OTHER_OPTION_VALUE : text);
+    ctrl.markAsTouched();
+    this.saveDraft();
+  }
+
+  isAttributeMissing(attr: CategoryAttribute): boolean {
+    const ctrl = this.getDynamicControl(attr.key);
+    return ctrl.touched && !isAttributeSatisfied(attr, ctrl.value);
+  }
+
+  getAttributeError(attr: CategoryAttribute): string {
+    const ctrl = this.getDynamicControl(attr.key);
+    if (!ctrl.touched) return '';
+    return attributeErrorMessage(attr, ctrl.errors);
+  }
+
+  /** Keeps only the features the newly selected category actually offers. */
+  private pruneSelectedFeatures(available: string[]): void {
+    const allowed = new Set(available);
+    this.selectedFeatures.update((selected) => selected.filter((f) => allowed.has(f)));
   }
 
   private loadBrandsForCategory(): void {
@@ -707,10 +898,10 @@ export class CreateListingComponent implements OnInit, OnDestroy {
     this.phoneInAdError.set('');
 
     for (const attr of this.categoryAttributes()) {
-      if (attr.required) {
-        const ctrl = this.detailsForm.get(attr.key);
-        if (!ctrl || !ctrl.value) return false;
-      }
+      const ctrl = this.detailsForm.get(attr.key);
+      // Truthiness used to gate this, which rejected 0 and false — both valid answers.
+      if (!isAttributeSatisfied(attr, ctrl?.value)) return false;
+      if (ctrl && ctrl.invalid) return false;
     }
 
     // Validate brand selection for hasBrands categories
@@ -991,7 +1182,8 @@ export class CreateListingComponent implements OnInit, OnDestroy {
 
     const catAttrs: Record<string, unknown> = {};
     for (const attr of this.categoryAttributes()) {
-      catAttrs[attr.key] = details[attr.key];
+      const value = coerceAttributeValue(attr, details[attr.key]);
+      if (value !== undefined) catAttrs[attr.key] = value;
     }
 
     const payload: CreateListingPayload = {

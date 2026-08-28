@@ -16,6 +16,8 @@ import { Conversation, ConversationListing } from '../../../core/models';
 import { PLACEHOLDER_IMAGE, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
+import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { SKELETON_ITEMS } from '../messaging.constants';
 import { ChatWindowComponent } from '../chat-window/chat-window.component';
 import { ToastService } from '../../../core/services/toast.service';
@@ -31,7 +33,7 @@ interface ConversationView {
 @Component({
   selector: 'app-messaging-layout',
   standalone: true,
-  imports: [CommonModule, ChatWindowComponent],
+  imports: [CommonModule, ChatWindowComponent, EmptyStateComponent, SkeletonComponent],
   templateUrl: './messaging-layout.component.html',
   styleUrls: ['./messaging-layout.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,8 +45,14 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
   conversations = signal<Conversation[]>([]);
   unreadCounts = signal<Record<string, number>>({});
   loading = signal(true);
+  /** Set when the conversation fetch fails, so the sidebar can offer a retry
+   *  instead of rendering the "no conversations yet" empty state. */
+  loadError = signal(false);
+  search = signal('');
   selectedConversationId = signal<string | null>(null);
   readonly SKELETON_ITEMS = SKELETON_ITEMS;
+  readonly ROUTES = ROUTES;
+  readonly PLACEHOLDER_IMAGE = PLACEHOLDER_IMAGE;
 
   /**
    * Precomputed view map — recalculated only when conversations signal changes,
@@ -63,6 +71,29 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
     }
     return views;
   });
+
+  /**
+   * Conversations matching the search box, which was previously decorative
+   * markup with no binding at all. Matches the listing title and the last
+   * message preview, since those are the two things on screen.
+   */
+  readonly visibleConversations = computed<Conversation[]>(() => {
+    const query = this.search().toLowerCase().trim();
+    const convs = this.conversations();
+    if (!query) return convs;
+
+    const views = this.conversationViews();
+    return convs.filter((conv) => {
+      const title = views[conv._id]?.title?.toLowerCase() ?? '';
+      const preview = conv.lastMessagePreview?.toLowerCase() ?? '';
+      return title.includes(query) || preview.includes(query);
+    });
+  });
+
+  /** Total unread across all threads, for the sidebar heading. */
+  readonly totalUnread = computed(() =>
+    Object.values(this.unreadCounts()).reduce((sum, n) => sum + (n || 0), 0),
+  );
 
   private subs: Subscription[] = [];
 
@@ -160,15 +191,21 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
     this.subs.forEach((s) => s.unsubscribe());
   }
 
+  /**
+   * Pushes a history entry rather than replacing one. With `replaceUrl` the
+   * device back gesture skipped past the list and left messaging entirely,
+   * which on mobile is the primary way back.
+   */
   selectConversation(id: string): void {
     this.selectedConversationId.set(id);
-    this.router.navigateByUrl(ROUTES.MESSAGING_CHAT(id), { replaceUrl: true });
+    this.router.navigateByUrl(ROUTES.MESSAGING_CHAT(id));
     this.messagingService.markAsRead(id).subscribe();
+    this.unreadCounts.update((counts) => ({ ...counts, [id]: 0 }));
   }
 
   deselectConversation(): void {
     this.selectedConversationId.set(null);
-    this.router.navigateByUrl(ROUTES.MESSAGING, { replaceUrl: true });
+    this.router.navigateByUrl(ROUTES.MESSAGING);
   }
 
   // --- Private extraction helpers (called only from computed, not template) ---
@@ -224,6 +261,9 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
   private computeTimeAgo(date: Date): string {
     const now = new Date();
     const d = new Date(date);
+    // A conversation with no messages has no lastMessageAt, and the old code
+    // rendered the literal string "Invalid Date" in the list.
+    if (!date || Number.isNaN(d.getTime())) return '';
     const diffMs = now.getTime() - d.getTime();
     const diffMins = Math.floor(diffMs / 60000);
     if (diffMins < 1) return 'Now';
@@ -235,14 +275,31 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
     return d.toLocaleDateString();
   }
 
+  /** Re-runs the fetch after a failure. */
+  retryLoad(): void {
+    this.loading.set(true);
+    this.loadError.set(false);
+    this.loadConversations();
+  }
+
+  onSearchInput(event: Event): void {
+    this.search.set((event.target as HTMLInputElement).value);
+  }
+
   private loadConversations(): void {
     this.messagingService.getConversations().subscribe({
       next: (res: any) => {
         const list = Array.isArray(res) ? res : (res.data ?? []);
         this.conversations.set(list);
+        this.loadError.set(false);
         this.loading.set(false);
       },
-      error: () => this.loading.set(false),
+      error: () => {
+        // Without this the sidebar showed "No conversations yet" on a network
+        // failure, which reads as "you have none" rather than "this broke".
+        this.loadError.set(true);
+        this.loading.set(false);
+      },
     });
 
     this.messagingService.getUnreadPerConversation().subscribe({

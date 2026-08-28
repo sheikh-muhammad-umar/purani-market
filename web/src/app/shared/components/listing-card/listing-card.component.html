@@ -15,14 +15,25 @@
 
   <article class="lc" [class.lc-inactive]="statusLabel()">
     <div class="lc-media" [style.aspect-ratio]="aspect()">
-      <img
-        class="lc-img"
-        [src]="item | listingImage"
-        [alt]="item.title"
-        [attr.loading]="eager() ? 'eager' : 'lazy'"
-        [attr.fetchpriority]="eager() ? 'high' : 'auto'"
-        decoding="async"
-      />
+      @let imgSrc = item | listingImage;
+      @if (imageBroken(imgSrc)) {
+        <!-- A broken src otherwise leaves an empty grey box with no indication
+             that anything was meant to be there. -->
+        <div class="lc-img-fallback">
+          <span class="material-symbols-rounded" aria-hidden="true">no_photography</span>
+          <span class="lc-img-fallback-text">No photo</span>
+        </div>
+      } @else {
+        <img
+          class="lc-img"
+          [src]="imgSrc"
+          [alt]="item.title"
+          [attr.loading]="eager() ? 'eager' : 'lazy'"
+          [attr.fetchpriority]="eager() ? 'high' : 'auto'"
+          decoding="async"
+          (error)="onImageError(imgSrc)"
+        />
+      }
 
       @if (statusLabel()) {
         <div class="lc-status-veil">

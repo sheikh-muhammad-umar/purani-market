@@ -1,8 +1,12 @@
-import { Component, signal, inject, output, input, OnDestroy } from '@angular/core';
+import { Component, signal, computed, inject, output, input, OnDestroy } from '@angular/core';
 import { VoiceSearchService } from '../../../core/services/voice-search.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
-import { VOICE_ERROR_MESSAGES } from '../../../core/services/voice-search.types';
+import {
+  VOICE_ERROR_MESSAGES,
+  VOICE_LANGUAGES,
+  VoiceLanguageOption,
+} from '../../../core/services/voice-search.types';
 import {
   SWIPE_CANCEL_THRESHOLD,
   VOICE_ERROR_DISPLAY_DURATION,
@@ -33,6 +37,21 @@ export class VoiceSearchComponent implements OnDestroy {
   readonly voiceSearchActive = signal(false);
   readonly voiceSearchError = signal('');
 
+  /** Language currently used for recognition. */
+  readonly activeLanguage = computed<VoiceLanguageOption>(
+    () =>
+      VOICE_LANGUAGES.find((option) => option.code === this.voiceSearch.language()) ??
+      VOICE_LANGUAGES[0],
+  );
+
+  /** The language a tap on the toggle would switch to. */
+  readonly nextLanguage = computed<VoiceLanguageOption>(() => {
+    const index = VOICE_LANGUAGES.findIndex(
+      (option) => option.code === this.voiceSearch.language(),
+    );
+    return VOICE_LANGUAGES[(index + 1) % VOICE_LANGUAGES.length];
+  });
+
   private voiceSearchCancelled = false;
   private voiceTouchStartX = 0;
   private voiceTouchStartY = 0;
@@ -42,6 +61,17 @@ export class VoiceSearchComponent implements OnDestroy {
     if (this.voiceErrorTimeout) {
       clearTimeout(this.voiceErrorTimeout);
     }
+  }
+
+  /**
+   * Switches recognition language. Kept off the mic button so it cannot be
+   * mistaken for a press-and-hold gesture.
+   */
+  protected switchLanguage(event: Event): void {
+    event.preventDefault();
+    event.stopPropagation();
+    if (this.voiceSearchActive()) return;
+    this.voiceSearch.setLanguage(this.nextLanguage().code);
   }
 
   /** Called on mousedown / touchstart — begins listening */

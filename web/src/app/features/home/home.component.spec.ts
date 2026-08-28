@@ -7,6 +7,7 @@ import { ShortsService } from '../../core/services/shorts.service';
 import { RecommendationsService } from '../../core/services/recommendations.service';
 import { AuthService } from '../../core/auth';
 import { Category, Listing } from '../../core/models';
+import { RECOMMENDATIONS_LIMIT } from '../../core/constants/app';
 
 function makeListing(overrides: Partial<Listing> = {}): Listing {
   return {
@@ -196,7 +197,9 @@ describe('HomeComponent', () => {
 
   it('should load recommendations on init', () => {
     component.ngOnInit();
-    expect(recommendationsServiceMock.getRecommendations).toHaveBeenCalledWith(20);
+    expect(recommendationsServiceMock.getRecommendations).toHaveBeenCalledWith(
+      RECOMMENDATIONS_LIMIT,
+    );
     expect(component.recommendations().length).toBe(2);
     expect(component.loadingRecommendations()).toBe(false);
   });

@@ -14,36 +14,66 @@
     </div>
   }
 
-  <!-- Error -->
-  @if (error()) {
+  <!-- Load failure replaces the page; save failures are shown inline below. -->
+  @if (loadFailed()) {
     <div class="error-state">
       <p>{{ error() }}</p>
       <button class="btn-retry" (click)="loadCategories()">Retry</button>
     </div>
   }
 
-  @if (!loading() && !error()) {
+  @if (!loading() && !loadFailed()) {
+    @if (error()) {
+      <div class="save-error-banner" role="alert">
+        <span class="material-symbols-rounded">error</span>
+        <span class="save-error-text">{{ error() }}</span>
+        <button class="save-error-dismiss" (click)="error.set(null)" aria-label="Dismiss">✕</button>
+      </div>
+    }
     <div class="content-layout">
       <!-- Tree Panel -->
       <div class="tree-panel">
         <div class="tree-header">
           <h2>Categories</h2>
         </div>
-        @if (tree().length > 0) {
+        <div class="tree-search">
+          <span class="material-symbols-rounded tree-search-icon">search</span>
+          <input
+            type="search"
+            class="tree-search-input"
+            [ngModel]="treeSearch()"
+            (ngModelChange)="treeSearch.set($event)"
+            placeholder="Search categories..."
+            aria-label="Search categories"
+          />
+          @if (isSearching()) {
+            <button class="tree-search-clear" (click)="clearTreeSearch()" aria-label="Clear search">
+              ✕
+            </button>
+          }
+        </div>
+        @if (isSearching()) {
+          <p class="tree-search-hint">Reordering is disabled while searching.</p>
+        }
+        @if (visibleTree().length > 0) {
           <div class="tree-body">
-            @for (node of tree(); track $index) {
+            @for (node of visibleTree(); track node.category._id) {
               <ng-container
                 *ngTemplateOutlet="
                   treeNodeTpl;
-                  context: { $implicit: node, siblings: tree(), depth: 0 }
+                  context: { $implicit: node, siblings: visibleTree(), depth: 0 }
                 "
               ></ng-container>
             }
           </div>
         }
-        @if (tree().length === 0) {
+        @if (visibleTree().length === 0) {
           <div class="empty-tree">
-            <p>No categories yet. Add a root category to get started.</p>
+            @if (isSearching()) {
+              <p>No categories match "{{ treeSearch() }}".</p>
+            } @else {
+              <p>No categories yet. Add a root category to get started.</p>
+            }
           </div>
         }
       </div>
@@ -150,11 +180,34 @@
                   <span class="material-symbols-rounded">account_tree</span>
                   <span>Inherited from parent categories</span>
                 </div>
-                <div class="inherited-chips">
-                  @for (attr of inheritedAttributes(); track attr.key) {
-                    <span class="inherited-chip">{{ attr.name }}</span>
-                  }
-                </div>
+                <p class="panel-hint">
+                  These already apply to this category. Edit them on the parent — adding the same
+                  key here is rejected.
+                </p>
+                <table class="mini-table inherited-table">
+                  <thead>
+                    <tr>
+                      <th>Name</th>
+                      <th>Key</th>
+                      <th>Type</th>
+                      <th>Required</th>
+                      <th>Options</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    @for (attr of inheritedAttributes(); track attr.key) {
+                      <tr>
+                        <td>{{ attr.name }}</td>
+                        <td>
+                          <code>{{ attr.key }}</code>
+                        </td>
+                        <td>{{ attr.type }}{{ attr.unit ? ' (' + attr.unit + ')' : '' }}</td>
+                        <td>{{ attr.required ? '✓' : '—' }}</td>
+                        <td>{{ attr.options?.join(', ') || '—' }}</td>
+                      </tr>
+                    }
+                  </tbody>
+                </table>
               </div>
             }
 
@@ -584,7 +637,7 @@
               </div>
               <button
                 class="action-btn action-btn-danger"
-                (click)="deleteCategory(selectedCategory()!)"
+                (click)="requestDeleteCategory(selectedCategory()!)"
                 [disabled]="saving() || hasChildren(selectedCategory()!)"
               >
                 <span class="material-symbols-rounded">delete</span>
@@ -636,7 +689,7 @@
         <button
           class="btn-reorder"
           (click)="moveUp(node, siblings)"
-          [disabled]="siblings.indexOf(node) === 0 || saving()"
+          [disabled]="siblings.indexOf(node) === 0 || saving() || isSearching()"
           title="Move up"
           aria-label="Move up"
         >
@@ -645,7 +698,7 @@
         <button
           class="btn-reorder"
           (click)="moveDown(node, siblings)"
-          [disabled]="siblings.indexOf(node) === siblings.length - 1 || saving()"
+          [disabled]="siblings.indexOf(node) === siblings.length - 1 || saving() || isSearching()"
           title="Move down"
           aria-label="Move down"
         >
@@ -665,3 +718,52 @@
     }
   }
 </ng-template>
+
+<!-- Delete Confirmation -->
+@if (pendingDelete()) {
+  <div
+    class="confirm-overlay"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="delete-confirm-title"
+    (click)="cancelDelete()"
+  >
+    <div class="confirm-dialog" (click)="$event.stopPropagation()">
+      <h3 id="delete-confirm-title">Delete "{{ pendingDelete()!.name }}"?</h3>
+
+      @if (deleteImpactLoading()) {
+        <p class="confirm-body">Checking what this will affect...</p>
+      } @else if (deleteImpactError()) {
+        <p class="confirm-body confirm-body-error">{{ deleteImpactError() }}</p>
+      } @else if (deleteImpact()) {
+        <p class="confirm-body">{{ deleteImpactSummary() }}</p>
+        <ul class="confirm-facts">
+          <li>
+            <span class="confirm-fact-label">Sub-categories</span>
+            <span class="confirm-fact-value">{{ deleteImpact()!.childCount }}</span>
+          </li>
+          <li>
+            <span class="confirm-fact-label">Listings</span>
+            <span class="confirm-fact-value">{{ deleteImpact()!.listingCount }}</span>
+          </li>
+          <li>
+            <span class="confirm-fact-label">Moves to</span>
+            <span class="confirm-fact-value">{{ deleteImpact()!.parentName || '—' }}</span>
+          </li>
+        </ul>
+        <p class="confirm-note">This cannot be undone.</p>
+      }
+
+      <div class="confirm-actions">
+        <button class="btn btn-ghost" (click)="cancelDelete()" [disabled]="saving()">Cancel</button>
+        <button
+          class="btn btn-danger"
+          (click)="confirmDelete()"
+          [disabled]="saving() || deleteImpactLoading() || !deleteImpact()?.canDelete"
+        >
+          {{ saving() ? 'Deleting...' : 'Delete' }}
+        </button>
+      </div>
+    </div>
+  </div>
+}

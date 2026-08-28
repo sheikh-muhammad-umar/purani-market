@@ -443,6 +443,149 @@ button {
     transition-duration: 0.01ms !important;
     scroll-behavior: auto !important;
   }
+
+  /* Also opt out of the route cross-fade, which the rule above cannot reach:
+     view-transition pseudo-elements live outside the document tree. */
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) {
+    animation: none !important;
+  }
+}
+
+/* ============================================
+   MOTION
+   ============================================ */
+
+/* ---- Route transitions ----
+   The header and bottom nav are named separately so they are treated as their
+   own transition groups and stay visually pinned while the page content
+   cross-fades underneath. Without this the whole viewport including the sticky
+   header fades, which reads as a flicker. */
+@media (prefers-reduced-motion: no-preference) {
+  .app-header {
+    view-transition-name: app-header;
+  }
+
+  .bottom-nav {
+    view-transition-name: bottom-nav;
+  }
+
+  ::view-transition-old(root) {
+    animation: vt-fade-out var(--duration-base) var(--ease-in-out) both;
+  }
+
+  ::view-transition-new(root) {
+    animation: vt-fade-in var(--duration-slow) var(--ease-out) both;
+  }
+}
+
+@keyframes vt-fade-out {
+  to {
+    opacity: 0;
+  }
+}
+
+@keyframes vt-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+}
+
+/* ---- Enter animations ----
+   Applied by utility class rather than to every element, so nothing animates
+   unless it opts in. */
+/* fill-mode is `backwards`, not `both`, on purpose. `both` retains the final
+   keyframe after the animation ends, and an animated `transform` outranks the
+   element's own declarations — which would silently disable the hover lift on
+   every card. `backwards` hides the element during its delay and then hands
+   control back to normal styles. */
+.animate-in {
+  animation: fade-slide-up var(--duration-slow) var(--ease-out) backwards;
+}
+
+@keyframes fade-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+@keyframes scale-in {
+  from {
+    opacity: 0;
+    transform: scale(0.96);
+  }
+}
+
+/* Staggered reveal for a list or grid of cards. Depth is capped at 10 so a
+   large grid does not end up with a visible delay on its last row. */
+.stagger > * {
+  animation: fade-slide-up var(--duration-slow) var(--ease-out) backwards;
+}
+
+.stagger > *:nth-child(1) {
+  animation-delay: 0ms;
+}
+.stagger > *:nth-child(2) {
+  animation-delay: 40ms;
+}
+.stagger > *:nth-child(3) {
+  animation-delay: 80ms;
+}
+.stagger > *:nth-child(4) {
+  animation-delay: 120ms;
+}
+.stagger > *:nth-child(5) {
+  animation-delay: 160ms;
+}
+.stagger > *:nth-child(6) {
+  animation-delay: 200ms;
+}
+.stagger > *:nth-child(7) {
+  animation-delay: 240ms;
+}
+.stagger > *:nth-child(8) {
+  animation-delay: 280ms;
+}
+.stagger > *:nth-child(9) {
+  animation-delay: 320ms;
+}
+.stagger > *:nth-child(n + 10) {
+  animation-delay: 360ms;
+}
+
+/* ---- Press feedback ----
+   Interactive surfaces get a small, fast scale on press. Fast is the point: a
+   slow press feels laggy rather than responsive. */
+.badge-featured,
+.chip,
+.icon-action,
+[role='tab'],
+button.tab-btn,
+.press {
+  transition: transform var(--duration-fast) var(--ease-out);
+}
+
+.chip:active,
+.icon-action:active,
+[role='tab']:active,
+button.tab-btn:active,
+.press:active {
+  transform: scale(0.96);
+}
+
+/* Links and buttons should never feel inert on tap. */
+a:active,
+button:not(:disabled):active {
+  -webkit-tap-highlight-color: transparent;
 }
 
 /* ============================================
@@ -1773,4 +1916,13 @@ select.form-input,
    control, so it should not show a focus ring. */
 .app-main:focus {
   outline: none;
+}
+
+/**
+ * Set while the mobile search-filter overlay is open. The overlay covers the
+ * viewport, so the page behind it must not scroll underneath it.
+ */
+body.filters-locked {
+  overflow: hidden;
+  touch-action: none;
 }

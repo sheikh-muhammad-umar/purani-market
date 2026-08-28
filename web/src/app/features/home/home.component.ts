@@ -22,6 +22,7 @@ import {
   DEFAULT_CATEGORY_ICON,
   FEATURED_ADS_LIMIT,
   NEARBY_LISTINGS_LIMIT,
+  RECOMMENDATIONS_LIMIT,
 } from '../../core/constants/app';
 import { ROUTES } from '../../core/constants/routes';
 
@@ -50,9 +51,13 @@ interface CategoryChip {
 })
 export class HomeComponent implements OnInit {
   readonly ROUTES = ROUTES;
-  readonly SKELETON_CATEGORIES = Array.from({ length: 8 }, (_, i) => i);
-  readonly SKELETON_FEATURED = Array.from({ length: 4 }, (_, i) => i);
-  readonly SKELETON_GRID = Array.from({ length: 6 }, (_, i) => i);
+  /* Skeleton counts match what actually loads, so the page does not reflow when
+     content arrives. They previously under-counted badly — 8 category
+     placeholders for 14 tiles, and 6 card placeholders for a 20-card grid. */
+  readonly SKELETON_CATEGORIES = Array.from({ length: 14 }, (_, i) => i);
+  /** Rails only need enough placeholders to fill the viewport, not the payload. */
+  readonly SKELETON_RAIL = Array.from({ length: 6 }, (_, i) => i);
+  readonly SKELETON_GRID = Array.from({ length: RECOMMENDATIONS_LIMIT }, (_, i) => i);
 
   readonly categories = signal<Category[]>([]);
   readonly featuredListings = signal<Listing[]>([]);
@@ -166,7 +171,7 @@ export class HomeComponent implements OnInit {
   }
 
   private loadRecommendations(): void {
-    this.recommendationsService.getRecommendations(20).subscribe({
+    this.recommendationsService.getRecommendations(RECOMMENDATIONS_LIMIT).subscribe({
       next: (listings) => {
         const data = Array.isArray(listings) ? listings : [];
         if (data.length > 0) {

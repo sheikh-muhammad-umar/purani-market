@@ -9,21 +9,27 @@
     </div>
 
     <!-- Main Tabs -->
-    <div class="main-tabs">
+    <div class="main-tabs" role="tablist" aria-label="My listings sections">
       <button
+        type="button"
+        role="tab"
         class="main-tab-btn"
         [class.active]="mainTab() === TAB.ADS"
+        [attr.aria-selected]="mainTab() === TAB.ADS"
         (click)="switchMainTab(TAB.ADS)"
       >
-        <span class="material-symbols-rounded inline-icon">list_alt</span>
+        <span class="material-symbols-rounded inline-icon" aria-hidden="true">list_alt</span>
         My Ads
       </button>
       <button
+        type="button"
+        role="tab"
         class="main-tab-btn"
         [class.active]="mainTab() === TAB.SHORTS"
+        [attr.aria-selected]="mainTab() === TAB.SHORTS"
         (click)="switchMainTab(TAB.SHORTS)"
       >
-        <span class="material-symbols-rounded inline-icon">play_circle</span>
+        <span class="material-symbols-rounded inline-icon" aria-hidden="true">play_circle</span>
         My Shorts
       </button>
     </div>

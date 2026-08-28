@@ -1,4 +1,4 @@
-import { Component, computed, input, output } from '@angular/core';
+import { Component, computed, input, output, signal } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import {
   ListingCondition,
@@ -140,6 +140,23 @@ export class ListingCardComponent {
     if (!location) return '';
     return [location.area, location.city].filter(Boolean).join(', ') || 'Unknown';
   });
+
+  /**
+   * Src of the image that failed, rather than a boolean flag.
+   *
+   * A flag would stay stuck after the card is recycled onto a different
+   * listing — these cards are reused inside `@for` blocks. Comparing against
+   * the current src resets the fallback for free, with no effect() needed.
+   */
+  private readonly failedSrc = signal<string | null>(null);
+
+  protected imageBroken(src: string): boolean {
+    return this.failedSrc() === src;
+  }
+
+  protected onImageError(src: string): void {
+    this.failedSrc.set(src);
+  }
 
   protected onFavorite(event: Event): void {
     // The card surface is a stretched link, so the click must not bubble to it.

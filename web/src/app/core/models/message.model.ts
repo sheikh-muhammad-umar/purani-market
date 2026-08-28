@@ -39,8 +39,6 @@ export interface LocationPayload {
   latitude: number;
   longitude: number;
   address?: string;
-  isLive?: boolean;
-  expiresAt?: string;
 }
 
 export interface Message {

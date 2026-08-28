@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil } from 'rxjs';
+import { Subject, forkJoin, takeUntil } from 'rxjs';
 import {
   CategoriesService,
   CreateCategoryPayload,
@@ -15,6 +15,7 @@ import {
   Category,
   CategoryAttribute,
   CategoryAttributeType,
+  CategoryDeleteImpact,
   AttributeDefinition,
 } from '../../../core/models';
 import { ATTRIBUTE_TYPE_OPTIONS } from '../../../core/constants/select-options';
@@ -70,6 +71,15 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
 
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  /**
+   * True only when the initial category load failed.
+   *
+   * The template used to swap the whole page for a "Retry" state whenever
+   * `error` was set, so a failed save discarded the form the admin was filling
+   * in. Mutation errors now surface inline while the editor stays on screen;
+   * only a load failure replaces the page.
+   */
+  readonly loadFailed = signal(false);
   readonly saving = signal(false);
   readonly tree = signal<TreeNode[]>([]);
   readonly flatCategories = signal<Category[]>([]);
@@ -171,6 +181,7 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
           this.flatCategories.set(categories);
           this.tree.set(this.buildTree(categories));
           this.loading.set(false);
+          this.loadFailed.set(false);
           // Re-select the current category to refresh its data
           if (currentId) {
             const updated = categories.find((c) => c._id === currentId);
@@ -179,6 +190,7 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
         },
         error: () => {
           this.error.set(ERROR_MSG.CATEGORIES_LOAD_FAILED);
+          this.loadFailed.set(true);
           this.loading.set(false);
         },
       });
@@ -202,6 +214,44 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
 
   toggleExpand(node: TreeNode): void {
     node.expanded = !node.expanded;
+  }
+
+  /** Free-text filter over the category tree. */
+  readonly treeSearch = signal('');
+
+  readonly isSearching = computed(() => this.treeSearch().trim().length > 0);
+
+  /**
+   * The tree as rendered. When a search is active, only matching nodes and the
+   * ancestors needed to reach them are kept, and those ancestors are forced open
+   * so deep matches are actually visible.
+   */
+  readonly visibleTree = computed<TreeNode[]>(() => {
+    const query = this.treeSearch().trim().toLowerCase();
+    if (!query) return this.tree();
+    return this.filterTree(this.tree(), query);
+  });
+
+  private filterTree(nodes: TreeNode[], query: string): TreeNode[] {
+    const matches: TreeNode[] = [];
+    for (const node of nodes) {
+      const children = this.filterTree(node.children, query);
+      const selfMatches =
+        node.category.name.toLowerCase().includes(query) ||
+        node.category.slug.toLowerCase().includes(query);
+      if (selfMatches || children.length > 0) {
+        matches.push({
+          category: node.category,
+          children,
+          expanded: children.length > 0 ? true : node.expanded,
+        });
+      }
+    }
+    return matches;
+  }
+
+  clearTreeSearch(): void {
+    this.treeSearch.set('');
   }
 
   selectCategory(cat: Category): void {
@@ -329,6 +379,77 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
   }
 
   // --- DELETE ---
+  /** Category awaiting delete confirmation, or `null` when the modal is closed. */
+  pendingDelete = signal<Category | null>(null);
+  deleteImpact = signal<CategoryDeleteImpact | null>(null);
+  deleteImpactLoading = signal(false);
+  deleteImpactError = signal('');
+
+  /**
+   * Opens the confirmation step. Deleting used to fire immediately from the
+   * toolbar button, which is unrecoverable and now also moves listings to the
+   * parent, so the operator gets to see the impact first.
+   */
+  requestDeleteCategory(cat: Category): void {
+    this.pendingDelete.set(cat);
+    this.deleteImpact.set(null);
+    this.deleteImpactError.set('');
+    this.deleteImpactLoading.set(true);
+
+    this.categoriesService
+      .getDeleteImpact(cat._id)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (impact) => {
+          this.deleteImpact.set(impact);
+          this.deleteImpactLoading.set(false);
+        },
+        error: () => {
+          // Without the impact we cannot describe the consequences, so the
+          // confirm button stays disabled rather than guessing.
+          this.deleteImpactLoading.set(false);
+          this.deleteImpactError.set(ERROR_MSG.CATEGORY_DELETE_IMPACT_FAILED);
+        },
+      });
+  }
+
+  cancelDelete(): void {
+    this.pendingDelete.set(null);
+    this.deleteImpact.set(null);
+    this.deleteImpactLoading.set(false);
+    this.deleteImpactError.set('');
+  }
+
+  /** Runs the delete for the category currently held in the confirmation modal. */
+  confirmDelete(): void {
+    const cat = this.pendingDelete();
+    if (!cat) return;
+    this.cancelDelete();
+    this.deleteCategory(cat);
+  }
+
+  /** Human-readable summary of what confirming will do. */
+  deleteImpactSummary(): string {
+    const impact = this.deleteImpact();
+    if (!impact) return '';
+    if (impact.childCount > 0) {
+      return `This category has ${impact.childCount} sub-categor${
+        impact.childCount === 1 ? 'y' : 'ies'
+      }. Delete or move them first.`;
+    }
+    if (impact.listingCount === 0) {
+      return 'No listings are attached to this category.';
+    }
+    if (!impact.parentName) {
+      return `${impact.listingCount} listing${
+        impact.listingCount === 1 ? '' : 's'
+      } would be left without a category. Move them before deleting.`;
+    }
+    return `${impact.listingCount} listing${
+      impact.listingCount === 1 ? '' : 's'
+    } will move to "${impact.parentName}".`;
+  }
+
   deleteCategory(cat: Category): void {
     this.saving.set(true);
     this.categoriesService
@@ -367,28 +488,25 @@ export class CategoryManagerComponent implements OnInit, OnDestroy {
     const orderA = catA.sortOrder;
     const orderB = catB.sortOrder;
     this.saving.set(true);
-    this.categoriesService
-      .update(catA._id, { sortOrder: orderB })
+
+    // Both updates are issued together. Chaining them meant a failure on the
+    // second request left the first one applied, so the two categories ended up
+    // sharing a sort order and the tree order became unstable.
+    forkJoin([
+      this.categoriesService.update(catA._id, { sortOrder: orderB }),
+      this.categoriesService.update(catB._id, { sortOrder: orderA }),
+    ])
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: () => {
-          this.categoriesService
-            .update(catB._id, { sortOrder: orderA })
-            .pipe(takeUntil(this.destroy$))
-            .subscribe({
-              next: () => {
-                this.saving.set(false);
-                this.loadCategories();
-              },
-              error: () => {
-                this.saving.set(false);
-                this.error.set(ERROR_MSG.CATEGORY_REORDER_FAILED);
-              },
-            });
+          this.saving.set(false);
+          this.loadCategories();
         },
         error: () => {
           this.saving.set(false);
           this.error.set(ERROR_MSG.CATEGORY_REORDER_FAILED);
+          // Re-read from the server so the tree reflects what actually persisted.
+          this.loadCategories();
         },
       });
   }

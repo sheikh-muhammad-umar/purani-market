@@ -33,21 +33,41 @@
 
   <div class="search-layout">
     <!-- Filter Sidebar (Desktop) -->
+    @if (mobileFiltersOpen()) {
+      <div class="filter-backdrop" (click)="closeFilters()" aria-hidden="true"></div>
+    }
+
     <aside
+      #filterPanel
       class="filter-sidebar"
       [class.collapsed]="filtersOpen() === false"
       [class.mobile-open]="filtersOpen() === true"
+      [attr.role]="mobileFiltersOpen() ? 'dialog' : null"
+      [attr.aria-modal]="mobileFiltersOpen() ? 'true' : null"
+      [attr.aria-labelledby]="mobileFiltersOpen() ? 'filter-panel-title' : null"
       aria-label="Search filters"
     >
       <div class="filter-header">
-        <h3 class="filter-title">Filters</h3>
-        <button
-          class="filter-toggle"
-          (click)="toggleFilters()"
-          [attr.aria-expanded]="filtersOpen() !== false"
-        >
-          {{ filtersOpen() === false ? '☰' : '✕' }}
-        </button>
+        <h3 class="filter-title" id="filter-panel-title">
+          Filters
+          @if (activeFilterCount() > 0) {
+            <span class="filter-count-badge">{{ activeFilterCount() }}</span>
+          }
+        </h3>
+        <div class="filter-header-actions">
+          @if (activeFilterCount() > 0) {
+            <button class="filter-clear-link" (click)="clearAllFilters()">Clear all</button>
+          }
+          <button
+            #filterClose
+            class="filter-toggle"
+            (click)="toggleFilters()"
+            [attr.aria-expanded]="filtersOpen() !== false"
+            [attr.aria-label]="filtersOpen() === false ? 'Show filters' : 'Hide filters'"
+          >
+            {{ filtersOpen() === false ? '☰' : '✕' }}
+          </button>
+        </div>
       </div>
 
       <div class="filter-body">
@@ -112,7 +132,10 @@
                         <button
                           class="cat-expand"
                           (click)="toggleCategoryExpand(cat._id)"
-                          [attr.aria-label]="'Expand ' + cat.name"
+                          [attr.aria-expanded]="expandedCategories().has(cat._id)"
+                          [attr.aria-label]="
+                            (expandedCategories().has(cat._id) ? 'Collapse ' : 'Expand ') + cat.name
+                          "
                         >
                           {{ expandedCategories().has(cat._id) ? '▾' : '▸' }}
                         </button>
@@ -184,7 +207,14 @@
                 min="0"
               />
             </div>
-            <button class="btn btn-outline btn-sm price-apply-btn" (click)="onPriceFilterApply()">
+            @if (priceError()) {
+              <p class="filter-inline-error" role="alert">{{ priceError() }}</p>
+            }
+            <button
+              class="btn btn-outline btn-sm price-apply-btn"
+              (click)="onPriceFilterApply()"
+              [disabled]="priceError() !== ''"
+            >
               Apply
             </button>
           </div>
@@ -262,136 +292,203 @@
           <!-- Dynamic Category-Specific Filters -->
           @for (filter of categoryFilters(); track filter.key) {
             <div class="filter-card">
-              <h4 class="filter-card-title">{{ filter.name }}</h4>
-              @switch (filter.type) {
-                @case ('select') {
-                  <app-custom-select
-                    [options]="getSelectFilterOptions(filter)"
-                    [ngModel]="filterValues()[filter.key] || ''"
-                    (ngModelChange)="onDynamicFilterChange(filter.key, $any($event))"
-                    placeholder="Any"
-                    [searchable]="true"
-                  ></app-custom-select>
-                }
-                @case ('multiselect') {
-                  <app-custom-select
-                    [options]="getSelectFilterOptions(filter)"
-                    [ngModel]="filterValues()[filter.key] || ''"
-                    (ngModelChange)="onDynamicFilterChange(filter.key, $any($event))"
-                    placeholder="Any"
-                    [searchable]="true"
-                  ></app-custom-select>
-                }
-                @case ('range') {
-                  <div class="price-range-row">
-                    <input
-                      type="number"
-                      class="price-field"
-                      [placeholder]="'Min'"
-                      [ngModel]="filterValues()[filter.key + '_min'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $event)"
-                    />
-                    <span class="price-to">to</span>
-                    <input
-                      type="number"
-                      class="price-field"
-                      [placeholder]="'Max'"
-                      [ngModel]="filterValues()[filter.key + '_max'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)"
-                    />
-                  </div>
-                }
-                @case ('boolean') {
-                  <label class="checkbox-label">
-                    <input
-                      type="checkbox"
-                      [ngModel]="filterValues()[filter.key] === 'true'"
-                      (ngModelChange)="onDynamicFilterChange(filter.key, $event ? 'true' : '')"
-                    />
-                    {{ filter.name }}
-                  </label>
-                }
-                @case ('number') {
-                  <div class="price-range-row">
-                    <input
-                      type="number"
-                      class="price-field"
-                      [placeholder]="'Min'"
-                      [ngModel]="filterValues()[filter.key + '_min'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $event)"
-                    />
-                    <span class="price-to">to</span>
-                    <input
-                      type="number"
-                      class="price-field"
-                      [placeholder]="'Max'"
-                      [ngModel]="filterValues()[filter.key + '_max'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $event)"
-                    />
-                  </div>
-                }
-                @case ('year') {
-                  <div class="price-range-row">
+              <button
+                type="button"
+                class="filter-card-toggle"
+                (click)="toggleSection(filter.key)"
+                [attr.aria-expanded]="!isSectionCollapsed(filter.key)"
+                [attr.aria-controls]="'filter-body-' + filter.key"
+              >
+                <span class="filter-card-title" [id]="'filter-label-' + filter.key">
+                  {{ filter.name }}
+                  @if (filter.unit) {
+                    <span class="filter-card-unit">({{ filter.unit }})</span>
+                  }
+                </span>
+                <span class="material-symbols-rounded filter-card-chevron" aria-hidden="true">{{
+                  isSectionCollapsed(filter.key) ? 'expand_more' : 'expand_less'
+                }}</span>
+              </button>
+              <div
+                class="filter-card-body"
+                [id]="'filter-body-' + filter.key"
+                [hidden]="isSectionCollapsed(filter.key)"
+              >
+                @switch (filter.type) {
+                  @case ('select') {
                     <app-custom-select
-                      [options]="getYearFilterOptions(filter, '_min')"
-                      [ngModel]="filterValues()[filter.key + '_min'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $any($event))"
-                      placeholder="From"
+                      [options]="getSelectFilterOptions(filter)"
+                      [ngModel]="filterValues()[filter.key] || ''"
+                      (ngModelChange)="onDynamicFilterChange(filter.key, $any($event))"
+                      placeholder="Any"
                       [searchable]="true"
                     ></app-custom-select>
-                    <span class="price-to">to</span>
-                    <app-custom-select
-                      [options]="getYearFilterOptions(filter, '_max')"
-                      [ngModel]="filterValues()[filter.key + '_max'] || ''"
-                      (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $any($event))"
-                      placeholder="To"
-                      [searchable]="true"
-                    ></app-custom-select>
-                  </div>
-                }
-                @case ('province_city') {
-                  <div class="province-city-filter">
-                    <app-custom-select
-                      [options]="provinceOptions()"
-                      [ngModel]="filterValues()[filter.key + '_province'] || ''"
-                      (ngModelChange)="
-                        loadCitiesForProvince($any($event));
-                        onProvinceCityChange(filter.key, $any($event), '')
-                      "
-                      placeholder="All Provinces"
-                      [searchable]="true"
-                    ></app-custom-select>
-                    @if (filterValues()[filter.key + '_province']) {
+                  }
+                  @case ('multiselect') {
+                    <fieldset class="multiselect-filter">
+                      <legend class="sr-only">{{ filter.name }}</legend>
+                      @for (opt of filter.options ?? []; track opt) {
+                        @if (
+                          !isOptionUnavailable(filter.key, opt) || isMultiSelected(filter.key, opt)
+                        ) {
+                          <label class="multiselect-option">
+                            <input
+                              type="checkbox"
+                              [checked]="isMultiSelected(filter.key, opt)"
+                              (change)="toggleMultiSelectFilter(filter.key, opt)"
+                            />
+                            <span class="multiselect-option-label">{{ opt }}</span>
+                            @if (facetCount(filter.key, opt) !== null) {
+                              <span class="facet-count">{{ facetCount(filter.key, opt) }}</span>
+                            }
+                          </label>
+                        }
+                      }
+                    </fieldset>
+                  }
+                  @case ('range') {
+                    <div class="price-range-row">
+                      <input
+                        type="number"
+                        class="price-field"
+                        [attr.aria-label]="filter.name + ' minimum'"
+                        [placeholder]="rangePlaceholder(filter, 'min')"
+                        [attr.min]="filter.rangeMin ?? null"
+                        [attr.max]="filter.rangeMax ?? null"
+                        [ngModel]="filterValues()[filter.key + '_min'] || ''"
+                        (ngModelChange)="onDynamicFilterInput(filter.key + '_min', $event)"
+                      />
+                      <span class="price-to">to</span>
+                      <input
+                        type="number"
+                        class="price-field"
+                        [attr.aria-label]="filter.name + ' maximum'"
+                        [placeholder]="rangePlaceholder(filter, 'max')"
+                        [attr.min]="filter.rangeMin ?? null"
+                        [attr.max]="filter.rangeMax ?? null"
+                        [ngModel]="filterValues()[filter.key + '_max'] || ''"
+                        (ngModelChange)="onDynamicFilterInput(filter.key + '_max', $event)"
+                      />
+                    </div>
+                    @if (rangeError(filter.key)) {
+                      <p class="filter-inline-error" role="alert">{{ rangeError(filter.key) }}</p>
+                    }
+                  }
+                  @case ('boolean') {
+                    <label class="checkbox-label">
+                      <input
+                        type="checkbox"
+                        [ngModel]="filterValues()[filter.key] === 'true'"
+                        (ngModelChange)="onDynamicFilterChange(filter.key, $event ? 'true' : '')"
+                      />
+                      {{ filter.name }}
+                    </label>
+                  }
+                  @case ('number') {
+                    <div class="price-range-row">
+                      <input
+                        type="number"
+                        class="price-field"
+                        [attr.aria-label]="filter.name + ' minimum'"
+                        [placeholder]="rangePlaceholder(filter, 'min')"
+                        [attr.min]="filter.rangeMin ?? null"
+                        [attr.max]="filter.rangeMax ?? null"
+                        [ngModel]="filterValues()[filter.key + '_min'] || ''"
+                        (ngModelChange)="onDynamicFilterInput(filter.key + '_min', $event)"
+                      />
+                      <span class="price-to">to</span>
+                      <input
+                        type="number"
+                        class="price-field"
+                        [attr.aria-label]="filter.name + ' maximum'"
+                        [placeholder]="rangePlaceholder(filter, 'max')"
+                        [attr.min]="filter.rangeMin ?? null"
+                        [attr.max]="filter.rangeMax ?? null"
+                        [ngModel]="filterValues()[filter.key + '_max'] || ''"
+                        (ngModelChange)="onDynamicFilterInput(filter.key + '_max', $event)"
+                      />
+                    </div>
+                    @if (rangeError(filter.key)) {
+                      <p class="filter-inline-error" role="alert">{{ rangeError(filter.key) }}</p>
+                    }
+                  }
+                  @case ('year') {
+                    <div class="price-range-row">
                       <app-custom-select
-                        [options]="
-                          getCityOptions(filterValues()[filter.key + '_province']?.toString() || '')
-                        "
-                        [ngModel]="filterValues()[filter.key + '_city'] || ''"
-                        (ngModelChange)="
-                          onProvinceCityChange(
-                            filter.key,
-                            filterValues()[filter.key + '_province']?.toString() || '',
-                            $any($event)
-                          )
-                        "
-                        placeholder="All Cities"
+                        [options]="getYearFilterOptions(filter, '_min')"
+                        [ngModel]="filterValues()[filter.key + '_min'] || ''"
+                        (ngModelChange)="onDynamicFilterChange(filter.key + '_min', $any($event))"
+                        placeholder="From"
                         [searchable]="true"
                       ></app-custom-select>
-                    }
-                  </div>
+                      <span class="price-to">to</span>
+                      <app-custom-select
+                        [options]="getYearFilterOptions(filter, '_max')"
+                        [ngModel]="filterValues()[filter.key + '_max'] || ''"
+                        (ngModelChange)="onDynamicFilterChange(filter.key + '_max', $any($event))"
+                        placeholder="To"
+                        [searchable]="true"
+                      ></app-custom-select>
+                    </div>
+                  }
+                  @case ('province_city') {
+                    <div class="province-city-filter">
+                      <app-custom-select
+                        [options]="provinceOptions()"
+                        [ngModel]="filterValues()[filter.key + '_province'] || ''"
+                        (ngModelChange)="
+                          loadCitiesForProvince($any($event));
+                          onProvinceCityChange(filter.key, $any($event), '')
+                        "
+                        placeholder="All Provinces"
+                        [searchable]="true"
+                      ></app-custom-select>
+                      @if (filterValues()[filter.key + '_province']) {
+                        <app-custom-select
+                          [options]="
+                            getCityOptions(
+                              filterValues()[filter.key + '_province']?.toString() || ''
+                            )
+                          "
+                          [ngModel]="filterValues()[filter.key + '_city'] || ''"
+                          (ngModelChange)="
+                            onProvinceCityChange(
+                              filter.key,
+                              filterValues()[filter.key + '_province']?.toString() || '',
+                              $any($event)
+                            )
+                          "
+                          placeholder="All Cities"
+                          [searchable]="true"
+                        ></app-custom-select>
+                      }
+                    </div>
+                  }
                 }
-              }
+              </div>
             </div>
           }
         }
       </div>
+
+      @if (mobileFiltersOpen()) {
+        <div class="filter-apply-bar">
+          <button class="btn btn-primary filter-apply-btn" (click)="closeFilters()">
+            @if (loading()) {
+              Searching...
+            } @else {
+              Show {{ totalResults() }} result{{ totalResults() !== 1 ? 's' : '' }}
+            }
+          </button>
+        </div>
+      }
     </aside>
 
     <!-- Results Area -->
     <main class="results-area">
       <!-- Sort Bar -->
       <div class="results-header">
-        <p class="results-count">
+        <p class="results-count" aria-live="polite" aria-atomic="true">
           @if (loading()) {
             Searching...
           } @else {
@@ -411,11 +508,20 @@
             placeholder="Relevance"
           ></app-custom-select>
           <button
+            #filterTrigger
             class="btn btn-outline filter-toggle-mobile"
             (click)="toggleFilters()"
-            aria-label="Toggle filters"
+            [attr.aria-expanded]="mobileFiltersOpen()"
+            [attr.aria-label]="
+              activeFilterCount() > 0
+                ? 'Toggle filters, ' + activeFilterCount() + ' applied'
+                : 'Toggle filters'
+            "
           >
             <span class="material-symbols-rounded" style="font-size: 18px">tune</span>
+            @if (activeFilterCount() > 0) {
+              <span class="filter-trigger-badge">{{ activeFilterCount() }}</span>
+            }
           </button>
           <button
             class="btn btn-outline grid-toggle-mobile"
@@ -450,6 +556,7 @@
                   [listing]="ad"
                   [eager]="idx < 4"
                   (click)="onResultClick(ad._id, idx)"
+                  [showCondition]="false"
                 />
               }
             </div>
@@ -464,6 +571,7 @@
               [listing]="listing"
               [eager]="idx < 4 && featuredAds().length === 0"
               (click)="onResultClick(listing._id, idx)"
+              [showCondition]="false"
             />
           }
         </div>
@@ -486,6 +594,18 @@
           actionText="Back to home"
           [actionLink]="ROUTES.HOME"
         >
+          @if (activeFilterCount() > 0) {
+            <div class="suggestions-block">
+              <p class="suggestions-label">
+                {{ activeFilterCount() }} filter{{ activeFilterCount() !== 1 ? 's are' : ' is' }}
+                narrowing these results.
+              </p>
+              <button type="button" class="btn btn-outline" (click)="clearAllFilters()">
+                Clear all filters
+              </button>
+            </div>
+          }
+
           @if (suggestedTerms().length > 0) {
             <div class="suggestions-block">
               <p class="suggestions-label">Try searching for:</p>

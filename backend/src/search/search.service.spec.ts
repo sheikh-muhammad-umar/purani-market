@@ -413,7 +413,7 @@ describe('SearchService', () => {
 
       expect(filters).toHaveLength(1);
       expect(filters[0]).toEqual({
-        term: { 'categoryAttributes.brand': 'Apple' },
+        term: { 'categoryAttributes.brand.keyword': 'Apple' },
       });
     });
 
@@ -435,7 +435,7 @@ describe('SearchService', () => {
 
       expect(filters).toHaveLength(1);
       expect(filters[0]).toEqual({
-        terms: { 'categoryAttributes.color': ['Red', 'Blue'] },
+        terms: { 'categoryAttributes.color.keyword': ['Red', 'Blue'] },
       });
     });
 
@@ -456,7 +456,7 @@ describe('SearchService', () => {
       });
 
       expect(filters[0]).toEqual({
-        terms: { 'categoryAttributes.color': ['Red'] },
+        terms: { 'categoryAttributes.color.keyword': ['Red'] },
       });
     });
 
@@ -541,7 +541,7 @@ describe('SearchService', () => {
 
       expect(filters).toHaveLength(1);
       expect(filters[0]).toEqual({
-        term: { 'categoryAttributes.brand': 'Apple' },
+        term: { 'categoryAttributes.brand.keyword': 'Apple' },
       });
     });
 
@@ -620,7 +620,7 @@ describe('SearchService', () => {
       // status + category + brand = 3 filters
       expect(query.bool.filter.length).toBe(3);
       expect(query.bool.filter).toContainEqual({
-        term: { 'categoryAttributes.brand': 'Apple' },
+        term: { 'categoryAttributes.brand.keyword': 'Apple' },
       });
     });
 

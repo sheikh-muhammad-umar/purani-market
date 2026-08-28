@@ -41,6 +41,7 @@ export const API = {
   CATEGORIES: '/categories',
   CATEGORY_BY_ID: (id: string) => `/categories/${id}`,
   CATEGORY_INHERITED_ATTRS: (id: string) => `/categories/${id}/inherited-attributes`,
+  CATEGORY_DELETE_IMPACT: (id: string) => `/categories/${id}/delete-impact`,
   CATEGORY_ATTRIBUTES: (id: string) => `/categories/${id}/attributes`,
   CATEGORY_ASSIGN_ATTRIBUTES: (id: string) => `/categories/${id}/assign-attributes`,
   CATEGORY_FEATURES: (id: string) => `/categories/${id}/features`,

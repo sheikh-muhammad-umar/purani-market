@@ -536,10 +536,8 @@
                             [class.open]="openDropdown() === attr.key"
                             (click)="toggleDropdown(attr.key)"
                           >
-                            @if (getDynamicControl(attr.key).value) {
-                              <span class="select-text">{{
-                                getDynamicControl(attr.key).value
-                              }}</span>
+                            @if (getSelectDisplay(attr)) {
+                              <span class="select-text">{{ getSelectDisplay(attr) }}</span>
                             } @else {
                               <span class="select-placeholder">Select {{ attr.name }}</span>
                             }
@@ -557,8 +555,94 @@
                                   {{ opt }}
                                 </button>
                               }
+                              @if (attr.allowOther) {
+                                <button
+                                  type="button"
+                                  class="custom-select-option"
+                                  [class.active]="isOtherChosen(attr)"
+                                  (click)="selectOtherOption(attr.key)"
+                                >
+                                  Other
+                                </button>
+                              }
                             </div>
                           }
+                        </div>
+                        @if (isOtherChosen(attr)) {
+                          <input
+                            class="form-input"
+                            style="margin-top: var(--space-2)"
+                            [placeholder]="'Enter ' + attr.name"
+                            [value]="getOtherText(attr.key)"
+                            (input)="setOtherText(attr.key, $any($event.target).value)"
+                          />
+                        }
+                      }
+                      @case ('multiselect') {
+                        <div class="features-chip-grid">
+                          @for (opt of attr.options ?? []; track opt) {
+                            <button
+                              type="button"
+                              class="feature-chip-toggle"
+                              [class.selected]="isMultiSelectSelected(attr.key, opt)"
+                              [attr.aria-pressed]="isMultiSelectSelected(attr.key, opt)"
+                              (click)="toggleMultiSelectOption(attr.key, opt)"
+                            >
+                              {{ opt }}
+                            </button>
+                          }
+                        </div>
+                      }
+                      @case ('range') {
+                        <div class="range-input-pair">
+                          <input
+                            class="form-input"
+                            type="number"
+                            [attr.aria-label]="attr.name + ' minimum'"
+                            placeholder="Min"
+                            [min]="attr.rangeMin ?? null"
+                            [max]="attr.rangeMax ?? null"
+                            [value]="getRangeBound(attr.key, 'min')"
+                            (input)="setRangeBound(attr.key, 'min', $any($event.target).value)"
+                          />
+                          <span class="range-separator">to</span>
+                          <input
+                            class="form-input"
+                            type="number"
+                            [attr.aria-label]="attr.name + ' maximum'"
+                            placeholder="Max"
+                            [min]="attr.rangeMin ?? null"
+                            [max]="attr.rangeMax ?? null"
+                            [value]="getRangeBound(attr.key, 'max')"
+                            (input)="setRangeBound(attr.key, 'max', $any($event.target).value)"
+                          />
+                        </div>
+                      }
+                      @case ('province_city') {
+                        <div class="province-city-pair">
+                          <select
+                            class="form-input"
+                            [attr.aria-label]="attr.name + ' province'"
+                            [value]="getAttrProvinceId(attr.key)"
+                            (change)="onAttrProvinceChange(attr.key, $any($event.target).value)"
+                          >
+                            <option value="">Select province</option>
+                            @for (prov of provinces(); track prov._id) {
+                              <option [value]="prov._id">{{ prov.name }}</option>
+                            }
+                          </select>
+                          <select
+                            class="form-input"
+                            [attr.aria-label]="attr.name + ' city'"
+                            [disabled]="!getAttrProvinceId(attr.key)"
+                            [value]="getAttrCityId(attr.key)"
+                            (change)="onAttrCityChange(attr.key, $any($event.target).value)"
+                          >
+                            <option value="">Select city</option>
+                            @for (city of attrCitiesFor(attr.key); track city._id) {
+                              <option [value]="city._id">{{ city.name }}</option>
+                            }
+                          </select>
                         </div>
                       }
                       @case ('boolean') {
@@ -576,12 +660,10 @@
                         />
                       }
                     }
-                    @if (
-                      attr.required &&
-                      getDynamicControl(attr.key).touched &&
-                      !getDynamicControl(attr.key).value
-                    ) {
+                    @if (isAttributeMissing(attr)) {
                       <span class="form-error">{{ attr.name }} is required</span>
+                    } @else if (getAttributeError(attr)) {
+                      <span class="form-error">{{ getAttributeError(attr) }}</span>
                     }
                   </div>
                 }

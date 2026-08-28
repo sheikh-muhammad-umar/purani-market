@@ -1,0 +1,103 @@
+<app-modal
+  title="Share location"
+  subtitle="Send your current position, or any place you pick on Google Maps."
+  size="md"
+  (closed)="cancelled.emit()"
+>
+  <div class="ls">
+    <button
+      type="button"
+      class="ls-gps"
+      [class.is-active]="source() === 'gps'"
+      [disabled]="locating()"
+      (click)="useCurrentLocation()"
+    >
+      <span class="ls-gps-icon" aria-hidden="true">
+        @if (locating()) {
+          <span class="ls-spinner"></span>
+        } @else {
+          <span class="material-symbols-rounded">my_location</span>
+        }
+      </span>
+      <span class="ls-gps-text">
+        <span class="ls-gps-title">
+          {{ locating() ? 'Getting your location…' : 'Use my current location' }}
+        </span>
+        <span class="ls-gps-sub">Your device will ask for permission</span>
+      </span>
+      @if (source() === 'gps') {
+        <span class="material-symbols-rounded ls-gps-check" aria-hidden="true">check_circle</span>
+      }
+    </button>
+
+    <p class="ls-divider"><span>or pick another place</span></p>
+
+    <div class="ls-link">
+      <label class="ls-label" for="ls-link-input">Google Maps link or coordinates</label>
+      <div class="ls-link-row">
+        <input
+          id="ls-link-input"
+          class="ls-input"
+          type="text"
+          inputmode="url"
+          autocomplete="off"
+          placeholder="Paste a link, or 24.8607, 67.0011"
+          [value]="linkInput()"
+          (input)="onLinkInput($event)"
+          (keydown.enter)="resolveLink()"
+        />
+        <button
+          type="button"
+          class="btn btn-subtle ls-resolve"
+          [disabled]="!linkInput().trim()"
+          (click)="resolveLink()"
+        >
+          Use
+        </button>
+      </div>
+      <p class="ls-hint">
+        Find the place in
+        <a [href]="browseUrl()" target="_blank" rel="noopener noreferrer">Google Maps</a>, copy the
+        link from the address bar or the Share menu, then paste it here.
+      </p>
+    </div>
+
+    @if (error()) {
+      <p class="ls-error" role="alert">
+        <span class="material-symbols-rounded" aria-hidden="true">error</span>
+        {{ error() }}
+      </p>
+    }
+
+    @if (hasSelection()) {
+      <div class="ls-preview">
+        <!-- A real, pannable Google Maps embed so the pin can be confirmed
+             visually before sending. -->
+        <!-- Not lazy: the user has just asked to see this exact map, and a
+             deferred frame renders as an empty grey panel. -->
+        <iframe
+          class="ls-map"
+          [src]="previewUrl()"
+          title="Map preview of the selected location"
+          referrerpolicy="no-referrer-when-downgrade"
+        ></iframe>
+        <div class="ls-preview-foot">
+          <span class="material-symbols-rounded ls-pin" aria-hidden="true">location_on</span>
+          <span class="ls-preview-text">
+            <span class="ls-preview-source">{{ sourceLabel() }}</span>
+            <span class="ls-preview-coords">{{ coordsLabel() }}</span>
+          </span>
+          <button type="button" class="ls-clear" (click)="clearSelection()">Change</button>
+        </div>
+      </div>
+    }
+  </div>
+
+  <div slot="footer" class="ls-footer">
+    <button type="button" class="btn btn-ghost" (click)="cancelled.emit()">Cancel</button>
+    <button type="button" class="btn btn-primary" [disabled]="!hasSelection()" (click)="confirm()">
+      <span class="material-symbols-rounded" aria-hidden="true">send</span>
+      Send location
+    </button>
+  </div>
+</app-modal>

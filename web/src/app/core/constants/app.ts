@@ -61,6 +61,10 @@ export const PAGE_SIZE_LARGE = 50;
 export const FEATURED_ADS_LIMIT = 10;
 export const NEARBY_LISTINGS_LIMIT = 12;
 
+/** Two full rows of the recommendations grid at desktop width. 20 made the
+ *  section taller than the rest of the home page combined. */
+export const RECOMMENDATIONS_LIMIT = 10;
+
 // ─── Shorts ─────────────────────────────────────────────────
 export const FREE_SHORTS_PER_MONTH = 4;
 export const SHORTS_ALLOWED_MIMETYPES = ['video/mp4', 'video/webm', 'video/quicktime'] as const;

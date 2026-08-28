@@ -18,6 +18,25 @@ export interface SearchParams {
   [key: string]: string | number | boolean | undefined;
 }
 
+/** One option of a facet, with how many results choosing it would yield. */
+export interface FacetBucket {
+  value: string;
+  count: number;
+}
+
+/**
+ * Per-option counts (or numeric bounds) for a filterable category attribute.
+ * Each facet is computed with the other active filters applied but its own
+ * excluded, so the counts answer "what would I get if I switched this option".
+ */
+export interface SearchFacet {
+  key: string;
+  type: string;
+  buckets?: FacetBucket[];
+  min?: number | null;
+  max?: number | null;
+}
+
 export interface SearchResponse {
   items: Listing[];
   total: number;
@@ -27,6 +46,7 @@ export interface SearchResponse {
   featuredAds?: Listing[];
   suggestions?: string[];
   relatedCategories?: { _id: string; name: string; slug: string }[];
+  facets?: SearchFacet[];
 }
 
 export interface SearchSuggestion {

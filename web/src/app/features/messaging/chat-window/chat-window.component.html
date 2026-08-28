@@ -16,11 +16,27 @@
     style="display: none"
   />
 
-  <!-- Back button (mobile) -->
+  <!-- Thread header. Shown at every breakpoint; the back button collapses away
+       on desktop where the conversation list is already visible. -->
   <div class="chat-top-bar">
-    <button class="back-link" (click)="back.emit()">
-      <span class="material-symbols-rounded" style="font-size: 18px">arrow_back</span> Messages
+    <button class="back-link" (click)="back.emit()" aria-label="Back to conversations">
+      <span class="material-symbols-rounded" aria-hidden="true">arrow_back</span>
     </button>
+
+    @if (conversationImage()) {
+      <img class="chat-peer-avatar" [src]="conversationImage()" alt="" />
+    } @else {
+      <span class="chat-peer-avatar chat-peer-avatar-fallback" aria-hidden="true">
+        <span class="material-symbols-rounded">image</span>
+      </span>
+    }
+
+    <div class="chat-peer-info">
+      <h2 class="chat-peer-title">{{ conversationTitle() || 'Conversation' }}</h2>
+      @if (typingIndicator()) {
+        <span class="chat-peer-state is-typing">typing…</span>
+      }
+    </div>
   </div>
 
   <!-- Product card at top -->
@@ -41,8 +57,18 @@
     </div>
   }
 
-  <!-- Messages area -->
-  <div class="messages-container" #messagesContainer>
+  <!-- Messages area.
+       role="log" + aria-live announces incoming messages; without it a screen
+       reader user got no notification that the other party had replied. -->
+  <div
+    class="messages-container"
+    #messagesContainer
+    role="log"
+    aria-live="polite"
+    aria-relevant="additions"
+    aria-label="Messages"
+    (scroll)="onMessagesScroll()"
+  >
     @if (loading()) {
       <div class="messages-skeleton">
         @for (i of SKELETON_ITEMS; track i) {
@@ -58,98 +84,156 @@
     }
 
     @if (!loading()) {
-      @if (hasMore()) {
+      @if (hasMore() && !isEmptyThread()) {
         <button class="load-more-btn" (click)="loadOlderMessages()" [disabled]="loadingMore()">
-          {{ loadingMore() ? 'Loading...' : 'Load older messages' }}
+          {{ loadingMore() ? 'Loading…' : 'Load older messages' }}
         </button>
       }
 
-      @for (message of messages(); track message._id) {
-        <div
-          class="message-bubble"
-          [class.sent]="isSentByMe(message)"
-          [class.received]="!isSentByMe(message)"
-        >
-          <div class="bubble-content" [class.media-bubble]="message.type === 'image'">
-            <!-- Text message -->
-            @if (!message.type || message.type === 'text') {
-              <p class="bubble-text">{{ message.content }}</p>
-            }
+      @if (isEmptyThread()) {
+        <div class="thread-empty">
+          <span class="material-symbols-rounded thread-empty-icon" aria-hidden="true">forum</span>
+          <p class="thread-empty-title">No messages yet</p>
+          <p class="thread-empty-text">
+            Send the first message to start the conversation with this seller.
+          </p>
+        </div>
+      }
 
-            <!-- Image message -->
-            @if (message.type === 'image' && message.media) {
-              <div class="bubble-image-wrap">
-                <img
-                  [src]="message.media.thumbnailUrl || message.media.url"
-                  alt="Shared image"
-                  class="bubble-image"
-                  (click)="$event.stopPropagation()"
-                  loading="lazy"
-                />
-              </div>
-            }
+      @for (row of rows(); track row.key) {
+        @if (row.kind === 'day') {
+          <p class="day-divider">
+            <span>{{ row.label }}</span>
+          </p>
+        } @else {
+          @let message = row.message!;
+          <div
+            class="message-bubble"
+            [class.sent]="row.mine"
+            [class.received]="!row.mine"
+            [class.first-of-group]="row.firstOfGroup"
+            [class.last-of-group]="row.lastOfGroup"
+            [class.is-pending]="row.status === 'pending'"
+            [class.is-failed]="row.status === 'failed'"
+          >
+            <div class="bubble-content" [class.media-bubble]="message.type === 'image'">
+              <!-- Text message -->
+              @if (!message.type || message.type === 'text') {
+                <p class="bubble-text">{{ message.content }}</p>
+              }
 
-            <!-- Voice message -->
-            @if (message.type === 'voice' && message.media) {
-              <div class="bubble-voice">
-                <button
-                  class="voice-play-btn"
-                  (click)="$event.stopPropagation()"
-                  [attr.aria-label]="'Play voice message'"
+              <!-- Image message -->
+              @if (message.type === 'image' && message.media) {
+                <div class="bubble-image-wrap">
+                  <img
+                    [src]="message.media.thumbnailUrl || message.media.url"
+                    alt="Shared image"
+                    class="bubble-image"
+                    (click)="$event.stopPropagation()"
+                    loading="lazy"
+                  />
+                </div>
+              }
+
+              <!-- Voice message -->
+              @if (message.type === 'voice' && message.media) {
+                <div class="bubble-voice">
+                  <button
+                    class="voice-play-btn"
+                    (click)="$event.stopPropagation()"
+                    [attr.aria-label]="'Play voice message'"
+                  >
+                    <span class="material-symbols-rounded" aria-hidden="true">play_arrow</span>
+                  </button>
+                  <div class="voice-waveform">
+                    @for (i of WAVEFORM_BARS; track i) {
+                      <span class="wave-bar" [style.height]="12 + ((i * 7) % 20) + 'px'"></span>
+                    }
+                  </div>
+                  <span class="voice-duration">
+                    {{ formatDurationValue(message.media.duration || 0) }}
+                  </span>
+                </div>
+              }
+
+              <!-- Location message -->
+              @if (message.type === 'location' && message.location) {
+                <div
+                  class="bubble-location"
+                  (click)="
+                    openLocationInMaps(message.location.latitude, message.location.longitude);
+                    $event.stopPropagation()
+                  "
                 >
-                  <span class="material-symbols-rounded">play_arrow</span>
-                </button>
-                <div class="voice-waveform">
-                  @for (i of WAVEFORM_BARS; track i) {
-                    <span class="wave-bar" [style.height]="12 + ((i * 7) % 20) + 'px'"></span>
-                  }
+                  <div class="location-map-placeholder">
+                    <span class="material-symbols-rounded location-pin" aria-hidden="true"
+                      >location_on</span
+                    >
+                  </div>
+                  <div class="location-info">
+                    <span class="location-label">
+                      Shared location
+                      <span class="material-symbols-rounded location-open" aria-hidden="true"
+                        >open_in_new</span
+                      >
+                    </span>
+                    @if (message.location.address) {
+                      <span class="location-address">{{ message.location.address }}</span>
+                    }
+                    <span class="location-coords">
+                      {{ message.location.latitude.toFixed(4) }},
+                      {{ message.location.longitude.toFixed(4) }}
+                    </span>
+                  </div>
                 </div>
-                <span class="voice-duration">
-                  {{ formatDurationValue(message.media.duration || 0) }}
-                </span>
-              </div>
-            }
+              }
 
-            <!-- Location message -->
-            @if (message.type === 'location' && message.location) {
-              <div
-                class="bubble-location"
-                (click)="
-                  openLocationInMaps(message.location.latitude, message.location.longitude);
-                  $event.stopPropagation()
-                "
-              >
-                <div class="location-map-placeholder">
-                  <span class="material-symbols-rounded location-pin">location_on</span>
-                  @if (message.location.isLive) {
-                    <span class="live-badge">LIVE</span>
+              <!-- Only the last bubble of a group carries a timestamp, so a run
+                   of quick replies is not repeated four times over. -->
+              @if (row.lastOfGroup || row.status === 'pending' || row.status === 'failed') {
+                <div class="bubble-meta">
+                  <span class="bubble-time">{{ formatTime(message.createdAt) }}</span>
+                  @switch (row.status) {
+                    @case ('pending') {
+                      <span class="bubble-state" aria-label="Sending">
+                        <span class="material-symbols-rounded" aria-hidden="true">schedule</span>
+                      </span>
+                    }
+                    @case ('failed') {
+                      <span class="bubble-state is-failed" aria-label="Not sent">
+                        <span class="material-symbols-rounded" aria-hidden="true">error</span>
+                      </span>
+                    }
+                    @case ('sent') {
+                      <span class="bubble-state" aria-label="Sent">
+                        <span class="material-symbols-rounded" aria-hidden="true">done</span>
+                      </span>
+                    }
+                    @case ('read') {
+                      <span class="bubble-state is-read" aria-label="Read">
+                        <span class="material-symbols-rounded" aria-hidden="true">done_all</span>
+                      </span>
+                    }
                   }
                 </div>
-                <div class="location-info">
-                  <span class="location-label">
-                    {{ message.location.isLive ? 'Live Location' : 'Shared Location' }}
-                  </span>
-                  @if (message.location.address) {
-                    <span class="location-address">{{ message.location.address }}</span>
-                  }
-                  <span class="location-coords">
-                    {{ message.location.latitude.toFixed(4) }},
-                    {{ message.location.longitude.toFixed(4) }}
-                  </span>
-                </div>
-              </div>
-            }
-
-            <div class="bubble-meta">
-              <span class="bubble-time">{{ formatTime(message.createdAt) }}</span>
-              @if (isSentByMe(message)) {
-                <span class="read-receipt" [class.read]="message.isRead">
-                  {{ message.isRead ? '✓✓' : '✓' }}
-                </span>
               }
             </div>
+
+            @if (row.status === 'failed') {
+              <p class="bubble-failed-row">
+                <span>Not sent.</span>
+                @if (!message.type || message.type === 'text') {
+                  <button type="button" class="bubble-retry" (click)="retryFailed(message)">
+                    Retry
+                  </button>
+                }
+                <button type="button" class="bubble-retry" (click)="dismissFailed(message)">
+                  Discard
+                </button>
+              </p>
+            }
           </div>
-        </div>
+        }
       }
 
       @if (typingIndicator()) {
@@ -166,6 +250,22 @@
     }
   </div>
 
+  <!-- Shown only when the reader has scrolled up, so new messages are never
+       missed but never yank the viewport either. -->
+  @if (unseenCount() > 0) {
+    <button type="button" class="jump-latest" (click)="jumpToLatest()">
+      <span class="material-symbols-rounded" aria-hidden="true">arrow_downward</span>
+      {{ unseenCount() }} new {{ unseenCount() === 1 ? 'message' : 'messages' }}
+    </button>
+  }
+
+  @if (showLocationPicker()) {
+    <app-location-share-dialog
+      (picked)="onLocationPicked($event)"
+      (cancelled)="closeLocationPicker()"
+    />
+  }
+
   <!-- Image preview overlay -->
   @if (imagePreview()) {
     <div class="image-preview-overlay">
@@ -174,7 +274,7 @@
         <div class="preview-actions">
           <button class="preview-cancel" (click)="cancelImagePreview()">Cancel</button>
           <button class="preview-send" (click)="sendImage()" [disabled]="sending()">
-            <span class="material-symbols-rounded">send</span>
+            <span class="material-symbols-rounded" aria-hidden="true">send</span>
             Send
           </button>
         </div>
@@ -188,7 +288,7 @@
       <div class="suggestions-header">
         <span>Quick Replies</span>
         <button class="suggestions-close" (click)="showSuggestions.set(false)">
-          <span class="material-symbols-rounded">close</span>
+          <span class="material-symbols-rounded" aria-hidden="true">close</span>
         </button>
       </div>
       <div class="suggestions-grid">
@@ -204,7 +304,7 @@
   <!-- Input area -->
   @if (chatDisabled()) {
     <div class="input-area chat-disabled-bar">
-      <span class="material-symbols-rounded" style="font-size: 18px">block</span>
+      <span class="material-symbols-rounded" style="font-size: 18px" aria-hidden="true">block</span>
       {{ chatDisabledLabel() }} You can't send new messages.
     </div>
   } @else {
@@ -216,10 +316,10 @@
           <span class="rec-time">{{ formattedRecordingDuration() }}</span>
         </div>
         <button class="rec-cancel-btn" (click)="cancelRecording()" aria-label="Cancel recording">
-          <span class="material-symbols-rounded">delete</span>
+          <span class="material-symbols-rounded" aria-hidden="true">delete</span>
         </button>
         <button class="rec-send-btn" (click)="toggleRecording()" aria-label="Send voice note">
-          <span class="material-symbols-rounded">send</span>
+          <span class="material-symbols-rounded" aria-hidden="true">send</span>
         </button>
       </div>
     } @else {
@@ -231,27 +331,29 @@
             (click)="toggleAttachMenu(); $event.stopPropagation()"
             aria-label="Attach file"
           >
-            <span class="material-symbols-rounded">add</span>
+            <span class="material-symbols-rounded" aria-hidden="true">add</span>
           </button>
 
           <!-- Attachment menu popup -->
           @if (showAttachMenu()) {
             <div class="attach-menu" (click)="$event.stopPropagation()">
               <button class="attach-option" (click)="openCamera()">
-                <span class="material-symbols-rounded attach-icon camera">photo_camera</span>
+                <span class="material-symbols-rounded attach-icon camera" aria-hidden="true"
+                  >photo_camera</span
+                >
                 <span>Camera</span>
               </button>
               <button class="attach-option" (click)="openFilePicker()">
-                <span class="material-symbols-rounded attach-icon gallery">image</span>
+                <span class="material-symbols-rounded attach-icon gallery" aria-hidden="true"
+                  >image</span
+                >
                 <span>Gallery</span>
               </button>
               <button class="attach-option" (click)="shareLocation()">
-                <span class="material-symbols-rounded attach-icon location">location_on</span>
+                <span class="material-symbols-rounded attach-icon location" aria-hidden="true"
+                  >location_on</span
+                >
                 <span>Location</span>
-              </button>
-              <button class="attach-option" (click)="shareLiveLocation()">
-                <span class="material-symbols-rounded attach-icon live">share_location</span>
-                <span>Live Location</span>
               </button>
             </div>
           }
@@ -263,19 +365,23 @@
           (click)="toggleSuggestions(); $event.stopPropagation()"
           aria-label="Quick replies"
         >
-          <span class="material-symbols-rounded">lightbulb</span>
+          <span class="material-symbols-rounded" aria-hidden="true">lightbulb</span>
         </button>
 
-        <!-- Text input -->
-        <input
-          type="text"
+        <!-- A textarea, not an input: the old single-line field made multiline
+             messages impossible. Enter still sends, Shift+Enter adds a newline.
+             It is deliberately not disabled while sending — that dropped focus
+             mid-send and blocked type-ahead. -->
+        <textarea
+          #composerInput
+          rows="1"
           class="message-input"
-          placeholder="Type a message..."
+          placeholder="Type a message…"
+          aria-label="Message"
           [(ngModel)]="messageText"
-          (keyup.enter)="sendMessage()"
-          (input)="onTyping()"
-          [disabled]="sending()"
-        />
+          (keydown)="onComposerKeydown($event)"
+          (input)="onComposerInput($event)"
+        ></textarea>
 
         <!-- Send or Mic button -->
         @if (messageText.trim()) {
@@ -285,11 +391,11 @@
             [disabled]="sending()"
             aria-label="Send message"
           >
-            <span class="material-symbols-rounded">send</span>
+            <span class="material-symbols-rounded" aria-hidden="true">send</span>
           </button>
         } @else {
           <button class="mic-btn" (click)="toggleRecording()" aria-label="Record voice note">
-            <span class="material-symbols-rounded">mic</span>
+            <span class="material-symbols-rounded" aria-hidden="true">mic</span>
           </button>
         }
       </div>

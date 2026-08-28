@@ -34,6 +34,25 @@ import { ListingCondition } from '../../../core/constants';
 import { CONDITION_OPTIONS } from '../../../core/constants/select-options';
 import { mapLinkValidator } from '../../../core/utils/map-link';
 import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
+import {
+  OTHER_OPTION_VALUE,
+  ProvinceCityValue,
+  RangeValue,
+  attributeErrorMessage,
+  attributeSelectOptions,
+  attributeYearOptions,
+  buildAttributeValidators,
+  coerceAttributeValue,
+  initialAttributeValue,
+  isAttributeSatisfied,
+  isOtherSelected,
+} from '../../../core/utils/category-attributes';
+
+/**
+ * Fixed controls of `detailsForm`. Everything else in that group is a dynamic
+ * category attribute and is torn down when the category changes.
+ */
+const EDIT_BASE_DETAIL_KEYS = new Set(['title', 'description', 'price', 'condition']);
 
 @Component({
   selector: 'app-edit-listing',
@@ -78,6 +97,8 @@ export class EditListingComponent implements OnInit, OnDestroy {
     () => this.selectedLevel3() ?? this.selectedLevel2() ?? this.selectedLevel1(),
   );
   categoryAttributes = signal<CategoryAttribute[]>([]);
+  /** Cities per `province_city` attribute key, loaded on province selection. */
+  attrCities = signal<Record<string, City[]>>({});
   categoryFeatures = signal<string[]>([]);
   selectedFeatures = signal<string[]>([]);
 
@@ -470,7 +491,6 @@ export class EditListingComponent implements OnInit, OnDestroy {
     this.selectedLevel2.set(null);
     this.selectedLevel3.set(null);
     this.level3Categories.set([]);
-    this.selectedFeatures.set([]);
     this.level2Categories.set(
       this.allCategories().filter((c) => c.parentId === cat._id && c.isActive),
     );
@@ -480,7 +500,6 @@ export class EditListingComponent implements OnInit, OnDestroy {
   selectLevel2(cat: Category): void {
     this.selectedLevel2.set(cat);
     this.selectedLevel3.set(null);
-    this.selectedFeatures.set([]);
     this.level3Categories.set(
       this.allCategories().filter((c) => c.parentId === cat._id && c.isActive),
     );
@@ -489,7 +508,6 @@ export class EditListingComponent implements OnInit, OnDestroy {
 
   selectLevel3(cat: Category): void {
     this.selectedLevel3.set(cat);
-    this.selectedFeatures.set([]);
     this.loadInheritedAttributes(cat._id);
   }
 
@@ -506,11 +524,165 @@ export class EditListingComponent implements OnInit, OnDestroy {
     return this.detailsForm.get(key) as FormControl;
   }
 
-  getAttributeSelectOptions(attr: { options?: string[] }): { value: string; label: string }[] {
+  /**
+   * Reconciles the dynamic half of `detailsForm` with the attributes the
+   * currently selected category actually defines.
+   *
+   * Controls were only ever added, never removed, so switching category left
+   * the previous category's controls behind. Two bugs followed: a stale control
+   * sharing a key with the new category (`color`, `year`) silently carried the
+   * old value over, and controls whose key the new category does not define
+   * stayed valid but were dropped at submit, so required-field validation
+   * passed against fields the seller could no longer see.
+   */
+  private syncControlsToAttributes(attributes: CategoryAttribute[]): void {
+    const wanted = new Set(attributes.map((a) => a.key));
+
+    for (const key of Object.keys(this.detailsForm.controls)) {
+      if (!EDIT_BASE_DETAIL_KEYS.has(key) && !wanted.has(key)) {
+        this.detailsForm.removeControl(key);
+      }
+    }
+
+    for (const attr of attributes) {
+      const existing = this.detailsForm.get(attr.key);
+      if (existing) {
+        // Keep whatever the seller already entered, but make sure the control
+        // now enforces this attribute's bounds.
+        existing.setValidators(buildAttributeValidators(attr));
+        existing.updateValueAndValidity({ emitEvent: false });
+      } else {
+        this.detailsForm.addControl(
+          attr.key,
+          new FormControl(initialAttributeValue(attr), buildAttributeValidators(attr)),
+        );
+      }
+    }
+  }
+
+  getAttributeSelectOptions(attr: CategoryAttribute): { value: string; label: string }[] {
+    return attributeSelectOptions(attr, `Select ${attr.name}`);
+  }
+
+  // --- multiselect ---
+  isFeatureOptionSelected(key: string, option: string): boolean {
+    const value = this.getDynamicControl(key).value;
+    return Array.isArray(value) && value.includes(option);
+  }
+
+  toggleMultiSelectOption(key: string, option: string): void {
+    const ctrl = this.getDynamicControl(key);
+    const current: string[] = Array.isArray(ctrl.value) ? ctrl.value : [];
+    ctrl.setValue(
+      current.includes(option) ? current.filter((v) => v !== option) : [...current, option],
+    );
+    ctrl.markAsTouched();
+  }
+
+  // --- range ---
+  getRangeBound(key: string, bound: 'min' | 'max'): number | string | null {
+    const value = this.getDynamicControl(key).value as RangeValue | null;
+    return value?.[bound] ?? null;
+  }
+
+  setRangeBound(key: string, bound: 'min' | 'max', raw: string): void {
+    const ctrl = this.getDynamicControl(key);
+    const current = (ctrl.value as RangeValue | null) ?? { min: null, max: null };
+    ctrl.setValue({ ...current, [bound]: raw === '' ? null : Number(raw) });
+    ctrl.markAsTouched();
+  }
+
+  // --- province_city ---
+  getAttrProvinceId(key: string): string {
+    return (this.getDynamicControl(key).value as ProvinceCityValue | null)?.provinceId ?? '';
+  }
+
+  getAttrCityId(key: string): string {
+    return (this.getDynamicControl(key).value as ProvinceCityValue | null)?.cityId ?? '';
+  }
+
+  attrCitiesFor(key: string): City[] {
+    return this.attrCities()[key] ?? [];
+  }
+
+  onAttrProvinceChange(key: string, provinceId: string): void {
+    const ctrl = this.getDynamicControl(key);
+    // The name is stored alongside the id because search indexes and facets on
+    // the readable value, while the id keeps the reference rename-safe.
+    const province = this.provinces().find((p) => p._id === provinceId)?.name ?? '';
+    ctrl.setValue({ provinceId, cityId: '', province, city: '' });
+    ctrl.markAsTouched();
+    this.attrCities.update((map) => ({ ...map, [key]: [] }));
+    if (!provinceId) return;
+    this.locationService
+      .getCities(provinceId)
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (cities) => this.attrCities.update((map) => ({ ...map, [key]: cities })),
+      });
+  }
+
+  onAttrCityChange(key: string, cityId: string): void {
+    const ctrl = this.getDynamicControl(key);
+    const current = (ctrl.value as ProvinceCityValue | null) ?? {
+      provinceId: '',
+      cityId: '',
+      province: '',
+      city: '',
+    };
+    const city = this.attrCitiesFor(key).find((c) => c._id === cityId)?.name ?? '';
+    ctrl.setValue({ ...current, cityId, city });
+    ctrl.markAsTouched();
+  }
+
+  /** Reloads city lists for any `province_city` attribute that already has a province. */
+  private hydrateAttributeCities(): void {
+    for (const attr of this.categoryAttributes()) {
+      if (attr.type !== 'province_city') continue;
+      const provinceId = this.getAttrProvinceId(attr.key);
+      if (!provinceId) continue;
+      this.locationService
+        .getCities(provinceId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (cities) => this.attrCities.update((map) => ({ ...map, [attr.key]: cities })),
+        });
+    }
+  }
+
+  // --- allowOther ---
+  isOtherChosen(attr: CategoryAttribute): boolean {
+    return isOtherSelected(attr, this.getDynamicControl(attr.key).value);
+  }
+
+  getOtherText(key: string): string {
+    const value = this.getDynamicControl(key).value;
+    return value === OTHER_OPTION_VALUE || typeof value !== 'string' ? '' : value;
+  }
+
+  setOtherText(key: string, text: string): void {
+    const ctrl = this.getDynamicControl(key);
+    // Falling back to the sentinel keeps the free-text box open when cleared.
+    ctrl.setValue(text === '' ? OTHER_OPTION_VALUE : text);
+    ctrl.markAsTouched();
+  }
+
+  getYearSelectOptions(attr: CategoryAttribute): { value: string; label: string }[] {
     return [
-      { value: '', label: 'Select' },
-      ...(attr.options ?? []).map((opt) => ({ value: opt, label: opt })),
+      { value: '', label: `Select ${attr.name}` },
+      ...attributeYearOptions(attr).map((yr) => ({ value: String(yr), label: String(yr) })),
     ];
+  }
+
+  isAttributeMissing(attr: CategoryAttribute): boolean {
+    const ctrl = this.getDynamicControl(attr.key);
+    return ctrl.touched && !isAttributeSatisfied(attr, ctrl.value);
+  }
+
+  getAttributeError(attr: CategoryAttribute): string {
+    const ctrl = this.getDynamicControl(attr.key);
+    if (!ctrl.touched) return '';
+    return attributeErrorMessage(attr, ctrl.errors);
   }
 
   private loadInheritedAttributes(categoryId: string): void {
@@ -521,13 +693,31 @@ export class EditListingComponent implements OnInit, OnDestroy {
         next: ({ attributes, features }) => {
           this.categoryAttributes.set(attributes ?? []);
           this.categoryFeatures.set(features ?? []);
+          this.syncControlsToAttributes(attributes ?? []);
+          this.pruneSelectedFeatures(features ?? []);
+          this.hydrateAttributeCities();
         },
         error: () => {
+          // Leave the current selections alone on failure. Clearing them here
+          // meant a transient error silently wiped the seller's features on the
+          // next save.
           this.categoryAttributes.set([]);
           this.categoryFeatures.set([]);
         },
       });
     this.loadBrandsForCategory();
+  }
+
+  /**
+   * Keeps only the features the newly selected category actually offers.
+   *
+   * Replaces an unconditional reset to `[]` on every category change: combined
+   * with the missing features UI, that silently wiped a seller's features the
+   * moment they touched the category picker.
+   */
+  private pruneSelectedFeatures(available: string[]): void {
+    const allowed = new Set(available);
+    this.selectedFeatures.update((selected) => selected.filter((f) => allowed.has(f)));
   }
 
   private loadBrandsForCategory(): void {
@@ -645,7 +835,9 @@ export class EditListingComponent implements OnInit, OnDestroy {
       this.detailsForm.get('condition')!.valid;
     if (!base) return false;
     for (const attr of this.categoryAttributes()) {
-      if (attr.required && !this.detailsForm.get(attr.key)?.value) return false;
+      const ctrl = this.detailsForm.get(attr.key);
+      if (!isAttributeSatisfied(attr, ctrl?.value)) return false;
+      if (ctrl && ctrl.invalid) return false;
     }
     // Validate brand selection
     if (this.hasBrands()) {
@@ -734,7 +926,8 @@ export class EditListingComponent implements OnInit, OnDestroy {
 
     const catAttrs: Record<string, unknown> = {};
     for (const attr of this.categoryAttributes()) {
-      catAttrs[attr.key] = details[attr.key];
+      const value = coerceAttributeValue(attr, details[attr.key]);
+      if (value !== undefined) catAttrs[attr.key] = value;
     }
 
     const payload: Partial<CreateListingPayload> = {

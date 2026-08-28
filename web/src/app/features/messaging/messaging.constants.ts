@@ -17,8 +17,21 @@ export const TYPING_TIMEOUT_MS = 3000;
 /** Scroll-to-bottom delay in ms. */
 export const SCROLL_DELAY_MS = 50;
 
-/** Default live location sharing duration in minutes. */
-export const LIVE_LOCATION_DURATION_MIN = 15;
+/**
+ * Consecutive messages from the same sender within this window are drawn as one
+ * group: shared corner radius and a single timestamp on the last bubble.
+ */
+export const GROUP_GAP_MS = 5 * 60 * 1000;
+
+/**
+ * How close to the bottom the thread must be before an incoming message is
+ * allowed to auto-scroll. Past this, jumping would yank the reader away from
+ * the history they are looking at, so a "new messages" pill is shown instead.
+ */
+export const NEAR_BOTTOM_PX = 120;
+
+/** Minimum gap between outgoing `typing` socket events. */
+export const TYPING_THROTTLE_MS = 1500;
 
 /** Skeleton placeholder indices for loading states. */
 export const SKELETON_ITEMS = [1, 2, 3, 4, 5] as const;

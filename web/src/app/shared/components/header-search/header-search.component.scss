@@ -53,19 +53,23 @@
    A sibling overlay rather than the input's own placeholder attribute, because
    the category word animates. It is aria-hidden; the visually hidden <label>
    carries the accessible name. */
+/* The clip box is exactly one line tall and centred in the field, not the full
+   field height. The rotating word slides in and out by 100% of its own height,
+   so any slack here would leave it visible above or below the text baseline
+   instead of clipped — which read as "Find" and the category on two lines. */
 .hs-placeholder {
   position: absolute;
-  top: 0;
+  top: 50%;
   left: 0;
   display: flex;
   align-items: center;
   gap: 4px;
   width: 100%;
-  height: 100%;
+  height: 20px;
   overflow: hidden;
+  transform: translateY(-50%);
   color: var(--text-muted);
   font-size: var(--text-sm);
-  /* Matches the clip height so the word's ascenders are not shaved. */
   line-height: 20px;
   white-space: nowrap;
   pointer-events: none;

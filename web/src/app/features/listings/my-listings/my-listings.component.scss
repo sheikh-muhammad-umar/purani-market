@@ -49,29 +49,55 @@
 }
 
 .main-tab-btn {
+  position: relative;
   display: flex;
   align-items: center;
   gap: 6px;
   padding: 10px 20px;
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
   cursor: pointer;
   font-size: var(--text-sm);
   font-weight: var(--weight-medium);
   font-family: inherit;
   color: var(--text-secondary);
-  transition:
-    color var(--duration-base) var(--ease-out),
-    border-color var(--duration-base) var(--ease-out);
+  transition: color var(--duration-base) var(--ease-out);
+
+  /* The underline is a pseudo-element scaled on the X axis rather than a
+     border-bottom colour swap. A colour swap appears at full width instantly;
+     this grows from the centre, and a transform stays cheap to animate. */
+  &::after {
+    content: '';
+    position: absolute;
+    bottom: -1px;
+    left: 0;
+    right: 0;
+    height: 2px;
+    border-radius: 2px 2px 0 0;
+    background: var(--primary);
+    transform: scaleX(0);
+    transition:
+      transform var(--duration-base) var(--ease-out),
+      background-color var(--duration-base) var(--ease-out);
+  }
 
   &.active {
     color: var(--primary);
-    border-bottom-color: var(--primary);
+  }
+
+  &.active::after {
+    transform: scaleX(1);
   }
 
   &:hover:not(.active) {
     color: var(--text-primary);
+  }
+
+  /* A short stub on hover hints the target without competing with the active
+     tab's full-width underline. */
+  &:hover:not(.active)::after {
+    transform: scaleX(0.4);
+    background: var(--border-strong);
   }
 }
 

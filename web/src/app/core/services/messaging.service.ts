@@ -30,8 +30,6 @@ export interface SendMessagePayload {
     latitude: number;
     longitude: number;
     address?: string;
-    isLive?: boolean;
-    liveDurationMinutes?: number;
   };
 }
 

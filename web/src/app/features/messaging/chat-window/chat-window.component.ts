@@ -11,6 +11,7 @@ import {
   ViewChild,
   ElementRef,
   ChangeDetectionStrategy,
+  HostListener,
 } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -18,10 +19,11 @@ import { ActivatedRoute, RouterLink } from '@angular/router';
 import { Subscription } from 'rxjs';
 import { MessagingService } from '../../../core/services/messaging.service';
 import { ListingUrlPipe } from '../../../shared/pipes/listing-url.pipe';
+import { LocationShareDialogComponent } from '../location-share/location-share-dialog.component';
 import { ListingsService } from '../../../core/services/listings.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/auth';
-import { Message, Listing } from '../../../core/models';
+import { Message, Listing, LocationPayload } from '../../../core/models';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { QUICK_REPLIES, PLACEHOLDER_IMAGE } from '../../../core/constants/app';
@@ -33,27 +35,41 @@ import {
   MESSAGES_PAGE_SIZE,
   TYPING_TIMEOUT_MS,
   SCROLL_DELAY_MS,
-  LIVE_LOCATION_DURATION_MIN,
   SKELETON_ITEMS,
   WAVEFORM_BARS,
   CHAT_DISABLED_LABELS,
+  GROUP_GAP_MS,
+  NEAR_BOTTOM_PX,
+  TYPING_THROTTLE_MS,
 } from '../messaging.constants';
+import { MessageDeliveryStatus, MessageRow } from '../interfaces/message-row.interface';
 
 @Component({
   selector: 'app-chat-window',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, ListingUrlPipe],
+  imports: [CommonModule, FormsModule, RouterLink, ListingUrlPipe, LocationShareDialogComponent],
   templateUrl: './chat-window.component.html',
   styleUrls: ['./chat-window.component.scss'],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
   @ViewChild('messagesContainer') messagesContainer!: ElementRef<HTMLDivElement>;
+  @ViewChild('composerInput') composerInput?: ElementRef<HTMLTextAreaElement>;
   @ViewChild('fileInput') fileInput!: ElementRef<HTMLInputElement>;
   @ViewChild('cameraInput') cameraInput!: ElementRef<HTMLInputElement>;
 
   // Input for split-pane mode
   conversationIdInput = input<string | null>(null);
+
+  /**
+   * Thread title and thumbnail, supplied by the layout from the data it has
+   * already resolved. Without these the desktop chat pane had no header at all
+   * for conversations with no listing — nothing on screen said which thread was
+   * open.
+   */
+  conversationTitle = input('');
+  conversationImage = input('');
+
   back = output<void>();
 
   readonly messages = signal<Message[]>([]);
@@ -72,9 +88,24 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
   readonly imagePreview = signal<string | null>(null);
   readonly selectedFile = signal<File | null>(null);
   readonly showSuggestions = signal(false);
+  readonly showLocationPicker = signal(false);
 
   messageText = '';
   conversationId = '';
+
+  /**
+   * Delivery state is tracked as id sets beside `messages()` rather than as
+   * fields on the messages themselves, so `messages()` stays the plain server
+   * shape that the rest of the component (and its tests) rely on.
+   */
+  private readonly pendingIds = signal<ReadonlySet<string>>(new Set());
+  private readonly failedIds = signal<ReadonlySet<string>>(new Set());
+
+  /** False once the reader scrolls up away from the newest message. */
+  readonly atBottom = signal(true);
+
+  /** Messages that arrived while the reader was scrolled up. */
+  readonly unseenCount = signal(0);
 
   readonly quickReplies = QUICK_REPLIES;
   readonly ROUTES = ROUTES;
@@ -110,8 +141,57 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
     this.formatDurationValue(this.recordingDuration()),
   );
 
+  /** True once loading finishes with nothing in the thread. */
+  readonly isEmptyThread = computed(() => !this.loading() && this.messages().length === 0);
+
+  /**
+   * The thread as a flat row list: day dividers interleaved with bubbles, each
+   * bubble already carrying its grouping flags and delivery status.
+   *
+   * Consecutive messages from one sender inside `GROUP_GAP_MS` collapse into a
+   * group so the thread reads as conversation turns rather than as one
+   * timestamped box per line.
+   */
+  readonly rows = computed<MessageRow[]>(() => {
+    const messages = this.messages();
+    const me = this.currentUserId();
+    const pending = this.pendingIds();
+    const failed = this.failedIds();
+
+    const rows: MessageRow[] = [];
+    let lastDayKey = '';
+
+    for (let i = 0; i < messages.length; i++) {
+      const message = messages[i];
+      const at = new Date(message.createdAt);
+      const dayKey = at.toDateString();
+
+      if (dayKey !== lastDayKey) {
+        rows.push({ key: `day-${dayKey}`, kind: 'day', label: this.dayLabel(at) });
+        lastDayKey = dayKey;
+      }
+
+      const previous = i > 0 ? messages[i - 1] : null;
+      const next = i < messages.length - 1 ? messages[i + 1] : null;
+      const mine = this.isSentByMe(message);
+
+      rows.push({
+        key: message._id,
+        kind: 'message',
+        message,
+        mine,
+        firstOfGroup: !this.sameGroup(previous, message, dayKey),
+        lastOfGroup: !this.sameGroup(message, next, dayKey),
+        status: mine ? this.deliveryStatus(message, pending, failed) : undefined,
+      });
+    }
+
+    return rows;
+  });
+
   private subscriptions: Subscription[] = [];
   private typingTimeout: ReturnType<typeof setTimeout> | null = null;
+  private lastTypingSentAt = 0;
   private mediaRecorder: MediaRecorder | null = null;
   private audioChunks: Blob[] = [];
   private recordingInterval: ReturnType<typeof setInterval> | null = null;
@@ -138,6 +218,17 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
       this.conversationId = newId;
       this.messages.set([]);
       this.loading.set(true);
+      // Everything below is per-conversation. The draft in particular used to
+      // survive the switch and reappear in the next thread.
+      this.messageText = '';
+      this.pendingIds.set(new Set());
+      this.failedIds.set(new Set());
+      this.unseenCount.set(0);
+      this.atBottom.set(true);
+      this.typingIndicator.set(false);
+      this.showAttachMenu.set(false);
+      this.showSuggestions.set(false);
+      this.cancelImagePreview();
       this.clearSubscriptions();
       this.initChat();
     }
@@ -163,12 +254,15 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
       content: text,
     });
     this.messages.update((msgs) => [...msgs, optimisticMsg]);
+    this.markPending(optimisticMsg._id);
     this.messageText = '';
-    this.scrollToBottom();
+    this.resetComposerHeight();
+    this.jumpToLatest();
 
     this.messagingService.sendMessage(this.conversationId, text).subscribe({
       next: (saved) => {
         this.replaceOptimisticMessage(optimisticMsg._id, saved);
+        this.unmarkDelivery(optimisticMsg._id);
         this.sending.set(false);
         this.tracker.track(TrackingEvent.MESSAGE_SENT, {
           productListingId: this.listing()?._id,
@@ -176,7 +270,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
         });
       },
       error: () => {
-        this.removeOptimisticMessage(optimisticMsg._id);
+        this.markFailed(optimisticMsg._id);
         this.sending.set(false);
       },
     });
@@ -187,8 +281,46 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
     this.sendMessage();
   }
 
+  /**
+   * Leading-edge throttle: fires immediately on the first keystroke, then at
+   * most once per `TYPING_THROTTLE_MS`. Previously this emitted a socket event
+   * on every single keypress.
+   */
   onTyping(): void {
+    const now = Date.now();
+    if (now - this.lastTypingSentAt < TYPING_THROTTLE_MS) return;
+    this.lastTypingSentAt = now;
     this.wsService.send('typing', { conversationId: this.conversationId });
+  }
+
+  /** Enter sends; Shift+Enter inserts a newline. */
+  onComposerKeydown(event: KeyboardEvent): void {
+    if (event.key !== 'Enter' || event.shiftKey) return;
+    event.preventDefault();
+    this.sendMessage();
+  }
+
+  /** Grows the composer with its content, up to the CSS max-height. */
+  onComposerInput(event: Event): void {
+    const el = event.target as HTMLTextAreaElement;
+    el.style.height = 'auto';
+    el.style.height = `${el.scrollHeight}px`;
+    this.onTyping();
+  }
+
+  /** Collapses the composer back to a single row after sending. */
+  private resetComposerHeight(): void {
+    const el = this.composerInput?.nativeElement;
+    if (el) el.style.height = 'auto';
+  }
+
+  @HostListener('document:keydown.escape')
+  onEscape(): void {
+    if (this.imagePreview()) {
+      this.cancelImagePreview();
+      return;
+    }
+    this.closeOverlays();
   }
 
   toggleSuggestions(): void {
@@ -254,10 +386,11 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
     this.messagingService.sendImageMessage(this.conversationId, file).subscribe({
       next: (saved) => {
         this.replaceOptimisticMessage(optimisticMsg._id, saved);
+        this.unmarkDelivery(optimisticMsg._id);
         this.sending.set(false);
       },
       error: () => {
-        this.removeOptimisticMessage(optimisticMsg._id);
+        this.markFailed(optimisticMsg._id);
         this.sending.set(false);
       },
     });
@@ -281,14 +414,26 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
 
   // --- Location sharing ---
 
+  /**
+   * Opens the picker instead of sending immediately.
+   *
+   * Previously this read the GPS position and posted it straight to the thread,
+   * so there was no way to send anywhere other than exactly where you stood,
+   * and no chance to check the pin before it went out.
+   */
   shareLocation(): void {
     this.showAttachMenu.set(false);
-    this.sendLocationMessage(false);
+    this.showLocationPicker.set(true);
   }
 
-  shareLiveLocation(): void {
-    this.showAttachMenu.set(false);
-    this.sendLocationMessage(true);
+  closeLocationPicker(): void {
+    this.showLocationPicker.set(false);
+  }
+
+  /** Sends the point chosen in the picker. */
+  onLocationPicked(location: LocationPayload): void {
+    this.showLocationPicker.set(false);
+    this.sendLocationMessage(location);
   }
 
   // --- Helpers (called from template — kept minimal) ---
@@ -320,6 +465,79 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
   formatTime(date: Date): string {
     const d = new Date(date);
     return d.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+  }
+
+  /** "Today" / "Yesterday" / a locale date, for the day dividers. */
+  private dayLabel(date: Date): string {
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(today.getDate() - 1);
+
+    if (date.toDateString() === today.toDateString()) return 'Today';
+    if (date.toDateString() === yesterday.toDateString()) return 'Yesterday';
+
+    const sameYear = date.getFullYear() === today.getFullYear();
+    return date.toLocaleDateString(
+      undefined,
+      sameYear
+        ? { weekday: 'short', day: 'numeric', month: 'short' }
+        : { day: 'numeric', month: 'short', year: 'numeric' },
+    );
+  }
+
+  /** Two messages belong to one group when the sender and the day match and
+   *  they land within `GROUP_GAP_MS` of each other. */
+  private sameGroup(a: Message | null, b: Message | null, dayKey: string): boolean {
+    if (!a || !b) return false;
+    if (this.isSentByMe(a) !== this.isSentByMe(b)) return false;
+
+    const aAt = new Date(a.createdAt);
+    const bAt = new Date(b.createdAt);
+    if (aAt.toDateString() !== dayKey || bAt.toDateString() !== dayKey) return false;
+
+    return Math.abs(bAt.getTime() - aAt.getTime()) <= GROUP_GAP_MS;
+  }
+
+  private deliveryStatus(
+    message: Message,
+    pending: ReadonlySet<string>,
+    failed: ReadonlySet<string>,
+  ): MessageDeliveryStatus {
+    if (failed.has(message._id)) return 'failed';
+    if (pending.has(message._id)) return 'pending';
+    return message.isRead ? 'read' : 'sent';
+  }
+
+  /** Retries a message that failed to send. Only text can be replayed — the
+   *  File/Blob behind a media message is gone by this point. */
+  retryFailed(message: Message): void {
+    this.dismissFailed(message);
+    if (message.type && message.type !== 'text') return;
+    this.messageText = message.content;
+    this.sendMessage();
+  }
+
+  /** Drops a failed message from the thread. */
+  dismissFailed(message: Message): void {
+    this.removeOptimisticMessage(message._id);
+    this.unmarkDelivery(message._id);
+  }
+
+  /** Tracks how far the reader is from the newest message. */
+  onMessagesScroll(): void {
+    const el = this.messagesContainer?.nativeElement;
+    if (!el) return;
+    const distance = el.scrollHeight - el.scrollTop - el.clientHeight;
+    const near = distance <= NEAR_BOTTOM_PX;
+    this.atBottom.set(near);
+    if (near) this.unseenCount.set(0);
+  }
+
+  /** Jumps to the newest message and clears the unseen counter. */
+  jumpToLatest(): void {
+    this.unseenCount.set(0);
+    this.atBottom.set(true);
+    this.scrollToBottom();
   }
 
   formatDurationValue(seconds: number): string {
@@ -376,6 +594,39 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
 
   private removeOptimisticMessage(tempId: string): void {
     this.messages.update((msgs) => msgs.filter((m) => m._id !== tempId));
+  }
+
+  private markPending(id: string): void {
+    this.pendingIds.update((set) => new Set(set).add(id));
+  }
+
+  /**
+   * Leaves the failed message in the thread instead of deleting it.
+   *
+   * The previous behaviour removed the bubble and had already cleared the
+   * composer, so a send failure silently destroyed what the user typed with no
+   * indication anything had gone wrong.
+   */
+  private markFailed(id: string): void {
+    this.pendingIds.update((set) => {
+      const next = new Set(set);
+      next.delete(id);
+      return next;
+    });
+    this.failedIds.update((set) => new Set(set).add(id));
+  }
+
+  private unmarkDelivery(id: string): void {
+    this.pendingIds.update((set) => {
+      const next = new Set(set);
+      next.delete(id);
+      return next;
+    });
+    this.failedIds.update((set) => {
+      const next = new Set(set);
+      next.delete(id);
+      return next;
+    });
   }
 
   private async startRecording(): Promise<void> {
@@ -435,56 +686,47 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
       media: { url: '', duration, mimeType: VOICE_MIME_TYPE },
     });
     this.messages.update((msgs) => [...msgs, optimisticMsg]);
-    this.scrollToBottom();
+    this.markPending(optimisticMsg._id);
+    this.jumpToLatest();
 
     this.messagingService.sendVoiceMessage(this.conversationId, blob, duration).subscribe({
       next: (saved) => {
         this.replaceOptimisticMessage(optimisticMsg._id, saved);
+        this.unmarkDelivery(optimisticMsg._id);
         this.sending.set(false);
       },
       error: () => {
-        this.removeOptimisticMessage(optimisticMsg._id);
+        this.markFailed(optimisticMsg._id);
         this.sending.set(false);
       },
     });
   }
 
-  private sendLocationMessage(isLive: boolean): void {
-    if (!navigator.geolocation) return;
+  /** Posts an already-resolved point. Acquiring it is the picker's job. */
+  private sendLocationMessage(location: LocationPayload): void {
+    this.sending.set(true);
 
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        this.sending.set(true);
-        const location = {
-          latitude: pos.coords.latitude,
-          longitude: pos.coords.longitude,
-          ...(isLive && { isLive: true, liveDurationMinutes: LIVE_LOCATION_DURATION_MIN }),
-        };
+    const optimisticMsg = this.createOptimisticMessage(`temp-loc-${Date.now()}`, {
+      type: 'location',
+      location,
+    });
+    this.messages.update((msgs) => [...msgs, optimisticMsg]);
+    this.markPending(optimisticMsg._id);
+    this.jumpToLatest();
 
-        const optimisticMsg = this.createOptimisticMessage(`temp-loc-${Date.now()}`, {
-          type: 'location',
-          location,
-        });
-        this.messages.update((msgs) => [...msgs, optimisticMsg]);
-        this.scrollToBottom();
-
-        this.messagingService
-          .sendRichMessage(this.conversationId, { type: 'location', location })
-          .subscribe({
-            next: (saved) => {
-              this.replaceOptimisticMessage(optimisticMsg._id, saved);
-              this.sending.set(false);
-            },
-            error: () => {
-              this.removeOptimisticMessage(optimisticMsg._id);
-              this.sending.set(false);
-            },
-          });
-      },
-      () => {
-        // Location permission denied
-      },
-    );
+    this.messagingService
+      .sendRichMessage(this.conversationId, { type: 'location', location })
+      .subscribe({
+        next: (saved) => {
+          this.replaceOptimisticMessage(optimisticMsg._id, saved);
+          this.unmarkDelivery(optimisticMsg._id);
+          this.sending.set(false);
+        },
+        error: () => {
+          this.markFailed(optimisticMsg._id);
+          this.sending.set(false);
+        },
+      });
   }
 
   private loadMessages(): void {
@@ -534,7 +776,14 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
           );
           return [...filtered, msg];
         });
-        this.scrollToBottom();
+        // Only follow the thread when the reader is already at the bottom.
+        // Unconditional scrolling yanked them out of the history they were
+        // reading; otherwise the unseen counter surfaces a "jump to latest" pill.
+        if (this.atBottom() || this.isSentByMe(msg)) {
+          this.scrollToBottom();
+        } else {
+          this.unseenCount.update((n) => n + 1);
+        }
         this.wsService.send('markRead', { conversationId: this.conversationId });
       }
     });

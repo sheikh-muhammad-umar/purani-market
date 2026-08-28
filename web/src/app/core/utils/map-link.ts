@@ -15,6 +15,37 @@ const COORD_PATTERNS: RegExp[] = [
 const PLACE_PATTERN = /\/place\/([^/@]+)/;
 
 /**
+ * Pulls a latitude/longitude pair out of a Google or Apple Maps URL.
+ *
+ * Reuses the same patterns as the embed builder, but returns the numbers so a
+ * caller can store the point rather than only display it. Returns null when the
+ * URL carries no coordinates — a `/place/Name` link with no `@lat,lng` part, for
+ * instance, which can be embedded but not resolved to a point client-side.
+ */
+export function extractCoordsFromMapLink(
+  mapLink: string,
+): { latitude: number; longitude: number } | null {
+  if (!mapLink || !mapLink.startsWith('https://')) return null;
+  if (!MAP_LINK_PATTERN.test(mapLink)) return null;
+
+  for (const pattern of COORD_PATTERNS) {
+    const match = mapLink.match(pattern);
+    if (!match) continue;
+    const latitude = Number(match[1]);
+    const longitude = Number(match[2]);
+    if (
+      Number.isFinite(latitude) &&
+      Number.isFinite(longitude) &&
+      Math.abs(latitude) <= 90 &&
+      Math.abs(longitude) <= 180
+    ) {
+      return { latitude, longitude };
+    }
+  }
+  return null;
+}
+
+/**
  * Builds a Google Maps embed URL from a map link.
  * Extracts coordinates or place name; falls back to a city/area query.
  * Always returns an https:// URL — never passes through user input directly.

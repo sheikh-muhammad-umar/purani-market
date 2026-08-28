@@ -1,4 +1,21 @@
 <button
+  type="button"
+  class="voice-lang-toggle"
+  [class.mobile]="mobile()"
+  [disabled]="voiceSearchActive()"
+  (click)="switchLanguage($event)"
+  [title]="'Voice language: ' + activeLanguage().label + ' — tap for ' + nextLanguage().label"
+  [attr.aria-label]="
+    'Voice search language, currently ' +
+    activeLanguage().label +
+    '. Activate to switch to ' +
+    nextLanguage().label
+  "
+>
+  <span [attr.lang]="activeLanguage().code" aria-hidden="true">{{ activeLanguage().short }}</span>
+</button>
+
+<button
   [class]="mobile() ? 'mobile-voice-btn' : 'voice-search-btn'"
   [class.voice-active]="voiceSearchActive()"
   (mousedown)="onVoiceDown($event)"
@@ -7,8 +24,8 @@
   (touchstart)="onVoiceDown($event)"
   (touchend)="onVoiceUp($event)"
   (touchmove)="onVoiceMove($event)"
-  title="Hold to speak"
-  aria-label="Hold to speak for voice search"
+  [title]="'Hold to speak (' + activeLanguage().label + ')'"
+  [attr.aria-label]="'Hold to speak for voice search in ' + activeLanguage().label"
 >
   <span class="material-symbols-rounded" aria-hidden="true">mic</span>
 </button>
@@ -16,10 +33,13 @@
 @if (voiceSearchActive()) {
   <div class="voice-listening-indicator">
     <div class="voice-pulse"></div>
-    <span class="voice-transcript-live">{{
-      voiceSearch.interimTranscript() || LISTENING_LABEL
-    }}</span>
-    <span class="voice-hint">{{ HINT_LABEL }}</span>
+    <span
+      class="voice-transcript-live"
+      [attr.lang]="activeLanguage().code"
+      [attr.dir]="activeLanguage().code === 'ur-PK' ? 'rtl' : 'ltr'"
+      >{{ voiceSearch.interimTranscript() || LISTENING_LABEL }}</span
+    >
+    <span class="voice-hint">{{ activeLanguage().label }} · {{ HINT_LABEL }}</span>
   </div>
 }
 

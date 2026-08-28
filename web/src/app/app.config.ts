@@ -3,7 +3,12 @@ import {
   provideBrowserGlobalErrorListeners,
   provideZoneChangeDetection,
 } from '@angular/core';
-import { provideRouter, withComponentInputBinding, withInMemoryScrolling } from '@angular/router';
+import {
+  provideRouter,
+  withComponentInputBinding,
+  withInMemoryScrolling,
+  withViewTransitions,
+} from '@angular/router';
 import { provideHttpClient, withFetch, withInterceptors } from '@angular/common/http';
 import { provideClientHydration, withHttpTransferCacheOptions } from '@angular/platform-browser';
 import { routes } from './app.routes';
@@ -21,6 +26,10 @@ export const appConfig: ApplicationConfig = {
       routes,
       withComponentInputBinding(),
       withInMemoryScrolling({ scrollPositionRestoration: 'top' }),
+      // Native View Transitions: cross-fades route changes instead of the
+      // content snapping. Browsers without the API simply navigate as before,
+      // and styles.scss opts out under prefers-reduced-motion.
+      withViewTransitions({ skipInitialTransition: true }),
     ),
     provideHttpClient(
       withFetch(),

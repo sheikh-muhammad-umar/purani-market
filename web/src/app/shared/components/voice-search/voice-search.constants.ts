@@ -4,8 +4,13 @@ export const SWIPE_CANCEL_THRESHOLD = 60;
 /** Duration in ms to display voice error messages */
 export const VOICE_ERROR_DISPLAY_DURATION = 3000;
 
-/** Error key used when voice search is manually cancelled */
-export const VOICE_CANCELLED_KEY = 'cancelled';
+/**
+ * Error key used when voice search is manually cancelled.
+ *
+ * Re-exported from the service types so the producer and the consumer of this
+ * sentinel cannot drift apart.
+ */
+export { VOICE_CANCELLED_KEY } from '../../../core/services/voice-search.types';
 
 /** Fallback text shown while listening for speech */
 export const VOICE_LISTENING_LABEL = 'Listening...';

@@ -10,6 +10,7 @@ describe('CategoriesService', () => {
   let service: CategoriesService;
   let mockCategoryModel: any;
   let mockRedis: Record<string, jest.Mock>;
+  let mockListingModel: Record<string, jest.Mock>;
 
   const rootId = new Types.ObjectId();
   const childId = new Types.ObjectId();
@@ -88,10 +89,30 @@ describe('CategoriesService', () => {
       del: jest.fn().mockResolvedValue(1),
     };
 
+    // Deleting a category moves any listings it holds up to the parent, so the
+    // service now needs the listing model. Default: no listings to move.
+    mockListingModel = {
+      countDocuments: jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      }),
+      updateMany: jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ modifiedCount: 0 }),
+      }),
+      find: jest.fn().mockReturnValue({
+        limit: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+      }),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         CategoriesService,
         { provide: getModelToken(Category.name), useValue: mockCategoryModel },
+        {
+          provide: getModelToken('ProductListing'),
+          useValue: mockListingModel,
+        },
         {
           provide: getModelToken('AttributeDefinition'),
           useValue: {
@@ -353,6 +374,72 @@ describe('CategoriesService', () => {
       await expect(service.delete(rootId.toString())).rejects.toThrow(
         BadRequestException,
       );
+    });
+
+    it('should move listings to the parent category before deleting', async () => {
+      const childDoc = {
+        _id: childId,
+        name: 'Mobile Phones',
+        parentId: rootId,
+      };
+      const rootDoc = { _id: rootId, name: 'Electronics', parentId: null };
+      mockCategoryModel.findById.mockImplementation((id: any) => ({
+        exec: jest
+          .fn()
+          .mockResolvedValue(
+            id.toString() === rootId.toString() ? rootDoc : childDoc,
+          ),
+      }));
+      mockCategoryModel.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          lean: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+        exec: jest.fn().mockResolvedValue([]),
+      });
+      mockListingModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(3),
+      });
+
+      await service.delete(childId.toString());
+
+      expect(mockListingModel.updateMany).toHaveBeenCalledWith(
+        { categoryId: childId },
+        {
+          $set: expect.objectContaining({
+            categoryId: rootId,
+            categoryPath: [rootId],
+          }),
+        },
+      );
+      expect(mockCategoryModel.deleteOne).toHaveBeenCalledWith({
+        _id: childId,
+      });
+    });
+
+    it('should refuse to delete a root category that still holds listings', async () => {
+      const rootDoc = { _id: rootId, name: 'Electronics', parentId: null };
+      mockCategoryModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(rootDoc),
+      });
+      mockCategoryModel.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          lean: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue([]),
+          }),
+        }),
+        exec: jest.fn().mockResolvedValue([]),
+      });
+      mockListingModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(2),
+      });
+
+      await expect(service.delete(rootId.toString())).rejects.toThrow(
+        BadRequestException,
+      );
+      expect(mockListingModel.updateMany).not.toHaveBeenCalled();
+      expect(mockCategoryModel.deleteOne).not.toHaveBeenCalled();
     });
   });
 

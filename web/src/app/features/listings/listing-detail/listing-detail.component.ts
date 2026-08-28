@@ -15,7 +15,9 @@ import { ReviewsService, ReviewsResponse } from '../../../core/services/reviews.
 import { FavoritesService } from '../../../core/services/favorites.service';
 import { AuthService } from '../../../core/auth/auth.service';
 import { LoginModalService } from '../../../shared/components/login-modal/login-modal.service';
-import { Listing, Review } from '../../../core/models';
+import { CategoryAttribute, Listing, Review } from '../../../core/models';
+import { CategoriesService } from '../../../core/services/categories.service';
+import { LocationService } from '../../../core/services/location.service';
 import { VerificationBadgesComponent } from '../../../shared/components/verification-badges/verification-badges.component';
 import { ListingCardComponent } from '../../../shared/components/listing-card/listing-card.component';
 import { extractIdFromSlug, slugify } from '../../../core/utils/slug';
@@ -142,7 +144,62 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
     public readonly tracker: ActivityTrackerService,
     private readonly confirmModal: ConfirmModalService,
     private readonly toast: ToastService,
+    private readonly categoriesService?: CategoriesService,
+    private readonly locationService?: LocationService,
   ) {}
+
+  /**
+   * Attribute definitions for this listing's category, in the order an admin
+   * authored them. Empty when the lookup fails, in which case the details table
+   * falls back to humanising the raw attribute keys.
+   */
+  categoryAttributeDefs = signal<CategoryAttribute[]>([]);
+
+  /** Resolved "Province, City" labels for `province_city` attributes, keyed by attribute key. */
+  private provinceCityLabels = signal<Record<string, string>>({});
+
+  /**
+   * Rows for the details table.
+   *
+   * Previously the template piped the raw `categoryAttributes` record through
+   * `keyvalue`, which sorted the fields alphabetically and labelled them from the
+   * storage key ("Body Type" from `body_type`) rather than the admin-authored
+   * name. It also dropped arrays and booleans entirely, so multiselect answers
+   * and yes/no attributes never appeared. This rebuilds the rows from the
+   * category definition: authored order, real names, units, and every type
+   * rendered. Keys present on the listing but no longer defined by the category
+   * are appended so historic data is never silently hidden.
+   */
+  readonly detailAttributeRows = computed<{ key: string; label: string; value: string }[]>(() => {
+    const listing = this.listing();
+    if (!listing?.categoryAttributes) return [];
+
+    const stored = listing.categoryAttributes;
+    const defs = this.categoryAttributeDefs();
+    const rows: { key: string; label: string; value: string }[] = [];
+    const seen = new Set<string>();
+
+    for (const def of defs) {
+      seen.add(def.key);
+      if (!(def.key in stored)) continue;
+      const value = this.formatAttributeValue(def.key, stored[def.key], def);
+      if (value === '') continue;
+      rows.push({
+        key: def.key,
+        label: def.unit ? `${def.name} (${def.unit})` : def.name,
+        value,
+      });
+    }
+
+    for (const [key, raw] of Object.entries(stored)) {
+      if (seen.has(key)) continue;
+      const value = this.formatAttributeValue(key, raw);
+      if (value === '') continue;
+      rows.push({ key, label: this.formatLabel(key), value });
+    }
+
+    return rows;
+  });
 
   mapEmbedUrl = computed<SafeResourceUrl | null>(() => {
     const l = this.listing();
@@ -191,6 +248,7 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
         this.loading.set(false);
         this.loadReviews(listing._id);
         this.loadSimilarListings(listing.categoryId);
+        this.loadCategoryAttributeDefs(listing.categoryId);
         this.checkFavoriteStatus(listing._id);
         this.tracker.track(TrackingEvent.VIEW, {
           productListingId: listing._id,
@@ -325,12 +383,119 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
   }
 
   // Details/Features helpers
-  isArrayValue(value: unknown): boolean {
-    return Array.isArray(value) || value === true || value === false;
-  }
-
   formatLabel(key: string): string {
     return key.replace(/_/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+  }
+
+  /**
+   * Renders a stored attribute value as display text. Returns `''` for values
+   * that carry no information so the caller can omit the row.
+   */
+  private formatAttributeValue(key: string, raw: unknown, def?: CategoryAttribute): string {
+    if (raw === null || raw === undefined) return '';
+
+    if (typeof raw === 'boolean') return raw ? 'Yes' : 'No';
+
+    if (Array.isArray(raw)) {
+      const items = raw.filter((v) => v !== null && v !== undefined && v !== '');
+      return items.length > 0 ? items.join(', ') : '';
+    }
+
+    if (typeof raw === 'object') {
+      const record = raw as Record<string, unknown>;
+
+      if ('provinceId' in record || 'cityId' in record) {
+        // Names are stored alongside the ids, so no lookup is needed. Older
+        // listings that predate that only have ids, in which case the
+        // asynchronously resolved label is used.
+        const province = typeof record['province'] === 'string' ? record['province'] : '';
+        const city = typeof record['city'] === 'string' ? record['city'] : '';
+        if (province && city) return `${province}, ${city}`;
+        if (city) return city;
+        if (province) return province;
+        return this.provinceCityLabels()[key] ?? '';
+      }
+
+      if ('min' in record || 'max' in record) {
+        const min = record['min'];
+        const max = record['max'];
+        const hasMin = min !== null && min !== undefined && min !== '';
+        const hasMax = max !== null && max !== undefined && max !== '';
+        if (hasMin && hasMax) return `${min} – ${max}`;
+        if (hasMin) return `${min}+`;
+        if (hasMax) return `Up to ${max}`;
+        return '';
+      }
+
+      return '';
+    }
+
+    const text = String(raw).trim();
+    if (text === '') return '';
+    // `def` is unused for scalars today but keeps the signature stable for
+    // type-specific formatting (e.g. thousands separators) later.
+    void def;
+    return text;
+  }
+
+  /**
+   * Loads the category's attribute definitions so the details table can use the
+   * admin-authored names, units and ordering instead of raw storage keys.
+   *
+   * Guarded and failure-tolerant: if the category was removed or the request
+   * fails, the table still renders from the listing's own data.
+   */
+  private loadCategoryAttributeDefs(categoryId: string): void {
+    if (!this.categoriesService || !categoryId) return;
+    this.categoriesService.getInheritedAttributes(categoryId).subscribe({
+      next: ({ attributes }) => {
+        this.categoryAttributeDefs.set(attributes ?? []);
+        this.resolveProvinceCityLabels(attributes ?? []);
+      },
+      error: () => {
+        /* keep the key-based fallback */
+      },
+    });
+  }
+
+  /** Turns `{ provinceId, cityId }` attribute values into "Province, City" text. */
+  private resolveProvinceCityLabels(defs: CategoryAttribute[]): void {
+    const stored = this.listing()?.categoryAttributes;
+    if (!this.locationService || !stored) return;
+
+    const targets = defs.filter((d) => d.type === 'province_city' && d.key in stored);
+    if (targets.length === 0) return;
+
+    this.locationService.getProvinces().subscribe({
+      next: (provinces) => {
+        for (const def of targets) {
+          const value = stored[def.key] as { provinceId?: string; cityId?: string } | null;
+          if (!value?.provinceId) continue;
+          const province = provinces.find((p) => p._id === value.provinceId);
+          if (!province) continue;
+
+          this.provinceCityLabels.update((map) => ({ ...map, [def.key]: province.name }));
+          if (!value.cityId) continue;
+
+          this.locationService!.getCities(value.provinceId).subscribe({
+            next: (cities) => {
+              const city = cities.find((c) => c._id === value.cityId);
+              if (!city) return;
+              this.provinceCityLabels.update((map) => ({
+                ...map,
+                [def.key]: `${province.name}, ${city.name}`,
+              }));
+            },
+            error: () => {
+              /* province-only label already set */
+            },
+          });
+        }
+      },
+      error: () => {
+        /* leave province_city rows out rather than showing ids */
+      },
+    });
   }
 
   async shareListing(): Promise<void> {

@@ -21,12 +21,14 @@ import { Component, computed, input, output } from '@angular/core';
       <nav class="pg" [attr.aria-label]="label()">
         <button
           type="button"
-          class="btn btn-ghost btn-sm pg-arrow"
+          class="pg-arrow"
           [disabled]="currentPage() <= 1"
           (click)="go(currentPage() - 1)"
           aria-label="Previous page"
         >
-          <span class="material-symbols-rounded pg-arrow-icon">chevron_left</span>
+          <span class="material-symbols-rounded pg-arrow-icon" aria-hidden="true"
+            >chevron_left</span
+          >
           <span class="pg-arrow-text">Previous</span>
         </button>
 
@@ -51,17 +53,22 @@ import { Component, computed, input, output } from '@angular/core';
           }
         </ol>
 
-        <p class="pg-compact" aria-hidden="true">Page {{ currentPage() }} of {{ totalPages() }}</p>
+        <!-- Not aria-hidden: this and .pg-list are never exposed at the same
+             time, since each is display:none at the other's breakpoint. Hiding
+             it left narrow viewports with no announced page position. -->
+        <p class="pg-compact">Page {{ currentPage() }} of {{ totalPages() }}</p>
 
         <button
           type="button"
-          class="btn btn-ghost btn-sm pg-arrow"
+          class="pg-arrow"
           [disabled]="currentPage() >= totalPages()"
           (click)="go(currentPage() + 1)"
           aria-label="Next page"
         >
           <span class="pg-arrow-text">Next</span>
-          <span class="material-symbols-rounded pg-arrow-icon">chevron_right</span>
+          <span class="material-symbols-rounded pg-arrow-icon" aria-hidden="true"
+            >chevron_right</span
+          >
         </button>
       </nav>
     }
@@ -72,7 +79,13 @@ import { Component, computed, input, output } from '@angular/core';
         display: block;
       }
 
+      /* One shared control height and type scale for every child, so the arrows
+         and the numbers read as one set. Previously the arrows inherited
+         .btn-sm at 12px while the numbers were 14px, and a 36px box at
+         --radius-sm looked like a rounded square beside the wider pills. */
       .pg {
+        --pg-size: 38px;
+
         display: flex;
         align-items: center;
         justify-content: center;
@@ -81,18 +94,62 @@ import { Component, computed, input, output } from '@angular/core';
         padding: var(--space-3) 0;
       }
 
+      .pg-arrow,
+      .pg-page {
+        height: var(--pg-size);
+        border-radius: var(--radius-full);
+        font-family: var(--font-body);
+        font-size: var(--text-sm);
+        font-weight: var(--weight-semibold);
+        cursor: pointer;
+        transition:
+          background-color var(--duration-base) var(--ease-out),
+          border-color var(--duration-base) var(--ease-out),
+          color var(--duration-base) var(--ease-out),
+          transform var(--duration-fast) var(--ease-out);
+      }
+
+      /* ---- Prev / Next ---- */
       .pg-arrow {
+        display: inline-flex;
+        align-items: center;
+        gap: 2px;
         flex-shrink: 0;
+        padding: 0 var(--space-2);
+        border: 1px solid var(--border);
+        background: var(--surface);
+        color: var(--text-primary);
+      }
+
+      .pg-arrow:hover:not(:disabled) {
+        border-color: var(--primary);
+        color: var(--primary);
+        background: var(--primary-subtle);
+      }
+
+      .pg-arrow:active:not(:disabled) {
+        transform: scale(0.96);
+      }
+
+      /* The outline is kept so both ends of the row hold the same shape —
+         removing it left bare text on one side against a pill on the other,
+         which read as lopsided. The fade plus muted ink carries "unavailable". */
+      .pg-arrow:disabled {
+        background: transparent;
+        color: var(--text-muted);
+        opacity: 0.55;
+        cursor: default;
       }
 
       .pg-arrow-icon {
-        font-size: 18px;
+        font-size: 20px;
       }
 
+      /* ---- Page numbers ---- */
       .pg-list {
         display: none;
         align-items: center;
-        gap: 4px;
+        gap: 2px;
         list-style: none;
         margin: 0;
         padding: 0;
@@ -101,48 +158,69 @@ import { Component, computed, input, output } from '@angular/core';
       .pg-page {
         display: grid;
         place-items: center;
-        min-width: 36px;
-        height: 36px;
-        padding: 0 8px;
+        /* Square footprint keeps every number a circle regardless of digits. */
+        width: var(--pg-size);
+        padding: 0;
         border: 1px solid transparent;
-        border-radius: var(--radius-sm);
         background: transparent;
         color: var(--text-secondary);
-        font-family: var(--font-body);
-        font-size: var(--text-sm);
-        font-weight: var(--weight-semibold);
         font-variant-numeric: tabular-nums;
-        cursor: pointer;
-        transition:
-          background-color var(--duration-base) var(--ease-out),
-          color var(--duration-base) var(--ease-out),
-          border-color var(--duration-base) var(--ease-out);
       }
 
-      .pg-page:hover {
+      .pg-page:hover:not(.is-current) {
         background: var(--hover);
         color: var(--text-primary);
       }
 
+      .pg-page:active:not(.is-current) {
+        transform: scale(0.94);
+      }
+
+      /* No halo ring here: against the dark surface it read as a heavy outline
+         rather than a glow. The fill is already the only solid in the row, so it
+         needs no further emphasis. */
       .pg-page.is-current {
         background: var(--primary);
         border-color: var(--primary);
         color: var(--on-primary);
+        cursor: default;
       }
 
       .pg-gap {
-        min-width: 20px;
-        text-align: center;
+        display: grid;
+        place-items: center;
+        width: 24px;
+        height: var(--pg-size);
         color: var(--text-muted);
         font-size: var(--text-sm);
+        line-height: 1;
         user-select: none;
       }
 
       .pg-compact {
+        padding: 0 var(--space-1);
         font-size: var(--text-sm);
-        font-weight: var(--weight-medium);
+        font-weight: var(--weight-semibold);
         color: var(--text-secondary);
         font-variant-numeric: tabular-nums;
+      }
+
+      /* Below this the labels are dropped and the arrows collapse to circles, so
+         the row stays on one line next to the "Page X of Y" text. */
+      @media (max-width: 424px) {
+        .pg {
+          --pg-size: 36px;
+        }
+
+        .pg-arrow {
+          width: var(--pg-size);
+          padding: 0;
+          justify-content: center;
+        }
+
+        .pg-arrow-text {
+          display: none;
+        }
       }
 
       /* Numbered pages replace the compact label once there's room */

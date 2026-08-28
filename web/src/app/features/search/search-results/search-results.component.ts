@@ -1,4 +1,15 @@
-import { Component, OnInit, OnDestroy, signal, computed, PLATFORM_ID, inject } from '@angular/core';
+import {
+  Component,
+  OnInit,
+  OnDestroy,
+  signal,
+  computed,
+  ElementRef,
+  ViewChild,
+  HostListener,
+  PLATFORM_ID,
+  inject,
+} from '@angular/core';
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
@@ -39,6 +50,12 @@ import { VehicleModel, VehicleVariant, BrandOption } from '../../../core/models/
 import { BrandsService } from '../../../core/services/brands.service';
 
 /** Query param keys managed by this component — dynamic filters are anything else */
+/** Separator used to keep several multiselect values in one URL param. */
+const MULTI_VALUE_SEPARATOR = ',';
+
+/** Quiet period before a typed numeric filter triggers a search. */
+const FILTER_INPUT_DEBOUNCE_MS = 400;
+
 const KNOWN_QUERY_PARAMS = new Set([
   'q',
   'category',
@@ -48,8 +65,20 @@ const KNOWN_QUERY_PARAMS = new Set([
   'maxPrice',
   'condition',
   'verifiedSeller',
+  // Brand chain: previously absent from the URL entirely, so a reloaded or
+  // shared link dropped these filters even though the chips and the API call
+  // had applied them.
+  'brand',
+  'model',
+  'variant',
 ]);
 
+import {
+  OTHER_OPTION_VALUE,
+  attributeSelectOptions,
+  attributeYearOptions,
+} from '../../../core/utils/category-attributes';
+import { SearchFacet } from '../../../core/services/search.service';
 import { ActiveFilter } from './search-results.types';
 import { AdBannerComponent } from '../../../shared/components/ad-banner/ad-banner.component';
 
@@ -86,6 +115,30 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly sortBy = signal<SearchSortOption>(SearchSortOption.RELEVANCE);
   /** null = no user interaction yet (CSS handles default), true/false = user toggled */
   readonly filtersOpen = signal<boolean | null>(null);
+
+  /**
+   * Single source of truth for the mobile breakpoint, driven by the same 768px
+   * value the stylesheet uses. A previous `window.innerWidth >= 768` check
+   * disagreed with the CSS `max-width: 768px` at exactly 768px, so the toggle
+   * behaved as "desktop" while the panel rendered as a mobile overlay.
+   */
+  private readonly mobileQuery =
+    this.isBrowser && typeof window.matchMedia === 'function'
+      ? window.matchMedia('(max-width: 768px)')
+      : null;
+  readonly isMobileViewport = signal(this.mobileQuery?.matches ?? false);
+
+  /** True only when the panel is covering the screen as a mobile overlay. */
+  readonly mobileFiltersOpen = computed(
+    () => this.isMobileViewport() && this.filtersOpen() === true,
+  );
+
+  @ViewChild('filterPanel') private filterPanelEl?: ElementRef<HTMLElement>;
+  @ViewChild('filterClose') private filterCloseEl?: ElementRef<HTMLButtonElement>;
+  @ViewChild('filterTrigger') private filterTriggerEl?: ElementRef<HTMLButtonElement>;
+
+  /** Filter sections the user has folded away, by section id. */
+  readonly collapsedSections = signal<Set<string>>(new Set());
   readonly mobileColumns = signal<1 | 2>(this.loadMobileColumns());
 
   // Category filters
@@ -99,6 +152,14 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   // Dynamic filter values
   readonly filterValues = signal<Record<string, string | number | boolean>>({});
   readonly activeFilters = signal<ActiveFilter[]>([]);
+
+  /** Per-option result counts for the selected category's filters. */
+  readonly facets = signal<SearchFacet[]>([]);
+
+  /** Facets indexed by attribute key for template lookups. */
+  private readonly facetsByKey = computed<Map<string, SearchFacet>>(
+    () => new Map(this.facets().map((facet) => [facet.key, facet])),
+  );
 
   // Standard filters
   readonly minPrice = signal<number | null>(null);
@@ -174,36 +235,247 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     ];
   }
 
-  getSelectFilterOptions(filter: any): SelectOption[] {
-    const opts = (filter.options || []).filter((opt: string) => opt !== 'Other');
-    return [
-      { value: '', label: 'Any' },
-      ...opts.map((opt: string) => ({ value: opt, label: opt })),
-    ];
+  /**
+   * Options for a select-style filter.
+   *
+   * Built from the shared attribute helper so the filter panel and the listing
+   * forms agree on what an attribute offers. The previous local copy hardcoded a
+   * `!== 'Other'` exclusion, which hid the literal option "Other" from filtering
+   * even for categories that legitimately offer it.
+   */
+  getSelectFilterOptions(filter: CategoryAttribute): SelectOption[] {
+    return this.selectFilterOptions().get(filter.key) ?? [];
   }
 
-  getYearFilterOptions(filter: any, suffix: string): SelectOption[] {
-    return [
-      { value: '', label: suffix === '_min' ? 'From' : 'To' },
-      ...this.getYearRange(filter).map((yr: number) => ({
-        value: yr.toString(),
-        label: yr.toString(),
-      })),
-    ];
+  /**
+   * Select options per attribute key, rebuilt only when the definitions change.
+   *
+   * These are read from the template, so returning a freshly allocated array on
+   * every call handed the child selects a new input identity on each
+   * change-detection pass.
+   */
+  private readonly selectFilterOptions = computed<Map<string, SelectOption[]>>(() => {
+    const map = new Map<string, SelectOption[]>();
+    const facets = this.facetsByKey();
+    const values = this.filterValues();
+
+    for (const filter of this.categoryFilters()) {
+      if (filter.type !== 'select') continue;
+
+      const counts = facets.get(filter.key)?.buckets;
+      const selected = String(values[filter.key] ?? '');
+      const options: SelectOption[] = [];
+
+      for (const opt of attributeSelectOptions(filter, 'Any')) {
+        if (opt.value === OTHER_OPTION_VALUE) continue;
+
+        // The placeholder entry, and every option when counts aren't in yet.
+        if (!opt.value || !counts) {
+          options.push(opt);
+          continue;
+        }
+
+        const count = counts.find((b) => b.value === opt.value)?.count ?? 0;
+        // Drop dead ends, but never hide what is currently applied or the
+        // control would look empty while a filter is active.
+        if (count === 0 && opt.value !== selected) continue;
+
+        options.push({ ...opt, label: `${opt.label} (${count})` });
+      }
+
+      map.set(filter.key, options);
+    }
+    return map;
+  });
+
+  /**
+   * Year options for one half of a From/To pair.
+   *
+   * The two lists are constrained against each other so an impossible span
+   * cannot be selected — previously both offered the full range, so From 2024 /
+   * To 1990 was one click away and returned nothing.
+   */
+  getYearFilterOptions(filter: CategoryAttribute, suffix: '_min' | '_max'): SelectOption[] {
+    const pair = this.yearFilterOptions().get(filter.key);
+    if (!pair) return [];
+    return suffix === '_min' ? pair.min : pair.max;
+  }
+
+  /**
+   * From/To year options per attribute key, recomputed when the definitions or
+   * the chosen bounds change. Each list is constrained by the opposite bound so
+   * an impossible span cannot be selected.
+   */
+  private readonly yearFilterOptions = computed<
+    Map<string, { min: SelectOption[]; max: SelectOption[] }>
+  >(() => {
+    const map = new Map<string, { min: SelectOption[]; max: SelectOption[] }>();
+    for (const filter of this.categoryFilters()) {
+      if (filter.type !== 'year') continue;
+      const years = attributeYearOptions(filter);
+      const chosenMin = this.numericFilterValue(filter.key + '_min');
+      const chosenMax = this.numericFilterValue(filter.key + '_max');
+      const toOption = (yr: number) => ({ value: yr.toString(), label: yr.toString() });
+      map.set(filter.key, {
+        min: [
+          { value: '', label: 'From' },
+          ...years.filter((yr) => chosenMax === null || yr <= chosenMax).map(toOption),
+        ],
+        max: [
+          { value: '', label: 'To' },
+          ...years.filter((yr) => chosenMin === null || yr >= chosenMin).map(toOption),
+        ],
+      });
+    }
+    return map;
+  });
+
+  /** Parses a stored filter value as a number, or `null` when unusable. */
+  private numericFilterValue(key: string): number | null {
+    const raw = this.filterValues()[key];
+    if (raw === undefined || raw === '' || raw === null) return null;
+    const parsed = Number(raw);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
+  /** Shows the attribute's own bounds as the input hint when it defines them. */
+  rangePlaceholder(filter: CategoryAttribute, bound: 'min' | 'max'): string {
+    // Prefer what actually exists in the current results over the abstract
+    // definition bounds: "2018" is a more useful hint than "1970".
+    const observed = this.facetBounds(filter.key);
+    const fromFacet = bound === 'min' ? observed?.min : observed?.max;
+    if (fromFacet !== null && fromFacet !== undefined) return String(fromFacet);
+
+    const value = bound === 'min' ? filter.rangeMin : filter.rangeMax;
+    const fallback = bound === 'min' ? 'Min' : 'Max';
+    return value === undefined || value === null ? fallback : String(value);
+  }
+
+  /**
+   * Validation message for a from/to pair, or `''` when it is usable.
+   *
+   * Nothing checked ordering before, so a reversed span silently returned zero
+   * results with no indication why.
+   */
+  rangeError(key: string): string {
+    const def = this.categoryFilters().find((f) => f.key === key);
+    const min = this.numericFilterValue(key + '_min');
+    const max = this.numericFilterValue(key + '_max');
+
+    if (min !== null && max !== null && min > max) {
+      return 'Minimum cannot be greater than maximum.';
+    }
+    if (def) {
+      if (def.rangeMin !== undefined && def.rangeMin !== null) {
+        if ((min !== null && min < def.rangeMin) || (max !== null && max < def.rangeMin)) {
+          return `Must be ${def.rangeMin} or more.`;
+        }
+      }
+      if (def.rangeMax !== undefined && def.rangeMax !== null) {
+        if ((min !== null && min > def.rangeMax) || (max !== null && max > def.rangeMax)) {
+          return `Must be ${def.rangeMax} or less.`;
+        }
+      }
+    }
+    return '';
+  }
+
+  /** Validation message for the price pair, or `''` when it is usable. */
+  priceError(): string {
+    const min = this.minPrice();
+    const max = this.maxPrice();
+    if (min !== null && min < 0) return 'Price cannot be negative.';
+    if (max !== null && max < 0) return 'Price cannot be negative.';
+    if (min !== null && max !== null && min > max) {
+      return 'Minimum price cannot be greater than maximum.';
+    }
+    return '';
   }
 
   readonly conditionOptions = CONDITION_FILTER_OPTIONS;
   readonly sortOptions = SORT_OPTIONS;
 
+  /**
+   * Resolves a filterValues key to a human label.
+   *
+   * Range filters are stored under suffixed keys (`year_min`), which match no
+   * attribute definition — so chips used to fall back to the raw key and read
+   * "year_min: 2022".
+   */
+  private describeFilterKey(key: string): { label: string; qualifier: string } {
+    // An attribute matching the whole key takes precedence, so a key that merely
+    // looks suffixed is not relabelled as someone else's bound.
+    const own = this.categoryFilters().find((f) => f.key === key);
+    if (own) return { label: own.name, qualifier: '' };
+
+    const rangeMatch = key.match(/^(.*)_(min|max)$/);
+    if (rangeMatch) {
+      const def = this.categoryFilters().find((f) => f.key === rangeMatch[1]);
+      if (def) {
+        return {
+          label: def.name,
+          qualifier: rangeMatch[2] === 'min' ? ' from' : ' up to',
+        };
+      }
+    }
+    return { label: key, qualifier: '' };
+  }
+
+  /**
+   * True for attribute types the sidebar renders as a from/to pair, and which
+   * the API therefore expects as a `{ min, max }` object.
+   */
+  /**
+   * True when a key is one of the two dropdown halves of a `province_city`
+   * attribute (`<base>_province` / `<base>_city`) rather than an attribute in its
+   * own right.
+   *
+   * Checked against the definitions instead of by suffix alone: an attribute may
+   * legitimately be called `registration_city`, and treating that as a half made
+   * it disappear from the request and from the filter chips.
+   */
+  private isProvinceCityHalf(key: string): boolean {
+    const match = key.match(/^(.*)_(province|city)$/);
+    if (!match) return false;
+    if (this.categoryFilters().some((f) => f.key === key)) return false;
+    return this.categoryFilters().some((f) => f.key === match[1] && f.type === 'province_city');
+  }
+
+  private isRangeStyleFilter(key: string): boolean {
+    const type = this.categoryFilters().find((f) => f.key === key)?.type;
+    return type === 'range' || type === 'number' || type === 'year';
+  }
+
   getYearRange(filter: { rangeMin?: number; rangeMax?: number }): number[] {
-    const max = filter.rangeMax ?? new Date().getFullYear();
-    const min = filter.rangeMin ?? 1970;
-    return Array.from({ length: max - min + 1 }, (_, i) => max - i);
+    return attributeYearOptions(filter);
   }
 
   private readonly destroy$ = new Subject<void>();
   private readonly searchInput$ = new Subject<string>();
+  /** Coalesces rapid typing in numeric filter boxes into a single search. */
+  private readonly filterInput$ = new Subject<void>();
   private lastSearchHash = '';
+  /**
+   * Set when a category change deferred filter reconciliation until the new
+   * attribute definitions arrive.
+   */
+  private pendingFilterReconcile = false;
+
+  isSectionCollapsed(id: string): boolean {
+    return this.collapsedSections().has(id);
+  }
+
+  toggleSection(id: string): void {
+    this.collapsedSections.update((set) => {
+      const next = new Set(set);
+      if (next.has(id)) next.delete(id);
+      else next.add(id);
+      return next;
+    });
+  }
+
+  /** Number of filters currently applied, used for the mobile badge. */
+  readonly activeFilterCount = computed(() => this.activeFilters().length);
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -217,9 +489,23 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     private readonly experiments: ExperimentsService,
   ) {}
 
+  /**
+   * Keeps the page behind the mobile overlay from scrolling.
+   *
+   * Done imperatively from the few places that change panel or viewport state
+   * rather than through `effect()`, which needs an injection context this
+   * component is not always constructed in.
+   */
+  private syncScrollLock(): void {
+    if (!this.isBrowser) return;
+    document.body.classList.toggle('filters-locked', this.mobileFiltersOpen());
+  }
+
   ngOnInit(): void {
     this.loadCategories();
     this.setupSuggestions();
+    this.setupFilterDebounce();
+    this.mobileQuery?.addEventListener('change', this.onViewportChange);
     // Pre-fetch experiment assignments (cached for session)
     this.experiments.getAssignments().pipe(takeUntil(this.destroy$)).subscribe();
 
@@ -241,6 +527,11 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       this.maxPrice.set(maxPrice);
       this.selectedCondition.set(condition);
       this.verifiedSellerOnly.set(params.get('verifiedSeller') === 'true');
+      this.restoreBrandChain(
+        params.get('brand') || '',
+        params.get('model') || '',
+        params.get('variant') || '',
+      );
 
       // Parse dynamic filter params
       const dynamicFilters: Record<string, string | number | boolean> = {};
@@ -272,7 +563,18 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    if (this.mobileQuery) {
+      this.mobileQuery.removeEventListener('change', this.onViewportChange);
+    }
+    if (this.isBrowser) {
+      document.body.classList.remove('filters-locked');
+    }
   }
+
+  private readonly onViewportChange = (event: MediaQueryListEvent): void => {
+    this.isMobileViewport.set(event.matches);
+    this.syncScrollLock();
+  };
 
   onSearchInputChange(value: string): void {
     this.searchInput.set(value);
@@ -325,7 +627,12 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     // Look up slug for the URL
     const cat = this.categories().find((c) => c._id === categoryId);
     this.selectedCategorySlug.set(cat?.slug || '');
-    this.filterValues.set({});
+    // Dynamic filters used to be wiped on every category change, so moving
+    // between siblings that share inherited attributes (Cars -> Motorcycles both
+    // have `year`) needlessly threw the selection away. Values are kept
+    // provisionally and reconciled against the new definitions once they load.
+    this.pendingFilterReconcile = categoryId !== '';
+    if (!categoryId) this.filterValues.set({});
     this.currentPage.set(1);
     if (categoryId) {
       this.loadCategoryFilters(categoryId);
@@ -350,20 +657,116 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   }
 
   onPriceFilterApply(): void {
+    if (this.priceError()) return;
     this.currentPage.set(1);
     this.updateUrlAndSearch();
   }
 
   onDynamicFilterChange(key: string, value: string): void {
+    this.applyDynamicFilter(key, value);
+    this.updateUrlAndSearch();
+  }
+
+  /**
+   * Same as `onDynamicFilterChange` but debounced, for filters typed into a free
+   * text box. Every keystroke used to trigger a router navigation and a search,
+   * so entering "50000" fired five of each.
+   */
+  onDynamicFilterInput(key: string, value: string): void {
+    this.applyDynamicFilter(key, value);
+    this.filterInput$.next();
+  }
+
+  /** Number of results a given option would yield, or `null` when unknown. */
+  facetCount(key: string, option: string): number | null {
+    const bucket = this.facetsByKey()
+      .get(key)
+      ?.buckets?.find((b) => b.value === option);
+    return bucket ? bucket.count : null;
+  }
+
+  /**
+   * True when an option would return nothing.
+   *
+   * Only treated as empty once facets have actually loaded for this attribute —
+   * otherwise every option would look unavailable on first paint.
+   */
+  isOptionUnavailable(key: string, option: string): boolean {
+    const facet = this.facetsByKey().get(key);
+    if (!facet?.buckets) return false;
+    return !facet.buckets.some((b) => b.value === option && b.count > 0);
+  }
+
+  /** Observed bounds for a numeric attribute, used as input hints. */
+  facetBounds(key: string): { min: number | null; max: number | null } | null {
+    const facet = this.facetsByKey().get(key);
+    if (!facet || facet.buckets) return null;
+    if (facet.min === null && facet.max === null) return null;
+    return { min: facet.min ?? null, max: facet.max ?? null };
+  }
+
+  /** Whether one option of a multiselect filter is currently chosen. */
+  isMultiSelected(key: string, option: string): boolean {
+    return this.multiSelectValues(key).includes(option);
+  }
+
+  /**
+   * Adds or removes one option of a multiselect filter.
+   *
+   * Multiselect used to render the same single-value dropdown as `select`, so
+   * only one option could ever be applied even though both the URL encoding and
+   * the backend's `terms` clause already supported several.
+   */
+  toggleMultiSelectFilter(key: string, option: string): void {
+    const current = this.multiSelectValues(key);
+    const next = current.includes(option)
+      ? current.filter((v) => v !== option)
+      : [...current, option];
+    this.applyDynamicFilter(key, next.join(MULTI_VALUE_SEPARATOR));
+    this.updateUrlAndSearch();
+  }
+
+  private multiSelectValues(key: string): string[] {
+    const raw = this.filterValues()[key];
+    if (raw === undefined || raw === null || raw === '') return [];
+    return String(raw)
+      .split(MULTI_VALUE_SEPARATOR)
+      .map((v) => v.trim())
+      .filter(Boolean);
+  }
+
+  private applyDynamicFilter(key: string, value: string): void {
     const current = { ...this.filterValues() };
-    if (value) {
-      current[key] = value;
-    } else {
+    if (value === '' || value === null || value === undefined) {
       delete current[key];
+    } else {
+      current[key] = value;
     }
     this.filterValues.set(current);
     this.currentPage.set(1);
-    this.updateUrlAndSearch();
+  }
+
+  /**
+   * Drops filter values the newly selected category does not define, keeping the
+   * ones it shares. Suffixed range keys (`year_min`) are matched back to their
+   * base attribute.
+   */
+  private reconcileFilterValues(): void {
+    const known = new Set(this.categoryFilters().map((f) => f.key));
+    this.filterValues.update((values) => {
+      const kept: Record<string, string | number | boolean> = {};
+      for (const [key, value] of Object.entries(values)) {
+        // Keep an attribute matched by its own key, or a suffixed half/bound
+        // whose base attribute the new category still defines.
+        if (known.has(key)) {
+          kept[key] = value;
+          continue;
+        }
+        const base = key.match(/^(.*)_(min|max|province|city)$/)?.[1];
+        if (base && known.has(base)) kept[key] = value;
+      }
+      return kept;
+    });
   }
 
   removeFilter(filter: ActiveFilter): void {
@@ -456,14 +859,67 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
   toggleFilters(): void {
     const current = this.filtersOpen();
-    // First toggle: on desktop it's visually open (treat as true), on mobile it's hidden (treat as false)
+    // First toggle flips whatever CSS is currently showing: the sidebar is
+    // expanded by default on desktop and hidden on mobile.
     if (current === null) {
-      // If we can check viewport, use it; otherwise toggle to opposite of CSS default
-      const isDesktop = this.isBrowser && window.innerWidth >= 768;
-      this.filtersOpen.set(!isDesktop);
+      this.filtersOpen.set(this.isMobileViewport());
     } else {
       this.filtersOpen.set(!current);
     }
+    this.syncScrollLock();
+    if (this.filtersOpen() === true && this.isMobileViewport()) {
+      this.focusFilterPanel();
+    }
+  }
+
+  /** Closes the mobile filter panel and returns focus to the button that opened it. */
+  closeFilters(): void {
+    this.filtersOpen.set(false);
+    this.syncScrollLock();
+    if (!this.isBrowser) return;
+    // Defer so the element is focusable again after the panel is hidden.
+    setTimeout(() => this.filterTriggerEl?.nativeElement?.focus());
+  }
+
+  @HostListener('document:keydown.escape')
+  protected onEscapeKey(): void {
+    if (this.mobileFiltersOpen()) this.closeFilters();
+  }
+
+  /**
+   * Keeps Tab within the filter panel while it covers the screen on mobile.
+   * Without this, tabbing walked into the page behind the overlay.
+   */
+  @HostListener('document:keydown', ['$event'])
+  protected onTabKey(event: KeyboardEvent): void {
+    if (event.key !== 'Tab') return;
+    if (!this.mobileFiltersOpen()) return;
+    const panel = this.filterPanelEl?.nativeElement;
+    if (!panel) return;
+
+    const focusable = Array.from(
+      panel.querySelectorAll<HTMLElement>(
+        'a[href], button:not([disabled]), input:not([disabled]), select:not([disabled]), textarea:not([disabled]), [tabindex]:not([tabindex="-1"])',
+      ),
+    ).filter((el) => el.offsetParent !== null);
+    if (focusable.length === 0) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+    const active = document.activeElement as HTMLElement | null;
+
+    if (!event.shiftKey && active === last) {
+      event.preventDefault();
+      first.focus();
+    } else if (event.shiftKey && (active === first || !panel.contains(active))) {
+      event.preventDefault();
+      last.focus();
+    }
+  }
+
+  private focusFilterPanel(): void {
+    if (!this.isBrowser) return;
+    setTimeout(() => this.filterCloseEl?.nativeElement?.focus());
   }
 
   toggleMobileColumns(): void {
@@ -538,15 +994,20 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     }
     const dynamic = this.filterValues();
     Object.entries(dynamic).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') {
-        const filterDef = this.categoryFilters().find((f) => f.key === key);
-        filters.push({
-          key,
-          label: filterDef?.name || key,
-          value: String(value),
-          displayValue: `${filterDef?.name || key}: ${value}`,
-        });
-      }
+      if (value === undefined || value === '') return;
+
+      // province_city stores a combined value plus a _province/_city pair. Only
+      // the combined entry becomes a chip, otherwise one choice produced three
+      // chips and removing one left the others applied.
+      if (this.isProvinceCityHalf(key)) return;
+
+      const { label, qualifier } = this.describeFilterKey(key);
+      filters.push({
+        key,
+        label,
+        value: String(value),
+        displayValue: `${label}${qualifier}: ${value}`,
+      });
     });
 
     // Brand / Model / Variant active filters
@@ -582,6 +1043,12 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     }
 
     return filters;
+  }
+
+  private setupFilterDebounce(): void {
+    this.filterInput$
+      .pipe(debounceTime(FILTER_INPUT_DEBOUNCE_MS), takeUntil(this.destroy$))
+      .subscribe(() => this.updateUrlAndSearch());
   }
 
   private setupSuggestions(): void {
@@ -670,6 +1137,21 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
           if (attributes?.some((a) => a.type === 'province_city')) {
             this.loadProvinces();
           }
+
+          // Encoding a dynamic filter for the API needs its definition: a
+          // from/to pair has to become `filters[key][min]`, and without the
+          // definition it went out as `filters[key_min]`, which matches no
+          // attribute and was dropped server-side. On a deep link the first
+          // search ran before these definitions arrived, so shared URLs came
+          // back unfiltered. Re-run now that we can encode correctly —
+          // executeSearch's hash guard makes this a no-op when nothing changed.
+          if (this.pendingFilterReconcile) {
+            this.pendingFilterReconcile = false;
+            this.reconcileFilterValues();
+          }
+
+          this.activeFilters.set(this.buildActiveFilters());
+          this.executeSearch();
         },
         error: () => {
           this.categoryFilters.set([]);
@@ -752,6 +1234,53 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
                 });
             }
           },
+        });
+    }
+  }
+
+  /**
+   * Reapplies a brand/model/variant selection restored from the URL, refetching
+   * the dependent option lists so the dropdowns can show names rather than ids.
+   */
+  private restoreBrandChain(brandId: string, modelId: string, variantId: string): void {
+    const changed =
+      brandId !== this.selectedFilterBrandId() ||
+      modelId !== this.selectedFilterModelId() ||
+      variantId !== this.selectedFilterVariantId();
+    if (!changed) return;
+
+    this.selectedFilterBrandId.set(brandId);
+    this.selectedFilterModelId.set(modelId);
+    this.selectedFilterVariantId.set(variantId);
+
+    if (!brandId) {
+      this.filterModels.set([]);
+      this.filterVariants.set([]);
+      return;
+    }
+
+    if (modelId) {
+      this.brandsService
+        .getModelsByBrand(brandId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (models) => this.filterModels.set(models),
+          error: () => this.filterModels.set([]),
+        });
+      this.brandsService
+        .getVariantsByModel(modelId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (variants) => this.filterVariants.set(variants),
+          error: () => this.filterVariants.set([]),
+        });
+    } else {
+      this.brandsService
+        .getModelsByBrand(brandId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (models) => this.filterModels.set(models),
+          error: () => this.filterModels.set([]),
         });
     }
   }
@@ -879,13 +1408,60 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       }
     } catch {}
 
-    // Dynamic category filters
-    const dynamic = this.filterValues();
-    Object.entries(dynamic).forEach(([key, value]) => {
-      if (value !== undefined && value !== '') {
-        params[key] = value;
+    // Dynamic category attribute filters.
+    //
+    // These go out as bracketed `filters[...]` keys rather than bare params for
+    // two reasons: the API's ValidationPipe runs with forbidNonWhitelisted, so a
+    // bare `mileage` param is rejected outright with a 400; and the range types
+    // have to arrive as a `{ min, max }` object, which is what
+    // SearchService.buildCategoryFilters reads. The flat `mileage_min` shape
+    // used internally here (and in the URL, where it stays readable and
+    // shareable) is folded into that structure at the boundary.
+    for (const [key, value] of Object.entries(this.filterValues())) {
+      if (value === undefined || value === '') continue;
+
+      // An attribute whose own key matches wins over any suffix reading, so a
+      // real attribute named `registration_city` is not mistaken for the city
+      // half of a province/city pair.
+      const def = this.categoryFilters().find((f) => f.key === key);
+
+      if (def?.type === 'province_city') {
+        // Send the most specific place name, which is what search indexes.
+        const city = String(this.filterValues()[`${key}_city`] ?? '').trim();
+        const province = String(this.filterValues()[`${key}_province`] ?? '').trim();
+        const name = city || province;
+        if (name) params[`filters[${key}]`] = name;
+        continue;
       }
-    });
+
+      if (!def) {
+        const rangeMatch = key.match(/^(.*)_(min|max)$/);
+        if (rangeMatch && this.isRangeStyleFilter(rangeMatch[1])) {
+          // A reversed or out-of-bounds span would just return nothing. Holding
+          // it back keeps the results meaningful while the inline message
+          // explains what needs correcting.
+          if (this.rangeError(rangeMatch[1])) continue;
+          params[`filters[${rangeMatch[1]}][${rangeMatch[2]}]`] = value;
+          continue;
+        }
+        // The two halves of a province/city pair are UI state only; the filter
+        // travels under the attribute's own key.
+        if (this.isProvinceCityHalf(key)) continue;
+      }
+
+      if (def?.type === 'multiselect') {
+        String(value)
+          .split(MULTI_VALUE_SEPARATOR)
+          .map((v) => v.trim())
+          .filter(Boolean)
+          .forEach((v, i) => {
+            params[`filters[${key}][${i}]`] = v;
+          });
+        continue;
+      }
+
+      params[`filters[${key}]`] = value;
+    }
 
     // Brand / Model / Variant filters
     const brandId = this.selectedFilterBrandId();
@@ -947,6 +1523,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
           this.totalResults.set(res.total);
           this.relatedCategories.set(res.relatedCategories || []);
           this.suggestedTerms.set(res.suggestions || []);
+          this.facets.set(res.facets || []);
           this.loading.set(false);
           this.trackSearchImpression(params, res.total);
         },
@@ -976,6 +1553,12 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     const condition = this.selectedCondition();
     if (condition) queryParams['condition'] = condition;
     if (this.verifiedSellerOnly()) queryParams['verifiedSeller'] = 'true';
+    const brand = this.selectedFilterBrandId();
+    if (brand) queryParams['brand'] = brand;
+    const model = this.selectedFilterModelId();
+    if (model) queryParams['model'] = model;
+    const variant = this.selectedFilterVariantId();
+    if (variant) queryParams['variant'] = variant;
 
     const dynamic = this.filterValues();
     Object.entries(dynamic).forEach(([key, value]) => {

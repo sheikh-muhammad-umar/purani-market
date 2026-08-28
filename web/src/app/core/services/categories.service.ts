@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { Observable, map, shareReplay } from 'rxjs';
 import { ApiService } from './api.service';
-import { Category, CategoryAttribute } from '../models';
+import { Category, CategoryAttribute, CategoryDeleteImpact } from '../models';
 import { API } from '../constants/api-endpoints';
 
 export interface CreateCategoryPayload {
@@ -85,6 +85,11 @@ export class CategoriesService {
     return this.api.get<{ attributes: CategoryAttribute[]; features: string[] }>(
       API.CATEGORY_INHERITED_ATTRS(categoryId),
     );
+  }
+
+  /** What deleting a category would affect, for the admin confirmation step. */
+  getDeleteImpact(categoryId: string): Observable<CategoryDeleteImpact> {
+    return this.api.get<CategoryDeleteImpact>(API.CATEGORY_DELETE_IMPACT(categoryId));
   }
 
   updateAttributes(id: string, attributes: CategoryAttribute[]): Observable<Category> {

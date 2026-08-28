@@ -31,6 +31,7 @@ import {
 import { User, UserDocument } from '../users/schemas/user.schema.js';
 import {
   Category,
+  CategoryAttribute,
   CategoryDocument,
   AttributeType,
 } from '../categories/schemas/category.schema.js';
@@ -321,6 +322,49 @@ export class ListingsService {
     if (listing.status === ListingStatus.DELETED) {
       throw new BadRequestException(PUBLIC_ERROR.LISTING_ACTION_FAILED);
     }
+
+    // Edits bypassed attribute validation entirely, so a listing that passed on
+    // create could be updated to any shape afterwards.
+    if (
+      dto.categoryAttributes !== undefined ||
+      dto.selectedFeatures !== undefined ||
+      dto.categoryId !== undefined
+    ) {
+      const effectiveCategoryId =
+        dto.categoryId ?? listing.categoryId?.toString();
+      if (
+        !effectiveCategoryId ||
+        !Types.ObjectId.isValid(effectiveCategoryId)
+      ) {
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+      }
+      const category = await this.categoryModel
+        .findById(effectiveCategoryId)
+        .exec();
+      if (!category) {
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+      }
+      // When the category moves but attributes are not resent, the attributes
+      // already on the listing must still satisfy the new category.
+      const attributesToCheck =
+        dto.categoryAttributes ??
+        (dto.categoryId !== undefined
+          ? this.toPlainAttributes(listing.categoryAttributes)
+          : undefined);
+      if (attributesToCheck !== undefined) {
+        this.validateCategoryAttributes(
+          attributesToCheck,
+          await this.resolveInheritedAttributes(category),
+        );
+      }
+      if (dto.selectedFeatures !== undefined) {
+        this.validateSelectedFeatures(
+          dto.selectedFeatures,
+          await this.resolveInheritedFeatures(category),
+        );
+      }
+    }
+
     const updateFields: Record<string, any> = {};
     if (dto.title !== undefined) updateFields.title = dto.title;
     if (dto.description !== undefined)
@@ -584,7 +628,15 @@ export class ListingsService {
     if (!category) {
       throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
-    this.validateCategoryAttributes(dto.categoryAttributes ?? {}, category);
+    const inheritedAttributes = await this.resolveInheritedAttributes(category);
+    this.validateCategoryAttributes(
+      dto.categoryAttributes ?? {},
+      inheritedAttributes,
+    );
+    this.validateSelectedFeatures(
+      dto.selectedFeatures,
+      await this.resolveInheritedFeatures(category),
+    );
     const categoryPath = await this.buildCategoryPath(category);
     await this.validateBrandFields(dto, category, categoryPath);
     const seller = await this.userModel.findById(sellerId).exec();
@@ -624,6 +676,9 @@ export class ListingsService {
       categoryAttributes: dto.categoryAttributes
         ? new Map(Object.entries(dto.categoryAttributes))
         : new Map(),
+      // Previously omitted, so every feature a seller ticked on the create form
+      // was silently discarded and only reappeared if they later edited the ad.
+      selectedFeatures: dto.selectedFeatures ?? [],
       images: (dto.images ?? []).map((img, idx) => ({
         url: img.url,
         thumbnailUrl: img.thumbnailUrl,
@@ -852,33 +907,41 @@ export class ListingsService {
 
   private validateCategoryAttributes(
     attributes: Record<string, any>,
-    category: CategoryDocument,
+    definitions: CategoryAttribute[],
   ): void {
-    const definitions = category.attributes ?? [];
     for (const def of definitions) {
       const value = attributes[def.key];
-      if (
-        def.required &&
-        (value === undefined || value === null || value === '')
-      ) {
+
+      if (def.required && this.isAttributeValueMissing(value)) {
         throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
       }
-      if (value === undefined || value === null) continue;
+      if (this.isAttributeValueMissing(value)) continue;
+
       switch (def.type) {
         case AttributeType.TEXT:
           if (typeof value !== 'string')
             throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
           break;
+
         case AttributeType.NUMBER:
-          if (typeof value !== 'number')
+        case AttributeType.YEAR:
+          if (typeof value !== 'number' || !Number.isFinite(value))
             throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          this.assertWithinBounds(value, def);
           break;
+
         case AttributeType.BOOLEAN:
           if (typeof value !== 'boolean')
             throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
           break;
+
         case AttributeType.SELECT:
+          if (typeof value !== 'string')
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          // `allowOther` lets a seller supply a value outside the list, so the
+          // options check only applies when it is off.
           if (
+            !def.allowOther &&
             def.options &&
             def.options.length > 0 &&
             !def.options.includes(value)
@@ -886,19 +949,165 @@ export class ListingsService {
             throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
           }
           break;
+
         case AttributeType.MULTISELECT:
           if (!Array.isArray(value))
             throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
-          if (def.options && def.options.length > 0) {
-            for (const v of value) {
-              if (!def.options.includes(v)) {
+          if (!def.allowOther && def.options && def.options.length > 0) {
+            for (const entry of value) {
+              if (!def.options.includes(entry)) {
                 throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
               }
             }
           }
           break;
+
+        case AttributeType.RANGE: {
+          if (typeof value !== 'object' || Array.isArray(value))
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          const { min, max } = value as { min?: unknown; max?: unknown };
+          const hasMin = min !== undefined && min !== null;
+          const hasMax = max !== undefined && max !== null;
+          if (!hasMin && !hasMax)
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          if (hasMin && (typeof min !== 'number' || !Number.isFinite(min)))
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          if (hasMax && (typeof max !== 'number' || !Number.isFinite(max)))
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          if (hasMin && hasMax && (min as number) > (max as number))
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          if (hasMin) this.assertWithinBounds(min as number, def);
+          if (hasMax) this.assertWithinBounds(max as number, def);
+          break;
+        }
+
+        // Stored as { provinceId, cityId, province, city }: the ids keep the
+        // reference stable if a location is renamed, and the denormalised names
+        // are what search indexes, filters and facets on.
+        case AttributeType.PROVINCE_CITY: {
+          if (typeof value !== 'object' || Array.isArray(value))
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          const { provinceId, cityId, province, city } = value as {
+            provinceId?: unknown;
+            cityId?: unknown;
+            province?: unknown;
+            city?: unknown;
+          };
+          if (typeof provinceId !== 'string' || !provinceId)
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          if (!Types.ObjectId.isValid(provinceId))
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          if (cityId !== undefined && cityId !== null && cityId !== '') {
+            if (typeof cityId !== 'string' || !Types.ObjectId.isValid(cityId))
+              throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          }
+          // A name is required for the province, and for the city whenever one
+          // was chosen, because search relies on them.
+          if (typeof province !== 'string' || province.trim() === '')
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          if (cityId && (typeof city !== 'string' || city.trim() === ''))
+            throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+          break;
+        }
       }
     }
+  }
+
+  /** Normalises the stored `categoryAttributes` Map into a plain object. */
+  private toPlainAttributes(stored: unknown): Record<string, any> {
+    if (!stored) return {};
+    if (stored instanceof Map) return Object.fromEntries(stored);
+    return stored as Record<string, any>;
+  }
+
+  /**
+   * Treats `0` and `false` as supplied answers. A bare truthiness check would
+   * reject "0 previous owners" or an intentional "no".
+   */
+  private isAttributeValueMissing(value: unknown): boolean {
+    if (value === undefined || value === null || value === '') return true;
+    if (Array.isArray(value)) return value.length === 0;
+    return false;
+  }
+
+  private assertWithinBounds(value: number, def: CategoryAttribute): void {
+    if (def.rangeMin !== undefined && def.rangeMin !== null) {
+      if (value < def.rangeMin)
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+    if (def.rangeMax !== undefined && def.rangeMax !== null) {
+      if (value > def.rangeMax)
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+  }
+
+  /**
+   * Rejects features the category (or its ancestors) does not offer, so a
+   * crafted request cannot attach arbitrary strings to a listing.
+   */
+  private validateSelectedFeatures(
+    selected: string[] | undefined,
+    allowed: string[],
+  ): void {
+    if (!selected || selected.length === 0) return;
+    const permitted = new Set(allowed);
+    for (const feature of selected) {
+      if (!permitted.has(feature)) {
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+      }
+    }
+  }
+
+  /**
+   * Ancestor chain for a category, root first. Attribute and feature
+   * inheritance both derive from this ordering.
+   */
+  private async collectCategoryChain(
+    category: CategoryDocument,
+  ): Promise<CategoryDocument[]> {
+    const chain: CategoryDocument[] = [];
+    let current: CategoryDocument | null = category;
+    while (current) {
+      chain.unshift(current);
+      current = current.parentId
+        ? await this.categoryModel.findById(current.parentId).exec()
+        : null;
+    }
+    return chain;
+  }
+
+  /**
+   * Attributes a category effectively has, including those inherited from its
+   * ancestors. Validation previously read `category.attributes` alone, so a
+   * sub-category's inherited attributes were never enforced: required ones
+   * could be omitted and select values were accepted unchecked.
+   */
+  private async resolveInheritedAttributes(
+    category: CategoryDocument,
+  ): Promise<CategoryAttribute[]> {
+    const chain = await this.collectCategoryChain(category);
+    const merged = new Map<string, CategoryAttribute>();
+    for (const cat of chain) {
+      for (const attr of cat.attributes ?? []) {
+        // Leaf definitions win, matching the admin UI's override behaviour.
+        merged.set(attr.key, attr);
+      }
+    }
+    return Array.from(merged.values());
+  }
+
+  /** Union of the category's own features and every ancestor's. */
+  private async resolveInheritedFeatures(
+    category: CategoryDocument,
+  ): Promise<string[]> {
+    const chain = await this.collectCategoryChain(category);
+    const merged = new Set<string>();
+    for (const cat of chain) {
+      for (const feature of cat.features ?? []) {
+        merged.add(feature);
+      }
+    }
+    return Array.from(merged);
   }
 
   /**

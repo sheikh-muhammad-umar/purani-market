@@ -11,6 +11,17 @@ async function bootstrap() {
   const app = await NestFactory.create<NestExpressApplication>(AppModule, {
     rawBody: true,
   });
+
+  // Express 5 changed the default query parser from 'extended' to 'simple',
+  // which stops parsing bracket notation into nested objects. That silently
+  // broke every category attribute filter: `filters[make]=Toyota` arrived as a
+  // literal key named "filters[make]", which the global forbidNonWhitelisted
+  // ValidationPipe then rejected with a 400. Restoring 'extended' lets the
+  // whitelisted `filters` object on SearchQueryDto be populated again, and is
+  // what SearchService.buildCategoryFilters already expects (it reads
+  // `{ min, max }` objects for range/number and arrays for multiselect).
+  app.set('query parser', 'extended');
+
   const configService = app.get(ConfigService);
 
   app.use(

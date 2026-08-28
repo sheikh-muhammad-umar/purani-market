@@ -87,7 +87,12 @@
       } @else {
         <div class="auto-grid" role="list">
           @for (listing of listings(); track listing._id) {
-            <app-listing-card role="listitem" [listing]="listing" [showTime]="true" />
+            <app-listing-card
+              role="listitem"
+              [listing]="listing"
+              [showTime]="true"
+              [showCondition]="false"
+            />
           }
         </div>
       }

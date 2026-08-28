@@ -191,6 +191,10 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
       categoryAttributes: this.transformCategoryAttributes(
         doc.categoryAttributes,
       ),
+      // Structured companions for attributes that cannot be expressed as a
+      // scalar. Kept on a separate path because `categoryAttributes.<key>` is
+      // dynamically mapped as text and must stay scalar.
+      categoryAttributeRefs: this.buildAttributeRefs(doc.categoryAttributes),
       images: (doc.images || []).map((img: any) => ({
         url: img.url,
         thumbnailUrl: img.thumbnailUrl,
@@ -238,19 +242,74 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
   private transformCategoryAttributes(attrs: any): Record<string, any> {
     if (!attrs) return {};
 
-    if (attrs instanceof Map) {
-      const result: Record<string, any> = {};
-      attrs.forEach((value: any, key: string) => {
-        result[key] = value;
-      });
-      return result;
-    }
+    const source =
+      attrs instanceof Map
+        ? Object.fromEntries(attrs)
+        : typeof attrs === 'object'
+          ? { ...attrs }
+          : null;
+    if (!source) return {};
 
-    if (typeof attrs === 'object') {
-      return { ...attrs };
+    const result: Record<string, any> = {};
+    for (const [key, value] of Object.entries(source)) {
+      result[key] = this.flattenAttributeValue(value);
     }
+    return result;
+  }
 
-    return {};
+  /**
+   * Reduces a structured attribute value to something indexable at
+   * `categoryAttributes.<key>`.
+   *
+   * `province_city` is stored in MongoDB as `{ provinceId, cityId, province,
+   * city }` so the ids survive a location rename, but that path is dynamically
+   * mapped and every existing document holds a plain string there. Indexing an
+   * object would be a mapping conflict, and it would also break filtering and
+   * faceting, which both work off `<path>.keyword`. The most specific
+   * human-readable part is indexed instead — exactly what the historical
+   * documents already contain.
+   */
+  private flattenAttributeValue(value: any): any {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return value;
+    }
+    if ('provinceId' in value || 'cityId' in value) {
+      return value.city || value.province || '';
+    }
+    return value;
+  }
+
+  /**
+   * Structured copies of object-valued attributes, indexed on their own path.
+   *
+   * `categoryAttributes.<key>` only carries the most specific place name, so
+   * filtering by province alone could not match anything. Keeping the whole
+   * `{ provinceId, cityId, province, city }` here lets a query match either
+   * level while the scalar path continues to drive clean city facets.
+   */
+  private buildAttributeRefs(attrs: any): Record<string, any> {
+    if (!attrs) return {};
+    const source =
+      attrs instanceof Map
+        ? Object.fromEntries(attrs)
+        : typeof attrs === 'object'
+          ? attrs
+          : null;
+    if (!source) return {};
+
+    const refs: Record<string, any> = {};
+    for (const [key, value] of Object.entries(source)) {
+      if (!value || typeof value !== 'object' || Array.isArray(value)) continue;
+      const record = value as Record<string, unknown>;
+      if (!('provinceId' in record) && !('cityId' in record)) continue;
+      refs[key] = {
+        provinceId: record['provinceId'] ?? '',
+        cityId: record['cityId'] ?? '',
+        province: record['province'] ?? '',
+        city: record['city'] ?? '',
+      };
+    }
+    return refs;
   }
 
   async indexListing(doc: any): Promise<void> {

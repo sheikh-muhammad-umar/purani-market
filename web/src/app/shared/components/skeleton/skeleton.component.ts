@@ -44,16 +44,34 @@ export type SkeletonVariant = 'text' | 'block' | 'circle' | 'image';
         display: block;
       }
 
+      /* The highlight is a translated pseudo-element rather than an animated
+         background-position. background-position cannot be composited, so it
+         repaints the element every frame; a transform runs on the GPU and stays
+         smooth even with a full grid of placeholders on screen. */
       .sk {
+        position: relative;
         display: block;
+        overflow: hidden;
+        background: var(--surface-secondary);
+        /* Clips the sweep to rounded corners without a second wrapper. */
+        isolation: isolate;
+      }
+
+      .sk::after {
+        content: '';
+        position: absolute;
+        inset: 0;
         background: linear-gradient(
           90deg,
-          var(--surface-secondary) 25%,
-          var(--hover) 50%,
-          var(--surface-secondary) 75%
+          transparent 0%,
+          var(--hover) 45%,
+          var(--hover-strong) 50%,
+          var(--hover) 55%,
+          transparent 100%
         );
-        background-size: 200% 100%;
-        animation: sk-shimmer 1.4s ease-in-out infinite;
+        transform: translateX(-100%);
+        animation: sk-sweep 1.5s var(--ease-in-out) infinite;
+        will-change: transform;
       }
 
       .sk-lines {
@@ -65,18 +83,30 @@ export type SkeletonVariant = 'text' | 'block' | 'circle' | 'image';
         border-radius: var(--radius-xs);
       }
 
-      @keyframes sk-shimmer {
-        0% {
-          background-position: 200% 0;
-        }
-        100% {
-          background-position: -200% 0;
+      /* Successive lines lag slightly so a block of them ripples rather than
+         flashing in unison, which reads as one deliberate motion. */
+      .sk-line:nth-child(2)::after {
+        animation-delay: 90ms;
+      }
+
+      .sk-line:nth-child(3)::after {
+        animation-delay: 180ms;
+      }
+
+      .sk-line:nth-child(4)::after {
+        animation-delay: 270ms;
+      }
+
+      @keyframes sk-sweep {
+        to {
+          transform: translateX(100%);
         }
       }
 
       @media (prefers-reduced-motion: reduce) {
-        .sk {
+        .sk::after {
           animation: none;
+          opacity: 0.5;
         }
       }
     `,
