@@ -1,0 +1,137 @@
+<div class="ads-admin">
+  <div class="page-header">
+    <div>
+      <h1>Ad Performance</h1>
+      <p class="page-subtitle">Impressions, clicks and CTR by campaign and creative.</p>
+    </div>
+    <div class="ads-range-picker" role="group" aria-label="Reporting range">
+      @for (option of rangeOptions; track option.days) {
+        <button
+          class="ads-range-btn"
+          [class.selected]="selectedDays() === option.days"
+          [attr.aria-pressed]="selectedDays() === option.days"
+          (click)="selectRange(option.days)"
+        >
+          {{ option.label }}
+        </button>
+      }
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading report...</p>
+    </div>
+  }
+
+  @if (loadFailed()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+      <button class="btn-retry" (click)="load()">Retry</button>
+    </div>
+  }
+
+  @if (!loading() && !loadFailed() && report(); as data) {
+    <!-- Totals -->
+    <div class="ads-stat-grid">
+      <div class="ads-stat">
+        <span class="ads-stat-label">Impressions</span>
+        <span class="ads-stat-value">{{ data.totals.impressions | number }}</span>
+      </div>
+      <div class="ads-stat">
+        <span class="ads-stat-label">Clicks</span>
+        <span class="ads-stat-value">{{ data.totals.clicks | number }}</span>
+      </div>
+      <div class="ads-stat">
+        <span class="ads-stat-label">CTR</span>
+        <span class="ads-stat-value">{{ data.totals.ctr }}%</span>
+      </div>
+      <div class="ads-stat">
+        <span class="ads-stat-label">Active campaigns reporting</span>
+        <span class="ads-stat-value">{{ data.campaigns.length }}</span>
+      </div>
+    </div>
+
+    @if (data.totals.impressions === 0) {
+      <div class="ads-empty">
+        <p>No delivery recorded in this range.</p>
+      </div>
+    } @else {
+      <!-- Daily trend -->
+      <section class="ads-section" aria-label="Daily delivery">
+        <h2 class="ads-section-title">Daily impressions</h2>
+        <div class="ads-chart">
+          @for (day of data.daily; track day.date) {
+            <div
+              class="ads-chart-col"
+              [title]="
+                day.date + ': ' + day.impressions + ' impressions, ' + day.clicks + ' clicks'
+              "
+            >
+              <div class="ads-chart-bar" [style.height.%]="barHeight(day.impressions)"></div>
+            </div>
+          }
+        </div>
+        <div class="ads-chart-axis">
+          <span>{{ data.daily[0]?.date }}</span>
+          <span>{{ data.daily[data.daily.length - 1]?.date }}</span>
+        </div>
+      </section>
+
+      <!-- By campaign -->
+      <section class="ads-section" aria-label="Delivery by campaign">
+        <h2 class="ads-section-title">By campaign</h2>
+        <div class="ads-table-wrap">
+          <table class="ads-table">
+            <thead>
+              <tr>
+                <th>Campaign</th>
+                <th>Impressions</th>
+                <th>Clicks</th>
+                <th>CTR</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of data.campaigns; track row.id) {
+                <tr>
+                  <td class="ads-brand-name">{{ row.name }}</td>
+                  <td>{{ row.impressions | number }}</td>
+                  <td>{{ row.clicks | number }}</td>
+                  <td>{{ row.ctr }}%</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+
+      <!-- By creative -->
+      <section class="ads-section" aria-label="Delivery by creative">
+        <h2 class="ads-section-title">By creative</h2>
+        <div class="ads-table-wrap">
+          <table class="ads-table">
+            <thead>
+              <tr>
+                <th>Creative</th>
+                <th>Impressions</th>
+                <th>Clicks</th>
+                <th>CTR</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (row of data.creatives; track row.id) {
+                <tr>
+                  <td>{{ row.name }}</td>
+                  <td>{{ row.impressions | number }}</td>
+                  <td>{{ row.clicks | number }}</td>
+                  <td>{{ row.ctr }}%</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      </section>
+    }
+  }
+</div>

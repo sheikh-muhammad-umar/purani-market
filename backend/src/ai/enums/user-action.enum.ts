@@ -99,6 +99,17 @@ export enum UserAction {
   ADMIN_REJECTION_REASON_UPDATE = 'admin_rejection_reason_update',
   ADMIN_REJECTION_REASON_DELETE = 'admin_rejection_reason_delete',
 
+  // Advertising inventory
+  ADMIN_ADVERTISER_CREATE = 'admin_advertiser_create',
+  ADMIN_ADVERTISER_UPDATE = 'admin_advertiser_update',
+  ADMIN_ADVERTISER_DELETE = 'admin_advertiser_delete',
+  ADMIN_AD_CAMPAIGN_CREATE = 'admin_ad_campaign_create',
+  ADMIN_AD_CAMPAIGN_UPDATE = 'admin_ad_campaign_update',
+  ADMIN_AD_CAMPAIGN_DELETE = 'admin_ad_campaign_delete',
+  ADMIN_AD_CREATIVE_CREATE = 'admin_ad_creative_create',
+  ADMIN_AD_CREATIVE_UPDATE = 'admin_ad_creative_update',
+  ADMIN_AD_CREATIVE_DELETE = 'admin_ad_creative_delete',
+
   // ID Verification
   ID_VERIFICATION_SUBMIT = 'id_verification_submit',
   ADMIN_ID_VERIFICATION_APPROVE = 'admin_id_verification_approve',

@@ -194,4 +194,17 @@ export const API = {
   SHORTS_ADMIN_PACKAGES_UPDATE: (id: string) => `/shorts/admin/packages/${id}`,
   SHORTS_ADMIN_PURCHASES_CONFIRM: (id: string) => `/shorts/admin/purchases/${id}/confirm`,
   SHORTS_ADMIN_ANALYTICS: '/shorts/admin/analytics',
+  // Advertising — public delivery
+  ADS_SERVE: '/ads/serve',
+  ADS_EVENT: (creativeId: string) => `/ads/${creativeId}/events`,
+  // Advertising — admin management
+  ADS_ADMIN_ADVERTISERS: '/admin/ads/advertisers',
+  ADS_ADMIN_ADVERTISER: (id: string) => `/admin/ads/advertisers/${id}`,
+  ADS_ADMIN_CAMPAIGNS: '/admin/ads/campaigns',
+  ADS_ADMIN_CAMPAIGN: (id: string) => `/admin/ads/campaigns/${id}`,
+  ADS_ADMIN_CAMPAIGN_CREATIVES: (id: string) => `/admin/ads/campaigns/${id}/creatives`,
+  ADS_ADMIN_CREATIVES: '/admin/ads/creatives',
+  ADS_ADMIN_CREATIVE: (id: string) => `/admin/ads/creatives/${id}`,
+  ADS_ADMIN_PERFORMANCE: '/admin/ads/performance',
+  ADS_ADMIN_SYNC_STATUSES: '/admin/ads/sync-statuses',
 } as const;

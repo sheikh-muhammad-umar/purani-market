@@ -1,0 +1,246 @@
+<div class="ads-admin">
+  <div class="page-header">
+    <div>
+      <h1>Advertisers</h1>
+      <p class="page-subtitle">Brands that buy advertising space on the marketplace.</p>
+    </div>
+    <button class="btn btn-primary" (click)="openCreate()" [disabled]="saving()">
+      + Add Advertiser
+    </button>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading advertisers...</p>
+    </div>
+  }
+
+  <!-- A load failure replaces the page; save failures show inline. -->
+  @if (loadFailed()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+      <button class="btn-retry" (click)="load()">Retry</button>
+    </div>
+  }
+
+  @if (!loading() && !loadFailed()) {
+    @if (error()) {
+      <div class="ads-error-banner" role="alert">
+        <span class="material-symbols-rounded">error</span>
+        <span class="ads-error-text">{{ error() }}</span>
+        <button class="ads-error-dismiss" (click)="error.set('')" aria-label="Dismiss">✕</button>
+      </div>
+    }
+
+    <div class="ads-toolbar">
+      <input
+        type="search"
+        class="form-input"
+        placeholder="Search by brand or email..."
+        [ngModel]="search()"
+        (ngModelChange)="search.set($event)"
+        aria-label="Search advertisers"
+      />
+      <span class="ads-count">{{ filtered().length }} of {{ advertisers().length }}</span>
+    </div>
+
+    @if (filtered().length === 0) {
+      <div class="ads-empty">
+        @if (advertisers().length === 0) {
+          <p>No advertisers yet. Add the first brand to start selling space.</p>
+        } @else {
+          <p>No advertiser matches “{{ search() }}”.</p>
+        }
+      </div>
+    } @else {
+      <div class="ads-table-wrap">
+        <table class="ads-table">
+          <thead>
+            <tr>
+              <th>Brand</th>
+              <th>Contact</th>
+              <th>Website</th>
+              <th>Status</th>
+              <th class="ads-actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (advertiser of filtered(); track advertiser._id) {
+              <tr>
+                <td>
+                  <div class="ads-brand">
+                    @if (advertiser.logoUrl) {
+                      <img
+                        [src]="advertiser.logoUrl"
+                        [alt]="advertiser.name + ' logo'"
+                        class="ads-logo"
+                        loading="lazy"
+                      />
+                    }
+                    <span class="ads-brand-name">{{ advertiser.name }}</span>
+                  </div>
+                </td>
+                <td>
+                  @if (advertiser.contactName || advertiser.contactEmail) {
+                    <div class="ads-contact">
+                      @if (advertiser.contactName) {
+                        <span>{{ advertiser.contactName }}</span>
+                      }
+                      @if (advertiser.contactEmail) {
+                        <a [href]="'mailto:' + advertiser.contactEmail" class="ads-link">{{
+                          advertiser.contactEmail
+                        }}</a>
+                      }
+                      @if (advertiser.contactPhone) {
+                        <span class="ads-muted">{{ advertiser.contactPhone }}</span>
+                      }
+                    </div>
+                  } @else {
+                    <span class="ads-muted">—</span>
+                  }
+                </td>
+                <td>
+                  @if (advertiser.website) {
+                    <a
+                      [href]="advertiser.website"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      class="ads-link"
+                      >{{ advertiser.website }}</a
+                    >
+                  } @else {
+                    <span class="ads-muted">—</span>
+                  }
+                </td>
+                <td>
+                  <span class="ads-badge" [class.ads-badge-muted]="advertiser.status !== 'active'">
+                    {{ advertiser.status }}
+                  </span>
+                </td>
+                <td class="ads-actions-col">
+                  <button class="ads-action" (click)="openEdit(advertiser)" [disabled]="saving()">
+                    Edit
+                  </button>
+                  <button
+                    class="ads-action"
+                    (click)="toggleStatus(advertiser)"
+                    [disabled]="saving()"
+                  >
+                    {{ advertiser.status === 'active' ? 'Deactivate' : 'Activate' }}
+                  </button>
+                  <button
+                    class="ads-action ads-action-danger"
+                    (click)="requestDelete(advertiser)"
+                    [disabled]="saving()"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
+
+<!-- Create / edit form -->
+@if (formOpen()) {
+  <div class="ads-overlay" (click)="closeForm()" aria-hidden="true"></div>
+  <div
+    class="ads-dialog"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="advertiser-form-title"
+    (click)="$event.stopPropagation()"
+  >
+    <h3 id="advertiser-form-title">{{ editing() ? 'Edit' : 'Add' }} advertiser</h3>
+
+    <div class="form-group">
+      <label for="adv-name">Brand name *</label>
+      <input id="adv-name" class="form-input" [(ngModel)]="form.name" placeholder="e.g. Toyota" />
+    </div>
+
+    <div class="ads-form-row">
+      <div class="form-group">
+        <label for="adv-contact">Contact name</label>
+        <input id="adv-contact" class="form-input" [(ngModel)]="form.contactName" />
+      </div>
+      <div class="form-group">
+        <label for="adv-email">Contact email</label>
+        <input id="adv-email" type="email" class="form-input" [(ngModel)]="form.contactEmail" />
+      </div>
+    </div>
+
+    <div class="ads-form-row">
+      <div class="form-group">
+        <label for="adv-phone">Contact phone</label>
+        <input id="adv-phone" class="form-input" [(ngModel)]="form.contactPhone" />
+      </div>
+      <div class="form-group">
+        <label for="adv-status">Status</label>
+        <select id="adv-status" class="form-input" [(ngModel)]="form.status">
+          <option value="active">Active</option>
+          <option value="inactive">Inactive</option>
+        </select>
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="adv-website">Website</label>
+      <input
+        id="adv-website"
+        class="form-input"
+        [(ngModel)]="form.website"
+        placeholder="https://brand.example.com"
+      />
+      <span class="form-hint">Include https:// — the API rejects a bare domain.</span>
+    </div>
+
+    <div class="form-group">
+      <label for="adv-logo">Logo URL</label>
+      <input
+        id="adv-logo"
+        class="form-input"
+        [(ngModel)]="form.logoUrl"
+        placeholder="https://cdn.example.com/logo.png"
+      />
+    </div>
+
+    <div class="form-group">
+      <label for="adv-notes">Internal notes</label>
+      <textarea id="adv-notes" class="form-input" rows="3" [(ngModel)]="form.notes"></textarea>
+    </div>
+
+    <div class="ads-dialog-actions">
+      <button class="btn btn-ghost" (click)="closeForm()" [disabled]="saving()">Cancel</button>
+      <button class="btn btn-primary" (click)="save()" [disabled]="!canSave">
+        {{ saving() ? 'Saving...' : editing() ? 'Save changes' : 'Create' }}
+      </button>
+    </div>
+  </div>
+}
+
+<!-- Delete confirmation -->
+@if (pendingDelete(); as target) {
+  <div class="ads-overlay" (click)="cancelDelete()" aria-hidden="true"></div>
+  <div
+    class="ads-dialog ads-dialog-sm"
+    role="dialog"
+    aria-modal="true"
+    aria-labelledby="advertiser-delete-title"
+  >
+    <h3 id="advertiser-delete-title">Delete “{{ target.name }}”?</h3>
+    <p class="ads-dialog-body">
+      This cannot be undone. An advertiser that still has campaigns cannot be deleted.
+    </p>
+    <div class="ads-dialog-actions">
+      <button class="btn btn-ghost" (click)="cancelDelete()" [disabled]="saving()">Cancel</button>
+      <button class="btn btn-danger" (click)="confirmDelete()" [disabled]="saving()">
+        {{ saving() ? 'Deleting...' : 'Delete' }}
+      </button>
+    </div>
+  </div>
+}

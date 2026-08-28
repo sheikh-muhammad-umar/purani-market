@@ -32,6 +32,33 @@ export const ADMIN_ROUTES: Routes = [
           import('./categories/category-manager.component').then((m) => m.CategoryManagerComponent),
       },
       {
+        path: 'advertising',
+        children: [
+          { path: '', redirectTo: 'campaigns', pathMatch: 'full' },
+          {
+            path: 'campaigns',
+            loadComponent: () =>
+              import('./advertising/ad-campaign-manager.component').then(
+                (m) => m.AdCampaignManagerComponent,
+              ),
+          },
+          {
+            path: 'advertisers',
+            loadComponent: () =>
+              import('./advertising/advertiser-manager.component').then(
+                (m) => m.AdvertiserManagerComponent,
+              ),
+          },
+          {
+            path: 'performance',
+            loadComponent: () =>
+              import('./advertising/ad-performance.component').then(
+                (m) => m.AdPerformanceComponent,
+              ),
+          },
+        ],
+      },
+      {
         path: 'brands',
         loadComponent: () =>
           import('./brands/brand-manager.component').then((m) => m.BrandManagerComponent),

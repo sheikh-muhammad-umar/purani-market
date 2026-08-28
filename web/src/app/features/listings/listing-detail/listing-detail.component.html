@@ -279,6 +279,10 @@
           </div>
         </div>
 
+        <!-- Sponsored. Placed after the listing's own detail so it never
+             competes with the content the visitor came for. -->
+        <app-ad-slot placement="listing_detail" variant="leaderboard" [categoryId]="l.categoryId" />
+
         <!-- Similar Items -->
         @if (similarListings().length > 0) {
           <div class="detail-section">

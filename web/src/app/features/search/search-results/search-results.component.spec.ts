@@ -4,6 +4,7 @@ import { convertToParamMap, ParamMap } from '@angular/router';
 import { Injector, runInInjectionContext, PLATFORM_ID } from '@angular/core';
 import { SearchResultsComponent, SortOption, ActiveFilter } from './search-results.component';
 import { ListingImagePipe } from '../../../shared/pipes/listing-image.pipe';
+import { AdvertisingService } from '../../../core/services/advertising.service';
 import { ExperimentsService } from '../../../core/services/experiments.service';
 import {
   SearchService,
@@ -82,6 +83,11 @@ describe('SearchResultsComponent', () => {
   let recentSearchesMock: { add: ReturnType<typeof vi.fn>; getAll: ReturnType<typeof vi.fn> };
   let trackerMock: { track: ReturnType<typeof vi.fn> };
   let brandsServiceMock: { getByCategory: ReturnType<typeof vi.fn> };
+  let advertisingServiceMock: {
+    serve: ReturnType<typeof vi.fn>;
+    recordEvent: ReturnType<typeof vi.fn>;
+    sessionId: ReturnType<typeof vi.fn>;
+  };
   let experimentsServiceMock: {
     getAssignments: ReturnType<typeof vi.fn>;
     getVariant: ReturnType<typeof vi.fn>;
@@ -149,6 +155,12 @@ describe('SearchResultsComponent', () => {
     recentSearchesMock = { add: vi.fn(), getAll: vi.fn().mockReturnValue([]) };
     trackerMock = { track: vi.fn() };
     brandsServiceMock = { getByCategory: vi.fn().mockReturnValue(of([])) };
+    advertisingServiceMock = {
+      serve: vi.fn().mockReturnValue(of([])),
+      recordEvent: vi.fn().mockReturnValue(of(undefined)),
+      sessionId: vi.fn().mockReturnValue('test-session'),
+    };
+
     experimentsServiceMock = {
       getAssignments: vi.fn().mockReturnValue(of([])),
       getVariant: vi.fn().mockReturnValue(null),
@@ -176,7 +188,7 @@ describe('SearchResultsComponent', () => {
           trackerMock as unknown as ActivityTrackerService,
           brandsServiceMock as unknown as BrandsService,
           experimentsServiceMock as unknown as ExperimentsService,
-          experimentsServiceMock as unknown as ExperimentsService,
+          advertisingServiceMock as unknown as AdvertisingService,
         ),
     );
   });
@@ -436,6 +448,7 @@ describe('SearchResultsComponent', () => {
           trackerMock as unknown as ActivityTrackerService,
           brandsServiceMock as unknown as BrandsService,
           experimentsServiceMock as unknown as ExperimentsService,
+          advertisingServiceMock as unknown as AdvertisingService,
         ),
     );
     component.ngOnInit();
@@ -461,6 +474,7 @@ describe('SearchResultsComponent', () => {
           trackerMock as unknown as ActivityTrackerService,
           brandsServiceMock as unknown as BrandsService,
           experimentsServiceMock as unknown as ExperimentsService,
+          advertisingServiceMock as unknown as AdvertisingService,
         ),
     );
     component.ngOnInit();
@@ -494,6 +508,7 @@ describe('SearchResultsComponent', () => {
           trackerMock as unknown as ActivityTrackerService,
           brandsServiceMock as unknown as BrandsService,
           experimentsServiceMock as unknown as ExperimentsService,
+          advertisingServiceMock as unknown as AdvertisingService,
         ),
     );
     component.ngOnInit();
@@ -519,6 +534,7 @@ describe('SearchResultsComponent', () => {
           trackerMock as unknown as ActivityTrackerService,
           brandsServiceMock as unknown as BrandsService,
           experimentsServiceMock as unknown as ExperimentsService,
+          advertisingServiceMock as unknown as AdvertisingService,
         ),
     );
     component.ngOnInit();
@@ -542,6 +558,7 @@ describe('SearchResultsComponent', () => {
           trackerMock as unknown as ActivityTrackerService,
           brandsServiceMock as unknown as BrandsService,
           experimentsServiceMock as unknown as ExperimentsService,
+          advertisingServiceMock as unknown as AdvertisingService,
         ),
     );
     component.ngOnInit();

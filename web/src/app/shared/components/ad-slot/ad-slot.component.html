@@ -1,0 +1,77 @@
+<!--
+  Nothing renders until an ad is available, so an unsold slot collapses instead
+  of leaving an empty frame in the layout.
+-->
+@if (ad(); as creative) {
+  <div
+    #slotRoot
+    class="ad-slot"
+    [class.ad-leaderboard]="variant() === 'leaderboard'"
+    [class.ad-inline]="variant() === 'inline'"
+    [class.ad-native]="variant() === 'native'"
+  >
+    @if (creative.routeLink) {
+      <a
+        class="ad-link"
+        [routerLink]="creative.routeLink"
+        (click)="onAdClick()"
+        [attr.aria-label]="creative.altText"
+      >
+        <ng-container *ngTemplateOutlet="body; context: { $implicit: creative }" />
+      </a>
+    } @else {
+      <a
+        class="ad-link"
+        [href]="creative.destinationUrl"
+        target="_blank"
+        rel="noopener noreferrer sponsored"
+        (click)="onAdClick()"
+        [attr.aria-label]="creative.altText"
+      >
+        <ng-container *ngTemplateOutlet="body; context: { $implicit: creative }" />
+      </a>
+    }
+  </div>
+}
+
+<ng-template #body let-creative>
+  @if (variant() === 'native') {
+    <!-- Listing-shaped card so it sits naturally in a results grid, but clearly
+         marked so it is never mistaken for an organic listing. -->
+    <figure class="ad-native-card">
+      <div class="ad-native-media">
+        <img
+          [src]="activeImage()"
+          [alt]="creative.altText"
+          class="ad-native-image"
+          loading="lazy"
+          decoding="async"
+        />
+        <span class="ad-badge">Sponsored</span>
+      </div>
+      <figcaption class="ad-native-body">
+        <p class="ad-native-title">{{ creative.title }}</p>
+        @if (creative.body) {
+          <p class="ad-native-text">{{ creative.body }}</p>
+        }
+        <p class="ad-native-meta">
+          @if (creative.advertiserName) {
+            <span class="ad-native-brand">{{ creative.advertiserName }}</span>
+          }
+          @if (creative.ctaLabel) {
+            <span class="ad-native-cta">{{ creative.ctaLabel }}</span>
+          }
+        </p>
+      </figcaption>
+    </figure>
+  } @else {
+    <img
+      [src]="activeImage()"
+      [alt]="creative.altText"
+      class="ad-image"
+      loading="lazy"
+      decoding="async"
+    />
+    <span class="ad-badge">Ad</span>
+  }
+</ng-template>

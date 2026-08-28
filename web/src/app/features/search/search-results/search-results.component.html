@@ -1,13 +1,7 @@
 <div class="search-page">
-  <!-- Top of page banner -->
+  <!-- Top of page banner. Collapses when the slot is unsold. -->
   <div class="ad-banner-wrap">
-    <app-ad-banner
-      src="https://placehold.co/728x90/0da5c3/FFFFFF/png?text=AD+Banner"
-      mobileSrc="https://placehold.co/320x100/0da5c3/FFFFFF/png?text=AD+Banner"
-      alt="AD+Banner"
-      href="https://placehold.co/728x90/0da5c3/FFFFFF/png?text=AD+Banner"
-      variant="leaderboard"
-    />
+    <app-ad-slot placement="search_top" variant="leaderboard" [categoryId]="selectedCategoryId()" />
   </div>
 
   <!-- Active Filters Chips -->
@@ -469,6 +463,9 @@
             </div>
           }
         }
+
+        <!-- Sponsored panel at the foot of the filters, desktop sidebar only. -->
+        <app-ad-slot placement="sidebar" variant="inline" [categoryId]="selectedCategoryId()" />
       </div>
 
       @if (mobileFiltersOpen()) {
@@ -563,7 +560,7 @@
           </section>
         }
 
-        <!-- Regular Results -->
+        <!-- Regular Results, with sponsored cards interleaved -->
         <div class="auto-grid" [class.force-single]="mobileColumns() === 1" role="list">
           @for (listing of results(); track listing._id; let idx = $index) {
             <app-listing-card
@@ -573,6 +570,14 @@
               (click)="onResultClick(listing._id, idx)"
               [showCondition]="false"
             />
+            @if (inFeedAdAfter(idx); as sponsored) {
+              <app-ad-slot
+                role="listitem"
+                placement="in_feed"
+                variant="native"
+                [preloaded]="sponsored"
+              />
+            }
           }
         </div>
 

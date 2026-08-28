@@ -1,0 +1,651 @@
+<div class="ads-admin">
+  <div class="page-header">
+    <div>
+      <h1>Ad Campaigns</h1>
+      <p class="page-subtitle">Schedule, target and cap the ads that run across the marketplace.</p>
+    </div>
+    <div class="ads-header-actions">
+      <button class="btn btn-outline" (click)="syncStatuses()" [disabled]="saving()">
+        Sync statuses
+      </button>
+      <button class="btn btn-primary" (click)="openCreateCampaign()" [disabled]="saving()">
+        + New Campaign
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state">
+      <div class="spinner"></div>
+      <p>Loading campaigns...</p>
+    </div>
+  }
+
+  @if (loadFailed()) {
+    <div class="error-state">
+      <p>{{ error() }}</p>
+      <button class="btn-retry" (click)="load()">Retry</button>
+    </div>
+  }
+
+  @if (!loading() && !loadFailed()) {
+    @if (error()) {
+      <div class="ads-error-banner" role="alert">
+        <span class="material-symbols-rounded">error</span>
+        <span class="ads-error-text">{{ error() }}</span>
+        <button class="ads-error-dismiss" (click)="error.set('')" aria-label="Dismiss">✕</button>
+      </div>
+    }
+
+    <div class="ads-filters">
+      <select
+        class="form-input"
+        [ngModel]="filterStatus()"
+        (ngModelChange)="filterStatus.set($event)"
+        aria-label="Filter by status"
+      >
+        <option value="">All statuses</option>
+        @for (status of statusOptions; track status) {
+          <option [value]="status">{{ STATUS_LABELS[status] }}</option>
+        }
+      </select>
+      <select
+        class="form-input"
+        [ngModel]="filterAdvertiser()"
+        (ngModelChange)="filterAdvertiser.set($event)"
+        aria-label="Filter by advertiser"
+      >
+        <option value="">All advertisers</option>
+        @for (advertiser of advertisers(); track advertiser._id) {
+          <option [value]="advertiser._id">{{ advertiser.name }}</option>
+        }
+      </select>
+      <span class="ads-count"
+        >{{ filteredCampaigns().length }} of {{ campaigns().length }} campaigns</span
+      >
+    </div>
+
+    @if (advertisers().length === 0) {
+      <div class="ads-empty">
+        <p>Add an advertiser first — a campaign has to belong to a brand.</p>
+      </div>
+    } @else if (filteredCampaigns().length === 0) {
+      <div class="ads-empty">
+        <p>No campaign matches these filters.</p>
+      </div>
+    } @else {
+      <div class="ads-table-wrap">
+        <table class="ads-table">
+          <thead>
+            <tr>
+              <th>Campaign</th>
+              <th>Placements</th>
+              <th>Flight</th>
+              <th>Delivery</th>
+              <th>Status</th>
+              <th class="ads-actions-col">Actions</th>
+            </tr>
+          </thead>
+          <tbody>
+            @for (campaign of filteredCampaigns(); track campaign._id) {
+              <tr>
+                <td>
+                  <span class="ads-brand-name">{{ campaign.name }}</span>
+                  <span class="ads-progress">{{ advertiserName(campaign.advertiserId) }}</span>
+                </td>
+                <td>
+                  <div class="ads-chip-list">
+                    @for (placement of campaign.targeting.placements; track placement) {
+                      <span class="ads-chip">{{ PLACEMENT_LABELS[placement] }}</span>
+                    }
+                  </div>
+                  @if (campaign.targeting.categoryIds.length > 0) {
+                    <span class="ads-progress"
+                      >{{ campaign.targeting.categoryIds.length }} category restriction(s)</span
+                    >
+                  }
+                  @if (campaign.targeting.devices.length > 0) {
+                    <span class="ads-progress">{{ campaign.targeting.devices.join(', ') }}</span>
+                  }
+                </td>
+                <td>
+                  <span>{{ campaign.startAt | date: 'mediumDate' }}</span>
+                  <span class="ads-progress">to {{ campaign.endAt | date: 'mediumDate' }}</span>
+                </td>
+                <td>
+                  <span
+                    >{{ campaign.metrics.impressions }} impr ·
+                    {{ campaign.metrics.clicks }} clicks</span
+                  >
+                  <span class="ads-progress">CTR {{ ctr(campaign) }}</span>
+                  <span class="ads-progress">{{ capSummary(campaign) }}</span>
+                </td>
+                <td>
+                  <span class="ads-badge" [class]="'ads-badge ' + statusClass(campaign.status)">
+                    {{ STATUS_LABELS[campaign.status] }}
+                  </span>
+                  <span class="ads-progress">priority {{ campaign.priority }}</span>
+                </td>
+                <td class="ads-actions-col">
+                  <button class="ads-action" (click)="toggleCreatives(campaign)">
+                    {{ expandedCampaignId() === campaign._id ? 'Hide' : 'Creatives' }}
+                  </button>
+                  <button
+                    class="ads-action"
+                    (click)="openEditCampaign(campaign)"
+                    [disabled]="saving()"
+                  >
+                    Edit
+                  </button>
+                  @if (campaign.status === 'active') {
+                    <button
+                      class="ads-action"
+                      (click)="setStatus(campaign, 'paused')"
+                      [disabled]="saving()"
+                    >
+                      Pause
+                    </button>
+                  } @else if (campaign.status === 'paused' || campaign.status === 'draft') {
+                    <button
+                      class="ads-action"
+                      (click)="setStatus(campaign, 'active')"
+                      [disabled]="saving()"
+                    >
+                      Activate
+                    </button>
+                  }
+                  <button
+                    class="ads-action ads-action-danger"
+                    (click)="requestDeleteCampaign(campaign)"
+                    [disabled]="saving()"
+                  >
+                    Delete
+                  </button>
+                </td>
+              </tr>
+
+              <!-- Creatives for the expanded campaign -->
+              @if (expandedCampaignId() === campaign._id) {
+                <tr class="ads-subrow">
+                  <td colspan="6">
+                    <div class="ads-subhead">
+                      <h4>Creatives — {{ campaign.name }}</h4>
+                      <button
+                        class="btn btn-outline btn-sm"
+                        (click)="openCreateCreative()"
+                        [disabled]="saving()"
+                      >
+                        + Add creative
+                      </button>
+                    </div>
+
+                    @if (creativesLoading()) {
+                      <p class="ads-muted">Loading creatives...</p>
+                    } @else if (creatives().length === 0) {
+                      <p class="ads-muted">
+                        No creatives yet. A campaign with no creative cannot serve.
+                      </p>
+                    } @else {
+                      <div class="ads-creative-grid">
+                        @for (creative of creatives(); track creative._id) {
+                          <div class="ads-creative">
+                            <img
+                              [src]="creative.imageUrl"
+                              [alt]="creative.altText"
+                              class="ads-creative-image"
+                              loading="lazy"
+                            />
+                            <div class="ads-creative-body">
+                              <p class="ads-creative-title">{{ creative.title }}</p>
+                              <span class="ads-chip">{{
+                                PLACEMENT_LABELS[creative.placement]
+                              }}</span>
+                              <span class="ads-progress"
+                                >{{ creative.metrics.impressions }} impr ·
+                                {{ creative.metrics.clicks }} clicks · weight
+                                {{ creative.weight }}</span
+                              >
+                              <span class="ads-progress ads-creative-dest">
+                                {{ creative.destinationUrl || creative.routeLink }}
+                              </span>
+                              <div class="ads-creative-actions">
+                                <button
+                                  class="ads-action"
+                                  (click)="openEditCreative(creative)"
+                                  [disabled]="saving()"
+                                >
+                                  Edit
+                                </button>
+                                <button
+                                  class="ads-action"
+                                  (click)="toggleCreativeActive(creative)"
+                                  [disabled]="saving()"
+                                >
+                                  {{ creative.isActive ? 'Pause' : 'Resume' }}
+                                </button>
+                                <button
+                                  class="ads-action ads-action-danger"
+                                  (click)="requestDeleteCreative(creative)"
+                                  [disabled]="saving()"
+                                >
+                                  Delete
+                                </button>
+                              </div>
+                            </div>
+                            @if (!creative.isActive) {
+                              <span class="ads-badge ads-badge-muted ads-creative-flag"
+                                >paused</span
+                              >
+                            }
+                          </div>
+                        }
+                      </div>
+                    }
+                  </td>
+                </tr>
+              }
+            }
+          </tbody>
+        </table>
+      </div>
+    }
+  }
+</div>
+
+<!-- Campaign form -->
+@if (campaignFormOpen()) {
+  <div class="ads-overlay" (click)="closeCampaignForm()" aria-hidden="true"></div>
+  <div class="ads-dialog" role="dialog" aria-modal="true" aria-labelledby="campaign-form-title">
+    <h3 id="campaign-form-title">{{ editingCampaign() ? 'Edit' : 'New' }} campaign</h3>
+
+    <div class="ads-form-row">
+      <div class="form-group">
+        <label for="camp-advertiser">Advertiser *</label>
+        <select id="camp-advertiser" class="form-input" [(ngModel)]="campaignForm.advertiserId">
+          <option value="">Select a brand</option>
+          @for (advertiser of advertisers(); track advertiser._id) {
+            <option [value]="advertiser._id">{{ advertiser.name }}</option>
+          }
+        </select>
+      </div>
+      <div class="form-group">
+        <label for="camp-name">Campaign name *</label>
+        <input id="camp-name" class="form-input" [(ngModel)]="campaignForm.name" />
+      </div>
+    </div>
+
+    <div class="ads-form-row">
+      <div class="form-group">
+        <label for="camp-start">Starts *</label>
+        <input
+          id="camp-start"
+          type="datetime-local"
+          class="form-input"
+          [(ngModel)]="campaignForm.startAt"
+        />
+      </div>
+      <div class="form-group">
+        <label for="camp-end">Ends *</label>
+        <input
+          id="camp-end"
+          type="datetime-local"
+          class="form-input"
+          [(ngModel)]="campaignForm.endAt"
+        />
+      </div>
+    </div>
+
+    <div class="ads-form-row">
+      <div class="form-group">
+        <label for="camp-status">Status</label>
+        <select id="camp-status" class="form-input" [(ngModel)]="campaignForm.status">
+          @for (status of statusOptions; track status) {
+            <option [value]="status">{{ STATUS_LABELS[status] }}</option>
+          }
+        </select>
+        <span class="form-hint">Only “Active” campaigns are served.</span>
+      </div>
+      <div class="form-group">
+        <label for="camp-priority">Priority (1–100)</label>
+        <input
+          id="camp-priority"
+          type="number"
+          min="1"
+          max="100"
+          class="form-input"
+          [(ngModel)]="campaignForm.priority"
+        />
+        <span class="form-hint">Higher wins more often when campaigns compete.</span>
+      </div>
+    </div>
+
+    <fieldset class="ads-fieldset">
+      <legend>Placements *</legend>
+      <div class="ads-checkbox-grid">
+        @for (placement of placementOptions; track placement) {
+          <label class="ads-checkbox">
+            <input
+              type="checkbox"
+              [checked]="campaignForm.placements.includes(placement)"
+              (change)="togglePlacement(placement)"
+            />
+            {{ PLACEMENT_LABELS[placement] }}
+          </label>
+        }
+      </div>
+    </fieldset>
+
+    <fieldset class="ads-fieldset">
+      <legend>Targeting</legend>
+      <p class="form-hint" style="margin-bottom: var(--space-1)">
+        Leave a section empty to place no restriction on it.
+      </p>
+
+      <label class="ads-sublabel">Devices</label>
+      <div class="ads-checkbox-grid">
+        @for (device of deviceOptions; track device) {
+          <label class="ads-checkbox">
+            <input
+              type="checkbox"
+              [checked]="campaignForm.devices.includes(device)"
+              (change)="toggleDevice(device)"
+            />
+            {{ device }}
+          </label>
+        }
+      </div>
+
+      <label class="ads-sublabel">Provinces</label>
+      <div class="ads-checkbox-grid ads-scroll-box">
+        @for (province of provinces(); track province._id) {
+          <label class="ads-checkbox">
+            <input
+              type="checkbox"
+              [checked]="campaignForm.provinceIds.includes(province._id)"
+              (change)="toggleProvince(province._id)"
+            />
+            {{ province.name }}
+          </label>
+        }
+      </div>
+
+      <label class="ads-sublabel">Categories</label>
+      <div class="ads-checkbox-grid ads-scroll-box">
+        @for (category of categories(); track category._id) {
+          <label class="ads-checkbox">
+            <input
+              type="checkbox"
+              [checked]="campaignForm.categoryIds.includes(category._id)"
+              (change)="toggleCategory(category._id)"
+            />
+            {{ category.name }} <span class="ads-muted">L{{ category.level }}</span>
+          </label>
+        }
+      </div>
+      <span class="form-hint">Targeting a parent category also covers its children.</span>
+    </fieldset>
+
+    <fieldset class="ads-fieldset">
+      <legend>Budget and caps</legend>
+      <div class="ads-form-row">
+        <div class="form-group">
+          <label for="camp-pricing">Pricing model</label>
+          <select id="camp-pricing" class="form-input" [(ngModel)]="campaignForm.pricingModel">
+            @for (model of pricingOptions; track model) {
+              <option [value]="model">{{ model.toUpperCase() }}</option>
+            }
+          </select>
+        </div>
+        <div class="form-group">
+          <label for="camp-budget">Budget</label>
+          <input
+            id="camp-budget"
+            type="number"
+            min="0"
+            class="form-input"
+            [(ngModel)]="campaignForm.budgetAmount"
+          />
+        </div>
+      </div>
+      <div class="ads-form-row">
+        <div class="form-group">
+          <label for="camp-max-impr">Max impressions</label>
+          <input
+            id="camp-max-impr"
+            type="number"
+            min="0"
+            class="form-input"
+            [(ngModel)]="campaignForm.maxImpressions"
+          />
+          <span class="form-hint">0 means no cap.</span>
+        </div>
+        <div class="form-group">
+          <label for="camp-max-clicks">Max clicks</label>
+          <input
+            id="camp-max-clicks"
+            type="number"
+            min="0"
+            class="form-input"
+            [(ngModel)]="campaignForm.maxClicks"
+          />
+          <span class="form-hint">0 means no cap.</span>
+        </div>
+      </div>
+      <div class="form-group">
+        <label for="camp-daily">Daily impression cap</label>
+        <input
+          id="camp-daily"
+          type="number"
+          min="0"
+          class="form-input"
+          [(ngModel)]="campaignForm.dailyImpressionCap"
+        />
+        <span class="form-hint">Spreads delivery across the flight. 0 means no cap.</span>
+      </div>
+    </fieldset>
+
+    @if (campaignFormError()) {
+      <p class="ads-form-error" role="alert">{{ campaignFormError() }}</p>
+    }
+
+    <div class="ads-dialog-actions">
+      <button class="btn btn-ghost" (click)="closeCampaignForm()" [disabled]="saving()">
+        Cancel
+      </button>
+      <button
+        class="btn btn-primary"
+        (click)="saveCampaign()"
+        [disabled]="saving() || campaignFormError() !== ''"
+      >
+        {{ saving() ? 'Saving...' : editingCampaign() ? 'Save changes' : 'Create campaign' }}
+      </button>
+    </div>
+  </div>
+}
+
+<!-- Creative form -->
+@if (creativeFormOpen()) {
+  <div class="ads-overlay" (click)="closeCreativeForm()" aria-hidden="true"></div>
+  <div class="ads-dialog" role="dialog" aria-modal="true" aria-labelledby="creative-form-title">
+    <h3 id="creative-form-title">{{ editingCreative() ? 'Edit' : 'New' }} creative</h3>
+
+    <div class="ads-form-row">
+      <div class="form-group">
+        <label for="cr-placement">Placement *</label>
+        <select id="cr-placement" class="form-input" [(ngModel)]="creativeForm.placement">
+          <option value="">Select a placement</option>
+          @for (placement of availablePlacements(); track placement) {
+            <option [value]="placement">{{ PLACEMENT_LABELS[placement] }}</option>
+          }
+        </select>
+        <span class="form-hint">Only placements this campaign bought are offered.</span>
+      </div>
+      <div class="form-group">
+        <label for="cr-weight">Rotation weight (1–100)</label>
+        <input
+          id="cr-weight"
+          type="number"
+          min="1"
+          max="100"
+          class="form-input"
+          [(ngModel)]="creativeForm.weight"
+        />
+      </div>
+    </div>
+
+    <div class="form-group">
+      <label for="cr-title">Title *</label>
+      <input id="cr-title" class="form-input" [(ngModel)]="creativeForm.title" />
+    </div>
+
+    <div class="form-group">
+      <label for="cr-body">Body (native placements)</label>
+      <input id="cr-body" class="form-input" [(ngModel)]="creativeForm.body" />
+    </div>
+
+    <div class="form-group">
+      <label for="cr-image">Image URL *</label>
+      <input
+        id="cr-image"
+        class="form-input"
+        [(ngModel)]="creativeForm.imageUrl"
+        placeholder="https://cdn.example.com/banner-728x90.png"
+      />
+      <span class="form-hint">728×90 for banners, 4:3 for in-feed cards.</span>
+    </div>
+
+    <div class="form-group">
+      <label for="cr-image-mobile">Mobile image URL</label>
+      <input
+        id="cr-image-mobile"
+        class="form-input"
+        [(ngModel)]="creativeForm.mobileImageUrl"
+        placeholder="https://cdn.example.com/banner-320x100.png"
+      />
+      <span class="form-hint">Falls back to the main image when empty.</span>
+    </div>
+
+    <div class="form-group">
+      <label for="cr-alt">Alt text *</label>
+      <input id="cr-alt" class="form-input" [(ngModel)]="creativeForm.altText" />
+      <span class="form-hint">Describes the ad for screen readers.</span>
+    </div>
+
+    <fieldset class="ads-fieldset">
+      <legend>Destination</legend>
+      <div class="ads-checkbox-grid">
+        <label class="ads-checkbox">
+          <input
+            type="radio"
+            name="destKind"
+            value="external"
+            [(ngModel)]="creativeForm.destinationKind"
+          />
+          Advertiser website
+        </label>
+        <label class="ads-checkbox">
+          <input
+            type="radio"
+            name="destKind"
+            value="internal"
+            [(ngModel)]="creativeForm.destinationKind"
+          />
+          Somewhere in this app
+        </label>
+      </div>
+
+      @if (creativeForm.destinationKind === 'external') {
+        <div class="form-group">
+          <label for="cr-dest">Destination URL *</label>
+          <input
+            id="cr-dest"
+            class="form-input"
+            [(ngModel)]="creativeForm.destinationUrl"
+            placeholder="https://brand.example.com/offer"
+          />
+        </div>
+      } @else {
+        <div class="form-group">
+          <label for="cr-route">Internal route *</label>
+          <input
+            id="cr-route"
+            class="form-input"
+            [(ngModel)]="creativeForm.routeLink"
+            placeholder="/search?category=cars"
+          />
+        </div>
+      }
+    </fieldset>
+
+    <div class="ads-form-row">
+      <div class="form-group">
+        <label for="cr-cta">CTA label</label>
+        <input
+          id="cr-cta"
+          class="form-input"
+          [(ngModel)]="creativeForm.ctaLabel"
+          placeholder="Shop now"
+        />
+      </div>
+      <div class="form-group">
+        <label class="ads-checkbox" style="margin-top: 26px">
+          <input type="checkbox" [(ngModel)]="creativeForm.isActive" />
+          Active
+        </label>
+      </div>
+    </div>
+
+    @if (creativeFormError()) {
+      <p class="ads-form-error" role="alert">{{ creativeFormError() }}</p>
+    }
+
+    <div class="ads-dialog-actions">
+      <button class="btn btn-ghost" (click)="closeCreativeForm()" [disabled]="saving()">
+        Cancel
+      </button>
+      <button
+        class="btn btn-primary"
+        (click)="saveCreative()"
+        [disabled]="saving() || creativeFormError() !== ''"
+      >
+        {{ saving() ? 'Saving...' : editingCreative() ? 'Save changes' : 'Create creative' }}
+      </button>
+    </div>
+  </div>
+}
+
+<!-- Delete confirmations -->
+@if (pendingDeleteCampaign(); as target) {
+  <div class="ads-overlay" (click)="cancelDeleteCampaign()" aria-hidden="true"></div>
+  <div class="ads-dialog ads-dialog-sm" role="dialog" aria-modal="true">
+    <h3>Delete “{{ target.name }}”?</h3>
+    <p class="ads-dialog-body">
+      Its creatives are deleted with it. Delivery already recorded stays in reporting. This cannot
+      be undone.
+    </p>
+    <div class="ads-dialog-actions">
+      <button class="btn btn-ghost" (click)="cancelDeleteCampaign()" [disabled]="saving()">
+        Cancel
+      </button>
+      <button class="btn btn-danger" (click)="confirmDeleteCampaign()" [disabled]="saving()">
+        {{ saving() ? 'Deleting...' : 'Delete campaign' }}
+      </button>
+    </div>
+  </div>
+}
+
+@if (pendingDeleteCreative(); as target) {
+  <div class="ads-overlay" (click)="cancelDeleteCreative()" aria-hidden="true"></div>
+  <div class="ads-dialog ads-dialog-sm" role="dialog" aria-modal="true">
+    <h3>Delete “{{ target.title }}”?</h3>
+    <p class="ads-dialog-body">This cannot be undone.</p>
+    <div class="ads-dialog-actions">
+      <button class="btn btn-ghost" (click)="cancelDeleteCreative()" [disabled]="saving()">
+        Cancel
+      </button>
+      <button class="btn btn-danger" (click)="confirmDeleteCreative()" [disabled]="saving()">
+        {{ saving() ? 'Deleting...' : 'Delete creative' }}
+      </button>
+    </div>
+  </div>
+}

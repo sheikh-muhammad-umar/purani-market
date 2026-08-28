@@ -3,6 +3,8 @@ import {
   OnInit,
   OnDestroy,
   Input,
+  Injector,
+  afterNextRender,
   signal,
   computed,
   PLATFORM_ID,
@@ -51,6 +53,7 @@ import {
 })
 export class AppLoaderComponent implements OnInit, OnDestroy {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly injector = inject(Injector);
 
   @Input() mode: LoaderMode = 'splash';
   @Input() loading = true;
@@ -101,7 +104,7 @@ export class AppLoaderComponent implements OnInit, OnDestroy {
     // Only show splash once per session — skip on refresh/navigation
     try {
       if (sessionStorage.getItem(SPLASH_SHOWN_KEY)) {
-        this.visible.set(false);
+        this.hideAfterFirstRender();
         return;
       }
       sessionStorage.setItem(SPLASH_SHOWN_KEY, '1');
@@ -152,6 +155,26 @@ export class AppLoaderComponent implements OnInit, OnDestroy {
       clearTimeout(this.entranceTimeout);
       this.entranceTimeout = null;
     }
+  }
+
+  /**
+   * Hides an already-seen splash *after* the first render instead of during
+   * `ngOnInit`.
+   *
+   * The server always renders the overlay, because `ngOnInit` bails out when it
+   * is not running in a browser. Clearing `visible` before the first change
+   * detection pass therefore makes the client skip the `@if` branch the server
+   * took, and Angular treats the server's markup as a dehydrated view — removed
+   * only by `cleanupDehydratedViews()`, which runs after
+   * `ApplicationRef.whenStable()`. Anything that keeps the app unstable then
+   * strands the overlay on screen indefinitely.
+   *
+   * Letting the first pass agree with the server means the view is hydrated
+   * normally, so hiding it afterwards is an ordinary view destruction that
+   * depends on nothing outside this component.
+   */
+  private hideAfterFirstRender(): void {
+    afterNextRender(() => this.visible.set(false), { injector: this.injector });
   }
 
   private dismiss(): void {

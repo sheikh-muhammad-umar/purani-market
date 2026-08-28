@@ -32,6 +32,9 @@
   </section>
 
   <div class="home-sections stack">
+    <!-- Sponsored banner. Collapses entirely when the slot is unsold. -->
+    <app-ad-slot placement="home_top" variant="leaderboard" />
+
     <!-- ===== Browse by category ===== -->
     <section aria-label="Browse categories">
       <app-section-header
@@ -110,6 +113,8 @@
         </div>
       }
     </section>
+
+    <app-ad-slot placement="home_mid" variant="leaderboard" />
 
     <!-- ===== Shorts ===== -->
     @if (loadingShorts() || shorts().length > 0) {

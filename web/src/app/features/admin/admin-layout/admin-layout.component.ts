@@ -52,6 +52,28 @@ export class AdminLayoutComponent {
             { label: 'Purchases', icon: 'receipt_long', path: ROUTES.ADMIN_PACKAGES_PURCHASES },
           ],
         },
+        {
+          label: 'Advertising',
+          icon: 'campaign',
+          path: ROUTES.ADMIN_ADVERTISING,
+          children: [
+            {
+              label: 'Campaigns',
+              icon: 'ads_click',
+              path: ROUTES.ADMIN_ADVERTISING_CAMPAIGNS,
+            },
+            {
+              label: 'Advertisers',
+              icon: 'storefront',
+              path: ROUTES.ADMIN_ADVERTISING_ADVERTISERS,
+            },
+            {
+              label: 'Performance',
+              icon: 'trending_up',
+              path: ROUTES.ADMIN_ADVERTISING_PERFORMANCE,
+            },
+          ],
+        },
         { label: 'Notifications', icon: 'notifications', path: ROUTES.ADMIN_NOTIFICATIONS },
       ],
     },

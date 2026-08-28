@@ -56,6 +56,12 @@ const MULTI_VALUE_SEPARATOR = ',';
 /** Quiet period before a typed numeric filter triggers a search. */
 const FILTER_INPUT_DEBOUNCE_MS = 400;
 
+/** How many result cards sit between two sponsored cards. */
+const IN_FEED_AD_INTERVAL = 8;
+
+/** Most sponsored cards to request for one page of results. */
+const IN_FEED_AD_SLOTS = 3;
+
 const KNOWN_QUERY_PARAMS = new Set([
   'q',
   'category',
@@ -79,8 +85,10 @@ import {
   attributeYearOptions,
 } from '../../../core/utils/category-attributes';
 import { SearchFacet } from '../../../core/services/search.service';
+import { AdvertisingService } from '../../../core/services/advertising.service';
+import { ServedAd } from '../../../core/models/advertising.model';
 import { ActiveFilter } from './search-results.types';
-import { AdBannerComponent } from '../../../shared/components/ad-banner/ad-banner.component';
+import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
 
 @Component({
   selector: 'app-search-results',
@@ -90,7 +98,7 @@ import { AdBannerComponent } from '../../../shared/components/ad-banner/ad-banne
     RouterLink,
     FormsModule,
     CustomSelectComponent,
-    AdBannerComponent,
+    AdSlotComponent,
     ListingCardComponent,
     SectionHeaderComponent,
     EmptyStateComponent,
@@ -155,6 +163,38 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
   /** Per-option result counts for the selected category's filters. */
   readonly facets = signal<SearchFacet[]>([]);
+
+  /**
+   * Sponsored cards to interleave among the results.
+   *
+   * Fetched once per result set and handed to each slot, rather than letting
+   * every inserted card fetch for itself.
+   */
+  readonly inFeedAds = signal<ServedAd[]>([]);
+
+  /**
+   * The sponsored card that belongs after the card at `index`, if any.
+   *
+   * Ads are spaced `IN_FEED_AD_INTERVAL` cards apart and only as many as were
+   * actually returned are placed, so a partly-sold slot leaves the grid intact.
+   */
+  inFeedAdAfter(index: number): ServedAd | null {
+    const position = index + 1;
+    if (position % IN_FEED_AD_INTERVAL !== 0) return null;
+    const ads = this.inFeedAds();
+    const slot = position / IN_FEED_AD_INTERVAL - 1;
+    return ads[slot] ?? null;
+  }
+
+  private loadInFeedAds(): void {
+    this.advertising
+      .serve('in_feed', {
+        categoryId: this.selectedCategoryId() || undefined,
+        limit: IN_FEED_AD_SLOTS,
+      })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe((ads) => this.inFeedAds.set(ads));
+  }
 
   /** Facets indexed by attribute key for template lookups. */
   private readonly facetsByKey = computed<Map<string, SearchFacet>>(
@@ -487,6 +527,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     private readonly tracker: ActivityTrackerService,
     private readonly brandsService: BrandsService,
     private readonly experiments: ExperimentsService,
+    private readonly advertising: AdvertisingService,
   ) {}
 
   /**
@@ -1525,6 +1566,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
           this.suggestedTerms.set(res.suggestions || []);
           this.facets.set(res.facets || []);
           this.loading.set(false);
+          this.loadInFeedAds();
           this.trackSearchImpression(params, res.total);
         },
         error: () => {

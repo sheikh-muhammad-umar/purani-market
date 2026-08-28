@@ -33,6 +33,7 @@ import { extractPackageDetails } from '../../../core/utils/package-details';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { ToastService } from '../../../core/services/toast.service';
 import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
+import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
 
 @Component({
   selector: 'app-listing-detail',
@@ -44,6 +45,7 @@ import { AppLoaderComponent } from '../../../shared/components/app-loader/app-lo
     VerificationBadgesComponent,
     ListingCardComponent,
     AppLoaderComponent,
+    AdSlotComponent,
   ],
   templateUrl: './listing-detail.component.html',
   styleUrls: ['./listing-detail.component.scss'],

@@ -12,6 +12,7 @@ import { SearchBarComponent } from '../../shared/components/search-bar/search-ba
 import { ListingCardComponent } from '../../shared/components/listing-card/listing-card.component';
 import { ShortCardComponent } from '../../shared/components/short-card/short-card.component';
 import { CategoryCardComponent } from '../../shared/components/category-card/category-card.component';
+import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.component';
 import { SectionHeaderComponent } from '../../shared/components/section-header/section-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { Category, Listing } from '../../core/models';
@@ -45,6 +46,7 @@ interface CategoryChip {
     CategoryCardComponent,
     SectionHeaderComponent,
     EmptyStateComponent,
+    AdSlotComponent,
   ],
   templateUrl: './home.component.html',
   styleUrls: ['./home.component.scss'],
