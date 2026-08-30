@@ -127,16 +127,33 @@ export class ListingsService {
       city?: string;
       area?: string;
     },
+    /**
+     * Include statuses other than active. Only ever true for a seller looking at
+     * their own listings — never for a public request, which would otherwise
+     * expose unpublished and rejected items.
+     */
+    includeAllStatuses = false,
   ): Promise<PaginatedListings> {
     const safePage = Math.max(1, page);
     const safeLimit = Math.min(Math.max(1, limit), 100);
     const skip = (safePage - 1) * safeLimit;
-    const filter: Record<string, any> = sellerId
-      ? {
-          sellerId: new Types.ObjectId(sellerId),
-          deletedAt: { $exists: false },
-        }
-      : { status: ListingStatus.ACTIVE, deletedAt: { $exists: false } };
+    const filter: Record<string, any> = { deletedAt: { $exists: false } };
+
+    if (sellerId) {
+      if (!Types.ObjectId.isValid(sellerId)) {
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+      }
+      filter.sellerId = new Types.ObjectId(sellerId);
+    }
+
+    // Status visibility is its own decision, not a side effect of naming a
+    // seller. It used to be the latter: passing a sellerId dropped the status
+    // filter altogether, which was right for owners viewing their own listings
+    // and wrong for everyone else, since a public seller profile would then show
+    // drafts, listings awaiting moderation and rejected ones.
+    if (!includeAllStatuses) {
+      filter.status = ListingStatus.ACTIVE;
+    }
 
     if (filters?.categoryId) {
       if (Types.ObjectId.isValid(filters.categoryId)) {

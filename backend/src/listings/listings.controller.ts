@@ -44,6 +44,7 @@ export class ListingsController {
     @Query('sort') sort?: string,
     @Query('order') order?: string,
     @Query('mine') mine?: string,
+    @Query('sellerId') sellerIdParam?: string,
     @Query('categoryId') categoryId?: string,
     @Query('provinceId') provinceId?: string,
     @Query('cityId') cityId?: string,
@@ -53,7 +54,15 @@ export class ListingsController {
     @Query('area') area?: string,
     @CurrentUser('sub') userId?: string,
   ) {
-    const sellerId = mine === 'true' && userId ? userId : undefined;
+    // `mine` wins over an explicit sellerId, and is the only thing that unlocks
+    // non-active listings. A public `sellerId` — which is what a seller profile
+    // page sends — filters to that seller but still sees active listings only.
+    //
+    // The sellerId parameter used to be ignored entirely, so a seller profile
+    // received an unfiltered list and showed other sellers' listings.
+    const ownListings = mine === 'true' && !!userId;
+    const sellerId = ownListings ? userId : sellerIdParam || undefined;
+
     return this.listingsService.findAll(
       page ? parseInt(page, 10) : 1,
       limit ? parseInt(limit, 10) : 20,
@@ -61,6 +70,7 @@ export class ListingsController {
       order === 'asc' ? 'asc' : 'desc',
       sellerId,
       { categoryId, provinceId, cityId, areaId, province, city, area },
+      ownListings,
     );
   }
 

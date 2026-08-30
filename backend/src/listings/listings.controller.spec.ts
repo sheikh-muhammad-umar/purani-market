@@ -116,6 +116,7 @@ describe('ListingsController', () => {
           city: undefined,
           area: undefined,
         },
+        false,
       );
       expect(result).toBe(mockPaginatedResult);
     });
@@ -137,6 +138,108 @@ describe('ListingsController', () => {
           city: undefined,
           area: undefined,
         },
+        false,
+      );
+    });
+
+    /**
+     * The sellerId query parameter used to be ignored, so a seller profile asked
+     * for one seller's listings and got an unfiltered list of everyone's.
+     */
+    it('should filter by the requested sellerId', async () => {
+      await controller.getListings(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'seller-123',
+      );
+      expect(mockListingsService.findAll).toHaveBeenCalledWith(
+        1,
+        20,
+        'createdAt',
+        'desc',
+        'seller-123',
+        expect.anything(),
+        // A public request never unlocks non-active listings.
+        false,
+      );
+    });
+
+    it('should use the signed-in user and reveal all statuses for mine=true', async () => {
+      await controller.getListings(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'true',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'me-1',
+      );
+      expect(mockListingsService.findAll).toHaveBeenCalledWith(
+        1,
+        20,
+        'createdAt',
+        'desc',
+        'me-1',
+        expect.anything(),
+        true,
+      );
+    });
+
+    /** A conflicting sellerId must not let mine=true read another account. */
+    it('should ignore sellerId when mine=true', async () => {
+      await controller.getListings(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'true',
+        'someone-else',
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'me-1',
+      );
+      expect(mockListingsService.findAll).toHaveBeenCalledWith(
+        1,
+        20,
+        'createdAt',
+        'desc',
+        'me-1',
+        expect.anything(),
+        true,
+      );
+    });
+
+    it('should not treat mine=true as ownership without a signed-in user', async () => {
+      await controller.getListings(
+        undefined,
+        undefined,
+        undefined,
+        undefined,
+        'true',
+      );
+      expect(mockListingsService.findAll).toHaveBeenCalledWith(
+        1,
+        20,
+        'createdAt',
+        'desc',
+        undefined,
+        expect.anything(),
+        false,
       );
     });
   });

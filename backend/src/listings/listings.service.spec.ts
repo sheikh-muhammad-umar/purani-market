@@ -290,6 +290,43 @@ describe('ListingsService', () => {
       const result = await service.findAll(1, 200);
       expect(result.limit).toBe(100);
     });
+
+    /**
+     * A public seller profile. Naming a seller used to drop the status filter,
+     * which would have shown that seller's drafts, listings awaiting moderation
+     * and rejected ones to anyone who opened their profile.
+     */
+    it('should filter to one seller and still show only active listings', async () => {
+      await service.findAll(1, 20, 'createdAt', 'desc', sellerId.toString());
+      expect(mockListingModel.find).toHaveBeenCalledWith({
+        deletedAt: { $exists: false },
+        sellerId: expect.anything(),
+        status: ListingStatus.ACTIVE,
+      });
+    });
+
+    /** The owner's own list, which is the only case that reveals other statuses. */
+    it('should drop the status filter only when all statuses are requested', async () => {
+      await service.findAll(
+        1,
+        20,
+        'createdAt',
+        'desc',
+        sellerId.toString(),
+        undefined,
+        true,
+      );
+      const filter = mockListingModel.find.mock.calls.at(-1)?.[0];
+      expect(filter).toMatchObject({ deletedAt: { $exists: false } });
+      expect(filter.sellerId).toBeDefined();
+      expect(filter.status).toBeUndefined();
+    });
+
+    it('should reject a malformed sellerId rather than throwing a cast error', async () => {
+      await expect(
+        service.findAll(1, 20, 'createdAt', 'desc', 'not-an-object-id'),
+      ).rejects.toThrow(BadRequestException);
+    });
   });
 
   describe('findById', () => {
