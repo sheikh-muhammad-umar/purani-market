@@ -104,8 +104,13 @@ export const SEO_DEFAULT_SLUG_FALLBACK = 'listing';
 export const SEO_SELLER_FALLBACK_NAME = 'Seller';
 export const SEO_DESCRIPTION_MAX_LENGTH = 160;
 export const SEO_DEFAULT_OG_TYPE = 'website' as const;
-export const SEO_SUPPORTED_LANGUAGES = ['English', 'Urdu'] as const;
-export const SEO_HREFLANG_VALUES = ['en', 'ur', 'x-default'] as const;
+/**
+ * Languages advertised in the Organization schema's contact point. English only:
+ * the platform has no Urdu UI, so claiming Urdu customer service was untrue.
+ */
+export const SEO_SUPPORTED_LANGUAGES = ['English'] as const;
+/** Kept in step with the web copy in core/constants/seo.ts. */
+export const SEO_HREFLANG_VALUES = ['en', 'x-default'] as const;
 export const SEO_PRERENDER_HOME_TTL = 3600; // 1 hour
 export const SEO_PRERENDER_STATIC_TTL = 86400; // 24 hours
 export const SEO_PRERENDER_FETCH_TIMEOUT_MS = 30000;

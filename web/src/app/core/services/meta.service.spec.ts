@@ -532,23 +532,32 @@ describe('MetaService — Unit Tests', () => {
   });
 
   describe('setHreflangTags', () => {
-    it('should inject three hreflang link elements with correct attributes', () => {
+    it('should inject an hreflang link per supported language', () => {
       const doc = TestBed.inject(DOCUMENT);
       service.setHreflangTags('https://marketplace.pk/listings/test-123');
 
       const enLink = doc.querySelector('link[rel="alternate"][hreflang="en"]') as HTMLLinkElement;
-      const urLink = doc.querySelector('link[rel="alternate"][hreflang="ur"]') as HTMLLinkElement;
       const defaultLink = doc.querySelector(
         'link[rel="alternate"][hreflang="x-default"]',
       ) as HTMLLinkElement;
 
       expect(enLink).not.toBeNull();
-      expect(urLink).not.toBeNull();
       expect(defaultLink).not.toBeNull();
 
       expect(enLink.getAttribute('href')).toBe('https://marketplace.pk/listings/test-123');
-      expect(urLink.getAttribute('href')).toBe('https://marketplace.pk/listings/test-123');
       expect(defaultLink.getAttribute('href')).toBe('https://marketplace.pk/listings/test-123');
+    });
+
+    /**
+     * There are no translated pages, so emitting an alternate would point a
+     * crawler at an English URL while claiming it served another language.
+     */
+    it('should not advertise a language the site does not serve', () => {
+      const doc = TestBed.inject(DOCUMENT);
+      service.setHreflangTags('https://marketplace.pk/listings/test-123');
+
+      expect(doc.querySelector('link[rel="alternate"][hreflang="ur"]')).toBeNull();
+      expect(doc.querySelectorAll('link[rel="alternate"][hreflang]').length).toBe(2);
     });
 
     it('should update existing hreflang links without creating duplicates', () => {
@@ -557,13 +566,10 @@ describe('MetaService — Unit Tests', () => {
       service.setHreflangTags('https://marketplace.pk/second');
 
       const allHreflangLinks = doc.querySelectorAll('link[rel="alternate"][hreflang]');
-      expect(allHreflangLinks.length).toBe(3);
+      expect(allHreflangLinks.length).toBe(2);
 
       const enLink = doc.querySelector('link[rel="alternate"][hreflang="en"]') as HTMLLinkElement;
       expect(enLink.getAttribute('href')).toBe('https://marketplace.pk/second');
-
-      const urLink = doc.querySelector('link[rel="alternate"][hreflang="ur"]') as HTMLLinkElement;
-      expect(urLink.getAttribute('href')).toBe('https://marketplace.pk/second');
 
       const defaultLink = doc.querySelector(
         'link[rel="alternate"][hreflang="x-default"]',

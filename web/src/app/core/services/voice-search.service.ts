@@ -1,16 +1,12 @@
 import { Injectable, signal, inject, PLATFORM_ID } from '@angular/core';
 import { isPlatformBrowser } from '@angular/common';
 import {
-  DEFAULT_VOICE_LANGUAGE,
   VOICE_CANCELLED_KEY,
   VOICE_ERROR_MESSAGES,
   VOICE_FINALIZE_TIMEOUT,
-  VOICE_LANGUAGE_STORAGE_KEY,
-  VoiceSearchLanguage,
+  VOICE_RECOGNITION_LANGUAGE,
   VoiceSearchResult,
   VoiceSearchState,
-  containsUrduScript,
-  isVoiceSearchLanguage,
 } from './voice-search.types';
 
 // Web Speech API type declarations (not included in all lib.dom.d.ts versions)
@@ -58,20 +54,11 @@ export class VoiceSearchService {
   readonly state = signal<VoiceSearchState>('idle');
   readonly isSupported = signal(false);
   readonly errorMessage = signal('');
-  readonly detectedLanguage = signal<'ur' | 'en' | null>(null);
   readonly interimTranscript = signal('');
   readonly finalTranscript = signal('');
 
-  /**
-   * Language the recogniser runs in.
-   *
-   * This used to be hardcoded to English while the service still claimed to
-   * detect Urdu. An `en-US` engine never emits Arabic script, so the detection
-   * could not fire and Urdu speech was simply mis-transcribed. The language is
-   * now an explicit, persisted choice, because the Web Speech API recognises
-   * exactly one language per session.
-   */
-  readonly language = signal<VoiceSearchLanguage>(DEFAULT_VOICE_LANGUAGE);
+  /** The language recognition runs in. English only, so it is fixed. */
+  readonly language = VOICE_RECOGNITION_LANGUAGE;
 
   private recognition: SpeechRecognition | null = null;
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
@@ -91,7 +78,6 @@ export class VoiceSearchService {
   constructor() {
     if (!this.isBrowser) return;
     this.isSupported.set(!!this.getRecognitionCtor());
-    this.language.set(this.readStoredLanguage());
   }
 
   private getRecognitionCtor(): any {
@@ -128,17 +114,6 @@ export class VoiceSearchService {
     recognition.onend = null;
   }
 
-  /** Switches recognition language and remembers the choice. */
-  setLanguage(language: VoiceSearchLanguage): void {
-    this.language.set(language);
-    if (!this.isBrowser) return;
-    try {
-      localStorage.setItem(VOICE_LANGUAGE_STORAGE_KEY, language);
-    } catch {
-      // Private browsing or a full quota: the in-memory choice still applies.
-    }
-  }
-
   startListening(): Promise<VoiceSearchResult> {
     if (!this.getRecognitionCtor()) {
       this.state.set('error');
@@ -155,12 +130,11 @@ export class VoiceSearchService {
     const session = ++this.sessionId;
     this.recognition = this.createRecognition();
 
-    this.recognition!.lang = this.language();
+    this.recognition!.lang = this.language;
     this.state.set('listening');
     this.errorMessage.set('');
     this.interimTranscript.set('');
     this.finalTranscript.set('');
-    this.detectedLanguage.set(null);
 
     return new Promise<VoiceSearchResult>((resolve, reject) => {
       this.resolvePromise = resolve;
@@ -181,11 +155,6 @@ export class VoiceSearchService {
         }
         this.finalTranscript.set(final.trim());
         this.interimTranscript.set(interim.trim() || final.trim());
-
-        const currentText = interim || final;
-        if (currentText.trim()) {
-          this.detectedLanguage.set(this.resolveLanguageTag(currentText));
-        }
       };
 
       this.recognition!.onerror = (event: SpeechRecognitionErrorEvent) => {
@@ -260,7 +229,6 @@ export class VoiceSearchService {
     this.discardSession();
     this.interimTranscript.set('');
     this.finalTranscript.set('');
-    this.detectedLanguage.set(null);
   }
 
   /** Invalidates the running session and rejects its pending promise. */
@@ -287,35 +255,14 @@ export class VoiceSearchService {
     this.clearFinalizeTimer();
     this.detach(this.recognition);
     const transcript = this.finalTranscript() || this.interimTranscript();
-    const detected = this.resolveLanguageTag(transcript);
-    this.detectedLanguage.set(detected);
     this.state.set('idle');
 
     this.resolvePromise?.({
       transcript: transcript.trim(),
       confidence: 1,
-      language: this.language(),
+      language: this.language,
     });
     this.resetPromises();
-  }
-
-  /**
-   * Which script the transcript actually came back in. The selected language is
-   * the default answer; script detection still runs so a mixed or unexpected
-   * result is reported accurately.
-   */
-  private resolveLanguageTag(text: string): 'ur' | 'en' {
-    if (containsUrduScript(text)) return 'ur';
-    return this.language() === 'ur-PK' ? 'ur' : 'en';
-  }
-
-  private readStoredLanguage(): VoiceSearchLanguage {
-    try {
-      const stored = localStorage.getItem(VOICE_LANGUAGE_STORAGE_KEY);
-      return isVoiceSearchLanguage(stored) ? stored : DEFAULT_VOICE_LANGUAGE;
-    } catch {
-      return DEFAULT_VOICE_LANGUAGE;
-    }
   }
 
   private clearFinalizeTimer(): void {

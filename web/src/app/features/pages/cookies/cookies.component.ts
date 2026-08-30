@@ -51,10 +51,6 @@ import { RouterLink } from '@angular/router';
           <strong>theme_preference</strong> — Stores your selected theme (light or dark mode) so the
           Platform displays in your preferred appearance. Duration: 1 year.
         </li>
-        <li>
-          <strong>language</strong> — Stores your preferred language setting (e.g., English, Urdu)
-          so content is displayed in your chosen language. Duration: 1 year.
-        </li>
       </ul>
 
       <h3>2.3 Analytics Cookies</h3>

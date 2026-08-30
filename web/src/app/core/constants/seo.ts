@@ -11,5 +11,13 @@ export const SEO_DEFAULT_DESCRIPTION = `Buy and sell new & used products in Paki
 /** Timeout (ms) applied to SEO API calls during SSR to prevent blocking. */
 export const SEO_SSR_TIMEOUT_MS = 2000;
 
-/** Hreflang language codes injected on every public page. */
-export const SEO_HREFLANG_VALUES = ['en', 'ur', 'x-default'] as const;
+/**
+ * Hreflang codes injected on every public page.
+ *
+ * English only, because the site has no translated pages — no locale files, no
+ * @angular/localize, no language switcher. An `ur` alternate was previously
+ * emitted pointing at the English URL, which told search engines an Urdu version
+ * existed at an address that serves English. Add a code here only once real pages
+ * exist to point it at.
+ */
+export const SEO_HREFLANG_VALUES = ['en', 'x-default'] as const;

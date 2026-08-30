@@ -207,7 +207,7 @@ describe('StructuredDataService — Unit Tests', () => {
         contactPoint: {
           '@type': 'ContactPoint',
           contactType: 'Customer Service',
-          availableLanguage: ['English', 'Urdu'],
+          availableLanguage: ['English'],
         },
         address: {
           '@type': 'PostalAddress',

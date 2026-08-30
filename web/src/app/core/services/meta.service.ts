@@ -166,8 +166,11 @@ export class MetaService {
 
   /**
    * Inject or update `<link rel="alternate">` elements for hreflang tags.
-   * Creates three links: hreflang="en", hreflang="ur", and hreflang="x-default",
-   * all pointing to the provided canonical URL.
+   * Creates one link per entry in {@link SEO_HREFLANG_VALUES} — currently
+   * hreflang="en" and hreflang="x-default" — each pointing at the provided
+   * canonical URL. Both resolving to the same URL is correct for a single-language
+   * site: the self-referencing `en` tag is expected, and `x-default` is the
+   * fallback for visitors whose language matches nothing else.
    * Ensures no duplicates are created on repeated calls.
    */
   setHreflangTags(canonicalUrl: string): void {

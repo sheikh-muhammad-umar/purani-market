@@ -1,11 +1,7 @@
 import { describe, it, expect, beforeEach, afterEach, vi } from 'vitest';
 import { TestBed } from '@angular/core/testing';
 import { VoiceSearchService } from './voice-search.service';
-import {
-  VOICE_CANCELLED_KEY,
-  VOICE_FINALIZE_TIMEOUT,
-  VOICE_LANGUAGE_STORAGE_KEY,
-} from './voice-search.types';
+import { VOICE_CANCELLED_KEY, VOICE_FINALIZE_TIMEOUT } from './voice-search.types';
 
 /**
  * Minimal stand-in for the browser's SpeechRecognition. It records the language
@@ -95,52 +91,34 @@ describe('VoiceSearchService', () => {
     expect(service.isSupported()).toBe(true);
   });
 
-  // --- language selection (Urdu recognition) ---
-  it('defaults to English', () => {
-    expect(service.language()).toBe('en-US');
-  });
-
-  it('runs recognition in the selected language', () => {
-    service.setLanguage('ur-PK');
+  // --- recognition language ---
+  it('runs recognition in English', () => {
+    expect(service.language).toBe('en-US');
     void service.startListening();
-    expect(latest().langAtStart[0]).toBe('ur-PK');
+    expect(latest().langAtStart[0]).toBe('en-US');
   });
 
-  it('persists the chosen language and restores it', () => {
-    service.setLanguage('ur-PK');
-    expect(localStorage.getItem(VOICE_LANGUAGE_STORAGE_KEY)).toBe('ur-PK');
-
-    TestBed.resetTestingModule();
-    expect(create().language()).toBe('ur-PK');
-  });
-
-  it('ignores an unrecognised stored language', () => {
-    localStorage.setItem(VOICE_LANGUAGE_STORAGE_KEY, 'klingon');
-    TestBed.resetTestingModule();
-    expect(create().language()).toBe('en-US');
-  });
-
-  it('reports the Urdu tag when recognising Urdu', async () => {
-    service.setLanguage('ur-PK');
+  it('reports the English tag on the result', async () => {
     const pending = service.startListening();
-    latest().emitResult('پرانی گاڑی', true);
+    latest().emitResult('toyota corolla', true);
     service.stopAndFinalize();
     latest().emitEnd();
-
     const result = await pending;
-    expect(result.transcript).toBe('پرانی گاڑی');
-    expect(result.language).toBe('ur-PK');
-    expect(service.detectedLanguage()).toBe('ur');
+    expect(result.transcript).toBe('toyota corolla');
+    expect(result.language).toBe('en-US');
   });
 
-  it('detects Urdu script even when English was selected', async () => {
-    const pending = service.startListening();
-    latest().emitResult('گاڑی', true);
-    service.stopAndFinalize();
-    latest().emitEnd();
-
-    await pending;
-    expect(service.detectedLanguage()).toBe('ur');
+  /**
+   * Urdu was removed, along with the selector and the stored preference. A
+   * previously saved choice must not resurrect it.
+   */
+  it('ignores a language left in storage by an older build', () => {
+    localStorage.setItem('voice_search_language', 'ur-PK');
+    TestBed.resetTestingModule();
+    const fresh = create();
+    expect(fresh.language).toBe('en-US');
+    void fresh.startListening();
+    expect(latest().langAtStart[0]).toBe('en-US');
   });
 
   // --- transcript is not clipped on stop ---
