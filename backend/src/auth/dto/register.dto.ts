@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsEmail,
   IsOptional,
   IsString,
@@ -45,4 +46,13 @@ export class RegisterDto {
   @IsOptional()
   @IsEnum(OtpChannel, { message: 'Channel must be "sms" or "whatsapp"' })
   channel?: OtpChannel;
+
+  /**
+   * Set when the user opts into ID verification during sign-up. Recorded so the
+   * first sign-in can take them to the ID step, since uploading needs a session
+   * that registration does not yet provide.
+   */
+  @IsOptional()
+  @IsBoolean()
+  wantsIdVerification?: boolean;
 }

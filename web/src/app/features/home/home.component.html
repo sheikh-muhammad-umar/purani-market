@@ -171,12 +171,13 @@
         />
       } @else {
         <div class="auto-grid stagger" role="list">
-          @for (listing of recommendations(); track listing._id) {
+          @for (listing of recommendations(); track listing._id; let i = $index) {
             <app-listing-card
               role="listitem"
               [listing]="listing"
               [showTime]="true"
               [showCondition]="false"
+              (click)="trackRecommendationClick(listing, i)"
             />
           }
         </div>

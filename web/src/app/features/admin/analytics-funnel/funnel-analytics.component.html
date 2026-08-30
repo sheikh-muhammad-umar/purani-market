@@ -1,0 +1,189 @@
+<div class="analytics-page">
+  <div class="page-header">
+    <h1>Listing Funnel</h1>
+    <div class="date-range">
+      <app-date-picker [(ngModel)]="dateFrom" [max]="dateTo || today"></app-date-picker>
+      <span class="date-sep">to</span>
+      <app-date-picker [(ngModel)]="dateTo" [min]="dateFrom" [max]="today"></app-date-picker>
+      <button class="btn-apply" (click)="applyDateRange()">Apply</button>
+      <button class="btn-export" (click)="exportCSV()" [disabled]="loading()">
+        <span class="material-symbols-rounded" style="font-size: 16px">download</span> Export
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  }
+
+  @if (!loading()) {
+    @if (!hasData()) {
+      <div class="chart-card empty-card">
+        <span class="material-symbols-rounded">filter_alt</span>
+        <p>No listing views in this range.</p>
+      </div>
+    } @else {
+      <div class="metrics-grid">
+        @for (card of metrics(); track card.label) {
+          <div class="metric-card">
+            <span class="metric-icon material-symbols-rounded">{{ card.icon }}</span>
+            <div class="metric-body">
+              <span class="metric-value">{{ card.value }}</span>
+              <span class="metric-label">{{ card.label }}</span>
+              @if (card.hint) {
+                <span class="metric-note">{{ card.hint }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      <div class="chart-card">
+        <h3>Viewed to Contacted to Conversation</h3>
+        <div class="funnel">
+          @for (step of funnel(); track step.stage) {
+            <div class="funnel-step">
+              <div class="funnel-head">
+                <span class="funnel-label">{{ step.stage }}</span>
+                <span class="funnel-value">{{ step.listings | number }}</span>
+                <span class="funnel-pct">{{ step.pct | number: '1.0-1' }}%</span>
+              </div>
+              <div class="funnel-bar-wrap">
+                <div class="funnel-bar" [style.width.%]="step.pct"></div>
+              </div>
+              @if (step.dropOff !== null && step.dropOff > 0) {
+                <span class="funnel-drop">
+                  <span class="material-symbols-rounded">trending_down</span>
+                  {{ step.dropOff | number }} did not go further
+                </span>
+              }
+            </div>
+          }
+        </div>
+        <p class="chart-note">
+          Counted in listings, not events: a listing viewed a thousand times is still one listing.
+          Each stage requires the ones before it, so a share can never exceed 100%.
+        </p>
+      </div>
+
+      @if (attributionNotes().length > 0) {
+        <div class="chart-card note-card">
+          <h3>Conversations Outside the Funnel</h3>
+          @for (note of attributionNotes(); track note) {
+            <p class="chart-note">{{ note }}</p>
+          }
+        </div>
+      }
+
+      <div class="chart-card">
+        <h3>Views Over Time</h3>
+        <app-chart
+          kind="area"
+          [labels]="trendChart().labels"
+          [series]="trendChart().series"
+          [height]="200"
+          ariaLabel="Listing views per day"
+        />
+      </div>
+
+      @if (hasContacts()) {
+        <div class="chart-card">
+          <h3>Contacts Over Time</h3>
+          <app-chart
+            kind="bar"
+            [labels]="contactsChart().labels"
+            [series]="contactsChart().series"
+            [height]="170"
+            ariaLabel="Listing contacts per day"
+          />
+          <p class="chart-note">
+            Charted separately from views: contacts are a few hundred times rarer, so on a shared
+            axis they would sit flat on zero.
+          </p>
+        </div>
+      }
+
+      @if (byCategory().length > 0) {
+        <div class="chart-card">
+          <h3>Conversion by Category</h3>
+          <div class="breakdown-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Category</th>
+                  <th class="num">Listings</th>
+                  <th class="num">Views</th>
+                  <th class="num">Contacts</th>
+                  <th class="num">Chats</th>
+                  <th class="num">View to Contact</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of byCategory(); track c.categoryId) {
+                  <tr>
+                    <td>{{ c.categoryName }}</td>
+                    <td class="num">{{ c.listings | number }}</td>
+                    <td class="num">{{ c.views | number }}</td>
+                    <td class="num">{{ c.contacts | number }}</td>
+                    <td class="num">{{ c.conversations | number }}</td>
+                    <td class="num">
+                      <span class="rate-cell">
+                        {{ c.viewToContact | number: '1.0-1' }}%
+                        <span class="rate-bar-wrap">
+                          <span class="rate-bar" [style.width.%]="c.viewToContact"></span>
+                        </span>
+                      </span>
+                    </td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="chart-note">
+            View to contact is the share of that category's listings that received at least one
+            contact, so a single popular listing cannot carry the whole category.
+          </p>
+        </div>
+      }
+
+      @if (topListings().length > 0) {
+        <div class="chart-card">
+          <h3>Top Listings by Views</h3>
+          <div class="breakdown-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Listing</th>
+                  <th class="num">Views</th>
+                  <th class="num">Unique Viewers</th>
+                  <th class="num">Views per Viewer</th>
+                  <th class="num">Contacts</th>
+                  <th class="num">Saves</th>
+                  <th class="num">Chats</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (l of topListings(); track l.listingId) {
+                  <tr>
+                    <td class="title-cell" [title]="l.title">{{ l.title }}</td>
+                    <td class="num">{{ l.views | number }}</td>
+                    <td class="num">{{ l.uniqueViewers | number }}</td>
+                    <td class="num">{{ viewsPerViewer(l.views, l.uniqueViewers) }}</td>
+                    <td class="num">{{ l.contacts | number }}</td>
+                    <td class="num">{{ l.favorites | number }}</td>
+                    <td class="num">{{ l.conversations | number }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+          <p class="chart-note">
+            Unique viewers counts signed-in people only, so it reads lower than views and is blank
+            where all the traffic was anonymous. A high views-per-viewer figure is repeat visits or
+            refreshes rather than reach.
+          </p>
+        </div>
+      }
+    }
+  }
+</div>

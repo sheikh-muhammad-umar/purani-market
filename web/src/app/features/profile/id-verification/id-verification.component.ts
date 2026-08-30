@@ -1,6 +1,6 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink } from '@angular/router';
+import { RouterLink, ActivatedRoute } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/auth/auth.service';
@@ -54,12 +54,21 @@ export class IdVerificationComponent implements OnInit {
     selfieBack: '',
   };
 
+  /**
+   * Arrived here straight from signing in, having asked to verify during
+   * registration. Shows the same offer they accepted rather than a bare settings
+   * screen, so the page they land on matches why they are here.
+   */
+  readonly fromSignup = signal(false);
+
   constructor(
     private readonly http: HttpClient,
     private readonly authService: AuthService,
+    private readonly route: ActivatedRoute,
   ) {}
 
   ngOnInit(): void {
+    this.fromSignup.set(this.route.snapshot.queryParamMap.get('welcome') === '1');
     this.loadStatus();
   }
 
@@ -130,9 +139,34 @@ export class IdVerificationComponent implements OnInit {
 
   get showForm(): boolean {
     const v = this.verification();
-    return (
-      !v || v.status === IdVerificationStatus.NONE || v.status === IdVerificationStatus.REJECTED
-    );
+    if (!v) return true;
+    const resubmittable =
+      v.status === IdVerificationStatus.NONE || v.status === IdVerificationStatus.REJECTED;
+    // Hide the form once the attempts are gone, so nobody fills in four uploads
+    // only to have the server refuse them.
+    return resubmittable && this.attemptsRemaining() !== 0;
+  }
+
+  /**
+   * Attempts left, or null when the server did not report them (an older
+   * response), in which case the form stays available and the server remains the
+   * authority on the limit.
+   */
+  attemptsRemaining(): number | null {
+    return this.verification()?.attemptsRemaining ?? null;
+  }
+
+  /** Tells the user where they stand before they spend the next attempt. */
+  attemptsMessage(): string {
+    const left = this.attemptsRemaining();
+    if (left === null) return 'You can submit a new request below.';
+    if (left === 0) {
+      return 'You have used all your verification attempts. Please contact support to continue.';
+    }
+    if (left === 1) {
+      return 'You can submit a new request below. This is your last attempt.';
+    }
+    return `You can submit a new request below. ${left} attempts remaining.`;
   }
 
   onSubmit(): void {

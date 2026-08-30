@@ -28,6 +28,7 @@ describe('AdminController', () => {
       rejectListing: jest.fn(),
       getAnalytics: jest.fn(),
       exportAnalytics: jest.fn(),
+      buildAnalyticsCsv: jest.fn(),
       listPackagePurchases: jest.fn(),
       listPayments: jest.fn(),
       getSellerAdInfo: jest.fn(),
@@ -345,50 +346,45 @@ describe('AdminController', () => {
   });
 
   describe('exportAnalytics', () => {
-    it('should return exported analytics report', async () => {
+    /** Only the two members the handler touches. */
+    const resStub = () => ({
+      setHeader: jest.fn(),
+      send: jest.fn(),
+    });
+
+    it('should send the report as a downloadable CSV', async () => {
       const mockExport = {
         generatedAt: '2024-06-15T00:00:00.000Z',
         dateRange: { from: '2024-01-01', to: '2024-06-30' },
-        keyMetrics: {
-          totalUsers: 100,
-          activeUsers: 50,
-          totalListings: 200,
-          totalConversations: 75,
-          totalPackagePurchases: 10,
-          totalRevenue: 50000,
-        },
-        timeSeries: {
-          registrations: [],
-          listings: [],
-          conversations: [],
-          purchases: [],
-        },
-        categoryAnalytics: [],
       };
       adminService.exportAnalytics.mockResolvedValue(mockExport);
+      adminService.buildAnalyticsCsv.mockReturnValue('a,b\n1,2');
+      const res = resStub();
 
-      const result = await controller.exportAnalytics(
-        '2024-01-01',
-        '2024-06-30',
-      );
+      await controller.exportAnalytics(res, '2024-01-01', '2024-06-30');
 
-      expect(result).toEqual(mockExport);
       expect(adminService.exportAnalytics).toHaveBeenCalledWith(
         '2024-01-01',
         '2024-06-30',
       );
+      expect(adminService.buildAnalyticsCsv).toHaveBeenCalledWith(mockExport);
+      expect(res.setHeader).toHaveBeenCalledWith(
+        'Content-Type',
+        'text/csv; charset=utf-8',
+      );
+      expect(res.setHeader).toHaveBeenCalledWith(
+        'Content-Disposition',
+        'attachment; filename="analytics-2024-01-01-to-2024-06-30.csv"',
+      );
+      // Leading BOM so Excel reads it as UTF-8.
+      expect(res.send).toHaveBeenCalledWith('\uFEFFa,b\n1,2');
     });
 
     it('should use defaults when no date params provided', async () => {
-      adminService.exportAnalytics.mockResolvedValue({
-        generatedAt: new Date().toISOString(),
-        dateRange: { from: '2023-06-15', to: '2024-06-15' },
-        keyMetrics: {},
-        timeSeries: {},
-        categoryAnalytics: [],
-      });
+      adminService.exportAnalytics.mockResolvedValue({});
+      adminService.buildAnalyticsCsv.mockReturnValue('');
 
-      await controller.exportAnalytics();
+      await controller.exportAnalytics(resStub());
 
       expect(adminService.exportAnalytics).toHaveBeenCalledWith(
         expect.any(String),

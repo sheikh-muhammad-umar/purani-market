@@ -53,15 +53,13 @@
     <!-- Uploads by Day Chart (simple bar representation) -->
     <div class="section-card">
       <h2>Uploads by Day</h2>
-      <div class="bar-chart">
-        @for (day of analytics().uploadsByDay; track day._id) {
-          <div class="bar-item">
-            <div class="bar-fill" [style.height.%]="(day.count / getMaxUploads()) * 100"></div>
-            <span class="bar-label">{{ day._id | slice: 5 }}</span>
-            <span class="bar-value">{{ day.count }}</span>
-          </div>
-        }
-      </div>
+      <app-chart
+        kind="area"
+        [labels]="uploadsChart().labels"
+        [series]="uploadsChart().series"
+        [height]="200"
+        ariaLabel="Shorts uploaded per day"
+      />
     </div>
 
     <!-- Top Shorts -->

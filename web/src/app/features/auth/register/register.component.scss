@@ -50,3 +50,75 @@
     text-align: center;
   }
 }
+
+/* ID verification opt-in.
+   Framed as a card rather than a bare checkbox so it reads as an offer worth
+   taking, not another consent line to skim past. */
+.idv-offer {
+  display: flex;
+  gap: 10px;
+  align-items: flex-start;
+  padding: var(--space-2);
+  margin-bottom: var(--space-2);
+  background: var(--primary-subtle);
+  /* --primary-rgb is a comma-separated triplet, so rgba() not rgb()/. */
+  border: 1px solid rgba(var(--primary-rgb), 0.28);
+  border-radius: var(--radius-sm);
+  cursor: pointer;
+  text-align: left;
+
+  &:hover {
+    background: var(--primary-subtle-hover);
+    border-color: var(--primary);
+  }
+
+  /* Keyboard focus has to land visibly on the card, not just the input. */
+  &:focus-within {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+.idv-offer-check {
+  margin-top: 2px;
+  width: 18px;
+  height: 18px;
+  flex-shrink: 0;
+  accent-color: var(--primary);
+  cursor: pointer;
+}
+
+.idv-offer-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  min-width: 0;
+}
+
+.idv-offer-title {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 14px;
+  font-weight: var(--weight-semibold);
+  color: var(--text-primary);
+}
+
+.idv-offer-icon {
+  font-size: 18px;
+  color: var(--primary);
+  flex-shrink: 0;
+}
+
+.idv-offer-desc {
+  font-size: 13px;
+  line-height: 1.5;
+  color: var(--text-secondary);
+}
+
+/* Sets the expectation that this happens after sign-in, so being sent to the
+   ID step later is not a surprise. */
+.idv-offer-note {
+  font-size: 12px;
+  color: var(--text-muted);
+}

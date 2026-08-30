@@ -37,14 +37,13 @@
     @if (listingsTimeSeries().length > 0) {
       <div class="chart-card">
         <h3>Listings Over Time</h3>
-        <div class="chart-bars">
-          @for (point of listingsTimeSeries(); track point.date) {
-            <div class="bar-col" [title]="point.date + ': ' + point.value">
-              <div class="bar" [style.height.%]="(point.value / maxListingCount()) * 100"></div>
-              <span class="bar-label">{{ point.date | date: 'd' }}</span>
-            </div>
-          }
-        </div>
+        <app-chart
+          kind="area"
+          [labels]="listingsChart().labels"
+          [series]="listingsChart().series"
+          [height]="200"
+          ariaLabel="Listings created per day"
+        />
       </div>
     }
 

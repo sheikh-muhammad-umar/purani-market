@@ -13,8 +13,10 @@ import {
 } from './schemas/id-verification.schema.js';
 import { User, UserDocument } from '../users/schemas/user.schema.js';
 import { StorageService } from '../listings/storage.service.js';
+import { ListingsService } from '../listings/listings.service.js';
 import { ERROR } from '../common/constants/error-messages.js';
 import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
+import { MAX_ID_VERIFICATION_ATTEMPTS } from '../common/constants/app.constants.js';
 import { computeBufferHash } from '../common/utils/file-hash.js';
 
 const UPLOAD_FOLDER = 'id-verification';
@@ -41,6 +43,7 @@ export class IdVerificationService {
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
     private readonly storageService: StorageService,
+    private readonly listingsService: ListingsService,
   ) {}
 
   async submitVerification(
@@ -61,6 +64,17 @@ export class IdVerificationService {
     const user = await this.userModel.findById(userId).lean();
     if (user?.idVerified) {
       throw new BadRequestException(PUBLIC_ERROR.ID_VERIFICATION_FAILED);
+    }
+
+    // Three submissions in total, then the user has to come through support.
+    // Checked before any image is written so an exhausted user cannot keep
+    // filling storage with uploads that will be refused.
+    if (
+      (await this.countUsedAttempts(userOid)) >= MAX_ID_VERIFICATION_ATTEMPTS
+    ) {
+      throw new BadRequestException(
+        PUBLIC_ERROR.ID_VERIFICATION_ATTEMPTS_EXHAUSTED,
+      );
     }
 
     // Reject duplicate images
@@ -115,13 +129,54 @@ export class IdVerificationService {
     });
   }
 
-  async getMyVerification(
-    userId: string,
-  ): Promise<IdVerificationDocument | null> {
+  /**
+   * Submissions already spent, counting admin rejections only.
+   *
+   * `reviewedBy` is the discriminator rather than the rejection reason string:
+   * the auto-expire cron sets a status and a reason but never a reviewer, so an
+   * unreviewed submission is distinguishable without matching on prose.
+   */
+  private countUsedAttempts(userOid: Types.ObjectId): Promise<number> {
     return this.verificationModel
-      .findOne({ userId: new Types.ObjectId(userId) })
-      .sort({ createdAt: -1 })
+      .countDocuments({
+        userId: userOid,
+        status: IdVerificationStatus.REJECTED,
+        reviewedBy: { $exists: true },
+      })
       .exec();
+  }
+
+  /**
+   * The latest submission plus how many attempts are left, so the form can warn
+   * before the last one is spent rather than only failing on submit.
+   */
+  async getMyVerification(userId: string): Promise<
+    | (IdVerificationDocument & {
+        attemptsUsed: number;
+        attemptsRemaining: number;
+        maxAttempts: number;
+      })
+    | null
+  > {
+    const userOid = new Types.ObjectId(userId);
+    const [verification, attemptsUsed] = await Promise.all([
+      this.verificationModel
+        .findOne({ userId: userOid })
+        .sort({ createdAt: -1 })
+        .lean()
+        .exec(),
+      this.countUsedAttempts(userOid),
+    ]);
+    if (!verification) return null;
+    return {
+      ...(verification as any),
+      attemptsUsed,
+      attemptsRemaining: Math.max(
+        0,
+        MAX_ID_VERIFICATION_ATTEMPTS - attemptsUsed,
+      ),
+      maxAttempts: MAX_ID_VERIFICATION_ATTEMPTS,
+    };
   }
 
   async getAllVerifications(
@@ -241,11 +296,17 @@ export class IdVerificationService {
 
     await verification.save();
 
-    if (status === IdVerificationStatus.APPROVED) {
-      await this.userModel.findByIdAndUpdate(verification.userId, {
-        $set: { idVerified: true },
-      });
-    }
+    // Both outcomes are written, not just approval. Leaving rejection alone made
+    // `idVerified` write-once: there was no path anywhere in the app to withdraw
+    // it, so an ID approved in error could never be taken back.
+    await this.userModel.findByIdAndUpdate(verification.userId, {
+      $set: { idVerified: status === IdVerificationStatus.APPROVED },
+    });
+
+    // The "Verified seller" badge is a denormalised copy on every one of the
+    // seller's listings, so updating the user flag is not enough on its own —
+    // without this the badge keeps asserting the previous decision.
+    await this.listingsService.syncSellerVerified(String(verification.userId));
 
     return verification;
   }

@@ -3,6 +3,15 @@ export default () => ({
   port: parseInt(process.env.PORT || '3000', 10),
   apiPrefix: process.env.API_PREFIX || 'api',
 
+  /**
+   * Timezone that time-of-day reporting is bucketed into.
+   *
+   * MongoDB's date operators work in UTC unless told otherwise, so without this a
+   * "peak hours" chart for a Pakistani audience was drawn five hours out of step
+   * with the day it was describing — 8pm local traffic appearing as 3pm.
+   */
+  reportingTimezone: process.env.REPORTING_TIMEZONE || 'Asia/Karachi',
+
   // ─── Locale & Branding ──────────────────────────────────────
   locale: {
     currency: process.env.DEFAULT_CURRENCY || 'PKR',

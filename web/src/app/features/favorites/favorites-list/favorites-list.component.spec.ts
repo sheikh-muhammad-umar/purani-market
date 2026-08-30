@@ -2,6 +2,8 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { of, throwError } from 'rxjs';
 import { FavoritesListComponent } from './favorites-list.component';
 import { FavoritesService } from '../../../core/services/favorites.service';
+import { ShortsService } from '../../../core/services/shorts.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { Favorite, FavoriteListingPopulated } from '../../../core/models';
 
 function makeListing(overrides: Partial<FavoriteListingPopulated> = {}): FavoriteListingPopulated {
@@ -34,6 +36,9 @@ function makeFavorite(overrides: Partial<Favorite> = {}): Favorite {
 
 describe('FavoritesListComponent', () => {
   let component: FavoritesListComponent;
+  /** Neither shorts nor tracking are exercised here; they only need to exist. */
+  const shortsServiceMock = { getLikedShorts: vi.fn().mockReturnValue(of([])) };
+  const trackerMock = { track: vi.fn() };
   let favoritesService: {
     getAll: ReturnType<typeof vi.fn>;
     remove: ReturnType<typeof vi.fn>;
@@ -75,7 +80,11 @@ describe('FavoritesListComponent', () => {
       remove: vi.fn().mockReturnValue(of(undefined)),
     };
 
-    component = new FavoritesListComponent(favoritesService as unknown as FavoritesService);
+    component = new FavoritesListComponent(
+      favoritesService as unknown as FavoritesService,
+      shortsServiceMock as unknown as ShortsService,
+      trackerMock as unknown as ActivityTrackerService,
+    );
   });
 
   it('should create', () => {

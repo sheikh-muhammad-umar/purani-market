@@ -13,6 +13,7 @@ import { ConfigService } from '@nestjs/config';
 import { InjectRedis } from '@nestjs-modules/ioredis';
 import Redis from 'ioredis';
 import { createHash } from 'crypto';
+import { clientContext } from '../common/utils/request-context.js';
 import {
   DEFAULT_CURRENCY,
   VIEW_DEDUP_PREFIX,
@@ -60,6 +61,26 @@ import { PaginatedListings } from './interfaces/paginated-listings.interface.js'
 import { daysToMs } from '../common/utils/time.js';
 
 export type { PaginatedListings };
+
+/**
+ * The one definition of a verified seller: email, phone and ID all confirmed.
+ *
+ * Exported and shared so the rule cannot drift between the place a listing is
+ * created and the place its badge is refreshed. It was previously written out by
+ * hand in both, plus a third time in scripts/backfill-seller-verified.js.
+ */
+export function isSellerVerified(
+  user:
+    | {
+        emailVerified?: boolean;
+        phoneVerified?: boolean;
+        idVerified?: boolean;
+      }
+    | null
+    | undefined,
+): boolean {
+  return !!user?.emailVerified && !!user?.phoneVerified && !!user?.idVerified;
+}
 
 @Injectable()
 export class ListingsService {
@@ -299,11 +320,7 @@ export class ListingsService {
     if (userId) return `u:${userId}`;
 
     // Anonymous: hash IP + user-agent for a fingerprint
-    const ip =
-      req?.headers?.['x-forwarded-for']?.split(',')[0]?.trim() ||
-      req?.ip ||
-      'unknown';
-    const ua = req?.headers?.['user-agent'] || 'unknown';
+    const { ip = 'unknown', userAgent: ua = 'unknown' } = clientContext(req);
     const hash = createHash('sha256')
       .update(`${ip}:${ua}`)
       .digest('hex')
@@ -707,10 +724,7 @@ export class ListingsService {
         phone: dto.contactInfo?.phone || seller.phone || '',
         email: dto.contactInfo?.email || seller.email || '',
       },
-      sellerVerified:
-        !!seller.emailVerified &&
-        !!seller.phoneVerified &&
-        !!(seller as any).idVerified,
+      sellerVerified: isSellerVerified(seller as any),
       status,
     });
 
@@ -747,6 +761,54 @@ export class ListingsService {
       .exec();
     this.syncToEs(saved);
     return saved;
+  }
+
+  /**
+   * Brings the `sellerVerified` badge on a seller's listings back in line with
+   * their current verification state.
+   *
+   * `sellerVerified` is denormalised onto each listing so that search can filter
+   * on it, and it used to be written only once, when the listing was created.
+   * Nothing refreshed it afterwards, so any later change to the seller left every
+   * one of their listings asserting the old answer — including showing "Verified
+   * seller" for someone whose ID verification had been taken away.
+   *
+   * Re-indexes each changed listing explicitly rather than trusting the
+   * Elasticsearch change stream, which is unavailable on a standalone MongoDB and
+   * is disabled at runtime in that case.
+   *
+   * Returns how many listings changed, so callers can log a revocation.
+   */
+  async syncSellerVerified(sellerId: string): Promise<number> {
+    const seller = await this.userModel
+      .findById(sellerId)
+      .select('emailVerified phoneVerified idVerified')
+      .lean()
+      .exec();
+    const verified = isSellerVerified(seller as any);
+    const filter = {
+      sellerId: new Types.ObjectId(sellerId),
+      sellerVerified: { $ne: verified },
+    };
+
+    // Read the stale ones first: after the update they no longer match, and each
+    // needs re-indexing individually.
+    const stale = await this.listingModel.find(filter).exec();
+    if (stale.length === 0) return 0;
+
+    await this.listingModel
+      .updateMany(filter, { $set: { sellerVerified: verified } })
+      .exec();
+
+    for (const listing of stale) {
+      listing.sellerVerified = verified;
+      await this.syncToEs(listing);
+    }
+
+    this.logger.log(
+      `Seller ${sellerId} verified=${verified}: updated ${stale.length} listing badge(s)`,
+    );
+    return stale.length;
   }
 
   private async syncToEs(listing: ProductListingDocument): Promise<void> {

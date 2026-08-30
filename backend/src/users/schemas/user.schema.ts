@@ -178,6 +178,18 @@ export class User {
   @Prop({ type: Boolean, default: false })
   idVerified!: boolean;
 
+  /**
+   * The user asked to verify their ID while registering.
+   *
+   * Intent, not status — `idVerified` is the status. It is recorded because ID
+   * upload needs an authenticated session and registration does not create one:
+   * the account still has to confirm its email or phone and log in first. This
+   * carries the request across that gap so the client can take them straight to
+   * the ID step on their first sign-in instead of losing the moment they said yes.
+   */
+  @Prop({ type: Boolean, default: false })
+  wantsIdVerification!: boolean;
+
   @Prop({ type: PendingEmailChange })
   pendingEmailChange?: PendingEmailChange;
 

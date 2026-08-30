@@ -13,7 +13,11 @@ import { OptionalJwtAuthGuard } from '../common/guards/optional-jwt-auth.guard.j
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 import { DismissRecommendationDto } from './dto/dismiss-recommendation.dto.js';
 import { TrackActivityDto } from './dto/track-activity.dto.js';
-import { UAParser } from 'ua-parser-js';
+import {
+  boundedId,
+  clientContext,
+  deviceContext,
+} from '../common/utils/request-context.js';
 
 @Controller('api')
 export class AiController {
@@ -53,29 +57,16 @@ export class AiController {
     @Body() dto: TrackActivityDto,
     @Req() req: any,
   ) {
-    const ua = req.headers['user-agent'] || '';
-    const ip = req.headers['x-forwarded-for']?.split(',')[0]?.trim() || req.ip;
-    const parser = new UAParser(ua);
-    const browser = parser.getBrowser();
-    const os = parser.getOS();
-    const device = parser.getDevice();
-    const engine = parser.getEngine();
+    const { ip, userAgent } = clientContext(req);
 
+    // Device facts are derived server-side rather than trusted from the client,
+    // so they stay consistent across every event and cannot be spoofed.
     const enrichedMetadata: Record<string, any> = {
       ...dto.metadata,
-      browser: browser.name
-        ? `${browser.name} ${browser.version || ''}`.trim()
-        : undefined,
-      os: os.name ? `${os.name} ${os.version || ''}`.trim() : undefined,
-      deviceType: device.type || 'desktop',
-      deviceVendor: device.vendor || undefined,
-      deviceModel: device.model || undefined,
-      engine: engine.name
-        ? `${engine.name} ${engine.version || ''}`.trim()
-        : undefined,
+      ...deviceContext(userAgent),
     };
 
-    // Remove undefined values
+    // Undefined keys would occupy space in the metadata map for no benefit.
     Object.keys(enrichedMetadata).forEach((k) => {
       if (enrichedMetadata[k] === undefined) delete enrichedMetadata[k];
     });
@@ -86,7 +77,9 @@ export class AiController {
       categoryId: dto.categoryId,
       metadata: enrichedMetadata,
       ip,
-      userAgent: ua,
+      userAgent,
+      sessionId: boundedId(dto.sessionId),
+      visitorId: boundedId(dto.visitorId),
     });
     return { tracked: true };
   }

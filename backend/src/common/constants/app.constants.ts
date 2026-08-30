@@ -162,6 +162,15 @@ export const DELETION_REASON_MAX_REJECTIONS =
   'Auto-removed: max rejections reached with no resubmission';
 
 // ─── ID Verification ────────────────────────────────────────
+/**
+ * How many ID verification submissions a user gets in total.
+ *
+ * Counts admin rejections only. A submission auto-expired by the cleanup cron was
+ * never reviewed, so burning an attempt for it would penalise the user for the
+ * backlog rather than for anything they did.
+ */
+export const MAX_ID_VERIFICATION_ATTEMPTS = 3;
+
 export const ID_VERIFICATION_AUTO_EXPIRE_REASON =
   'Auto-expired: verification was not reviewed within 30 days. Please resubmit.';
 

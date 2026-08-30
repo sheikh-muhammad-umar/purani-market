@@ -1,4 +1,5 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { ChartComponent } from '../../../shared/components/chart/chart.component';
+import { Component, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ShortsService } from '../../../core/services/shorts.service';
@@ -6,7 +7,7 @@ import { ShortsService } from '../../../core/services/shorts.service';
 @Component({
   selector: 'app-shorts-analytics',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ChartComponent],
   templateUrl: './shorts-analytics.component.html',
   styleUrl: './shorts-analytics.component.scss',
 })
@@ -54,6 +55,22 @@ export class ShortsAnalyticsComponent implements OnInit {
     if (s?.profile) return `${s.profile.firstName || ''} ${s.profile.lastName || ''}`.trim();
     return 'Unknown';
   }
+
+  /** Uploads per day, as an area series. */
+  readonly uploadsChart = computed(() => {
+    const days = this.analytics()?.uploadsByDay ?? [];
+    return {
+      // `_id` is the grouped date key from the aggregation.
+      labels: days.map((day: { _id: string }) => day._id.slice(5)),
+      series: [
+        {
+          label: 'Uploads',
+          data: days.map((day: { count: number }) => day.count),
+          color: 'primary' as const,
+        },
+      ],
+    };
+  });
 
   getMaxUploads(): number {
     const days = this.analytics()?.uploadsByDay ?? [];

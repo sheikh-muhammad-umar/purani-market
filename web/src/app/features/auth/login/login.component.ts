@@ -10,9 +10,31 @@ import { SocialProvider } from '../../../core/enums/social-provider';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ROUTES } from '../../../core/constants/routes';
 import { LOGIN_METHOD_EMAIL, LOGIN_METHOD_PHONE } from '../../../core/constants/app';
+import { STORAGE_IDV_PROMPTED } from '../../../core/constants/storage-keys';
+import { User } from '../../../core/models/user.model';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 
 const SOCIAL_LOGIN_PREFIX = 'social:';
+
+/**
+ * Whether a signed-in user should land on the ID step instead of the home page.
+ *
+ * Pure so the rule can be tested on its own: the caller supplies whether this
+ * device has already been offered the step, and owns the storage side effect.
+ *
+ * Honours a request made during registration, which could not be acted on at the
+ * time because uploading needs a session that registration does not create.
+ */
+export function shouldOpenIdVerification(
+  user: Pick<User, 'wantsIdVerification' | 'idVerified'> | null | undefined,
+  alreadyPrompted: boolean,
+): boolean {
+  if (!user?.wantsIdVerification) return false;
+  // Nothing left to ask for.
+  if (user.idVerified) return false;
+  // They opted in but then skipped; do not corner them on every sign-in.
+  return !alreadyPrompted;
+}
 
 @Component({
   selector: 'app-login',
@@ -152,11 +174,24 @@ export class LoginComponent {
     this.authService
       .fetchCurrentUser()
       .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(() => {
+      .subscribe((user) => {
         this.tracker.trackLoginWithLocation({
           method,
           ...this.tracker.getDeviceInfo(),
         });
+
+        const toIdVerification = shouldOpenIdVerification(
+          user,
+          localStorage.getItem(STORAGE_IDV_PROMPTED) === '1',
+        );
+        if (toIdVerification) {
+          // Recorded before navigating, so a reload cannot replay the redirect.
+          localStorage.setItem(STORAGE_IDV_PROMPTED, '1');
+          this.router.navigate([ROUTES.PROFILE_ID_VERIFICATION], {
+            queryParams: { welcome: 1 },
+          });
+          return;
+        }
         this.router.navigate([ROUTES.HOME]);
       });
   }

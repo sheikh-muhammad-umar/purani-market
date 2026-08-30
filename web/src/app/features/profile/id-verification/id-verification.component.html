@@ -10,6 +10,25 @@
       </div>
     </div>
 
+    <!-- Only for people who opted in at sign-up and were brought straight here.
+         Repeats the offer they accepted so the landing matches the promise. -->
+    @if (fromSignup() && !isIdVerified()) {
+      <div class="idv-welcome">
+        <span class="material-symbols-rounded idv-welcome-icon" aria-hidden="true">verified</span>
+        <div>
+          <h2 class="idv-welcome-title">Get verified — start selling sooner</h2>
+          <p class="idv-welcome-desc">
+            Verified sellers get the badge on every listing, and appear when buyers filter for
+            verified sellers only. Unverified listings are hidden from those searches. Takes about
+            two minutes: your CNIC and a selfie.
+          </p>
+          <p class="idv-welcome-note">
+            Prefer to do this later? You can come back to this page any time from your profile.
+          </p>
+        </div>
+      </div>
+    }
+
     @if (loading()) {
       <app-loader mode="inline" [loading]="true" message="Loading..." />
     } @else {
@@ -66,7 +85,7 @@
                     <br />Reason: {{ verification()?.rejectionReason }}
                   }
                 </p>
-                <p class="status-meta">You can submit a new request below.</p>
+                <p class="status-meta">{{ attemptsMessage() }}</p>
               </div>
             </div>
           </div>

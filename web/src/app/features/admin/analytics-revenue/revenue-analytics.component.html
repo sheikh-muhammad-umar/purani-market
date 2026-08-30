@@ -1,0 +1,158 @@
+<div class="analytics-page">
+  <div class="page-header">
+    <h1>Revenue Analytics</h1>
+    <div class="date-range">
+      <app-date-picker [(ngModel)]="dateFrom" [max]="dateTo || today"></app-date-picker>
+      <span class="date-sep">to</span>
+      <app-date-picker [(ngModel)]="dateTo" [min]="dateFrom" [max]="today"></app-date-picker>
+      <button class="btn-apply" (click)="applyDateRange()">Apply</button>
+      <button class="btn-export" (click)="exportCSV()" [disabled]="loading()">
+        <span class="material-symbols-rounded" style="font-size: 16px">download</span> Export
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  }
+
+  @if (!loading()) {
+    <div class="metrics-grid">
+      @for (card of metrics(); track card.label) {
+        <div class="metric-card">
+          <span class="metric-icon material-symbols-rounded">{{ card.icon }}</span>
+          <div class="metric-body">
+            <span class="metric-value">
+              {{ card.format === 'currency' ? CURRENCY_SYMBOL + ' ' : ''
+              }}{{ formatNumber(card.value) }}
+            </span>
+            <span class="metric-label">{{ card.label }}</span>
+          </div>
+        </div>
+      }
+    </div>
+
+    @if (!hasData()) {
+      <div class="chart-card empty-card">
+        <span class="material-symbols-rounded">payments</span>
+        <p>No completed payments in this range.</p>
+      </div>
+    } @else {
+      @if (bestDay()) {
+        <p class="page-note">
+          Best day was {{ bestDay()!.date }} at {{ CURRENCY_SYMBOL }}
+          {{ bestDay()!.revenue | number: '1.0-0' }} across {{ bestDay()!.count | number }}
+          {{ bestDay()!.count === 1 ? 'transaction' : 'transactions' }}. Only completed payments are
+          counted.
+        </p>
+      }
+
+      @if (revenueChart().labels.length > 0) {
+        <div class="chart-card">
+          <h3>Revenue Over Time</h3>
+          <app-chart
+            kind="area"
+            [labels]="revenueChart().labels"
+            [series]="revenueChart().series"
+            [height]="220"
+            valueFormat="currency"
+            ariaLabel="Completed payment revenue per day"
+          />
+        </div>
+
+        <div class="chart-card">
+          <h3>Transactions Over Time</h3>
+          <app-chart
+            kind="bar"
+            [labels]="transactionsChart().labels"
+            [series]="transactionsChart().series"
+            [height]="180"
+            ariaLabel="Completed payment count per day"
+          />
+          <p class="chart-note">
+            Shown separately from revenue: a handful of large purchases and a crowd of small ones
+            look identical on a revenue line.
+          </p>
+        </div>
+      }
+
+      @if (byPaymentMethod().length > 0) {
+        <div class="chart-card">
+          <h3>Revenue by Payment Method</h3>
+          <div class="breakdown-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Method</th>
+                  <th class="num">Revenue</th>
+                  <th class="num">Share</th>
+                  <th class="num">Transactions</th>
+                  <th class="num">Avg Order</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of byPaymentMethod(); track row.label) {
+                  <tr>
+                    <td>
+                      <div class="label-cell">
+                        <span>{{ row.label }}</span>
+                        <div class="inline-bar-wrap">
+                          <div class="inline-bar" [style.width.%]="row.pct"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="num money">
+                      {{ CURRENCY_SYMBOL }} {{ row.revenue | number: '1.0-0' }}
+                    </td>
+                    <td class="num">{{ row.pct | number: '1.0-1' }}%</td>
+                    <td class="num">{{ row.count | number }}</td>
+                    <td class="num money">{{ CURRENCY_SYMBOL }} {{ row.avg | number: '1.0-0' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      @if (byPackageType().length > 0) {
+        <div class="chart-card">
+          <h3>Revenue by Package Type</h3>
+          <div class="breakdown-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Type</th>
+                  <th class="num">Revenue</th>
+                  <th class="num">Share</th>
+                  <th class="num">Transactions</th>
+                  <th class="num">Avg Order</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of byPackageType(); track row.label) {
+                  <tr>
+                    <td>
+                      <div class="label-cell">
+                        <span>{{ row.label }}</span>
+                        <div class="inline-bar-wrap">
+                          <div class="inline-bar" [style.width.%]="row.pct"></div>
+                        </div>
+                      </div>
+                    </td>
+                    <td class="num money">
+                      {{ CURRENCY_SYMBOL }} {{ row.revenue | number: '1.0-0' }}
+                    </td>
+                    <td class="num">{{ row.pct | number: '1.0-1' }}%</td>
+                    <td class="num">{{ row.count | number }}</td>
+                    <td class="num money">{{ CURRENCY_SYMBOL }} {{ row.avg | number: '1.0-0' }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+    }
+  }
+</div>

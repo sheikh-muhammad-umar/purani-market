@@ -20,6 +20,7 @@ import { EmailVerificationModalService } from './shared/components/email-verific
 import { PhoneVerificationModalComponent } from './shared/components/phone-verification-modal/phone-verification-modal.component';
 import { PhoneVerificationModalService } from './shared/components/phone-verification-modal/phone-verification-modal.service';
 import { AppLoaderComponent } from './shared/components/app-loader/app-loader.component';
+import { PageViewTrackerService } from './core/services/page-view-tracker.service';
 import { ROUTES } from './core/constants/routes';
 
 @Component({
@@ -48,10 +49,14 @@ export class App implements OnInit, OnDestroy {
 
   readonly emailVerificationModal = inject(EmailVerificationModalService);
   readonly phoneVerificationModal = inject(PhoneVerificationModalService);
+  private readonly pageViews = inject(PageViewTrackerService);
 
   constructor(private readonly router: Router) {}
 
   ngOnInit(): void {
+    // Opens the session and starts the page-view stream. No-ops on the server.
+    this.pageViews.init();
+
     this.hideFooter.set(this.router.url.startsWith(ROUTES.MESSAGING));
     this.navSub = this.router.events
       .pipe(filter((e): e is NavigationEnd => e instanceof NavigationEnd))

@@ -12,9 +12,10 @@ import { DEFAULT_COUNTRY } from '../constants/app';
  * Holding the selection here rather than in either picker keeps them from
  * drifting apart when the viewport crosses a breakpoint.
  *
- * The persisted shape is read by `ListingsService`, `ActivityTrackerService`,
- * the home page and search results, so it must stay
- * `{ label, province, city, area }` exactly.
+ * The persisted shape is read directly by `ListingsService`, the home page and
+ * search results, so it must stay `{ label, province, city, area }` exactly.
+ * `ActivityTrackerService` reads the signals here instead, which is the
+ * preferred direction for anything new.
  */
 @Injectable({ providedIn: 'root' })
 export class SelectedLocationService {

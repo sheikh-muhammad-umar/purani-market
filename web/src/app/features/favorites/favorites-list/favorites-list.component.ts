@@ -1,5 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { FavoritesService } from '../../../core/services/favorites.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ShortsService, ShortVideo } from '../../../core/services/shorts.service';
 import { Favorite, FavoriteListingPopulated } from '../../../core/models';
 import { ROUTES } from '../../../core/constants/routes';
@@ -31,6 +33,7 @@ export class FavoritesListComponent implements OnInit {
   constructor(
     private readonly favoritesService: FavoritesService,
     private readonly shortsService: ShortsService,
+    private readonly tracker: ActivityTrackerService,
   ) {}
 
   ngOnInit(): void {
@@ -69,6 +72,12 @@ export class FavoritesListComponent implements OnInit {
       next: () => {
         this.favorites.update((list) => list.filter((f) => f._id !== favorite._id));
         this.removingId.set(null);
+        // The listing detail page tracked its own favourite toggles, but removals
+        // from this list — the other half of the signal — were never recorded.
+        this.tracker.track(TrackingEvent.UNFAVORITE, {
+          productListingId: this.getListing(favorite)?._id,
+          metadata: { source: 'favorites_list' },
+        });
       },
       error: () => {
         this.removingId.set(null);

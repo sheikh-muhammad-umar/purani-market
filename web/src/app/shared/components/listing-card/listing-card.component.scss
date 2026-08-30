@@ -314,10 +314,8 @@
 .lc-verified-icon {
   font-size: 13px;
   font-variation-settings: 'FILL' 1;
-  /* Inherits .badge-glass's white ink. A green tick would be the obvious choice
-     but this badge sits on a dark scrim over arbitrary imagery, where no green
-     in the palette clears 4.5:1 — white does, and it matches the label. */
-  color: inherit;
+  /* Matches the "Verified Sellers Only" filter icon color. */
+  color: var(--success-text);
 }
 
 /* ---- Loading placeholder ---- */

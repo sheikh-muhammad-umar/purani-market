@@ -23,6 +23,7 @@ function makePackage(overrides: Partial<AdPackage> = {}): AdPackage {
 function createComponent(
   packageId: string,
   packagesService: Record<string, ReturnType<typeof vi.fn>>,
+  tracker: { track: ReturnType<typeof vi.fn> } = { track: vi.fn() },
 ): PurchaseFlowComponent {
   const route = {
     snapshot: { paramMap: { get: (key: string) => (key === 'id' ? packageId : null) } },
@@ -30,7 +31,7 @@ function createComponent(
   return new PurchaseFlowComponent(
     route,
     packagesService as unknown as PackagesService,
-    { track: vi.fn() } as unknown as ActivityTrackerService,
+    tracker as unknown as ActivityTrackerService,
   );
 }
 
@@ -146,6 +147,49 @@ describe('PurchaseFlowComponent', () => {
     component.confirmPurchase();
     expect(component.purchaseError()).toBe('Payment initiation failed. Please try again.');
     expect(component.purchasing()).toBe(false);
+  });
+
+  it('should record a payment attempt before the purchase request', () => {
+    // The attempt has to be recorded up front: the gap between attempts and
+    // completed purchases is the only way a failing payment method shows up.
+    const tracker = { track: vi.fn() };
+    const withTracker = createComponent('pkg1', packagesService, tracker);
+    withTracker.ngOnInit();
+    withTracker.selectPaymentMethod('easypaisa');
+    withTracker.confirmPurchase();
+
+    const actions = tracker.track.mock.calls.map(([action]) => action);
+    expect(actions).toContain('payment_attempt');
+    expect(actions.indexOf('payment_attempt')).toBeLessThan(actions.indexOf('package_purchase'));
+    expect(tracker.track).toHaveBeenCalledWith('payment_attempt', {
+      metadata: {
+        packageId: 'pkg1',
+        packageName: '5 Featured Ads',
+        amount: 500,
+        paymentMethod: 'easypaisa',
+      },
+    });
+  });
+
+  it('should record a payment attempt even when the purchase fails', () => {
+    packagesService.purchase.mockReturnValue(throwError(() => new Error('fail')));
+    const tracker = { track: vi.fn() };
+    const withTracker = createComponent('pkg1', packagesService, tracker);
+    withTracker.ngOnInit();
+    withTracker.selectPaymentMethod('card');
+    withTracker.confirmPurchase();
+
+    const actions = tracker.track.mock.calls.map(([action]) => action);
+    expect(actions).toContain('payment_attempt');
+    expect(actions).not.toContain('package_purchase');
+  });
+
+  it('should not record a payment attempt without a payment method', () => {
+    const tracker = { track: vi.fn() };
+    const withTracker = createComponent('pkg1', packagesService, tracker);
+    withTracker.ngOnInit();
+    withTracker.confirmPurchase();
+    expect(tracker.track).not.toHaveBeenCalledWith('payment_attempt', expect.anything());
   });
 
   it('should not purchase without payment method', () => {

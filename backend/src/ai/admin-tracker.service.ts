@@ -6,6 +6,7 @@ import {
   UserActivityDocument,
   UserAction,
 } from './schemas/user-activity.schema.js';
+import { clientContext } from '../common/utils/request-context.js';
 
 @Injectable()
 export class AdminTrackerService {
@@ -20,9 +21,7 @@ export class AdminTrackerService {
     metadata: Record<string, any> = {},
     req?: any,
   ): Promise<void> {
-    const ip =
-      req?.headers?.['x-forwarded-for']?.split(',')[0]?.trim() || req?.ip;
-    const userAgent = req?.headers?.['user-agent'];
+    const { ip, userAgent } = clientContext(req);
 
     await new this.activityModel({
       userId: new Types.ObjectId(adminUserId),

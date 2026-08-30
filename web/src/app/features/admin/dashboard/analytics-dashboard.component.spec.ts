@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
-import { of, throwError } from 'rxjs';
+import { of, throwError, Subject } from 'rxjs';
 import { AnalyticsDashboardComponent } from './analytics-dashboard.component';
+import { TabActivityService } from '../../../core/services/tab-activity.service';
 import { AdminService, AnalyticsData } from '../../../core/services/admin.service';
 
 const mockAnalytics: AnalyticsData = {
@@ -83,7 +84,12 @@ describe('AnalyticsDashboardComponent', () => {
       getPendingShortsCount: vi.fn().mockReturnValue(of(0)),
       getUsers: vi.fn().mockReturnValue(of({ total: 0, users: [] })),
     };
-    component = new AnalyticsDashboardComponent(adminService as unknown as AdminService);
+    // Returns a stream that never emits: these tests drive loads directly.
+    const tabActivity = { returns: () => new Subject<void>() } as unknown as TabActivityService;
+    component = new AnalyticsDashboardComponent(
+      adminService as unknown as AdminService,
+      tabActivity,
+    );
   });
 
   it('should create', () => {
@@ -148,37 +154,9 @@ describe('AnalyticsDashboardComponent', () => {
     expect(component.formatValue(560000, 'currency')).toContain('560');
   });
 
-  it('should compute max category count', () => {
-    component.ngOnInit();
-    expect(component.maxCategoryCount()).toBe(500);
-  });
-
-  it('should return 1 for max category count when empty', () => {
-    expect(component.maxCategoryCount()).toBe(1);
-  });
-
-  it('should calculate bar width as percentage', () => {
-    component.ngOnInit();
-    expect(component.getBarWidth(500)).toBe(100);
-    expect(component.getBarWidth(250)).toBe(50);
-  });
-
   it('should calculate bar height as percentage', () => {
     expect(component.getBarHeight(10, 20)).toBe(50);
     expect(component.getBarHeight(20, 20)).toBe(100);
-  });
-
-  it('should get max time series value', () => {
-    expect(
-      component.getMaxTimeSeriesValue([
-        { date: '2024-01-01', value: 10 },
-        { date: '2024-01-02', value: 20 },
-      ]),
-    ).toBe(20);
-  });
-
-  it('should return 1 for empty time series', () => {
-    expect(component.getMaxTimeSeriesValue([])).toBe(1);
   });
 
   it('should format short date', () => {
@@ -204,7 +182,11 @@ describe('AnalyticsDashboardComponent', () => {
 
     component.exportReport();
 
-    // Component now generates CSV locally
+    // The CSV is built server-side; the component only triggers the download.
+    expect(adminService.exportReport).toHaveBeenCalledWith({
+      startDate: component.startDate,
+      endDate: component.endDate,
+    });
     expect(mockAnchor.click).toHaveBeenCalled();
     expect(component.exporting()).toBe(false);
   });

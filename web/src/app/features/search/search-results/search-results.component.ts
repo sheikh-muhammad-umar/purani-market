@@ -1609,6 +1609,25 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       }
     });
 
+    // Every facet, brand, price and sort change funnels through here, so this is
+    // the one place that can answer which filters shoppers actually use. Page
+    // views deliberately ignore query-only changes, so without this the whole
+    // filtering interaction was invisible.
+    const applied = Object.entries(queryParams).filter(
+      ([key, value]) => value !== null && value !== '' && key !== 'page',
+    );
+    this.tracker.track(TrackingEvent.FILTER_APPLY, {
+      searchQuery: this.query() || undefined,
+      metadata: {
+        filterCount: applied.length,
+        filterKeys: applied
+          .map(([key]) => key)
+          .sort()
+          .join(','),
+        params: Object.fromEntries(applied.map(([key, value]) => [key, String(value)])),
+      },
+    });
+
     this.router.navigate([], {
       relativeTo: this.route,
       queryParams,

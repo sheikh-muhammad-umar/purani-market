@@ -1,15 +1,30 @@
 export enum UserAction {
+  /**
+   * First event of a browser session. Carries the device, referrer and location
+   * context once, so every later event in the session only needs to carry the
+   * session id rather than repeating all of it.
+   */
+  SESSION_START = 'session_start',
+
   // Browsing
   VIEW = 'view',
   SEARCH = 'search',
   CATEGORY_BROWSE = 'category_browse',
   PAGE_VIEW = 'page_view',
+  SELLER_PROFILE_VIEW = 'seller_profile_view',
 
   // Engagement
   FAVORITE = 'favorite',
   UNFAVORITE = 'unfavorite',
   CONTACT = 'contact',
   SHARE = 'share',
+  FILTER_APPLY = 'filter_apply',
+  /**
+   * An advertisement was clicked. Billing counts live in `ad_events`; this copy
+   * puts the click in the behavioural timeline so it can be read alongside what
+   * the visitor did next.
+   */
+  AD_CLICK = 'ad_click',
 
   // Listing actions
   LISTING_CREATE = 'listing_create',

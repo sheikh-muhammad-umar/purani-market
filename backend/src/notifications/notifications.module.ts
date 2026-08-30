@@ -23,9 +23,11 @@ import {
 } from './schemas/user-notification.schema.js';
 import { AuthModule } from '../auth/auth.module.js';
 import { AiModule } from '../ai/ai.module.js';
+import { RealtimeModule } from '../common/realtime/realtime.module.js';
 
 @Module({
   imports: [
+    RealtimeModule,
     MongooseModule.forFeature([
       { name: User.name, schema: UserSchema },
       { name: Favorite.name, schema: FavoriteSchema },

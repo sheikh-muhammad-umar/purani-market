@@ -1,16 +1,37 @@
-/** All user activity tracking event constants */
+/**
+ * All user activity tracking event constants.
+ *
+ * Every value here must also exist in the backend `UserAction` enum
+ * (`src/ai/enums/user-action.enum.ts`). The `/track` DTO validates `action` with
+ * `@IsEnum`, and the tracker swallows errors, so an action that is missing
+ * server-side is rejected with a 400 that nothing surfaces — the event simply
+ * never appears in analytics.
+ */
 export const TrackingEvent = {
+  /** First event of a session; carries device, referrer and location context. */
+  SESSION_START: 'session_start',
+
   // Browsing
   VIEW: 'view',
   SEARCH: 'search',
   CATEGORY_BROWSE: 'category_browse',
   PAGE_VIEW: 'page_view',
+  SELLER_PROFILE_VIEW: 'seller_profile_view',
 
   // Engagement
   FAVORITE: 'favorite',
   UNFAVORITE: 'unfavorite',
   CONTACT: 'contact',
   SHARE: 'share',
+  FILTER_APPLY: 'filter_apply',
+  /**
+   * An advertisement was clicked.
+   *
+   * Billing still lives in `ad_events`; this copy exists so an ad click appears
+   * in the behavioural timeline next to what the visitor did afterwards.
+   * Impressions are deliberately not mirrored here — see `ad-slot.component.ts`.
+   */
+  AD_CLICK: 'ad_click',
 
   // Listing actions
   LISTING_CREATE: 'listing_create',
@@ -96,10 +117,32 @@ export const TrackingEvent = {
 /** Union type derived from the const object */
 export type UserAction = (typeof TrackingEvent)[keyof typeof TrackingEvent];
 
-/** Actions that should be tracked for anonymous/guest users */
+/**
+ * Actions that are tracked for anonymous visitors too.
+ *
+ * Guests are the bulk of marketplace traffic, so restricting this list to plain
+ * browsing hid the funnel that matters: which listings guests contact, what they
+ * filter by, and where they arrive from. Everything here is behavioural and
+ * keyed on a session id rather than an identity.
+ *
+ * Deliberately excluded: `short_view`, which the shorts feed emits on every
+ * slide change with no dwell time or de-duplication. Opening it to guests would
+ * multiply write volume for the least considered event in the app.
+ */
 export const ANONYMOUS_TRACKED_ACTIONS = new Set<UserAction>([
+  TrackingEvent.SESSION_START,
   TrackingEvent.VIEW,
   TrackingEvent.SEARCH,
   TrackingEvent.CATEGORY_BROWSE,
   TrackingEvent.PAGE_VIEW,
+  TrackingEvent.SELLER_PROFILE_VIEW,
+  TrackingEvent.FILTER_APPLY,
+  TrackingEvent.CONTACT,
+  TrackingEvent.SHARE,
+  TrackingEvent.AD_CLICK,
+  TrackingEvent.RECOMMENDATION_CLICK,
+  TrackingEvent.VOICE_SEARCH_START,
+  TrackingEvent.VOICE_SEARCH_COMPLETE,
+  TrackingEvent.VOICE_SEARCH_CANCEL,
+  TrackingEvent.VOICE_SEARCH_ERROR,
 ]);

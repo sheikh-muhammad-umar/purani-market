@@ -1,4 +1,5 @@
 import { FormBuilder, Validators } from '@angular/forms';
+import { shouldOpenIdVerification } from './login.component';
 
 describe('LoginComponent form logic', () => {
   const fb = new FormBuilder();
@@ -84,5 +85,40 @@ describe('LoginComponent form logic', () => {
     form.get('email')?.setValue('test@example.com');
     form.get('password')?.setValue('password123');
     expect(form.valid).toBe(true);
+  });
+});
+
+describe('shouldOpenIdVerification', () => {
+  const opted = { wantsIdVerification: true, idVerified: false };
+
+  it('should open the ID step for someone who asked for it at sign-up', () => {
+    expect(shouldOpenIdVerification(opted, false)).toBe(true);
+  });
+
+  it('should not open it for someone who never asked', () => {
+    expect(shouldOpenIdVerification({ wantsIdVerification: false, idVerified: false }, false)).toBe(
+      false,
+    );
+  });
+
+  it('should not open it once the user is already verified', () => {
+    expect(shouldOpenIdVerification({ wantsIdVerification: true, idVerified: true }, false)).toBe(
+      false,
+    );
+  });
+
+  // Opting in should not mean being sent back here on every single sign-in.
+  it('should not open it again on a device that was already offered it', () => {
+    expect(shouldOpenIdVerification(opted, true)).toBe(false);
+  });
+
+  it('should tolerate a missing user', () => {
+    expect(shouldOpenIdVerification(null, false)).toBe(false);
+    expect(shouldOpenIdVerification(undefined, false)).toBe(false);
+  });
+
+  // The field is optional on the model, so an older response must not redirect.
+  it('should not open it when the flag is absent', () => {
+    expect(shouldOpenIdVerification({ idVerified: false } as any, false)).toBe(false);
   });
 });

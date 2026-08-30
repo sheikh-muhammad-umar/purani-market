@@ -1,6 +1,7 @@
 import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
-import { RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { NavigationEnd, Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { filter } from 'rxjs';
 import { ROUTES } from '../../../core/constants/routes';
 import { NavItem, NavSection } from './admin-layout.interfaces';
 
@@ -32,6 +33,15 @@ export class AdminLayoutComponent {
           children: [
             { label: 'Listings', icon: 'list_alt', path: ROUTES.ADMIN_ANALYTICS_LISTINGS },
             { label: 'Shorts', icon: 'play_circle', path: ROUTES.ADMIN_ANALYTICS_SHORTS },
+            { label: 'Users', icon: 'group', path: ROUTES.ADMIN_ANALYTICS_USERS },
+            { label: 'Revenue', icon: 'payments', path: ROUTES.ADMIN_ANALYTICS_REVENUE },
+            { label: 'Traffic', icon: 'travel_explore', path: ROUTES.ADMIN_ANALYTICS_TRAFFIC },
+            { label: 'Funnel', icon: 'filter_alt', path: ROUTES.ADMIN_ANALYTICS_FUNNEL },
+            {
+              label: 'Behaviour',
+              icon: 'ads_click',
+              path: ROUTES.ADMIN_ANALYTICS_BEHAVIOUR,
+            },
           ],
         },
       ],
@@ -94,6 +104,28 @@ export class AdminLayoutComponent {
   expandedNavItem: string | null = null;
   sidebarCollapsed = false;
   mobileMenuOpen = false;
+
+  constructor(private readonly router: Router) {
+    // Child links are only in the DOM while their group is expanded, so a
+    // collapsed group hides both the sub-pages and any sign of where you are.
+    // Open the group that owns the current URL, on load and on every
+    // navigation, so a nested page is always reachable and self-locating.
+    this.expandedNavItem = this.groupForUrl(router.url);
+    router.events.pipe(filter((e) => e instanceof NavigationEnd)).subscribe((e) => {
+      const group = this.groupForUrl(e.urlAfterRedirects);
+      if (group) this.expandedNavItem = group;
+    });
+  }
+
+  /** The parent path of whichever nav group contains this URL, if any. */
+  private groupForUrl(url: string): string | null {
+    for (const section of this.navSections) {
+      for (const item of section.items) {
+        if (item.children && url.startsWith(item.path)) return item.path;
+      }
+    }
+    return null;
+  }
 
   toggleNavDropdown(path: string): void {
     this.expandedNavItem = this.expandedNavItem === path ? null : path;

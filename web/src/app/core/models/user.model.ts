@@ -65,6 +65,8 @@ export interface User {
   emailVerified: boolean;
   phoneVerified: boolean;
   idVerified: boolean;
+  /** Asked to verify their ID at sign-up. Intent, not status. */
+  wantsIdVerification?: boolean;
   pendingEmailChange?: PendingEmailChange;
   pendingPhoneChange?: PendingPhoneChange;
   verificationChangeCount?: VerificationChangeCount;

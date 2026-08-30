@@ -6,6 +6,7 @@ import { ListingsService, ListingsResponse } from '../../core/services/listings.
 import { ShortsService } from '../../core/services/shorts.service';
 import { RecommendationsService } from '../../core/services/recommendations.service';
 import { AuthService } from '../../core/auth';
+import { ActivityTrackerService } from '../../core/services/activity-tracker.service';
 import { Category, Listing } from '../../core/models';
 import { RECOMMENDATIONS_LIMIT } from '../../core/constants/app';
 
@@ -57,6 +58,8 @@ function makeCategory(overrides: Partial<Category> = {}): Category {
 
 describe('HomeComponent', () => {
   let component: HomeComponent;
+  /** Tracking is fire-and-forget, so the tests only need it to exist. */
+  const trackerMock = { track: vi.fn() };
   let categoriesServiceMock: {
     getAll: ReturnType<typeof vi.fn>;
     getById: ReturnType<typeof vi.fn>;
@@ -133,6 +136,7 @@ describe('HomeComponent', () => {
       shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      trackerMock as unknown as ActivityTrackerService,
       'browser',
     );
   });
@@ -179,6 +183,7 @@ describe('HomeComponent', () => {
       shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      trackerMock as unknown as ActivityTrackerService,
       'browser',
     );
     component.ngOnInit();
@@ -212,6 +217,7 @@ describe('HomeComponent', () => {
       shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      trackerMock as unknown as ActivityTrackerService,
       'browser',
     );
     component.ngOnInit();
@@ -229,6 +235,7 @@ describe('HomeComponent', () => {
       shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      trackerMock as unknown as ActivityTrackerService,
       'browser',
     );
     component.ngOnInit();
@@ -245,6 +252,7 @@ describe('HomeComponent', () => {
       shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      trackerMock as unknown as ActivityTrackerService,
       'browser',
     );
     component.ngOnInit();
@@ -295,6 +303,7 @@ describe('HomeComponent', () => {
       shortsServiceMock as unknown as ShortsService,
       recommendationsServiceMock as unknown as RecommendationsService,
       { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      trackerMock as unknown as ActivityTrackerService,
       'browser',
     );
     component.ngOnInit();

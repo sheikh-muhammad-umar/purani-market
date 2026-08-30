@@ -16,6 +16,8 @@ import { AdSlotComponent } from '../../shared/components/ad-slot/ad-slot.compone
 import { SectionHeaderComponent } from '../../shared/components/section-header/section-header.component';
 import { EmptyStateComponent } from '../../shared/components/empty-state/empty-state.component';
 import { Category, Listing } from '../../core/models';
+import { ActivityTrackerService } from '../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../core/enums/tracking-events';
 import { STORAGE_SELECTED_LOCATION } from '../../core/constants/storage-keys';
 import {
   DEFAULT_COUNTRY,
@@ -96,6 +98,7 @@ export class HomeComponent implements OnInit {
     private readonly shortsService: ShortsService,
     private readonly recommendationsService: RecommendationsService,
     public readonly authService: AuthService,
+    private readonly tracker: ActivityTrackerService,
     @Inject(PLATFORM_ID) platformId: object,
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -116,7 +119,26 @@ export class HomeComponent implements OnInit {
     const cat = this.categories().find((c) => c._id === chip.id);
     if (cat) {
       this.selectedCategory.set(cat);
+      this.tracker.track(TrackingEvent.CATEGORY_BROWSE, {
+        categoryId: cat._id,
+        metadata: { name: cat.name, source: 'home_tiles' },
+      });
     }
+  }
+
+  /**
+   * Records that a recommendation earned a click.
+   *
+   * The rail is the only surface where the app chooses what to show rather than
+   * the shopper, so this is the one signal that says whether those choices are
+   * any good. `recommendation_click` was already defined but never emitted.
+   */
+  trackRecommendationClick(listing: Listing, position: number): void {
+    this.tracker.track(TrackingEvent.RECOMMENDATION_CLICK, {
+      productListingId: listing._id,
+      categoryId: listing.categoryId,
+      metadata: { position, title: listing.title },
+    });
   }
 
   closeCategoryModal(): void {

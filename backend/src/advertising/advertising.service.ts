@@ -27,6 +27,7 @@ import {
   AdCreativeDocument,
 } from './schemas/ad-creative.schema.js';
 import { AdEvent, AdEventDocument } from './schemas/ad-event.schema.js';
+import { UserAction } from '../ai/enums/user-action.enum.js';
 import { Advertiser, AdvertiserDocument } from './schemas/advertiser.schema.js';
 import {
   CreateAdvertiserDto,
@@ -67,6 +68,19 @@ export interface AdPerformanceRow {
   ctr: number;
 }
 
+/** What a campaign's clicks led to, per campaign. */
+export interface AdConversionRow {
+  campaignId: string;
+  name: string;
+  clicks: number;
+  /** Clicks followed by at least one valuable action in the same session. */
+  convertedClicks: number;
+  /** `convertedClicks` as a percentage of `clicks`, to 2dp. */
+  conversionRate: number;
+  /** Which actions followed, most frequent first. */
+  actions: { action: string; count: number }[];
+}
+
 export interface AdPerformanceReport {
   from: string;
   to: string;
@@ -74,10 +88,52 @@ export interface AdPerformanceReport {
   campaigns: AdPerformanceRow[];
   creatives: AdPerformanceRow[];
   daily: { date: string; impressions: number; clicks: number }[];
+  /**
+   * Post-click outcomes.
+   *
+   * Answers what advertisers actually ask — not "how many clicks" but "did the
+   * clicks do anything" — by matching a click to what the same session did
+   * afterwards. Empty when nothing was clicked in the window.
+   */
+  conversions: {
+    window: string;
+    countedActions: string[];
+    totals: { clicks: number; convertedClicks: number; conversionRate: number };
+    campaigns: AdConversionRow[];
+  };
 }
 
 /** How far up the category tree targeting is honoured. */
 const MAX_CATEGORY_DEPTH = 10;
+
+/** Collection holding the behavioural stream that clicks are attributed against. */
+const ACTIVITY_COLLECTION = 'user_activities';
+
+/**
+ * How long after a click an action still counts as caused by it.
+ *
+ * Session ids are per tab, so they already bound this loosely — but a tab left
+ * open for days would otherwise keep attributing, which would flatter every
+ * campaign. A day is the usual convention for post-click attribution.
+ */
+const ATTRIBUTION_WINDOW_MS = 24 * 60 * 60 * 1000;
+
+/**
+ * Actions that count as a conversion.
+ *
+ * Chosen as the outcomes an advertiser is paying for: reaching a seller, saving
+ * a listing, signing up, or spending money. Deliberately excludes browsing —
+ * a click that leads only to a page view has not converted.
+ */
+const CONVERSION_ACTIONS: readonly UserAction[] = [
+  UserAction.CONTACT,
+  UserAction.MESSAGE_SENT,
+  UserAction.CONVERSATION_START,
+  UserAction.FAVORITE,
+  UserAction.REGISTER,
+  UserAction.PACKAGE_PURCHASE,
+  UserAction.LISTING_CREATE,
+];
 
 @Injectable()
 export class AdvertisingService {
@@ -830,6 +886,119 @@ export class AdvertisingService {
         impressions: row.impressions as number,
         clicks: row.clicks as number,
       })),
+      conversions: await this.getConversions(from, to, campaignNames),
+    };
+  }
+
+  /**
+   * Matches each click to what the same browser session did next.
+   *
+   * The join is on `sessionId`, which is why activity, ad and experiment events
+   * were put on one shared id: without it a click and the contact it produced
+   * were two unrelated rows in two collections.
+   *
+   * Runs as one aggregation rather than fetching clicks and querying per click,
+   * because a busy campaign produces enough clicks for the round trips to
+   * dominate. Both sides of the lookup are indexed on `sessionId`.
+   */
+  private async getConversions(
+    from: Date,
+    to: Date,
+    campaignNames: Map<string, string>,
+  ): Promise<AdPerformanceReport['conversions']> {
+    const rows: {
+      _id: Types.ObjectId;
+      clicks: number;
+      convertedClicks: number;
+      actions: string[];
+    }[] = await this.eventModel.aggregate([
+      {
+        $match: {
+          type: AdEventType.CLICK,
+          createdAt: { $gte: from, $lte: to },
+          // Anonymous clicks with storage disabled carry no session and cannot
+          // be attributed either way, so they are left out of the denominator.
+          sessionId: { $type: 'string' },
+        },
+      },
+      {
+        $lookup: {
+          from: ACTIVITY_COLLECTION,
+          let: { sid: '$sessionId', clickedAt: '$createdAt' },
+          pipeline: [
+            {
+              $match: {
+                action: { $in: CONVERSION_ACTIONS },
+                $expr: {
+                  $and: [
+                    { $eq: ['$sessionId', '$$sid'] },
+                    { $gt: ['$createdAt', '$$clickedAt'] },
+                    {
+                      $lte: [
+                        { $subtract: ['$createdAt', '$$clickedAt'] },
+                        ATTRIBUTION_WINDOW_MS,
+                      ],
+                    },
+                  ],
+                },
+              },
+            },
+            { $project: { _id: 0, action: 1 } },
+          ],
+          as: 'followed',
+        },
+      },
+      {
+        $group: {
+          _id: '$campaignId',
+          clicks: { $sum: 1 },
+          convertedClicks: {
+            $sum: { $cond: [{ $gt: [{ $size: '$followed' }, 0] }, 1, 0] },
+          },
+          actions: { $push: '$followed.action' },
+        },
+      },
+    ]);
+
+    const campaigns: AdConversionRow[] = rows.map((row) => {
+      // Two levels of nesting: one array per click, each holding that click's
+      // follow-up actions.
+      const counts = new Map<string, number>();
+      for (const perClick of row.actions ?? []) {
+        for (const action of perClick ?? []) {
+          counts.set(action, (counts.get(action) ?? 0) + 1);
+        }
+      }
+      const id = row._id?.toString() ?? '';
+      return {
+        campaignId: id,
+        name: campaignNames.get(id) ?? 'Unknown',
+        clicks: row.clicks,
+        convertedClicks: row.convertedClicks,
+        conversionRate: this.ctr(row.clicks, row.convertedClicks),
+        actions: [...counts.entries()]
+          .map(([action, count]) => ({ action, count }))
+          .sort((a, b) => b.count - a.count),
+      };
+    });
+
+    const clicks = campaigns.reduce((sum, row) => sum + row.clicks, 0);
+    const convertedClicks = campaigns.reduce(
+      (sum, row) => sum + row.convertedClicks,
+      0,
+    );
+
+    return {
+      window: `${ATTRIBUTION_WINDOW_MS / (60 * 60 * 1000)}h`,
+      countedActions: [...CONVERSION_ACTIONS],
+      totals: {
+        clicks,
+        convertedClicks,
+        conversionRate: this.ctr(clicks, convertedClicks),
+      },
+      campaigns: campaigns.sort(
+        (a, b) => b.convertedClicks - a.convertedClicks,
+      ),
     };
   }
 

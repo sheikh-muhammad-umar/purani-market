@@ -187,6 +187,35 @@
           }
         </div>
 
+        <!-- Opt-in only, and it does not gate the submit: the account is created
+             either way and the upload happens after first sign-in, because
+             uploading needs a session registration has not created yet. -->
+        <label class="idv-offer" for="wantsIdVerification">
+          <input
+            id="wantsIdVerification"
+            type="checkbox"
+            formControlName="wantsIdVerification"
+            class="idv-offer-check"
+          />
+          <span class="idv-offer-body">
+            <span class="idv-offer-title">
+              <span class="material-symbols-rounded idv-offer-icon" aria-hidden="true">
+                verified
+              </span>
+              Get verified — start selling sooner
+            </span>
+            <span class="idv-offer-desc">
+              Verified sellers get the badge on every listing, and appear when buyers filter for
+              verified sellers only. Unverified listings are hidden from those searches. Takes about
+              two minutes: your CNIC and a selfie.
+            </span>
+            <span class="idv-offer-note">
+              We'll take you there right after you sign in. You can also do it later from your
+              profile.
+            </span>
+          </span>
+        </label>
+
         <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
           @if (loading()) {
             <span class="spinner" aria-hidden="true"></span> Creating account...

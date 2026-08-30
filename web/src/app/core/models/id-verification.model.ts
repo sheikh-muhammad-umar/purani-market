@@ -45,6 +45,14 @@ export interface IdVerificationMyStatus {
   rejectionReason?: string;
   createdAt?: string;
   reviewedAt?: string;
+  /**
+   * Submissions spent and left, counting reviewed rejections only — a submission
+   * the backlog auto-expired does not cost the user an attempt. Optional so an
+   * older response still parses.
+   */
+  attemptsUsed?: number;
+  attemptsRemaining?: number;
+  maxAttempts?: number;
 }
 
 export interface IdVerificationStats {

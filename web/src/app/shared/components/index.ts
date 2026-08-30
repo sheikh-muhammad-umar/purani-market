@@ -15,3 +15,6 @@ export { PaginationComponent } from './pagination/pagination.component';
 export { ModalComponent } from './modal/modal.component';
 export { SkeletonComponent } from './skeleton/skeleton.component';
 export type { SkeletonVariant } from './skeleton/skeleton.component';
+export { ChartComponent } from './chart/chart.component';
+export { HeatmapComponent } from './chart/heatmap.component';
+export type { ChartKind, ChartColor, ChartSeries, ChartValueFormat } from './chart/chart.types';

@@ -75,27 +75,76 @@
   pointer-events: none;
 }
 
-.hs-placeholder-word {
+/* The rotation is pure CSS. It used to be a JS interval that swapped one word and
+   toggled a class, which kept a macrotask pending inside Angular's zone forever
+   and so blocked hydration from ever completing. Keyframes cost the framework
+   nothing.
+
+   Every word shares one animation and one cycle length; each is offset by a
+   negative delay of its own slot, so exactly one is on screen at a time. The
+   slot count is fixed at 5 to match `ROTATION_SLOTS`, because keyframe
+   percentages cannot be derived from a variable. */
+$hs-slots: 5;
+$hs-slot-duration: 3s;
+
+.hs-placeholder-rotator {
+  position: relative;
   display: inline-block;
-  animation: hs-word-in var(--duration-slow) var(--ease-out);
+  height: 20px;
+  /* Widest word decides the box; without this the field's caret would shift as
+     the words change length. */
+  min-width: 6ch;
+}
+
+.hs-placeholder-word {
+  position: absolute;
+  top: 0;
+  left: 0;
+  opacity: 0;
+  animation: hs-word-cycle ($hs-slots * $hs-slot-duration) var(--ease-out) infinite;
+  animation-delay: calc(var(--hs-slot) * #{$hs-slot-duration} - #{$hs-slots * $hs-slot-duration});
   color: var(--text-secondary);
+  white-space: nowrap;
 }
 
-.hs-placeholder-word.is-leaving {
-  animation: hs-word-out var(--duration-slow) var(--ease-out) forwards;
-}
-
-@keyframes hs-word-in {
-  from {
+/* One slot is 1/5 of the cycle = 20%. The word slides up into place over the
+   first tenth of its slot, holds, then slides out — so the visible window ends
+   before the next word begins and the two never overlap. */
+@keyframes hs-word-cycle {
+  0% {
     opacity: 0;
     transform: translateY(100%);
   }
-}
-
-@keyframes hs-word-out {
-  to {
+  2% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  18% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+  20% {
     opacity: 0;
     transform: translateY(-100%);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-100%);
+  }
+}
+
+/* A looping decorative animation is exactly what this setting is for: hold the
+   first name still rather than cycling. Keyed on document order rather than the
+   inline custom property, since matching a `style` attribute substring would
+   break on any change to how the value is serialised. */
+@media (prefers-reduced-motion: reduce) {
+  .hs-placeholder-word {
+    animation: none;
+  }
+
+  .hs-placeholder-word:first-child {
+    opacity: 1;
+    transform: none;
   }
 }
 

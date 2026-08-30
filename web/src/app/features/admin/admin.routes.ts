@@ -176,6 +176,41 @@ export const ADMIN_ROUTES: Routes = [
                 (m) => m.ShortsAnalyticsComponent,
               ),
           },
+          {
+            path: 'users',
+            loadComponent: () =>
+              import('./analytics-users/users-analytics.component').then(
+                (m) => m.UsersAnalyticsComponent,
+              ),
+          },
+          {
+            path: 'revenue',
+            loadComponent: () =>
+              import('./analytics-revenue/revenue-analytics.component').then(
+                (m) => m.RevenueAnalyticsComponent,
+              ),
+          },
+          {
+            path: 'traffic',
+            loadComponent: () =>
+              import('./analytics-traffic/traffic-analytics.component').then(
+                (m) => m.TrafficAnalyticsComponent,
+              ),
+          },
+          {
+            path: 'funnel',
+            loadComponent: () =>
+              import('./analytics-funnel/funnel-analytics.component').then(
+                (m) => m.FunnelAnalyticsComponent,
+              ),
+          },
+          {
+            path: 'behaviour',
+            loadComponent: () =>
+              import('./analytics-behaviour/behaviour-analytics.component').then(
+                (m) => m.BehaviourAnalyticsComponent,
+              ),
+          },
         ],
       },
     ],

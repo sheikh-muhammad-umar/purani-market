@@ -195,6 +195,8 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
   private mediaRecorder: MediaRecorder | null = null;
   private audioChunks: Blob[] = [];
   private recordingInterval: ReturnType<typeof setInterval> | null = null;
+  /** Last thread reported as opened, so one thread is never counted twice. */
+  private trackedConversationId = '';
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -209,6 +211,7 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
     const inputId = this.conversationIdInput();
     this.conversationId = inputId || this.route.snapshot.paramMap.get('id') || '';
     if (!this.conversationId) return;
+    this.trackConversationOpened();
     this.initChat();
   }
 
@@ -230,8 +233,33 @@ export class ChatWindowComponent implements OnInit, OnDestroy, OnChanges {
       this.showSuggestions.set(false);
       this.cancelImagePreview();
       this.clearSubscriptions();
+      this.trackConversationOpened();
       this.initChat();
     }
+  }
+
+  /**
+   * Records that a thread was opened.
+   *
+   * Only `message_sent` existed before, so a buyer who opened a conversation and
+   * said nothing left no trace — which is exactly the drop-off worth seeing.
+   * Keyed per conversation so switching threads in the split view counts each one.
+   *
+   * Guarded against repeating for the same thread: Angular runs `ngOnChanges`
+   * before `ngOnInit`, so a deep link would otherwise be counted twice — once
+   * when the input arrives and again on init.
+   */
+  private trackConversationOpened(): void {
+    if (!this.conversationId || this.conversationId === this.trackedConversationId) return;
+    this.trackedConversationId = this.conversationId;
+
+    // Carries the listing so the event can be attributed on its own. Without
+    // it the view-to-contact-to-conversation funnel has to join the
+    // conversations collection to work out which listing a chat was about.
+    this.tracker.track(TrackingEvent.CONVERSATION_START, {
+      productListingId: this.listing()?._id,
+      metadata: { conversationId: this.conversationId },
+    });
   }
 
   ngOnDestroy(): void {

@@ -1,5 +1,7 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CategoriesService } from '../../../core/services/categories.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { CategoryModalComponent } from '../../../shared/components/category-modal/category-modal.component';
 import { CategoryCardComponent } from '../../../shared/components/category-card/category-card.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
@@ -26,7 +28,10 @@ export class CategoryBrowseComponent implements OnInit {
 
   readonly selectedCategory = signal<Category | null>(null);
 
-  constructor(private readonly categoriesService: CategoriesService) {}
+  constructor(
+    private readonly categoriesService: CategoriesService,
+    private readonly tracker: ActivityTrackerService,
+  ) {}
 
   ngOnInit(): void {
     this.loadCategories();
@@ -50,6 +55,10 @@ export class CategoryBrowseComponent implements OnInit {
 
   openCategoryModal(category: Category): void {
     this.selectedCategory.set(category);
+    this.tracker.track(TrackingEvent.CATEGORY_BROWSE, {
+      categoryId: category._id,
+      metadata: { name: category.name, source: 'category_page' },
+    });
   }
 
   closeCategoryModal(): void {

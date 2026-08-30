@@ -129,6 +129,17 @@ export interface AdPerformanceRow {
   ctr: number;
 }
 
+/** What a campaign's clicks led to. */
+export interface AdConversionRow {
+  campaignId: string;
+  name: string;
+  clicks: number;
+  /** Clicks followed by a valuable action in the same session. */
+  convertedClicks: number;
+  conversionRate: number;
+  actions: { action: string; count: number }[];
+}
+
 export interface AdPerformanceReport {
   from: string;
   to: string;
@@ -136,6 +147,13 @@ export interface AdPerformanceReport {
   campaigns: AdPerformanceRow[];
   creatives: AdPerformanceRow[];
   daily: { date: string; impressions: number; clicks: number }[];
+  /** Post-click outcomes, matched to the same session within the window. */
+  conversions: {
+    window: string;
+    countedActions: string[];
+    totals: { clicks: number; convertedClicks: number; conversionRate: number };
+    campaigns: AdConversionRow[];
+  };
 }
 
 /** Payloads for admin writes. Ids are strings at the boundary. */

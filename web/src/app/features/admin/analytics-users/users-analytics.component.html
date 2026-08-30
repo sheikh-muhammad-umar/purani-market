@@ -1,0 +1,247 @@
+<div class="analytics-page">
+  <div class="page-header">
+    <h1>Users Analytics</h1>
+    <div class="date-range">
+      <app-date-picker [(ngModel)]="dateFrom" [max]="dateTo || today"></app-date-picker>
+      <span class="date-sep">to</span>
+      <app-date-picker [(ngModel)]="dateTo" [min]="dateFrom" [max]="today"></app-date-picker>
+      <button class="btn-apply" (click)="applyDateRange()">Apply</button>
+      <button class="btn-export" (click)="exportCSV()" [disabled]="loading()">
+        <span class="material-symbols-rounded" style="font-size: 16px">download</span> Export
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  }
+
+  @if (!loading()) {
+    <div class="metrics-grid">
+      @for (card of metrics(); track card.label) {
+        <div class="metric-card">
+          <span class="metric-icon material-symbols-rounded">{{ card.icon }}</span>
+          <div class="metric-body">
+            <span class="metric-value">
+              {{ formatNumber(card.value) }}{{ card.format === 'percent' ? '%' : '' }}
+            </span>
+            <span class="metric-label">{{ card.label }}</span>
+            @if (card.note) {
+              <span class="metric-note">{{ card.note }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Active users -->
+    @if (dauChart().labels.length > 0) {
+      <div class="chart-card">
+        <h3>Daily Active Users</h3>
+        <p class="chart-note">
+          A user counts as active on a day when they did something we track, not merely by opening
+          the app.
+        </p>
+        <app-chart
+          kind="area"
+          [labels]="dauChart().labels"
+          [series]="dauChart().series"
+          [height]="220"
+          ariaLabel="Distinct active users per day"
+        />
+      </div>
+    }
+
+    <div class="charts-row">
+      @if (wauChart().labels.length > 0) {
+        <div class="chart-card">
+          <h3>Weekly Active Users</h3>
+          <app-chart
+            kind="bar"
+            [labels]="wauChart().labels"
+            [series]="wauChart().series"
+            [height]="200"
+            ariaLabel="Distinct active users per ISO week"
+          />
+        </div>
+      }
+      @if (mauChart().labels.length > 0) {
+        <div class="chart-card">
+          <h3>Monthly Active Users</h3>
+          <app-chart
+            kind="bar"
+            [labels]="mauChart().labels"
+            [series]="mauChart().series"
+            [height]="200"
+            ariaLabel="Distinct active users per month"
+          />
+        </div>
+      }
+    </div>
+
+    <!-- OTP -->
+    @if (hasOtpData()) {
+      <div class="chart-card">
+        <h3>OTP Verification Funnel</h3>
+        <div class="funnel">
+          @for (step of otpFunnel(); track step.label) {
+            <div class="funnel-step">
+              <div class="funnel-head">
+                <span class="funnel-label">{{ step.label }}</span>
+                <span class="funnel-value">{{ step.value | number }}</span>
+                <span class="funnel-pct">{{ step.pct | number: '1.0-1' }}%</span>
+              </div>
+              <div class="funnel-bar-wrap">
+                <div class="funnel-bar" [style.width.%]="step.pct"></div>
+              </div>
+              @if (step.dropOff !== null && step.dropOff > 0) {
+                <span class="funnel-drop">
+                  <span class="material-symbols-rounded">trending_down</span>
+                  {{ step.dropOff | number }} did not verify
+                </span>
+              }
+            </div>
+          }
+        </div>
+        <p class="chart-note">
+          {{ otp()!.summary.totalFailed | number }} verification attempts failed in this range.
+          Failures are counted separately because a failed attempt can be retried and still end in a
+          verified code.
+        </p>
+      </div>
+
+      @if (otpChart().labels.length > 0) {
+        <div class="chart-card">
+          <h3>OTP Sent and Verified Over Time</h3>
+          <app-chart
+            kind="line"
+            [labels]="otpChart().labels"
+            [series]="otpChart().series"
+            [legend]="true"
+            [height]="220"
+            ariaLabel="OTP codes sent and verified per day"
+          />
+        </div>
+      }
+
+      <div class="charts-row">
+        @if (otpEvents().length > 0) {
+          <div class="chart-card">
+            <h3>OTP Events</h3>
+            <div class="ranked-list">
+              @for (row of otpEvents(); track row.label) {
+                <div class="ranked-row">
+                  <span class="ranked-label">{{ row.label }}</span>
+                  <div class="ranked-bar-wrap">
+                    <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                  </div>
+                  <span class="ranked-value">{{ row.value | number }}</span>
+                </div>
+              }
+            </div>
+            <p class="chart-note">
+              Resends and expiries point at delivery trouble. Bars are relative to the largest count
+              rather than a share, because these events are stages rather than alternatives.
+            </p>
+          </div>
+        }
+        @if (otpByChannel().length > 0) {
+          <div class="chart-card">
+            <h3>OTP by Channel</h3>
+            <div class="ranked-list">
+              @for (row of otpByChannel(); track row.label) {
+                <div class="ranked-row">
+                  <span class="ranked-label">{{ row.label }}</span>
+                  <div class="ranked-bar-wrap">
+                    <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                  </div>
+                  <span class="ranked-value">{{ row.value | number }}</span>
+                  <span class="ranked-pct">{{ row.pct | number: '1.0-0' }}%</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
+    @if (verificationRows().length > 0) {
+      <div class="chart-card">
+        <h3>Account Verification</h3>
+        <div class="ranked-list">
+          @for (row of verificationRows(); track row.label) {
+            <div class="ranked-row">
+              <span class="ranked-label">{{ row.label }}</span>
+              <div class="ranked-bar-wrap">
+                <div class="ranked-bar" [style.width.%]="row.pct"></div>
+              </div>
+              <span class="ranked-value">{{ row.value | number }}</span>
+            </div>
+          }
+        </div>
+        <p class="chart-note">
+          These three counts overlap: a user can verify both an email and a phone, so they do not
+          add up to your total user count and are shown without shares.
+        </p>
+      </div>
+    }
+
+    <!-- Social logins -->
+    @if (hasSocialData()) {
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>Social Logins by Provider</h3>
+          <div class="ranked-list">
+            @for (row of socialByProvider(); track row.label) {
+              <div class="ranked-row">
+                <span class="ranked-label">{{ row.label }}</span>
+                <div class="ranked-bar-wrap">
+                  <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                </div>
+                <span class="ranked-value">{{ row.value | number }}</span>
+                <span class="ranked-pct">{{ row.pct | number: '1.0-0' }}%</span>
+              </div>
+            }
+          </div>
+        </div>
+        <div class="chart-card">
+          <h3>New vs Returning</h3>
+          <div class="ranked-list">
+            @for (row of socialNewVsReturning(); track row.label) {
+              <div class="ranked-row">
+                <span class="ranked-label">{{ row.label }}</span>
+                <div class="ranked-bar-wrap">
+                  <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                </div>
+                <span class="ranked-value">{{ row.value | number }}</span>
+                <span class="ranked-pct">{{ row.pct | number: '1.0-0' }}%</span>
+              </div>
+            }
+          </div>
+          <p class="chart-note">
+            Counted per sign-in: a social login is new when the account was created by that sign-in.
+          </p>
+        </div>
+      </div>
+
+      @if (socialChart().series.length > 0) {
+        <div class="chart-card">
+          <h3>Social Logins Over Time</h3>
+          <app-chart
+            kind="line"
+            [labels]="socialChart().labels"
+            [series]="socialChart().series"
+            [legend]="true"
+            [height]="220"
+            ariaLabel="Social logins per day by provider"
+          />
+        </div>
+      }
+    } @else {
+      <div class="chart-card empty-card">
+        <span class="material-symbols-rounded">account_circle</span>
+        <p>No social logins in this range.</p>
+      </div>
+    }
+  }
+</div>

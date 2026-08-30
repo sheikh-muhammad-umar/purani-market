@@ -94,6 +94,18 @@ export class PurchaseFlowComponent implements OnInit {
     this.purchasing.set(true);
     this.purchaseError.set(null);
 
+    // Recorded before the request, not after: the gap between attempts and
+    // completed purchases is where a broken payment method shows up. Only the
+    // success path was tracked before, so failures were invisible.
+    this.tracker.track(TrackingEvent.PAYMENT_ATTEMPT, {
+      metadata: {
+        packageId: this.packageId,
+        packageName: this.pkg()?.name,
+        amount: this.pkg()?.defaultPrice,
+        paymentMethod: method,
+      },
+    });
+
     this.packagesService
       .purchase({
         packageId: this.packageId,

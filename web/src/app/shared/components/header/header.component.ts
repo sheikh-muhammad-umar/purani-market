@@ -98,13 +98,24 @@ export class HeaderComponent implements OnInit, OnDestroy {
     // Everything below needs browser APIs (localStorage, WebSocket).
     if (!this.isBrowser) return;
 
-    if (this.authService.getAccessToken() && !this.authService.user()) {
-      this.authService.fetchCurrentUser().subscribe();
-    }
-
-    const userId = this.authService.user()?._id;
-    if (userId) {
-      this.wsService.connect(userId);
+    // The socket has to wait for the user id, and on a fresh page load only the
+    // token is in hand — `user()` is populated by an HTTP call. Reading it on the
+    // line after starting that call always saw `null`, so the app-wide socket was
+    // never opened except in the moments right after an in-page login. Anything
+    // depending on server pushes outside the messaging screens silently did
+    // nothing.
+    const knownUserId = this.authService.user()?._id;
+    if (knownUserId) {
+      this.wsService.connect(knownUserId);
+    } else if (this.authService.getAccessToken()) {
+      this.authService.fetchCurrentUser().subscribe({
+        next: (user) => {
+          if (user?._id) this.wsService.connect(user._id);
+        },
+        error: () => {
+          // Expired or rejected token; the interceptor handles signing out.
+        },
+      });
     }
     this.subs.push(this.wsService.on('newMessage').subscribe(() => this.refreshUnreadCount()));
   }

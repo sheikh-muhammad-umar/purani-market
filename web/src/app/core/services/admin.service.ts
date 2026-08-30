@@ -22,6 +22,13 @@ import {
   EngagementAnalytics,
   PriceTrendsData,
   VoiceSearchAnalytics,
+  RetentionAnalytics,
+  RevenueAnalytics,
+  OtpAnalytics,
+  SocialLoginAnalytics,
+  TrafficAnalytics,
+  ListingFunnelAnalytics,
+  BehaviourAnalytics,
 } from '../models/analytics.model';
 import { API } from '../constants/api-endpoints';
 import { IdVerificationStats } from '../models/id-verification.model';
@@ -37,6 +44,50 @@ export type {
   EngagementAnalytics,
   PriceTrendsData,
   VoiceSearchAnalytics,
+  RetentionAnalytics,
+  ActiveUsersPoint,
+  WeeklyActiveUsersPoint,
+  MonthlyActiveUsersPoint,
+  RevenueAnalytics,
+  RevenueByPaymentMethod,
+  RevenueByPackageType,
+  RevenuePoint,
+  OtpAnalytics,
+  OtpSummary,
+  OtpActionEntry,
+  OtpChannelEntry,
+  OtpPoint,
+  UserVerificationStatus,
+  SocialLoginAnalytics,
+  SocialProviderEntry,
+  SocialLoginPoint,
+  TrafficAnalytics,
+  TrafficSummary,
+  SessionsPoint,
+  SessionDepthBucket,
+  ChannelEntry,
+  ReferrerEntry,
+  CampaignEntry,
+  LandingPageEntry,
+  TrafficCoverage,
+  ListingFunnelAnalytics,
+  FunnelStageEntry,
+  FunnelConversionRates,
+  FunnelEventTotals,
+  FunnelTrendPoint,
+  FunnelTopListing,
+  FunnelCategoryEntry,
+  FunnelAttribution,
+  BehaviourAnalytics,
+  PageEntry,
+  PageSectionEntry,
+  FilterUsageSummary,
+  FilterCountEntry,
+  TopFilterEntry,
+  CityViewsEntry,
+  PackageBrowsing,
+  PurchaseOutcomeEntry,
+  BehaviourTracking,
 } from '../models/analytics.model';
 
 export interface AdminUser {
@@ -249,6 +300,70 @@ export class AdminService {
     return this.http
       .get<any>(`${this.baseUrl}${API.ADMIN_ANALYTICS_PRICE_TRENDS}`, { params })
       .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
+  }
+
+  getRetentionAnalytics(dateRange?: DateRange): Observable<RetentionAnalytics> {
+    return this.http
+      .get<any>(`${this.baseUrl}${API.ADMIN_ANALYTICS_RETENTION}`, {
+        params: this.dateParams(dateRange),
+      })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
+  }
+
+  getRevenueAnalytics(dateRange?: DateRange): Observable<RevenueAnalytics> {
+    return this.http
+      .get<any>(`${this.baseUrl}${API.ADMIN_ANALYTICS_REVENUE}`, {
+        params: this.dateParams(dateRange),
+      })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
+  }
+
+  getOtpAnalytics(dateRange?: DateRange): Observable<OtpAnalytics> {
+    return this.http
+      .get<any>(`${this.baseUrl}${API.ADMIN_ANALYTICS_OTP}`, {
+        params: this.dateParams(dateRange),
+      })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
+  }
+
+  getSocialLoginAnalytics(dateRange?: DateRange): Observable<SocialLoginAnalytics> {
+    return this.http
+      .get<any>(`${this.baseUrl}${API.ADMIN_ANALYTICS_SOCIAL_LOGINS}`, {
+        params: this.dateParams(dateRange),
+      })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
+  }
+
+  getTrafficAnalytics(dateRange?: DateRange): Observable<TrafficAnalytics> {
+    return this.http
+      .get<any>(`${this.baseUrl}${API.ADMIN_ANALYTICS_TRAFFIC}`, {
+        params: this.dateParams(dateRange),
+      })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
+  }
+
+  getListingFunnelAnalytics(dateRange?: DateRange): Observable<ListingFunnelAnalytics> {
+    return this.http
+      .get<any>(`${this.baseUrl}${API.ADMIN_ANALYTICS_LISTING_FUNNEL}`, {
+        params: this.dateParams(dateRange),
+      })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
+  }
+
+  getBehaviourAnalytics(dateRange?: DateRange): Observable<BehaviourAnalytics> {
+    return this.http
+      .get<any>(`${this.baseUrl}${API.ADMIN_ANALYTICS_BEHAVIOUR}`, {
+        params: this.dateParams(dateRange),
+      })
+      .pipe(map((res) => (res && res.data && res.statusCode ? res.data : res)));
+  }
+
+  /** Every analytics endpoint takes the same optional dateFrom/dateTo pair. */
+  private dateParams(dateRange?: DateRange): HttpParams {
+    let params = new HttpParams();
+    if (dateRange?.startDate) params = params.set('dateFrom', dateRange.startDate);
+    if (dateRange?.endDate) params = params.set('dateTo', dateRange.endDate);
+    return params;
   }
 
   getUsers(params: GetUsersParams = {}): Observable<UsersResponse> {

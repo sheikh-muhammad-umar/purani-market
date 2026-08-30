@@ -11,6 +11,7 @@ import {
   UseGuards,
   ParseIntPipe,
   DefaultValuePipe,
+  Res,
 } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard } from '../common/guards/index.js';
 import { Roles, CurrentUser, Permissions } from '../common/decorators/index.js';
@@ -324,6 +325,30 @@ export class AdminController {
     return this.adminService.getOtpAnalytics(dateFrom, dateTo);
   }
 
+  @Get('analytics/behaviour')
+  async getBehaviourAnalytics(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.adminService.getBehaviourAnalytics(dateFrom, dateTo);
+  }
+
+  @Get('analytics/listing-funnel')
+  async getListingFunnelAnalytics(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.adminService.getListingFunnelAnalytics(dateFrom, dateTo);
+  }
+
+  @Get('analytics/traffic')
+  async getTrafficAnalytics(
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+  ) {
+    return this.adminService.getTrafficAnalytics(dateFrom, dateTo);
+  }
+
   @Get('analytics/retention')
   async getRetentionAnalytics(
     @Query('dateFrom') dateFrom?: string,
@@ -342,6 +367,7 @@ export class AdminController {
 
   @Get('analytics/export')
   async exportAnalytics(
+    @Res() res: any,
     @Query('dateFrom') dateFrom?: string,
     @Query('dateTo') dateTo?: string,
     @CurrentUser('sub') adminId?: string,
@@ -361,7 +387,19 @@ export class AdminController {
         { dateFrom: from, dateTo: to },
         req,
       );
-    return this.adminService.exportAnalytics(from, to);
+
+    const report = await this.adminService.exportAnalytics(from, to);
+    const csv = this.adminService.buildAnalyticsCsv(report);
+
+    // Sent through @Res() so it bypasses the global TransformInterceptor: an
+    // export has to be the file itself, not a file wrapped in a JSON envelope.
+    // The BOM keeps Excel from mangling non-ASCII titles.
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader(
+      'Content-Disposition',
+      `attachment; filename="analytics-${from}-to-${to}.csv"`,
+    );
+    return res.send('\uFEFF' + csv);
   }
 
   @Get('packages/purchases')

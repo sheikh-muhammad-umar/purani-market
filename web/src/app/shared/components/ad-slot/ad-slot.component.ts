@@ -13,6 +13,8 @@ import {
 import { NgTemplateOutlet, isPlatformBrowser } from '@angular/common';
 import { RouterLink } from '@angular/router';
 import { AdvertisingService } from '../../../core/services/advertising.service';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { AdPlacement, ServedAd } from '../../../core/models/advertising.model';
 
 /** Fraction of the slot that must be visible before an impression counts. */
@@ -82,6 +84,7 @@ export class AdSlotComponent implements OnInit, OnDestroy {
 
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private readonly advertising = inject(AdvertisingService);
+  private readonly tracker = inject(ActivityTrackerService);
   private readonly isMobile = signal(false);
 
   private observer?: IntersectionObserver;
@@ -179,11 +182,32 @@ export class AdSlotComponent implements OnInit, OnDestroy {
    * Reports the click. Navigation is left to the anchor itself so the ad behaves
    * like a normal link — middle-click and open-in-new-tab keep working, and a
    * failed report never blocks the visit.
+   *
+   * Written to both streams on purpose. `ad_events` is the billing record, keyed
+   * by creative and placement; the activity copy puts the click in the visitor's
+   * behavioural timeline, so what they did next is one query away rather than a
+   * cross-collection join.
+   *
+   * Impressions are not mirrored. They are the highest-volume event in the system
+   * and describe delivery rather than an action a person took, so duplicating
+   * them would swamp the activity collection and distort its action breakdown.
+   * They remain joinable through the shared session id.
    */
   onAdClick(): void {
     const creative = this.ad();
     if (!creative) return;
     this.advertising.recordEvent(creative.creativeId, 'click', creative.placement).subscribe();
+    this.tracker.track(TrackingEvent.AD_CLICK, {
+      categoryId: this.categoryId() || undefined,
+      metadata: {
+        creativeId: creative.creativeId,
+        campaignId: creative.campaignId,
+        placement: creative.placement,
+        advertiserName: creative.advertiserName,
+        title: creative.title,
+        variant: this.variant(),
+      },
+    });
   }
 
   private syncViewport(): void {

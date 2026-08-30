@@ -7,7 +7,10 @@ import {
   ConnectedSocket,
   MessageBody,
 } from '@nestjs/websockets';
+import { OnModuleDestroy, OnModuleInit } from '@nestjs/common';
 import { Server, Socket } from 'socket.io';
+import { Subscription } from 'rxjs';
+import { RealtimeEventsService } from '../common/realtime/realtime-events.service.js';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
@@ -37,6 +40,9 @@ const MESSAGE_PREVIEW: Record<string, string> = {
 };
 
 const PREVIEW_MAX_LENGTH = 100;
+
+/** Room every socket of one user joins, used to address that user directly. */
+const userRoom = (userId: string): string => `user:${userId}`;
 
 /** Max messages per user per minute via WebSocket. */
 const WS_RATE_LIMIT_PER_MINUTE = 30;
@@ -96,7 +102,11 @@ export interface MarkReadPayload {
   },
 })
 export class MessagingGateway
-  implements OnGatewayConnection, OnGatewayDisconnect
+  implements
+    OnGatewayConnection,
+    OnGatewayDisconnect,
+    OnModuleInit,
+    OnModuleDestroy
 {
   @WebSocketServer()
   server!: Server;
@@ -107,6 +117,8 @@ export class MessagingGateway
   private socketUsers = new Map<string, string>();
   /** Rate limiter: userId -> list of message timestamps */
   private messageTimestamps = new Map<string, number[]>();
+  /** Relay subscription, held so it can be torn down with the gateway. */
+  private realtimeSub: Subscription | null = null;
 
   constructor(
     @InjectModel(Conversation.name)
@@ -118,6 +130,7 @@ export class MessagingGateway
     @InjectModel(ProductListing.name)
     private readonly listingModel: Model<ProductListingDocument>,
     private readonly jwtService: JwtService,
+    private readonly realtimeEvents: RealtimeEventsService,
   ) {}
 
   async handleConnection(client: Socket): Promise<void> {
@@ -146,6 +159,10 @@ export class MessagingGateway
       client.disconnect();
       return;
     }
+
+    // Personal room, so anything addressed at this user reaches every tab they
+    // have open without the sender needing to know about socket ids.
+    await client.join(userRoom(userId));
 
     this.socketUsers.set(client.id, userId);
     if (!this.userSockets.has(userId)) {
@@ -403,6 +420,27 @@ export class MessagingGateway
   isUserOnline(userId: string): boolean {
     const sockets = this.userSockets.get(userId);
     return !!sockets && sockets.size > 0;
+  }
+
+  /**
+   * Forwards events raised elsewhere in the app to the addressed user.
+   *
+   * Subscribed for the gateway's lifetime rather than per request: producers such
+   * as the notifications broadcaster have no socket of their own and publish
+   * through `RealtimeEventsService` instead.
+   */
+  onModuleInit(): void {
+    this.realtimeSub = this.realtimeEvents.events$.subscribe(
+      ({ userId, event, payload }) => {
+        // Emitting into an empty room is a no-op, so an offline recipient needs
+        // no special case: the client reconciles when it next fetches.
+        this.server?.to(userRoom(userId)).emit(event, payload);
+      },
+    );
+  }
+
+  onModuleDestroy(): void {
+    this.realtimeSub?.unsubscribe();
   }
 
   private isRateLimited(userId: string): boolean {

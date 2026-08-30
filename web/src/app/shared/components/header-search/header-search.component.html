@@ -27,10 +27,12 @@
     @if (!query()) {
       <span class="hs-placeholder" aria-hidden="true">
         <span class="hs-placeholder-static">Find</span>
-        @if (placeholderCategory()) {
-          <span class="hs-placeholder-word" [class.is-leaving]="placeholderAnimating()">{{
-            placeholderCategory()
-          }}</span>
+        @if (placeholderSlots().length) {
+          <span class="hs-placeholder-rotator">
+            @for (name of placeholderSlots(); track $index; let i = $index) {
+              <span class="hs-placeholder-word" [style.--hs-slot]="i">{{ name }}</span>
+            }
+          </span>
         }
       </span>
     }

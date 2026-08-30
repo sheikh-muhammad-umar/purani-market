@@ -7,7 +7,7 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Types } from 'mongoose';
-import { ListingsService } from './listings.service';
+import { ListingsService, isSellerVerified } from './listings.service';
 import {
   ProductListing,
   ListingCondition,
@@ -32,6 +32,7 @@ describe('ListingsService', () => {
   let mockUserModel: any;
   let mockCategoryModel: any;
   let mockRedis: Record<string, jest.Mock>;
+  let mockSearchSync: { indexListing: jest.Mock; removeListing: jest.Mock };
 
   const listingId = new Types.ObjectId();
   const sellerId = new Types.ObjectId();
@@ -172,6 +173,7 @@ describe('ListingsService', () => {
       exec: jest.fn().mockResolvedValue(1),
     });
 
+    mockSearchSync = { indexListing: jest.fn(), removeListing: jest.fn() };
     mockUserModel = {
       findById: jest.fn().mockReturnValue({
         exec: jest.fn().mockResolvedValue({ ...mockSeller }),
@@ -216,10 +218,7 @@ describe('ListingsService', () => {
         { provide: getModelToken(Category.name), useValue: mockCategoryModel },
         { provide: getModelToken('Conversation'), useValue: {} },
         { provide: getModelToken('Message'), useValue: {} },
-        {
-          provide: SearchSyncService,
-          useValue: { indexListing: jest.fn(), removeListing: jest.fn() },
-        },
+        { provide: SearchSyncService, useValue: mockSearchSync },
         { provide: getRedisConnectionToken(), useValue: mockRedis },
         {
           provide: BrandsService,
@@ -673,13 +672,11 @@ describe('ListingsService', () => {
 
     it('should allow seller with activeListingCount below listingLimit', async () => {
       mockUserModel.findById = jest.fn().mockReturnValue({
-        exec: jest
-          .fn()
-          .mockResolvedValue({
-            ...mockSeller,
-            activeListingCount: 9,
-            listingLimit: 10,
-          }),
+        exec: jest.fn().mockResolvedValue({
+          ...mockSeller,
+          activeListingCount: 9,
+          listingLimit: 10,
+        }),
       });
       const result = await service.create(sellerId.toString(), validCreateDto);
       expect(result).toBe(mockListing);
@@ -868,6 +865,126 @@ describe('ListingsService', () => {
     it('should clamp limit to minimum 1', async () => {
       const result = await service.findAll(1, 0);
       expect(result.limit).toBe(1);
+    });
+  });
+  describe('isSellerVerified', () => {
+    it('should require all three checks', () => {
+      expect(
+        isSellerVerified({
+          emailVerified: true,
+          phoneVerified: true,
+          idVerified: true,
+        }),
+      ).toBe(true);
+      // Email and phone alone are not enough — the badge claims ID too.
+      expect(
+        isSellerVerified({
+          emailVerified: true,
+          phoneVerified: true,
+          idVerified: false,
+        }),
+      ).toBe(false);
+      expect(isSellerVerified(null)).toBe(false);
+      expect(isSellerVerified(undefined)).toBe(false);
+      expect(isSellerVerified({})).toBe(false);
+    });
+  });
+
+  describe('syncSellerVerified', () => {
+    /**
+     * Guards the reported bug: `sellerVerified` is denormalised onto each listing
+     * and used to be written only at creation, so withdrawing a seller's ID
+     * verification left every listing still showing "Verified seller".
+     */
+    it('should clear the badge and re-index when the seller is no longer verified', async () => {
+      mockUserModel.findById = jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          lean: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue({
+              emailVerified: true,
+              phoneVerified: true,
+              idVerified: false,
+            }),
+          }),
+        }),
+      });
+      const stale = [
+        { _id: listingId, sellerId, sellerVerified: true },
+        { _id: new Types.ObjectId(), sellerId, sellerVerified: true },
+      ];
+      mockListingModel.find = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue(stale),
+      });
+      mockListingModel.updateMany = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ modifiedCount: 2 }),
+      });
+
+      const changed = await service.syncSellerVerified(sellerId.toString());
+
+      expect(changed).toBe(2);
+      expect(mockListingModel.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({ sellerVerified: { $ne: false } }),
+        { $set: { sellerVerified: false } },
+      );
+      // Each changed listing has to reach Elasticsearch, which serves the cards
+      // that render the badge.
+      expect(mockSearchSync.indexListing).toHaveBeenCalledTimes(2);
+      expect(stale.every((l) => l.sellerVerified === false)).toBe(true);
+    });
+
+    it('should grant the badge once the seller becomes fully verified', async () => {
+      mockUserModel.findById = jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          lean: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue({
+              emailVerified: true,
+              phoneVerified: true,
+              idVerified: true,
+            }),
+          }),
+        }),
+      });
+      mockListingModel.find = jest.fn().mockReturnValue({
+        exec: jest
+          .fn()
+          .mockResolvedValue([
+            { _id: listingId, sellerId, sellerVerified: false },
+          ]),
+      });
+      mockListingModel.updateMany = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ modifiedCount: 1 }),
+      });
+
+      const changed = await service.syncSellerVerified(sellerId.toString());
+
+      expect(changed).toBe(1);
+      expect(mockListingModel.updateMany).toHaveBeenCalledWith(
+        expect.objectContaining({ sellerVerified: { $ne: true } }),
+        { $set: { sellerVerified: true } },
+      );
+    });
+
+    it('should do nothing when the badges already match', async () => {
+      mockUserModel.findById = jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          lean: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue({
+              emailVerified: true,
+              phoneVerified: true,
+              idVerified: true,
+            }),
+          }),
+        }),
+      });
+      mockListingModel.find = jest.fn().mockReturnValue({
+        exec: jest.fn().mockResolvedValue([]),
+      });
+      mockListingModel.updateMany = jest.fn();
+
+      const changed = await service.syncSellerVerified(sellerId.toString());
+
+      expect(changed).toBe(0);
+      expect(mockListingModel.updateMany).not.toHaveBeenCalled();
     });
   });
 });

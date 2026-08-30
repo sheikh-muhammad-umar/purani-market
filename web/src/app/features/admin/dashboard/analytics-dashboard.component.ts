@@ -1,4 +1,9 @@
 import { Component, OnInit, OnDestroy, signal, computed } from '@angular/core';
+import { Subscription } from 'rxjs';
+import { TabActivityService } from '../../../core/services/tab-activity.service';
+
+/** Shortest gap between moderation-count refreshes while tabbing back and forth. */
+const ACTION_ITEMS_MIN_REFRESH_MS = 60_000;
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { RouterLink } from '@angular/router';
@@ -21,18 +26,47 @@ import {
   GuestVsAuthEntry,
   DeviceBreakdownEntry,
   CategoryPriceTrend,
+  AnalyticsComparison,
+  PeriodDelta,
 } from '../../../core/models/analytics.model';
 import {
   IdVerificationStats,
   IdVerificationTimeSeriesEntry,
 } from '../../../core/models/id-verification.model';
 import { daysToMs } from '../../../core/utils/time';
+import { ChartComponent } from '../../../shared/components/chart/chart.component';
+import {
+  HeatmapComponent,
+  type HeatmapCell,
+} from '../../../shared/components/chart/heatmap.component';
+import type { ChartColor, ChartSeries } from '../../../shared/components/chart/chart.types';
+
+/** Labels plus the series drawn against them. */
+interface ChartData {
+  labels: string[];
+  series: ChartSeries[];
+}
+
+/** Heatmap rows. Order matches the backend's 0-based `$dayOfWeek`, which starts Sunday. */
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+/** Heatmap columns: every hour, zero-padded so the row stays evenly spaced. */
+const HOUR_LABELS = Array.from({ length: 24 }, (_, hour) => String(hour).padStart(2, '0'));
 
 export interface MetricCard {
   label: string;
   value: number;
   icon: string;
   format: 'number' | 'currency';
+  /**
+   * Growth against the preceding period of equal length.
+   *
+   * Optional because a lifetime total on its own has no direction, and because an
+   * older API response may not carry the comparison block.
+   */
+  delta?: PeriodDelta;
+  /** Daily values across the window, drawn as a sparkline on the card. */
+  spark?: number[];
 }
 
 /** Default lookback period in milliseconds (30 days) */
@@ -41,7 +75,15 @@ const DEFAULT_LOOKBACK_MS = daysToMs(30);
 @Component({
   selector: 'app-analytics-dashboard',
   standalone: true,
-  imports: [CommonModule, FormsModule, RouterLink, DatePickerComponent, TooltipDirective],
+  imports: [
+    CommonModule,
+    FormsModule,
+    RouterLink,
+    DatePickerComponent,
+    TooltipDirective,
+    ChartComponent,
+    HeatmapComponent,
+  ],
   templateUrl: './analytics-dashboard.component.html',
   styleUrls: ['./analytics-dashboard.component.scss'],
 })
@@ -57,6 +99,7 @@ export class AnalyticsDashboardComponent implements OnInit, OnDestroy {
     conversations: TimeSeriesPoint[];
     purchases: TimeSeriesPoint[];
   } | null>(null);
+  readonly comparison = signal<AnalyticsComparison | null>(null);
   readonly categoryAnalytics = signal<CategoryAnalytics[]>([]);
   readonly bannerStats = signal<AppBannerStats | null>(null);
   readonly engagement = signal<EngagementAnalytics | null>(null);
@@ -90,26 +133,204 @@ export class AnalyticsDashboardComponent implements OnInit, OnDestroy {
   readonly metricCards = computed<MetricCard[]>(() => {
     const m = this.metrics();
     if (!m) return [];
+    const c = this.comparison();
+    const ts = this.timeSeries();
+    const values = (points: TimeSeriesPoint[] | undefined) => points?.map((p) => p.value);
+
+    // Deltas and sparklines are attached only where they mean something. "Total
+    // Users" is a lifetime count, so its movement is the *new* users in the
+    // window — which is exactly what the comparison block measures. Active users
+    // has no equivalent series, so it stays a bare number rather than being given
+    // a misleading one.
     return [
-      { label: 'Total Users', value: m.totalUsers, icon: 'group', format: 'number' },
+      {
+        label: 'Total Users',
+        value: m.totalUsers,
+        icon: 'group',
+        format: 'number',
+        delta: this.movement(c?.newUsers),
+        spark: values(ts?.registrations),
+      },
       { label: 'Active Users (30d)', value: m.activeUsers, icon: 'person_check', format: 'number' },
-      { label: 'Total Listings', value: m.totalListings, icon: 'list_alt', format: 'number' },
-      { label: 'Conversations', value: m.totalConversations, icon: 'chat', format: 'number' },
-      { label: 'Purchases', value: m.totalPurchases, icon: 'shopping_cart', format: 'number' },
+      {
+        label: 'Total Listings',
+        value: m.totalListings,
+        icon: 'list_alt',
+        format: 'number',
+        delta: this.movement(c?.newListings),
+        spark: values(ts?.listings),
+      },
+      {
+        label: 'Conversations',
+        value: m.totalConversations,
+        icon: 'chat',
+        format: 'number',
+        delta: this.movement(c?.newConversations),
+        spark: values(ts?.conversations),
+      },
+      {
+        label: 'Purchases',
+        value: m.totalPurchases,
+        icon: 'shopping_cart',
+        format: 'number',
+        delta: this.movement(c?.purchases),
+        spark: values(ts?.purchases),
+      },
       {
         label: 'Revenue',
         value: m.totalRevenue,
         icon: 'account_balance_wallet',
         format: 'currency',
+        delta: this.movement(c?.revenue),
       },
     ];
   });
 
-  readonly maxCategoryCount = computed(() => {
-    const cats = this.categoryAnalytics();
-    if (cats.length === 0) return 1;
-    return Math.max(...cats.map((c) => c.listingCount), 1);
+  /**
+   * Placeholder labels for a sparkline.
+   *
+   * The chart needs one label per point to plot a category axis, but a sparkline
+   * hides that axis — so the labels are never drawn. They still reach the hidden
+   * accessibility table, where a position is more use than a blank.
+   */
+  protected sparkLabels(values: number[]): string[] {
+    return values.map((_, i) => `${i + 1}`);
+  }
+
+  /**
+   * Drops a comparison that has nothing in either period.
+   *
+   * "No change vs previous period" against zero and zero is noise dressed as
+   * information; an absent delta says the same thing more honestly.
+   */
+  private movement(delta: PeriodDelta | undefined): PeriodDelta | undefined {
+    if (!delta) return undefined;
+    return delta.current === 0 && delta.previous === 0 ? undefined : delta;
+  }
+
+  /** Direction of a delta, used to pick the arrow and the colour. */
+  protected deltaDirection(delta: PeriodDelta): 'up' | 'down' | 'flat' {
+    if (delta.current > delta.previous) return 'up';
+    if (delta.current < delta.previous) return 'down';
+    return 'flat';
+  }
+
+  /**
+   * How a delta reads in words.
+   *
+   * A percentage is meaningless when the previous period was empty, so that case
+   * states the raw movement instead of showing a 0% that looks like no change.
+   */
+  protected deltaLabel(delta: PeriodDelta): string {
+    if (delta.previous === 0) {
+      return delta.current > 0 ? `${delta.current} new` : 'no change';
+    }
+    const sign = delta.changePct > 0 ? '+' : '';
+    return `${sign}${delta.changePct}%`;
+  }
+
+  // ── Chart data ───────────────────────────────────────────────────
+  //
+  // Built as computed signals rather than called from the template, because a
+  // template cannot pass the lambda each series needs to pick its value out of a
+  // row. Every one of these was a hand-rolled column chart; a time series read as
+  // bars turns into an unreadable picket fence once the range picker is set to 90
+  // days, which it offers.
+
+  readonly registrationsChart = computed(() =>
+    this.dateSeries(this.timeSeries()?.registrations ?? [], 'Registrations', 'primary'),
+  );
+
+  readonly conversationsChart = computed(() =>
+    this.dateSeries(this.timeSeries()?.conversations ?? [], 'Conversations', 'secondary'),
+  );
+
+  readonly purchasesChart = computed(() =>
+    this.dateSeries(this.timeSeries()?.purchases ?? [], 'Purchases', 'success'),
+  );
+
+  readonly loginFailuresChart = computed(() => {
+    const rows = this.engagement()?.loginFailures ?? [];
+    return {
+      labels: rows.map((row) => this.formatShortDate(row.date)),
+      series: [{ label: 'Failed logins', data: rows.map((row) => row.count), color: 'danger' }],
+    } satisfies ChartData;
   });
+
+  readonly searchComparisonChart = computed(() => {
+    const rows = this.voiceSearchStats()?.searchComparison.dailyComparison ?? [];
+    return {
+      labels: rows.map((row) => this.formatShortDate(row.date)),
+      series: [
+        { label: 'Text', data: rows.map((row) => row.text), color: 'primary' },
+        { label: 'Voice', data: rows.map((row) => row.voice), color: 'accent' },
+      ],
+    } satisfies ChartData;
+  });
+
+  readonly verificationChart = computed(() => {
+    const rows = this.idVerificationStats()?.timeSeries ?? [];
+    return {
+      labels: rows.map((row) => this.formatShortDate(row.date)),
+      series: [
+        { label: 'Submitted', data: rows.map((row) => row.submitted), color: 'primary' },
+        { label: 'Approved', data: rows.map((row) => row.approved), color: 'success' },
+        { label: 'Rejected', data: rows.map((row) => row.rejected), color: 'danger' },
+      ],
+    } satisfies ChartData;
+  });
+
+  /**
+   * When activity happens, by weekday and hour.
+   *
+   * Replaces 24 averaged bars. Those flattened every weekday together, so a
+   * Sunday evening rush and a Tuesday morning lull cancelled out and neither was
+   * visible.
+   */
+  readonly activityHeatmap = computed<HeatmapCell[]>(
+    () =>
+      this.engagement()?.weeklyActivity?.map((entry) => ({
+        row: entry.day,
+        column: entry.hour,
+        value: entry.count,
+      })) ?? [],
+  );
+
+  readonly heatmapDays = WEEKDAY_LABELS;
+  readonly heatmapHours = HOUR_LABELS;
+
+  /**
+   * Built here rather than in the template so the sentence reads correctly.
+   *
+   * The timezone matters: an hour-of-day chart is meaningless without knowing
+   * which clock it was bucketed against.
+   */
+  readonly heatmapNote = computed(() => {
+    const timezone = this.engagement()?.timezone;
+    const where = timezone ? `, in ${timezone}` : '';
+    return `Activity by day and hour${where}. Darker means busier.`;
+  });
+
+  /** Fallback for responses that predate the weekday split. */
+  readonly hourlyLabels = computed(() =>
+    (this.engagement()?.hourlyActivity ?? []).map((entry) => this.formatHour(entry.hour)),
+  );
+
+  readonly hourlyChart = computed(() => {
+    const rows = this.engagement()?.hourlyActivity ?? [];
+    return {
+      labels: rows.map((entry) => this.formatHour(entry.hour)),
+      series: [{ label: 'Events', data: rows.map((entry) => entry.count), color: 'primary' }],
+    } satisfies ChartData;
+  });
+
+  /** Shared shape for a dated single-value series. */
+  private dateSeries(points: TimeSeriesPoint[], label: string, color: ChartColor): ChartData {
+    return {
+      labels: points.map((point) => this.formatShortDate(point.date)),
+      series: [{ label, data: points.map((point) => point.value), color }],
+    };
+  }
 
   // ── Filtered/sorted computed lists ────────────────────
   get filteredCategories(): CategoryAnalytics[] {
@@ -207,7 +428,10 @@ export class AnalyticsDashboardComponent implements OnInit, OnDestroy {
     return dir === 'asc' ? 'arrow_upward' : 'arrow_downward';
   }
 
-  constructor(private readonly adminService: AdminService) {}
+  constructor(
+    private readonly adminService: AdminService,
+    private readonly tabActivity: TabActivityService,
+  ) {}
 
   ngOnInit(): void {
     const now = new Date();
@@ -222,17 +446,21 @@ export class AnalyticsDashboardComponent implements OnInit, OnDestroy {
     this.loadIdVerificationStats();
     this.loadActionItems();
 
-    // Refresh pending counts every 60 seconds
-    this.actionItemsInterval = setInterval(() => this.loadActionItems(), 60_000);
+    // Refresh the moderation queue counts whenever an admin comes back to the
+    // tab, rather than on a 60-second timer. A dashboard is left open for hours,
+    // so a clock spent most of its requests on a window nobody was watching —
+    // and a repeating interval also keeps `ApplicationRef.isStable()` from
+    // emitting, which is what stalls hydration everywhere else in the app.
+    this.actionItemsSub = this.tabActivity
+      .returns(ACTION_ITEMS_MIN_REFRESH_MS)
+      .subscribe(() => this.loadActionItems());
   }
 
   ngOnDestroy(): void {
-    if (this.actionItemsInterval) {
-      clearInterval(this.actionItemsInterval);
-    }
+    this.actionItemsSub?.unsubscribe();
   }
 
-  private actionItemsInterval: ReturnType<typeof setInterval> | null = null;
+  private actionItemsSub: Subscription | null = null;
 
   loadAnalytics(): void {
     this.loading.set(true);
@@ -259,6 +487,7 @@ export class AnalyticsDashboardComponent implements OnInit, OnDestroy {
           purchases: mapPoints(ts?.purchases),
         });
         this.categoryAnalytics.set(data?.categoryAnalytics ?? []);
+        this.comparison.set(data?.comparison ?? null);
         this.loading.set(false);
       },
       error: () => {
@@ -315,180 +544,28 @@ export class AnalyticsDashboardComponent implements OnInit, OnDestroy {
     return Math.max(...categories.map((c) => c.totalChanges), 1);
   }
 
+  /**
+   * Downloads the complete export: every report, not just what this screen
+   * shows. The CSV is built server-side so the file is identical however it is
+   * fetched, and so this component does not have to restate the shape of eleven
+   * reports it does not load.
+   */
   exportReport(): void {
     if (!this.startDate || !this.endDate) return;
     this.exporting.set(true);
 
-    const lines: string[] = [];
-    const add = (...cols: (string | number)[]) => lines.push(cols.map((c) => `"${c}"`).join(','));
-    const blank = () => lines.push('');
-    const header = (title: string) => {
-      blank();
-      add(title);
-      add('');
-    };
-
-    // ── Report Header ──────────────────────────────────
-    add('ANALYTICS REPORT');
-    add('Date Range', `${this.startDate} to ${this.endDate}`);
-    add('Generated', new Date().toLocaleString());
-
-    // ── Key Metrics ────────────────────────────────────
-    const m = this.metrics();
-    if (m) {
-      header('KEY METRICS');
-      add('Metric', 'Value');
-      add('Total Users', m.totalUsers);
-      add('Active Users (30d)', m.activeUsers);
-      add('Total Listings', m.totalListings);
-      add('Conversations', m.totalConversations);
-      add('Purchases', m.totalPurchases);
-      add('Revenue', m.totalRevenue);
-    }
-
-    // ── Trends ─────────────────────────────────────────
-    const ts = this.timeSeries();
-    if (ts) {
-      const series = [
-        { name: 'Registrations', data: ts.registrations },
-        { name: 'Listings', data: ts.listings },
-        { name: 'Conversations', data: ts.conversations },
-        { name: 'Purchases', data: ts.purchases },
-      ];
-      for (const s of series) {
-        if (s.data.length > 0) {
-          header(`TRENDS - ${s.name.toUpperCase()}`);
-          add('Date', 'Count');
-          for (const p of s.data) add(p.date, p.value);
-          add(
-            'Total',
-            s.data.reduce((sum, p) => sum + p.value, 0),
-          );
-        }
-      }
-    }
-
-    // ── Guest vs Authenticated ─────────────────────────
-    const eng = this.engagement();
-    if (eng?.guestVsAuth) {
-      header('GUEST VS AUTHENTICATED');
-      add('Action', 'Guest', 'Authenticated');
-      for (const [action, val] of Object.entries(eng.guestVsAuth)) {
-        add(this.formatAction(action), val.guest, val.authenticated);
-      }
-    }
-
-    // ── Top Searches ───────────────────────────────────
-    if (eng?.topSearches?.length) {
-      header('TOP SEARCHES');
-      add('Rank', 'Search Term', 'Count');
-      eng.topSearches.forEach((s, i) => add(i + 1, s.term, s.count));
-    }
-
-    // ── Top Viewed Listings ────────────────────────────
-    if (eng?.topViewedListings?.length) {
-      header('TOP VIEWED LISTINGS');
-      add('Title', 'Views', 'Favorites', 'Price');
-      for (const l of eng.topViewedListings) {
-        add(l.title, l.viewCount, l.favoriteCount, l.price?.amount ?? 0);
-      }
-    }
-
-    // ── Peak Hours ─────────────────────────────────────
-    if (eng?.hourlyActivity?.length) {
-      header('PEAK HOURS');
-      add('Hour', 'Actions');
-      for (const h of eng.hourlyActivity) add(this.formatHour(h.hour), h.count);
-    }
-
-    // ── Listings by Category ───────────────────────────
-    const cats = this.categoryAnalytics();
-    if (cats.length > 0) {
-      header('LISTINGS BY CATEGORY');
-      add('Category', 'Listings', 'Share %');
-      for (const c of cats)
-        add(c.categoryName, c.listingCount, this.getCategoryPercent(c.listingCount));
-    }
-
-    // ── Price Trends ───────────────────────────────────
-    const pt = this.priceTrends();
-    if (pt) {
-      if (pt.categories.length > 0) {
-        header('PRICE TRENDS BY CATEGORY');
-        add('Summary', '');
-        add('Total Price Changes', pt.totalPriceChanges);
-        add('Avg Price Increase', pt.avgPriceIncrease);
-        add('Avg Price Decrease', pt.avgPriceDecrease);
-        blank();
-        add('Category', 'Edits', 'Avg Before', 'Avg After', 'Diff %', 'Direction');
-        for (const c of pt.categories) {
-          add(
-            c.categoryName,
-            c.totalChanges,
-            c.avgPreviousPrice,
-            c.avgNewPrice,
-            c.avgDiffPct,
-            c.direction,
-          );
-        }
-      }
-      if (pt.recentChanges.length > 0) {
-        header('RECENT PRICE CHANGES');
-        add('Listing', 'Category', 'Before', 'After', 'Diff', 'Date');
-        for (const r of pt.recentChanges) {
-          add(r.title, r.categoryName, r.previousPrice, r.newPrice, r.diff, r.date.split('T')[0]);
-        }
-      }
-    }
-
-    // ── Device Distribution ────────────────────────────
-    if (eng?.deviceBreakdown?.length) {
-      header('DEVICE DISTRIBUTION');
-      add('Device', 'Events', 'Percentage');
-      const devPcts = this.getDevicePercentages(eng.deviceBreakdown);
-      for (const d of devPcts) add(d.device, d.count, `${d.pct}%`);
-    }
-
-    // ── Login Failures ─────────────────────────────────
-    if (eng?.loginFailures?.length) {
-      header('LOGIN FAILURES');
-      add('Date', 'Failures');
-      for (const f of eng.loginFailures) add(f.date, f.count);
-    }
-
-    // ── Activity Breakdown ─────────────────────────────
-    if (eng?.actionBreakdown?.length) {
-      header('ACTIVITY BREAKDOWN');
-      add('Action', 'Count');
-      for (const a of eng.actionBreakdown) add(this.formatAction(a.action), a.count);
-    }
-
-    // ── App Banner ─────────────────────────────────────
-    const bs = this.bannerStats();
-    if (bs) {
-      header('APP DOWNLOAD BANNER');
-      add('Impressions', bs.shown);
-      add('Clicks', bs.clicks);
-      add('Click Rate', `${bs.clickRate}%`);
-      add('Dismissed', bs.dismissals);
-      add('Dismiss Rate', `${bs.dismissRate}%`);
-      if (bs.byPlatform.length > 0) {
-        blank();
-        add('Platform', 'Shown', 'Clicks', 'Dismissed');
-        for (const p of bs.byPlatform) add(p.platform, p.shown, p.clicks, p.dismissals);
-      }
-    }
-
-    // ── Generate file ──────────────────────────────────
-    const csv = lines.join('\n');
-    const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const a = document.createElement('a');
-    a.href = url;
-    a.download = `analytics-report-${this.startDate}-to-${this.endDate}.csv`;
-    a.click();
-    URL.revokeObjectURL(url);
-    this.exporting.set(false);
+    this.adminService.exportReport({ startDate: this.startDate, endDate: this.endDate }).subscribe({
+      next: (blob) => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `analytics-${this.startDate}-to-${this.endDate}.csv`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.exporting.set(false);
+      },
+      error: () => this.exporting.set(false),
+    });
   }
 
   formatValue(value: number, format: 'number' | 'currency'): string {
@@ -496,15 +573,6 @@ export class AnalyticsDashboardComponent implements OnInit, OnDestroy {
       return `${CURRENCY_SYMBOL} ${value.toLocaleString()}`;
     }
     return value.toLocaleString();
-  }
-
-  getBarWidth(count: number): number {
-    return (count / this.maxCategoryCount()) * 100;
-  }
-
-  getMaxTimeSeriesValue(points: TimeSeriesPoint[]): number {
-    if (!points || points.length === 0) return 1;
-    return Math.max(...points.map((p) => p.value), 1);
   }
 
   getBarHeight(value: number, max: number): number {

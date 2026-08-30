@@ -166,6 +166,70 @@
   margin-top: 2px;
 }
 
+/* Explains how to read a chart, directly above it. The heatmap in particular
+   needs to state its timezone, since the hours are meaningless without it. */
+.chart-note {
+  max-width: 70ch;
+  margin: 0 0 var(--space-3);
+  color: var(--text-muted);
+  font-size: var(--text-sm);
+  line-height: 1.5;
+}
+
+/* Period-over-period movement. Without a baseline a lone number cannot be
+   judged, so every metric that has a comparable window shows one. */
+.metric-delta {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  margin-top: 4px;
+  font-size: var(--text-xs);
+  font-weight: var(--weight-medium);
+}
+
+.metric-delta-icon {
+  font-size: 14px;
+  line-height: 1;
+}
+
+/* Direction is carried by the arrow as well as the colour, so the meaning does
+   not depend on being able to distinguish red from green. */
+.metric-delta-up {
+  color: var(--success);
+}
+
+.metric-delta-down {
+  color: var(--danger);
+}
+
+.metric-delta-flat {
+  color: var(--text-muted);
+}
+
+.metric-delta-note {
+  color: var(--text-muted);
+  font-weight: var(--weight-normal);
+}
+
+/* Pushed to the right of the card and given a fixed width so cards in the grid
+   stay the same shape whether or not a metric has a series. */
+.metric-spark {
+  width: 76px;
+  margin-left: auto;
+  flex-shrink: 0;
+  opacity: 0.85;
+}
+
+@media (max-width: 640px) {
+  .metric-spark {
+    display: none;
+  }
+
+  .metric-delta-note {
+    display: none;
+  }
+}
+
 /* Charts */
 .section-group-title {
   display: flex;

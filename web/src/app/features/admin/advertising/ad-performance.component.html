@@ -61,22 +61,14 @@
       <!-- Daily trend -->
       <section class="ads-section" aria-label="Daily delivery">
         <h2 class="ads-section-title">Daily impressions</h2>
-        <div class="ads-chart">
-          @for (day of data.daily; track day.date) {
-            <div
-              class="ads-chart-col"
-              [title]="
-                day.date + ': ' + day.impressions + ' impressions, ' + day.clicks + ' clicks'
-              "
-            >
-              <div class="ads-chart-bar" [style.height.%]="barHeight(day.impressions)"></div>
-            </div>
-          }
-        </div>
-        <div class="ads-chart-axis">
-          <span>{{ data.daily[0]?.date }}</span>
-          <span>{{ data.daily[data.daily.length - 1]?.date }}</span>
-        </div>
+        <app-chart
+          kind="area"
+          [labels]="dailyChart().labels"
+          [series]="dailyChart().series"
+          [height]="220"
+          [legend]="true"
+          ariaLabel="Impressions and clicks per day"
+        />
       </section>
 
       <!-- By campaign -->
@@ -105,6 +97,57 @@
           </table>
         </div>
       </section>
+
+      <!-- Post-click outcomes -->
+      @if (data.conversions.totals.clicks > 0) {
+        <section class="ads-section" aria-label="What clicks led to">
+          <h2 class="ads-section-title">What clicks led to</h2>
+          <p class="ads-section-note">
+            Counts a click as converted when the same visitor session went on to do something worth
+            paying for within {{ data.conversions.window }} — {{ conversionActionLabels() }}.
+            Browsing alone does not count.
+          </p>
+          <div class="ads-table-wrap">
+            <table class="ads-table">
+              <thead>
+                <tr>
+                  <th>Campaign</th>
+                  <th>Clicks</th>
+                  <th>Converted</th>
+                  <th>Rate</th>
+                  <th>Actions that followed</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (row of data.conversions.campaigns; track row.campaignId) {
+                  <tr>
+                    <td class="ads-brand-name">{{ row.name }}</td>
+                    <td>{{ row.clicks | number }}</td>
+                    <td>{{ row.convertedClicks | number }}</td>
+                    <td>{{ row.conversionRate }}%</td>
+                    <td>
+                      @if (row.actions.length) {
+                        {{ followedLabel(row) }}
+                      } @else {
+                        <span class="ads-muted">none</span>
+                      }
+                    </td>
+                  </tr>
+                }
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>All campaigns</td>
+                  <td>{{ data.conversions.totals.clicks | number }}</td>
+                  <td>{{ data.conversions.totals.convertedClicks | number }}</td>
+                  <td>{{ data.conversions.totals.conversionRate }}%</td>
+                  <td></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </section>
+      }
 
       <!-- By creative -->
       <section class="ads-section" aria-label="Delivery by creative">

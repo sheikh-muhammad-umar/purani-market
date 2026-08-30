@@ -1,7 +1,9 @@
-import { Component, OnInit, signal } from '@angular/core';
+import { Component, OnInit, inject, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ActivatedRoute } from '@angular/router';
 import { UsersService, PublicSellerProfile } from '../../core/services/users.service';
+import { ActivityTrackerService } from '../../core/services/activity-tracker.service';
+import { TrackingEvent } from '../../core/enums/tracking-events';
 import { ListingsService } from '../../core/services/listings.service';
 import { ShortsService, ShortVideo } from '../../core/services/shorts.service';
 import { Listing } from '../../core/models';
@@ -36,6 +38,7 @@ export class SellerProfileComponent implements OnInit {
   readonly activeTab = signal<TabType>(TAB.LISTINGS);
 
   private sellerId = '';
+  private readonly tracker = inject(ActivityTrackerService);
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -59,6 +62,10 @@ export class SellerProfileComponent implements OnInit {
       next: (data) => {
         this.seller.set(data);
         this.loading.set(false);
+        // Recorded once the profile resolves, so a bad id is not counted as a view.
+        this.tracker.track(TrackingEvent.SELLER_PROFILE_VIEW, {
+          metadata: { sellerId: this.sellerId, sellerName: data.name },
+        });
       },
       error: () => {
         this.loading.set(false);

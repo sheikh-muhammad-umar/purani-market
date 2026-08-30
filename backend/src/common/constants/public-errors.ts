@@ -100,6 +100,11 @@ export const PUBLIC_ERROR = {
     code: 'IDV_001',
     message: 'Unable to process verification request.',
   },
+  ID_VERIFICATION_ATTEMPTS_EXHAUSTED: {
+    code: 'IDV_002',
+    message:
+      'You have used all your ID verification attempts. Please contact support.',
+  },
 
   // Users
   USER_NOT_FOUND: {

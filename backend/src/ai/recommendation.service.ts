@@ -37,6 +37,11 @@ export class RecommendationService implements OnModuleDestroy {
     this.flushTimer = setInterval(() => {
       void this.flushBuffer();
     }, BUFFER_FLUSH_INTERVAL_MS);
+
+    // Does not hold the event loop open. The HTTP server keeps the process alive
+    // in normal operation, while a test worker or a shutdown that never calls
+    // onModuleDestroy can still exit instead of hanging on this handle.
+    this.flushTimer.unref?.();
   }
 
   async onModuleDestroy(): Promise<void> {
@@ -63,6 +68,8 @@ export class RecommendationService implements OnModuleDestroy {
       metadata?: Record<string, any>;
       ip?: string;
       userAgent?: string;
+      sessionId?: string;
+      visitorId?: string;
     },
   ): Promise<UserActivityDocument> {
     const doc: Record<string, any> = {
@@ -80,6 +87,8 @@ export class RecommendationService implements OnModuleDestroy {
         : new Map(),
       ip: data.ip,
       userAgent: data.userAgent,
+      sessionId: data.sessionId,
+      visitorId: data.visitorId,
       createdAt: new Date(),
     };
 

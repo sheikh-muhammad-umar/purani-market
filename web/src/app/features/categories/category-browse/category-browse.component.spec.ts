@@ -1,6 +1,7 @@
 import { of, throwError } from 'rxjs';
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { CategoryBrowseComponent } from './category-browse.component';
+import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category } from '../../../core/models';
 
@@ -22,6 +23,8 @@ function makeCategory(overrides: Partial<Category> = {}): Category {
 
 describe('CategoryBrowseComponent', () => {
   let component: CategoryBrowseComponent;
+  /** Tracking is fire-and-forget; the tests only need it to exist. */
+  const trackerMock = { track: vi.fn() };
   let categoriesServiceMock: {
     getAll: ReturnType<typeof vi.fn>;
     getById: ReturnType<typeof vi.fn>;
@@ -49,7 +52,10 @@ describe('CategoryBrowseComponent', () => {
       getById: vi.fn(),
     };
 
-    component = new CategoryBrowseComponent(categoriesServiceMock as unknown as CategoriesService);
+    component = new CategoryBrowseComponent(
+      categoriesServiceMock as unknown as CategoriesService,
+      trackerMock as unknown as ActivityTrackerService,
+    );
   });
 
   it('should create', () => {
@@ -95,7 +101,10 @@ describe('CategoryBrowseComponent', () => {
 
   it('should set loading to false on error', () => {
     categoriesServiceMock.getAll = vi.fn().mockReturnValue(throwError(() => new Error('fail')));
-    component = new CategoryBrowseComponent(categoriesServiceMock as unknown as CategoriesService);
+    component = new CategoryBrowseComponent(
+      categoriesServiceMock as unknown as CategoriesService,
+      trackerMock as unknown as ActivityTrackerService,
+    );
     component.ngOnInit();
     expect(component.loading()).toBe(false);
     expect(component.topLevelCategories().length).toBe(0);

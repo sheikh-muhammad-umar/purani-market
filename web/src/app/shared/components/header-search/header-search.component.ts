@@ -44,8 +44,8 @@ export class HeaderSearchComponent implements OnInit, OnDestroy {
   protected readonly query = signal('');
   protected readonly recentsOpen = signal(false);
 
-  protected readonly placeholderCategory = this.placeholderService.category;
-  protected readonly placeholderAnimating = this.placeholderService.animating;
+  /** Names the CSS rotation cycles through; the animation itself is in the SCSS. */
+  protected readonly placeholderSlots = this.placeholderService.slots;
 
   /** Unique ids so label/input and aria-controls stay valid with two instances. */
   protected readonly inputId = `hs-${Math.random().toString(36).slice(2, 9)}`;

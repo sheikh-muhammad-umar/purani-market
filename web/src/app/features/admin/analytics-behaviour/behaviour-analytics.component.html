@@ -1,0 +1,245 @@
+<div class="analytics-page">
+  <div class="page-header">
+    <h1>Behaviour</h1>
+    <div class="date-range">
+      <app-date-picker [(ngModel)]="dateFrom" [max]="dateTo || today"></app-date-picker>
+      <span class="date-sep">to</span>
+      <app-date-picker [(ngModel)]="dateTo" [min]="dateFrom" [max]="today"></app-date-picker>
+      <button class="btn-apply" (click)="applyDateRange()">Apply</button>
+      <button class="btn-export" (click)="exportCSV()" [disabled]="loading()">
+        <span class="material-symbols-rounded" style="font-size: 16px">download</span> Export
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  }
+
+  @if (!loading()) {
+    <div class="metrics-grid">
+      @for (card of metrics(); track card.label) {
+        <div class="metric-card">
+          <span class="metric-icon material-symbols-rounded">{{ card.icon }}</span>
+          <div class="metric-body">
+            <span class="metric-value">{{ card.value }}</span>
+            <span class="metric-label">{{ card.label }}</span>
+            @if (card.hint) {
+              <span class="metric-note">{{ card.hint }}</span>
+            }
+          </div>
+        </div>
+      }
+    </div>
+
+    <!-- Pages -->
+    @if (hasPageData()) {
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>Page Sections</h3>
+          <div class="ranked-list">
+            @for (row of pageSections(); track row.label) {
+              <div class="ranked-row">
+                <span class="ranked-label mono" [title]="row.label">{{ row.label }}</span>
+                <div class="ranked-bar-wrap">
+                  <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                </div>
+                <span class="ranked-value">{{ row.value | number }}</span>
+              </div>
+            }
+          </div>
+          <p class="chart-note">
+            Grouped by the first part of the path, so every listing page counts towards
+            <span class="mono">/listings</span> rather than appearing separately.
+          </p>
+        </div>
+        <div class="chart-card">
+          <h3>Top Pages</h3>
+          <div class="ranked-list scroll-list">
+            @for (row of topPages(); track row.label) {
+              <div class="ranked-row">
+                <span class="ranked-label mono" [title]="row.label">{{ row.label }}</span>
+                <div class="ranked-bar-wrap">
+                  <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                </div>
+                <span class="ranked-value">{{ row.value | number }}</span>
+              </div>
+            }
+          </div>
+          <p class="chart-note">
+            Admin pages are included and will show your own usage. Bars are relative to the busiest
+            page.
+          </p>
+        </div>
+      </div>
+    } @else {
+      <div class="chart-card empty-card">
+        <span class="material-symbols-rounded">description</span>
+        <p>No page views recorded in this range.</p>
+      </div>
+    }
+
+    <!-- Filters -->
+    @if (hasFilterData()) {
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>Filters per Search</h3>
+          <app-chart
+            kind="bar"
+            [labels]="filterCountChart().labels"
+            [series]="filterCountChart().series"
+            [height]="180"
+            ariaLabel="Searches grouped by how many filters were applied"
+          />
+          <p class="chart-note">
+            The "none" column is people clearing their filters rather than narrowing a search.
+            {{ data()!.filterUsage.filterRate | number: '1.0-0' }}% of filter interactions actually
+            set a filter.
+          </p>
+        </div>
+        @if (topFilters().length > 0) {
+          <div class="chart-card">
+            <h3>Most Used Filters</h3>
+            <div class="ranked-list">
+              @for (row of topFilters(); track row.label) {
+                <div class="ranked-row">
+                  <span class="ranked-label">{{ row.label }}</span>
+                  <div class="ranked-bar-wrap">
+                    <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                  </div>
+                  <span class="ranked-value">{{ row.value | number }}</span>
+                </div>
+              }
+            </div>
+            <p class="chart-note">
+              Which filters people reach for is a direct hint at what the category form should ask
+              for first.
+            </p>
+          </div>
+        }
+      </div>
+    } @else {
+      <div class="chart-card empty-card">
+        <span class="material-symbols-rounded">filter_list</span>
+        <p>No filter activity in this range.</p>
+      </div>
+    }
+
+    <!-- Geography -->
+    @if (hasCityData()) {
+      <div class="chart-card">
+        <h3>Views by Listing City</h3>
+        <div class="breakdown-table">
+          <table>
+            <thead>
+              <tr>
+                <th>City</th>
+                <th class="num">Views</th>
+                <th class="num">Listings Viewed</th>
+                <th class="num">Views per Listing</th>
+                <th class="num">vs Busiest</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (c of cityRows(); track c.city) {
+                <tr>
+                  <td>{{ c.city }}</td>
+                  <td class="num">{{ c.views | number }}</td>
+                  <td class="num">{{ c.listings | number }}</td>
+                  <td class="num">{{ viewsPerListing(c.views, c.listings) }}</td>
+                  <td class="num">
+                    <span class="rate-cell">
+                      {{ cityShare(c.views) | number: '1.0-1' }}%
+                      <span class="rate-bar-wrap">
+                        <span class="rate-bar" [style.width.%]="cityShare(c.views)"></span>
+                      </span>
+                    </span>
+                  </td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="chart-note">
+          This is the city of the listing being viewed, not where the viewer was. It answers whose
+          stock gets attention. A high views-per-listing figure means a city's interest rests on
+          very few items.
+        </p>
+      </div>
+    }
+
+    <!-- Packages and payments -->
+    @if (hasPackageBrowsing()) {
+      <div class="chart-card">
+        <h3>Package Browsing</h3>
+        <div class="stat-row">
+          <div class="stat">
+            <span class="stat-value">{{ data()!.packageBrowsing.listViewed | number }}</span>
+            <span class="stat-label">Package lists opened</span>
+          </div>
+          <div class="stat">
+            <span class="stat-value">{{ data()!.packageBrowsing.noneAvailable | number }}</span>
+            <span class="stat-label">Found nothing available</span>
+          </div>
+          <div class="stat" [class.stat-warn]="data()!.packageBrowsing.emptyShelfRate >= 50">
+            <span class="stat-value">
+              {{ data()!.packageBrowsing.emptyShelfRate | number: '1.0-0' }}%
+            </span>
+            <span class="stat-label">Empty shelf rate</span>
+          </div>
+        </div>
+        @if (data()!.packageBrowsing.emptyShelfRate >= 50) {
+          <p class="chart-note">
+            Most people who opened a package list had nothing they could buy. That is a catalogue
+            problem rather than a demand problem: the interest arrived and there was no offer to
+            meet it.
+          </p>
+        }
+      </div>
+    }
+
+    @if (hasPurchaseData()) {
+      <div class="chart-card">
+        <h3>Purchase Outcomes</h3>
+        <div class="breakdown-table">
+          <table>
+            <thead>
+              <tr>
+                <th>Status</th>
+                <th class="num">Purchases</th>
+                <th class="num">Share</th>
+                <th class="num">Value</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (p of purchaseOutcomes(); track p.status) {
+                <tr>
+                  <td>
+                    <span class="status-badge" [attr.data-status]="p.status">
+                      {{ statusLabel(p.status) }}
+                    </span>
+                  </td>
+                  <td class="num">{{ p.purchases | number }}</td>
+                  <td class="num">{{ p.pct | number: '1.0-1' }}%</td>
+                  <td class="num money">{{ CURRENCY_SYMBOL }} {{ p.amount | number: '1.0-0' }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+        <p class="chart-note">
+          Taken from the purchase records, which carry a status, rather than from activity events.
+          Value is the full price of those purchases, so failed and refunded rows show money that
+          did not stay.
+        </p>
+      </div>
+    }
+
+    @if (missingTracking().length > 0) {
+      <div class="chart-card note-card">
+        <h3>Not Yet Tracked</h3>
+        <p class="chart-note">{{ missingTrackingNote() }}</p>
+      </div>
+    }
+  }
+</div>

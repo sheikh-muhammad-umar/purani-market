@@ -1,11 +1,19 @@
 import { describe, it, expect, beforeEach } from 'vitest';
+import { Subject } from 'rxjs';
+import { NavigationEnd, Router } from '@angular/router';
 import { AdminLayoutComponent } from './admin-layout.component';
+
+/** Only the two members the layout actually reads off the router. */
+function routerStub(url = '/admin') {
+  const events = new Subject<NavigationEnd>();
+  return { stub: { url, events } as unknown as Router, events };
+}
 
 describe('AdminLayoutComponent', () => {
   let component: AdminLayoutComponent;
 
   beforeEach(() => {
-    component = new AdminLayoutComponent();
+    component = new AdminLayoutComponent(routerStub().stub);
   });
 
   it('should create', () => {
@@ -69,5 +77,51 @@ describe('AdminLayoutComponent', () => {
     allItems.forEach((item) => {
       expect(item.icon).toBeTruthy();
     });
+  });
+
+  it('should expand the nav group that owns the current URL on load', () => {
+    const onAnalytics = new AdminLayoutComponent(routerStub('/admin/analytics/users').stub);
+    expect(onAnalytics.expandedNavItem).toBe('/admin/analytics');
+  });
+
+  it('should leave every group closed on a URL that has no group', () => {
+    expect(component.expandedNavItem).toBeNull();
+  });
+
+  it('should expand the owning group when navigation lands on a nested page', () => {
+    const { stub, events } = routerStub('/admin');
+    const layout = new AdminLayoutComponent(stub);
+    expect(layout.expandedNavItem).toBeNull();
+
+    events.next(new NavigationEnd(1, '/admin', '/admin/analytics/revenue'));
+
+    expect(layout.expandedNavItem).toBe('/admin/analytics');
+  });
+
+  it('should keep a manually opened group open when navigating outside any group', () => {
+    const { stub, events } = routerStub('/admin/analytics/users');
+    const layout = new AdminLayoutComponent(stub);
+    expect(layout.expandedNavItem).toBe('/admin/analytics');
+
+    events.next(new NavigationEnd(1, '/admin/analytics/users', '/admin/users'));
+
+    // /admin/users belongs to no group, so the previous group is left alone
+    // rather than collapsing the sidebar out from under the user.
+    expect(layout.expandedNavItem).toBe('/admin/analytics');
+  });
+
+  it('should expose the new analytics reports as children of the Analytics group', () => {
+    const analytics = component.navSections
+      .flatMap((s) => s.items)
+      .find((n) => n.label === 'Analytics');
+    expect(analytics?.children?.map((c) => c.path)).toEqual([
+      '/admin/analytics/listings',
+      '/admin/analytics/shorts',
+      '/admin/analytics/users',
+      '/admin/analytics/revenue',
+      '/admin/analytics/traffic',
+      '/admin/analytics/funnel',
+      '/admin/analytics/behaviour',
+    ]);
   });
 });

@@ -27,6 +27,8 @@ import { EmailService } from '../auth/services/email.service.js';
 import { SendNotificationDto } from './dto/send-notification.dto.js';
 import { daysToMs } from '../common/utils/time.js';
 import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
+import { RealtimeEventsService } from '../common/realtime/realtime-events.service.js';
+import { NOTIFICATION_SOCKET_EVENT } from './constants.js';
 
 const BATCH_SIZE = 100;
 
@@ -43,6 +45,7 @@ export class BroadcastService {
     private readonly userModel: Model<UserDocument>,
     private readonly notificationsService: NotificationsService,
     private readonly emailService: EmailService,
+    private readonly realtimeEvents: RealtimeEventsService,
   ) {}
 
   async createAndSend(
@@ -289,7 +292,7 @@ export class BroadcastService {
     }
 
     // Create user notification record
-    await this.userNotificationModel.create({
+    const userNotification = await this.userNotificationModel.create({
       userId: user._id,
       notificationId: notification._id,
       title: notification.title,
@@ -297,6 +300,22 @@ export class BroadcastService {
       category: notification.category,
       channel: notification.channel,
     });
+
+    // Nudge any open tab so the bell updates as the row lands rather than
+    // whenever the client next happens to look. Delivery is best-effort: the
+    // client still reconciles on load and on returning to the tab, so a
+    // recipient who is offline or reconnecting loses nothing.
+    this.realtimeEvents.emitToUser(
+      user._id.toString(),
+      NOTIFICATION_SOCKET_EVENT,
+      {
+        id: userNotification._id.toString(),
+        title: notification.title,
+        body: notification.body,
+        category: notification.category,
+        createdAt: userNotification.createdAt,
+      },
+    );
 
     let pushSent = false;
     let emailSent = false;

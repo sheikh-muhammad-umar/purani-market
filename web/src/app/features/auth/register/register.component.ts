@@ -68,6 +68,7 @@ export class RegisterComponent {
           ],
         ],
         confirmPassword: ['', [Validators.required]],
+        wantsIdVerification: [false],
       },
       { validators: this.passwordMatchValidator },
     );
@@ -144,6 +145,7 @@ export class RegisterComponent {
       firstName: formValue.firstName,
       lastName: formValue.lastName,
       password: formValue.password,
+      wantsIdVerification: !!formValue.wantsIdVerification,
       ...(this.usePhone() ? { phone: formValue.phone } : { email: formValue.email }),
     };
 

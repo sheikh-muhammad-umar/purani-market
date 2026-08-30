@@ -80,13 +80,8 @@
   animation: spin 0.8s linear infinite;
   margin: 0 auto;
 }
-@keyframes spin {
-  to {
-    transform: rotate(360deg);
-  }
-}
 
-/* Metric Cards */
+/* Metric cards */
 .metrics-grid {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
@@ -121,6 +116,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  min-width: 0;
 }
 
 .metric-value {
@@ -135,7 +131,7 @@
   font-weight: var(--weight-medium);
 }
 
-/* Chart Cards */
+/* Chart cards */
 .chart-card {
   background: var(--card);
   border: 1px solid var(--border);
@@ -148,6 +144,25 @@
     font-weight: var(--weight-semibold);
     margin: 0 0 var(--space-2);
     color: var(--text-primary);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@media (max-width: 767px) {
+  .metrics-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .page-header {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .date-range {
+    flex-wrap: wrap;
   }
 }
 
@@ -272,17 +287,4 @@
 .price-cell {
   font-family: var(--font-mono);
   font-weight: var(--weight-semibold);
-}
-
-@media (max-width: 767px) {
-  .metrics-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  .page-header {
-    flex-direction: column;
-    align-items: stretch;
-  }
-  .date-range {
-    flex-wrap: wrap;
-  }
 }

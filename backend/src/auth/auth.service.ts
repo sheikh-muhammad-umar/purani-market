@@ -124,6 +124,7 @@ export class AuthService {
         firstName: dto.firstName || '',
         lastName: dto.lastName || '',
       },
+      wantsIdVerification: dto.wantsIdVerification ?? false,
     });
 
     // Send verification

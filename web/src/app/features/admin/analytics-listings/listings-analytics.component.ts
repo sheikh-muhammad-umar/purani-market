@@ -1,3 +1,4 @@
+import { ChartComponent } from '../../../shared/components/chart/chart.component';
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
@@ -24,7 +25,7 @@ const DEFAULT_LOOKBACK_MS = daysToMs(30);
 @Component({
   selector: 'app-listings-analytics',
   standalone: true,
-  imports: [CommonModule, FormsModule, DatePickerComponent],
+  imports: [CommonModule, FormsModule, DatePickerComponent, ChartComponent],
   templateUrl: './listings-analytics.component.html',
   styleUrls: ['./listings-analytics.component.scss'],
 })
@@ -35,6 +36,17 @@ export class ListingsAnalyticsComponent implements OnInit {
   readonly listingsTimeSeries = signal<TimeSeriesPoint[]>([]);
   readonly categoryAnalytics = signal<CategoryAnalytics[]>([]);
   readonly priceTrends = signal<PriceTrendsData | null>(null);
+
+  /** Listings created per day, as an area series. */
+  readonly listingsChart = computed(() => {
+    const points = this.listingsTimeSeries();
+    return {
+      labels: points.map((point) => point.date.slice(5)),
+      series: [
+        { label: 'Listings', data: points.map((point) => point.value), color: 'primary' as const },
+      ],
+    };
+  });
 
   readonly maxListingCount = computed(() =>
     Math.max(1, ...this.listingsTimeSeries().map((p) => p.value)),

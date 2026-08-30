@@ -3,6 +3,7 @@ import { getModelToken } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Types } from 'mongoose';
 import { MessagingGateway } from './messaging.gateway';
+import { RealtimeEventsService } from '../common/realtime/realtime-events.service.js';
 import { Conversation } from './schemas/conversation.schema';
 import { Message } from './schemas/message.schema';
 import { User } from '../users/schemas/user.schema';
@@ -11,6 +12,7 @@ import { Server, Socket } from 'socket.io';
 
 describe('MessagingGateway', () => {
   let gateway: MessagingGateway;
+  let module: TestingModule;
 
   const buyerId = new Types.ObjectId();
   const sellerId = new Types.ObjectId();
@@ -110,7 +112,7 @@ describe('MessagingGateway', () => {
       }),
     });
 
-    const module: TestingModule = await Test.createTestingModule({
+    module = await Test.createTestingModule({
       providers: [
         MessagingGateway,
         {
@@ -138,11 +140,55 @@ describe('MessagingGateway', () => {
             })),
           },
         },
+        // Real instance: it is a plain Subject wrapper with no I/O, and using it
+        // lets the relay-to-socket path be exercised rather than stubbed away.
+        RealtimeEventsService,
       ],
     }).compile();
 
     gateway = module.get<MessagingGateway>(MessagingGateway);
     gateway.server = createMockServer();
+  });
+
+  describe('realtime relay', () => {
+    it('joins each socket to a room named for its user', async () => {
+      const client = createMockSocket('socket1', buyerId.toString());
+      await gateway.handleConnection(client);
+
+      expect(client.join).toHaveBeenCalledWith(`user:${buyerId.toString()}`);
+    });
+
+    it('forwards a relayed event to that user room', () => {
+      gateway.onModuleInit();
+      const realtime = module.get(RealtimeEventsService);
+
+      realtime.emitToUser(buyerId.toString(), 'notification', { id: 'n1' });
+
+      expect(gateway.server.to).toHaveBeenCalledWith(
+        `user:${buyerId.toString()}`,
+      );
+      const room = (gateway.server.to as jest.Mock).mock.results[0].value;
+      expect(room.emit).toHaveBeenCalledWith('notification', { id: 'n1' });
+    });
+
+    it('stops forwarding once the gateway is destroyed', () => {
+      gateway.onModuleInit();
+      gateway.onModuleDestroy();
+      const realtime = module.get(RealtimeEventsService);
+
+      realtime.emitToUser(buyerId.toString(), 'notification', { id: 'n2' });
+
+      expect(gateway.server.to).not.toHaveBeenCalled();
+    });
+
+    it('ignores an event with no recipient', () => {
+      gateway.onModuleInit();
+      const realtime = module.get(RealtimeEventsService);
+
+      realtime.emitToUser('', 'notification', { id: 'n3' });
+
+      expect(gateway.server.to).not.toHaveBeenCalled();
+    });
   });
 
   describe('handleConnection', () => {

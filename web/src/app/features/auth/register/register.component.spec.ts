@@ -22,6 +22,7 @@ describe('RegisterComponent form logic', () => {
         phone: [''],
         password: ['', [Validators.required, Validators.minLength(8)]],
         confirmPassword: ['', [Validators.required]],
+        wantsIdVerification: [false],
       },
       { validators: passwordMatchValidator },
     );
@@ -99,6 +100,23 @@ describe('RegisterComponent form logic', () => {
     form.get('password')?.setValue('password123');
     form.get('confirmPassword')?.setValue('password123');
     form.updateValueAndValidity();
+    expect(form.valid).toBe(true);
+  });
+});
+
+describe('RegisterComponent ID verification opt-in', () => {
+  const fb = new FormBuilder();
+
+  it('should default to not verifying, so the offer is opt-in', () => {
+    const form = fb.group({ wantsIdVerification: [false] });
+    expect(form.get('wantsIdVerification')?.value).toBe(false);
+  });
+
+  // The offer must never block sign-up; the account is created either way.
+  it('should not affect form validity either way', () => {
+    const form = fb.group({ wantsIdVerification: [false] });
+    expect(form.valid).toBe(true);
+    form.get('wantsIdVerification')?.setValue(true);
     expect(form.valid).toBe(true);
   });
 });

@@ -48,7 +48,38 @@
             <div class="metric-info">
               <span class="metric-value">{{ formatValue(card.value, card.format) }}</span>
               <span class="metric-label">{{ card.label }}</span>
+              @if (card.delta; as delta) {
+                <span class="metric-delta" [class]="'metric-delta-' + deltaDirection(delta)">
+                  <span class="material-symbols-rounded metric-delta-icon" aria-hidden="true">
+                    @switch (deltaDirection(delta)) {
+                      @case ('up') {
+                        arrow_upward
+                      }
+                      @case ('down') {
+                        arrow_downward
+                      }
+                      @default {
+                        remove
+                      }
+                    }
+                  </span>
+                  {{ deltaLabel(delta) }}
+                  <span class="metric-delta-note">vs previous period</span>
+                </span>
+              }
             </div>
+            @if (card.spark?.length) {
+              <app-chart
+                class="metric-spark"
+                kind="area"
+                [series]="[{ label: card.label, data: card.spark ?? [] }]"
+                [labels]="sparkLabels(card.spark ?? [])"
+                [height]="34"
+                [sparkline]="true"
+                [beginAtZero]="false"
+                [ariaLabel]="card.label + ' trend over the selected period'"
+              />
+            }
           </div>
         }
       </div>
@@ -107,28 +138,13 @@
               }
             </div>
             @if (ts.registrations.length > 0) {
-              <div class="bar-chart-wrap">
-                <div class="y-axis">
-                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.registrations) }}</span>
-                  <span class="y-label">0</span>
-                </div>
-                <div class="bar-chart">
-                  @for (point of ts.registrations; track $index) {
-                    <div class="bar-column">
-                      @if (point.value > 0) {
-                        <span class="bar-value">{{ point.value }}</span>
-                      }
-                      <div
-                        class="bar"
-                        [style.height.%]="
-                          getBarHeight(point.value, getMaxTimeSeriesValue(ts.registrations))
-                        "
-                      ></div>
-                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
-                    </div>
-                  }
-                </div>
-              </div>
+              <app-chart
+                kind="area"
+                [labels]="registrationsChart().labels"
+                [series]="registrationsChart().series"
+                [height]="200"
+                ariaLabel="Registrations per day"
+              />
             } @else {
               <p class="no-data">No data available</p>
             }
@@ -144,28 +160,13 @@
               }
             </div>
             @if (ts.conversations.length > 0) {
-              <div class="bar-chart-wrap">
-                <div class="y-axis">
-                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.conversations) }}</span>
-                  <span class="y-label">0</span>
-                </div>
-                <div class="bar-chart">
-                  @for (point of ts.conversations; track $index) {
-                    <div class="bar-column">
-                      @if (point.value > 0) {
-                        <span class="bar-value">{{ point.value }}</span>
-                      }
-                      <div
-                        class="bar bar-conversations"
-                        [style.height.%]="
-                          getBarHeight(point.value, getMaxTimeSeriesValue(ts.conversations))
-                        "
-                      ></div>
-                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
-                    </div>
-                  }
-                </div>
-              </div>
+              <app-chart
+                kind="area"
+                [labels]="conversationsChart().labels"
+                [series]="conversationsChart().series"
+                [height]="200"
+                ariaLabel="Conversations per day"
+              />
             } @else {
               <p class="no-data">No data available</p>
             }
@@ -179,28 +180,13 @@
               }
             </div>
             @if (ts.purchases.length > 0) {
-              <div class="bar-chart-wrap">
-                <div class="y-axis">
-                  <span class="y-label">{{ getMaxTimeSeriesValue(ts.purchases) }}</span>
-                  <span class="y-label">0</span>
-                </div>
-                <div class="bar-chart">
-                  @for (point of ts.purchases; track $index) {
-                    <div class="bar-column">
-                      @if (point.value > 0) {
-                        <span class="bar-value">{{ point.value }}</span>
-                      }
-                      <div
-                        class="bar bar-purchases"
-                        [style.height.%]="
-                          getBarHeight(point.value, getMaxTimeSeriesValue(ts.purchases))
-                        "
-                      ></div>
-                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
-                    </div>
-                  }
-                </div>
-              </div>
+              <app-chart
+                kind="area"
+                [labels]="purchasesChart().labels"
+                [series]="purchasesChart().series"
+                [height]="200"
+                ariaLabel="Purchases per day"
+              />
             } @else {
               <p class="no-data">No data available</p>
             }
@@ -329,24 +315,32 @@
       </div>
 
       <!-- Peak Hours -->
-      @if (eng.hourlyActivity.length > 0) {
+      @if (activityHeatmap().length > 0) {
         <section class="charts-section">
           <h2>Peak Hours</h2>
           <div class="chart-card">
-            <div class="mini-chart mini-chart-hours">
-              @for (item of eng.hourlyActivity; track $index) {
-                <div class="mini-chart-col">
-                  <span class="mini-chart-value">{{ item.count }}</span>
-                  <div
-                    class="mini-chart-bar bar-hours"
-                    [style.height.%]="
-                      getBarHeight(item.count, getMaxValue(eng.hourlyActivity, 'count'))
-                    "
-                  ></div>
-                  <span class="mini-chart-label">{{ formatHour(item.hour) }}</span>
-                </div>
-              }
-            </div>
+            <p class="chart-note">{{ heatmapNote() }}</p>
+            <app-heatmap
+              [cells]="activityHeatmap()"
+              [rowLabels]="heatmapDays"
+              [columnLabels]="heatmapHours"
+              unit="events"
+              caption="Activity by day of week and hour of day"
+            />
+          </div>
+        </section>
+      } @else if (eng.hourlyActivity.length > 0) {
+        <!-- Older API responses carry only the hourly totals. -->
+        <section class="charts-section">
+          <h2>Peak Hours</h2>
+          <div class="chart-card">
+            <app-chart
+              kind="bar"
+              [labels]="hourlyLabels()"
+              [series]="hourlyChart().series"
+              [height]="200"
+              ariaLabel="Activity by hour of day"
+            />
           </div>
         </section>
       }
@@ -438,49 +432,14 @@
               <div class="chart-header">
                 <h3>Daily Comparison</h3>
               </div>
-              <div class="verification-legend">
-                <span class="legend-item"
-                  ><span class="legend-dot legend-submitted"></span> Text</span
-                >
-                <span class="legend-item"
-                  ><span class="legend-dot legend-approved"></span> Voice</span
-                >
-              </div>
-              <div class="bar-chart-wrap">
-                <div class="bar-chart">
-                  @for (point of vs.searchComparison.dailyComparison; track point.date) {
-                    <div class="bar-column bar-column-stacked">
-                      <div class="stacked-bars">
-                        @if (point.text > 0) {
-                          <div
-                            class="bar bar-id-pending"
-                            [style.height.px]="
-                              getBarHeight(
-                                point.text,
-                                getMaxValue(vs.searchComparison.dailyComparison, 'text')
-                              ) * 0.8
-                            "
-                            [title]="'Text: ' + point.text"
-                          ></div>
-                        }
-                        @if (point.voice > 0) {
-                          <div
-                            class="bar bar-id-approved"
-                            [style.height.px]="
-                              getBarHeight(
-                                point.voice,
-                                getMaxValue(vs.searchComparison.dailyComparison, 'voice')
-                              ) * 0.8
-                            "
-                            [title]="'Voice: ' + point.voice"
-                          ></div>
-                        }
-                      </div>
-                      <span class="bar-label">{{ formatShortDate(point.date) }}</span>
-                    </div>
-                  }
-                </div>
-              </div>
+              <app-chart
+                kind="line"
+                [labels]="searchComparisonChart().labels"
+                [series]="searchComparisonChart().series"
+                [height]="220"
+                [legend]="true"
+                ariaLabel="Text versus voice searches per day"
+              />
             </div>
           }
         </div>
@@ -631,20 +590,13 @@
         @if (eng.loginFailures.length > 0) {
           <div class="chart-card">
             <div class="chart-header"><h3>Login Failures (7d)</h3></div>
-            <div class="mini-chart">
-              @for (item of eng.loginFailures; track $index) {
-                <div class="mini-chart-col">
-                  <span class="mini-chart-value">{{ item.count }}</span>
-                  <div
-                    class="mini-chart-bar bar-failures"
-                    [style.height.%]="
-                      getBarHeight(item.count, getMaxValue(eng.loginFailures, 'count'))
-                    "
-                  ></div>
-                  <span class="mini-chart-label">{{ formatShortDate(item.date) }}</span>
-                </div>
-              }
-            </div>
+            <app-chart
+              kind="line"
+              [labels]="loginFailuresChart().labels"
+              [series]="loginFailuresChart().series"
+              [height]="180"
+              ariaLabel="Failed logins per day over the last 7 days"
+            />
           </div>
         }
       </div>
@@ -755,60 +707,14 @@
             <div class="chart-header">
               <h3>Verification Requests Over Time</h3>
             </div>
-            <div class="verification-legend">
-              <span class="legend-item"
-                ><span class="legend-dot legend-submitted"></span> Submitted</span
-              >
-              <span class="legend-item"
-                ><span class="legend-dot legend-approved"></span> Approved</span
-              >
-              <span class="legend-item"
-                ><span class="legend-dot legend-rejected"></span> Rejected</span
-              >
-            </div>
-            <div class="bar-chart-wrap">
-              <div class="bar-chart">
-                @for (point of vs.timeSeries; track point.date) {
-                  <div class="bar-column bar-column-stacked">
-                    <div class="stacked-bars">
-                      @if (point.approved > 0) {
-                        <div
-                          class="bar bar-id-approved"
-                          [style.height.px]="
-                            getIdVerificationBarHeight(point.approved, vs.timeSeries)
-                          "
-                          [title]="'Approved: ' + point.approved"
-                        ></div>
-                      }
-                      @if (point.rejected > 0) {
-                        <div
-                          class="bar bar-id-rejected"
-                          [style.height.px]="
-                            getIdVerificationBarHeight(point.rejected, vs.timeSeries)
-                          "
-                          [title]="'Rejected: ' + point.rejected"
-                        ></div>
-                      }
-                      @if (point.submitted - point.approved - point.rejected > 0) {
-                        <div
-                          class="bar bar-id-pending"
-                          [style.height.px]="
-                            getIdVerificationBarHeight(
-                              point.submitted - point.approved - point.rejected,
-                              vs.timeSeries
-                            )
-                          "
-                          [title]="
-                            'Pending: ' + (point.submitted - point.approved - point.rejected)
-                          "
-                        ></div>
-                      }
-                    </div>
-                    <span class="bar-label">{{ formatShortDate(point.date) }}</span>
-                  </div>
-                }
-              </div>
-            </div>
+            <app-chart
+              kind="line"
+              [labels]="verificationChart().labels"
+              [series]="verificationChart().series"
+              [height]="220"
+              [legend]="true"
+              ariaLabel="ID verification requests per day by outcome"
+            />
           </div>
         }
       </section>

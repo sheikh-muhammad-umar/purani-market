@@ -1,7 +1,7 @@
-import { Injectable, PLATFORM_ID, inject } from '@angular/core';
-import { isPlatformBrowser } from '@angular/common';
+import { Injectable, inject } from '@angular/core';
 import { Observable, shareReplay, tap } from 'rxjs';
 import { ApiService } from './api.service';
+import { VisitorIdentityService } from './visitor-identity.service';
 import { API } from '../constants/api-endpoints';
 
 export interface VariantAssignment {
@@ -29,11 +29,9 @@ export interface TrackEventPayload {
   metadata?: Record<string, any>;
 }
 
-const VISITOR_ID_KEY = 'mp_visitor_id';
-
 @Injectable({ providedIn: 'root' })
 export class ExperimentsService {
-  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly identity = inject(VisitorIdentityService);
   private assignmentsCache$: Observable<VariantAssignment[]> | null = null;
   private assignmentsMap = new Map<string, VariantAssignment>();
 
@@ -105,14 +103,13 @@ export class ExperimentsService {
 
   /**
    * Get or create a persistent visitor ID for anonymous users.
+   *
+   * Shared with activity tracking and ad delivery, so an experiment result can
+   * be joined to what the visitor actually did. `'ssr'` is kept as the
+   * server-side value because assignments are requested during server rendering
+   * and the endpoint requires a non-empty id.
    */
   private getVisitorId(): string {
-    if (!this.isBrowser) return 'ssr';
-    let id = localStorage.getItem(VISITOR_ID_KEY);
-    if (!id) {
-      id = crypto.randomUUID();
-      localStorage.setItem(VISITOR_ID_KEY, id);
-    }
-    return id;
+    return this.identity.visitorId() ?? 'ssr';
   }
 }

@@ -761,35 +761,40 @@ describe('AdminService', () => {
   });
 
   describe('exportAnalytics', () => {
-    it('should return export with date range and generated timestamp', async () => {
-      userModel.countDocuments
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(10) })
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(5) });
-      listingModel.countDocuments.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(20),
-      });
-      conversationModel.countDocuments.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(8),
-      });
-      packagePurchaseModel.aggregate.mockReturnValueOnce({
-        exec: jest
-          .fn()
-          .mockResolvedValue([{ totalPurchases: 2, totalRevenue: 5000 }]),
-      });
+    /**
+     * exportAnalytics orchestrates the thirteen report methods, each of which has
+     * its own tests. Stubbing them keeps this test about composition rather than
+     * restating thirteen aggregation pipelines' worth of model mocks.
+     */
+    const stubReports = () => {
+      const reports = [
+        'getEngagementAnalytics',
+        'getAppBannerStats',
+        'getVoiceSearchAnalytics',
+        'getCategoryPriceTrends',
+        'getUserRetentionAnalytics',
+        'getRevenueAnalytics',
+        'getOtpAnalytics',
+        'getSocialLoginAnalytics',
+        'getTrafficAnalytics',
+        'getListingFunnelAnalytics',
+        'getBehaviourAnalytics',
+        'getIdVerificationStats',
+      ] as const;
+      jest.spyOn(service, 'getAnalytics').mockResolvedValue({
+        keyMetrics: { totalUsers: 10 },
+        timeSeries: {},
+        categoryAnalytics: [],
+      } as any);
+      for (const name of reports) {
+        jest
+          .spyOn(service, name as any)
+          .mockResolvedValue({ stub: name } as any);
+      }
+    };
 
-      userModel.aggregate = jest
-        .fn()
-        .mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
-      listingModel.aggregate = jest
-        .fn()
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue([]) })
-        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue([]) });
-      conversationModel.aggregate = jest
-        .fn()
-        .mockReturnValue({ exec: jest.fn().mockResolvedValue([]) });
-      packagePurchaseModel.aggregate.mockReturnValueOnce({
-        exec: jest.fn().mockResolvedValue([]),
-      });
+    it('should gather every report and stamp the range', async () => {
+      stubReports();
 
       const result = await service.exportAnalytics('2024-01-01', '2024-12-31');
 
@@ -798,8 +803,100 @@ describe('AdminService', () => {
         from: '2024-01-01',
         to: '2024-12-31',
       });
+      expect(result.timezone).toBeDefined();
       expect(result.keyMetrics.totalUsers).toBe(10);
-      expect(result.categoryAnalytics).toEqual([]);
+      // Every report has to reach the payload, or the export silently loses one.
+      for (const block of [
+        'engagement',
+        'appBanner',
+        'voiceSearch',
+        'priceTrends',
+        'retention',
+        'revenue',
+        'otp',
+        'socialLogins',
+        'traffic',
+        'listingFunnel',
+        'behaviour',
+        'idVerification',
+      ]) {
+        expect(result[block as keyof typeof result]).toBeDefined();
+      }
+    });
+
+    it('should pass the range through to each report', async () => {
+      stubReports();
+
+      await service.exportAnalytics('2024-03-01', '2024-03-31');
+
+      expect(service.getTrafficAnalytics).toHaveBeenCalledWith(
+        '2024-03-01',
+        '2024-03-31',
+      );
+      expect(service.getBehaviourAnalytics).toHaveBeenCalledWith(
+        '2024-03-01',
+        '2024-03-31',
+      );
+    });
+  });
+
+  describe('buildAnalyticsCsv', () => {
+    const emptyReport = (over: Record<string, any> = {}) =>
+      ({
+        generatedAt: '2024-06-15T00:00:00.000Z',
+        dateRange: { from: '2024-01-01', to: '2024-12-31' },
+        timezone: 'Asia/Karachi',
+        keyMetrics: {},
+        timeSeries: {},
+        categoryAnalytics: [],
+        engagement: {},
+        appBanner: {},
+        voiceSearch: {},
+        priceTrends: {},
+        retention: {},
+        revenue: {},
+        otp: {},
+        socialLogins: {},
+        traffic: {},
+        listingFunnel: {},
+        behaviour: {},
+        idVerification: {},
+        ...over,
+      }) as any;
+
+    it('should double inner quotes so a value cannot shift columns', () => {
+      const csv = service.buildAnalyticsCsv(
+        emptyReport({
+          listingFunnel: {
+            topListings: [
+              {
+                title: 'MacBook Pro 14" M3',
+                views: 5,
+                uniqueViewers: 2,
+                contacts: 1,
+                favorites: 0,
+                conversations: 0,
+              },
+            ],
+          },
+        }),
+      );
+      const row = csv.split('\n').find((l) => l.includes('MacBook')) as string;
+      expect(row).toContain('"MacBook Pro 14"" M3"');
+      // Six quoted cells, so the embedded quote did not split the row.
+      expect(row.split('","').length).toBe(6);
+    });
+
+    it('should state that a section is empty rather than omit it', () => {
+      const csv = service.buildAnalyticsCsv(emptyReport());
+      expect(csv).toContain('TOP SEARCHES');
+      expect(csv).toContain('No data in this range');
+      expect(csv).toContain('No campaign-tagged traffic in this range');
+    });
+
+    it('should carry the reporting timezone', () => {
+      const csv = service.buildAnalyticsCsv(emptyReport());
+      expect(csv).toContain('Asia/Karachi');
     });
   });
 

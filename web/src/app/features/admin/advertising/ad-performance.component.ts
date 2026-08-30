@@ -1,9 +1,15 @@
+import { ChartComponent } from '../../../shared/components/chart/chart.component';
 import { Component, OnDestroy, OnInit, computed, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Subject, takeUntil } from 'rxjs';
 import { AdvertisingService } from '../../../core/services/advertising.service';
-import { AdPerformanceReport } from '../../../core/models';
+import { AdConversionRow, AdPerformanceReport } from '../../../core/models';
+
+/** Turns a stored action name into something readable in the report. */
+function humaniseAction(action: string): string {
+  return action.replace(/_/g, ' ');
+}
 
 /** Selectable reporting windows, in days. */
 const RANGE_OPTIONS = [
@@ -22,7 +28,7 @@ const RANGE_OPTIONS = [
 @Component({
   selector: 'app-ad-performance',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, ChartComponent],
   templateUrl: './ad-performance.component.html',
   styleUrls: ['./advertising-admin.scss'],
 })
@@ -35,11 +41,47 @@ export class AdPerformanceComponent implements OnInit, OnDestroy {
   readonly error = signal('');
   readonly selectedDays = signal(30);
 
+  /**
+   * Impressions and clicks per day.
+   *
+   * Both on one chart because the interesting question is whether clicks track
+   * delivery; on separate charts that comparison has to be done by eye.
+   */
+  readonly dailyChart = computed(() => {
+    const daily = this.report()?.daily ?? [];
+    return {
+      labels: daily.map((row) => row.date.slice(5)),
+      series: [
+        {
+          label: 'Impressions',
+          data: daily.map((row) => row.impressions),
+          color: 'primary' as const,
+        },
+        { label: 'Clicks', data: daily.map((row) => row.clicks), color: 'accent' as const },
+      ],
+    };
+  });
+
   /** Tallest daily bar, used to scale the chart. */
   readonly peakImpressions = computed(() => {
     const daily = this.report()?.daily ?? [];
     return daily.reduce((max, row) => Math.max(max, row.impressions), 0);
   });
+
+  /**
+   * The actions that count as a conversion, in prose.
+   *
+   * Named in the UI rather than left implicit, because "converted" means nothing
+   * to whoever reads this report unless they know what was counted.
+   */
+  readonly conversionActionLabels = computed(() =>
+    (this.report()?.conversions.countedActions ?? []).map(humaniseAction).join(', '),
+  );
+
+  /** e.g. `contact x3, favourite x1` */
+  followedLabel(row: AdConversionRow): string {
+    return row.actions.map((a) => `${humaniseAction(a.action)} x${a.count}`).join(', ');
+  }
 
   private readonly destroy$ = new Subject<void>();
 

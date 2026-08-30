@@ -19,9 +19,11 @@ import { MessagingGateway } from './messaging.gateway.js';
 import { ChatMediaService } from './chat-media.service.js';
 import { MessagingCleanupService } from './messaging-cleanup.service.js';
 import { ListingsModule } from '../listings/listings.module.js';
+import { RealtimeModule } from '../common/realtime/realtime.module.js';
 
 @Module({
   imports: [
+    RealtimeModule,
     ScheduleModule.forRoot(),
     MongooseModule.forFeature([
       { name: Conversation.name, schema: ConversationSchema },

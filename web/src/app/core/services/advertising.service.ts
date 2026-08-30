@@ -3,6 +3,7 @@ import { isPlatformBrowser } from '@angular/common';
 import { Observable, catchError, of } from 'rxjs';
 import { map } from 'rxjs/operators';
 import { ApiService } from './api.service';
+import { VisitorIdentityService } from './visitor-identity.service';
 import { API } from '../constants/api-endpoints';
 import {
   AdCampaign,
@@ -19,15 +20,13 @@ import {
   ServedAd,
 } from '../models/advertising.model';
 
-/** Key under which the anonymous ad session id is kept. */
-const AD_SESSION_KEY = 'ad_session_id';
-
 /** Viewport width at or below which a visitor counts as mobile for targeting. */
 const MOBILE_BREAKPOINT = 768;
 
 @Injectable({ providedIn: 'root' })
 export class AdvertisingService {
   private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
+  private readonly identity = inject(VisitorIdentityService);
 
   constructor(private readonly api: ApiService) {}
 
@@ -84,27 +83,11 @@ export class AdvertisingService {
    *
    * Only used so the API can collapse repeat impressions of the same creative;
    * it holds no profile data and is deliberately per-session rather than
-   * persistent.
+   * persistent. Shared with activity tracking so ad exposure and subsequent
+   * behaviour can be joined on one id.
    */
   sessionId(): string | undefined {
-    if (!this.isBrowser) return undefined;
-    try {
-      const existing = sessionStorage.getItem(AD_SESSION_KEY);
-      if (existing) return existing;
-      const generated = this.generateSessionId();
-      sessionStorage.setItem(AD_SESSION_KEY, generated);
-      return generated;
-    } catch {
-      // Private mode with storage disabled: serving still works, and the API
-      // simply counts every impression because it has nothing to dedupe on.
-      return undefined;
-    }
-  }
-
-  private generateSessionId(): string {
-    const cryptoObj = globalThis.crypto;
-    if (cryptoObj?.randomUUID) return cryptoObj.randomUUID();
-    return `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+    return this.identity.sessionId();
   }
 
   private currentDevice(): AdDevice | undefined {

@@ -1,0 +1,303 @@
+<div class="analytics-page">
+  <div class="page-header">
+    <h1>Traffic &amp; Acquisition</h1>
+    <div class="date-range">
+      <app-date-picker [(ngModel)]="dateFrom" [max]="dateTo || today"></app-date-picker>
+      <span class="date-sep">to</span>
+      <app-date-picker [(ngModel)]="dateTo" [min]="dateFrom" [max]="today"></app-date-picker>
+      <button class="btn-apply" (click)="applyDateRange()">Apply</button>
+      <button class="btn-export" (click)="exportCSV()" [disabled]="loading()">
+        <span class="material-symbols-rounded" style="font-size: 16px">download</span> Export
+      </button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="loading-state"><div class="spinner"></div></div>
+  }
+
+  @if (!loading()) {
+    @if (!hasSessions()) {
+      <div class="chart-card empty-card">
+        <span class="material-symbols-rounded">timeline</span>
+        <p>No sessions recorded in this range.</p>
+        <p class="empty-detail">
+          Sessions come from browser visits. Events recorded by seed scripts or by clients that do
+          not send a session id are not counted here.
+        </p>
+      </div>
+    } @else {
+      <div class="metrics-grid">
+        @for (card of metrics(); track card.label) {
+          <div class="metric-card">
+            <span class="metric-icon material-symbols-rounded">{{ card.icon }}</span>
+            <div class="metric-body">
+              <span class="metric-value">{{ card.value }}</span>
+              <span class="metric-label">{{ card.label }}</span>
+              @if (card.hint) {
+                <span class="metric-note">{{ card.hint }}</span>
+              }
+            </div>
+          </div>
+        }
+      </div>
+
+      @if (coverageNote()) {
+        <p class="page-note">{{ coverageNote() }}</p>
+      }
+
+      @if (sessionsChart().labels.length > 0) {
+        <div class="chart-card">
+          <h3>Sessions Over Time</h3>
+          <app-chart
+            kind="area"
+            [labels]="sessionsChart().labels"
+            [series]="sessionsChart().series"
+            [height]="220"
+            ariaLabel="Sessions started per day"
+          />
+        </div>
+      }
+
+      <!-- Acquisition -->
+      <div class="chart-card">
+        <h3>Channels</h3>
+        <div class="ranked-list">
+          @for (row of channels(); track row.label) {
+            <div class="ranked-row">
+              <span class="channel-label">
+                <span class="material-symbols-rounded channel-icon">{{ row.icon }}</span>
+                {{ row.label }}
+              </span>
+              <div class="ranked-bar-wrap">
+                <div class="ranked-bar" [style.width.%]="row.pct"></div>
+              </div>
+              <span class="ranked-value">{{ row.value | number }}</span>
+              <span class="ranked-pct">{{ row.pct | number: '1.0-0' }}%</span>
+            </div>
+          }
+        </div>
+        @if (!hasAcquisitionDetail()) {
+          <p class="chart-note">
+            Every visit so far arrived without a referrer or campaign tag, which is what "direct"
+            means: typed in, bookmarked, or from an app that strips the referrer. Referrer and UTM
+            capture is already in place, so this breakdown fills in as soon as outside traffic
+            arrives.
+          </p>
+        }
+      </div>
+
+      @if (referrers().length > 0) {
+        <div class="chart-card">
+          <h3>Top Referrers</h3>
+          <div class="ranked-list">
+            @for (row of referrers(); track row.label) {
+              <div class="ranked-row">
+                <span class="ranked-label" [title]="row.label">{{ row.label }}</span>
+                <div class="ranked-bar-wrap">
+                  <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                </div>
+                <span class="ranked-value">{{ row.value | number }}</span>
+                <span class="ranked-pct">{{ row.pct | number: '1.0-0' }}%</span>
+              </div>
+            }
+          </div>
+          <p class="chart-note">
+            Same-site referrers are dropped at capture time, so this lists outside sources only.
+          </p>
+        </div>
+      }
+
+      @if (campaigns().length > 0) {
+        <div class="chart-card">
+          <h3>Campaigns</h3>
+          <div class="breakdown-table">
+            <table>
+              <thead>
+                <tr>
+                  <th>Source</th>
+                  <th>Medium</th>
+                  <th>Campaign</th>
+                  <th class="num">Sessions</th>
+                </tr>
+              </thead>
+              <tbody>
+                @for (c of campaigns(); track c.source + c.medium + c.campaign) {
+                  <tr>
+                    <td>{{ c.source }}</td>
+                    <td>{{ c.medium }}</td>
+                    <td>{{ c.campaign }}</td>
+                    <td class="num">{{ c.sessions | number }}</td>
+                  </tr>
+                }
+              </tbody>
+            </table>
+          </div>
+        </div>
+      }
+
+      <div class="charts-row">
+        @if (landingPages().length > 0) {
+          <div class="chart-card">
+            <h3>Landing Pages</h3>
+            <div class="ranked-list">
+              @for (row of landingPages(); track row.label) {
+                <div class="ranked-row">
+                  <span class="ranked-label" [title]="row.label">{{ row.label }}</span>
+                  <div class="ranked-bar-wrap">
+                    <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                  </div>
+                  <span class="ranked-value">{{ row.value | number }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (depthChart().labels.length > 0) {
+          <div class="chart-card">
+            <h3>Session Depth</h3>
+            <app-chart
+              kind="bar"
+              [labels]="depthChart().labels"
+              [series]="depthChart().series"
+              [height]="200"
+              ariaLabel="Sessions grouped by how many events they contained"
+            />
+            <p class="chart-note">
+              How many events a visit contained. A pile-up in the one-event bucket means people
+              arrive and leave without doing anything.
+            </p>
+          </div>
+        }
+      </div>
+
+      <!-- Who and what -->
+      <div class="charts-row">
+        <div class="chart-card">
+          <h3>Visitor Mix</h3>
+          <div class="ranked-list">
+            @for (row of visitorMix(); track row.label) {
+              <div class="ranked-row">
+                <span class="ranked-label">{{ row.label }}</span>
+                <div class="ranked-bar-wrap">
+                  <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                </div>
+                <span class="ranked-value">{{ row.value | number }}</span>
+                <span class="ranked-pct">{{ row.pct | number: '1.0-0' }}%</span>
+              </div>
+            }
+          </div>
+          <p class="chart-note">
+            A visitor is new when their first ever recorded event falls inside this range, so
+            widening the range moves people from new to returning.
+          </p>
+        </div>
+        <div class="chart-card">
+          <h3>Signed In vs Guest</h3>
+          <div class="ranked-list">
+            @for (row of signedInMix(); track row.label) {
+              <div class="ranked-row">
+                <span class="ranked-label">{{ row.label }}</span>
+                <div class="ranked-bar-wrap">
+                  <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                </div>
+                <span class="ranked-value">{{ row.value | number }}</span>
+                <span class="ranked-pct">{{ row.pct | number: '1.0-0' }}%</span>
+              </div>
+            }
+          </div>
+          <p class="chart-note">
+            Measured when the visit began, so a guest who signs in mid-visit still counts as a guest
+            session.
+          </p>
+        </div>
+      </div>
+
+      <div class="charts-row">
+        @if (devices().length > 0) {
+          <div class="chart-card">
+            <h3>Devices</h3>
+            <div class="ranked-list">
+              @for (row of devices(); track row.label) {
+                <div class="ranked-row">
+                  <span class="ranked-label">{{ row.label }}</span>
+                  <div class="ranked-bar-wrap">
+                    <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                  </div>
+                  <span class="ranked-value">{{ row.value | number }}</span>
+                  <span class="ranked-pct">{{ row.pct | number: '1.0-0' }}%</span>
+                </div>
+              }
+            </div>
+            <p class="chart-note">
+              Counted once per visit, not once per page view, so a long browse does not outweigh a
+              short one.
+            </p>
+          </div>
+        }
+        @if (connections().length > 0) {
+          <div class="chart-card">
+            <h3>Connection Type</h3>
+            <div class="ranked-list">
+              @for (row of connections(); track row.label) {
+                <div class="ranked-row">
+                  <span class="ranked-label">{{ row.label }}</span>
+                  <div class="ranked-bar-wrap">
+                    <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                  </div>
+                  <span class="ranked-value">{{ row.value | number }}</span>
+                  <span class="ranked-pct">{{ row.pct | number: '1.0-0' }}%</span>
+                </div>
+              }
+            </div>
+            <p class="chart-note">
+              Worth watching before adding heavy media: a mostly-3g audience pays for every
+              megabyte.
+            </p>
+          </div>
+        }
+      </div>
+
+      <div class="charts-row">
+        @if (browsers().length > 0) {
+          <div class="chart-card">
+            <h3>Browsers</h3>
+            <div class="ranked-list">
+              @for (row of browsers(); track row.label) {
+                <div class="ranked-row">
+                  <span class="ranked-label">{{ row.label }}</span>
+                  <div class="ranked-bar-wrap">
+                    <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                  </div>
+                  <span class="ranked-value">{{ row.value | number }}</span>
+                  <span class="ranked-pct">{{ row.pct | number: '1.0-0' }}%</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+        @if (operatingSystems().length > 0) {
+          <div class="chart-card">
+            <h3>Operating Systems</h3>
+            <div class="ranked-list">
+              @for (row of operatingSystems(); track row.label) {
+                <div class="ranked-row">
+                  <span class="ranked-label">{{ row.label }}</span>
+                  <div class="ranked-bar-wrap">
+                    <div class="ranked-bar" [style.width.%]="row.pct"></div>
+                  </div>
+                  <span class="ranked-value">{{ row.value | number }}</span>
+                  <span class="ranked-pct">{{ row.pct | number: '1.0-0' }}%</span>
+                </div>
+              }
+            </div>
+            <p class="chart-note">
+              Version numbers are trimmed so each browser and system counts as one row rather than
+              one per patch release.
+            </p>
+          </div>
+        }
+      </div>
+    }
+  }
+</div>

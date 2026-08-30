@@ -10,6 +10,12 @@ export interface RegisterRequest {
   password: string;
   firstName: string;
   lastName: string;
+  /**
+   * The user opted into ID verification while signing up. Uploading needs a
+   * session that registration does not create, so the server records the request
+   * and the first sign-in picks it up from there.
+   */
+  wantsIdVerification?: boolean;
 }
 
 export interface AuthTokens {
