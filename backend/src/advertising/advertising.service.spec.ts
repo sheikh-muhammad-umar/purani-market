@@ -1,6 +1,10 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { BadRequestException, NotFoundException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  NotFoundException,
+} from '@nestjs/common';
 import { Types } from 'mongoose';
 import { AdvertisingService } from './advertising.service.js';
 import {
@@ -8,6 +12,7 @@ import {
   AdDevice,
   AdEventType,
   AdPlacement,
+  AdvertiserStatus,
 } from './advertising.enums.js';
 import { Advertiser } from './schemas/advertiser.schema.js';
 import { AdCampaign } from './schemas/ad-campaign.schema.js';
@@ -88,6 +93,8 @@ describe('AdvertisingService', () => {
         .mockImplementation((dto: any) => ({ _id: advertiserId, ...dto })),
       countDocuments: jest.fn().mockReturnValue(execOf(0)),
       deleteOne: jest.fn().mockReturnValue(execOf({ deletedCount: 1 })),
+      // No clash by default; the duplicate-name tests override this.
+      exists: jest.fn().mockReturnValue(execOf(null)),
     };
     advertiserModel.find.mockImplementation(() => ({
       ...sortOf([]),
@@ -584,6 +591,168 @@ describe('AdvertisingService', () => {
       await expect(service.getPerformance('nonsense')).rejects.toThrow(
         BadRequestException,
       );
+    });
+  });
+
+  describe('listAdvertisers', () => {
+    /** Captures the filter and the chain the service builds. */
+    function captureFind(result: unknown[] = []) {
+      const limit = jest.fn();
+      const chain = { limit, exec: jest.fn().mockResolvedValue(result) };
+      const sort = jest.fn().mockReturnValue(chain);
+      advertiserModel.find.mockImplementation(() => ({ sort }));
+      return { limit, sort, chain };
+    }
+
+    it('searches on an escaped regex, so punctuation cannot break the query', async () => {
+      captureFind();
+      // An unescaped '(' reaches Mongo as an unterminated group and fails the
+      // request — the autocomplete sends exactly this while a name is half typed.
+      await service.listAdvertisers('Daraz (PK');
+
+      const filter = advertiserModel.find.mock.calls[0][0];
+      expect(filter.name).toBeInstanceOf(RegExp);
+      expect(filter.name.source).toContain('\\(');
+      expect('Daraz (PK)').toMatch(filter.name);
+      expect('Bykea').not.toMatch(filter.name);
+    });
+
+    it('matches without regard to case', async () => {
+      captureFind();
+      await service.listAdvertisers('daraz');
+      const filter = advertiserModel.find.mock.calls[0][0];
+      expect('DARAZ Express').toMatch(filter.name);
+    });
+
+    it('omits the name filter when no search is given', async () => {
+      captureFind();
+      await service.listAdvertisers();
+      expect(advertiserModel.find.mock.calls[0][0]).toEqual({});
+    });
+
+    it('applies a caller limit', async () => {
+      const { limit } = captureFind();
+      await service.listAdvertisers('d', 5);
+      expect(limit).toHaveBeenCalledWith(5);
+    });
+
+    it('caps the limit, so a caller cannot ask for the whole collection', async () => {
+      const { limit } = captureFind();
+      await service.listAdvertisers('d', 10_000);
+      expect(limit).toHaveBeenCalledWith(50);
+    });
+
+    it('does not limit when the caller does not ask for one', async () => {
+      const { limit } = captureFind();
+      await service.listAdvertisers('d');
+      expect(limit).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('advertiser name uniqueness', () => {
+    it('refuses a name another advertiser already holds', async () => {
+      advertiserModel.exists.mockReturnValue(execOf({ _id: advertiserId }));
+
+      await expect(
+        service.createAdvertiser({ name: 'Daraz' } as any),
+      ).rejects.toThrow(ConflictException);
+      expect(advertiserModel.create).not.toHaveBeenCalled();
+    });
+
+    it('compares the name case-insensitively and ignores surrounding space', async () => {
+      advertiserModel.exists.mockReturnValue(execOf(null));
+      await service.createAdvertiser({ name: '  Daraz Express  ' } as any);
+
+      const filter = advertiserModel.exists.mock.calls[0][0];
+      expect(filter.name).toBeInstanceOf(RegExp);
+      expect('daraz express').toMatch(filter.name);
+      expect('Daraz Expresso').not.toMatch(filter.name);
+    });
+
+    it('creates when the name is free', async () => {
+      advertiserModel.exists.mockReturnValue(execOf(null));
+      await expect(
+        service.createAdvertiser({ name: 'Shan Foods' } as any),
+      ).resolves.toMatchObject({ name: 'Shan Foods' });
+    });
+
+    it('reports the unique index rejection as a conflict, not a server error', async () => {
+      advertiserModel.exists.mockReturnValue(execOf(null));
+      // Two operators saving the same brand can both clear the pre-check; the
+      // index rejects the loser with E11000.
+      advertiserModel.create.mockRejectedValueOnce({ code: 11000 });
+
+      await expect(
+        service.createAdvertiser({ name: 'Shan Foods' } as any),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('lets an unrelated write failure surface unchanged', async () => {
+      advertiserModel.exists.mockReturnValue(execOf(null));
+      advertiserModel.create.mockRejectedValueOnce(new Error('disk on fire'));
+
+      await expect(
+        service.createAdvertiser({ name: 'Shan Foods' } as any),
+      ).rejects.toThrow('disk on fire');
+    });
+
+    /** The shared findById stub is a plain object; updates need a saveable doc. */
+    function stubSaveableAdvertiser() {
+      const doc: Record<string, any> = {
+        _id: advertiserId,
+        name: 'Brand',
+        save: jest.fn().mockImplementation(function (this: unknown) {
+          return Promise.resolve(doc);
+        }),
+      };
+      advertiserModel.findById.mockReturnValue(execOf(doc));
+      return doc;
+    }
+
+    it('excludes the advertiser being renamed from its own clash check', async () => {
+      stubSaveableAdvertiser();
+      advertiserModel.exists.mockReturnValue(execOf(null));
+      await service.updateAdvertiser(advertiserId.toString(), {
+        name: 'Brand',
+      } as any);
+
+      const filter = advertiserModel.exists.mock.calls[0][0];
+      expect(filter._id).toEqual({ $ne: advertiserId });
+    });
+
+    it('does not run the clash check when the name is untouched', async () => {
+      stubSaveableAdvertiser();
+      advertiserModel.exists.mockReturnValue(execOf(null));
+      await service.updateAdvertiser(advertiserId.toString(), {
+        status: AdvertiserStatus.INACTIVE,
+      } as any);
+
+      expect(advertiserModel.exists).not.toHaveBeenCalled();
+    });
+
+    it('reports a rename onto an existing brand as a conflict', async () => {
+      stubSaveableAdvertiser();
+      advertiserModel.exists.mockReturnValue(
+        execOf({ _id: new Types.ObjectId() }),
+      );
+
+      await expect(
+        service.updateAdvertiser(advertiserId.toString(), {
+          name: 'Daraz',
+        } as any),
+      ).rejects.toThrow(ConflictException);
+    });
+
+    it('reports the index rejecting a rename as a conflict', async () => {
+      const doc = stubSaveableAdvertiser();
+      advertiserModel.exists.mockReturnValue(execOf(null));
+      doc.save = jest.fn().mockRejectedValue({ code: 11000 });
+
+      await expect(
+        service.updateAdvertiser(advertiserId.toString(), {
+          name: 'Daraz',
+        } as any),
+      ).rejects.toThrow(ConflictException);
     });
   });
 });

@@ -97,9 +97,14 @@ export class AdvertisingService {
 
   // ── Admin: advertisers ────────────────────────────────────────────
 
-  listAdvertisers(search?: string): Observable<Advertiser[]> {
-    const params = search?.trim() ? { search: search.trim() } : undefined;
-    return this.api.get<Advertiser[]>(API.ADS_ADMIN_ADVERTISERS, params);
+  listAdvertisers(search?: string, limit?: number): Observable<Advertiser[]> {
+    const params: Record<string, string | number> = {};
+    if (search?.trim()) params['search'] = search.trim();
+    if (limit !== undefined) params['limit'] = limit;
+    return this.api.get<Advertiser[]>(
+      API.ADS_ADMIN_ADVERTISERS,
+      Object.keys(params).length > 0 ? params : undefined,
+    );
   }
 
   getAdvertiser(id: string): Observable<Advertiser> {

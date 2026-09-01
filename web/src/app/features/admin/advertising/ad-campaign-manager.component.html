@@ -65,13 +65,15 @@
       >
     </div>
 
-    @if (advertisers().length === 0) {
+    @if (filteredCampaigns().length === 0) {
       <div class="ads-empty">
-        <p>Add an advertiser first — a campaign has to belong to a brand.</p>
-      </div>
-    } @else if (filteredCampaigns().length === 0) {
-      <div class="ads-empty">
-        <p>No campaign matches these filters.</p>
+        <p>
+          {{
+            campaigns().length === 0
+              ? 'No campaigns yet — create one to start booking inventory.'
+              : 'No campaign matches these filters.'
+          }}
+        </p>
       </div>
     } @else {
       <div class="ads-table-wrap">
@@ -260,13 +262,14 @@
 
     <div class="ads-form-row">
       <div class="form-group">
-        <label for="camp-advertiser">Advertiser *</label>
-        <select id="camp-advertiser" class="form-input" [(ngModel)]="campaignForm.advertiserId">
-          <option value="">Select a brand</option>
-          @for (advertiser of advertisers(); track advertiser._id) {
-            <option [value]="advertiser._id">{{ advertiser.name }}</option>
-          }
-        </select>
+        <label id="camp-advertiser-label">Advertiser *</label>
+        <app-advertiser-picker
+          labelledBy="camp-advertiser-label"
+          [options]="advertisers()"
+          [(ngModel)]="campaignForm.advertiserId"
+          (created)="onAdvertiserCreated($event)"
+        />
+        <span class="form-hint">Search the roster, or type a new brand name to add it.</span>
       </div>
       <div class="form-group">
         <label for="camp-name">Campaign name *</label>

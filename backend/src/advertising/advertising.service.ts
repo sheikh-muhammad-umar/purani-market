@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ConflictException,
   Injectable,
   Logger,
   NotFoundException,
@@ -8,6 +9,10 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Model, Types } from 'mongoose';
 import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
+import {
+  containsRegex,
+  exactMatchRegex,
+} from '../common/utils/sanitize-regex.js';
 import {
   Category,
   CategoryDocument,
@@ -105,6 +110,15 @@ export interface AdPerformanceReport {
 
 /** How far up the category tree targeting is honoured. */
 const MAX_CATEGORY_DEPTH = 10;
+
+/**
+ * Ceiling on advertiser search results.
+ *
+ * The campaign form's advertiser autocomplete calls this on every keystroke, so
+ * an unbounded list would grow into a per-keystroke full-collection scan as the
+ * roster grows. A typeahead nobody scrolls past ten entries of does not need more.
+ */
+const ADVERTISER_SEARCH_MAX_LIMIT = 50;
 
 /** Collection holding the behavioural stream that clicks are attributed against. */
 const ACTIVITY_COLLECTION = 'user_activities';
@@ -270,7 +284,7 @@ export class AdvertisingService {
         {
           $or: [
             { 'targeting.devices': { $size: 0 } },
-            { 'targeting.devices': query.device as AdDevice },
+            { 'targeting.devices': query.device },
           ],
         },
       ];
@@ -577,12 +591,26 @@ export class AdvertisingService {
 
   // ── Advertisers ───────────────────────────────────────────────────
 
-  async listAdvertisers(search?: string): Promise<AdvertiserDocument[]> {
+  async listAdvertisers(
+    search?: string,
+    limit?: number,
+  ): Promise<AdvertiserDocument[]> {
     const filter: Record<string, any> = {};
     if (search?.trim()) {
-      filter.name = { $regex: search.trim(), $options: 'i' };
+      // Escaped rather than interpolated. The autocomplete sends whatever the
+      // operator has typed so far, and brand names contain the characters that
+      // matter — a half-typed "Daraz (PK)" would otherwise reach Mongo as an
+      // unterminated group and fail the request.
+      filter.name = containsRegex(search.trim());
     }
-    return this.advertiserModel.find(filter).sort({ name: 1 }).exec();
+
+    const query = this.advertiserModel.find(filter).sort({ name: 1 });
+    if (limit !== undefined) {
+      query.limit(
+        Math.min(Math.max(Math.trunc(limit), 1), ADVERTISER_SEARCH_MAX_LIMIT),
+      );
+    }
+    return query.exec();
   }
 
   async getAdvertiser(id: string): Promise<AdvertiserDocument> {
@@ -596,7 +624,12 @@ export class AdvertisingService {
   async createAdvertiser(
     dto: CreateAdvertiserDto,
   ): Promise<AdvertiserDocument> {
-    return this.advertiserModel.create(dto);
+    await this.assertBrandNameFree(dto.name);
+    try {
+      return await this.advertiserModel.create(dto);
+    } catch (err) {
+      this.rethrowDuplicateAsConflict(err);
+    }
   }
 
   async updateAdvertiser(
@@ -604,8 +637,57 @@ export class AdvertisingService {
     dto: UpdateAdvertiserDto,
   ): Promise<AdvertiserDocument> {
     const advertiser = await this.getAdvertiser(id);
+    if (dto.name) {
+      await this.assertBrandNameFree(dto.name, advertiser._id);
+    }
     Object.assign(advertiser, dto);
-    return advertiser.save();
+    try {
+      return await advertiser.save();
+    } catch (err) {
+      this.rethrowDuplicateAsConflict(err);
+    }
+  }
+
+  /**
+   * Refuses a brand name another advertiser already holds, compared without
+   * case or surrounding space.
+   *
+   * Campaign spend, delivery and reporting all hang off `advertiserId`, so two
+   * records for one brand silently split its numbers in half and nothing in the
+   * UI reveals why. The check matters most for the campaign form's inline
+   * "create" path, where the operator is typing a name rather than picking from
+   * a list and cannot see that the brand is already on file under a different
+   * capitalisation.
+   */
+  private async assertBrandNameFree(
+    name: string,
+    exceptId?: Types.ObjectId,
+  ): Promise<void> {
+    const trimmed = name.trim();
+    if (!trimmed) return;
+
+    const filter: Record<string, any> = { name: exactMatchRegex(trimmed) };
+    if (exceptId) filter._id = { $ne: exceptId };
+
+    const clash = await this.advertiserModel.exists(filter).exec();
+    if (clash) {
+      throw new ConflictException(PUBLIC_ERROR.CONFLICT);
+    }
+  }
+
+  /**
+   * Reports the unique index's duplicate-key rejection as the same 409 the
+   * pre-check returns.
+   *
+   * `assertBrandNameFree` is read-then-write, so two operators saving the same
+   * brand at once can both pass it and let the index reject the loser. Without
+   * this the loser would see a 500 for what is really a conflict.
+   */
+  private rethrowDuplicateAsConflict(err: unknown): never {
+    if ((err as { code?: number } | null)?.code === 11000) {
+      throw new ConflictException(PUBLIC_ERROR.CONFLICT);
+    }
+    throw err;
   }
 
   /**

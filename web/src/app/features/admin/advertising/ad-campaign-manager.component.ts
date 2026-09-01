@@ -5,6 +5,7 @@ import { Subject, forkJoin, takeUntil } from 'rxjs';
 import { AdvertisingService } from '../../../core/services/advertising.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { LocationService } from '../../../core/services/location.service';
+import { AdvertiserPickerComponent } from './advertiser-picker.component';
 import {
   AD_CAMPAIGN_STATUS_LABELS,
   AD_PLACEMENT_LABELS,
@@ -68,7 +69,7 @@ interface CreativeForm {
 @Component({
   selector: 'app-ad-campaign-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule],
+  imports: [CommonModule, FormsModule, AdvertiserPickerComponent],
   templateUrl: './ad-campaign-manager.component.html',
   styleUrls: ['./advertising-admin.scss'],
 })
@@ -178,6 +179,19 @@ export class AdCampaignManagerComponent implements OnInit, OnDestroy {
 
   advertiserName(id: string): string {
     return this.advertiserNames().get(id) ?? 'Unknown advertiser';
+  }
+
+  /**
+   * Folds a brand created from inside the campaign form into the loaded roster.
+   *
+   * Without this the campaign table would show "Unknown advertiser" and the
+   * filter dropdown would omit the brand until the next full reload — and if the
+   * operator abandons the campaign, that reload never happens.
+   */
+  onAdvertiserCreated(advertiser: Advertiser): void {
+    this.advertisers.update((list) =>
+      [...list, advertiser].sort((a, b) => a.name.localeCompare(b.name)),
+    );
   }
 
   /** Human summary of delivery against caps, or a dash when uncapped. */

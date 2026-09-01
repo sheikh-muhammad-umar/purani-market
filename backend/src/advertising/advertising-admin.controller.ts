@@ -55,8 +55,15 @@ export class AdvertisingAdminController {
   // ── Advertisers ───────────────────────────────────────────────────
 
   @Get('advertisers')
-  async listAdvertisers(@Query('search') search?: string) {
-    return this.advertisingService.listAdvertisers(search);
+  async listAdvertisers(
+    @Query('search') search?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const parsed = limit === undefined ? undefined : Number(limit);
+    return this.advertisingService.listAdvertisers(
+      search,
+      parsed !== undefined && Number.isFinite(parsed) ? parsed : undefined,
+    );
   }
 
   @Get('advertisers/:id')
