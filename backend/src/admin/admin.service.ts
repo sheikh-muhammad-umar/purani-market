@@ -772,7 +772,16 @@ export class AdminService {
     const lines: string[] = [];
     const cell = (value: unknown): string => {
       if (value === null || value === undefined) return '""';
-      return `"${String(value).replace(/"/g, '""')}"`;
+      // Anything that is not a primitive would stringify to "[object Object]",
+      // which tells whoever opens the sheet nothing at all. JSON at least keeps
+      // the contents legible.
+      const text =
+        typeof value === 'string' ||
+        typeof value === 'number' ||
+        typeof value === 'boolean'
+          ? String(value)
+          : JSON.stringify(value);
+      return `"${text.replace(/"/g, '""')}"`;
     };
     const row = (...cols: unknown[]) => lines.push(cols.map(cell).join(','));
     const blank = () => lines.push('');
@@ -853,7 +862,7 @@ export class AdminService {
       ]),
     );
 
-    const eng = report.engagement as Record<string, any>;
+    const eng = report.engagement;
     table(
       'Top searches',
       ['Term', 'Count'],
@@ -900,7 +909,7 @@ export class AdminService {
       );
     }
 
-    const ret = report.retention as Record<string, any>;
+    const ret = report.retention;
     pairs('Retention summary', [
       ['Retention rate %', ret?.retentionRate ?? 0],
       ['Churned users', ret?.churnedUsers ?? 0],
@@ -925,7 +934,7 @@ export class AdminService {
       (ret?.monthlyActiveUsers ?? []).map((p: any) => [p.month, p.count]),
     );
 
-    const rev = report.revenue as Record<string, any>;
+    const rev = report.revenue;
     pairs('Revenue summary', [
       ['Total revenue', rev?.totalRevenue ?? 0],
       ['Average order value', rev?.avgOrderValue ?? 0],
@@ -954,7 +963,7 @@ export class AdminService {
       ]),
     );
 
-    const otpData = report.otp as Record<string, any>;
+    const otpData = report.otp;
     pairs('OTP summary', [
       ['Sent', otpData?.summary?.totalSent ?? 0],
       ['Verified', otpData?.summary?.totalVerified ?? 0],
@@ -983,7 +992,7 @@ export class AdminService {
       ]);
     }
 
-    const social = report.socialLogins as Record<string, any>;
+    const social = report.socialLogins;
     pairs('Social logins', [
       ['Total', social?.totalSocialLogins ?? 0],
       ['New users', social?.newVsReturning?.newUsers ?? 0],
@@ -995,7 +1004,7 @@ export class AdminService {
       (social?.byProvider ?? []).map((p: any) => [p.provider, p.count]),
     );
 
-    const traf = report.traffic as Record<string, any>;
+    const traf = report.traffic;
     pairs('Traffic summary', [
       ['Sessions', traf?.summary?.sessions ?? 0],
       ['Unique visitors', traf?.summary?.uniqueVisitors ?? 0],
@@ -1063,7 +1072,7 @@ export class AdminService {
       (traf?.byConnection ?? []).map((c: any) => [c.connection, c.sessions]),
     );
 
-    const funnel = report.listingFunnel as Record<string, any>;
+    const funnel = report.listingFunnel;
     table(
       'Listing funnel',
       ['Stage', 'Listings', 'Share of viewed %', 'Dropped'],
@@ -1131,7 +1140,7 @@ export class AdminService {
       ]),
     );
 
-    const beh = report.behaviour as Record<string, any>;
+    const beh = report.behaviour;
     table(
       'Top pages',
       ['Path', 'Views'],
@@ -1177,7 +1186,7 @@ export class AdminService {
       ]),
     );
 
-    const voice = report.voiceSearch as Record<string, any>;
+    const voice = report.voiceSearch;
     pairs('Voice search', [
       ['Started', voice?.totalStarted ?? 0],
       ['Completed', voice?.totalCompleted ?? 0],
@@ -1194,7 +1203,7 @@ export class AdminService {
       (voice?.topQueries ?? []).map((q: any) => [q.term, q.count]),
     );
 
-    const pt = report.priceTrends as Record<string, any>;
+    const pt = report.priceTrends;
     pairs('Price trends summary', [
       ['Total price changes', pt?.totalPriceChanges ?? 0],
       ['Average increase', pt?.avgPriceIncrease ?? 0],
@@ -1213,7 +1222,7 @@ export class AdminService {
       ]),
     );
 
-    const banner = report.appBanner as Record<string, any>;
+    const banner = report.appBanner;
     pairs('App download banner', [
       ['Shown', banner?.shown ?? 0],
       ['Clicks', banner?.clicks ?? 0],
@@ -1222,7 +1231,7 @@ export class AdminService {
       ['Dismiss rate %', banner?.dismissRate ?? 0],
     ]);
 
-    const idv = report.idVerification as Record<string, any>;
+    const idv = report.idVerification;
     pairs('ID verification', [
       ['Pending', idv?.pending ?? 0],
       ['Approved', idv?.approved ?? 0],

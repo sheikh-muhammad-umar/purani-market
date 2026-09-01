@@ -60,5 +60,49 @@ describe('JazzCashGateway', () => {
       });
       expect(result.status).toBe('failed');
     });
+
+    /**
+     * A genuine callback is form-encoded primitives, but the payload type is an
+     * index signature over `unknown`. Coercing a nested value would hash the
+     * literal "[object Object]", so the signature check would fail with nothing
+     * in the logs pointing at the cause.
+     */
+    it('should reject a callback whose field is not a primitive', async () => {
+      const warn = jest
+        .spyOn(
+          (gateway as unknown as { logger: { warn: jest.Mock } }).logger,
+          'warn',
+        )
+        .mockImplementation(() => undefined);
+
+      const result = await gateway.verifyCallback({
+        pp_TxnRefNo: 'T20240101120000',
+        pp_ResponseCode: JAZZCASH_SUCCESS_CODE,
+        pp_SecureHash: 'deadbeef',
+        pp_BillReference: { nested: 'value' } as unknown as string,
+      });
+
+      expect(result.status).toBe('failed');
+      expect(warn).toHaveBeenCalledWith(
+        expect.stringContaining('was not a primitive'),
+      );
+      warn.mockRestore();
+    });
+
+    it('should hash primitive fields of every type without complaint', async () => {
+      const result = await gateway.verifyCallback({
+        pp_TxnRefNo: 'T20240101120000',
+        pp_ResponseCode: JAZZCASH_SUCCESS_CODE,
+        pp_SecureHash: 'deadbeef',
+        pp_Amount: 100000,
+        pp_Retry: false,
+        pp_Optional: undefined,
+      });
+
+      // The hash will not match a fabricated one, but it is a mismatch rather
+      // than a rejection for a malformed field.
+      expect(result.status).toBe('failed');
+      expect(result.reason).toBeDefined();
+    });
   });
 });

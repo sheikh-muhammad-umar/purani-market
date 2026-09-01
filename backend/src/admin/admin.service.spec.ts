@@ -887,6 +887,28 @@ describe('AdminService', () => {
       expect(row.split('","').length).toBe(6);
     });
 
+    it('should serialise a non-primitive cell as JSON, not [object Object]', () => {
+      const csv = service.buildAnalyticsCsv(
+        emptyReport({
+          listingFunnel: {
+            topListings: [
+              {
+                title: { en: 'MacBook' },
+                views: 1,
+                uniqueViewers: 1,
+                contacts: 0,
+                favorites: 0,
+                conversations: 0,
+              },
+            ],
+          },
+        }),
+      );
+      expect(csv).not.toContain('[object Object]');
+      expect(csv).toContain('en');
+      expect(csv).toContain('MacBook');
+    });
+
     it('should state that a section is empty rather than omit it', () => {
       const csv = service.buildAnalyticsCsv(emptyReport());
       expect(csv).toContain('TOP SEARCHES');

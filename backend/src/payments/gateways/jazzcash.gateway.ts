@@ -138,7 +138,31 @@ export class JazzCashGateway implements PaymentGateway {
     if (receivedHash && this.integritySalt) {
       const hashPayload: Record<string, string> = {};
       for (const [k, v] of Object.entries(payload)) {
-        if (k !== 'pp_SecureHash') hashPayload[k] = String(v ?? '');
+        if (k === 'pp_SecureHash') continue;
+
+        // The payload is an index signature over `unknown`, while a genuine
+        // callback is form-encoded primitives. Coercing a nested value here
+        // would hash the literal "[object Object]", so the comparison below
+        // would fail with nothing in the logs to explain why. Treat it as the
+        // malformed callback it is instead.
+        if (v === null || v === undefined) {
+          hashPayload[k] = '';
+        } else if (
+          typeof v === 'string' ||
+          typeof v === 'number' ||
+          typeof v === 'boolean'
+        ) {
+          hashPayload[k] = String(v);
+        } else {
+          this.logger.warn(
+            `JazzCash callback field ${k} was not a primitive for ${transactionId}`,
+          );
+          return {
+            transactionId,
+            status: 'failed',
+            reason: ERROR.PAYMENT_HASH_MISMATCH,
+          };
+        }
       }
       const expectedHash = this.generateSecureHash(hashPayload);
       if (receivedHash !== expectedHash) {
