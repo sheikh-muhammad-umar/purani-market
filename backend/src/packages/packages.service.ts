@@ -8,6 +8,8 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
+import { ConfigService } from '@nestjs/config';
+import { FALLBACK_LISTING_LIMIT } from './constants/package-durations.js';
 import { DEFAULT_CURRENCY } from '../common/constants/index.js';
 import {
   AdPackage,
@@ -67,7 +69,15 @@ export class PackagesService {
     private readonly listingModel: Model<ProductListingDocument>,
     private readonly paymentsService: PaymentsService,
     private readonly adminTrackerService: AdminTrackerService,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.defaultListingLimit =
+      this.configService.get<number>('listing.defaultListingLimit') ??
+      FALLBACK_LISTING_LIMIT;
+  }
+
+  /** Base allowance for a seller with no packages. */
+  private readonly defaultListingLimit: number;
 
   async createPackage(dto: CreatePackageDto): Promise<AdPackageDocument> {
     const categoryPricing = (dto.categoryPricing || []).map((cp) => ({
@@ -529,28 +539,84 @@ export class PackagesService {
   /**
    * Applies the up-front half of a purchase's entitlements.
    *
-   * Ad slots are a counter on the user, so they have to be credited at activation
-   * and clawed back at expiry. Featured ads and shorts are spent from the purchase
-   * row itself, so they need nothing here.
-   *
-   * Only ever called once per purchase — see the PENDING guard in
-   * `handlePaymentCallback`.
+   * Ad slots raise the seller's listing limit, so they take effect at activation
+   * and stop applying at expiry. Featured ads and shorts are spent from the
+   * purchase row as they are used, so they need nothing here.
    */
   private async creditEntitlements(
     purchase: PackagePurchaseDocument,
   ): Promise<void> {
-    // The granted quantity, not the remaining balance: nothing has been spent yet
-    // at activation, and slots are never spent from the purchase row anyway.
-    const slots = purchaseBalances(purchase).find(
-      (e) => e.kind === EntitlementKind.AD_SLOTS,
-    )?.quantity;
-
-    if (slots && slots > 0) {
-      await this.userModel.updateOne(
-        { _id: purchase.sellerId },
-        { $inc: { listingLimit: slots } },
-      );
+    const grantsSlots = purchaseBalances(purchase).some(
+      (e) => e.kind === EntitlementKind.AD_SLOTS && e.quantity > 0,
+    );
+    if (grantsSlots) {
+      await this.reconcileListingLimit(purchase.sellerId.toString());
     }
+  }
+
+  /**
+   * Recomputes a seller's listing limit from their base allowance plus the slots
+   * of every package currently active.
+   *
+   * Derived rather than adjusted, because three writers used to share one number
+   * and disagree about it: activation added with `$inc`, expiry subtracted a
+   * snapshot and floored the result, and an admin overwrote it outright. That
+   * produced limits that drifted permanently upward on a replayed callback, went
+   * *up* when a package expired after an admin had lowered them, and under-clawed
+   * when two packages lapsed in the same run.
+   *
+   * Recomputing is idempotent, so calling it twice is harmless and no caller has
+   * to reason about ordering. Expired purchases fall out on their own via
+   * `expiresAt`, so it needs no cooperation from the expiry marker.
+   */
+  async reconcileListingLimit(sellerId: string): Promise<number> {
+    const now = new Date();
+    const sellerObjectId = new Types.ObjectId(sellerId);
+
+    const user = await this.userModel
+      .findById(sellerObjectId)
+      .select('baseListingLimit listingLimit')
+      .exec();
+    if (!user) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    const slotPurchases = await this.packagePurchaseModel
+      .find({
+        sellerId: sellerObjectId,
+        paymentStatus: PaymentStatus.COMPLETED,
+        expiresAt: { $gt: now },
+        $or: [
+          { type: AdPackageType.AD_SLOTS },
+          { entitlements: { $elemMatch: { kind: EntitlementKind.AD_SLOTS } } },
+        ],
+      })
+      .exec();
+
+    const granted = slotPurchases.reduce(
+      (sum, purchase) =>
+        sum +
+        (purchaseBalances(purchase).find(
+          (e) => e.kind === EntitlementKind.AD_SLOTS,
+        )?.quantity ?? 0),
+      0,
+    );
+
+    // Users created before `baseListingLimit` existed have no value stored, so
+    // fall back to the configured default rather than treating it as zero.
+    const base = user.baseListingLimit ?? this.defaultListingLimit;
+    const target = base + granted;
+
+    if (user.listingLimit !== target) {
+      await this.userModel
+        .updateOne(
+          { _id: sellerObjectId },
+          { $set: { baseListingLimit: base, listingLimit: target } },
+        )
+        .exec();
+    }
+
+    return target;
   }
 
   /**

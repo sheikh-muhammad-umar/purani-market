@@ -21,3 +21,11 @@ export function getShortsDurations(): number[] {
     .map((d) => parseInt(d.trim(), 10))
     .filter((d) => d > 0);
 }
+
+/**
+ * Base listing allowance used when configuration is unavailable.
+ *
+ * Mirrors the schema default on `User.baseListingLimit`; both exist so a seller
+ * with no packages always has a sane limit.
+ */
+export const FALLBACK_LISTING_LIMIT = 10;

@@ -1,4 +1,4 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger, forwardRef } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -19,6 +19,7 @@ import {
   AdPackageType,
 } from '../packages/schemas/ad-package.schema.js';
 import { EntitlementKind, purchaseBalances } from '../packages/entitlements.js';
+import { PackagesService } from '../packages/packages.service.js';
 import {
   Favorite,
   FavoriteDocument,
@@ -60,6 +61,8 @@ export class ListingLifecycleService {
     private readonly adminTrackerService: AdminTrackerService,
     private readonly searchSyncService: SearchSyncService,
     private readonly configService: ConfigService,
+    @Inject(forwardRef(() => PackagesService))
+    private readonly packagesService: PackagesService,
   ) {
     this.activeDays = this.configService.get<number>('listing.activeDays')!;
     this.deactivatedCleanupDays = this.configService.get<number>(
@@ -374,23 +377,22 @@ export class ListingLifecycleService {
         continue;
       }
 
-      // Reduce seller's listingLimit (floor at default 10)
       const seller = await this.userModel
         .findById(purchase.sellerId)
         .select('listingLimit activeListingCount')
         .exec();
 
       if (seller) {
-        const newLimit = Math.max(
-          this.defaultListingLimit,
-          seller.listingLimit - slotsToRemove,
+        // Recomputed from the base allowance plus whatever packages are still
+        // active, rather than subtracting this package's snapshot. The old
+        // arithmetic — `max(default, limit - snapshot)` — went wrong three ways:
+        // it raised the limit when an admin had lowered it below the package
+        // size, it under-clawed when two packages lapsed in the same run, and it
+        // silently absorbed a goodwill grant. This purchase has already expired,
+        // so it drops out of the sum on its own.
+        const newLimit = await this.packagesService.reconcileListingLimit(
+          purchase.sellerId.toString(),
         );
-        await this.userModel
-          .updateOne(
-            { _id: purchase.sellerId },
-            { $set: { listingLimit: newLimit } },
-          )
-          .exec();
 
         this.notificationsService
           .sendAdSlotsExpiredNotification(

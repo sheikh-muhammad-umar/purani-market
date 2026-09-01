@@ -1,3 +1,4 @@
+import { PackagesService } from '../packages/packages.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { NotFoundException } from '@nestjs/common';
@@ -24,6 +25,7 @@ import { EntitlementKind } from '../packages/entitlements';
 describe('AdminService', () => {
   let service: AdminService;
   let userModel: any;
+  let packagesService: { reconcileListingLimit: jest.Mock };
   let listingModel: any;
   let conversationModel: any;
   let reviewModel: any;
@@ -122,6 +124,10 @@ describe('AdminService', () => {
     notificationsService = {
       sendToUser: jest.fn().mockResolvedValue(true),
       sendAccountSuspendedNotification: jest.fn().mockResolvedValue(undefined),
+    };
+
+    packagesService = {
+      reconcileListingLimit: jest.fn().mockResolvedValue(30),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -228,6 +234,10 @@ describe('AdminService', () => {
               return config[key];
             }),
           },
+        },
+        {
+          provide: PackagesService,
+          useValue: packagesService,
         },
         {
           provide: SearchSyncService,
@@ -480,20 +490,35 @@ describe('AdminService', () => {
   });
 
   describe('updateListingLimit', () => {
-    it('should update listing limit', async () => {
-      const updatedUser = { ...mockUser, listingLimit: 25 };
+    it('should set the base allowance and reconcile the effective limit', async () => {
+      // The number an admin types is the seller's own allowance. The effective
+      // `listingLimit` is that plus any active package slots, so it is derived by
+      // reconcileListingLimit rather than written here — otherwise the two
+      // accountings collide and expiry can raise the limit it was meant to lower.
+      const updatedUser = {
+        ...mockUser,
+        baseListingLimit: 25,
+        listingLimit: 25,
+      };
       userModel.findByIdAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue(updatedUser),
+      });
+      userModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ ...updatedUser, listingLimit: 30 }),
       });
 
       const result = await service.updateListingLimit(mockUserId, 25);
 
-      expect(result.listingLimit).toBe(25);
       expect(userModel.findByIdAndUpdate).toHaveBeenCalledWith(
         mockUserId,
-        { $set: { listingLimit: 25 } },
+        { $set: { baseListingLimit: 25 } },
         { new: true },
       );
+      expect(packagesService.reconcileListingLimit).toHaveBeenCalledWith(
+        mockUserId,
+      );
+      // Re-read after reconciling, so the caller sees the derived figure.
+      expect(result.listingLimit).toBe(30);
     });
 
     it('should throw NotFoundException for non-existent user', async () => {

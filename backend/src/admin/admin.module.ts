@@ -31,9 +31,11 @@ import {
   IdVerification,
   IdVerificationSchema,
 } from '../id-verification/schemas/id-verification.schema.js';
+import { PackagesModule } from '../packages/packages.module.js';
 
 @Module({
   imports: [
+    forwardRef(() => PackagesModule),
     UsersModule,
     AuthModule,
     ListingsModule,

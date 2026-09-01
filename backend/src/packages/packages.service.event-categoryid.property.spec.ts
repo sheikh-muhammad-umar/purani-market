@@ -141,6 +141,13 @@ describe('Property 8: Event CategoryId Completeness', () => {
             providers: [
               PackagesService,
               {
+                provide: ConfigService,
+                useValue: {
+                  get: (key: string) =>
+                    key === 'listing.defaultListingLimit' ? 10 : undefined,
+                },
+              },
+              {
                 provide: getModelToken(AdPackage.name),
                 useValue: mockAdPackageModel,
               },
@@ -248,6 +255,13 @@ describe('Property 8: Event CategoryId Completeness', () => {
         const module: TestingModule = await Test.createTestingModule({
           providers: [
             PackagesService,
+            {
+              provide: ConfigService,
+              useValue: {
+                get: (key: string) =>
+                  key === 'listing.defaultListingLimit' ? 10 : undefined,
+              },
+            },
             {
               provide: getModelToken(AdPackage.name),
               useValue: mockAdPackageModel,
@@ -369,6 +383,13 @@ describe('Property 8: Event CategoryId Completeness', () => {
           const module: TestingModule = await Test.createTestingModule({
             providers: [
               PackagesService,
+              {
+                provide: ConfigService,
+                useValue: {
+                  get: (key: string) =>
+                    key === 'listing.defaultListingLimit' ? 10 : undefined,
+                },
+              },
               {
                 provide: getModelToken(AdPackage.name),
                 useValue: mockAdPackageModel,

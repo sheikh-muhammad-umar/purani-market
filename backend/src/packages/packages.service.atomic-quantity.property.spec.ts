@@ -10,6 +10,7 @@
  *
  * Tag: Feature: category-package-management, Property 7: Atomic Non-Negative Quantity
  */
+import { ConfigService } from '@nestjs/config';
 import * as fc from 'fast-check';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
@@ -153,6 +154,13 @@ describe('Property 7: Atomic Non-Negative Quantity', () => {
                 useValue: mockPaymentsService,
               },
               {
+                provide: ConfigService,
+                useValue: {
+                  get: (key: string) =>
+                    key === 'listing.defaultListingLimit' ? 10 : undefined,
+                },
+              },
+              {
                 provide: AdminTrackerService,
                 useValue: { track: jest.fn().mockResolvedValue(undefined) },
               },
@@ -275,6 +283,13 @@ describe('Property 7: Atomic Non-Negative Quantity', () => {
           const module: TestingModule = await Test.createTestingModule({
             providers: [
               PackagesService,
+              {
+                provide: ConfigService,
+                useValue: {
+                  get: (key: string) =>
+                    key === 'listing.defaultListingLimit' ? 10 : undefined,
+                },
+              },
               {
                 provide: getModelToken(AdPackage.name),
                 useValue: mockAdPackageModel,

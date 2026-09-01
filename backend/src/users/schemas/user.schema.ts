@@ -211,6 +211,18 @@ export class User {
   @Prop({ type: [DeviceToken], default: [] })
   deviceTokens!: DeviceToken[];
 
+  /**
+   * The seller's own allowance, before any package adds to it.
+   *
+   * `listingLimit` is derived — base plus the slots of every active package — and
+   * recomputed by `PackagesService.reconcileListingLimit`. Splitting the two is
+   * what stops the three writers that used to share one number from fighting: a
+   * package activating, a package expiring, and an admin setting a limit by hand.
+   */
+  @Prop({ type: Number, default: 10 })
+  baseListingLimit!: number;
+
+  /** Effective allowance: `baseListingLimit` + slots from active packages. */
   @Prop({ type: Number, default: 10 })
   listingLimit!: number;
 

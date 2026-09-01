@@ -12,6 +12,7 @@
  *
  * Tag: Feature: category-package-management, Property 4: Successful Package Application Invariants
  */
+import { ConfigService } from '@nestjs/config';
 import * as fc from 'fast-check';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
@@ -154,6 +155,13 @@ describe('Property 4: Successful Package Application Invariants', () => {
               {
                 provide: PaymentsService,
                 useValue: mockPaymentsService,
+              },
+              {
+                provide: ConfigService,
+                useValue: {
+                  get: (key: string) =>
+                    key === 'listing.defaultListingLimit' ? 10 : undefined,
+                },
               },
               {
                 provide: AdminTrackerService,

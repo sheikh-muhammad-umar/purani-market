@@ -1,8 +1,10 @@
 import {
-  Injectable,
-  NotFoundException,
   ForbiddenException,
+  Inject,
+  Injectable,
   Logger,
+  NotFoundException,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
@@ -40,6 +42,7 @@ import { ListPurchasesQueryDto } from './dto/list-purchases-query.dto.js';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto.js';
 import { AdPackageType } from '../packages/schemas/ad-package.schema.js';
 import { EntitlementKind, purchaseBalances } from '../packages/entitlements.js';
+import { PackagesService } from '../packages/packages.service.js';
 import {
   UserActivity,
   UserActivityDocument,
@@ -111,6 +114,8 @@ export class AdminService {
     private readonly notificationsService: NotificationsService,
     private readonly configService: ConfigService,
     private readonly searchSyncService: SearchSyncService,
+    @Inject(forwardRef(() => PackagesService))
+    private readonly packagesService: PackagesService,
   ) {
     this.activeDays = this.configService.get<number>('listing.activeDays')!;
     // Falls back rather than trusting the non-null assertion: an undefined
@@ -432,19 +437,36 @@ export class AdminService {
     return user;
   }
 
+  /**
+   * Sets a seller's own allowance, leaving package-granted slots alone.
+   *
+   * The number an admin types is the *base*; the effective `listingLimit` is that
+   * plus whatever packages are active, recomputed here. Writing `listingLimit`
+   * directly used to collide with the package accounting: setting 3 while a
+   * 20-slot package was live made expiry compute `max(10, 3 - 20)` and *raise* the
+   * limit to 10, and a goodwill grant of 100 quietly lost 20 when that package
+   * lapsed.
+   */
   async updateListingLimit(
     userId: string,
     listingLimit: number,
   ): Promise<UserDocument> {
     const user = await this.userModel
-      .findByIdAndUpdate(userId, { $set: { listingLimit } }, { new: true })
+      .findByIdAndUpdate(
+        userId,
+        { $set: { baseListingLimit: listingLimit } },
+        { new: true },
+      )
       .exec();
 
     if (!user) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
-    return user;
+    await this.packagesService.reconcileListingLimit(userId);
+
+    // Re-read so the caller sees the derived limit, not the pre-reconcile value.
+    return (await this.userModel.findById(userId).exec()) ?? user;
   }
 
   async updatePermissions(

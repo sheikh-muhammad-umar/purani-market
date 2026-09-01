@@ -1,3 +1,4 @@
+import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import {
@@ -168,6 +169,15 @@ describe('PackagesService', () => {
           _id: sellerId,
           activeListingCount: 5,
           listingLimit: 10,
+          baseListingLimit: 10,
+        }),
+        // reconcileListingLimit narrows to the two limit fields.
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue({
+            _id: sellerId,
+            listingLimit: 10,
+            baseListingLimit: 10,
+          }),
         }),
       }),
       updateOne: jest.fn().mockReturnValue({
@@ -228,6 +238,13 @@ describe('PackagesService', () => {
           useValue: mockListingModel,
         },
         { provide: PaymentsService, useValue: mockPaymentsService },
+        {
+          provide: ConfigService,
+          useValue: {
+            get: (key: string) =>
+              key === 'listing.defaultListingLimit' ? 10 : undefined,
+          },
+        },
         {
           provide: AdminTrackerService,
           useValue: { track: jest.fn().mockResolvedValue(undefined) },
@@ -483,10 +500,12 @@ describe('PackagesService', () => {
           }),
         }),
       );
-      // Ad slots should increase seller's listing limit
+      // The limit is derived — base allowance plus the slots of every active
+      // package — so activation recomputes it rather than incrementing. That is
+      // what makes it safe against replays and against an admin editing the base.
       expect(mockUserModel.updateOne).toHaveBeenCalledWith(
         { _id: sellerId },
-        { $inc: { listingLimit: 10 } },
+        { $set: { baseListingLimit: 10, listingLimit: 20 } },
       );
     });
 
@@ -669,11 +688,11 @@ describe('PackagesService', () => {
       });
 
       expect(result.status).toBe('success');
-      // Only the slots are credited up front; featured ads and shorts are spent
-      // from the purchase row as they are used.
+      // Only the slots reach the limit; featured ads and shorts are spent from the
+      // purchase row as they are used.
       expect(mockUserModel.updateOne).toHaveBeenCalledWith(
         { _id: sellerId },
-        { $inc: { listingLimit: 10 } },
+        { $set: { baseListingLimit: 10, listingLimit: 20 } },
       );
       expect(mockUserModel.updateOne).toHaveBeenCalledTimes(1);
     });
@@ -733,6 +752,110 @@ describe('PackagesService', () => {
 
       expect(result.status).toBe('success');
       expect(mockUserModel.updateOne).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('reconcileListingLimit', () => {
+    /** Slot purchases the seller currently holds. */
+    const stubSlotPurchases = (rows: Record<string, unknown>[]) => {
+      mockPackagePurchaseModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(rows),
+      });
+    };
+    const stubUser = (base: number, effective: number) => {
+      mockUserModel.findById.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue({
+            _id: sellerId,
+            baseListingLimit: base,
+            listingLimit: effective,
+          }),
+        }),
+        exec: jest.fn().mockResolvedValue({
+          _id: sellerId,
+          baseListingLimit: base,
+          listingLimit: effective,
+        }),
+      });
+    };
+
+    it('derives the limit from the base plus active slot grants', async () => {
+      stubUser(10, 10);
+      stubSlotPurchases([
+        { type: AdPackageType.AD_SLOTS, quantity: 5, remainingQuantity: 5 },
+        {
+          type: AdPackageType.BUNDLE,
+          quantity: 8,
+          remainingQuantity: 8,
+          entitlements: [
+            { kind: EntitlementKind.AD_SLOTS, quantity: 10, remaining: 10 },
+            { kind: EntitlementKind.SHORTS, quantity: 3, remaining: 3 },
+          ],
+        },
+      ]);
+
+      // 10 base + 5 + 10; the bundle's shorts are not slots.
+      await expect(
+        service.reconcileListingLimit(sellerId.toString()),
+      ).resolves.toBe(25);
+      expect(mockUserModel.updateOne).toHaveBeenCalledWith(
+        { _id: sellerId },
+        { $set: { baseListingLimit: 10, listingLimit: 25 } },
+      );
+    });
+
+    it('is idempotent, so a replayed activation cannot inflate the limit', async () => {
+      // The old `$inc` added again on every delivery of a duplicated callback.
+      stubUser(10, 15);
+      stubSlotPurchases([
+        { type: AdPackageType.AD_SLOTS, quantity: 5, remainingQuantity: 5 },
+      ]);
+
+      await service.reconcileListingLimit(sellerId.toString());
+      await service.reconcileListingLimit(sellerId.toString());
+
+      // Already correct, so nothing is written either time.
+      expect(mockUserModel.updateOne).not.toHaveBeenCalled();
+    });
+
+    it('honours an admin lowering the base while a package is live', async () => {
+      // Previously expiry computed max(default, limit - snapshot), which could
+      // *raise* a limit an admin had deliberately lowered.
+      stubUser(3, 3);
+      stubSlotPurchases([
+        { type: AdPackageType.AD_SLOTS, quantity: 20, remainingQuantity: 20 },
+      ]);
+
+      await expect(
+        service.reconcileListingLimit(sellerId.toString()),
+      ).resolves.toBe(23);
+    });
+
+    it('returns to the base once every package has expired', async () => {
+      // Expired purchases drop out of the query on their own, so no subtraction
+      // and no floor is involved — two packages lapsing together cannot under-claw.
+      stubUser(3, 23);
+      stubSlotPurchases([]);
+
+      await expect(
+        service.reconcileListingLimit(sellerId.toString()),
+      ).resolves.toBe(3);
+      expect(mockUserModel.updateOne).toHaveBeenCalledWith(
+        { _id: sellerId },
+        { $set: { baseListingLimit: 3, listingLimit: 3 } },
+      );
+    });
+
+    it('falls back to the configured default for users predating the base field', async () => {
+      stubUser(undefined as unknown as number, 10);
+      stubSlotPurchases([
+        { type: AdPackageType.AD_SLOTS, quantity: 5, remainingQuantity: 5 },
+      ]);
+
+      // 10 from config, not 0.
+      await expect(
+        service.reconcileListingLimit(sellerId.toString()),
+      ).resolves.toBe(15);
     });
   });
 
