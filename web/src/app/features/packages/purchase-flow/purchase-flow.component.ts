@@ -35,6 +35,7 @@ export class PurchaseFlowComponent implements OnInit {
   readonly purchaseError = signal<string | null>(null);
 
   private packageId = '';
+  private categoryId?: string;
 
   constructor(
     private readonly route: ActivatedRoute,
@@ -111,6 +112,7 @@ export class PurchaseFlowComponent implements OnInit {
       .purchase({
         packageId: this.packageId,
         paymentMethod: method,
+        categoryId: this.categoryId,
       })
       .subscribe({
         next: (res) => {

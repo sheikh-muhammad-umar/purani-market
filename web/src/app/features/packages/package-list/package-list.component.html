@@ -162,6 +162,7 @@
               </div>
               <a
                 [routerLink]="['/packages/purchase', pkg._id]"
+                [queryParams]="selectedCategoryId() ? { categoryId: selectedCategoryId() } : {}"
                 class="btn btn-primary btn-full"
                 (click)="onPurchaseClick(pkg)"
               >

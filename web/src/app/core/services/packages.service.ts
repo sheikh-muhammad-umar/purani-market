@@ -37,8 +37,28 @@ export class PackagesService {
     return this.api.get<AdPackage>(API.PACKAGE_BY_ID(id));
   }
 
+  /**
+   * Buys one package.
+   *
+   * The endpoint takes a basket — `{ items: [...] }` — while callers here only ever
+   * buy one thing, so the mapping happens in one place rather than at every call
+   * site. Previously the flat argument was posted verbatim and the request was
+   * rejected with "items must be an array", which meant no purchase made through
+   * the UI ever reached the gateway.
+   */
   purchase(payload: PurchasePayload): Observable<PurchaseResponse> {
-    return this.api.post<PurchaseResponse>(API.PACKAGES_PURCHASE, payload);
+    return this.api.post<PurchaseResponse>(API.PACKAGES_PURCHASE, {
+      paymentMethod: payload.paymentMethod,
+      items: [
+        {
+          packageId: payload.packageId,
+          // Carried through so the purchase is scoped to the category it was
+          // priced for. Without it the purchase is saved with no category and can
+          // never satisfy the create-listing picker, which matches on it.
+          ...(payload.categoryId ? { categoryId: payload.categoryId } : {}),
+        },
+      ],
+    });
   }
 
   getAvailablePackages(categoryId: string): Observable<PackagePurchase[]> {
