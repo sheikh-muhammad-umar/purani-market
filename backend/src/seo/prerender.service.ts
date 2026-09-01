@@ -90,13 +90,17 @@ export class PrerenderService {
     const cacheKey = `prerender:${route}`;
     const url = `${this.baseUrl}${route}`;
 
-    try {
-      const controller = new AbortController();
-      const timeout = setTimeout(
-        () => controller.abort(),
-        SEO_PRERENDER_FETCH_TIMEOUT_MS,
-      );
+    const controller = new AbortController();
+    // Cleared in `finally` rather than after the fetch. A rejected fetch skips
+    // straight to the catch, and the timer then stays armed for the full timeout
+    // holding the event loop open — which is why a Jest worker intermittently
+    // refused to exit and took a test file down with it.
+    const timeout = setTimeout(
+      () => controller.abort(),
+      SEO_PRERENDER_FETCH_TIMEOUT_MS,
+    );
 
+    try {
       const response = await fetch(url, {
         signal: controller.signal,
         headers: {
@@ -104,8 +108,6 @@ export class PrerenderService {
           Accept: 'text/html',
         },
       });
-
-      clearTimeout(timeout);
 
       if (!response.ok) {
         this.logger.warn(
@@ -126,6 +128,8 @@ export class PrerenderService {
       this.logger.error(
         `Prerender refresh error for ${route}: ${error instanceof Error ? error.message : String(error)}`,
       );
+    } finally {
+      clearTimeout(timeout);
     }
   }
 
