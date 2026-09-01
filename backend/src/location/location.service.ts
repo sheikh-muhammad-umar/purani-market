@@ -253,19 +253,19 @@ export class LocationService {
   async findProvinceById(id: string): Promise<ProvinceDocument> {
     const doc = await this.provinceModel.findById(id).lean().exec();
     if (!doc) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
-    return doc as ProvinceDocument;
+    return doc;
   }
 
   async findCityById(id: string): Promise<CityDocument> {
     const doc = await this.cityModel.findById(id).lean().exec();
     if (!doc) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
-    return doc as CityDocument;
+    return doc;
   }
 
   async findAreaById(id: string): Promise<AreaDocument> {
     const doc = await this.areaModel.findById(id).lean().exec();
     if (!doc) throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
-    return doc as AreaDocument;
+    return doc;
   }
 
   // ── Admin CRUD: Provinces ─────────────────────────────────────────

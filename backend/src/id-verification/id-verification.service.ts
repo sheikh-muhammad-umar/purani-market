@@ -322,6 +322,6 @@ export class IdVerificationService {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
-    return verification as IdVerificationDocument;
+    return verification;
   }
 }

@@ -764,7 +764,7 @@ export class ListingsService {
         listing.featuredUntil = purchase.expiresAt;
       }
       // Extend listing expiry to match package expiry if longer
-      if (purchase.expiresAt && purchase.expiresAt > listing.expiresAt!) {
+      if (purchase.expiresAt && purchase.expiresAt > listing.expiresAt) {
         listing.expiresAt = purchase.expiresAt;
       }
     }
@@ -1053,10 +1053,10 @@ export class ListingsService {
             throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
           if (hasMax && (typeof max !== 'number' || !Number.isFinite(max)))
             throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
-          if (hasMin && hasMax && (min as number) > (max as number))
+          if (hasMin && hasMax && min > max)
             throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
-          if (hasMin) this.assertWithinBounds(min as number, def);
-          if (hasMax) this.assertWithinBounds(max as number, def);
+          if (hasMin) this.assertWithinBounds(min, def);
+          if (hasMax) this.assertWithinBounds(max, def);
           break;
         }
 
@@ -1204,7 +1204,7 @@ export class ListingsService {
     for (const catId of categoryPath) {
       const cat = await this.categoryModel.findById(catId).lean().exec();
       if (cat?.hasBrands) {
-        brandCategory = cat as CategoryDocument;
+        brandCategory = cat;
         break;
       }
     }
