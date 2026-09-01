@@ -62,6 +62,23 @@ export class PackagesController {
     return this.packagesService.getMyPurchases(sellerId, categoryId);
   }
 
+  /**
+   * What the seller currently holds, per entitlement kind.
+   *
+   * Before this there was no way to see it: ad slots showed up only as a larger
+   * listing limit, and featured or shorts credit only as rows in purchase
+   * history — where a bundle's `remainingQuantity` is the purchased total rather
+   * than what is left.
+   *
+   * Declared above `:id` because Nest matches in order and would otherwise treat
+   * the path as a package id.
+   */
+  @Get(PACKAGE_ROUTES.MY_ENTITLEMENTS)
+  @UseGuards(JwtAuthGuard)
+  async getMyEntitlements(@CurrentUser('sub') sellerId: string) {
+    return this.packagesService.getEntitlementSummary(sellerId);
+  }
+
   @Get(':id')
   async findById(@Param('id') id: string) {
     return this.packagesService.findById(id);

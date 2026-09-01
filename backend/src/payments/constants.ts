@@ -35,6 +35,7 @@ export const PACKAGE_ROUTES = {
   BASE: 'api/packages',
   AVAILABLE: 'available',
   MY_PURCHASES: 'my-purchases',
+  MY_ENTITLEMENTS: 'my-entitlements',
   PURCHASE: 'purchase',
   PAYMENT_CALLBACK: 'payment-callback',
 } as const;
