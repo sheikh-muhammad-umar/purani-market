@@ -47,6 +47,7 @@ import {
   UpdateAdCreativeDto,
 } from './dto/ad-creative.dto.js';
 import { RecordAdEventDto, ServeAdQueryDto } from './dto/serve-ad.dto.js';
+import { CRON_TIMEZONE } from '../common/constants/app.constants.js';
 
 /** A creative prepared for rendering, with just what the client needs. */
 export interface ServedAd {
@@ -548,7 +549,7 @@ export class AdvertisingService {
    * serving filter also checks the window, so a campaign is never served outside
    * its dates even between runs.
    */
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_HOUR, { timeZone: CRON_TIMEZONE })
   async syncCampaignStatuses(): Promise<{
     activated: number;
     completed: number;

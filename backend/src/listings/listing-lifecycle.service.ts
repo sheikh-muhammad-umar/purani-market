@@ -29,7 +29,9 @@ import { AdminTrackerService } from '../ai/admin-tracker.service.js';
 import { UserAction } from '../ai/enums/user-action.enum.js';
 import { SearchSyncService } from '../search/search-sync.service.js';
 import {
+  CRON_TIMEZONE,
   LISTING_EXPIRY_REMINDER_DAYS,
+  LISTING_LIMIT_GRACE_DAYS,
   PACKAGE_EXPIRY_REMINDER_DAYS,
   FEATURED_EXPIRY_REMINDER_DAYS,
   STALE_PENDING_PAYMENT_HOURS,
@@ -75,7 +77,7 @@ export class ListingLifecycleService {
 
   // ─── 1. Expire active listings after 30 days (no package) ───
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { timeZone: CRON_TIMEZONE })
   async handleExpiredListings(): Promise<number> {
     const now = new Date();
     const expiredListings = await this.listingModel
@@ -147,7 +149,7 @@ export class ListingLifecycleService {
 
   // ─── 2. Cleanup deactivated listings after 7 days ───
 
-  @Cron(CronExpression.EVERY_DAY_AT_2AM)
+  @Cron(CronExpression.EVERY_DAY_AT_2AM, { timeZone: CRON_TIMEZONE })
   async handleStaleDeactivatedListings(): Promise<number> {
     const cutoff = new Date(Date.now() - daysToMs(this.deactivatedCleanupDays));
     const staleListings = await this.listingModel
@@ -211,7 +213,7 @@ export class ListingLifecycleService {
 
   // ─── 3. Send listing expiration reminders (3 days, 1 day before) ───
 
-  @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  @Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: CRON_TIMEZONE })
   async sendListingExpiryReminders(): Promise<number> {
     let sent = 0;
     const now = new Date();
@@ -251,7 +253,7 @@ export class ListingLifecycleService {
 
   // ─── 4. Send featured ad expiration reminders ───
 
-  @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  @Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: CRON_TIMEZONE })
   async sendFeaturedExpiryReminders(): Promise<number> {
     let sent = 0;
     const now = new Date();
@@ -291,7 +293,7 @@ export class ListingLifecycleService {
 
   // ─── 5. Send package expiration reminders (unused slots about to expire) ───
 
-  @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  @Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: CRON_TIMEZONE })
   async sendPackageExpiryReminders(): Promise<number> {
     let sent = 0;
     const now = new Date();
@@ -333,7 +335,7 @@ export class ListingLifecycleService {
 
   // ─── 6. Handle expired AD_SLOTS packages — reduce seller listingLimit ───
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_DAY_AT_1AM, { timeZone: CRON_TIMEZONE })
   async handleExpiredAdSlotPackages(): Promise<number> {
     const now = new Date();
 
@@ -440,9 +442,178 @@ export class ListingLifecycleService {
     return processed;
   }
 
+  // ─── 6b. Reconcile sellers holding more live listings than their limit ───
+
+  /**
+   * Brings sellers back within their listing limit, warning before acting.
+   *
+   * Ad slots expire under listings that are still running, so a seller can end up
+   * over their limit through nothing they did. Two bad options were available:
+   * leave them over it for ever, which makes the limit meaningless and unfair to
+   * everyone who pays for slots, or pull ads the instant it drops, which takes a
+   * shopfront down with no warning.
+   *
+   * So: on first detection they are told how many are over and how long they have.
+   * During the grace period they can deactivate their own choice or buy more slots
+   * — either resolves it, since the limit is recomputed from active packages. Only
+   * after the grace period does this deactivate for them.
+   *
+   * When it does act:
+   * - Featured listings are never touched. That promotion was paid for and is
+   *   still running.
+   * - Oldest first, since they have had the most exposure already.
+   * - Deactivated, not deleted, so the seller can bring them back.
+   *
+   * Runs after the slot-expiry cron so the day's limit changes are already in.
+   */
+  @Cron(CronExpression.EVERY_DAY_AT_2AM, { timeZone: CRON_TIMEZONE })
+  async enforceListingLimits(): Promise<number> {
+    const now = new Date();
+    const graceCutoff = new Date(
+      now.getTime() - daysToMs(LISTING_LIMIT_GRACE_DAYS),
+    );
+
+    const overLimit = await this.userModel
+      .find({ $expr: { $gt: ['$activeListingCount', '$listingLimit'] } })
+      .select('_id activeListingCount listingLimit overLimitSince')
+      .exec();
+
+    // Clear the marker for anyone who has since come back within their limit,
+    // so a later breach starts its own grace period rather than inheriting an
+    // expired one.
+    await this.userModel
+      .updateMany(
+        {
+          overLimitSince: { $ne: null },
+          $expr: { $lte: ['$activeListingCount', '$listingLimit'] },
+        },
+        { $set: { overLimitSince: null } },
+      )
+      .exec();
+
+    let deactivated = 0;
+
+    for (const seller of overLimit) {
+      const sellerId = seller._id.toString();
+      const excess = seller.activeListingCount - seller.listingLimit;
+
+      if (!seller.overLimitSince) {
+        await this.userModel
+          .updateOne({ _id: seller._id }, { $set: { overLimitSince: now } })
+          .exec();
+
+        this.notificationsService
+          .sendListingLimitExceededWarning(
+            sellerId,
+            seller.activeListingCount,
+            seller.listingLimit,
+            LISTING_LIMIT_GRACE_DAYS,
+          )
+          .catch((err) =>
+            this.logger.warn(
+              `Failed to send over-limit warning: ${(err as Error).message}`,
+            ),
+          );
+
+        this.adminTrackerService
+          .track(sellerId, UserAction.LISTING_LIMIT_EXCEEDED, {
+            activeListingCount: seller.activeListingCount,
+            listingLimit: seller.listingLimit,
+            excess,
+          })
+          .catch(() => undefined);
+        continue;
+      }
+
+      if (seller.overLimitSince > graceCutoff) {
+        // Still inside the grace period — leave them to it.
+        continue;
+      }
+
+      // Grace is up. Take the oldest non-featured listings, keeping paid
+      // promotion running.
+      const candidates = await this.listingModel
+        .find({
+          sellerId: seller._id,
+          status: ListingStatus.ACTIVE,
+          $or: [{ isFeatured: false }, { isFeatured: { $exists: false } }],
+        })
+        .sort({ createdAt: 1 })
+        .limit(excess)
+        .select('_id title')
+        .exec();
+
+      if (candidates.length === 0) {
+        // Everything they hold is featured, so there is nothing safe to drop.
+        // Left as-is; it resolves when that promotion ends.
+        this.logger.warn(
+          `Seller ${sellerId} is ${excess} over their limit but holds only featured listings`,
+        );
+        continue;
+      }
+
+      const ids = candidates.map((l) => l._id);
+      await this.listingModel
+        .updateMany(
+          { _id: { $in: ids } },
+          {
+            $set: {
+              status: ListingStatus.INACTIVE,
+              deactivatedAt: now,
+              updatedAt: now,
+            },
+          },
+        )
+        .exec();
+
+      await this.userModel
+        .updateOne(
+          { _id: seller._id },
+          {
+            $inc: { activeListingCount: -candidates.length },
+            $set: { overLimitSince: null },
+          },
+        )
+        .exec();
+
+      for (const listing of candidates) {
+        this.removeFromEs(listing._id.toString());
+      }
+
+      this.notificationsService
+        .sendListingsDeactivatedForLimitNotification(
+          sellerId,
+          candidates.length,
+          seller.listingLimit,
+        )
+        .catch((err) =>
+          this.logger.warn(
+            `Failed to send limit-deactivation notification: ${(err as Error).message}`,
+          ),
+        );
+
+      this.adminTrackerService
+        .track(sellerId, UserAction.LISTINGS_DEACTIVATED_FOR_LIMIT, {
+          deactivatedCount: candidates.length,
+          listingIds: ids.map((id) => id.toString()),
+          listingLimit: seller.listingLimit,
+        })
+        .catch(() => undefined);
+
+      deactivated += candidates.length;
+    }
+
+    if (deactivated > 0) {
+      this.logger.log(
+        `Deactivated ${deactivated} listing(s) to bring sellers within their limits`,
+      );
+    }
+    return deactivated;
+  }
+
   // ─── 7. Fail stale pending payments (>24h) ───
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_HOUR, { timeZone: CRON_TIMEZONE })
   async handleStalePendingPayments(): Promise<number> {
     const cutoff = new Date(
       Date.now() - STALE_PENDING_PAYMENT_HOURS * 60 * 60 * 1000,
@@ -495,7 +666,7 @@ export class ListingLifecycleService {
 
   // ─── 8. Cleanup max-rejected listings (3 rejections, no resubmission in 30 days) ───
 
-  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  @Cron(CronExpression.EVERY_DAY_AT_4AM, { timeZone: CRON_TIMEZONE })
   async handleStaleRejectedListings(): Promise<number> {
     const cutoff = new Date(Date.now() - daysToMs(this.activeDays));
 
@@ -551,7 +722,7 @@ export class ListingLifecycleService {
 
   // ─── 9. Auto-revert stale reserved listings (>14 days) ───
 
-  @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  @Cron(CronExpression.EVERY_DAY_AT_3AM, { timeZone: CRON_TIMEZONE })
   async handleStaleReservedListings(): Promise<number> {
     const cutoff = new Date(Date.now() - daysToMs(STALE_RESERVED_DAYS));
     const newExpiresAt = new Date(Date.now() + daysToMs(this.activeDays));
@@ -567,8 +738,11 @@ export class ListingLifecycleService {
     if (staleListings.length === 0) return 0;
 
     const ids = staleListings.map((l) => l._id);
+    // Only extends a listing whose expiry has passed or is sooner than the
+    // standard window. Setting it unconditionally overwrote the longer expiry a
+    // package had paid for, and handed a free extension to listings without one.
     const result = await this.listingModel.updateMany(
-      { _id: { $in: ids } },
+      { _id: { $in: ids }, expiresAt: { $lt: newExpiresAt } },
       {
         $set: {
           status: ListingStatus.ACTIVE,
@@ -576,6 +750,10 @@ export class ListingLifecycleService {
           updatedAt: new Date(),
         },
       },
+    );
+    await this.listingModel.updateMany(
+      { _id: { $in: ids }, expiresAt: { $gte: newExpiresAt } },
+      { $set: { status: ListingStatus.ACTIVE, updatedAt: new Date() } },
     );
 
     for (const listing of staleListings) {
@@ -602,7 +780,7 @@ export class ListingLifecycleService {
 
   // ─── 10. Auto-approve stale PENDING_REVIEW listings ───
 
-  @Cron(CronExpression.EVERY_DAY_AT_5AM)
+  @Cron(CronExpression.EVERY_DAY_AT_5AM, { timeZone: CRON_TIMEZONE })
   async handleStalePendingReviewListings(): Promise<number> {
     const cutoff = new Date(Date.now() - daysToMs(STALE_PENDING_REVIEW_DAYS));
 
@@ -620,8 +798,10 @@ export class ListingLifecycleService {
     const newExpiresAt = new Date(now.getTime() + daysToMs(this.activeDays));
 
     const ids = staleListings.map((l) => l._id);
+    // Same guard as the reserved revival: never shorten an expiry a package
+    // extended.
     const result = await this.listingModel.updateMany(
-      { _id: { $in: ids } },
+      { _id: { $in: ids }, expiresAt: { $lt: newExpiresAt } },
       {
         $set: {
           status: ListingStatus.ACTIVE,
@@ -629,6 +809,10 @@ export class ListingLifecycleService {
           updatedAt: now,
         },
       },
+    );
+    await this.listingModel.updateMany(
+      { _id: { $in: ids }, expiresAt: { $gte: newExpiresAt } },
+      { $set: { status: ListingStatus.ACTIVE, updatedAt: now } },
     );
 
     for (const listing of staleListings) {
@@ -653,7 +837,7 @@ export class ListingLifecycleService {
 
   // ─── 11. Cleanup orphaned favorites for deleted/expired listings ───
 
-  @Cron(CronExpression.EVERY_DAY_AT_4AM)
+  @Cron(CronExpression.EVERY_DAY_AT_4AM, { timeZone: CRON_TIMEZONE })
   async cleanupOrphanedFavorites(): Promise<number> {
     const deletedListingIds = await this.listingModel
       .find({
@@ -676,7 +860,7 @@ export class ListingLifecycleService {
 
   // ─── 12. Guard activeListingCount consistency (floor at 0) ───
 
-  @Cron(CronExpression.EVERY_DAY_AT_6AM)
+  @Cron(CronExpression.EVERY_DAY_AT_6AM, { timeZone: CRON_TIMEZONE })
   async fixNegativeActiveListingCounts(): Promise<number> {
     const result = await this.userModel.updateMany(
       { activeListingCount: { $lt: 0 } },

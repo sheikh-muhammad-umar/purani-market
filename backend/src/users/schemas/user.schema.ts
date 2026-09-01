@@ -226,6 +226,17 @@ export class User {
   @Prop({ type: Number, default: 10 })
   listingLimit!: number;
 
+  /**
+   * When this seller first held more live listings than their limit allows.
+   *
+   * Happens when ad slots expire under listings that are still running. Their ads
+   * are left alone and they are warned instead, so they choose what to drop — or
+   * buy more slots — rather than having ads pulled without notice. Cleared as soon
+   * as they are back within the limit.
+   */
+  @Prop({ type: Date, default: null })
+  overLimitSince?: Date;
+
   @Prop({ type: Number, default: 0 })
   activeListingCount!: number;
 

@@ -41,12 +41,13 @@ import { PurchaseShortsPackageDto } from './dto/purchase-shorts-package.dto.js';
 import { ListShortsQueryDto } from './dto/list-shorts-query.dto.js';
 import { ShortsVideoService } from './shorts-video.service.js';
 import {
-  SHORTS_FREE_LIMIT,
-  SHORTS_FREE_DURATION_DAYS,
-  SHORTS_MAX_FILE_SIZE,
-  SHORTS_EXPIRY_REMINDER_DAYS,
-  SHORTS_ALLOWED_MIMETYPES,
+  CRON_TIMEZONE,
   DEFAULT_CURRENCY,
+  SHORTS_ALLOWED_MIMETYPES,
+  SHORTS_EXPIRY_REMINDER_DAYS,
+  SHORTS_FREE_DURATION_DAYS,
+  SHORTS_FREE_LIMIT,
+  SHORTS_MAX_FILE_SIZE,
 } from '../common/constants/app.constants.js';
 import { ERROR } from '../common/constants/error-messages.js';
 import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
@@ -1044,7 +1045,7 @@ export class ShortsService {
   // CRON JOBS
   // ═══════════════════════════════════════════════════════════
 
-  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { timeZone: CRON_TIMEZONE })
   async handleExpiredShorts(): Promise<number> {
     const now = new Date();
     const expiredShorts = await this.shortVideoModel
@@ -1093,7 +1094,7 @@ export class ShortsService {
     return result.modifiedCount;
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  @Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: CRON_TIMEZONE })
   async sendShortsExpiryReminders(): Promise<number> {
     let sent = 0;
     const now = new Date();
@@ -1140,7 +1141,7 @@ export class ShortsService {
     return sent;
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_2AM)
+  @Cron(CronExpression.EVERY_DAY_AT_2AM, { timeZone: CRON_TIMEZONE })
   async cleanupDeletedShorts(): Promise<number> {
     // Permanently remove shorts deleted more than 30 days ago
     const cutoff = new Date(Date.now() - daysToMs(30));
@@ -1193,7 +1194,7 @@ export class ShortsService {
     return result.deletedCount;
   }
 
-  @Cron(CronExpression.EVERY_DAY_AT_1AM)
+  @Cron(CronExpression.EVERY_DAY_AT_1AM, { timeZone: CRON_TIMEZONE })
   async handleExpiredShortsPurchases(): Promise<number> {
     const now = new Date();
     const expired = await this.shortsPurchaseModel
