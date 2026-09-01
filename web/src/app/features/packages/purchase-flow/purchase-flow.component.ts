@@ -1,5 +1,5 @@
-import { Component, OnInit, signal } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { Component, Inject, OnInit, signal } from '@angular/core';
+import { CommonModule, DOCUMENT } from '@angular/common';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { PackagesService } from '../../../core/services/packages.service';
 import { AdPackage, PaymentMethod } from '../../../core/models';
@@ -40,6 +40,7 @@ export class PurchaseFlowComponent implements OnInit {
     private readonly route: ActivatedRoute,
     private readonly packagesService: PackagesService,
     private readonly tracker: ActivityTrackerService,
+    @Inject(DOCUMENT) private readonly doc: Document,
   ) {}
 
   ngOnInit(): void {
@@ -123,7 +124,11 @@ export class PurchaseFlowComponent implements OnInit {
             },
           });
           if (res.redirectUrl) {
-            window.location.href = res.redirectUrl;
+            // Handing off to the payment gateway goes through DOCUMENT rather
+            // than the global `window`, so the destination is injectable. jsdom
+            // makes `location` and `location.href` non-configurable, leaving a
+            // direct global write impossible to observe from a test.
+            this.doc.location.href = res.redirectUrl;
           }
         },
         error: () => {

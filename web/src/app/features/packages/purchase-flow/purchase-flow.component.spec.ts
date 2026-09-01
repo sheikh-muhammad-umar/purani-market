@@ -20,10 +20,16 @@ function makePackage(overrides: Partial<AdPackage> = {}): AdPackage {
   };
 }
 
+/** Stands in for DOCUMENT so the gateway redirect is observable. */
+function fakeDocument(): { location: { href: string } } {
+  return { location: { href: '' } };
+}
+
 function createComponent(
   packageId: string,
   packagesService: Record<string, ReturnType<typeof vi.fn>>,
   tracker: { track: ReturnType<typeof vi.fn> } = { track: vi.fn() },
+  doc: { location: { href: string } } = fakeDocument(),
 ): PurchaseFlowComponent {
   const route = {
     snapshot: { paramMap: { get: (key: string) => (key === 'id' ? packageId : null) } },
@@ -32,6 +38,7 @@ function createComponent(
     route,
     packagesService as unknown as PackagesService,
     tracker as unknown as ActivityTrackerService,
+    doc as unknown as Document,
   );
 }
 
@@ -121,10 +128,8 @@ describe('PurchaseFlowComponent', () => {
   });
 
   it('should initiate purchase and redirect', () => {
-    // Mock window.location.href
-    const originalLocation = window.location;
-    const mockLocation = { href: '' } as Location;
-    Object.defineProperty(window, 'location', { value: mockLocation, writable: true });
+    const doc = fakeDocument();
+    component = createComponent('pkg1', packagesService, { track: vi.fn() }, doc);
 
     component.ngOnInit();
     component.selectPaymentMethod('jazzcash');
@@ -135,9 +140,7 @@ describe('PurchaseFlowComponent', () => {
       paymentMethod: 'jazzcash',
     });
     expect(component.purchasing()).toBe(false);
-    expect(mockLocation.href).toBe('https://pay.example.com/checkout');
-
-    Object.defineProperty(window, 'location', { value: originalLocation, writable: true });
+    expect(doc.location.href).toBe('https://pay.example.com/checkout');
   });
 
   it('should handle purchase error', () => {
