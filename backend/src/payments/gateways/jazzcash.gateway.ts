@@ -7,16 +7,19 @@ import {
   PaymentVerifyResult,
 } from '../interfaces/payment-gateway.interface.js';
 import {
+  AMOUNT_MULTIPLIER,
+  CONFIG_KEYS,
   JAZZCASH_API_VERSION,
-  JAZZCASH_LANGUAGE,
   JAZZCASH_CURRENCY,
+  JAZZCASH_HASHED_FIELD_PATTERN,
+  JAZZCASH_HASH_ALGORITHM,
+  JAZZCASH_LANGUAGE,
   JAZZCASH_SUCCESS_CODE,
   JAZZCASH_TXN_REF_PREFIX,
-  JAZZCASH_HASH_ALGORITHM,
-  AMOUNT_MULTIPLIER,
   TXN_EXPIRY_MS,
-  CONFIG_KEYS,
+  TXN_REF_ENTROPY_CHARS,
 } from '../constants.js';
+import { randomRef } from '../random-ref.js';
 import { ERROR } from '../../common/constants/error-messages.js';
 
 interface JazzCashPayload {
@@ -61,6 +64,7 @@ export class JazzCashGateway implements PaymentGateway {
   private readonly merchantId: string;
   private readonly password: string;
   private readonly integritySalt: string;
+  private readonly allowUnsignedCallbacks: boolean;
   private readonly baseUrl: string;
   private readonly returnUrl: string;
 
@@ -69,6 +73,11 @@ export class JazzCashGateway implements PaymentGateway {
       this.configService.get<string>(CONFIG_KEYS.JAZZCASH_MERCHANT_ID) ?? '';
     this.password =
       this.configService.get<string>(CONFIG_KEYS.JAZZCASH_PASSWORD) ?? '';
+    // Compared against `true` rather than coerced: a stray truthy value reaching
+    // config must not be enough to switch off signature verification.
+    this.allowUnsignedCallbacks =
+      this.configService.get<boolean>(CONFIG_KEYS.ALLOW_UNSIGNED_CALLBACKS) ===
+      true;
     this.integritySalt =
       this.configService.get<string>(CONFIG_KEYS.JAZZCASH_INTEGRITY_SALT) ?? '';
     this.baseUrl =
@@ -89,7 +98,14 @@ export class JazzCashGateway implements PaymentGateway {
     const txnExpiryDateTime = this.formatDate(
       new Date(now.getTime() + TXN_EXPIRY_MS),
     );
-    const txnRefNo = `${JAZZCASH_TXN_REF_PREFIX}${txnDateTime}`;
+    // Timestamp plus random suffix.
+    //
+    // A bare `T` + YYYYMMDDHHmmss is guessable: the whole space for a given day is
+    // 86,400 values. Anyone able to guess a reference could aim a forged callback
+    // at it, so the reference itself should not be the only thing standing in the
+    // way. JazzCash allows 20 characters for pp_TxnRefNo, and prefix + timestamp
+    // uses 15, so the remaining 5 carry the entropy.
+    const txnRefNo = `${JAZZCASH_TXN_REF_PREFIX}${txnDateTime}${randomRef(TXN_REF_ENTROPY_CHARS)}`;
     const amountInPaisa = String(Math.round(params.amount * AMOUNT_MULTIPLIER));
 
     const payload: JazzCashPayload = {
@@ -135,10 +151,60 @@ export class JazzCashGateway implements PaymentGateway {
     const responseCode = payload.pp_ResponseCode ?? '';
     const receivedHash = payload.pp_SecureHash ?? '';
 
-    if (receivedHash && this.integritySalt) {
+    // Refuse anything unsigned.
+    //
+    // This used to skip verification when the hash was absent and then accept the
+    // caller's own response code, so a POST of
+    // `{pp_TxnRefNo, pp_ResponseCode: '000'}` marked a purchase paid. The callback
+    // route is deliberately outside the API-key guard so gateways can reach it,
+    // which left that open to anyone.
+    if (!this.integritySalt) {
+      // Nothing can be verified without the secret. Refused rather than trusted,
+      // unless a non-production environment has explicitly opted in — see
+      // `allowUnsignedCallbacks`.
+      if (this.allowUnsignedCallbacks) {
+        this.logger.warn(
+          `JazzCash callback accepted WITHOUT verification for ${transactionId} — ` +
+            'allowUnsignedCallbacks is on. Never enable this outside local work.',
+        );
+        return this.resolveOutcome(payload, transactionId);
+      }
+      this.logger.error(
+        `JazzCash signing secret is not configured — refusing callback ${transactionId}`,
+      );
+      return {
+        transactionId,
+        status: 'failed',
+        reason: ERROR.PAYMENT_HASH_MISMATCH,
+      };
+    }
+
+    if (!receivedHash) {
+      this.logger.warn(
+        `JazzCash callback without a secure hash for ${transactionId}`,
+      );
+      return {
+        transactionId,
+        status: 'failed',
+        reason: ERROR.PAYMENT_HASH_MISMATCH,
+      };
+    }
+
+    {
       const hashPayload: Record<string, string> = {};
       for (const [k, v] of Object.entries(payload)) {
         if (k === 'pp_SecureHash') continue;
+
+        // Only JazzCash's own parameters take part in the hash.
+        //
+        // The caller adds fields before verification — `transactionId`, and
+        // `paymentMethod` from the request body — and hashing those made the
+        // computed digest cover data JazzCash never signed, so it could not match
+        // a genuine callback. That went unnoticed because verification was skipped
+        // whenever the hash was absent, which is the case for the sandbox return
+        // URL. Restricting to the documented prefixes is what makes refusing
+        // unsigned callbacks safe rather than an outage.
+        if (!JAZZCASH_HASHED_FIELD_PATTERN.test(k)) continue;
 
         // The payload is an index signature over `unknown`, while a genuine
         // callback is form-encoded primitives. Coercing a nested value here
@@ -174,6 +240,20 @@ export class JazzCashGateway implements PaymentGateway {
         };
       }
     }
+
+    return this.resolveOutcome(payload, transactionId);
+  }
+
+  /**
+   * Reads the gateway's verdict off an already-verified payload.
+   *
+   * Split out so the unsigned-callback path cannot drift from the verified one.
+   */
+  private resolveOutcome(
+    payload: JazzCashCallbackPayload,
+    transactionId: string,
+  ): PaymentVerifyResult {
+    const responseCode = payload.pp_ResponseCode ?? '';
 
     if (responseCode === JAZZCASH_SUCCESS_CODE) {
       this.logger.log(`JazzCash payment completed: ${transactionId}`);

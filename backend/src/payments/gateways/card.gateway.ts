@@ -109,11 +109,29 @@ export class CardGateway implements PaymentGateway {
   async verifyCallback(
     payload: StripeCallbackPayload,
   ): Promise<PaymentVerifyResult> {
+    // Webhook-shaped bodies are no longer honoured here.
+    //
+    // This used to hand anything carrying `type` + `data.object` to
+    // handleWebhookEvent, which reads `payment_status` straight off the body
+    // without checking a signature. Since the package callback route sits outside
+    // the API-key guard, that let a hand-written POST claim a paid session and
+    // bypass the signature check on the real webhook route entirely.
+    //
+    // Genuine webhooks still arrive at POST payments/stripe/webhook, where the
+    // raw body and `stripe-signature` header are verified with constructEvent.
+    // Everything reaching here is confirmed against Stripe instead, which is
+    // authoritative and needs no trust in the caller.
     if (payload.type && payload.data?.object) {
-      return this.handleWebhookEvent(payload as StripeWebhookPayload);
+      this.logger.warn(
+        'Ignoring webhook-shaped payload on the return-URL path; verifying with Stripe instead',
+      );
     }
 
-    const sessionId = payload.session_id ?? payload.transactionId ?? '';
+    const sessionId =
+      payload.session_id ??
+      payload.transactionId ??
+      payload.data?.object?.id ??
+      '';
     if (!sessionId) {
       return {
         transactionId: '',

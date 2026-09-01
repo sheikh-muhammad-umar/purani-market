@@ -1,6 +1,7 @@
+import { createHmac } from 'node:crypto';
 import { ConfigService } from '@nestjs/config';
 import { EasyPaisaGateway } from './easypaisa.gateway';
-import { CONFIG_KEYS } from '../constants';
+import { CONFIG_KEYS, EASYPAISA_HASH_ALGORITHM } from '../constants';
 
 const mockConfigService = {
   get: (key: string) => {
@@ -44,18 +45,55 @@ describe('EasyPaisaGateway', () => {
   });
 
   describe('verifyCallback', () => {
-    it('should return completed for success status', async () => {
+    /**
+     * Mirrors the gateway's hash: values sorted by key, joined with '&', HMAC'd
+     * with the configured key. Duplicated rather than shared because the gateway
+     * computes it inline; the point of these tests is the accept/refuse policy.
+     */
+    const sign = (payload: Record<string, string>): string => {
+      const values = Object.keys(payload)
+        .sort()
+        .map((k) => payload[k])
+        .join('&');
+      return createHmac(EASYPAISA_HASH_ALGORITHM, 'testhashkey')
+        .update(values)
+        .digest('hex');
+    };
+
+    it('completes a correctly signed success callback', async () => {
+      const payload = { orderRefNumber: 'EP-123', status: '0000' };
       const result = await gateway.verifyCallback({
-        orderRefNumber: 'EP-123',
-        status: '0000',
+        ...payload,
+        merchantHashedReq: sign(payload),
       });
       expect(result.status).toBe('completed');
     });
 
-    it('should return failed for non-success status', async () => {
+    it('refuses a callback carrying no hash', async () => {
+      // Verification used to be skipped when the hash was absent, so a
+      // hand-written POST with a success status was enough to mark a purchase
+      // paid on a route that needs no API key.
       const result = await gateway.verifyCallback({
         orderRefNumber: 'EP-123',
-        status: '0001',
+        status: '0000',
+      });
+      expect(result.status).toBe('failed');
+    });
+
+    it('refuses a callback whose hash does not match', async () => {
+      const result = await gateway.verifyCallback({
+        orderRefNumber: 'EP-123',
+        status: '0000',
+        merchantHashedReq: 'deadbeef',
+      });
+      expect(result.status).toBe('failed');
+    });
+
+    it('should return failed for non-success status', async () => {
+      const payload = { orderRefNumber: 'EP-123', status: '0001' };
+      const result = await gateway.verifyCallback({
+        ...payload,
+        merchantHashedReq: sign(payload),
       });
       expect(result.status).toBe('failed');
     });

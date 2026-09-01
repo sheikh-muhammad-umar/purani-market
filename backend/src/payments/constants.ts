@@ -50,8 +50,34 @@ export const CONFIG_KEYS = {
   EASYPAISA_HASH_KEY: 'payments.easypaisa.hashKey',
   EASYPAISA_BASE_URL: 'payments.easypaisa.baseUrl',
   EASYPAISA_RETURN_URL: 'payments.easypaisa.returnUrl',
+  ALLOW_UNSIGNED_CALLBACKS: 'payments.allowUnsignedCallbacks',
   STRIPE_SECRET_KEY: 'payments.stripe.secretKey',
   STRIPE_WEBHOOK_SECRET: 'payments.stripe.webhookSecret',
   STRIPE_SUCCESS_URL: 'payments.stripe.successUrl',
   STRIPE_CANCEL_URL: 'payments.stripe.cancelUrl',
 } as const;
+
+/**
+ * Random characters appended to a gateway transaction reference.
+ *
+ * A reference built only from a timestamp is guessable, which matters because the
+ * payment callback route is reachable without an API key. Five base36 characters
+ * add ~26 bits, and JazzCash allows 20 characters for pp_TxnRefNo against the 15
+ * the prefix and timestamp already use.
+ */
+export const TXN_REF_ENTROPY_CHARS = 5;
+
+/**
+ * Parameters that take part in JazzCash's secure hash.
+ *
+ * Its own `pp_*` and `ppmpf_*` fields only. Anything the application adds to the
+ * payload before verification must not be hashed, or the digest covers data
+ * JazzCash never signed and can never match.
+ */
+export const JAZZCASH_HASHED_FIELD_PATTERN = /^(pp_|ppmpf_)/;
+
+/** Fields the application injects, which EasyPaisa never signed. */
+export const EASYPAISA_UNSIGNED_FIELDS: readonly string[] = [
+  'transactionId',
+  'paymentMethod',
+];

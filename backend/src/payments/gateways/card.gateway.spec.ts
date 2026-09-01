@@ -36,18 +36,21 @@ describe('CardGateway', () => {
       expect(result.status).toBe('failed');
     });
 
-    it('should handle webhook event for completed session', async () => {
+    it('does not trust a webhook-shaped body on the return path', async () => {
+      // This body previously short-circuited to handleWebhookEvent, which read
+      // payment_status straight off it with no signature check — bypassing the
+      // verification done on the real webhook route. It is now confirmed against
+      // Stripe, which cannot succeed for a session that was never created.
       const result = await gateway.verifyCallback({
         type: STRIPE_CHECKOUT_COMPLETED,
         data: {
           object: {
-            id: 'cs_test_123',
+            id: 'cs_forged_123',
             payment_status: STRIPE_PAYMENT_STATUS_PAID,
           },
         },
       });
-      expect(result.status).toBe('completed');
-      expect(result.transactionId).toBe('cs_test_123');
+      expect(result.status).toBe('failed');
     });
   });
 });

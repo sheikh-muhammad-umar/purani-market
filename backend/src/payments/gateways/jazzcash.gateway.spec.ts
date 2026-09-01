@@ -45,18 +45,143 @@ describe('JazzCashGateway', () => {
   });
 
   describe('verifyCallback', () => {
-    it('should return completed for success response code', async () => {
+    /** Signs with the gateway's own hasher, so this checks policy not algorithm. */
+    const sign = (payload: Record<string, string>): string =>
+      (
+        gateway as unknown as {
+          generateSecureHash(p: Record<string, string>): string;
+        }
+      ).generateSecureHash(payload);
+
+    it('completes a correctly signed success callback', async () => {
+      const payload = {
+        pp_TxnRefNo: 'T20240101120000',
+        pp_ResponseCode: JAZZCASH_SUCCESS_CODE,
+      };
       const result = await gateway.verifyCallback({
+        ...payload,
+        pp_SecureHash: sign(payload),
+      });
+      expect(result.status).toBe('completed');
+    });
+
+    it('refuses a callback carrying no secure hash', async () => {
+      // The hole this closes: verification used to be skipped when the hash was
+      // absent, so the caller's own response code decided the outcome. The
+      // callback route sits outside the API-key guard, so a hand-written POST of
+      // just these two fields marked a purchase paid.
+      const result = await gateway.verifyCallback({
+        pp_TxnRefNo: 'T20240101120000',
+        pp_ResponseCode: JAZZCASH_SUCCESS_CODE,
+      });
+      expect(result.status).toBe('failed');
+    });
+
+    it('refuses an unsigned callback when no secret is configured', async () => {
+      const noSalt = new JazzCashGateway({
+        get: (key: string) => {
+          if (key === CONFIG_KEYS.JAZZCASH_INTEGRITY_SALT) return '';
+          if (key === CONFIG_KEYS.ALLOW_UNSIGNED_CALLBACKS) return false;
+          return 'x';
+        },
+      } as unknown as ConfigService);
+
+      const result = await noSalt.verifyCallback({
+        pp_TxnRefNo: 'T20240101120000',
+        pp_ResponseCode: JAZZCASH_SUCCESS_CODE,
+      });
+      expect(result.status).toBe('failed');
+    });
+
+    it('accepts an unsigned callback only when explicitly opted in', async () => {
+      // The escape hatch exists because no environment here has the gateway
+      // secrets, so sandbox testing would otherwise be impossible. It is refused
+      // outright in production regardless of the variable — see configuration.ts.
+      const optedIn = new JazzCashGateway({
+        get: (key: string) => {
+          if (key === CONFIG_KEYS.JAZZCASH_INTEGRITY_SALT) return '';
+          if (key === CONFIG_KEYS.ALLOW_UNSIGNED_CALLBACKS) return true;
+          return 'x';
+        },
+      } as unknown as ConfigService);
+
+      const result = await optedIn.verifyCallback({
         pp_TxnRefNo: 'T20240101120000',
         pp_ResponseCode: JAZZCASH_SUCCESS_CODE,
       });
       expect(result.status).toBe('completed');
     });
 
-    it('should return failed for non-success response code', async () => {
+    it('still verifies when a secret is configured, opt-in or not', async () => {
+      // The opt-in only covers a missing secret. With one present an unsigned
+      // callback is always refused, so the flag cannot weaken a real deployment.
+      const optedInWithSalt = new JazzCashGateway({
+        get: (key: string) => {
+          if (key === CONFIG_KEYS.JAZZCASH_INTEGRITY_SALT) return 'testsalt';
+          if (key === CONFIG_KEYS.ALLOW_UNSIGNED_CALLBACKS) return true;
+          return 'x';
+        },
+      } as unknown as ConfigService);
+
+      const result = await optedInWithSalt.verifyCallback({
+        pp_TxnRefNo: 'T20240101120000',
+        pp_ResponseCode: JAZZCASH_SUCCESS_CODE,
+      });
+      expect(result.status).toBe('failed');
+    });
+
+    it('ignores fields the application adds before verification', async () => {
+      // handlePaymentCallback merges in `transactionId`, and `paymentMethod`
+      // arrives in the request body. Neither was signed by JazzCash, so hashing
+      // them made the digest cover data the gateway never saw and no genuine
+      // callback could ever match.
+      const payload = {
+        pp_TxnRefNo: 'T20240101120000',
+        pp_ResponseCode: JAZZCASH_SUCCESS_CODE,
+      };
+      const result = await gateway.verifyCallback({
+        ...payload,
+        pp_SecureHash: sign(payload),
+        transactionId: 'T20240101120000',
+        paymentMethod: 'jazzcash',
+      });
+      expect(result.status).toBe('completed');
+    });
+
+    it('is not enabled by a truthy non-boolean flag', async () => {
+      const sloppyFlag = new JazzCashGateway({
+        get: (key: string) => {
+          if (key === CONFIG_KEYS.JAZZCASH_INTEGRITY_SALT) return '';
+          // e.g. the raw string from an environment variable.
+          if (key === CONFIG_KEYS.ALLOW_UNSIGNED_CALLBACKS) return 'true';
+          return 'x';
+        },
+      } as unknown as ConfigService);
+
+      const result = await sloppyFlag.verifyCallback({
+        pp_TxnRefNo: 'T20240101120000',
+        pp_ResponseCode: JAZZCASH_SUCCESS_CODE,
+      });
+      expect(result.status).toBe('failed');
+    });
+
+    it('refuses a callback whose hash does not match', async () => {
       const result = await gateway.verifyCallback({
         pp_TxnRefNo: 'T20240101120000',
+        pp_ResponseCode: JAZZCASH_SUCCESS_CODE,
+        pp_SecureHash: 'DEADBEEF',
+      });
+      expect(result.status).toBe('failed');
+    });
+
+    it('should return failed for non-success response code', async () => {
+      const payload = {
+        pp_TxnRefNo: 'T20240101120000',
         pp_ResponseCode: '999',
+      };
+      const result = await gateway.verifyCallback({
+        ...payload,
+        pp_SecureHash: sign(payload),
       });
       expect(result.status).toBe('failed');
     });

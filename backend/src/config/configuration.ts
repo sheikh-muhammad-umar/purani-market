@@ -190,6 +190,18 @@ export default () => ({
         process.env.EASYPAISA_RETURN_URL ||
         'http://localhost:3000/api/packages/payment-callback',
     },
+    /**
+     * Accept a payment callback that carries no signature.
+     *
+     * Only for local and sandbox work, where the gateway secrets are not
+     * available: an unsigned callback is indistinguishable from one a stranger
+     * wrote, so honouring it means anyone who can guess a transaction reference
+     * gets free packages. Ignored outright when NODE_ENV is production, so it
+     * cannot be switched on there by setting an environment variable.
+     */
+    allowUnsignedCallbacks:
+      process.env.NODE_ENV !== 'production' &&
+      process.env.PAYMENTS_ALLOW_UNSIGNED_CALLBACKS === 'true',
     stripe: {
       secretKey: process.env.STRIPE_SECRET_KEY || '',
       webhookSecret: process.env.STRIPE_WEBHOOK_SECRET || '',
