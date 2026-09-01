@@ -8,13 +8,17 @@ import {
   PAYMENT_STATUS_OPTIONS,
 } from '../../../../core/constants/select-options';
 import { DatePickerComponent } from '../../../../shared/components/date-picker/date-picker.component';
+import { ModalComponent } from '../../../../shared/components/modal/modal.component';
 import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../../shared/components/custom-select/custom-select.component';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { PaginationComponent } from '../../../../shared/components/pagination/pagination.component';
-import { PackageType as PackageTypeEnum } from '../../../../core/constants/enums';
+import {
+  PackageType as PackageTypeEnum,
+  PaymentStatus as PaymentStatusEnum,
+} from '../../../../core/constants/enums';
 import { ERROR_MSG } from '../../../../core/constants/error-messages';
 
 /** Display labels for package types used in template */
@@ -33,6 +37,7 @@ const PACKAGE_TYPE_LABELS: Record<string, string> = {
     DatePickerComponent,
     EmptyStateComponent,
     PaginationComponent,
+    ModalComponent,
   ],
   templateUrl: './package-purchases.component.html',
   styleUrls: ['./package-purchases.component.scss'],
@@ -40,6 +45,13 @@ const PACKAGE_TYPE_LABELS: Record<string, string> = {
 export class PackagePurchasesComponent implements OnInit {
   readonly PackageTypeEnum = PackageTypeEnum;
   readonly PACKAGE_TYPE_LABELS = PACKAGE_TYPE_LABELS;
+  readonly PaymentStatusEnum = PaymentStatusEnum;
+
+  /** Purchase awaiting refund confirmation; null when the modal is closed. */
+  readonly refundTarget = signal<PackagePurchase | null>(null);
+  readonly refundLoading = signal(false);
+  readonly refundError = signal<string | null>(null);
+  refundReason = '';
 
   readonly purchases = signal<PackagePurchase[]>([]);
   readonly purchasesTotal = signal(0);
@@ -129,5 +141,57 @@ export class PackagePurchasesComponent implements OnInit {
     if (page < 1 || page > this.totalPurchasePages() || page === this.purchasePage) return;
     this.purchasePage = page;
     this.loadPurchases();
+  }
+
+  /** Only a completed purchase can be withdrawn; the rest never took money. */
+  canRefund(purchase: PackagePurchase): boolean {
+    return purchase.paymentStatus === PaymentStatusEnum.COMPLETED;
+  }
+
+  openRefundModal(purchase: PackagePurchase): void {
+    this.refundTarget.set(purchase);
+    this.refundReason = '';
+    this.refundError.set(null);
+  }
+
+  closeRefundModal(): void {
+    if (this.refundLoading()) return;
+    this.refundTarget.set(null);
+  }
+
+  confirmRefund(): void {
+    const purchase = this.refundTarget();
+    if (!purchase || this.refundLoading()) return;
+
+    this.refundLoading.set(true);
+    this.refundError.set(null);
+
+    this.adminService
+      .refundPurchase(purchase._id, this.refundReason.trim() || undefined)
+      .subscribe({
+        next: () => {
+          // Patch in place rather than refetching, so the admin keeps their filters
+          // and page position.
+          this.purchases.update((list) =>
+            list.map((p) =>
+              p._id === purchase._id
+                ? {
+                    ...p,
+                    paymentStatus: PaymentStatusEnum.REFUNDED as PaymentStatus,
+                    remainingQuantity: 0,
+                    refundedAt: new Date(),
+                    refundReason: this.refundReason.trim() || undefined,
+                  }
+                : p,
+            ),
+          );
+          this.refundLoading.set(false);
+          this.refundTarget.set(null);
+        },
+        error: () => {
+          this.refundError.set(ERROR_MSG.PURCHASE_REFUND_FAILED);
+          this.refundLoading.set(false);
+        },
+      });
   }
 }

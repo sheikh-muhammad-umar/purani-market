@@ -87,6 +87,7 @@
             <th>Transaction ID</th>
             <th>Status</th>
             <th>Date</th>
+            <th>Actions</th>
           </tr>
         </thead>
         <tbody>
@@ -111,6 +112,26 @@
                 }}</span>
               </td>
               <td>{{ p.createdAt | date: 'mediumDate' }}</td>
+              <td>
+                @if (canRefund(p)) {
+                  <button
+                    type="button"
+                    class="btn btn-ghost btn-sm"
+                    [attr.aria-label]="'Refund purchase ' + (p.paymentTransactionId || p._id)"
+                    (click)="openRefundModal(p)"
+                  >
+                    Refund
+                  </button>
+                } @else if (p.paymentStatus === PaymentStatusEnum.REFUNDED) {
+                  <span class="refunded-note" [title]="p.refundReason || 'No reason recorded'"
+                    >Refunded{{
+                      p.refundedAt ? ' · ' + (p.refundedAt | date: 'mediumDate') : ''
+                    }}</span
+                  >
+                } @else {
+                  <span class="refunded-note">—</span>
+                }
+              </td>
             </tr>
           }
         </tbody>
@@ -125,5 +146,42 @@
         (pageChange)="goToPurchasePage($event)"
       />
     }
+  }
+
+  <!-- Refund confirmation -->
+  @if (refundTarget()) {
+    <app-modal title="Refund Purchase" size="sm" (closed)="closeRefundModal()">
+      <p class="refund-summary">
+        {{ PACKAGE_TYPE_LABELS[refundTarget()!.type] || refundTarget()!.type }} ·
+        <strong>Rs {{ refundTarget()!.price | number }}</strong> ·
+        {{ refundTarget()!.paymentTransactionId || 'no transaction id' }}
+      </p>
+      <p class="refund-note">
+        This withdraws any unused credit on the purchase and notifies the seller. Move the money in
+        the payment gateway's own portal — this does not transfer funds. Promotion already running
+        is left in place.
+      </p>
+      <div class="form-group">
+        <label for="refund-reason">Reason (optional, shown to the seller)</label>
+        <textarea
+          id="refund-reason"
+          [(ngModel)]="refundReason"
+          rows="3"
+          maxlength="500"
+          placeholder="e.g. Duplicate charge reported by the seller"
+        ></textarea>
+      </div>
+      @if (refundError()) {
+        <p class="refund-error" role="alert">{{ refundError() }}</p>
+      }
+      <div slot="footer">
+        <button class="btn btn-ghost" [disabled]="refundLoading()" (click)="closeRefundModal()">
+          Cancel
+        </button>
+        <button class="btn btn-danger" [disabled]="refundLoading()" (click)="confirmRefund()">
+          {{ refundLoading() ? 'Refunding...' : 'Refund' }}
+        </button>
+      </div>
+    </app-modal>
   }
 </div>

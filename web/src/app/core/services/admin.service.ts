@@ -551,6 +551,18 @@ export class AdminService {
     });
   }
 
+  /**
+   * Withdraws a completed purchase: unspent credit is zeroed and the seller is
+   * notified. The money itself is moved in the payment gateway's own portal, so
+   * this records the decision rather than transferring anything.
+   */
+  refundPurchase(purchaseId: string, reason?: string): Observable<PackagePurchase> {
+    return this.http.post<PackagePurchase>(
+      `${this.baseUrl}${API.ADMIN_PACKAGE_PURCHASE_REFUND(purchaseId)}`,
+      reason ? { reason } : {},
+    );
+  }
+
   getAdminPayments(params: AdminPaymentsParams = {}): Observable<AdminPaymentsResponse> {
     let httpParams = new HttpParams();
     if (params.page) httpParams = httpParams.set('page', params.page.toString());

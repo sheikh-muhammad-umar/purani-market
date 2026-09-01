@@ -55,4 +55,8 @@ export interface PackagePurchase {
   expiresAt?: Date;
   createdAt: Date;
   updatedAt: Date;
+  /** Set when an admin withdrew the purchase; money moves in the gateway portal. */
+  refundedAt?: Date;
+  refundReason?: string;
+  refundedBy?: string;
 }

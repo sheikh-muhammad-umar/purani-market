@@ -33,6 +33,7 @@ export const ERROR_MSG = {
   PACKAGE_CREATE_FAILED: 'Failed to create package.',
   PACKAGE_UPDATE_FAILED: 'Failed to update package.',
   PURCHASES_LOAD_FAILED: 'Failed to load purchases.',
+  PURCHASE_REFUND_FAILED: 'Failed to refund this purchase. Please try again.',
 
   // ─── Reviews ───────────────────────────────────────────
   REVIEWS_LOAD_FAILED: 'Failed to load reviews. Please try again.',

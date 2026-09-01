@@ -254,6 +254,23 @@ describe('AdminService', () => {
     expect(httpMock.get).toHaveBeenCalled();
   });
 
+  it('should POST a refund with the reason when one is given', () => {
+    httpMock.post.mockReturnValue(of({}));
+    service.refundPurchase('pur1', 'Duplicate charge').subscribe();
+    expect(httpMock.post).toHaveBeenCalledWith(
+      expect.stringContaining('/admin/packages/purchases/pur1/refund'),
+      { reason: 'Duplicate charge' },
+    );
+  });
+
+  it('should POST a refund with an empty body when no reason is given', () => {
+    // The reason is optional on the API; sending `{ reason: undefined }` would
+    // fail validation rather than being treated as absent.
+    httpMock.post.mockReturnValue(of({}));
+    service.refundPurchase('pur1').subscribe();
+    expect(httpMock.post).toHaveBeenCalledWith(expect.any(String), {});
+  });
+
   it('should call GET /admin/payments with params', () => {
     const mockRes: AdminPaymentsResponse = { data: [], total: 0, page: 1, limit: 15 };
     httpMock.get.mockReturnValue(of(mockRes));

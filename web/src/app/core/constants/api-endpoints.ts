@@ -143,6 +143,7 @@ export const API = {
   ADMIN_DELETION_REASONS: '/admin/deletion-reasons',
   ADMIN_DELETION_REASON_BY_ID: (id: string) => `/admin/deletion-reasons/${id}`,
   ADMIN_PACKAGES_PURCHASES: '/admin/packages/purchases',
+  ADMIN_PACKAGE_PURCHASE_REFUND: (id: string) => `/admin/packages/purchases/${id}/refund`,
   ADMIN_PAYMENTS: '/admin/payments',
   ADMIN_SELLER_AD_INFO: (id: string) => `/admin/sellers/${id}/ad-info`,
   ADMIN_ID_VERIFICATION_STATS: '/admin/id-verification-stats',
