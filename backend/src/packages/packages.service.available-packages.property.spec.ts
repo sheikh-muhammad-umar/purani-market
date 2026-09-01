@@ -116,10 +116,14 @@ describe('Property 2: Available Packages Filter Correctness', () => {
           const now = new Date();
 
           // Compute expected results: purchases that match ALL four criteria
+          // Only featured credit can be applied to a listing. An ad-slots purchase
+          // was previously offered here and then always failed to apply, since its
+          // slots were credited to the listing limit at activation instead.
           const expected = purchases.filter(
             (p) =>
               p.categoryId.toString() === targetCategoryId.toString() &&
               p.paymentStatus === PaymentStatus.COMPLETED &&
+              p.type === AdPackageType.FEATURED_ADS &&
               p.remainingQuantity > 0 &&
               p.expiresAt > now,
           );
@@ -169,6 +173,35 @@ describe('Property 2: Available Packages Filter Correctness', () => {
                   p.expiresAt <= query.expiresAt.$gt
                 )
                   return false;
+                // $or over the two storage shapes: a legacy branch keyed on the
+                // flat counter plus `type`, and a bundle branch keyed on the
+                // entitlements array. A purchase must satisfy one of them.
+                if (Array.isArray(query.$or)) {
+                  const matchesBranch = (branch: any): boolean => {
+                    if (branch.type && p.type !== branch.type) return false;
+                    if (
+                      branch.purchaseType &&
+                      (p as any).purchaseType !== branch.purchaseType
+                    )
+                      return false;
+                    if (
+                      branch.remainingQuantity?.$gt !== undefined &&
+                      p.remainingQuantity <= branch.remainingQuantity.$gt
+                    )
+                      return false;
+                    if (branch.entitlements?.$elemMatch) {
+                      const want = branch.entitlements.$elemMatch;
+                      const rows = (p as any).entitlements ?? [];
+                      return rows.some(
+                        (e: any) =>
+                          e.kind === want.kind &&
+                          e.remaining > (want.remaining?.$gt ?? -Infinity),
+                      );
+                    }
+                    return true;
+                  };
+                  if (!query.$or.some(matchesBranch)) return false;
+                }
                 return true;
               });
 
@@ -250,6 +283,7 @@ describe('Property 2: Available Packages Filter Correctness', () => {
             expect(r.categoryId!.toString()).toBe(targetCategoryId.toString());
             expect(r.paymentStatus).toBe(PaymentStatus.COMPLETED);
             expect(r.remainingQuantity).toBeGreaterThan(0);
+            expect(r.type).toBe(AdPackageType.FEATURED_ADS);
             expect(r.expiresAt!.getTime()).toBeGreaterThan(now.getTime());
           }
         },

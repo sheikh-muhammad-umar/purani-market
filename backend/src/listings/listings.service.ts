@@ -56,6 +56,7 @@ import { PackagesService } from '../packages/packages.service.js';
 import { AdminTrackerService } from '../ai/admin-tracker.service.js';
 import { UserAction } from '../ai/enums/user-action.enum.js';
 import { AdPackageType } from '../packages/schemas/ad-package.schema.js';
+import { EntitlementKind } from '../packages/entitlements.js';
 import { OTHER_OPTION_ID, LISTING_PUBLIC_SELECT } from './constants/index.js';
 import { PaginatedListings } from './interfaces/paginated-listings.interface.js';
 import { daysToMs } from '../common/utils/time.js';
@@ -751,7 +752,7 @@ export class ListingsService {
 
     // Apply package if purchaseId is provided
     if (dto.purchaseId) {
-      const { purchase, packageDoc } =
+      const { purchase, spent } =
         await this.packagesService.applyPackageToListing(
           dto.purchaseId,
           sellerId,
@@ -759,7 +760,10 @@ export class ListingsService {
           listing._id.toString(),
         );
       listing.purchaseId = new Types.ObjectId(dto.purchaseId);
-      if (packageDoc.type === AdPackageType.FEATURED_ADS) {
+      // Keyed off what was spent, not the package's type. A bundle's type is
+      // `bundle`, so testing for `featured_ads` skipped this and left the listing
+      // unpromoted after a featured unit had already been taken off the purchase.
+      if (spent === EntitlementKind.FEATURED_ADS) {
         listing.isFeatured = true;
         listing.featuredUntil = purchase.expiresAt;
       }

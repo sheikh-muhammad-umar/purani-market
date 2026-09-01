@@ -736,6 +736,63 @@ describe('PackagesService', () => {
     });
   });
 
+  describe('legacy purchases written before entitlements existed', () => {
+    /**
+     * Those documents have no `entitlements` field at all, and MongoDB does not
+     * match a missing field against `$size: 0`. Filtering on it made every
+     * pre-existing purchase impossible to spend — no promoting a listing, no
+     * applying a package, no paid short — while every mocked test still passed,
+     * because a hand-written mock does not implement `$size`.
+     *
+     * So this asserts the shape of the filter instead: no condition on
+     * `entitlements` may appear on the legacy branch. The discriminator (`type`
+     * for ads, `purchaseType` for shorts) is what separates the two shapes, and a
+     * bundle can never match it.
+     */
+    it('spends without any condition on the entitlements field', async () => {
+      mockPackagePurchaseModel.stubFeaturedCandidates([purchaseId]);
+      mockPackagePurchaseModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: purchaseId,
+          sellerId,
+          type: AdPackageType.FEATURED_ADS,
+          remainingQuantity: 2,
+          expiresAt: new Date(Date.now() + daysToMs(7)),
+        }),
+      });
+
+      await service.featureListing(listingId.toString(), sellerId.toString());
+
+      const legacyFilter =
+        mockPackagePurchaseModel.findOneAndUpdate.mock.calls[0][0];
+      expect(legacyFilter.type).toBe(AdPackageType.FEATURED_ADS);
+      expect(legacyFilter.remainingQuantity).toEqual({ $gt: 0 });
+      expect(legacyFilter).not.toHaveProperty('entitlements');
+    });
+
+    it('keeps the candidate search free of it too', async () => {
+      mockPackagePurchaseModel.stubFeaturedCandidates([]);
+      await expect(
+        service.featureListing(listingId.toString(), sellerId.toString()),
+      ).rejects.toThrow(BadRequestException);
+
+      const candidateFilter = mockPackagePurchaseModel.find.mock.calls[0][0];
+      const legacyBranch = candidateFilter.$or.find(
+        (branch: Record<string, unknown>) => 'remainingQuantity' in branch,
+      );
+      expect(legacyBranch).toBeDefined();
+      expect(legacyBranch).not.toHaveProperty('entitlements');
+      // The bundle branch still keys off the array, which is correct: a missing
+      // field should not match it.
+      const bundleBranch = candidateFilter.$or.find(
+        (branch: Record<string, unknown>) => 'entitlements' in branch,
+      );
+      expect(bundleBranch.entitlements.$elemMatch.kind).toBe(
+        EntitlementKind.FEATURED_ADS,
+      );
+    });
+  });
+
   describe('featureListing', () => {
     it('should feature a listing when seller has active featured package', async () => {
       const futureDate = new Date();

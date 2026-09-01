@@ -208,6 +208,14 @@ export class PackagesService {
     return this.packagePurchaseModel.findById(purchaseId).exec();
   }
 
+  /**
+   * Purchases the seller can apply to a new listing in this category.
+   *
+   * Only featured credit can be applied to a listing, so that is what this offers.
+   * It previously filtered on `remainingQuantity > 0`, which is never decremented
+   * on a bundle — so a fully-spent bundle stayed in the picker for ever, and a
+   * legacy ad-slots purchase was offered even though applying one always fails.
+   */
   async getAvailablePackages(
     sellerId: string,
     categoryId: string,
@@ -215,18 +223,23 @@ export class PackagesService {
     const now = new Date();
     return this.packagePurchaseModel
       .find({
+        ...this.entitlementFilter(sellerId, EntitlementKind.FEATURED_ADS, now),
         purchaseType: PurchaseType.ADS,
-        sellerId: new Types.ObjectId(sellerId),
         categoryId: new Types.ObjectId(categoryId),
-        paymentStatus: PaymentStatus.COMPLETED,
-        remainingQuantity: { $gt: 0 },
-        expiresAt: { $gt: now },
       })
       .sort({ expiresAt: 1 })
       .populate('packageId', 'name type')
       .exec();
   }
 
+  /**
+   * Spends one featured unit from a purchase, for a listing being created.
+   *
+   * Reports the kind it spent so the caller does not have to infer it from the
+   * package's `type`. That inference broke for bundles: a bundle's type is
+   * `bundle`, so the listing was never flagged featured even though a featured
+   * unit had just been taken off the purchase — the seller paid and got nothing.
+   */
   async applyPackageToListing(
     purchaseId: string,
     sellerId: string,
@@ -235,6 +248,7 @@ export class PackagesService {
   ): Promise<{
     purchase: PackagePurchaseDocument;
     packageDoc: AdPackageDocument;
+    spent: EntitlementKind;
   }> {
     const now = new Date();
 
@@ -278,6 +292,7 @@ export class PackagesService {
       return {
         purchase: populated as unknown as PackagePurchaseDocument,
         packageDoc,
+        spent: EntitlementKind.FEATURED_ADS,
       };
     }
 
@@ -493,8 +508,16 @@ export class PackagesService {
       return { status: 'success', message: ERROR.PAYMENT_PACKAGES_ACTIVATED };
     }
 
+    // Only pending purchases are failed. Without the guard a late or replayed
+    // failure callback downgraded an already-completed purchase, and because the
+    // ad-slot claw-back cron only looks at completed purchases those credited
+    // slots were then never reversed — the seller's listing limit stayed inflated
+    // permanently.
     await this.packagePurchaseModel.updateMany(
-      { paymentTransactionId: transactionId },
+      {
+        paymentTransactionId: transactionId,
+        paymentStatus: PaymentStatus.PENDING,
+      },
       { $set: { paymentStatus: PaymentStatus.FAILED } },
     );
     return {
@@ -556,7 +579,6 @@ export class PackagesService {
       .findOneAndUpdate(
         {
           ...filter,
-          entitlements: { $size: 0 },
           ...this.legacyKindFilter(kind),
           remainingQuantity: { $gt: 0 },
         },
@@ -583,7 +605,21 @@ export class PackagesService {
       .exec();
   }
 
-  /** How a pre-bundle purchase of this kind identifies itself. */
+  /**
+   * How a pre-bundle purchase of this kind identifies itself.
+   *
+   * The discriminator alone is enough to tell the two shapes apart, so no
+   * condition on `entitlements` is needed — and none may be used. A bundle always
+   * has `type: 'bundle'` (see `typeForEntitlements`) and `purchaseType: 'ads'`, so
+   * it can never match any branch below.
+   *
+   * Testing `entitlements: { $size: 0 }` here was a serious mistake: purchases
+   * written before the field existed have no `entitlements` at all, and MongoDB
+   * does not treat a missing field as an empty array. That filter matched none of
+   * them, which made every pre-existing purchase impossible to spend — no
+   * promoting a listing, no applying a package, no posting a paid short. Mocked
+   * tests could not see it because they do not implement `$size`.
+   */
   private legacyKindFilter(kind: EntitlementKind): Record<string, any> {
     if (kind === EntitlementKind.AD_SLOTS) {
       return { type: AdPackageType.AD_SLOTS };
@@ -611,7 +647,6 @@ export class PackagesService {
       $or: [
         { entitlements: { $elemMatch: { kind, remaining: { $gt: 0 } } } },
         {
-          entitlements: { $size: 0 },
           remainingQuantity: { $gt: 0 },
           ...this.legacyKindFilter(kind),
         },

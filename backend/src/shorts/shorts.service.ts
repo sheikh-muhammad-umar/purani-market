@@ -177,11 +177,15 @@ export class ShortsService {
     // the (slow) video-processing window cannot both take the last unit. A bundle
     // keeps its balance per entitlement, hence the two shapes.
     if (purchase) {
+      // No condition on `entitlements`: purchases written before that field
+      // existed do not have it, and MongoDB does not match a missing field
+      // against `$size: 0` — which would have made every existing shorts package
+      // silently fail to decrement.
       const spentFlat = await this.shortsPurchaseModel
         .updateOne(
           {
             _id: purchase._id,
-            entitlements: { $size: 0 },
+            purchaseType: PurchaseType.SHORTS,
             remainingQuantity: { $gt: 0 },
           },
           { $inc: { remainingQuantity: -1 } },
