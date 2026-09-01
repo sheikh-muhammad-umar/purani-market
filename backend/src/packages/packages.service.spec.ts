@@ -1,3 +1,4 @@
+import { NotificationsService } from '../notifications/notifications.service';
 import { ConfigService } from '@nestjs/config';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
@@ -58,6 +59,7 @@ describe('PackagesService', () => {
   let mockAdPackageModel: any;
   let mockPackagePurchaseModel: any;
   let mockUserModel: any;
+  let mockNotificationsService: any;
   let mockListingModel: any;
   let mockPaymentsService: any;
 
@@ -163,6 +165,10 @@ describe('PackagesService', () => {
       .fn()
       .mockResolvedValue({ modifiedCount: 1 });
 
+    mockNotificationsService = {
+      sendPurchaseRefundedNotification: jest.fn().mockResolvedValue(true),
+    };
+
     mockUserModel = {
       findById: jest.fn().mockReturnValue({
         exec: jest.fn().mockResolvedValue({
@@ -224,6 +230,10 @@ describe('PackagesService', () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         PackagesService,
+        {
+          provide: NotificationsService,
+          useValue: mockNotificationsService,
+        },
         {
           provide: getModelToken(AdPackage.name),
           useValue: mockAdPackageModel,
@@ -752,6 +762,135 @@ describe('PackagesService', () => {
 
       expect(result.status).toBe('success');
       expect(mockUserModel.updateOne).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('refundPurchase', () => {
+    const adminId = new Types.ObjectId().toString();
+
+    const stubPurchase = (over: Record<string, unknown> = {}) => {
+      const doc = {
+        _id: purchaseId,
+        sellerId,
+        packageId,
+        type: AdPackageType.AD_SLOTS,
+        quantity: 10,
+        remainingQuantity: 10,
+        price: 2000,
+        currency: 'PKR',
+        paymentStatus: PaymentStatus.COMPLETED,
+        entitlements: [],
+        ...over,
+      };
+      mockPackagePurchaseModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(doc),
+      });
+      return doc;
+    };
+
+    beforeEach(() => {
+      mockUserModel.findById.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue({
+            _id: sellerId,
+            baseListingLimit: 10,
+            listingLimit: 20,
+          }),
+        }),
+        exec: jest.fn().mockResolvedValue({ _id: sellerId, listingLimit: 20 }),
+      });
+      mockPackagePurchaseModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue([]),
+      });
+      mockAdPackageModel.findById.mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue({ name: 'Extra Slots' }),
+        }),
+        exec: jest.fn().mockResolvedValue({ name: 'Extra Slots' }),
+      });
+    });
+
+    it('marks the purchase refunded and withdraws unused allowance', async () => {
+      stubPurchase();
+      await service.refundPurchase(
+        purchaseId.toString(),
+        adminId,
+        'duplicate charge',
+      );
+
+      const [filter, update] = mockPackagePurchaseModel.updateOne.mock.calls[0];
+      // Guarded on the status so two concurrent refunds cannot both withdraw.
+      expect(filter).toEqual({
+        _id: purchaseId,
+        paymentStatus: PaymentStatus.COMPLETED,
+      });
+      expect(update.$set.paymentStatus).toBe(PaymentStatus.REFUNDED);
+      expect(update.$set.remainingQuantity).toBe(0);
+      expect(update.$set.refundReason).toBe('duplicate charge');
+      expect(update.$set.refundedAt).toBeInstanceOf(Date);
+    });
+
+    it('zeroes every entitlement balance on a bundle', async () => {
+      stubPurchase({
+        type: AdPackageType.BUNDLE,
+        entitlements: [
+          { kind: EntitlementKind.AD_SLOTS, quantity: 10, remaining: 10 },
+          { kind: EntitlementKind.FEATURED_ADS, quantity: 5, remaining: 2 },
+        ],
+      });
+
+      await service.refundPurchase(purchaseId.toString(), adminId);
+
+      const update = mockPackagePurchaseModel.updateOne.mock.calls[0][1];
+      expect(update.$set.entitlements).toEqual([
+        { kind: EntitlementKind.AD_SLOTS, quantity: 10, remaining: 0 },
+        { kind: EntitlementKind.FEATURED_ADS, quantity: 5, remaining: 0 },
+      ]);
+    });
+
+    it('recomputes the listing limit, so refunded slots stop counting', async () => {
+      stubPurchase();
+      await service.refundPurchase(purchaseId.toString(), adminId);
+      // reconcileListingLimit only counts completed purchases, so the refunded
+      // one drops out without any subtraction here.
+      expect(mockUserModel.updateOne).toHaveBeenCalled();
+    });
+
+    it('tells the seller, naming the amount and the reason', async () => {
+      stubPurchase();
+      await service.refundPurchase(purchaseId.toString(), adminId, 'goodwill');
+
+      expect(
+        mockNotificationsService.sendPurchaseRefundedNotification,
+      ).toHaveBeenCalledWith(
+        sellerId.toString(),
+        'Extra Slots',
+        2000,
+        'PKR',
+        'goodwill',
+      );
+    });
+
+    it('is idempotent — refunding twice withdraws once', async () => {
+      stubPurchase({ paymentStatus: PaymentStatus.REFUNDED });
+      await service.refundPurchase(purchaseId.toString(), adminId);
+      expect(mockPackagePurchaseModel.updateOne).not.toHaveBeenCalled();
+    });
+
+    it('refuses a purchase that was never charged', async () => {
+      stubPurchase({ paymentStatus: PaymentStatus.PENDING });
+      await expect(
+        service.refundPurchase(purchaseId.toString(), adminId),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects an unknown purchase', async () => {
+      mockPackagePurchaseModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+      await expect(
+        service.refundPurchase(new Types.ObjectId().toString(), adminId),
+      ).rejects.toThrow(NotFoundException);
     });
   });
 

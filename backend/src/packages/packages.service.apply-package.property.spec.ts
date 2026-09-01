@@ -12,6 +12,7 @@
  *
  * Tag: Feature: category-package-management, Property 4: Successful Package Application Invariants
  */
+import { NotificationsService } from '../notifications/notifications.service';
 import { ConfigService } from '@nestjs/config';
 import * as fc from 'fast-check';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -136,6 +137,14 @@ describe('Property 4: Successful Package Application Invariants', () => {
           const module: TestingModule = await Test.createTestingModule({
             providers: [
               PackagesService,
+              {
+                provide: NotificationsService,
+                useValue: {
+                  sendPurchaseRefundedNotification: jest
+                    .fn()
+                    .mockResolvedValue(true),
+                },
+              },
               {
                 provide: getModelToken(AdPackage.name),
                 useValue: mockAdPackageModel,

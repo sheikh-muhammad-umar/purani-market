@@ -1,17 +1,19 @@
 import {
-  Controller,
-  Get,
-  Post,
-  Patch,
-  Delete,
-  Param,
-  Query,
   Body,
-  Req,
-  UseGuards,
-  ParseIntPipe,
+  Controller,
   DefaultValuePipe,
+  Delete,
+  Get,
+  Inject,
+  Param,
+  ParseIntPipe,
+  Patch,
+  Post,
+  Query,
+  Req,
   Res,
+  UseGuards,
+  forwardRef,
 } from '@nestjs/common';
 import { JwtAuthGuard, RolesGuard } from '../common/guards/index.js';
 import { Roles, CurrentUser, Permissions } from '../common/decorators/index.js';
@@ -29,6 +31,8 @@ import { CreateRejectionReasonDto } from './dto/create-rejection-reason.dto.js';
 import { UpdateRejectionReasonDto } from './dto/update-rejection-reason.dto.js';
 import { ListPurchasesQueryDto } from './dto/list-purchases-query.dto.js';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto.js';
+import { RefundPurchaseDto } from './dto/refund-purchase.dto.js';
+import { PackagesService } from '../packages/packages.service.js';
 
 @Controller('api/admin')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -37,6 +41,8 @@ export class AdminController {
   constructor(
     private readonly adminService: AdminService,
     private readonly tracker: AdminTrackerService,
+    @Inject(forwardRef(() => PackagesService))
+    private readonly packagesService: PackagesService,
   ) {}
 
   @Get('users')
@@ -405,6 +411,21 @@ export class AdminController {
   @Get('packages/purchases')
   async listPackagePurchases(@Query() query: ListPurchasesQueryDto) {
     return this.adminService.listPackagePurchases(query);
+  }
+
+  /**
+   * Refunds a package purchase.
+   *
+   * Records it and withdraws the unused allowance; returning the money itself
+   * happens in the gateway. See `PackagesService.refundPurchase`.
+   */
+  @Post('packages/purchases/:id/refund')
+  async refundPurchase(
+    @Param('id') id: string,
+    @Body() dto: RefundPurchaseDto,
+    @CurrentUser('sub') adminId: string,
+  ) {
+    return this.packagesService.refundPurchase(id, adminId, dto.reason);
   }
 
   @Get('payments')

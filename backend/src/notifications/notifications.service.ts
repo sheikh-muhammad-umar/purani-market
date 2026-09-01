@@ -268,6 +268,61 @@ export class NotificationsService {
     });
   }
 
+  async sendPurchaseRefundedNotification(
+    userId: string,
+    packageName: string,
+    amount: number,
+    currency: string,
+    reason?: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PACKAGE_ALERTS, {
+      title: 'Package refunded',
+      body:
+        `Your "${packageName}" purchase has been refunded (${currency} ${amount.toLocaleString()}). ` +
+        `Any unused allowance from it has been withdrawn.` +
+        (reason ? ` Reason: ${reason}` : ''),
+      data: { type: 'package_refunded' },
+    });
+  }
+
+  /**
+   * Warns a seller that they hold more live listings than their limit allows.
+   *
+   * Sent when the condition appears rather than when it is enforced, so they can
+   * choose which ads to keep — or buy more slots — instead of having the choice
+   * made for them.
+   */
+  async sendListingLimitExceededWarning(
+    userId: string,
+    activeCount: number,
+    listingLimit: number,
+    graceDays: number,
+  ): Promise<boolean> {
+    const excess = activeCount - listingLimit;
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'More live ads than your plan allows',
+      body:
+        `You have ${activeCount} live ads but room for ${listingLimit}. ` +
+        `Please deactivate ${excess} or add more ad slots within ${graceDays} day(s), ` +
+        `or the oldest ${excess} will be deactivated for you.`,
+      data: { type: 'listing_limit_exceeded' },
+    });
+  }
+
+  async sendListingsDeactivatedForLimitNotification(
+    userId: string,
+    deactivatedCount: number,
+    listingLimit: number,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'Oldest ads deactivated',
+      body:
+        `${deactivatedCount} of your oldest ads were deactivated to fit your limit of ${listingLimit}. ` +
+        'They are not deleted — reactivate them any time you have room.',
+      data: { type: 'listings_deactivated_for_limit' },
+    });
+  }
+
   async sendDeactivatedListingCleanupNotification(
     userId: string,
     listingTitle: string,

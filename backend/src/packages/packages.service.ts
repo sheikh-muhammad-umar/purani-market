@@ -9,8 +9,9 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
+import { NotificationsService } from '../notifications/notifications.service.js';
 import { FALLBACK_LISTING_LIMIT } from './constants/package-durations.js';
-import { DEFAULT_CURRENCY } from '../common/constants/index.js';
+import { CRON_TIMEZONE, DEFAULT_CURRENCY } from '../common/constants/index.js';
 import {
   AdPackage,
   AdPackageDocument,
@@ -69,6 +70,7 @@ export class PackagesService {
     private readonly listingModel: Model<ProductListingDocument>,
     private readonly paymentsService: PaymentsService,
     private readonly adminTrackerService: AdminTrackerService,
+    private readonly notificationsService: NotificationsService,
     private readonly configService: ConfigService,
   ) {
     this.defaultListingLimit =
@@ -754,6 +756,133 @@ export class PackagesService {
     });
   }
 
+  /**
+   * Refunds a purchase and withdraws whatever it still entitled the seller to.
+   *
+   * Records the refund and reverses the entitlements; it does not move money.
+   * Returning funds happens in the gateway (JazzCash and EasyPaisa are portal
+   * operations, Stripe has an API), and pretending otherwise here would leave the
+   * two out of step. This marks our side so the seller stops being entitled the
+   * moment the decision is made.
+   *
+   * What is withdrawn:
+   *
+   * - Unused featured and shorts credit is zeroed, so it cannot be spent after
+   *   the money has gone back.
+   * - Ad slots come off the listing limit, because `reconcileListingLimit` counts
+   *   only completed purchases and this one is no longer completed.
+   *
+   * What is deliberately left alone: promotion already delivered. A listing that
+   * has been featured for two weeks had that value, and retracting it would punish
+   * buyers who saw the ad rather than recovering anything. Listings stay featured
+   * until their own `featuredUntil` passes.
+   *
+   * A seller left over their listing limit by the slot withdrawal is handled by
+   * the enforcement cron, which warns before it acts.
+   */
+  async refundPurchase(
+    purchaseId: string,
+    adminId: string,
+    reason?: string,
+  ): Promise<PackagePurchaseDocument> {
+    if (!Types.ObjectId.isValid(purchaseId)) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    const purchase = await this.packagePurchaseModel
+      .findById(purchaseId)
+      .exec();
+    if (!purchase) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    if (purchase.paymentStatus === PaymentStatus.REFUNDED) {
+      // Idempotent rather than an error: a double-click should not read as a
+      // failure, and refunding twice must never withdraw twice.
+      return purchase;
+    }
+
+    if (purchase.paymentStatus !== PaymentStatus.COMPLETED) {
+      // Nothing was ever charged, so there is nothing to give back. A pending
+      // payment should be left to fail on its own.
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+
+    // Guarded on the status so two concurrent refunds cannot both proceed.
+    const claimed = await this.packagePurchaseModel.updateOne(
+      { _id: purchase._id, paymentStatus: PaymentStatus.COMPLETED },
+      {
+        $set: {
+          paymentStatus: PaymentStatus.REFUNDED,
+          refundedAt: new Date(),
+          refundedBy: new Types.ObjectId(adminId),
+          ...(reason ? { refundReason: reason } : {}),
+          // Withdraw what is unspent, in whichever shape the purchase uses.
+          remainingQuantity: 0,
+          ...(purchase.entitlements?.length
+            ? {
+                entitlements: purchase.entitlements.map((e) => ({
+                  kind: e.kind,
+                  quantity: e.quantity,
+                  remaining: 0,
+                })),
+              }
+            : {}),
+        },
+      },
+    );
+
+    if (claimed.modifiedCount === 0) {
+      return (await this.packagePurchaseModel.findById(purchaseId).exec())!;
+    }
+
+    // Slots fall out of the sum now the purchase is no longer completed.
+    const newLimit = await this.reconcileListingLimit(
+      purchase.sellerId.toString(),
+    );
+
+    const packageDoc = await this.adPackageModel
+      .findById(purchase.packageId)
+      .select('name')
+      .exec();
+
+    this.notificationsService
+      .sendPurchaseRefundedNotification(
+        purchase.sellerId.toString(),
+        packageDoc?.name ?? 'Package',
+        purchase.price,
+        purchase.currency ?? DEFAULT_CURRENCY,
+        reason,
+      )
+      .catch((err) =>
+        this.logger.warn(
+          `Failed to send refund notification: ${(err as Error).message}`,
+        ),
+      );
+
+    this.adminTrackerService
+      .track(adminId, UserAction.ADMIN_PACKAGE_REFUND, {
+        purchaseId,
+        sellerId: purchase.sellerId.toString(),
+        amount: purchase.price,
+        currency: purchase.currency ?? DEFAULT_CURRENCY,
+        packageName: packageDoc?.name ?? null,
+        reason: reason ?? null,
+        newListingLimit: newLimit,
+      })
+      .catch((err) =>
+        this.logger.warn(
+          `Failed to track ADMIN_PACKAGE_REFUND: ${(err as Error).message}`,
+        ),
+      );
+
+    this.logger.log(
+      `Refunded purchase ${purchaseId} for seller ${purchase.sellerId.toString()}`,
+    );
+
+    return (await this.packagePurchaseModel.findById(purchaseId).exec())!;
+  }
+
   async featureListing(
     listingId: string,
     sellerId: string,
@@ -835,13 +964,18 @@ export class PackagesService {
     };
   }
 
-  @Cron(CronExpression.EVERY_HOUR)
+  @Cron(CronExpression.EVERY_HOUR, { timeZone: CRON_TIMEZONE })
   async handleExpiredFeaturedAds(): Promise<number> {
+    // One clock for both queries. They used to call `new Date()` separately, so a
+    // promotion expiring between them was reported as expired and then left
+    // flagged until the next hour.
+    const now = new Date();
+
     // Find listings that are about to be unflagged so we can track expiry events
     const expiredListings = await this.listingModel
       .find({
         isFeatured: true,
-        featuredUntil: { $lte: new Date() },
+        featuredUntil: { $lte: now },
         purchaseId: { $ne: null },
       })
       .select('purchaseId sellerId categoryId')
@@ -876,7 +1010,7 @@ export class PackagesService {
     }
 
     const result = await this.listingModel.updateMany(
-      { isFeatured: true, featuredUntil: { $lte: new Date() } },
+      { isFeatured: true, featuredUntil: { $lte: now } },
       { $set: { isFeatured: false }, $unset: { featuredUntil: '' } },
     );
     return result.modifiedCount;

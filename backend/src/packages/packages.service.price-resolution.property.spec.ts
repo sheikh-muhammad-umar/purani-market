@@ -9,6 +9,7 @@
  *
  * Tag: Feature: category-package-management, Property 1: Price Resolution Correctness
  */
+import { NotificationsService } from '../notifications/notifications.service';
 import { ConfigService } from '@nestjs/config';
 import * as fc from 'fast-check';
 import { Test, TestingModule } from '@nestjs/testing';
@@ -167,6 +168,14 @@ describe('Property 1: Price Resolution Correctness', () => {
           const module: TestingModule = await Test.createTestingModule({
             providers: [
               PackagesService,
+              {
+                provide: NotificationsService,
+                useValue: {
+                  sendPurchaseRefundedNotification: jest
+                    .fn()
+                    .mockResolvedValue(true),
+                },
+              },
               {
                 provide: getModelToken(AdPackage.name),
                 useValue: mockAdPackageModel,

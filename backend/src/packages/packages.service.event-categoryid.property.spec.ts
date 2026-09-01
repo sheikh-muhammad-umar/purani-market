@@ -10,6 +10,7 @@
  *
  * Tag: Feature: category-package-management, Property 8: Event CategoryId Completeness
  */
+import { NotificationsService } from '../notifications/notifications.service';
 import * as fc from 'fast-check';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
@@ -141,6 +142,14 @@ describe('Property 8: Event CategoryId Completeness', () => {
             providers: [
               PackagesService,
               {
+                provide: NotificationsService,
+                useValue: {
+                  sendPurchaseRefundedNotification: jest
+                    .fn()
+                    .mockResolvedValue(true),
+                },
+              },
+              {
                 provide: ConfigService,
                 useValue: {
                   get: (key: string) =>
@@ -255,6 +264,14 @@ describe('Property 8: Event CategoryId Completeness', () => {
         const module: TestingModule = await Test.createTestingModule({
           providers: [
             PackagesService,
+            {
+              provide: NotificationsService,
+              useValue: {
+                sendPurchaseRefundedNotification: jest
+                  .fn()
+                  .mockResolvedValue(true),
+              },
+            },
             {
               provide: ConfigService,
               useValue: {
@@ -383,6 +400,14 @@ describe('Property 8: Event CategoryId Completeness', () => {
           const module: TestingModule = await Test.createTestingModule({
             providers: [
               PackagesService,
+              {
+                provide: NotificationsService,
+                useValue: {
+                  sendPurchaseRefundedNotification: jest
+                    .fn()
+                    .mockResolvedValue(true),
+                },
+              },
               {
                 provide: ConfigService,
                 useValue: {

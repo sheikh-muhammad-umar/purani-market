@@ -37,6 +37,28 @@ export const VIEW_DEDUP_WINDOW_SECONDS = parseInt(
 // ─── Listing Lifecycle ──────────────────────────────────────
 export const LISTING_EXPIRY_REMINDER_DAYS = [3, 1];
 export const PACKAGE_EXPIRY_REMINDER_DAYS = [3, 1];
+
+/**
+ * How long a seller has to get back within their listing limit before the excess
+ * is deactivated for them.
+ *
+ * Exists because ad slots expire under listings that are still running. Pulling
+ * ads the moment the limit drops would take a seller's shopfront down without
+ * warning; leaving them over the limit for ever makes the limit meaningless.
+ */
+/**
+ * Timezone every scheduled job runs in.
+ *
+ * Without it `@Cron` follows the server clock, so a "9am reminder" arrives at
+ * whatever 9am means on the host — and shifts if the host region changes. Sellers
+ * read these as local times, so they are pinned to the reporting timezone.
+ */
+export const CRON_TIMEZONE = process.env.CRON_TIMEZONE || 'Asia/Karachi';
+
+export const LISTING_LIMIT_GRACE_DAYS = parseInt(
+  process.env.LISTING_LIMIT_GRACE_DAYS || '7',
+  10,
+);
 export const FEATURED_EXPIRY_REMINDER_DAYS = [3, 1];
 export const STALE_PENDING_PAYMENT_HOURS = parseInt(
   process.env.STALE_PENDING_PAYMENT_HOURS || '24',

@@ -1,3 +1,4 @@
+import { PackagesService } from '../packages/packages.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { AdminController } from './admin.controller.js';
 import { AdminService } from './admin.service.js';
@@ -51,6 +52,10 @@ describe('AdminController', () => {
       providers: [
         { provide: AdminService, useValue: adminService },
         Reflector,
+        {
+          provide: PackagesService,
+          useValue: { refundPurchase: jest.fn() },
+        },
         { provide: AdminTrackerService, useValue: { track: jest.fn() } },
       ],
     }).compile();

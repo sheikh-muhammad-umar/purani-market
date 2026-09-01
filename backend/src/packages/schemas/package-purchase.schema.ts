@@ -94,6 +94,18 @@ export class PackagePurchase {
   @Prop({ type: Date, default: null })
   expiresAt?: Date;
 
+  /** When an admin refunded this purchase. */
+  @Prop({ type: Date, default: null })
+  refundedAt?: Date;
+
+  /** Why it was refunded, shown to the seller and kept for the audit trail. */
+  @Prop({ type: String, trim: true })
+  refundReason?: string;
+
+  /** Which admin issued it. */
+  @Prop({ type: Types.ObjectId, ref: 'User', default: null })
+  refundedBy?: Types.ObjectId;
+
   /** Currency code for the payment (e.g. PKR, USD). */
   @Prop({ type: String })
   currency?: string;

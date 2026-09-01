@@ -12,9 +12,11 @@ import { PaymentsModule } from '../payments/payments.module.js';
 import { UsersModule } from '../users/users.module.js';
 import { ListingsModule } from '../listings/listings.module.js';
 import { AiModule } from '../ai/ai.module.js';
+import { NotificationsModule } from '../notifications/notifications.module.js';
 
 @Module({
   imports: [
+    forwardRef(() => NotificationsModule),
     ScheduleModule.forRoot(),
     MongooseModule.forFeature([
       { name: AdPackage.name, schema: AdPackageSchema },
