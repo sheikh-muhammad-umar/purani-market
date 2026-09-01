@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { PackagesService } from './packages.service';
+import { EntitlementKind } from './entitlements';
 import { AdPackage, AdPackageType } from './schemas/ad-package.schema';
 import {
   PackagePurchase,
@@ -125,9 +126,26 @@ describe('PackagesService', () => {
           }),
           exec: jest.fn().mockResolvedValue([]),
         }),
+        // featureListing shortlists candidates before spending one.
+        select: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+        exec: jest.fn().mockResolvedValue([]),
       }),
       exec: jest.fn().mockResolvedValue([]),
     });
+
+    /** Shortlist featureListing should find, in expiry order. */
+    const stubFeaturedCandidates = (ids: Types.ObjectId[]) => {
+      mockPackagePurchaseModel.find.mockReturnValue({
+        sort: jest.fn().mockReturnValue({
+          select: jest.fn().mockReturnValue({
+            exec: jest.fn().mockResolvedValue(ids.map((_id) => ({ _id }))),
+          }),
+        }),
+      });
+    };
+    mockPackagePurchaseModel.stubFeaturedCandidates = stubFeaturedCandidates;
     mockPackagePurchaseModel.findOne = jest.fn().mockReturnValue({
       exec: jest.fn().mockResolvedValue(null),
     });
@@ -456,8 +474,9 @@ describe('PackagesService', () => {
       });
 
       expect(result.status).toBe('success');
+      // Guarded on PENDING so a replayed callback cannot activate twice.
       expect(mockPackagePurchaseModel.updateOne).toHaveBeenCalledWith(
-        { _id: purchaseId },
+        { _id: purchaseId, paymentStatus: PaymentStatus.PENDING },
         expect.objectContaining({
           $set: expect.objectContaining({
             paymentStatus: PaymentStatus.COMPLETED,
@@ -515,17 +534,220 @@ describe('PackagesService', () => {
     });
   });
 
+  describe('bundles', () => {
+    it('derives type and total quantity from an entitlement list', async () => {
+      await service.createPackage({
+        name: 'All in one',
+        duration: 30,
+        defaultPrice: 5000,
+        entitlements: [
+          { kind: EntitlementKind.AD_SLOTS, quantity: 10 },
+          { kind: EntitlementKind.FEATURED_ADS, quantity: 5 },
+          { kind: EntitlementKind.SHORTS, quantity: 3 },
+        ],
+      } as any);
+
+      expect(mockAdPackageModel).toHaveBeenCalledWith(
+        expect.objectContaining({
+          name: 'All in one',
+          type: AdPackageType.BUNDLE,
+          // Headline figure only — spending is tracked per entitlement.
+          quantity: 18,
+          entitlements: [
+            { kind: EntitlementKind.AD_SLOTS, quantity: 10 },
+            { kind: EntitlementKind.FEATURED_ADS, quantity: 5 },
+            { kind: EntitlementKind.SHORTS, quantity: 3 },
+          ],
+        }),
+      );
+    });
+
+    it('keeps the list for a shorts-only package, which has no legacy type', async () => {
+      // Regression: dropping it left `type: bundle` with an empty list, which
+      // reads as granting nothing — the package would sell and deliver zero.
+      await service.createPackage({
+        name: 'Shorts only',
+        duration: 30,
+        defaultPrice: 400,
+        entitlements: [{ kind: EntitlementKind.SHORTS, quantity: 5 }],
+      } as any);
+
+      expect(mockAdPackageModel).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: AdPackageType.BUNDLE,
+          entitlements: [{ kind: EntitlementKind.SHORTS, quantity: 5 }],
+        }),
+      );
+    });
+
+    it('stores a single entitlement as its historical type, not a bundle', async () => {
+      await service.createPackage({
+        name: 'Slots only',
+        duration: 30,
+        defaultPrice: 300,
+        entitlements: [{ kind: EntitlementKind.AD_SLOTS, quantity: 5 }],
+      } as any);
+
+      expect(mockAdPackageModel).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: AdPackageType.AD_SLOTS,
+          quantity: 5,
+          // Left empty: type + quantity already describe it, and a second copy
+          // would be one more thing to keep in step.
+          entitlements: [],
+        }),
+      );
+    });
+
+    it('sums a kind listed twice rather than tracking it twice', async () => {
+      await service.createPackage({
+        name: 'Double shorts',
+        duration: 30,
+        defaultPrice: 900,
+        entitlements: [
+          { kind: EntitlementKind.SHORTS, quantity: 3 },
+          { kind: EntitlementKind.SHORTS, quantity: 2 },
+        ],
+      } as any);
+
+      expect(mockAdPackageModel).toHaveBeenCalledWith(
+        expect.objectContaining({
+          type: AdPackageType.BUNDLE,
+          quantity: 5,
+          entitlements: [{ kind: EntitlementKind.SHORTS, quantity: 5 }],
+        }),
+      );
+    });
+
+    it('refuses a bundle expressed in the legacy type + quantity form', async () => {
+      // `bundle` says nothing about what is granted, so it would grant nothing.
+      await expect(
+        service.createPackage({
+          name: 'Broken bundle',
+          type: AdPackageType.BUNDLE,
+          duration: 30,
+          quantity: 10,
+          defaultPrice: 1000,
+        } as any),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('refuses a package that grants nothing at all', async () => {
+      await expect(
+        service.createPackage({
+          name: 'Empty',
+          duration: 30,
+          defaultPrice: 1000,
+          entitlements: [],
+        } as any),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it("credits a bundle's ad slots on activation", async () => {
+      mockPackagePurchaseModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue([
+          {
+            _id: purchaseId,
+            sellerId,
+            type: AdPackageType.BUNDLE,
+            quantity: 18,
+            remainingQuantity: 18,
+            duration: 30,
+            entitlements: [
+              { kind: EntitlementKind.AD_SLOTS, quantity: 10, remaining: 10 },
+              { kind: EntitlementKind.FEATURED_ADS, quantity: 5, remaining: 5 },
+              { kind: EntitlementKind.SHORTS, quantity: 3, remaining: 3 },
+            ],
+          },
+        ]),
+      });
+
+      const result = await service.handlePaymentCallback({
+        transactionId: 'JC-BUNDLE',
+        paymentMethod: PaymentMethod.JAZZCASH,
+        responseCode: '000',
+      });
+
+      expect(result.status).toBe('success');
+      // Only the slots are credited up front; featured ads and shorts are spent
+      // from the purchase row as they are used.
+      expect(mockUserModel.updateOne).toHaveBeenCalledWith(
+        { _id: sellerId },
+        { $inc: { listingLimit: 10 } },
+      );
+      expect(mockUserModel.updateOne).toHaveBeenCalledTimes(1);
+    });
+
+    it('does not credit a bundle that grants no slots', async () => {
+      mockPackagePurchaseModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue([
+          {
+            _id: purchaseId,
+            sellerId,
+            type: AdPackageType.BUNDLE,
+            quantity: 8,
+            remainingQuantity: 8,
+            duration: 30,
+            entitlements: [
+              { kind: EntitlementKind.FEATURED_ADS, quantity: 5, remaining: 5 },
+              { kind: EntitlementKind.SHORTS, quantity: 3, remaining: 3 },
+            ],
+          },
+        ]),
+      });
+
+      await service.handlePaymentCallback({
+        transactionId: 'JC-NOSLOTS',
+        paymentMethod: PaymentMethod.JAZZCASH,
+        responseCode: '000',
+      });
+
+      expect(mockUserModel.updateOne).not.toHaveBeenCalled();
+    });
+
+    it('ignores a replayed callback instead of granting twice', async () => {
+      mockPackagePurchaseModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue([
+          {
+            _id: purchaseId,
+            sellerId,
+            type: AdPackageType.AD_SLOTS,
+            quantity: 10,
+            remainingQuantity: 10,
+            duration: 30,
+          },
+        ]),
+      });
+      // Second delivery of the same callback: the purchase is no longer PENDING,
+      // so the guarded activation matches nothing. Gateways retry and users
+      // refresh the return URL, and this used to re-credit the slots every time.
+      mockPackagePurchaseModel.updateOne.mockResolvedValue({
+        modifiedCount: 0,
+      });
+
+      const result = await service.handlePaymentCallback({
+        transactionId: 'JC-REPLAY',
+        paymentMethod: PaymentMethod.JAZZCASH,
+        responseCode: '000',
+      });
+
+      expect(result.status).toBe('success');
+      expect(mockUserModel.updateOne).not.toHaveBeenCalled();
+    });
+  });
+
   describe('featureListing', () => {
     it('should feature a listing when seller has active featured package', async () => {
       const futureDate = new Date();
       futureDate.setDate(futureDate.getDate() + 7);
 
-      mockPackagePurchaseModel.findOne.mockReturnValue({
+      mockPackagePurchaseModel.stubFeaturedCandidates([purchaseId]);
+      mockPackagePurchaseModel.findOneAndUpdate.mockReturnValue({
         exec: jest.fn().mockResolvedValue({
           _id: purchaseId,
           sellerId,
           type: AdPackageType.FEATURED_ADS,
-          remainingQuantity: 3,
+          remainingQuantity: 2,
           expiresAt: futureDate,
         }),
       });
@@ -536,10 +758,52 @@ describe('PackagesService', () => {
       );
 
       expect(result.isFeatured).toBe(true);
-      expect(mockPackagePurchaseModel.updateOne).toHaveBeenCalledWith(
-        { _id: purchaseId },
+      // Spent conditionally rather than read-then-written, so two concurrent
+      // promotions cannot both consume the same unit.
+      expect(mockPackagePurchaseModel.findOneAndUpdate).toHaveBeenCalledWith(
+        expect.objectContaining({
+          _id: purchaseId,
+          remainingQuantity: { $gt: 0 },
+        }),
         { $inc: { remainingQuantity: -1 } },
+        { new: true },
       );
+    });
+
+    it('should spend the soonest-expiring credit first', async () => {
+      const soon = new Date(Date.now() + daysToMs(2));
+      const later = new Date(Date.now() + daysToMs(20));
+      const soonId = new Types.ObjectId();
+      const laterId = new Types.ObjectId();
+
+      const sortSpy = jest.fn().mockReturnValue({
+        select: jest.fn().mockReturnValue({
+          exec: jest
+            .fn()
+            .mockResolvedValue([{ _id: soonId }, { _id: laterId }]),
+        }),
+      });
+      mockPackagePurchaseModel.find.mockReturnValue({ sort: sortSpy });
+      mockPackagePurchaseModel.findOneAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: soonId,
+          sellerId,
+          type: AdPackageType.FEATURED_ADS,
+          remainingQuantity: 0,
+          expiresAt: soon,
+        }),
+      });
+
+      await service.featureListing(listingId.toString(), sellerId.toString());
+
+      expect(sortSpy).toHaveBeenCalledWith({ expiresAt: 1 });
+      // The nearer expiry is attempted first, so credit about to lapse is used
+      // before credit that still has weeks left.
+      expect(
+        mockPackagePurchaseModel.findOneAndUpdate.mock.calls[0][0],
+      ).toEqual(expect.objectContaining({ _id: soonId }));
+      void later;
+      void laterId;
     });
 
     it('should throw ForbiddenException if not listing owner', async () => {

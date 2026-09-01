@@ -1,6 +1,7 @@
 import { Prop, Schema, SchemaFactory } from '@nestjs/mongoose';
 import { HydratedDocument, Types } from 'mongoose';
 import { AdPackageType } from './ad-package.schema.js';
+import { EntitlementBalance, EntitlementKind } from '../entitlement.types.js';
 
 export type PackagePurchaseDocument = HydratedDocument<PackagePurchase>;
 
@@ -40,8 +41,37 @@ export class PackagePurchase {
   @Prop({ type: Number, required: true, min: 1 })
   quantity!: number;
 
+  /**
+   * Units left on a single-entitlement purchase, or `-1` once expiry has been
+   * processed.
+   *
+   * Not consulted for a bundle: those track a balance per entitlement in
+   * `entitlements`, and this holds the purchased total purely for display.
+   */
   @Prop({ type: Number, required: true, min: -1 })
   remainingQuantity!: number;
+
+  /**
+   * Per-entitlement balances, snapshotted from the package at purchase time.
+   *
+   * Empty for purchases of single-purpose packages, which keep using
+   * `quantity`/`remainingQuantity`; read both shapes through `purchaseBalances()`.
+   *
+   * Snapshotted rather than read live from the package so that editing a package
+   * later cannot change what an existing buyer is owed — the bug that made ad-slot
+   * expiry claw back the wrong number of slots.
+   */
+  @Prop({
+    type: [
+      {
+        kind: { type: String, enum: EntitlementKind, required: true },
+        quantity: { type: Number, required: true, min: 1 },
+        remaining: { type: Number, required: true, min: 0 },
+      },
+    ],
+    default: [],
+  })
+  entitlements!: EntitlementBalance[];
 
   @Prop({ type: Number, required: true, min: 1 })
   duration!: number;
@@ -102,5 +132,22 @@ PackagePurchaseSchema.index({
   sellerId: 1,
   paymentStatus: 1,
   remainingQuantity: 1,
+  expiresAt: 1,
+});
+// Spending a bundle means finding "this seller's purchases that still hold kind X".
+PackagePurchaseSchema.index({
+  sellerId: 1,
+  'entitlements.kind': 1,
+  paymentStatus: 1,
+  expiresAt: 1,
+});
+// handlePaymentCallback looks purchases up by transaction id on every callback.
+PackagePurchaseSchema.index({ paymentTransactionId: 1 });
+// featureListing filters on the legacy ads type; nothing covered it before.
+PackagePurchaseSchema.index({
+  purchaseType: 1,
+  sellerId: 1,
+  type: 1,
+  paymentStatus: 1,
   expiresAt: 1,
 });

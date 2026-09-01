@@ -193,7 +193,8 @@
               <label for="pkg-type">Type</label>
               <app-custom-select
                 [options]="typeOptions"
-                [(ngModel)]="formType"
+                [ngModel]="formType"
+                (ngModelChange)="onTypeChange($event)"
                 placeholder="Select type"
               ></app-custom-select>
             </div>
@@ -207,10 +208,53 @@
               ></app-custom-select>
             </div>
 
-            <div class="form-group">
-              <label for="pkg-qty">Quantity</label>
-              <input id="pkg-qty" type="number" [(ngModel)]="formQuantity" min="1" />
-            </div>
+            @if (isBundle) {
+              <!-- An all-in-one grants several things, so one quantity cannot
+                   describe it: each kind carries its own amount. -->
+              <div class="form-group pkg-entitlements">
+                <label>Included</label>
+                @for (row of formEntitlements; track $index) {
+                  <div class="pkg-ent-row">
+                    <app-custom-select
+                      [options]="entitlementKindOptions"
+                      [ngModel]="row.kind"
+                      (ngModelChange)="setEntitlementKind($index, $event)"
+                      placeholder="What"
+                    ></app-custom-select>
+                    <input
+                      type="number"
+                      min="1"
+                      [(ngModel)]="row.quantity"
+                      [attr.aria-label]="ENTITLEMENT_LABELS[row.kind] + ' quantity'"
+                    />
+                    <button
+                      type="button"
+                      class="pkg-ent-remove"
+                      (click)="removeEntitlement($index)"
+                      [attr.aria-label]="'Remove ' + ENTITLEMENT_LABELS[row.kind]"
+                    >
+                      <span class="material-symbols-rounded">close</span>
+                    </button>
+                  </div>
+                }
+                <div class="pkg-ent-actions">
+                  <button
+                    type="button"
+                    class="btn btn-secondary"
+                    (click)="addEntitlement()"
+                    [disabled]="availableEntitlementKinds.length === 0"
+                  >
+                    Add something
+                  </button>
+                  <span class="form-hint">{{ entitlementTotal }} units in total</span>
+                </div>
+              </div>
+            } @else {
+              <div class="form-group">
+                <label for="pkg-qty">Quantity</label>
+                <input id="pkg-qty" type="number" [(ngModel)]="formQuantity" min="1" />
+              </div>
+            }
 
             <div class="form-group">
               <label for="pkg-price">Default Price (Rs)</label>
@@ -296,10 +340,13 @@
             </div>
 
             <div class="form-actions">
+              @if (formError) {
+                <p class="form-hint pkg-form-error">{{ formError }}</p>
+              }
               <button
                 class="btn btn-primary"
                 (click)="activePanel === 'create' ? submitCreate() : submitEdit()"
-                [disabled]="saving() || !formName.trim()"
+                [disabled]="saving() || formError.length > 0"
               >
                 {{ saving() ? 'Saving...' : activePanel === 'create' ? 'Create' : 'Save Changes' }}
               </button>

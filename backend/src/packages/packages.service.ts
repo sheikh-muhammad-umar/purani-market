@@ -15,6 +15,17 @@ import {
   AdPackageType,
 } from './schemas/ad-package.schema.js';
 import {
+  EntitlementGrant,
+  EntitlementKind,
+  grants,
+  normaliseEntitlements,
+  packageEntitlements,
+  purchaseBalances,
+  remainingOf,
+  totalQuantity,
+  typeForEntitlements,
+} from './entitlements.js';
+import {
   PackagePurchase,
   PackagePurchaseDocument,
   PaymentStatus,
@@ -64,17 +75,68 @@ export class PackagesService {
       price: cp.price,
     }));
 
+    const { type, quantity, entitlements } = this.resolvePackageShape(dto);
+
     const pkg = new this.adPackageModel({
       name: dto.name,
-      type: dto.type,
+      type,
       duration: dto.duration,
-      quantity: dto.quantity,
+      quantity,
+      entitlements,
       defaultPrice: dto.defaultPrice,
       categoryPricing,
       isActive: dto.isActive ?? true,
     });
 
     return pkg.save();
+  }
+
+  /**
+   * Works out a package's stored shape from either input form.
+   *
+   * Callers may send an explicit `entitlements` list, or the original
+   * `type` + `quantity` pair. Both end up stored the same way: `type` and
+   * `quantity` stay populated so existing filters, labels and reporting keep
+   * working, and multi-entitlement packages additionally carry the list that
+   * spending is actually tracked against.
+   */
+  private resolvePackageShape(dto: {
+    type?: AdPackageType;
+    quantity?: number;
+    entitlements?: EntitlementGrant[];
+  }): {
+    type: AdPackageType;
+    quantity: number;
+    entitlements: EntitlementGrant[];
+  } {
+    if (dto.entitlements?.length) {
+      const entitlements = normaliseEntitlements(dto.entitlements);
+      if (entitlements.length === 0) {
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+      }
+      const type = typeForEntitlements(entitlements);
+      return {
+        type,
+        quantity: totalQuantity(entitlements),
+        // Dropped only when `type` alone fully describes the grant, since storing
+        // both would be a second copy to keep in step. Keyed off the resolved type
+        // rather than the list length: a shorts-only package is a single
+        // entitlement but has no legacy type of its own, so dropping its list
+        // would leave a package that grants nothing.
+        entitlements: type === AdPackageType.BUNDLE ? entitlements : [],
+      };
+    }
+
+    // Legacy form. A bundle cannot be expressed this way — it would grant nothing.
+    if (
+      !dto.type ||
+      dto.type === AdPackageType.BUNDLE ||
+      !dto.quantity ||
+      dto.quantity < 1
+    ) {
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+    return { type: dto.type, quantity: dto.quantity, entitlements: [] };
   }
 
   async updatePackage(
@@ -91,10 +153,25 @@ export class PackagesService {
     }
 
     if (dto.name !== undefined) pkg.name = dto.name;
-    if (dto.type !== undefined) pkg.type = dto.type;
     if (dto.duration !== undefined) pkg.duration = dto.duration;
-    if (dto.quantity !== undefined) pkg.quantity = dto.quantity;
     if (dto.defaultPrice !== undefined) pkg.defaultPrice = dto.defaultPrice;
+
+    // Type, quantity and entitlements describe one thing, so they are re-derived
+    // together from whichever form the caller sent rather than assigned piecemeal.
+    if (
+      dto.entitlements !== undefined ||
+      dto.type !== undefined ||
+      dto.quantity !== undefined
+    ) {
+      const shape = this.resolvePackageShape({
+        type: dto.type ?? pkg.type,
+        quantity: dto.quantity ?? pkg.quantity,
+        entitlements: dto.entitlements ?? undefined,
+      });
+      pkg.type = shape.type;
+      pkg.quantity = shape.quantity;
+      pkg.entitlements = shape.entitlements;
+    }
     if (dto.isActive !== undefined) pkg.isActive = dto.isActive;
     if (dto.categoryPricing !== undefined) {
       pkg.categoryPricing = dto.categoryPricing.map((cp) => ({
@@ -161,21 +238,21 @@ export class PackagesService {
   }> {
     const now = new Date();
 
-    // Atomic decrement — prevents concurrent over-decrement
-    const updated = await this.packagePurchaseModel
-      .findOneAndUpdate(
-        {
-          _id: new Types.ObjectId(purchaseId),
-          sellerId: new Types.ObjectId(sellerId),
-          categoryId: new Types.ObjectId(categoryId),
-          paymentStatus: PaymentStatus.COMPLETED,
-          remainingQuantity: { $gt: 0 },
-          expiresAt: { $gt: now },
-        },
-        { $inc: { remainingQuantity: -1 } },
-        { new: true },
-      )
-      .exec();
+    // Atomic decrement — prevents concurrent over-decrement.
+    //
+    // Spends the featured entitlement specifically. An ad-slots purchase has
+    // already been credited to the seller's listing limit, so letting it be
+    // "applied" to a listing spent it a second time for no benefit.
+    const updated = await this.spendEntitlement(
+      {
+        _id: new Types.ObjectId(purchaseId),
+        sellerId: new Types.ObjectId(sellerId),
+        categoryId: new Types.ObjectId(categoryId),
+        paymentStatus: PaymentStatus.COMPLETED,
+        expiresAt: { $gt: now },
+      },
+      EntitlementKind.FEATURED_ADS,
+    );
 
     if (updated) {
       const populated = await updated.populate<{
@@ -303,6 +380,13 @@ export class PackagesService {
         }
       }
       totalAmount += price;
+      // Snapshotted, not referenced: editing the package later must not change
+      // what an existing buyer is owed.
+      const granted = packageEntitlements(pkg);
+      if (granted.length === 0) {
+        throw new BadRequestException(PUBLIC_ERROR.PACKAGE_UNAVAILABLE);
+      }
+
       const purchase = new this.packagePurchaseModel({
         purchaseType: PurchaseType.ADS,
         sellerId: new Types.ObjectId(sellerId),
@@ -313,6 +397,10 @@ export class PackagesService {
         type: pkg.type,
         quantity: pkg.quantity,
         remainingQuantity: pkg.quantity,
+        entitlements:
+          granted.length > 1
+            ? granted.map((e) => ({ ...e, remaining: e.quantity }))
+            : [],
         duration: pkg.duration,
         price,
         currency: DEFAULT_CURRENCY,
@@ -378,8 +466,12 @@ export class PackagesService {
       const now = new Date();
       for (const purchase of purchases) {
         const expiresAt = new Date(now.getTime() + daysToMs(purchase.duration));
-        await this.packagePurchaseModel.updateOne(
-          { _id: purchase._id },
+
+        // Guarded on PENDING so a replayed or duplicated callback cannot activate
+        // the same purchase twice. Gateways retry, and users refresh the return
+        // URL; without this the ad-slot credit below was applied again every time.
+        const activation = await this.packagePurchaseModel.updateOne(
+          { _id: purchase._id, paymentStatus: PaymentStatus.PENDING },
           {
             $set: {
               paymentStatus: PaymentStatus.COMPLETED,
@@ -389,12 +481,14 @@ export class PackagesService {
           },
         );
 
-        if (purchase.type === AdPackageType.AD_SLOTS) {
-          await this.userModel.updateOne(
-            { _id: purchase.sellerId },
-            { $inc: { listingLimit: purchase.quantity } },
+        if (activation.modifiedCount === 0) {
+          this.logger.warn(
+            `Ignoring repeat activation of purchase ${purchase._id.toString()}`,
           );
+          continue;
         }
+
+        await this.creditEntitlements(purchase);
       }
       return { status: 'success', message: ERROR.PAYMENT_PACKAGES_ACTIVATED };
     }
@@ -407,6 +501,156 @@ export class PackagesService {
       status: 'failed',
       message: verification.reason ?? ERROR.PAYMENT_FAILED,
     };
+  }
+
+  /**
+   * Applies the up-front half of a purchase's entitlements.
+   *
+   * Ad slots are a counter on the user, so they have to be credited at activation
+   * and clawed back at expiry. Featured ads and shorts are spent from the purchase
+   * row itself, so they need nothing here.
+   *
+   * Only ever called once per purchase — see the PENDING guard in
+   * `handlePaymentCallback`.
+   */
+  private async creditEntitlements(
+    purchase: PackagePurchaseDocument,
+  ): Promise<void> {
+    // The granted quantity, not the remaining balance: nothing has been spent yet
+    // at activation, and slots are never spent from the purchase row anyway.
+    const slots = purchaseBalances(purchase).find(
+      (e) => e.kind === EntitlementKind.AD_SLOTS,
+    )?.quantity;
+
+    if (slots && slots > 0) {
+      await this.userModel.updateOne(
+        { _id: purchase.sellerId },
+        { $inc: { listingLimit: slots } },
+      );
+    }
+  }
+
+  /**
+   * Spends one unit of `kind` from a purchase, atomically.
+   *
+   * Two storage shapes have to be handled: a bundle tracks a balance per
+   * entitlement, while a single-purpose purchase uses the flat
+   * `remainingQuantity`. Both are decremented with a conditional update so
+   * concurrent requests cannot overspend — the previous read-then-write in
+   * `featureListing` allowed exactly that.
+   *
+   * Returns the updated purchase, or null when it no longer qualifies.
+   */
+  private async spendEntitlement(
+    filter: Record<string, any>,
+    kind: EntitlementKind,
+  ): Promise<PackagePurchaseDocument | null> {
+    // Single-entitlement purchase: the flat counter is the balance, and the type
+    // has to match or an ad-slots purchase could be spent as a featured ad.
+    //
+    // Tried first because the two filters are mutually exclusive — the legacy one
+    // requires an empty `entitlements`, the bundle one requires a matching element
+    // — so ordering cannot affect the outcome, only how many round trips the
+    // common case costs. Nearly every purchase on file is still the legacy shape.
+    const legacySpend = await this.packagePurchaseModel
+      .findOneAndUpdate(
+        {
+          ...filter,
+          entitlements: { $size: 0 },
+          ...this.legacyKindFilter(kind),
+          remainingQuantity: { $gt: 0 },
+        },
+        { $inc: { remainingQuantity: -1 } },
+        { new: true },
+      )
+      .exec();
+    if (legacySpend) return legacySpend;
+
+    // Bundle: the balance lives on the matching entitlement. Guarded in both the
+    // filter and the array filter, so a concurrent spend cannot take it negative.
+    return this.packagePurchaseModel
+      .findOneAndUpdate(
+        {
+          ...filter,
+          entitlements: { $elemMatch: { kind, remaining: { $gt: 0 } } },
+        },
+        { $inc: { 'entitlements.$[slot].remaining': -1 } },
+        {
+          arrayFilters: [{ 'slot.kind': kind, 'slot.remaining': { $gt: 0 } }],
+          new: true,
+        },
+      )
+      .exec();
+  }
+
+  /** How a pre-bundle purchase of this kind identifies itself. */
+  private legacyKindFilter(kind: EntitlementKind): Record<string, any> {
+    if (kind === EntitlementKind.AD_SLOTS) {
+      return { type: AdPackageType.AD_SLOTS };
+    }
+    if (kind === EntitlementKind.FEATURED_ADS) {
+      return { type: AdPackageType.FEATURED_ADS };
+    }
+    return { purchaseType: PurchaseType.SHORTS };
+  }
+
+  /**
+   * Matches purchases that can still be spent on `kind`, in either storage shape.
+   *
+   * Used to find a candidate before spending, and to report what a seller holds.
+   */
+  entitlementFilter(
+    sellerId: string,
+    kind: EntitlementKind,
+    now: Date,
+  ): Record<string, any> {
+    return {
+      sellerId: new Types.ObjectId(sellerId),
+      paymentStatus: PaymentStatus.COMPLETED,
+      expiresAt: { $gt: now },
+      $or: [
+        { entitlements: { $elemMatch: { kind, remaining: { $gt: 0 } } } },
+        {
+          entitlements: { $size: 0 },
+          remainingQuantity: { $gt: 0 },
+          ...this.legacyKindFilter(kind),
+        },
+      ],
+    };
+  }
+
+  /**
+   * What the seller currently holds, per kind.
+   *
+   * Sellers previously had no way to see this: ad slots showed up only as a bigger
+   * listing limit, and featured or shorts credit was visible solely as rows in
+   * purchase history.
+   */
+  async getEntitlementSummary(sellerId: string): Promise<
+    {
+      kind: EntitlementKind;
+      remaining: number;
+      nextExpiresAt: Date | null;
+    }[]
+  > {
+    const now = new Date();
+    const purchases = await this.packagePurchaseModel
+      .find({
+        sellerId: new Types.ObjectId(sellerId),
+        paymentStatus: PaymentStatus.COMPLETED,
+        expiresAt: { $gt: now },
+      })
+      .sort({ expiresAt: 1 })
+      .exec();
+
+    return Object.values(EntitlementKind).map((kind) => {
+      const holding = purchases.filter((p) => grants(p, kind));
+      return {
+        kind,
+        remaining: holding.reduce((sum, p) => sum + remainingOf(p, kind), 0),
+        nextExpiresAt: holding[0]?.expiresAt ?? null,
+      };
+    });
   }
 
   async featureListing(
@@ -431,25 +675,30 @@ export class PackagesService {
     }
 
     const now = new Date();
-    const activePurchase = await this.packagePurchaseModel
-      .findOne({
-        purchaseType: PurchaseType.ADS,
-        sellerId: new Types.ObjectId(sellerId),
-        type: AdPackageType.FEATURED_ADS,
-        paymentStatus: PaymentStatus.COMPLETED,
-        remainingQuantity: { $gt: 0 },
-        expiresAt: { $gt: now },
-      })
+
+    // Soonest-expiring first, so credit that is about to be lost is spent before
+    // credit that still has weeks on it. Picking an arbitrary match, as this did,
+    // could burn the long-lived one and let the other lapse unused.
+    const candidates = await this.packagePurchaseModel
+      .find(this.entitlementFilter(sellerId, EntitlementKind.FEATURED_ADS, now))
+      .sort({ expiresAt: 1 })
+      .select('_id')
       .exec();
+
+    let activePurchase: PackagePurchaseDocument | null = null;
+    for (const candidate of candidates) {
+      // Conditional spend: whichever request gets there first takes the unit, so
+      // two concurrent promotions cannot both consume the same one.
+      activePurchase = await this.spendEntitlement(
+        { _id: candidate._id },
+        EntitlementKind.FEATURED_ADS,
+      );
+      if (activePurchase) break;
+    }
 
     if (!activePurchase) {
       throw new BadRequestException(PUBLIC_ERROR.PACKAGE_UNAVAILABLE);
     }
-
-    await this.packagePurchaseModel.updateOne(
-      { _id: activePurchase._id },
-      { $inc: { remainingQuantity: -1 } },
-    );
 
     const updateFields: Record<string, any> = {
       isFeatured: true,

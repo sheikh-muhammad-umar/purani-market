@@ -188,12 +188,22 @@ describe('Property 7: Atomic Non-Negative Quantity', () => {
             ),
           ).rejects.toThrow('Payment could not be processed.');
 
-          // Verify the atomic filter always includes remainingQuantity: { $gt: 0 }
-          // which prevents decrementing below zero
+          // Every spend must be guarded against going negative. A purchase stores
+          // its balance in one of two shapes — a flat counter, or a per-entitlement
+          // one on a bundle — so the guard appears in one of two forms. Both are
+          // conditions on the update itself, which is what makes the decrement safe
+          // under concurrency.
           const calls = mockPackagePurchaseModel.findOneAndUpdate.mock.calls;
+          expect(calls.length).toBeGreaterThan(0);
           for (const call of calls) {
             const filter = call[0];
-            expect(filter.remainingQuantity).toEqual({ $gt: 0 });
+            const guardsFlatCounter =
+              JSON.stringify(filter.remainingQuantity) ===
+              JSON.stringify({ $gt: 0 });
+            const guardsEntitlement =
+              JSON.stringify(filter.entitlements?.$elemMatch?.remaining) ===
+              JSON.stringify({ $gt: 0 });
+            expect(guardsFlatCounter || guardsEntitlement).toBe(true);
           }
         },
       ),
@@ -311,7 +321,7 @@ describe('Property 7: Atomic Non-Negative Quantity', () => {
             ),
           ).rejects.toThrow('Payment could not be processed.');
 
-          // Verify the atomic filter includes remainingQuantity: { $gt: 0 }
+          // The flat-counter shape is attempted first, and it must carry the guard.
           const filterArg =
             mockPackagePurchaseModel.findOneAndUpdate.mock.calls[0][0];
           expect(filterArg.remainingQuantity).toEqual({ $gt: 0 });

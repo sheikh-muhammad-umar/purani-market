@@ -7,6 +7,7 @@ import { ListingImage, ListingStatus } from '../models/listing.model';
 import {
   AdPackage,
   PackagePurchase,
+  EntitlementGrant,
   PackageType,
   PaymentMethod,
   PaymentStatus,
@@ -174,9 +175,13 @@ export interface AdminPackagesResponse {
 
 export interface CreatePackagePayload {
   name: string;
-  type: PackageType;
+  /** Omitted for a bundle — the server derives it from `entitlements`. */
+  type?: PackageType;
   duration: number;
-  quantity: number;
+  /** Omitted for a bundle; the per-kind amounts are in `entitlements`. */
+  quantity?: number;
+  /** Send this instead of type + quantity to grant more than one thing. */
+  entitlements?: EntitlementGrant[];
   defaultPrice: number;
   categoryPricing?: { categoryId: string; price: number }[];
   isActive?: boolean;
@@ -187,6 +192,7 @@ export interface UpdatePackagePayload {
   type?: PackageType;
   duration?: number;
   quantity?: number;
+  entitlements?: EntitlementGrant[];
   defaultPrice?: number;
   categoryPricing?: { categoryId: string; price: number }[];
   isActive?: boolean;

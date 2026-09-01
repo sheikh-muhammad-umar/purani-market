@@ -14,6 +14,7 @@ import { ActivityTrackerService } from '../../../../core/services/activity-track
 import { TrackingEvent } from '../../../../core/enums/tracking-events';
 import { PackagePurchase } from '../../../../core/models';
 import { PackageType as PackageTypeEnum } from '../../../../core/constants/enums';
+import { PACKAGE_TYPE_LABELS } from '../../../../core/constants/app';
 import { ROUTES } from '../../../../core/constants/routes';
 import { EmptyStateComponent } from '../../../../shared/components/empty-state/empty-state.component';
 import { Subject, takeUntil } from 'rxjs';
@@ -159,7 +160,9 @@ export class AvailablePackagesComponent implements OnChanges, OnDestroy {
   }
 
   private getTypeLabel(type: string): string {
-    return type === PackageTypeEnum.FEATURED_ADS ? 'Featured Ads' : 'Ad Slots';
+    // Was a binary ternary, so anything other than featured ads — including an
+    // all-in-one — was labelled "Ad Slots".
+    return PACKAGE_TYPE_LABELS[type] ?? type;
   }
 
   private extractPackageName(pkg: PackagePurchase): string {

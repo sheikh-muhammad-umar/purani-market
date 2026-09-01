@@ -8,7 +8,13 @@ import { CategoriesService } from '../../../core/services/categories.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { AdPackage, PackageType, Category } from '../../../core/models';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
-import { CURRENCY_SYMBOL, PACKAGE_TYPE_LABELS } from '../../../core/constants/app';
+import {
+  CURRENCY_SYMBOL,
+  PACKAGE_TYPE_LABELS,
+  PACKAGE_TYPE_ICONS,
+  ENTITLEMENT_LABELS,
+  ENTITLEMENT_ICONS,
+} from '../../../core/constants/app';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
 import { PackageType as PackageTypeEnum, TAB, TabType } from '../../../core/constants/enums';
@@ -170,7 +176,18 @@ export class PackageListComponent implements OnInit {
   }
 
   getTypeIcon(type: PackageType): string {
-    return type === PackageTypeEnum.FEATURED_ADS ? 'star' : 'inventory_2';
+    // A map, not a ternary: the old form rendered every unrecognised type — a
+    // bundle among them — with the ad-slots icon.
+    return PACKAGE_TYPE_ICONS[type] ?? 'inventory_2';
+  }
+
+  /** What an all-in-one includes, for the card body. */
+  entitlementsOf(pkg: AdPackage): { label: string; icon: string; quantity: number }[] {
+    return (pkg.entitlements ?? []).map((e) => ({
+      label: ENTITLEMENT_LABELS[e.kind] ?? e.kind,
+      icon: ENTITLEMENT_ICONS[e.kind] ?? 'check',
+      quantity: e.quantity,
+    }));
   }
 
   getDurationLabel(duration: number): string {

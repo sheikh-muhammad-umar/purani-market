@@ -1,6 +1,7 @@
 const { MongoClient } = require('mongodb');
 
-const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/marketplace';
+const MONGO_URI =
+  process.env.MONGODB_URI || 'mongodb://localhost:27017/marketplace';
 
 const packages = [
   // Featured Ads packages
@@ -66,6 +67,40 @@ const packages = [
     duration: 30,
     quantity: 50,
     defaultPrice: 2000,
+    categoryPricing: [],
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  // All-in-one bundles. `type: 'bundle'` with an explicit entitlement list, since
+  // one `quantity` cannot describe a package that grants three different things.
+  {
+    name: 'All in One Starter',
+    type: 'bundle',
+    duration: 30,
+    quantity: 13,
+    entitlements: [
+      { kind: 'ad_slots', quantity: 10 },
+      { kind: 'featured_ads', quantity: 2 },
+      { kind: 'shorts', quantity: 1 },
+    ],
+    defaultPrice: 1800,
+    categoryPricing: [],
+    isActive: true,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+  },
+  {
+    name: 'All in One Pro',
+    type: 'bundle',
+    duration: 30,
+    quantity: 40,
+    entitlements: [
+      { kind: 'ad_slots', quantity: 25 },
+      { kind: 'featured_ads', quantity: 10 },
+      { kind: 'shorts', quantity: 5 },
+    ],
+    defaultPrice: 4500,
     categoryPricing: [],
     isActive: true,
     createdAt: new Date(),

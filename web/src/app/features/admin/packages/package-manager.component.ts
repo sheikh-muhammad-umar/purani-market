@@ -7,23 +7,25 @@ import {
   UpdatePackagePayload,
 } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
-import { AdPackage, PackageType } from '../../../core/models';
+import { AdPackage, EntitlementKind, PackageType } from '../../../core/models';
 import { Category } from '../../../core/models/category.model';
-import { PACKAGE_TYPE_OPTIONS, DURATION_OPTIONS } from '../../../core/constants/select-options';
+import {
+  PACKAGE_TYPE_OPTIONS,
+  DURATION_OPTIONS,
+  ENTITLEMENT_KIND_OPTIONS,
+} from '../../../core/constants/select-options';
+import { ENTITLEMENT_LABELS, PACKAGE_TYPE_LABELS } from '../../../core/constants/app';
 import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
-import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
+import {
+  EntitlementKind as EntitlementKindEnum,
+  PackageType as PackageTypeEnum,
+} from '../../../core/constants/enums';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { FormPanel, CategoryPricingGroup, PricingDisplayGroup } from './package-manager.interfaces';
-
-/** Display labels for package types used in template */
-const PACKAGE_TYPE_LABELS: Record<string, string> = {
-  [PackageTypeEnum.FEATURED_ADS]: 'Featured',
-  [PackageTypeEnum.AD_SLOTS]: 'Ad Slots',
-};
 
 @Component({
   selector: 'app-package-manager',
@@ -107,15 +109,87 @@ export class PackageManagerComponent implements OnInit {
   // Form fields
   formName = '';
   formType: PackageType = PackageTypeEnum.FEATURED_ADS;
-  formDuration: 7 | 15 | 30 = 7;
+  formDuration = 7;
   formQuantity = 5;
   formDefaultPrice = 500;
   formIsActive = true;
   formCategoryPricing: CategoryPricingGroup[] = [];
   pricingCatSearch: string[] = [];
 
+  /**
+   * Per-kind amounts for an all-in-one package.
+   *
+   * Only sent when the type is `bundle`; a single-purpose package keeps using the
+   * flat `formQuantity`, which is what the API has always taken.
+   */
+  formEntitlements: { kind: EntitlementKind; quantity: number }[] = [];
+
   readonly typeOptions: SelectOption[] = PACKAGE_TYPE_OPTIONS;
   readonly durationOptions: SelectOption[] = DURATION_OPTIONS;
+  readonly entitlementKindOptions: SelectOption[] = ENTITLEMENT_KIND_OPTIONS;
+  readonly ENTITLEMENT_LABELS = ENTITLEMENT_LABELS;
+
+  /** Whether the form is authoring an all-in-one package. */
+  get isBundle(): boolean {
+    return this.formType === PackageTypeEnum.BUNDLE;
+  }
+
+  /** Kinds not yet on the form, so a kind cannot be added twice. */
+  get availableEntitlementKinds(): SelectOption[] {
+    const used = new Set(this.formEntitlements.map((e) => e.kind));
+    return this.entitlementKindOptions.filter((o) => !used.has(o.value as EntitlementKind));
+  }
+
+  /** Explains why the form cannot be submitted, or '' when it can. */
+  get formError(): string {
+    if (!this.formName.trim()) return 'Give the package a name.';
+    if (this.isBundle) {
+      const rows = this.formEntitlements.filter((e) => e.quantity > 0);
+      if (rows.length === 0) {
+        return 'An all-in-one package has to include at least one thing.';
+      }
+      if (rows.length === 1) {
+        return 'Only one thing included — pick that type directly instead.';
+      }
+    } else if (this.formQuantity < 1) {
+      return 'Quantity has to be at least 1.';
+    }
+    return '';
+  }
+
+  onTypeChange(type: PackageType): void {
+    this.formType = type;
+    // Seed the rows so the operator has something to edit rather than an empty
+    // panel, and clear them again when leaving bundle mode.
+    if (type === PackageTypeEnum.BUNDLE && this.formEntitlements.length === 0) {
+      this.formEntitlements = [
+        { kind: EntitlementKindEnum.AD_SLOTS, quantity: 5 },
+        { kind: EntitlementKindEnum.FEATURED_ADS, quantity: 3 },
+      ];
+    }
+  }
+
+  addEntitlement(): void {
+    const next = this.availableEntitlementKinds[0];
+    if (!next) return;
+    this.formEntitlements = [
+      ...this.formEntitlements,
+      { kind: next.value as EntitlementKind, quantity: 1 },
+    ];
+  }
+
+  removeEntitlement(index: number): void {
+    this.formEntitlements = this.formEntitlements.filter((_, i) => i !== index);
+  }
+
+  setEntitlementKind(index: number, kind: EntitlementKind): void {
+    this.formEntitlements = this.formEntitlements.map((e, i) => (i === index ? { ...e, kind } : e));
+  }
+
+  /** Total across the rows, mirroring what the server stores as `quantity`. */
+  get entitlementTotal(): number {
+    return this.formEntitlements.reduce((sum, e) => sum + (e.quantity || 0), 0);
+  }
 
   constructor(
     private readonly adminService: AdminService,
@@ -161,6 +235,7 @@ export class PackageManagerComponent implements OnInit {
     this.formType = pkg.type;
     this.formDuration = pkg.duration;
     this.formQuantity = pkg.quantity;
+    this.formEntitlements = (pkg.entitlements ?? []).map((e) => ({ ...e }));
     this.formDefaultPrice = pkg.defaultPrice;
     this.formIsActive = pkg.isActive;
     this.formCategoryPricing = pkg.categoryPricing
@@ -176,14 +251,13 @@ export class PackageManagerComponent implements OnInit {
   }
 
   submitCreate(): void {
-    if (!this.formName.trim()) return;
+    if (this.formError) return;
     const payload: CreatePackagePayload = {
       name: this.formName.trim(),
-      type: this.formType,
       duration: this.formDuration,
-      quantity: this.formQuantity,
       defaultPrice: this.formDefaultPrice,
       isActive: this.formIsActive,
+      ...this.entitlementPayload(),
     };
     if (this.formCategoryPricing.length > 0) {
       payload.categoryPricing = this.flattenCategoryPricing(this.formCategoryPricing);
@@ -203,15 +277,14 @@ export class PackageManagerComponent implements OnInit {
   }
 
   submitEdit(): void {
-    if (!this.editingPackage || !this.formName.trim()) return;
+    if (!this.editingPackage || this.formError) return;
     const payload: UpdatePackagePayload = {
       name: this.formName.trim(),
-      type: this.formType,
       duration: this.formDuration,
-      quantity: this.formQuantity,
       defaultPrice: this.formDefaultPrice,
       isActive: this.formIsActive,
       categoryPricing: this.flattenCategoryPricing(this.formCategoryPricing),
+      ...this.entitlementPayload(),
     };
     this.saving.set(true);
     this.adminService.updatePackage(this.editingPackage._id, payload).subscribe({
@@ -343,6 +416,23 @@ export class PackageManagerComponent implements OnInit {
     return Array.from(groups.entries()).map(([price, categoryIds]) => ({ categoryIds, price }));
   }
 
+  /**
+   * The half of the payload describing what the package grants.
+   *
+   * A bundle sends `entitlements` and lets the server derive `type` and
+   * `quantity`; anything else keeps sending the pair the API has always taken.
+   */
+  private entitlementPayload(): Partial<CreatePackagePayload> {
+    if (this.isBundle) {
+      return {
+        entitlements: this.formEntitlements
+          .filter((e) => e.quantity > 0)
+          .map((e) => ({ kind: e.kind, quantity: Number(e.quantity) })),
+      };
+    }
+    return { type: this.formType, quantity: this.formQuantity };
+  }
+
   private resetForm(): void {
     this.editingPackage = null;
     this.formName = '';
@@ -352,6 +442,7 @@ export class PackageManagerComponent implements OnInit {
     this.formDefaultPrice = 500;
     this.formIsActive = true;
     this.formCategoryPricing = [];
+    this.formEntitlements = [];
     this.pricingCatSearch = [];
   }
 }

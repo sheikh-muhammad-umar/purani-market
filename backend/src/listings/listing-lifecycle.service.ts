@@ -18,6 +18,7 @@ import {
   AdPackageDocument,
   AdPackageType,
 } from '../packages/schemas/ad-package.schema.js';
+import { EntitlementKind, purchaseBalances } from '../packages/entitlements.js';
 import {
   Favorite,
   FavoriteDocument,
@@ -337,10 +338,19 @@ export class ListingLifecycleService {
     // After processing, we mark them with remainingQuantity = -1 to prevent re-processing.
     const expiredPurchases = await this.packagePurchaseModel
       .find({
-        type: AdPackageType.AD_SLOTS,
         paymentStatus: PaymentStatus.COMPLETED,
         expiresAt: { $lte: now },
         remainingQuantity: { $gte: 0 }, // not yet processed
+        // A bundle carries its slots as an entitlement rather than in `type`, so
+        // matching on the type alone would leave bundle slots credited forever.
+        $or: [
+          { type: AdPackageType.AD_SLOTS },
+          {
+            entitlements: {
+              $elemMatch: { kind: EntitlementKind.AD_SLOTS },
+            },
+          },
+        ],
       })
       .populate('packageId', 'name quantity')
       .exec();
@@ -349,7 +359,20 @@ export class ListingLifecycleService {
 
     for (const purchase of expiredPurchases) {
       const pkg = purchase.packageId as unknown as AdPackageDocument;
-      const slotsToRemove = pkg?.quantity ?? purchase.quantity;
+
+      // Read from the purchase's own snapshot, never the live package. Reading
+      // `pkg.quantity` meant an admin editing a package's quantity retroactively
+      // changed how many slots were clawed back from people who bought the old one.
+      const slotsToRemove = purchaseBalances(purchase).find(
+        (e) => e.kind === EntitlementKind.AD_SLOTS,
+      )?.quantity;
+
+      if (!slotsToRemove || slotsToRemove <= 0) {
+        await this.packagePurchaseModel
+          .updateOne({ _id: purchase._id }, { $set: { remainingQuantity: -1 } })
+          .exec();
+        continue;
+      }
 
       // Reduce seller's listingLimit (floor at default 10)
       const seller = await this.userModel

@@ -32,6 +32,15 @@ export enum ListingStatus {
 export enum PackageType {
   FEATURED_ADS = 'featured_ads',
   AD_SLOTS = 'ad_slots',
+  /** Grants several kinds at once; see the package's `entitlements`. */
+  BUNDLE = 'bundle',
+}
+
+/** What a package grants, one kind per entry. */
+export enum EntitlementKind {
+  AD_SLOTS = 'ad_slots',
+  FEATURED_ADS = 'featured_ads',
+  SHORTS = 'shorts',
 }
 
 export enum PaymentMethod {

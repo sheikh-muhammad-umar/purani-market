@@ -2,6 +2,7 @@ import {
   UserRole,
   UserStatus,
   ListingCondition,
+  EntitlementKind,
   PackageType,
   PaymentMethod,
   PaymentStatus,
@@ -52,6 +53,14 @@ export const CONDITION_FILTER_OPTIONS: SelectOption[] = [
 export const PACKAGE_TYPE_OPTIONS: SelectOption[] = [
   { value: PackageType.FEATURED_ADS, label: 'Featured Ads' },
   { value: PackageType.AD_SLOTS, label: 'Ad Slots' },
+  { value: PackageType.BUNDLE, label: 'All in One' },
+];
+
+/** The individual things a package can grant, for authoring an all-in-one. */
+export const ENTITLEMENT_KIND_OPTIONS: SelectOption[] = [
+  { value: EntitlementKind.AD_SLOTS, label: 'Ad slots' },
+  { value: EntitlementKind.FEATURED_ADS, label: 'Featured ads' },
+  { value: EntitlementKind.SHORTS, label: 'Shorts' },
 ];
 
 export const PACKAGE_TYPE_FILTER_OPTIONS: SelectOption[] = [

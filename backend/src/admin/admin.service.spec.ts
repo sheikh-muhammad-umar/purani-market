@@ -19,6 +19,7 @@ import { NotificationsService } from '../notifications/notifications.service.js'
 import { SearchSyncService } from '../search/search-sync.service.js';
 import { ConfigService } from '@nestjs/config';
 import { Types } from 'mongoose';
+import { EntitlementKind } from '../packages/entitlements';
 
 describe('AdminService', () => {
   let service: AdminService;
@@ -1061,8 +1062,29 @@ describe('AdminService', () => {
           listingLimit: 10,
         }),
       });
-      packagePurchaseModel.aggregate.mockReturnValue({
-        exec: jest.fn().mockResolvedValue([{ totalSlots: 15 }]),
+      // Slots are credited to listingLimit and never spent from the purchase row,
+      // so the figure is the granted quantity of each unexpired slots purchase —
+      // here a legacy slots package plus a bundle that includes slots.
+      packagePurchaseModel.find.mockReturnValue({
+        exec: jest.fn().mockResolvedValue([
+          {
+            purchaseType: 'ads',
+            type: AdPackageType.AD_SLOTS,
+            quantity: 10,
+            remainingQuantity: 10,
+            entitlements: [],
+          },
+          {
+            purchaseType: 'ads',
+            type: AdPackageType.BUNDLE,
+            quantity: 8,
+            remainingQuantity: 8,
+            entitlements: [
+              { kind: EntitlementKind.AD_SLOTS, quantity: 5, remaining: 5 },
+              { kind: EntitlementKind.SHORTS, quantity: 3, remaining: 1 },
+            ],
+          },
+        ]),
       });
 
       const result = await service.getSellerAdInfo(sellerId.toString());
@@ -1071,6 +1093,8 @@ describe('AdminService', () => {
       expect(result.activeListingCount).toBe(7);
       expect(result.listingLimit).toBe(10);
       expect(result.remainingFreeSlots).toBe(3);
+      // 10 from the slots package + 5 from the bundle. The bundle's shorts are not
+      // slots and must not be counted.
       expect(result.activePackageSlots).toBe(15);
     });
 
@@ -1083,7 +1107,7 @@ describe('AdminService', () => {
           listingLimit: 10,
         }),
       });
-      packagePurchaseModel.aggregate.mockReturnValue({
+      packagePurchaseModel.find.mockReturnValue({
         exec: jest.fn().mockResolvedValue([]),
       });
 

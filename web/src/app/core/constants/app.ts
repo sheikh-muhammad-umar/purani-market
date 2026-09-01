@@ -46,6 +46,30 @@ export const VERIFIED_SELLER_TOOLTIP = 'Seller has verified email, phone, and ID
 export const PACKAGE_TYPE_LABELS: Record<string, string> = {
   featured_ads: 'Featured Ads',
   ad_slots: 'Ad Slots',
+  bundle: 'All in One',
+};
+
+/**
+ * Icon per package type. A map rather than the ternaries this replaced, which
+ * silently rendered any unrecognised type as "Ad Slots".
+ */
+export const PACKAGE_TYPE_ICONS: Record<string, string> = {
+  featured_ads: 'star',
+  ad_slots: 'inventory_2',
+  bundle: 'workspace_premium',
+};
+
+/** Labels for the individual things a package grants. */
+export const ENTITLEMENT_LABELS: Record<string, string> = {
+  ad_slots: 'Ad slots',
+  featured_ads: 'Featured ads',
+  shorts: 'Shorts',
+};
+
+export const ENTITLEMENT_ICONS: Record<string, string> = {
+  ad_slots: 'inventory_2',
+  featured_ads: 'star',
+  shorts: 'play_circle',
 };
 
 /** Payment method display config */

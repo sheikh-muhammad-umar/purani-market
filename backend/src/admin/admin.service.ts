@@ -39,6 +39,7 @@ import { ListUsersQueryDto } from './dto/list-users-query.dto.js';
 import { ListPurchasesQueryDto } from './dto/list-purchases-query.dto.js';
 import { ListPaymentsQueryDto } from './dto/list-payments-query.dto.js';
 import { AdPackageType } from '../packages/schemas/ad-package.schema.js';
+import { EntitlementKind, purchaseBalances } from '../packages/entitlements.js';
 import {
   UserActivity,
   UserActivityDocument,
@@ -1368,27 +1369,35 @@ export class AdminService {
     }
 
     const now = new Date();
-    const activePackages = await this.packagePurchaseModel
-      .aggregate([
-        {
-          $match: {
-            sellerId: new Types.ObjectId(sellerId),
-            type: AdPackageType.AD_SLOTS,
-            paymentStatus: PaymentStatus.COMPLETED,
-            expiresAt: { $gt: now },
-            remainingQuantity: { $gt: 0 },
-          },
-        },
-        {
-          $group: {
-            _id: null,
-            totalSlots: { $sum: '$remainingQuantity' },
-          },
-        },
-      ])
+
+    // Ad slots are credited to `listingLimit` at activation and never spent from
+    // the purchase row, so summing `remainingQuantity` reported the total ever
+    // bought and called it "remaining". What this figure is for is how many slots
+    // the seller's current limit owes to packages, which is the granted quantity of
+    // every unexpired slots purchase — bundles included, and those carry it as an
+    // entitlement rather than in `type`.
+    const slotPurchases = await this.packagePurchaseModel
+      .find({
+        sellerId: new Types.ObjectId(sellerId),
+        paymentStatus: PaymentStatus.COMPLETED,
+        expiresAt: { $gt: now },
+        // -1 marks a purchase whose expiry has already been reversed out.
+        remainingQuantity: { $gte: 0 },
+        $or: [
+          { type: AdPackageType.AD_SLOTS },
+          { entitlements: { $elemMatch: { kind: EntitlementKind.AD_SLOTS } } },
+        ],
+      })
       .exec();
 
-    const activePackageSlots = activePackages[0]?.totalSlots || 0;
+    const activePackageSlots = slotPurchases.reduce(
+      (sum, purchase) =>
+        sum +
+        (purchaseBalances(purchase).find(
+          (e) => e.kind === EntitlementKind.AD_SLOTS,
+        )?.quantity ?? 0),
+      0,
+    );
     const remainingFreeSlots = Math.max(
       0,
       user.listingLimit - user.activeListingCount,

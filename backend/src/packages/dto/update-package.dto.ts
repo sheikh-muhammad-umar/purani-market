@@ -13,6 +13,7 @@ import { Type } from 'class-transformer';
 import { AdPackageType } from '../schemas/ad-package.schema.js';
 import {
   CategoryPricingDto,
+  EntitlementDto,
   IsAllowedDurationConstraint,
 } from './create-package.dto.js';
 
@@ -34,6 +35,16 @@ export class UpdatePackageDto {
   @IsNumber()
   @Min(1)
   quantity?: number;
+
+  /**
+   * Replaces the entitlement list outright; `type` and `quantity` are re-derived
+   * from it. Send `[]` to fall back to the legacy `type` + `quantity` form.
+   */
+  @IsOptional()
+  @IsArray()
+  @ValidateNested({ each: true })
+  @Type(() => EntitlementDto)
+  entitlements?: EntitlementDto[];
 
   @IsOptional()
   @IsNumber()

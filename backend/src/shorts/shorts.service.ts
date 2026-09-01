@@ -50,6 +50,7 @@ import {
 } from '../common/constants/app.constants.js';
 import { ERROR } from '../common/constants/error-messages.js';
 import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
+import { EntitlementKind, remainingOf } from '../packages/entitlements.js';
 import { daysToMs, daysFromNow, startOfMonth } from '../common/utils/time.js';
 
 @Injectable()
@@ -170,12 +171,47 @@ export class ShortsService {
 
     await short.save();
 
-    // Decrement purchase remaining quantity if paid
+    // Spend the short that was reserved by the check above.
+    //
+    // Conditional on there still being one left, so two uploads racing through
+    // the (slow) video-processing window cannot both take the last unit. A bundle
+    // keeps its balance per entitlement, hence the two shapes.
     if (purchase) {
-      await this.shortsPurchaseModel.updateOne(
-        { _id: purchase._id },
-        { $inc: { remainingQuantity: -1 } },
-      );
+      const spentFlat = await this.shortsPurchaseModel
+        .updateOne(
+          {
+            _id: purchase._id,
+            entitlements: { $size: 0 },
+            remainingQuantity: { $gt: 0 },
+          },
+          { $inc: { remainingQuantity: -1 } },
+        )
+        .exec();
+
+      if (spentFlat.modifiedCount === 0) {
+        await this.shortsPurchaseModel
+          .updateOne(
+            {
+              _id: purchase._id,
+              entitlements: {
+                $elemMatch: {
+                  kind: EntitlementKind.SHORTS,
+                  remaining: { $gt: 0 },
+                },
+              },
+            },
+            { $inc: { 'entitlements.$[slot].remaining': -1 } },
+            {
+              arrayFilters: [
+                {
+                  'slot.kind': EntitlementKind.SHORTS,
+                  'slot.remaining': { $gt: 0 },
+                },
+              ],
+            },
+          )
+          .exec();
+      }
     }
 
     // Track event
@@ -893,7 +929,10 @@ export class ShortsService {
       if (purchase.paymentStatus !== PaymentStatus.COMPLETED) {
         return { canPost: false, reason: ERROR.PACKAGE_PAYMENT_NOT_COMPLETED };
       }
-      if (purchase.remainingQuantity <= 0) {
+      // Reads the balance through the shared helper so a bundle — which tracks
+      // shorts as one entitlement among several — counts just like a shorts-only
+      // package. Checking `remainingQuantity` alone ignored bundles entirely.
+      if (remainingOf(purchase, EntitlementKind.SHORTS) <= 0) {
         return {
           canPost: false,
           reason: ERROR.SHORT_PACKAGE_FULLY_USED,
