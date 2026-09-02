@@ -193,6 +193,7 @@ export const API = {
   SHORTS_PACKAGES_AVAILABLE: '/shorts/packages/available',
   SHORTS_PACKAGES_PURCHASE: '/shorts/packages/purchase',
   SHORTS_PACKAGES_MY_PURCHASES: '/shorts/packages/my-purchases',
+  SHORTS_PACKAGES_USABLE: '/shorts/packages/usable',
   SHORTS_ADMIN_LIST: '/shorts/admin/list',
   SHORTS_ADMIN_APPROVE: (id: string) => `/shorts/admin/${id}/approve`,
   SHORTS_ADMIN_REJECT: (id: string) => `/shorts/admin/${id}/reject`,

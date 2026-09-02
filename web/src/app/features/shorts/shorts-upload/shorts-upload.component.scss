@@ -413,6 +413,11 @@
   font-size: var(--text-sm, 13px);
   color: var(--text-muted);
 }
+.allowance-note {
+  margin: var(--space-2, 12px) 0 0;
+  font-size: var(--text-sm, 13px);
+  color: var(--text-muted);
+}
 .package-hint a {
   color: var(--primary);
   font-weight: 500;

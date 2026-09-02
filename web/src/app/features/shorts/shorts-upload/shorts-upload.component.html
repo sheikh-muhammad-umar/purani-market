@@ -16,8 +16,9 @@
     />
   </div>
 
-  <!-- Limit Exceeded Banner -->
-  @if (stats()?.freeRemainingThisMonth === 0) {
+  <!-- Limit Exceeded Banner. Only when there is genuinely no way to post: a
+       seller holding paid credit should not be told to buy a package. -->
+  @if (stats() && !canPostSomehow()) {
     <div class="limit-banner">
       <p>
         You've used all {{ FREE_SHORTS_PER_MONTH }} free shorts this month. Purchase a package to
@@ -40,6 +41,12 @@
         <span class="stat-value">{{ stats()!.freeRemainingThisMonth }}</span>
         <span class="stat-label">Remaining This Month</span>
       </div>
+      @if (hasUsablePackage()) {
+        <div class="stat">
+          <span class="stat-value">{{ paidRemaining() }}</span>
+          <span class="stat-label">Package Credit</span>
+        </div>
+      }
       <div class="stat">
         <span class="stat-value">{{ stats()!.activeShorts }}</span>
         <span class="stat-label">Active</span>
@@ -312,6 +319,34 @@
     </div>
   </div>
 
+  <!-- Upload allowance -->
+  @if (hasUsablePackage()) {
+    <div class="upload-card">
+      <h2 class="card-title">Upload Allowance</h2>
+      <p class="card-desc">
+        Choose what to use for this short. Package uploads stay live longer than free ones.
+      </p>
+      <div class="form-group">
+        <label>Use</label>
+        <app-custom-select
+          [options]="packageOptions()"
+          [ngModel]="selectedPurchaseId()"
+          (ngModelChange)="onPackageSelected($event)"
+        ></app-custom-select>
+      </div>
+      @if (selectedPackage()) {
+        <p class="allowance-note">
+          Stays live for {{ selectedPackage()!.durationDays }} day(s).
+          {{ selectedPackage()!.remaining }} upload(s) left on this package.
+        </p>
+      } @else {
+        <p class="allowance-note">
+          Using your free monthly allowance. {{ freeRemaining() }} left this month.
+        </p>
+      }
+    </div>
+  }
+
   <!-- Submit -->
   <div class="submit-section">
     <button class="btn-submit" [disabled]="!canSubmit()" (click)="uploadShort()">
@@ -321,7 +356,7 @@
         Upload Short
       }
     </button>
-    @if (stats()?.freeRemainingThisMonth === 0) {
+    @if (stats() && !canPostSomehow()) {
       <p class="package-hint">
         No free shorts remaining this month.
         <a [routerLink]="ROUTES.PACKAGES" [queryParams]="{ tab: 'shorts' }">Purchase a package</a>

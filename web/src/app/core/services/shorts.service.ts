@@ -87,6 +87,22 @@ export interface ShortsPackagePurchase {
   createdAt: string;
 }
 
+/**
+ * Credit that can be spent on a short right now.
+ *
+ * Distinct from `ShortsPackagePurchase`, which is a history row that includes
+ * spent and expired purchases. The balance here is per kind, so the shorts
+ * allowance inside an all-in-one bundle reports correctly instead of as the
+ * bundle's combined total across every kind.
+ */
+export interface UsableShortsPackage {
+  purchaseId: string;
+  packageName: string;
+  remaining: number;
+  expiresAt: string | null;
+  durationDays: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class ShortsService {
   constructor(private readonly api: ApiService) {}
@@ -165,6 +181,15 @@ export class ShortsService {
 
   getMyPurchases(): Observable<ShortsPackagePurchase[]> {
     return this.api.get<ShortsPackagePurchase[]>(API.SHORTS_PACKAGES_MY_PURCHASES);
+  }
+
+  /**
+   * Packages the seller can spend on the short they are about to upload,
+   * soonest-expiring first. Bundles are included, since their shorts allowance is
+   * spendable too.
+   */
+  getUsableShortsPackages(): Observable<UsableShortsPackage[]> {
+    return this.api.get<UsableShortsPackage[]>(API.SHORTS_PACKAGES_USABLE);
   }
 
   // Admin

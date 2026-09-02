@@ -3,7 +3,11 @@ import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Router, RouterLink } from '@angular/router';
 import { NumberToWordsPipe } from '../../../shared/pipes/number-to-words.pipe';
-import { ShortsService, ShortsStats } from '../../../core/services/shorts.service';
+import {
+  ShortsService,
+  ShortsStats,
+  UsableShortsPackage,
+} from '../../../core/services/shorts.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { LocationService } from '../../../core/services/location.service';
 import { ListingsService } from '../../../core/services/listings.service';
@@ -51,6 +55,49 @@ export class ShortsUploadComponent {
   readonly videoPreviewUrl = signal<string>('');
   readonly videoDuration = signal(0);
   readonly stats = signal<ShortsStats | null>(null);
+
+  // Paid shorts credit. Without this the upload could only ever use the free
+  // monthly allowance, so a purchased package delivered nothing.
+  readonly usablePackages = signal<UsableShortsPackage[]>([]);
+  /** Empty string means "use the free monthly allowance". */
+  readonly selectedPurchaseId = signal<string>('');
+
+  readonly freeRemaining = computed(() => this.stats()?.freeRemainingThisMonth ?? 0);
+  readonly hasUsablePackage = computed(() => this.usablePackages().length > 0);
+  readonly paidRemaining = computed(() =>
+    this.usablePackages().reduce((sum, p) => sum + p.remaining, 0),
+  );
+
+  /**
+   * Free allowance first when there is any, then each package. Labelled with the
+   * balance and expiry so the choice is informed rather than a bare id.
+   */
+  readonly packageOptions = computed<SelectOption[]>(() => {
+    const options: SelectOption[] = [];
+    if (this.freeRemaining() > 0) {
+      options.push({
+        value: '',
+        label: `Free allowance (${this.freeRemaining()} left this month)`,
+      });
+    }
+    for (const pkg of this.usablePackages()) {
+      const expiry = pkg.expiresAt
+        ? ` · expires ${new Date(pkg.expiresAt).toLocaleDateString()}`
+        : '';
+      options.push({
+        value: pkg.purchaseId,
+        label: `${pkg.packageName} — ${pkg.remaining} left${expiry}`,
+      });
+    }
+    return options;
+  });
+
+  readonly selectedPackage = computed(() =>
+    this.usablePackages().find((p) => p.purchaseId === this.selectedPurchaseId()),
+  );
+
+  /** Whether there is any way to post at all — free allowance or paid credit. */
+  readonly canPostSomehow = computed(() => this.freeRemaining() > 0 || this.hasUsablePackage());
   readonly categories = signal<Category[]>([]);
   readonly provinces = signal<Province[]>([]);
   readonly cities = signal<City[]>([]);
@@ -148,6 +195,7 @@ export class ShortsUploadComponent {
     private readonly tracker: ActivityTrackerService,
   ) {
     this.loadStats();
+    this.loadUsablePackages();
     this.loadCategories();
     this.loadProvinces();
     this.loadMyListings();
@@ -155,8 +203,42 @@ export class ShortsUploadComponent {
 
   private loadStats(): void {
     this.shortsService.getMyStats().subscribe({
-      next: (stats) => this.stats.set(stats),
+      next: (stats) => {
+        this.stats.set(stats);
+        this.applyDefaultPackageSelection();
+      },
     });
+  }
+
+  private loadUsablePackages(): void {
+    this.shortsService.getUsableShortsPackages().subscribe({
+      next: (packages) => {
+        this.usablePackages.set(packages);
+        this.applyDefaultPackageSelection();
+      },
+      // A failure here must not block the free path, so it is left silent.
+      error: () => this.usablePackages.set([]),
+    });
+  }
+
+  /**
+   * Spends the free allowance while it lasts, then falls back to paid credit.
+   *
+   * Called from both loaders because either may land first, and the default
+   * depends on knowing the free balance and the package list together. Only ever
+   * sets the default — a choice the seller has already made is left alone.
+   */
+  private applyDefaultPackageSelection(): void {
+    if (this.selectedPurchaseId()) return;
+    if (this.freeRemaining() > 0) return;
+    // Soonest-expiring first, as ordered by the API, so credit closest to being
+    // lost is the one offered.
+    const first = this.usablePackages()[0];
+    if (first) this.selectedPurchaseId.set(first.purchaseId);
+  }
+
+  onPackageSelected(purchaseId: string): void {
+    this.selectedPurchaseId.set(purchaseId);
   }
 
   private loadCategories(): void {
@@ -354,7 +436,6 @@ export class ShortsUploadComponent {
   }
 
   canSubmit(): boolean {
-    const hasMonthlyQuota = (this.stats()?.freeRemainingThisMonth ?? 0) > 0;
     return !!(
       this.videoFile() &&
       !this.uploading() &&
@@ -364,7 +445,9 @@ export class ShortsUploadComponent {
       this.price >= 0 &&
       this.selectedCategoryId &&
       this.selectedCityId() &&
-      hasMonthlyQuota &&
+      // Gated on the free allowance alone before, which disabled the button for
+      // anyone who had run it out — including sellers holding a paid package.
+      this.canPostSomehow() &&
       !(this.videoDuration() > 60 && this.trimEnd - this.trimStart > 60)
     );
   }
@@ -373,8 +456,7 @@ export class ShortsUploadComponent {
     const file = this.videoFile();
     if (!file) return;
 
-    const remaining = this.stats()?.freeRemainingThisMonth ?? 0;
-    if (remaining <= 0) {
+    if (!this.canPostSomehow()) {
       this.tracker.track(TrackingEvent.SHORT_LIMIT_REACHED, {});
       this.error.set(
         `You've used all ${FREE_SHORTS_PER_MONTH} free shorts this month. Purchase a package to upload more.`,
@@ -382,9 +464,19 @@ export class ShortsUploadComponent {
       return;
     }
 
+    // Falls back to the free allowance when no package is picked, and to a package
+    // when the free allowance is gone.
+    const paidPackage = this.selectedPackage();
+    const freeRemaining = this.freeRemaining();
+    const message = paidPackage
+      ? `Upload this short using "${paidPackage.packageName}"? ` +
+        `${paidPackage.remaining} upload${paidPackage.remaining > 1 ? 's' : ''} left on it, ` +
+        `and this short stays live for ${paidPackage.durationDays} day(s).`
+      : `Upload this short? You have ${freeRemaining} free upload${freeRemaining > 1 ? 's' : ''} remaining this month.`;
+
     const confirmed = await this.confirmModal.confirm({
       title: 'Upload Short',
-      message: `Upload this short? You have ${remaining} free upload${remaining > 1 ? 's' : ''} remaining this month.`,
+      message,
       confirmText: 'Upload',
       cancelText: 'Cancel',
       variant: 'info',
@@ -432,12 +524,18 @@ export class ShortsUploadComponent {
     if (this.selectedListingId) {
       formData.append('linkedListingId', this.selectedListingId);
     }
+    // Without this the backend always took the free monthly path, so purchased
+    // packages were never spent and never usable.
+    if (paidPackage) {
+      formData.append('purchaseId', paidPackage.purchaseId);
+    }
 
     this.tracker.track(TrackingEvent.SHORT_UPLOAD_START, {
       metadata: {
         hasPrice: !!this.price,
         hasListing: !!this.selectedListingId,
         categoryId: this.selectedCategoryId,
+        isPaid: !!paidPackage,
       },
     });
 
