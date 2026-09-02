@@ -9,6 +9,17 @@ export enum PaymentMethod {
   JAZZCASH = 'jazzcash',
   EASYPAISA = 'easypaisa',
   CARD = 'card',
+  /**
+   * Paid outside the app and confirmed by an admin. There is no gateway to
+   * verify against, so the admin is the verification.
+   *
+   * Shorts packages have always been sold this way and the client has always
+   * sent it, but it was missing from this enum — which mongoose enforces, so
+   * every shorts package purchase failed validation and no one could buy one.
+   * `PaymentsService.getGateway` has no entry for it and answers with a plain
+   * "unsupported payment method", so it cannot be used to fake a gateway payment.
+   */
+  MANUAL = 'manual',
 }
 
 export enum PaymentStatus {
