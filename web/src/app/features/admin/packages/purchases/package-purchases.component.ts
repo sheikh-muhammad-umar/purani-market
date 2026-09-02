@@ -49,6 +49,8 @@ export class PackagePurchasesComponent implements OnInit {
 
   /** Purchase awaiting refund confirmation; null when the modal is closed. */
   readonly refundTarget = signal<PackagePurchase | null>(null);
+  /** Purchase whose manual payment is being confirmed right now. */
+  readonly confirmingId = signal<string | null>(null);
   readonly refundLoading = signal(false);
   readonly refundError = signal<string | null>(null);
   refundReason = '';
@@ -146,6 +148,41 @@ export class PackagePurchasesComponent implements OnInit {
   /** Only a completed purchase can be withdrawn; the rest never took money. */
   canRefund(purchase: PackagePurchase): boolean {
     return purchase.paymentStatus === PaymentStatusEnum.COMPLETED;
+  }
+
+  /**
+   * Shorts packages are paid outside the app and wait on an admin. Nothing in the
+   * panel could confirm one, so a seller's payment sat pending for ever and the
+   * package they bought never activated.
+   */
+  canConfirm(purchase: PackagePurchase): boolean {
+    return (
+      purchase.purchaseType === 'shorts' && purchase.paymentStatus === PaymentStatusEnum.PENDING
+    );
+  }
+
+  confirmPayment(purchase: PackagePurchase): void {
+    if (this.confirmingId()) return;
+    this.confirmingId.set(purchase._id);
+
+    this.adminService.confirmManualPurchase(purchase._id).subscribe({
+      next: () => {
+        // Patched in place so filters and page position survive. The backend
+        // stamps the real expiry; this only reflects the state change.
+        this.purchases.update((list) =>
+          list.map((p) =>
+            p._id === purchase._id
+              ? { ...p, paymentStatus: PaymentStatusEnum.COMPLETED as PaymentStatus }
+              : p,
+          ),
+        );
+        this.confirmingId.set(null);
+      },
+      error: () => {
+        this.error.set(ERROR_MSG.PURCHASE_CONFIRM_FAILED);
+        this.confirmingId.set(null);
+      },
+    });
   }
 
   openRefundModal(purchase: PackagePurchase): void {

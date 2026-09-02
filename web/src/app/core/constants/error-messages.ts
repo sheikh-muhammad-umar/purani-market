@@ -34,6 +34,7 @@ export const ERROR_MSG = {
   PACKAGE_UPDATE_FAILED: 'Failed to update package.',
   PURCHASES_LOAD_FAILED: 'Failed to load purchases.',
   PURCHASE_REFUND_FAILED: 'Failed to refund this purchase. Please try again.',
+  PURCHASE_CONFIRM_FAILED: 'Failed to confirm this payment. It may already have been confirmed.',
 
   // ─── Reviews ───────────────────────────────────────────
   REVIEWS_LOAD_FAILED: 'Failed to load reviews. Please try again.',

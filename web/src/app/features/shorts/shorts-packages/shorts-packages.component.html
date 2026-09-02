@@ -55,13 +55,22 @@
           </div>
           <div class="purchase-meta">
             <span>{{ CURRENCY_SYMBOL }} {{ purchase.price }}</span>
-            <span [class.expired]="isExpired(purchase.expiresAt)">
-              {{
-                isExpired(purchase.expiresAt)
-                  ? 'Expired'
-                  : 'Expires: ' + formatDate(purchase.expiresAt!)
-              }}
-            </span>
+            <!-- A package has no expiry until an admin confirms the payment: the
+                 duration starts then, so the seller gets the full window. Reading
+                 the date unconditionally rendered "Expires: Invalid Date". -->
+            @if (isAwaitingConfirmation(purchase)) {
+              <span class="awaiting">Awaiting payment confirmation</span>
+            } @else if (!purchase.expiresAt) {
+              <span class="awaiting">{{ purchase.paymentStatus }}</span>
+            } @else {
+              <span [class.expired]="isExpired(purchase.expiresAt)">
+                {{
+                  isExpired(purchase.expiresAt)
+                    ? 'Expired'
+                    : 'Expires: ' + formatDate(purchase.expiresAt)
+                }}
+              </span>
+            }
           </div>
         </div>
       }

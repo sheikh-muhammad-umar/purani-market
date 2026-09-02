@@ -47,6 +47,8 @@ export enum PaymentMethod {
   JAZZCASH = 'jazzcash',
   EASYPAISA = 'easypaisa',
   CARD = 'card',
+  /** Paid outside the app; an admin confirms it. Used by shorts packages. */
+  MANUAL = 'manual',
 }
 
 export enum PaymentStatus {

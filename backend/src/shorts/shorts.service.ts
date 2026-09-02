@@ -869,12 +869,20 @@ export class ShortsService {
     return purchase;
   }
 
+  /**
+   * Purchase history for the packages screen.
+   *
+   * Completed purchases are not the whole story: these are paid outside the app
+   * and wait on an admin, and filtering to COMPLETED meant a seller who had just
+   * paid saw nothing at all — the package they bought simply did not appear until
+   * someone confirmed it. Every status is returned so the screen can show where
+   * each one stands.
+   */
   async getMyPurchases(sellerId: string): Promise<PackagePurchaseDocument[]> {
     return this.shortsPurchaseModel
       .find({
         purchaseType: PurchaseType.SHORTS,
         sellerId: new Types.ObjectId(sellerId),
-        paymentStatus: PaymentStatus.COMPLETED,
       })
       .populate('packageId', 'name')
       .sort({ createdAt: -1 })

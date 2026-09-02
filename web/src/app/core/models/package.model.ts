@@ -40,6 +40,8 @@ export interface PackagePurchase {
   _id: string;
   sellerId: string;
   packageId: string;
+  /** Which side of the shared collection this row belongs to. */
+  purchaseType?: 'ads' | 'shorts';
   categoryId?: string;
   type: PackageType;
   quantity: number;

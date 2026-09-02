@@ -10,6 +10,7 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ROUTES } from '../../../core/constants/routes';
 import { CURRENCY_SYMBOL } from '../../../core/constants/app';
+import { PaymentStatus } from '../../../core/constants/enums';
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { ToastService } from '../../../core/services/toast.service';
 
@@ -76,6 +77,11 @@ export class ShortsPackagesComponent implements OnInit {
   isExpired(expiresAt?: string): boolean {
     if (!expiresAt) return false;
     return new Date(expiresAt).getTime() < Date.now();
+  }
+
+  /** Paid, waiting on an admin to confirm it. */
+  isAwaitingConfirmation(purchase: ShortsPackagePurchase): boolean {
+    return purchase.paymentStatus === PaymentStatus.PENDING;
   }
 
   formatDate(date: string): string {

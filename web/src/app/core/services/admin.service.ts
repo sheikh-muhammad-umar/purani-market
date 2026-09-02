@@ -552,6 +552,19 @@ export class AdminService {
   }
 
   /**
+   * Activates a shorts package that was paid outside the app.
+   *
+   * There is no gateway to verify against, so confirming here *is* the
+   * verification. The duration starts now, not at purchase.
+   */
+  confirmManualPurchase(purchaseId: string): Observable<{ message: string }> {
+    return this.http.patch<{ message: string }>(
+      `${this.baseUrl}${API.SHORTS_ADMIN_PURCHASES_CONFIRM(purchaseId)}`,
+      {},
+    );
+  }
+
+  /**
    * Withdraws a completed purchase: unspent credit is zeroed and the seller is
    * notified. The money itself is moved in the payment gateway's own portal, so
    * this records the decision rather than transferring anything.

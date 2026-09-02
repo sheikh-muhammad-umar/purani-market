@@ -143,6 +143,10 @@ h2 {
 .expired {
   color: #dc2626;
 }
+.awaiting {
+  color: #b45309;
+  text-transform: capitalize;
+}
 .loading {
   text-align: center;
   padding: 20px;

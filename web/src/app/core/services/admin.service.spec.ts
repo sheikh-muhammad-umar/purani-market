@@ -254,6 +254,17 @@ describe('AdminService', () => {
     expect(httpMock.get).toHaveBeenCalled();
   });
 
+  it('should PATCH a manual purchase confirmation', () => {
+    // Shorts packages are paid outside the app; nothing in the panel could
+    // confirm one, so a seller's payment sat pending for ever.
+    httpMock.patch.mockReturnValue(of({ message: 'Payment confirmed' }));
+    service.confirmManualPurchase('pur1').subscribe();
+    expect(httpMock.patch).toHaveBeenCalledWith(
+      expect.stringContaining('/shorts/admin/purchases/pur1/confirm'),
+      {},
+    );
+  });
+
   it('should POST a refund with the reason when one is given', () => {
     httpMock.post.mockReturnValue(of({}));
     service.refundPurchase('pur1', 'Duplicate charge').subscribe();
