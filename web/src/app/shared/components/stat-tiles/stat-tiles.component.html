@@ -1,0 +1,13 @@
+<ul class="stat-tiles" [class.compact]="compact()" [attr.aria-label]="ariaLabel()">
+  @for (tile of tiles(); track tile.label) {
+    <li class="stat-tile" [class.emphasis]="tile.emphasis" [attr.title]="tile.hint || null">
+      <span class="material-symbols-rounded stat-icon" aria-hidden="true">{{ tile.icon }}</span>
+      <span class="stat-body">
+        <!-- Value before label in the DOM so a screen reader reads "12 leads",
+             which is the order it is spoken naturally. -->
+        <span class="stat-value">{{ tile.value | number }}</span>
+        <span class="stat-label">{{ tile.label }}</span>
+      </span>
+    </li>
+  }
+</ul>

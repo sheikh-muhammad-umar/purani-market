@@ -159,9 +159,7 @@ export const API = {
   // ID Verification
   ID_VERIFICATION_SUBMIT: '/id-verification/submit',
   ID_VERIFICATION_MY_STATUS: '/id-verification/my-status',
-  ID_VERIFICATION_ADMIN_PENDING: '/id-verification/admin/pending',
   ID_VERIFICATION_ADMIN_ALL: '/id-verification/admin/all',
-  ID_VERIFICATION_ADMIN_DETAIL: (id: string) => `/id-verification/admin/${id}`,
   ID_VERIFICATION_ADMIN_REVIEW: (id: string) => `/id-verification/admin/${id}/review`,
   // SEO
   SEO_LISTING: (id: string) => `/seo/listing/${id}`,
@@ -189,11 +187,16 @@ export const API = {
   SHORTS_CREATE: '/shorts',
   SHORT_DELETE: (id: string) => `/shorts/${id}`,
   SHORT_LIKE: (id: string) => `/shorts/${id}/like`,
+  SHORT_SHARE: (id: string) => `/shorts/${id}/share`,
   SHORT_UPDATE: (id: string) => `/shorts/${id}`,
   SHORTS_PACKAGES_AVAILABLE: '/shorts/packages/available',
   SHORTS_PACKAGES_PURCHASE: '/shorts/packages/purchase',
   SHORTS_PACKAGES_MY_PURCHASES: '/shorts/packages/my-purchases',
   SHORTS_PACKAGES_USABLE: '/shorts/packages/usable',
+
+  // Seller engagement (own items only)
+  ENGAGEMENT_LISTINGS: '/engagement/listings',
+  ENGAGEMENT_SHORTS: '/engagement/shorts',
   SHORTS_ADMIN_LIST: '/shorts/admin/list',
   SHORTS_ADMIN_APPROVE: (id: string) => `/shorts/admin/${id}/approve`,
   SHORTS_ADMIN_REJECT: (id: string) => `/shorts/admin/${id}/reject`,
@@ -201,6 +204,7 @@ export const API = {
   SHORTS_ADMIN_PACKAGES: '/shorts/admin/packages',
   SHORTS_ADMIN_PACKAGES_CREATE: '/shorts/admin/packages',
   SHORTS_ADMIN_PACKAGES_UPDATE: (id: string) => `/shorts/admin/packages/${id}`,
+  SHORTS_ADMIN_PURCHASES: '/shorts/admin/purchases',
   SHORTS_ADMIN_PURCHASES_CONFIRM: (id: string) => `/shorts/admin/purchases/${id}/confirm`,
   SHORTS_ADMIN_ANALYTICS: '/shorts/admin/analytics',
   // Advertising — public delivery

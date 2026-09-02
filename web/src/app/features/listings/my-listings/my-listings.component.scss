@@ -545,6 +545,12 @@
   white-space: nowrap;
 }
 
+/* Holds the shared tiles. Given a floor so the six figures sit on one line on a
+   desktop table, and left free to wrap below that. */
+.engagement-cell {
+  min-width: 300px;
+}
+
 .date-cell {
   font-size: var(--text-sm);
   color: var(--text-secondary);

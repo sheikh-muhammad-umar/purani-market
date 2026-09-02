@@ -11,6 +11,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { ActivatedRoute } from '@angular/router';
 import { Listing, User, PackagePurchase } from '../../../core/models';
 import { daysToMs } from '../../../core/utils/time';
+import { EngagementService } from '../../../core/services/engagement.service';
 
 function makeListing(overrides: Partial<Listing> = {}): Listing {
   return {
@@ -109,6 +110,7 @@ describe('MyListingsComponent', () => {
   let confirmModalMock: { confirmPackageWarning: ReturnType<typeof vi.fn> };
   let toastMock: { success: ReturnType<typeof vi.fn>; error: ReturnType<typeof vi.fn> };
   let routeMock: { snapshot: { queryParams: Record<string, string> } };
+  let engagementService: Record<string, ReturnType<typeof vi.fn>>;
 
   const mockListings: Listing[] = [
     makeListing({ _id: 'l1', title: 'Car', viewCount: 100, favoriteCount: 20, status: 'active' }),
@@ -160,6 +162,29 @@ describe('MyListingsComponent', () => {
 
     routeMock = { snapshot: { queryParams: {} } };
 
+    // Engagement is fetched once for the whole account and looked up by id.
+    engagementService = {
+      getListingEngagement: vi.fn().mockReturnValue(
+        of(
+          new Map([
+            [
+              '1',
+              {
+                itemId: '1',
+                views: 100,
+                likes: 20,
+                chats: 4,
+                calls: 6,
+                whatsapp: 2,
+                leads: 7,
+              },
+            ],
+          ]),
+        ),
+      ),
+      getShortsEngagement: vi.fn().mockReturnValue(of(new Map())),
+    };
+
     component = new MyListingsComponent(
       listingsService as unknown as ListingsService,
       shortsService as unknown as ShortsService,
@@ -169,6 +194,7 @@ describe('MyListingsComponent', () => {
       confirmModalMock as unknown as ConfirmModalService,
       toastMock as unknown as ToastService,
       routeMock as unknown as ActivatedRoute,
+      engagementService as unknown as EngagementService,
       'browser',
     );
     component.ngOnInit();
@@ -185,15 +211,39 @@ describe('MyListingsComponent', () => {
     expect(component.loading()).toBe(false);
   });
 
-  it('should compute analytics cards', () => {
+  it('should total engagement across the whole account, leads first', () => {
     const cards = component.analytics();
-    expect(cards.length).toBe(3);
-    expect(cards[0].label).toBe('Total Views');
-    expect(cards[0].value).toBe(350); // 100 + 50 + 200
-    expect(cards[1].label).toBe('Total Favorites');
-    expect(cards[1].value).toBe(60); // 20 + 10 + 30
-    expect(cards[2].label).toBe('Active Listings');
-    expect(cards[2].value).toBe(2); // Car + Featured Laptop
+
+    // Summed from the engagement response rather than the loaded page: the old
+    // cards added up whichever rows were on screen and called it a total.
+    expect(cards[0].label).toBe('Leads');
+    expect(cards[0].value).toBe(7);
+    expect(cards[0].emphasis).toBe(true);
+    expect(cards.map((c) => c.label)).toEqual([
+      'Leads',
+      'Views',
+      'Likes',
+      'Chats',
+      'Calls',
+      'Active Listings',
+    ]);
+    expect(cards[1].value).toBe(100);
+    expect(cards[3].value).toBe(4);
+    expect(cards[5].value).toBe(2); // Car + Featured Laptop
+  });
+
+  it('should show zeroes for a listing with no engagement yet', () => {
+    // Absent from the map rather than present with zeroes, which is what the API
+    // returns for an item nobody has touched.
+    const tiles = component.listingTiles('does-not-exist');
+    expect(tiles.every((tile) => tile.value === 0)).toBe(true);
+  });
+
+  it('should expose per-listing figures for the table', () => {
+    const tiles = component.listingTiles('1');
+    expect(tiles.find((t) => t.label === 'Leads')?.value).toBe(7);
+    expect(tiles.find((t) => t.label === 'Calls')?.value).toBe(6);
+    expect(tiles.find((t) => t.label === 'WhatsApp')?.value).toBe(2);
   });
 
   it('should compute ad slots meter from user data', () => {

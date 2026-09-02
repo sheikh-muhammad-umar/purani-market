@@ -35,18 +35,8 @@
     </div>
 
     @if (mainTab() === TAB.ADS) {
-      <!-- Analytics Cards -->
-      <div class="analytics-row">
-        @for (card of analytics(); track card.label) {
-          <div class="analytics-card card">
-            <span class="analytics-icon material-symbols-rounded">{{ card.icon }}</span>
-            <div class="analytics-data">
-              <span class="analytics-value">{{ card.value | number }}</span>
-              <span class="analytics-label">{{ card.label }}</span>
-            </div>
-          </div>
-        }
-      </div>
+      <!-- Totals across every listing, not just the page on screen -->
+      <app-stat-tiles [tiles]="analytics()" ariaLabel="Totals across your listings" />
 
       <!-- Meters Row -->
       <div class="meters-row">
@@ -112,8 +102,7 @@
               <tr>
                 <th>Listing</th>
                 <th>Status</th>
-                <th>Views</th>
-                <th>Favorites</th>
+                <th>Engagement</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
@@ -135,8 +124,9 @@
                     </div>
                   </td>
                   <td><app-skeleton variant="block" width="60px" height="1em" /></td>
-                  <td><app-skeleton variant="block" width="40px" height="1em" /></td>
-                  <td><app-skeleton variant="block" width="30px" height="1em" /></td>
+                  <!-- One cell now holds all the engagement figures, so the
+                       placeholder is a block rather than two narrow ones. -->
+                  <td><app-skeleton variant="block" width="220px" height="2em" /></td>
                   <td><app-skeleton variant="block" width="80px" height="1em" /></td>
                   <td><app-skeleton variant="block" width="100px" height="1em" /></td>
                 </tr>
@@ -159,8 +149,7 @@
               <tr>
                 <th>Listing</th>
                 <th>Status</th>
-                <th>Views</th>
-                <th>Favorites</th>
+                <th>Engagement</th>
                 <th>Created</th>
                 <th>Actions</th>
               </tr>
@@ -196,8 +185,13 @@
                       >
                     }
                   </td>
-                  <td class="stat-cell">{{ listing.viewCount | number }}</td>
-                  <td class="stat-cell">{{ listing.favoriteCount | number }}</td>
+                  <td class="engagement-cell">
+                    <app-stat-tiles
+                      [tiles]="listingTiles(listing._id)"
+                      [compact]="true"
+                      [ariaLabel]="'Engagement for ' + listing.title"
+                    />
+                  </td>
                   <td class="date-cell">{{ listing.createdAt | date: 'MMM d, y' }}</td>
                   <td class="actions-cell">
                     @if (actionLoading() === listing._id) {
@@ -359,16 +353,15 @@
               <div class="short-details">
                 <p class="short-title">{{ short.title || short.description || 'Short video' }}</p>
                 <div class="short-meta">
-                  <span
-                    ><span class="material-symbols-rounded inline-icon-sm">visibility</span>
-                    {{ short.viewCount }}</span
-                  >
-                  <span
-                    ><span class="material-symbols-rounded inline-icon-sm">favorite</span>
-                    {{ short.favoriteCount }}</span
-                  >
                   <span>{{ short.createdAt | date: 'MMM d, y' }}</span>
                 </div>
+                <!-- Same figures and same order as a listing, so the two tabs
+                     read alike. -->
+                <app-stat-tiles
+                  [tiles]="shortTiles(short._id)"
+                  [compact]="true"
+                  [ariaLabel]="'Engagement for this short'"
+                />
                 @if (short.price) {
                   <span class="short-price-tag"
                     >{{ short.currency || CURRENCY_SYMBOL }} {{ short.price | number }}</span

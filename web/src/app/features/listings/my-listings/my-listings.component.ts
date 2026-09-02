@@ -29,12 +29,15 @@ import { AppLoaderComponent } from '../../../shared/components/app-loader/app-lo
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
-
-interface AnalyticsCard {
-  label: string;
-  value: number;
-  icon: string;
-}
+import {
+  StatTilesComponent,
+  StatTile,
+} from '../../../shared/components/stat-tiles/stat-tiles.component';
+import {
+  EngagementService,
+  ItemEngagement,
+  EMPTY_ENGAGEMENT,
+} from '../../../core/services/engagement.service';
 
 interface FeaturedAdInfo {
   listingId: string;
@@ -55,6 +58,7 @@ interface FeaturedAdInfo {
     EmptyStateComponent,
     PaginationComponent,
     SkeletonComponent,
+    StatTilesComponent,
   ],
   templateUrl: './my-listings.component.html',
   styleUrls: ['./my-listings.component.scss'],
@@ -79,26 +83,70 @@ export class MyListingsComponent implements OnInit {
   confirmDeleteId = signal<string | null>(null);
   actionLoading = signal<string | null>(null);
 
-  analytics = computed<AnalyticsCard[]>(() => {
-    const items = this.listings();
+  /** Per-listing engagement, keyed by listing id. */
+  readonly listingEngagement = signal<Map<string, ItemEngagement>>(new Map());
+  /** Per-short engagement, keyed by short id. */
+  readonly shortsEngagement = signal<Map<string, ItemEngagement>>(new Map());
+
+  /**
+   * Headline figures across every listing the seller has.
+   *
+   * Summed from the engagement response rather than from the loaded page, so the
+   * totals cover the whole account. The old cards added up `viewCount` on
+   * whichever twenty rows happened to be on screen and called it "Total Views".
+   */
+  readonly analytics = computed<StatTile[]>(() => {
+    const rows = [...this.listingEngagement().values()];
+    const sum = (pick: (row: ItemEngagement) => number) =>
+      rows.reduce((total, row) => total + pick(row), 0);
+
     return [
       {
-        label: 'Total Views',
-        value: items.reduce((s, l) => s + (l.viewCount || 0), 0),
-        icon: 'visibility',
+        label: 'Leads',
+        value: sum((r) => r.leads),
+        icon: 'person_check',
+        hint: 'People who contacted you about a listing, counted once each however many times they got in touch.',
+        emphasis: true,
       },
-      {
-        label: 'Total Favorites',
-        value: items.reduce((s, l) => s + (l.favoriteCount || 0), 0),
-        icon: 'favorite',
-      },
+      { label: 'Views', value: sum((r) => r.views), icon: 'visibility' },
+      { label: 'Likes', value: sum((r) => r.likes), icon: 'favorite' },
+      { label: 'Chats', value: sum((r) => r.chats), icon: 'chat' },
+      { label: 'Calls', value: sum((r) => r.calls), icon: 'call' },
       {
         label: 'Active Listings',
-        value: items.filter((l) => l.status === ListingStatus.ACTIVE).length,
+        value: this.listings().filter((l) => l.status === ListingStatus.ACTIVE).length,
         icon: 'inventory_2',
       },
     ];
   });
+
+  /** The five figures for one listing, for the table's engagement cell. */
+  listingTiles(listingId: string): StatTile[] {
+    return this.itemTiles(this.listingEngagement().get(listingId));
+  }
+
+  /** The same for one short. */
+  shortTiles(shortId: string): StatTile[] {
+    return this.itemTiles(this.shortsEngagement().get(shortId));
+  }
+
+  private itemTiles(engagement?: ItemEngagement): StatTile[] {
+    const stats = engagement ?? EMPTY_ENGAGEMENT;
+    return [
+      {
+        label: 'Leads',
+        value: stats.leads,
+        icon: 'person_check',
+        hint: 'Distinct people who tried to reach you about this item.',
+        emphasis: true,
+      },
+      { label: 'Views', value: stats.views, icon: 'visibility' },
+      { label: 'Likes', value: stats.likes, icon: 'favorite' },
+      { label: 'Chats', value: stats.chats, icon: 'chat' },
+      { label: 'Calls', value: stats.calls, icon: 'call' },
+      { label: 'WhatsApp', value: stats.whatsapp, icon: 'sms' },
+    ];
+  }
 
   freeSlotLimit = computed(() => this.user()?.listingLimit ?? 10);
   activeListingCount = computed(() => this.user()?.activeListingCount ?? 0);
@@ -157,6 +205,7 @@ export class MyListingsComponent implements OnInit {
     private readonly confirmModal: ConfirmModalService,
     private readonly toast: ToastService,
     private readonly route: ActivatedRoute,
+    private readonly engagementService: EngagementService,
     @Inject(PLATFORM_ID) platformId: object,
   ) {
     this.isBrowser = isPlatformBrowser(platformId);
@@ -175,8 +224,23 @@ export class MyListingsComponent implements OnInit {
 
   loadAll(): void {
     this.loadListings();
+    this.loadListingEngagement();
     this.loadUser();
     this.loadPurchases();
+  }
+
+  /**
+   * Engagement for every listing, fetched once rather than per page.
+   *
+   * Kept separate from `loadListings` so paging the table does not refetch it,
+   * and so a failure here leaves the table itself working — the numbers are
+   * useful, not load-bearing.
+   */
+  private loadListingEngagement(): void {
+    this.engagementService.getListingEngagement().subscribe({
+      next: (byId) => this.listingEngagement.set(byId),
+      error: () => this.listingEngagement.set(new Map()),
+    });
   }
 
   loadListings(): void {
@@ -385,6 +449,10 @@ export class MyListingsComponent implements OnInit {
     });
     this.shortsService.getMyStats().subscribe({
       next: (stats) => this.shortsStats.set(stats),
+    });
+    this.engagementService.getShortsEngagement().subscribe({
+      next: (byId) => this.shortsEngagement.set(byId),
+      error: () => this.shortsEngagement.set(new Map()),
     });
   }
 
