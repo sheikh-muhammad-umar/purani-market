@@ -63,6 +63,7 @@ export class RecommendationService implements OnModuleDestroy {
     action: UserAction,
     data: {
       productListingId?: string;
+      shortVideoId?: string;
       searchQuery?: string;
       categoryId?: string;
       metadata?: Record<string, any>;
@@ -78,6 +79,10 @@ export class RecommendationService implements OnModuleDestroy {
       productListingId: data.productListingId
         ? new Types.ObjectId(data.productListingId)
         : undefined,
+      shortVideoId:
+        data.shortVideoId && Types.ObjectId.isValid(data.shortVideoId)
+          ? new Types.ObjectId(data.shortVideoId)
+          : undefined,
       searchQuery: data.searchQuery,
       categoryId: data.categoryId
         ? new Types.ObjectId(data.categoryId)

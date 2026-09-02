@@ -18,6 +18,11 @@ export class TrackActivityDto {
   @IsString()
   productListingId?: string;
 
+  /** Which short the event was about, for the short_* actions. */
+  @IsOptional()
+  @IsString()
+  shortVideoId?: string;
+
   @IsOptional()
   @IsString()
   searchQuery?: string;

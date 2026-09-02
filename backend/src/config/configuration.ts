@@ -90,7 +90,7 @@ export default () => ({
       10,
     ),
     viewDedupWindowSeconds: parseInt(
-      process.env.VIEW_DEDUP_WINDOW_SECONDS || '1800',
+      process.env.VIEW_DEDUP_WINDOW_SECONDS || '3600',
       10,
     ),
     inactiveConversationRetentionDays: parseInt(

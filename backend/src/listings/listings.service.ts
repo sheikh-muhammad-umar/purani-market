@@ -10,14 +10,9 @@ import {
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
-import { InjectRedis } from '@nestjs-modules/ioredis';
-import Redis from 'ioredis';
-import { createHash } from 'crypto';
-import { clientContext } from '../common/utils/request-context.js';
+import { ViewCounterService } from '../views/view-counter.service.js';
 import {
   DEFAULT_CURRENCY,
-  VIEW_DEDUP_PREFIX,
-  VIEW_DEDUP_WINDOW_SECONDS,
   SEO_SELLER_FALLBACK_NAME,
 } from '../common/constants/index.js';
 import { ERROR } from '../common/constants/error-messages.js';
@@ -100,7 +95,7 @@ export class ListingsService {
     @InjectModel(Message.name)
     private readonly messageModel: Model<MessageDocument>,
     private readonly searchSyncService: SearchSyncService,
-    @InjectRedis() private readonly redis: Redis,
+    private readonly viewCounter: ViewCounterService,
     private readonly brandsService: BrandsService,
     private readonly vehicleBrandService: VehicleBrandService,
     private readonly vehicleModelService: VehicleModelService,
@@ -267,8 +262,6 @@ export class ListingsService {
     return listing;
   }
 
-  private static readonly VIEW_WINDOW_SECONDS = VIEW_DEDUP_WINDOW_SECONDS; // 30 minutes
-
   async findByIdAndIncrementViews(
     id: string,
     requesterId?: string,
@@ -301,49 +294,24 @@ export class ListingsService {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
-    // Increment views only for active listings, deduplicated per visitor
+    // Views count for active listings only, and never the seller's or an
+    // admin's own. The window rule itself lives in ViewCounterService so shorts
+    // apply exactly the same one.
     if (listing.status === ListingStatus.ACTIVE && !isOwner && !isAdmin) {
-      const visitorId = this.getVisitorId(requesterId, req);
-      const viewKey = `${VIEW_DEDUP_PREFIX}:${id}:${visitorId}`;
+      const counts = await this.viewCounter.shouldCountView('listing', id, {
+        userId: requesterId,
+        req,
+      });
 
-      try {
-        // SET NX = only set if key doesn't exist, EX = expire after window
-        const isNew = await this.redis.set(
-          viewKey,
-          '1',
-          'EX',
-          ListingsService.VIEW_WINDOW_SECONDS,
-          'NX',
-        );
-
-        if (isNew) {
-          await this.listingModel
-            .updateOne({ _id: listing._id }, { $inc: { viewCount: 1 } })
-            .exec();
-          listing.viewCount += 1;
-        }
-      } catch (err) {
-        // Redis failure shouldn't break the page — fall through without incrementing
-        this.logger.warn(
-          `View dedup failed for ${id}: ${(err as Error).message}`,
-        );
+      if (counts) {
+        await this.listingModel
+          .updateOne({ _id: listing._id }, { $inc: { viewCount: 1 } })
+          .exec();
+        listing.viewCount += 1;
       }
     }
 
     return listing;
-  }
-
-  private getVisitorId(userId?: string, req?: any): string {
-    // Logged-in user: use their ID
-    if (userId) return `u:${userId}`;
-
-    // Anonymous: hash IP + user-agent for a fingerprint
-    const { ip = 'unknown', userAgent: ua = 'unknown' } = clientContext(req);
-    const hash = createHash('sha256')
-      .update(`${ip}:${ua}`)
-      .digest('hex')
-      .slice(0, 16);
-    return `a:${hash}`;
   }
 
   async update(

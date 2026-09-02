@@ -73,6 +73,7 @@ export class AiController {
 
     await this.recommendationService.trackActivity(userId, dto.action, {
       productListingId: dto.productListingId,
+      shortVideoId: dto.shortVideoId,
       searchQuery: dto.searchQuery,
       categoryId: dto.categoryId,
       metadata: enrichedMetadata,

@@ -30,9 +30,11 @@ import {
   Favorite,
   FavoriteSchema,
 } from '../favorites/schemas/favorite.schema.js';
+import { ViewCounterModule } from '../views/view-counter.module.js';
 
 @Module({
   imports: [
+    ViewCounterModule,
     ScheduleModule.forRoot(),
     MongooseModule.forFeature([
       { name: ProductListing.name, schema: ProductListingSchema },

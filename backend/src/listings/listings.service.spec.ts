@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { getRedisConnectionToken } from '@nestjs-modules/ioredis';
+import { ViewCounterService } from '../views/view-counter.service';
 import {
   NotFoundException,
   BadRequestException,
@@ -32,6 +33,7 @@ describe('ListingsService', () => {
   let mockUserModel: any;
   let mockCategoryModel: any;
   let mockRedis: Record<string, jest.Mock>;
+  let mockViewCounter: { shouldCountView: jest.Mock };
   let mockSearchSync: { indexListing: jest.Mock; removeListing: jest.Mock };
 
   const listingId = new Types.ObjectId();
@@ -207,6 +209,12 @@ describe('ListingsService', () => {
       del: jest.fn().mockResolvedValue(1),
     };
 
+    // The window rule itself lives in ViewCounterService and is covered by its
+    // own spec; here we only care that this service honours the verdict.
+    mockViewCounter = {
+      shouldCountView: jest.fn().mockResolvedValue(true),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         ListingsService,
@@ -220,6 +228,7 @@ describe('ListingsService', () => {
         { provide: getModelToken('Message'), useValue: {} },
         { provide: SearchSyncService, useValue: mockSearchSync },
         { provide: getRedisConnectionToken(), useValue: mockRedis },
+        { provide: ViewCounterService, useValue: mockViewCounter },
         {
           provide: BrandsService,
           useValue: { findById: jest.fn() },
@@ -370,7 +379,7 @@ describe('ListingsService', () => {
       mockListingModel.updateOne = jest.fn().mockReturnValue({
         exec: jest.fn().mockResolvedValue({ modifiedCount: 1 }),
       });
-      mockRedis.set.mockResolvedValue('OK'); // NX succeeds = new view
+      mockViewCounter.shouldCountView.mockResolvedValue(true);
 
       const result = await service.findByIdAndIncrementViews(
         listingId.toString(),
@@ -379,12 +388,10 @@ describe('ListingsService', () => {
         mockReq,
       );
 
-      expect(mockRedis.set).toHaveBeenCalledWith(
-        expect.stringContaining(`view:${listingId.toString()}:`),
-        '1',
-        'EX',
-        1800,
-        'NX',
+      expect(mockViewCounter.shouldCountView).toHaveBeenCalledWith(
+        'listing',
+        listingId.toString(),
+        { userId: undefined, req: mockReq },
       );
       expect(mockListingModel.updateOne).toHaveBeenCalledWith(
         { _id: listingId },
@@ -393,7 +400,7 @@ describe('ListingsService', () => {
       expect(result.viewCount).toBe(1);
     });
 
-    it('should NOT increment viewCount on repeat view within window', async () => {
+    it('should NOT increment viewCount on repeat view within the hour', async () => {
       mockListingModel.findById.mockReturnValue({
         populate: jest.fn().mockReturnValue({
           exec: jest.fn().mockResolvedValue({ ...mockListing }),
@@ -403,7 +410,7 @@ describe('ListingsService', () => {
       mockListingModel.updateOne = jest.fn().mockReturnValue({
         exec: jest.fn().mockResolvedValue({ modifiedCount: 1 }),
       });
-      mockRedis.set.mockResolvedValue(null); // NX fails = already viewed
+      mockViewCounter.shouldCountView.mockResolvedValue(false);
 
       const result = await service.findByIdAndIncrementViews(
         listingId.toString(),
@@ -432,7 +439,9 @@ describe('ListingsService', () => {
         mockReq,
       );
 
-      expect(mockRedis.set).not.toHaveBeenCalled();
+      // Not even asked: the owner is excluded before the window is consulted, so
+      // a seller checking their own ad does not burn their hour.
+      expect(mockViewCounter.shouldCountView).not.toHaveBeenCalled();
       expect(mockListingModel.updateOne).not.toHaveBeenCalled();
     });
 

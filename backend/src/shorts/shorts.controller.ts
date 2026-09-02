@@ -10,6 +10,7 @@ import {
   UseGuards,
   UseInterceptors,
   UploadedFile,
+  Req,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ShortsService } from './shorts.service.js';
@@ -102,10 +103,15 @@ export class ShortsController {
   @UseGuards(OptionalJwtAuthGuard)
   async getShortById(
     @Param('id') id: string,
+    @Req() req: unknown,
     @CurrentUser('sub') userId?: string,
   ) {
     const short = await this.shortsService.getShortById(id);
-    this.shortsService.incrementViewCount(id);
+    // Fire-and-forget: a view is not worth delaying the response for, and a
+    // failure to count one must not fail the request.
+    void this.shortsService
+      .registerView(id, { userId, req })
+      .catch(() => undefined);
     const liked = userId
       ? await this.shortsService.isLikedByUser(id, userId)
       : false;

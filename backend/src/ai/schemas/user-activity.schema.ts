@@ -19,6 +19,18 @@ export class UserActivity {
   @Prop({ type: Types.ObjectId, ref: 'ProductListing' })
   productListingId?: Types.ObjectId;
 
+  /**
+   * Which short the event was about.
+   *
+   * A first-class field rather than `metadata.shortId`, which is where the
+   * short_* actions used to put it. Metadata is an unindexed Map, so counting a
+   * single short's chat or call clicks meant scanning the whole collection —
+   * cheap enough for an admin report run occasionally, far too expensive for
+   * per-item numbers a seller loads on their own dashboard.
+   */
+  @Prop({ type: Types.ObjectId, ref: 'ShortVideo' })
+  shortVideoId?: Types.ObjectId;
+
   @Prop({ type: String })
   searchQuery?: string;
 
@@ -68,8 +80,15 @@ UserActivitySchema.index({ action: 1, createdAt: -1 });
 // User + action (recommendation engine: user's views, favorites, contacts)
 UserActivitySchema.index({ userId: 1, action: 1, createdAt: -1 });
 
-// Listing engagement (listing detail analytics)
+// Listing engagement (listing detail analytics, seller engagement stats)
 UserActivitySchema.index({ productListingId: 1, action: 1 });
+
+// Short engagement (seller engagement stats). Partial, because only short_*
+// events carry the field and a sparse-in-practice key should not index every row.
+UserActivitySchema.index(
+  { shortVideoId: 1, action: 1 },
+  { partialFilterExpression: { shortVideoId: { $type: 'objectId' } } },
+);
 
 // Search analytics (top search terms aggregation)
 //

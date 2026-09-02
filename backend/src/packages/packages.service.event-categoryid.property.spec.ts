@@ -15,6 +15,7 @@ import * as fc from 'fast-check';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { getRedisConnectionToken } from '@nestjs-modules/ioredis';
+import { ViewCounterService } from '../views/view-counter.service';
 import { Types } from 'mongoose';
 import { PackagesService } from './packages.service';
 import { AdPackage, AdPackageType } from './schemas/ad-package.schema';
@@ -572,6 +573,12 @@ describe('Property 8: Event CategoryId Completeness', () => {
                 useValue: { indexListing: jest.fn(), removeListing: jest.fn() },
               },
               { provide: getRedisConnectionToken(), useValue: mockRedis },
+              {
+                provide: ViewCounterService,
+                useValue: {
+                  shouldCountView: jest.fn().mockResolvedValue(true),
+                },
+              },
               { provide: BrandsService, useValue: { findById: jest.fn() } },
               {
                 provide: VehicleBrandService,

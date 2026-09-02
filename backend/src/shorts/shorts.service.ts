@@ -52,10 +52,12 @@ import {
   SHORTS_FREE_LIMIT,
   SHORTS_MAX_FILE_SIZE,
 } from '../common/constants/app.constants.js';
+import { CronLock } from '../common/decorators/cron-lock.decorator.js';
 import { ERROR } from '../common/constants/error-messages.js';
 import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { EntitlementKind, remainingOf } from '../packages/entitlements.js';
 import { PackagesService } from '../packages/packages.service.js';
+import { ViewCounterService } from '../views/view-counter.service.js';
 import { daysToMs, daysFromNow, startOfMonth } from '../common/utils/time.js';
 
 @Injectable()
@@ -80,6 +82,7 @@ export class ShortsService {
     private readonly configService: ConfigService,
     @Inject(forwardRef(() => PackagesService))
     private readonly packagesService: PackagesService,
+    private readonly viewCounter: ViewCounterService,
   ) {}
 
   // ═══════════════════════════════════════════════════════════
@@ -494,12 +497,37 @@ export class ShortsService {
     return short;
   }
 
-  async incrementViewCount(id: string): Promise<void> {
+  /**
+   * Records a view of a short, under the same rule listings use.
+   *
+   * Previously every request bumped the count with no de-duplication at all, so a
+   * short's view count rose each time the page was reloaded and each time the
+   * seller looked at their own video. That made it both inflatable and
+   * incomparable with a listing's views, which the seller sees side by side.
+   *
+   * @param viewerId The signed-in viewer, if any. Used to skip the owner's own
+   * views and to identify repeat views.
+   */
+  async registerView(
+    id: string,
+    viewer: { userId?: string; req?: unknown },
+  ): Promise<void> {
+    if (!Types.ObjectId.isValid(id)) return;
+
+    const short = await this.shortVideoModel
+      .findById(id)
+      .select('sellerId status')
+      .exec();
+
+    if (!short || short.status !== ShortVideoStatus.ACTIVE) return;
+    // The seller reloading their own video is not audience.
+    if (viewer.userId && short.sellerId.toString() === viewer.userId) return;
+
+    const counts = await this.viewCounter.shouldCountView('short', id, viewer);
+    if (!counts) return;
+
     await this.shortVideoModel
-      .updateOne(
-        { _id: new Types.ObjectId(id), status: ShortVideoStatus.ACTIVE },
-        { $inc: { viewCount: 1 } },
-      )
+      .updateOne({ _id: short._id }, { $inc: { viewCount: 1 } })
       .exec();
   }
 
@@ -1156,6 +1184,7 @@ export class ShortsService {
   // ═══════════════════════════════════════════════════════════
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async handleExpiredShorts(): Promise<number> {
     const now = new Date();
     const expiredShorts = await this.shortVideoModel
@@ -1205,6 +1234,7 @@ export class ShortsService {
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async sendShortsExpiryReminders(): Promise<number> {
     let sent = 0;
     const now = new Date();
@@ -1252,6 +1282,7 @@ export class ShortsService {
   }
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async cleanupDeletedShorts(): Promise<number> {
     // Permanently remove shorts deleted more than 30 days ago
     const cutoff = new Date(Date.now() - daysToMs(30));
@@ -1318,6 +1349,7 @@ export class ShortsService {
    * ad-slot sweep, which runs at the same hour.
    */
   @Cron(CronExpression.EVERY_DAY_AT_1AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async handleExpiredShortsPurchases(): Promise<number> {
     const now = new Date();
     const expired = await this.shortsPurchaseModel

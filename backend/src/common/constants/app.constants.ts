@@ -29,8 +29,18 @@ export const ROBOTS_CRAWL_DELAY = parseInt(
 
 // ─── View Deduplication ─────────────────────────────────────
 export const VIEW_DEDUP_PREFIX = 'view';
+
+/**
+ * How long before the same visitor can add another view to the same item.
+ *
+ * Repeat interest counts — somebody coming back to a car tomorrow is a stronger
+ * signal than a single glance — but not within the hour, so holding refresh adds
+ * nothing. One hour exactly, and the same figure for listings and shorts: shorts
+ * previously counted every request, including the seller reloading their own
+ * video, so the two numbers were not comparable.
+ */
 export const VIEW_DEDUP_WINDOW_SECONDS = parseInt(
-  process.env.VIEW_DEDUP_WINDOW_SECONDS || '1800',
+  process.env.VIEW_DEDUP_WINDOW_SECONDS || '3600',
   10,
 );
 

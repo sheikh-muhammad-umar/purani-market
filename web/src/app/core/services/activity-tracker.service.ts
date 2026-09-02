@@ -23,6 +23,13 @@ const CAMPAIGN_PARAMS = [
 
 interface TrackData {
   productListingId?: string;
+  /**
+   * Which short the event is about.
+   *
+   * Sent top-level, not buried in `metadata`, so the seller's engagement figures
+   * can be aggregated from an index. As metadata it was unindexable.
+   */
+  shortVideoId?: string;
   searchQuery?: string;
   categoryId?: string;
   metadata?: Record<string, any>;

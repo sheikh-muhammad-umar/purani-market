@@ -15,6 +15,7 @@ import * as fc from 'fast-check';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { getRedisConnectionToken } from '@nestjs-modules/ioredis';
+import { ViewCounterService } from '../views/view-counter.service';
 import { Types } from 'mongoose';
 import { ListingsService } from './listings.service';
 import {
@@ -210,6 +211,12 @@ describe('Property 6: Permanent Consumption (Non-Restoration)', () => {
               {
                 provide: getRedisConnectionToken(),
                 useValue: mockRedis,
+              },
+              {
+                provide: ViewCounterService,
+                useValue: {
+                  shouldCountView: jest.fn().mockResolvedValue(true),
+                },
               },
               {
                 provide: BrandsService,
