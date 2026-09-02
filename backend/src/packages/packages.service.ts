@@ -424,8 +424,15 @@ export class PackagesService {
         type: pkg.type,
         quantity: pkg.quantity,
         remainingQuantity: pkg.quantity,
+        // Kept only when `type` cannot express the grant on its own, matching the
+        // rule the package itself is stored under. Testing `granted.length > 1`
+        // instead was wrong for a single-entitlement grant with no legacy type of
+        // its own — a shorts-only ad package: `type` came out as `bundle`, the
+        // list was dropped, and `purchaseBalances` has no fallback for `bundle`,
+        // so the purchase read as granting nothing. The seller paid and the credit
+        // could never be spent.
         entitlements:
-          granted.length > 1
+          typeForEntitlements(granted) === AdPackageType.BUNDLE
             ? granted.map((e) => ({ ...e, remaining: e.quantity }))
             : [],
         duration: pkg.duration,

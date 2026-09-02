@@ -4,6 +4,8 @@ import {
   NotFoundException,
   ForbiddenException,
   Logger,
+  Inject,
+  forwardRef,
 } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
@@ -52,6 +54,7 @@ import {
 import { ERROR } from '../common/constants/error-messages.js';
 import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { EntitlementKind, remainingOf } from '../packages/entitlements.js';
+import { PackagesService } from '../packages/packages.service.js';
 import { daysToMs, daysFromNow, startOfMonth } from '../common/utils/time.js';
 
 @Injectable()
@@ -74,6 +77,8 @@ export class ShortsService {
     private readonly adminTrackerService: AdminTrackerService,
     private readonly shortsVideoService: ShortsVideoService,
     private readonly configService: ConfigService,
+    @Inject(forwardRef(() => PackagesService))
+    private readonly packagesService: PackagesService,
   ) {}
 
   // ═══════════════════════════════════════════════════════════
@@ -863,6 +868,56 @@ export class ShortsService {
       .populate('packageId', 'name')
       .sort({ createdAt: -1 })
       .exec();
+  }
+
+  /**
+   * What the seller can actually spend on a short right now.
+   *
+   * Separate from {@link getMyPurchases}, which is purchase history for the
+   * packages screen and deliberately shows spent and expired rows.
+   *
+   * Two things this has to get right that the history query does not:
+   * - A bundle grants shorts as one entitlement among several, so it is a
+   *   `purchaseType: 'ads'` row. Filtering on `purchaseType: 'shorts'` hid every
+   *   bundle, which meant the shorts allowance an all-in-one package advertised
+   *   could not be selected at upload time.
+   * - `remainingQuantity` on a bundle is the total across all kinds, so the
+   *   shorts balance is reported per kind instead.
+   *
+   * Soonest-expiring first, so the client offers the credit that is closest to
+   * being lost.
+   */
+  async getUsableShortsPackages(sellerId: string): Promise<
+    {
+      purchaseId: string;
+      packageName: string;
+      remaining: number;
+      expiresAt: Date | null;
+      durationDays: number;
+    }[]
+  > {
+    const now = new Date();
+    const purchases = await this.shortsPurchaseModel
+      .find(
+        this.packagesService.entitlementFilter(
+          sellerId,
+          EntitlementKind.SHORTS,
+          now,
+        ),
+      )
+      .populate('packageId', 'name')
+      .sort({ expiresAt: 1 })
+      .exec();
+
+    return purchases.map((purchase) => ({
+      purchaseId: purchase._id.toString(),
+      packageName:
+        (purchase.packageId as unknown as { name?: string })?.name ??
+        'Shorts package',
+      remaining: remainingOf(purchase, EntitlementKind.SHORTS),
+      expiresAt: purchase.expiresAt ?? null,
+      durationDays: purchase.duration,
+    }));
   }
 
   async confirmPayment(purchaseId: string): Promise<void> {

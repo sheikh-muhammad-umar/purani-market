@@ -231,6 +231,17 @@ export class ShortsController {
     return this.shortsService.getMyPurchases(userId);
   }
 
+  /**
+   * Credit the seller can spend on a short right now, including the shorts
+   * allowance inside an all-in-one bundle. The upload screen needs this to send a
+   * `purchaseId`; without it a paid package could never be used.
+   */
+  @Get('packages/usable')
+  @UseGuards(JwtAuthGuard)
+  async getUsablePackages(@CurrentUser('sub') userId: string) {
+    return this.shortsService.getUsableShortsPackages(userId);
+  }
+
   // ═══════════════════════════════════════════════════════════
   // ADMIN ENDPOINTS
   // ═══════════════════════════════════════════════════════════
