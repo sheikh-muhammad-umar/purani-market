@@ -219,6 +219,14 @@ export const SHORTS_FREE_DURATION_DAYS = 7;
 export const SHORTS_MAX_DURATION_SECONDS = 60;
 export const SHORTS_MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
 export const SHORTS_EXPIRY_REMINDER_DAYS = [2, 1];
+
+/**
+ * Prefix for the reference stamped on a manually-paid purchase.
+ *
+ * Namespaced so it can never collide with a gateway transaction id, which is what
+ * `handlePaymentCallback` matches purchases on.
+ */
+export const MANUAL_PAYMENT_REFERENCE_PREFIX = 'MANUAL-';
 export const SHORTS_STALE_PENDING_REVIEW_DAYS = 3; // Auto-approve after 3 days
 
 export const SHORTS_ALLOWED_MIMETYPES = [

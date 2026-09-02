@@ -360,6 +360,112 @@ describe('ShortsService — shorts entitlement', () => {
     });
   });
 
+  describe('confirmPayment', () => {
+    it('starts the duration at confirmation, not at purchase', async () => {
+      purchaseModel.findById.mockReturnValue({
+        exec: jest
+          .fn()
+          .mockResolvedValue({ ...shortsPurchase(), duration: 30 }),
+      });
+
+      await service.confirmPayment(purchaseId.toString());
+
+      // Stamped at purchase before, so a package confirmed three days later
+      // arrived with three days already burnt.
+      const [filter, update] = purchaseModel.updateOne.mock.calls[0];
+      expect(filter).toEqual({
+        _id: purchaseId,
+        paymentStatus: PaymentStatus.PENDING,
+      });
+      const expiresAt = update.$set.expiresAt as Date;
+      const activatedAt = update.$set.activatedAt as Date;
+      expect(update.$set.paymentStatus).toBe(PaymentStatus.COMPLETED);
+      expect(
+        Math.round((expiresAt.getTime() - activatedAt.getTime()) / 86400000),
+      ).toBe(30);
+    });
+
+    it('refuses to confirm a purchase that is no longer pending', async () => {
+      purchaseModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(shortsPurchase()),
+      });
+      // Nothing matched the PENDING-scoped update, so another admin or an earlier
+      // click already dealt with it. Confirming again would restart the duration.
+      purchaseModel.updateOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ modifiedCount: 0 }),
+      });
+
+      await expect(
+        service.confirmPayment(purchaseId.toString()),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('handleExpiredShortsPurchases', () => {
+    const expiredWith = (rows: Record<string, unknown>[]) => {
+      purchaseModel.find.mockReturnValue({
+        populate: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue(rows),
+        }),
+      });
+    };
+
+    it('notifies about a bundle and counts only the shorts lost', async () => {
+      // Bundles were skipped entirely, and the count came off remainingQuantity —
+      // the total across every kind — so it would have claimed 25 shorts lost.
+      expiredWith([bundlePurchase(2)]);
+
+      await expect(service.handleExpiredShortsPurchases()).resolves.toBe(1);
+
+      const notify = (service as any).notificationsService.sendToUser;
+      expect(notify).toHaveBeenCalledWith(
+        sellerId.toString(),
+        expect.anything(),
+        expect.objectContaining({
+          body: expect.stringContaining('2 unused short(s)'),
+        }),
+      );
+    });
+
+    it('matches on holding shorts credit in either shape', async () => {
+      expiredWith([]);
+
+      await service.handleExpiredShortsPurchases();
+
+      const filter = purchaseModel.find.mock.calls[0][0];
+      expect(filter.$or).toEqual([
+        { entitlements: { $elemMatch: { kind: EntitlementKind.SHORTS } } },
+        { purchaseType: PurchaseType.SHORTS },
+      ]);
+      // Its own marker: on a bundle, remainingQuantity belongs to the ad-slot
+      // sweep, which runs at the same hour.
+      expect(filter.shortsExpiryNotifiedAt).toBeNull();
+    });
+
+    it('claims a purchase before notifying so a duplicate run stays quiet', async () => {
+      expiredWith([shortsPurchase()]);
+      purchaseModel.updateOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ modifiedCount: 0 }),
+      });
+
+      await expect(service.handleExpiredShortsPurchases()).resolves.toBe(0);
+      expect(
+        (service as any).notificationsService.sendToUser,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('stays quiet when the allowance was fully spent', async () => {
+      // Expiring with nothing left is not news.
+      expiredWith([bundlePurchase(0)]);
+
+      await service.handleExpiredShortsPurchases();
+
+      expect(
+        (service as any).notificationsService.sendToUser,
+      ).not.toHaveBeenCalled();
+    });
+  });
+
   describe('createShort without a purchase', () => {
     it('uses the free monthly allowance and spends nothing', async () => {
       await service.createShort(sellerId.toString(), uploadedFile, uploadDto);

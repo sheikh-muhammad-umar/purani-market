@@ -45,6 +45,7 @@ import { ShortsVideoService } from './shorts-video.service.js';
 import {
   CRON_TIMEZONE,
   DEFAULT_CURRENCY,
+  MANUAL_PAYMENT_REFERENCE_PREFIX,
   SHORTS_ALLOWED_MIMETYPES,
   SHORTS_EXPIRY_REMINDER_DAYS,
   SHORTS_FREE_DURATION_DAYS,
@@ -836,11 +837,21 @@ export class ShortsService {
       price: pkg.price,
       currency: DEFAULT_CURRENCY,
       paymentMethod: dto.paymentMethod,
-      paymentTransactionId: dto.transactionId,
       paymentStatus: PaymentStatus.PENDING,
-      expiresAt: new Date(Date.now() + daysToMs(pkg.duration)),
+      // No expiry yet. It used to be stamped here, which started the clock while
+      // the payment was still unconfirmed: a package confirmed three days later
+      // arrived with three days already burnt, and one confirmed after its
+      // duration arrived expired. It is set at activation instead.
     });
 
+    await purchase.save();
+
+    // The reference is derived from the saved id rather than taken from the
+    // request. A client-supplied value was trusted before, and `paymentTransactionId`
+    // is what `PackagesService.handlePaymentCallback` looks purchases up by — so a
+    // seller could submit one matching a real pending gateway transaction and have
+    // that gateway's callback activate this package for free.
+    purchase.paymentTransactionId = `${MANUAL_PAYMENT_REFERENCE_PREFIX}${purchase._id.toString()}`;
     await purchase.save();
 
     this.adminTrackerService
@@ -920,13 +931,49 @@ export class ShortsService {
     }));
   }
 
+  /**
+   * Activates a manually-paid shorts package.
+   *
+   * There is no gateway to verify against — these are paid outside the app, so the
+   * admin confirming it *is* the verification. What this does guarantee is that
+   * confirming is safe to attempt twice and cannot resurrect a purchase that was
+   * never pending:
+   *
+   * - The transition is one conditional update scoped to PENDING. It used to load
+   *   the document, set COMPLETED and save unconditionally, so a second click
+   *   re-activated an already-active package — restarting its duration — and a
+   *   FAILED or REFUNDED purchase could be turned back on.
+   * - The duration starts here rather than at purchase, so the seller gets the
+   *   full window they paid for.
+   */
   async confirmPayment(purchaseId: string): Promise<void> {
+    if (!Types.ObjectId.isValid(purchaseId)) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
     const purchase = await this.shortsPurchaseModel.findById(purchaseId).exec();
     if (!purchase) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
-    purchase.paymentStatus = PaymentStatus.COMPLETED;
-    await purchase.save();
+
+    const now = new Date();
+    const activation = await this.shortsPurchaseModel
+      .updateOne(
+        { _id: purchase._id, paymentStatus: PaymentStatus.PENDING },
+        {
+          $set: {
+            paymentStatus: PaymentStatus.COMPLETED,
+            activatedAt: now,
+            expiresAt: new Date(now.getTime() + daysToMs(purchase.duration)),
+          },
+        },
+      )
+      .exec();
+
+    if (activation.modifiedCount === 0) {
+      // Already dealt with, by another admin or an earlier click.
+      throw new BadRequestException(ERROR.PACKAGE_PAYMENT_NOT_PENDING);
+    }
 
     // Notify user
     this.notificationsService
@@ -1249,27 +1296,63 @@ export class ShortsService {
     return result.deletedCount;
   }
 
+  /**
+   * Tells sellers when shorts credit they paid for has expired unused.
+   *
+   * Matches on holding a shorts entitlement rather than on `purchaseType`, so a
+   * bundle counts. Filtering by the discriminator meant every bundle's shorts
+   * allowance lapsed in silence, which is the one case where the seller most needs
+   * to hear about it — they bought the bundle for more than shorts, so they are
+   * least likely to have been tracking that balance.
+   *
+   * Idempotency is tracked in `shortsExpiryNotifiedAt` rather than by stamping
+   * `remainingQuantity: -1`, because on a bundle that counter belongs to the
+   * ad-slot sweep, which runs at the same hour.
+   */
   @Cron(CronExpression.EVERY_DAY_AT_1AM, { timeZone: CRON_TIMEZONE })
   async handleExpiredShortsPurchases(): Promise<number> {
     const now = new Date();
     const expired = await this.shortsPurchaseModel
       .find({
-        purchaseType: PurchaseType.SHORTS,
         paymentStatus: PaymentStatus.COMPLETED,
         expiresAt: { $lte: now },
-        remainingQuantity: { $gte: 0 },
+        shortsExpiryNotifiedAt: null,
+        $or: [
+          {
+            entitlements: {
+              $elemMatch: { kind: EntitlementKind.SHORTS },
+            },
+          },
+          { purchaseType: PurchaseType.SHORTS },
+        ],
       })
       .populate('packageId', 'name')
       .exec();
 
     let processed = 0;
     for (const purchase of expired) {
-      // Mark as processed
-      await this.shortsPurchaseModel
-        .updateOne({ _id: purchase._id }, { $set: { remainingQuantity: -1 } })
+      // Claimed before notifying, and conditional on it still being unclaimed, so
+      // a duplicate run on another instance cannot send the same notice twice.
+      const claimed = await this.shortsPurchaseModel
+        .updateOne(
+          { _id: purchase._id, shortsExpiryNotifiedAt: null },
+          { $set: { shortsExpiryNotifiedAt: now } },
+        )
         .exec();
 
-      const pkgName = (purchase.packageId as any)?.name ?? 'Shorts package';
+      if (claimed.modifiedCount === 0) continue;
+
+      // Per kind. `remainingQuantity` is the total across every kind on a bundle,
+      // so reading it reported a loss far larger than the shorts actually lost.
+      const lost = remainingOf(purchase, EntitlementKind.SHORTS);
+      if (lost <= 0) {
+        processed++;
+        continue;
+      }
+
+      const pkgName =
+        (purchase.packageId as unknown as { name?: string })?.name ??
+        'Shorts package';
 
       this.notificationsService
         .sendToUser(
@@ -1277,7 +1360,7 @@ export class ShortsService {
           NotificationType.PACKAGE_ALERTS,
           {
             title: 'Shorts Package Expired',
-            body: `Your "${pkgName}" has expired. ${purchase.remainingQuantity} unused shorts were lost.`,
+            body: `Your "${pkgName}" has expired. ${lost} unused short(s) were lost.`,
             data: {
               type: 'shorts_package_expired',
               purchaseId: purchase._id.toString(),

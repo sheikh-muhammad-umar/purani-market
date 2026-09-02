@@ -18,7 +18,11 @@ import {
   AdPackageDocument,
   AdPackageType,
 } from '../packages/schemas/ad-package.schema.js';
-import { EntitlementKind, purchaseBalances } from '../packages/entitlements.js';
+import {
+  ENTITLEMENT_LABELS,
+  EntitlementKind,
+  purchaseBalances,
+} from '../packages/entitlements.js';
 import { PackagesService } from '../packages/packages.service.js';
 import {
   Favorite,
@@ -302,23 +306,46 @@ export class ListingLifecycleService {
       const windowStart = new Date(now.getTime() + daysToMs(days - 1));
       const windowEnd = new Date(now.getTime() + daysToMs(days));
 
+      // Not filtered on `remainingQuantity` here. On a bundle that field holds the
+      // purchased total across every kind and is never decremented — spending
+      // comes off the matching entitlement — so `remainingQuantity: { $gt: 0 }`
+      // matched bundles that were entirely used up, and the reminder then claimed
+      // credit the seller no longer had. What is unused is worked out per kind
+      // below instead. The expiry window already narrows this to a day's worth.
       const purchases = await this.packagePurchaseModel
         .find({
           paymentStatus: PaymentStatus.COMPLETED,
-          remainingQuantity: { $gt: 0 },
           expiresAt: { $gt: windowStart, $lte: windowEnd },
         })
         .populate('packageId', 'name type')
         .exec();
 
       for (const purchase of purchases) {
+        const unusedByKind = purchaseBalances(purchase).filter(
+          (balance) => balance.remaining > 0,
+        );
+        const unused = unusedByKind.reduce(
+          (sum, balance) => sum + balance.remaining,
+          0,
+        );
+
+        // Nothing left to lose, so nothing worth interrupting them about.
+        if (unused === 0) continue;
+
         const pkg = purchase.packageId as unknown as AdPackageDocument;
         await this.notificationsService
           .sendPackageExpirationReminder(
             purchase.sellerId.toString(),
             pkg?.name ?? 'Ad package',
-            purchase.remainingQuantity,
+            unused,
             days,
+            // A bundle holds several kinds, so the totals are broken out; without
+            // it "8 unused" gives no clue what would actually be lost.
+            unusedByKind.length > 1
+              ? unusedByKind
+                  .map((b) => `${b.remaining} ${ENTITLEMENT_LABELS[b.kind]}`)
+                  .join(', ')
+              : undefined,
           )
           .catch((err) =>
             this.logger.warn(

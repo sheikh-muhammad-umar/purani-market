@@ -1,4 +1,4 @@
-import { IsMongoId, IsString, IsOptional, IsEnum } from 'class-validator';
+import { IsMongoId, IsEnum } from 'class-validator';
 import { PaymentMethod } from '../../packages/schemas/package-purchase.schema.js';
 
 export class PurchaseShortsPackageDto {
@@ -13,7 +13,11 @@ export class PurchaseShortsPackageDto {
   @IsEnum(PaymentMethod)
   paymentMethod!: PaymentMethod;
 
-  @IsOptional()
-  @IsString()
-  transactionId?: string;
+  // No `transactionId`. It was accepted from the request and stored as the
+  // purchase's payment reference, which is the field `handlePaymentCallback`
+  // matches on — so a seller could submit one matching a pending gateway
+  // transaction and have that callback activate this package for free. The
+  // reference is now derived from the purchase id on the server. The global
+  // validation pipe forbids non-whitelisted properties, so sending one is
+  // refused rather than quietly ignored.
 }

@@ -242,15 +242,23 @@ export class NotificationsService {
     });
   }
 
+  /**
+   * @param unusedDetail Per-kind breakdown for a package granting more than one
+   * kind, e.g. "3 featured ads, 2 shorts". A bundle's total alone does not say
+   * what is about to be lost.
+   */
   async sendPackageExpirationReminder(
     userId: string,
     packageName: string,
     remainingQuantity: number,
     daysRemaining: number,
+    unusedDetail?: string,
   ): Promise<boolean> {
     return this.sendToUser(userId, NotificationType.PACKAGE_ALERTS, {
       title: 'Package expiring soon',
-      body: `Your "${packageName}" package expires in ${daysRemaining} day(s) with ${remainingQuantity} unused slot(s).`,
+      body: unusedDetail
+        ? `Your "${packageName}" package expires in ${daysRemaining} day(s) with ${unusedDetail} unused.`
+        : `Your "${packageName}" package expires in ${daysRemaining} day(s) with ${remainingQuantity} unused unit(s).`,
       data: { type: 'package_expiring' },
     });
   }

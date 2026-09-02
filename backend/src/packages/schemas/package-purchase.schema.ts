@@ -105,6 +105,18 @@ export class PackagePurchase {
   @Prop({ type: Date, default: null })
   expiresAt?: Date;
 
+  /**
+   * When the seller was told their unused shorts allowance had expired.
+   *
+   * Has its own marker rather than reusing the `remainingQuantity: -1` convention
+   * because a bundle's flat counter is already claimed by the ad-slot expiry
+   * sweep. Both run at 1am, so whichever went first would stamp `-1` and the other
+   * would then skip the document — which is why a bundle's shorts credit expired
+   * without a word.
+   */
+  @Prop({ type: Date, default: null })
+  shortsExpiryNotifiedAt?: Date;
+
   /** When an admin refunded this purchase. */
   @Prop({ type: Date, default: null })
   refundedAt?: Date;

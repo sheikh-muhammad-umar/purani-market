@@ -146,3 +146,10 @@ export function typeForEntitlements(
 export function totalQuantity(entitlements: EntitlementGrant[]): number {
   return entitlements.reduce((sum, e) => sum + e.quantity, 0);
 }
+
+/** Human wording for each kind, for notifications and other seller-facing copy. */
+export const ENTITLEMENT_LABELS: Record<EntitlementKind, string> = {
+  [EntitlementKind.AD_SLOTS]: 'ad slot(s)',
+  [EntitlementKind.FEATURED_ADS]: 'featured ad(s)',
+  [EntitlementKind.SHORTS]: 'short(s)',
+};

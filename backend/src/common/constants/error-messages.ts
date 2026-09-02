@@ -82,6 +82,8 @@ export const ERROR = {
   PACKAGE_FULLY_USED: 'Package is fully used — no remaining units',
   PACKAGE_EXPIRED: 'Package has expired',
   PACKAGE_PAYMENT_NOT_COMPLETED: 'Package payment is not completed',
+  PACKAGE_PAYMENT_NOT_PENDING:
+    'This purchase is no longer awaiting payment confirmation',
   PACKAGE_OWN_ONLY: 'You can only use your own packages',
   INVALID_CATEGORY_ID_PARAM: 'A valid categoryId query parameter is required',
   INVALID_CATEGORY_ID_FILTER: 'Invalid categoryId',

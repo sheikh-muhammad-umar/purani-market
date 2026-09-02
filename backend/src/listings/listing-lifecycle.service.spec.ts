@@ -22,6 +22,7 @@ describe('ListingLifecycleService — listing limit enforcement', () => {
   let listingModel: any;
   let userModel: any;
   let notifications: any;
+  let packagePurchaseModel: any;
 
   const sellerId = new Types.ObjectId();
 
@@ -64,6 +65,16 @@ describe('ListingLifecycleService — listing limit enforcement', () => {
       sendListingsDeactivatedForLimitNotification: jest
         .fn()
         .mockResolvedValue(true),
+      sendPackageExpirationReminder: jest.fn().mockResolvedValue(true),
+    };
+    packagePurchaseModel = {
+      find: jest.fn().mockReturnValue({
+        populate: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue([]),
+        }),
+      }),
+      updateOne: jest.fn().mockReturnValue({ exec: jest.fn() }),
+      updateMany: jest.fn().mockReturnValue({ exec: jest.fn() }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -73,11 +84,7 @@ describe('ListingLifecycleService — listing limit enforcement', () => {
         { provide: getModelToken(User.name), useValue: userModel },
         {
           provide: getModelToken(PackagePurchase.name),
-          useValue: {
-            find: jest.fn(),
-            updateOne: jest.fn(),
-            updateMany: jest.fn(),
-          },
+          useValue: packagePurchaseModel,
         },
         {
           provide: getModelToken(Favorite.name),
@@ -253,6 +260,91 @@ describe('ListingLifecycleService — listing limit enforcement', () => {
 
     // Oldest have had the most exposure already.
     expect(sort).toHaveBeenCalledWith({ createdAt: 1 });
+  });
+
+  describe('sendPackageExpiryReminders', () => {
+    /** Purchases the expiry-window query should return. */
+    const stubExpiring = (rows: Record<string, unknown>[]) => {
+      packagePurchaseModel.find.mockReturnValue({
+        populate: jest.fn().mockReturnValue({
+          exec: jest.fn().mockResolvedValue(rows),
+        }),
+      });
+    };
+
+    it('skips a bundle whose allowance is entirely spent', async () => {
+      // remainingQuantity on a bundle is the purchased total and never
+      // decrements — spending comes off the entitlement — so filtering on it
+      // reminded sellers about credit they had already used.
+      stubExpiring([
+        {
+          sellerId,
+          packageId: { name: 'All In One' },
+          type: 'bundle',
+          quantity: 25,
+          remainingQuantity: 25,
+          entitlements: [
+            { kind: 'ad_slots', quantity: 10, remaining: 0 },
+            { kind: 'featured_ads', quantity: 10, remaining: 0 },
+            { kind: 'shorts', quantity: 5, remaining: 0 },
+          ],
+        },
+      ]);
+
+      await expect(service.sendPackageExpiryReminders()).resolves.toBe(0);
+      expect(
+        notifications.sendPackageExpirationReminder,
+      ).not.toHaveBeenCalled();
+    });
+
+    it('reports a bundle per kind rather than as one total', async () => {
+      stubExpiring([
+        {
+          sellerId,
+          packageId: { name: 'All In One' },
+          type: 'bundle',
+          quantity: 25,
+          remainingQuantity: 25,
+          entitlements: [
+            { kind: 'ad_slots', quantity: 10, remaining: 0 },
+            { kind: 'featured_ads', quantity: 10, remaining: 3 },
+            { kind: 'shorts', quantity: 5, remaining: 2 },
+          ],
+        },
+      ]);
+
+      await service.sendPackageExpiryReminders();
+
+      expect(notifications.sendPackageExpirationReminder).toHaveBeenCalledWith(
+        sellerId.toString(),
+        'All In One',
+        5,
+        expect.any(Number),
+        '3 featured ad(s), 2 short(s)',
+      );
+    });
+
+    it('leaves a single-kind package without a breakdown', async () => {
+      stubExpiring([
+        {
+          sellerId,
+          packageId: { name: '5 Featured Ads' },
+          type: 'featured_ads',
+          quantity: 5,
+          remainingQuantity: 2,
+        },
+      ]);
+
+      await service.sendPackageExpiryReminders();
+
+      expect(notifications.sendPackageExpirationReminder).toHaveBeenCalledWith(
+        sellerId.toString(),
+        '5 Featured Ads',
+        2,
+        expect.any(Number),
+        undefined,
+      );
+    });
   });
 
   it('clears the marker for sellers who came back within their limit', async () => {
