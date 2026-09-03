@@ -37,11 +37,19 @@
 
 .cs-text {
   flex: 1;
+  min-width: 0;
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .cs-placeholder {
   flex: 1;
+  min-width: 0;
   text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   color: var(--text-muted);
 }
 
@@ -61,8 +69,8 @@
   position: absolute;
   top: calc(100% + 4px);
   left: 0;
-  min-width: 100%;
-  width: max-content;
+  right: 0;
+  width: auto;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -98,7 +106,10 @@
   color: var(--text-primary);
   cursor: pointer;
   transition: background 0.1s;
-  white-space: nowrap;
+  white-space: normal;
+  overflow-wrap: anywhere;
+  line-height: 1.35;
+  box-sizing: border-box;
 
   &:hover {
     background: var(--background);

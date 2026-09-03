@@ -9,6 +9,7 @@ import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { Connection } from 'mongoose';
 import {
   LISTINGS_INDEX,
+  SHORTS_INDEX,
   FEATURED_BOOST_FACTOR,
 } from './search-index.service.js';
 import { DEFAULT_CURRENCY } from '../common/constants/index.js';
@@ -324,6 +325,49 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
   async removeListing(listingId: string): Promise<void> {
     try {
       await this.esService.delete({ index: LISTINGS_INDEX, id: listingId });
+    } catch (error: any) {
+      if (error?.meta?.statusCode !== 404) throw error;
+    }
+  }
+
+  /**
+   * Index a short so it appears in global search. Called when a short goes
+   * ACTIVE (admin approval). Only the fields needed to search and render a
+   * result are stored.
+   */
+  async indexShort(short: any): Promise<void> {
+    const esDoc = {
+      title: short.title,
+      description: short.description,
+      categoryId: short.categoryId?.toString(),
+      categoryName: short.categoryName,
+      sellerId: short.sellerId?.toString(),
+      status: short.status,
+      price: short.price,
+      viewCount: short.viewCount || 0,
+      favoriteCount: short.favoriteCount || 0,
+      location_text: {
+        province: short.location?.province,
+        city: short.location?.city,
+        area: short.location?.area,
+        provinceId: short.location?.provinceId?.toString(),
+        cityId: short.location?.cityId?.toString(),
+        areaId: short.location?.areaId?.toString(),
+      },
+      thumbnailUrl: short.video?.thumbnailUrl,
+      videoUrl: short.video?.url,
+      createdAt: short.createdAt,
+    };
+    await this.esService.index({
+      index: SHORTS_INDEX,
+      id: short._id.toString(),
+      document: esDoc,
+    });
+  }
+
+  async removeShort(shortId: string): Promise<void> {
+    try {
+      await this.esService.delete({ index: SHORTS_INDEX, id: shortId });
     } catch (error: any) {
       if (error?.meta?.statusCode !== 404) throw error;
     }

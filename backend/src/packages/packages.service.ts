@@ -10,6 +10,7 @@ import { Model, Types } from 'mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { NotificationsService } from '../notifications/notifications.service.js';
+import { CronLock } from '../common/decorators/cron-lock.decorator.js';
 import { FALLBACK_LISTING_LIMIT } from './constants/package-durations.js';
 import { CRON_TIMEZONE, DEFAULT_CURRENCY } from '../common/constants/index.js';
 import {
@@ -972,6 +973,7 @@ export class PackagesService {
   }
 
   @Cron(CronExpression.EVERY_HOUR, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async handleExpiredFeaturedAds(): Promise<number> {
     // One clock for both queries. They used to call `new Date()` separately, so a
     // promotion expiring between them was reported as expired and then left

@@ -25,6 +25,10 @@ export class VerificationToken {
   @Prop({ type: Boolean, default: false })
   used!: boolean;
 
+  /** Number of failed verification attempts against this OTP token. */
+  @Prop({ type: Number, default: 0 })
+  attempts!: number;
+
   /** Optional: target email address when sending OTP to a new/different address */
   @Prop({ type: String })
   targetEmail?: string;

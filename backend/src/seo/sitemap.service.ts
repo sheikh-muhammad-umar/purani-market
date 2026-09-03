@@ -4,6 +4,7 @@ import { InjectRedis } from '@nestjs-modules/ioredis';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import Redis from 'ioredis';
 import { Model } from 'mongoose';
+import { CronLock } from '../common/decorators/cron-lock.decorator.js';
 import {
   ProductListing,
   ProductListingDocument,
@@ -14,6 +15,11 @@ import {
   CategoryDocument,
 } from '../categories/schemas/category.schema.js';
 import { User, UserDocument } from '../users/schemas/user.schema.js';
+import {
+  ShortVideo,
+  ShortVideoDocument,
+  ShortVideoStatus,
+} from '../shorts/schemas/short-video.schema.js';
 import { SlugService } from './slug.service.js';
 import { SitemapUrl } from './dto/sitemap-url.dto.js';
 import {
@@ -37,6 +43,8 @@ export class SitemapService {
     private readonly categoryModel: Model<CategoryDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    @InjectModel(ShortVideo.name)
+    private readonly shortVideoModel: Model<ShortVideoDocument>,
     private readonly slugService: SlugService,
     @InjectRedis() private readonly redis: Redis,
   ) {}
@@ -48,7 +56,7 @@ export class SitemapService {
   async buildListingUrls(): Promise<SitemapUrl[]> {
     const listings = await this.listingModel
       .find({ status: ListingStatus.ACTIVE })
-      .select('_id title updatedAt')
+      .select('_id title updatedAt images')
       .lean()
       .exec();
 
@@ -57,6 +65,53 @@ export class SitemapService {
       url.loc = `${SEO_BASE_URL}${this.slugService.generateListingUrl(listing)}`;
       url.lastmod = listing.updatedAt.toISOString();
       url.priority = 0.8;
+      // Image sitemap extension: expose each listing photo so Google Images can
+      // index them. Capped at 10 (Google's practical limit per URL is high, but
+      // this keeps the file lean).
+      const images = (listing.images || []).slice(0, 10);
+      if (images.length > 0) {
+        url.images = images.map((img: { url: string }) => ({
+          loc: img.url,
+          title: listing.title,
+        }));
+      }
+      return url;
+    });
+  }
+
+  /**
+   * Build sitemap URLs for all ACTIVE shorts, each carrying a video sitemap
+   * extension (thumbnail, content/player URLs, duration). This is what makes
+   * shorts eligible as video results.
+   */
+  async buildShortUrls(): Promise<SitemapUrl[]> {
+    const shorts = await this.shortVideoModel
+      .find({ status: ShortVideoStatus.ACTIVE })
+      .select('_id title description updatedAt createdAt video viewCount')
+      .lean()
+      .exec();
+
+    return shorts.map((short) => {
+      const url = new SitemapUrl();
+      url.loc = `${SEO_BASE_URL}${SEO_ROUTE_PATTERNS.SHORTS}?id=${short._id.toString()}`;
+      url.lastmod = (short.updatedAt ?? short.createdAt)?.toISOString();
+      url.priority = 0.6;
+
+      const title = short.title || short.description || 'Short video';
+      url.videos = [
+        {
+          thumbnailLoc: short.video?.thumbnailUrl || '',
+          title,
+          description: (short.description || title).slice(0, 2000),
+          contentLoc: short.video?.url,
+          playerLoc: url.loc,
+          durationSeconds: short.video?.duration
+            ? Math.round(short.video.duration)
+            : undefined,
+          publicationDate: (short.createdAt ?? undefined)?.toISOString(),
+          viewCount: short.viewCount,
+        },
+      ];
       return url;
     });
   }
@@ -137,6 +192,52 @@ export class SitemapService {
           entry += `    <changefreq>${url.changefreq}</changefreq>\n`;
         }
         entry += `    <priority>${url.priority.toFixed(1)}</priority>\n`;
+
+        // Image sitemap extension
+        for (const img of url.images || []) {
+          if (!img.loc) continue;
+          entry += '    <image:image>\n';
+          entry += `      <image:loc>${this.escapeXml(img.loc)}</image:loc>\n`;
+          if (img.title) {
+            entry += `      <image:title>${this.escapeXml(img.title)}</image:title>\n`;
+          }
+          entry += '    </image:image>\n';
+        }
+
+        // Video sitemap extension
+        for (const video of url.videos || []) {
+          // Google requires thumbnail, title, description, and one of
+          // content_loc / player_loc. Skip a malformed entry rather than emit
+          // invalid XML that would fail sitemap validation.
+          if (
+            !video.thumbnailLoc ||
+            !video.title ||
+            (!video.contentLoc && !video.playerLoc)
+          ) {
+            continue;
+          }
+          entry += '    <video:video>\n';
+          entry += `      <video:thumbnail_loc>${this.escapeXml(video.thumbnailLoc)}</video:thumbnail_loc>\n`;
+          entry += `      <video:title>${this.escapeXml(video.title)}</video:title>\n`;
+          entry += `      <video:description>${this.escapeXml(video.description || video.title)}</video:description>\n`;
+          if (video.contentLoc) {
+            entry += `      <video:content_loc>${this.escapeXml(video.contentLoc)}</video:content_loc>\n`;
+          }
+          if (video.playerLoc) {
+            entry += `      <video:player_loc>${this.escapeXml(video.playerLoc)}</video:player_loc>\n`;
+          }
+          if (video.durationSeconds && video.durationSeconds > 0) {
+            entry += `      <video:duration>${video.durationSeconds}</video:duration>\n`;
+          }
+          if (video.publicationDate) {
+            entry += `      <video:publication_date>${video.publicationDate}</video:publication_date>\n`;
+          }
+          if (video.viewCount && video.viewCount > 0) {
+            entry += `      <video:view_count>${video.viewCount}</video:view_count>\n`;
+          }
+          entry += '    </video:video>\n';
+        }
+
         entry += '  </url>';
         return entry;
       })
@@ -144,7 +245,9 @@ export class SitemapService {
 
     return [
       '<?xml version="1.0" encoding="UTF-8"?>',
-      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+      '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"' +
+        ' xmlns:image="http://www.google.com/schemas/sitemap-image/1.1"' +
+        ' xmlns:video="http://www.google.com/schemas/sitemap-video/1.1">',
       urlEntries,
       '</urlset>',
     ].join('\n');
@@ -180,11 +283,13 @@ export class SitemapService {
    */
   async generateSitemap(): Promise<string> {
     try {
-      const [listingUrls, categoryUrls, sellerUrls] = await Promise.all([
-        this.buildListingUrls(),
-        this.buildCategoryUrls(),
-        this.buildSellerUrls(),
-      ]);
+      const [listingUrls, categoryUrls, sellerUrls, shortUrls] =
+        await Promise.all([
+          this.buildListingUrls(),
+          this.buildCategoryUrls(),
+          this.buildSellerUrls(),
+          this.buildShortUrls(),
+        ]);
       const staticUrls = this.buildStaticUrls();
 
       const allUrls = [
@@ -192,6 +297,7 @@ export class SitemapService {
         ...categoryUrls,
         ...sellerUrls,
         ...listingUrls,
+        ...shortUrls,
       ];
 
       if (allUrls.length <= SITEMAP_MAX_URLS) {
@@ -261,6 +367,7 @@ export class SitemapService {
    * Cron job: regenerate the sitemap every 6 hours.
    */
   @Cron(CronExpression.EVERY_6_HOURS)
+  @CronLock()
   async handleSitemapCron(): Promise<void> {
     this.logger.log('Regenerating sitemap (scheduled)');
     try {

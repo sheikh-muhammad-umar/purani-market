@@ -5,6 +5,14 @@ export interface UserNotification {
   category: string;
   read: boolean;
   createdAt: string;
+  /** Optional deep-link payload, e.g. { type: 'short_approved', shortId }. */
+  data?: {
+    type?: string;
+    shortId?: string;
+    listingId?: string;
+    conversationId?: string;
+    [key: string]: unknown;
+  };
 }
 
 export interface UserNotificationResponse {

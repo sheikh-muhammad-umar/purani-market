@@ -58,6 +58,7 @@ import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { EntitlementKind, remainingOf } from '../packages/entitlements.js';
 import { PackagesService } from '../packages/packages.service.js';
 import { ViewCounterService } from '../views/view-counter.service.js';
+import { SearchSyncService } from '../search/search-sync.service.js';
 import { daysToMs, daysFromNow, startOfMonth } from '../common/utils/time.js';
 
 @Injectable()
@@ -83,7 +84,34 @@ export class ShortsService {
     @Inject(forwardRef(() => PackagesService))
     private readonly packagesService: PackagesService,
     private readonly viewCounter: ViewCounterService,
+    @Inject(forwardRef(() => SearchSyncService))
+    private readonly searchSync: SearchSyncService,
   ) {}
+
+  /**
+   * Best-effort search indexing. Search is a secondary concern — an ES failure
+   * (or ES being entirely unavailable, as it is in some environments) must never
+   * fail moderation, so these swallow errors and only warn.
+   */
+  private async indexInSearch(short: ShortVideoDocument): Promise<void> {
+    try {
+      await this.searchSync.indexShort(short);
+    } catch (err) {
+      this.logger.warn(
+        `Failed to index short ${short._id.toString()} in search: ${(err as Error).message}`,
+      );
+    }
+  }
+
+  private async removeFromSearch(shortId: string): Promise<void> {
+    try {
+      await this.searchSync.removeShort(shortId);
+    } catch (err) {
+      this.logger.warn(
+        `Failed to remove short ${shortId} from search: ${(err as Error).message}`,
+      );
+    }
+  }
 
   // ═══════════════════════════════════════════════════════════
   // SHORT VIDEO CRUD
@@ -427,9 +455,23 @@ export class ShortsService {
     if (short.sellerId.toString() !== sellerId) {
       throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
+    const wasActive = short.status === ShortVideoStatus.ACTIVE;
     short.status = ShortVideoStatus.DELETED;
     short.deletedAt = new Date();
     await short.save();
+
+    if (wasActive) {
+      void this.removeFromSearch(short._id.toString());
+    }
+
+    this.adminTrackerService
+      .track(sellerId, UserAction.SHORT_DELETED, {
+        shortId: short._id.toString(),
+        by: 'owner',
+      })
+      .catch((err) =>
+        this.logger.warn(`Failed to track SHORT_DELETED: ${err.message}`),
+      );
   }
 
   async updateShort(
@@ -481,8 +523,14 @@ export class ShortsService {
     }
 
     // Send back to review
+    const wasActive = short.status === ShortVideoStatus.ACTIVE;
     short.status = ShortVideoStatus.PENDING_REVIEW;
     await short.save();
+
+    // An edited short is no longer live until re-approved, so pull it from search.
+    if (wasActive) {
+      void this.removeFromSearch(short._id.toString());
+    }
 
     // Notify about re-review
     this.adminTrackerService
@@ -570,7 +618,46 @@ export class ShortsService {
       )
       .exec();
 
+    this.adminTrackerService
+      .track(userId, UserAction.SHORT_LIKE, { shortId })
+      .catch((err) =>
+        this.logger.warn(`Failed to track SHORT_LIKE: ${err.message}`),
+      );
+
+    // Tell the owner someone liked their short (skip self-likes).
+    void this.notifyOwnerOfLike(shortId, userId);
+
     return { liked: true, favoriteCount: await this.getFavoriteCount(shortId) };
+  }
+
+  /** Notifies a short's owner that another user liked it. Best-effort. */
+  private async notifyOwnerOfLike(
+    shortId: string,
+    likerId: string,
+  ): Promise<void> {
+    try {
+      const short = await this.shortVideoModel
+        .findById(shortId)
+        .select('sellerId title')
+        .exec();
+      if (!short) return;
+      const ownerId = short.sellerId.toString();
+      if (ownerId === likerId) return; // don't notify on self-like
+
+      await this.notificationsService.sendToUser(
+        ownerId,
+        NotificationType.PRODUCT_UPDATES,
+        {
+          title: 'Someone liked your short',
+          body: `Your short "${short.title || 'Untitled'}" got a new like.`,
+          data: { type: 'short_liked', shortId },
+        },
+      );
+    } catch (err) {
+      this.logger.warn(
+        `Failed to send short-like notification: ${(err as Error).message}`,
+      );
+    }
   }
 
   async unlikeShort(
@@ -585,18 +672,67 @@ export class ShortsService {
       .exec();
 
     if (result.deletedCount > 0) {
+      // Guard against the counter going negative if writes ever race.
       await this.shortVideoModel
         .updateOne(
-          { _id: new Types.ObjectId(shortId) },
+          { _id: new Types.ObjectId(shortId), favoriteCount: { $gt: 0 } },
           { $inc: { favoriteCount: -1 } },
         )
         .exec();
+
+      this.adminTrackerService
+        .track(userId, UserAction.SHORT_UNLIKE, { shortId })
+        .catch((err) =>
+          this.logger.warn(`Failed to track SHORT_UNLIKE: ${err.message}`),
+        );
     }
 
     return {
       liked: false,
       favoriteCount: await this.getFavoriteCount(shortId),
     };
+  }
+
+  /**
+   * Records a share of a short: bumps a durable `shareCount` and tracks the
+   * event. Public — sharing does not require auth, so `userId` is optional.
+   */
+  async recordShare(
+    shortId: string,
+    userId?: string,
+  ): Promise<{ shareCount: number }> {
+    if (!Types.ObjectId.isValid(shortId)) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+    const short = await this.shortVideoModel
+      .findById(shortId)
+      .select('status sellerId')
+      .exec();
+    if (!short || short.status === ShortVideoStatus.DELETED) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    await this.shortVideoModel
+      .updateOne({ _id: short._id }, { $inc: { shareCount: 1 } })
+      .exec();
+
+    // Only track shares by a signed-in user; the tracker keys on a user id.
+    if (userId) {
+      this.adminTrackerService
+        .track(userId, UserAction.SHORT_SHARE, {
+          shortId,
+          sellerId: short.sellerId.toString(),
+        })
+        .catch((err) =>
+          this.logger.warn(`Failed to track SHORT_SHARE: ${err.message}`),
+        );
+    }
+
+    const updated = await this.shortVideoModel
+      .findById(shortId)
+      .select('shareCount')
+      .exec();
+    return { shareCount: updated?.shareCount ?? 0 };
   }
 
   private async getFavoriteCount(shortId: string): Promise<number> {
@@ -721,17 +857,29 @@ export class ShortsService {
     return { data, total, page, limit };
   }
 
+  /** States an admin may approve from: freshly submitted or previously rejected. */
+  private static readonly APPROVABLE_STATUSES = [
+    ShortVideoStatus.PENDING_REVIEW,
+    ShortVideoStatus.REJECTED,
+  ];
+
   async adminApproveShort(id: string): Promise<ShortVideoDocument> {
     const short = await this.shortVideoModel.findById(id).exec();
     if (!short) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
-    if (short.status !== ShortVideoStatus.PENDING_REVIEW) {
+    // Allow approving a rejected short too, so an admin can reverse a rejection
+    // directly instead of the seller having to re-edit to re-enter review.
+    if (!ShortsService.APPROVABLE_STATUSES.includes(short.status)) {
       throw new BadRequestException(PUBLIC_ERROR.SHORT_ACTION_FAILED);
     }
 
     short.status = ShortVideoStatus.ACTIVE;
+    short.rejectionReason = undefined;
     await short.save();
+
+    // Now that it is live, make it discoverable in search.
+    void this.indexInSearch(short);
 
     // Notify seller
     this.notificationsService
@@ -761,24 +909,44 @@ export class ShortsService {
     id: string,
     reason: string,
   ): Promise<ShortVideoDocument> {
+    // The seller sees this reason and acts on it, so an empty one is not
+    // acceptable — guard here as well as in the DTO.
+    const trimmedReason = (reason || '').trim();
+    if (!trimmedReason) {
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+
     const short = await this.shortVideoModel.findById(id).exec();
     if (!short) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
-    if (short.status !== ShortVideoStatus.PENDING_REVIEW) {
+    // Reject from pending, or from active (taking a live short down). A short
+    // already rejected or deleted cannot be rejected again.
+    if (
+      short.status !== ShortVideoStatus.PENDING_REVIEW &&
+      short.status !== ShortVideoStatus.ACTIVE
+    ) {
       throw new BadRequestException(PUBLIC_ERROR.SHORT_ACTION_FAILED);
     }
 
+    const wasActive = short.status === ShortVideoStatus.ACTIVE;
+
     short.status = ShortVideoStatus.REJECTED;
-    short.rejectionReason = reason;
+    short.rejectionReason = trimmedReason;
     short.rejectionCount += 1;
     await short.save();
+
+    // A short taken down after being live must leave the search index.
+    if (wasActive) {
+      void this.removeFromSearch(short._id.toString());
+    }
+    const reason_ = trimmedReason;
 
     // Notify seller
     this.notificationsService
       .sendToUser(short.sellerId.toString(), NotificationType.PRODUCT_UPDATES, {
         title: 'Short Video Rejected',
-        body: `Your short video was rejected: ${reason}`,
+        body: `Your short video was rejected: ${reason_}`,
         data: { type: 'short_rejected', shortId: short._id.toString() },
       })
       .catch((err) =>
@@ -790,7 +958,7 @@ export class ShortsService {
     this.adminTrackerService
       .track(short.sellerId.toString(), UserAction.SHORT_REJECTED, {
         shortId: short._id.toString(),
-        reason,
+        reason: reason_,
       })
       .catch((err) =>
         this.logger.warn(`Failed to track SHORT_REJECTED: ${err.message}`),
@@ -804,9 +972,38 @@ export class ShortsService {
     if (!short) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
+    const wasActive = short.status === ShortVideoStatus.ACTIVE;
     short.status = ShortVideoStatus.DELETED;
     short.deletedAt = new Date();
     await short.save();
+
+    // A deleted short must not linger in search results.
+    if (wasActive) {
+      void this.removeFromSearch(short._id.toString());
+    }
+
+    // Tell the seller their short was removed by an admin — this was silent
+    // before, so a seller's video would simply vanish with no explanation.
+    this.notificationsService
+      .sendToUser(short.sellerId.toString(), NotificationType.PRODUCT_UPDATES, {
+        title: 'Short Video Removed',
+        body: 'One of your short videos was removed by our moderation team. Contact support if you believe this was a mistake.',
+        data: { type: 'short_deleted', shortId: short._id.toString() },
+      })
+      .catch((err) =>
+        this.logger.warn(
+          `Failed to send short deletion notification: ${err.message}`,
+        ),
+      );
+
+    this.adminTrackerService
+      .track(short.sellerId.toString(), UserAction.SHORT_DELETED, {
+        shortId: short._id.toString(),
+        by: 'admin',
+      })
+      .catch((err) =>
+        this.logger.warn(`Failed to track SHORT_DELETED: ${err.message}`),
+      );
   }
 
   // ═══════════════════════════════════════════════════════════
@@ -982,6 +1179,24 @@ export class ShortsService {
    * - The duration starts here rather than at purchase, so the seller gets the
    *   full window they paid for.
    */
+  /**
+   * Shorts package purchases for the admin to review. These are paid outside
+   * the app and wait on manual confirmation, so the admin needs to see them —
+   * pending first — to act. Defaults to pending only.
+   */
+  async adminListPurchases(
+    status?: PaymentStatus,
+  ): Promise<PackagePurchaseDocument[]> {
+    const filter: Record<string, any> = { purchaseType: PurchaseType.SHORTS };
+    filter.paymentStatus = status ?? PaymentStatus.PENDING;
+    return this.shortsPurchaseModel
+      .find(filter)
+      .populate('packageId', 'name')
+      .populate('sellerId', 'profile.firstName profile.lastName email phone')
+      .sort({ createdAt: -1 })
+      .exec();
+  }
+
   async confirmPayment(purchaseId: string): Promise<void> {
     if (!Types.ObjectId.isValid(purchaseId)) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
@@ -1204,6 +1419,9 @@ export class ShortsService {
     );
 
     for (const short of expiredShorts) {
+      // Expired shorts are no longer live; drop them from search.
+      void this.removeFromSearch(short._id.toString());
+
       this.notificationsService
         .sendToUser(
           short.sellerId.toString(),

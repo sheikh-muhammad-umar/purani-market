@@ -25,6 +25,8 @@ export const ROUTES = {
   ADMIN_ANALYTICS_FUNNEL: '/admin/analytics/funnel',
   ADMIN_ANALYTICS_BEHAVIOUR: '/admin/analytics/behaviour',
   ADMIN_ID_VERIFICATIONS: '/admin/id-verifications',
+  ADMIN_REPORTS: '/admin/reports',
+  ADMIN_REVIEWS: '/admin/reviews',
   ADMIN_ACTIVITY: '/admin/activity',
   ADMIN_PAYMENTS: '/admin/payments',
   ADMIN_PACKAGES: '/admin/packages',

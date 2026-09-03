@@ -47,6 +47,11 @@ export class StructuredDataService {
     this.setJsonLd('organization', data);
   }
 
+  /** Inject VideoObject JSON-LD for a short-video page. */
+  setVideoData(data: JsonLdData): void {
+    this.setJsonLd('video', data);
+  }
+
   /** Inject BreadcrumbList JSON-LD from an array of breadcrumb items. */
   setBreadcrumbData(breadcrumbs: BreadcrumbItem[]): void {
     const jsonLd = {

@@ -13,6 +13,11 @@ import {
   CategoryDocument,
 } from '../categories/schemas/category.schema.js';
 import { User, UserDocument } from '../users/schemas/user.schema.js';
+import {
+  ShortVideo,
+  ShortVideoDocument,
+  ShortVideoStatus,
+} from '../shorts/schemas/short-video.schema.js';
 import { SlugService } from './slug.service.js';
 import { BreadcrumbItem } from './dto/breadcrumb-item.dto.js';
 import { ListingSeoDto } from './dto/listing-seo.dto.js';
@@ -20,17 +25,20 @@ import { SellerSeoDto } from './dto/seller-seo.dto.js';
 import { HomeSeoDto } from './dto/home-seo.dto.js';
 import { SearchSeoDto } from './dto/search-seo.dto.js';
 import { PageSeoDto } from './dto/page-seo.dto.js';
+import { ShortSeoDto } from './dto/short-seo.dto.js';
 import {
   CACHE_KEY_SEO_LISTING,
   CACHE_KEY_SEO_SELLER,
   CACHE_KEY_SEO_HOME,
   CACHE_KEY_SEO_SEARCH,
   CACHE_KEY_SEO_PAGE,
+  CACHE_KEY_SEO_SHORT,
   CACHE_TTL_SEO_LISTING,
   CACHE_TTL_SEO_SELLER,
   CACHE_TTL_SEO_HOME,
   CACHE_TTL_SEO_SEARCH,
   CACHE_TTL_SEO_PAGE,
+  CACHE_TTL_SEO_SHORT,
   SEO_BASE_URL,
   SEO_PLACEHOLDER_IMAGE,
   SEO_LOGO_URL,
@@ -57,6 +65,8 @@ export class SeoService {
     private readonly categoryModel: Model<CategoryDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    @InjectModel(ShortVideo.name)
+    private readonly shortVideoModel: Model<ShortVideoDocument>,
     private readonly slugService: SlugService,
     @InjectRedis() private readonly redis: Redis,
   ) {}
@@ -266,6 +276,148 @@ export class SeoService {
         item: item.url,
       })),
     };
+  }
+
+  /**
+   * Build schema.org VideoObject JSON-LD for a short video.
+   *
+   * This is what lets a short appear as a video rich result in search and gives
+   * crawlers the thumbnail, duration, and content/embed URLs they need.
+   */
+  buildVideoJsonLd(
+    short: ShortVideo,
+    seller: User,
+    pageUrl: string,
+  ): Record<string, unknown> {
+    const name =
+      short.title || short.description || 'Short video on ' + SEO_SITE_NAME;
+    const thumbnail = short.video?.thumbnailUrl || SEO_PLACEHOLDER_IMAGE;
+    const uploadDate = (short.createdAt ?? new Date()).toISOString();
+
+    const jsonLd: Record<string, unknown> = {
+      '@context': 'https://schema.org',
+      '@type': 'VideoObject',
+      name,
+      description: this.truncateDescription(short.description || name),
+      thumbnailUrl: [thumbnail],
+      uploadDate,
+      contentUrl: short.video?.url,
+      embedUrl: pageUrl,
+      publisher: {
+        '@type': 'Organization',
+        name: SEO_SITE_NAME,
+        logo: {
+          '@type': 'ImageObject',
+          url: SEO_LOGO_URL,
+        },
+      },
+      creator: {
+        '@type': 'Person',
+        name:
+          `${seller.profile.firstName} ${seller.profile.lastName}`.trim() ||
+          SEO_SELLER_FALLBACK_NAME,
+      },
+    };
+
+    // Duration in ISO 8601 (e.g. PT45S) — only when known and valid.
+    if (short.video?.duration && short.video.duration > 0) {
+      jsonLd['duration'] = `PT${Math.round(short.video.duration)}S`;
+    }
+
+    // A short priced by its seller is also an offer — expose it so the video can
+    // carry price context in results.
+    if (short.price && short.price > 0) {
+      jsonLd['offers'] = {
+        '@type': 'Offer',
+        price: short.price,
+        priceCurrency: short.currency || 'PKR',
+        availability: 'https://schema.org/InStock',
+      };
+    }
+
+    // Interaction stats give the video result a popularity signal.
+    if (short.viewCount && short.viewCount > 0) {
+      jsonLd['interactionStatistic'] = {
+        '@type': 'InteractionCounter',
+        interactionType: 'https://schema.org/WatchAction',
+        userInteractionCount: short.viewCount,
+      };
+    }
+
+    return jsonLd;
+  }
+
+  /**
+   * Get SEO metadata for a single short video.
+   *
+   * Builds VideoObject + BreadcrumbList JSON-LD, a poster image for og:image,
+   * and the video content/embed URLs for og:video. Only ACTIVE shorts are
+   * exposed — a pending/rejected/deleted short must not be indexable.
+   *
+   * Throws NotFoundException if the short is missing, not active, or its seller
+   * is gone.
+   */
+  async getShortSeo(id: string): Promise<ShortSeoDto> {
+    const cacheKey = `${CACHE_KEY_SEO_SHORT}${id}`;
+    const cached = await this.cacheGet<ShortSeoDto>(cacheKey);
+    if (cached) {
+      return cached;
+    }
+
+    const short = await this.shortVideoModel.findById(id).lean().exec();
+    if (!short || short.status !== ShortVideoStatus.ACTIVE) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    const seller = await this.userModel.findById(short.sellerId).lean().exec();
+    if (!seller) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    const sellerName =
+      `${seller.profile.firstName} ${seller.profile.lastName}`.trim() ||
+      SEO_SELLER_FALLBACK_NAME;
+
+    const baseName = short.title || short.description || 'Short video';
+    const title = `${baseName} - Watch on ${SEO_SITE_NAME}`;
+    const description = this.truncateDescription(
+      short.description ||
+        `Watch this short video from ${sellerName} on ${SEO_SITE_NAME}.`,
+    );
+
+    const imageUrl = short.video?.thumbnailUrl || SEO_PLACEHOLDER_IMAGE;
+    const videoUrl = short.video?.url || '';
+
+    // A short is watched on the feed with an ?id= param (see shorts-feed).
+    const canonicalUrl = `${SEO_BASE_URL}${SEO_ROUTE_PATTERNS.SHORTS}?id=${short._id.toString()}`;
+
+    const breadcrumb = await this.buildBreadcrumb(
+      short.categoryId ? [short.categoryId] : [],
+    );
+
+    const videoJsonLd = this.buildVideoJsonLd(
+      short as unknown as ShortVideo,
+      seller as unknown as User,
+      canonicalUrl,
+    );
+    const breadcrumbJsonLd = this.buildBreadcrumbJsonLd(breadcrumb);
+
+    const dto = new ShortSeoDto();
+    dto.title = title;
+    dto.description = description;
+    dto.imageUrl = imageUrl;
+    dto.videoUrl = videoUrl;
+    dto.embedUrl = canonicalUrl;
+    dto.sellerName = sellerName;
+    dto.uploadDate = (short.createdAt ?? new Date()).toISOString();
+    dto.canonicalUrl = canonicalUrl;
+    dto.categoryBreadcrumb = breadcrumb;
+    dto.videoJsonLd = videoJsonLd;
+    dto.breadcrumbJsonLd = breadcrumbJsonLd;
+
+    await this.cacheSet(cacheKey, dto, CACHE_TTL_SEO_SHORT);
+
+    return dto;
   }
 
   /**

@@ -3,6 +3,7 @@ import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { Reflector } from '@nestjs/core';
 import { ListingsController } from './listings.controller';
+import { OwnListingView } from './own-listing-view';
 import { ListingsService } from './listings.service';
 import { MediaService } from './media.service';
 import { PackagesService } from '../packages/packages.service';
@@ -115,6 +116,8 @@ describe('ListingsController', () => {
           province: undefined,
           city: undefined,
           area: undefined,
+          // Unset or unknown resolves to "all" rather than reaching the query.
+          ownView: OwnListingView.ALL,
         },
         false,
       );
@@ -137,6 +140,8 @@ describe('ListingsController', () => {
           province: undefined,
           city: undefined,
           area: undefined,
+          // Unset or unknown resolves to "all" rather than reaching the query.
+          ownView: OwnListingView.ALL,
         },
         false,
       );
@@ -182,6 +187,7 @@ describe('ListingsController', () => {
         undefined,
         undefined,
         undefined,
+        undefined,
         'me-1',
       );
       expect(mockListingsService.findAll).toHaveBeenCalledWith(
@@ -204,6 +210,7 @@ describe('ListingsController', () => {
         undefined,
         'true',
         'someone-else',
+        undefined,
         undefined,
         undefined,
         undefined,

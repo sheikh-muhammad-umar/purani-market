@@ -27,6 +27,10 @@ export class BrandsService {
     return this.api.get<Brand[]>(API.BRANDS, { categoryId });
   }
 
+  getById(id: string): Observable<Brand> {
+    return this.api.get<Brand>(API.BRAND_BY_ID(id));
+  }
+
   getAll(includeInactive = false): Observable<Brand[]> {
     const params: Record<string, string> = {};
     if (includeInactive) params['all'] = 'true';

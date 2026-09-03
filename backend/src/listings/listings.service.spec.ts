@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
 import { getRedisConnectionToken } from '@nestjs-modules/ioredis';
 import { ViewCounterService } from '../views/view-counter.service';
+import { OwnListingView } from './own-listing-view';
 import {
   NotFoundException,
   BadRequestException,
@@ -173,6 +174,17 @@ describe('ListingsService', () => {
     });
     mockListingModel.countDocuments = jest.fn().mockReturnValue({
       exec: jest.fn().mockResolvedValue(1),
+    });
+    mockListingModel.aggregate = jest.fn().mockReturnValue({
+      exec: jest.fn().mockResolvedValue([
+        {
+          all: [{ count: 9 }],
+          active: [{ count: 5 }],
+          rejected: [{ count: 1 }],
+          // pending, inactive, expiring_soon and expired absent on purpose: a
+          // facet branch that matches nothing returns no rows at all.
+        },
+      ]),
     });
 
     mockSearchSync = { indexListing: jest.fn(), removeListing: jest.fn() };
@@ -1031,6 +1043,76 @@ describe('ListingsService', () => {
 
       expect(changed).toBe(0);
       expect(mockListingModel.updateMany).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('own listing views', () => {
+    const sellerObjectId = sellerId;
+
+    it('applies the requested view for an owner', async () => {
+      await service.findAll(
+        1,
+        20,
+        'createdAt',
+        'desc',
+        sellerObjectId.toString(),
+        { ownView: OwnListingView.REJECTED },
+        true,
+      );
+
+      const filter = mockListingModel.find.mock.calls[0][0];
+      expect(filter.status).toBe(ListingStatus.REJECTED);
+      expect(filter.sellerId).toEqual(sellerObjectId);
+    });
+
+    it('ignores the view on a public request', async () => {
+      await service.findAll(
+        1,
+        20,
+        'createdAt',
+        'desc',
+        sellerObjectId.toString(),
+        { ownView: OwnListingView.REJECTED },
+        false,
+      );
+
+      // A public seller profile passes a sellerId but never includeAllStatuses;
+      // honouring the view here would have exposed rejected listings to anyone
+      // who guessed the parameter.
+      const filter = mockListingModel.find.mock.calls[0][0];
+      expect(filter.status).toBe(ListingStatus.ACTIVE);
+    });
+
+    it('reports zero for views that matched nothing', async () => {
+      const counts = await service.getOwnViewCounts(sellerObjectId.toString());
+
+      expect(counts).toEqual({
+        all: 9,
+        active: 5,
+        pending: 0,
+        rejected: 1,
+        inactive: 0,
+        expiring_soon: 0,
+        expired: 0,
+      });
+    });
+
+    it("counts only the seller's own live listings", async () => {
+      await service.getOwnViewCounts(sellerObjectId.toString());
+
+      const [pipeline] = mockListingModel.aggregate.mock.calls[0];
+      expect(pipeline[0].$match).toEqual({
+        sellerId: sellerObjectId,
+        deletedAt: { $exists: false },
+      });
+      // One aggregation for all seven, rather than seven round trips.
+      expect(Object.keys(pipeline[1].$facet)).toHaveLength(7);
+    });
+
+    it('rejects a malformed seller id rather than throwing a cast error', async () => {
+      await expect(service.getOwnViewCounts('not-an-id')).rejects.toThrow(
+        BadRequestException,
+      );
     });
   });
 });

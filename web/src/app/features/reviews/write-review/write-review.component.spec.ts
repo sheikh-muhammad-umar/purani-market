@@ -17,7 +17,7 @@ describe('WriteReviewComponent', () => {
     reviewsService = {
       submit: vi.fn().mockReturnValue(of({ _id: 'rev1' })),
     };
-    route = { snapshot: { queryParams: { listingId: 'listing1' } } };
+    route = { snapshot: { queryParams: { sellerId: 'seller1' } } };
     router = { navigate: vi.fn() };
     toastMock = { success: vi.fn(), error: vi.fn() };
 
@@ -33,12 +33,24 @@ describe('WriteReviewComponent', () => {
     expect(component).toBeTruthy();
   });
 
-  it('should read listingId from query params on init', () => {
+  it('should read sellerId from query params on init', () => {
+    component.ngOnInit();
+    expect(component.sellerId()).toBe('seller1');
+  });
+
+  it('should read optional listingId context from query params', () => {
+    route.snapshot.queryParams = { sellerId: 'seller1', listingId: 'listing1' };
+    component = new WriteReviewComponent(
+      reviewsService as unknown as ReviewsService,
+      route as any,
+      router as any,
+      toastMock as unknown as ToastService,
+    );
     component.ngOnInit();
     expect(component.productListingId()).toBe('listing1');
   });
 
-  it('should set productListingId to null when not provided', () => {
+  it('should set sellerId to null when not provided', () => {
     route.snapshot.queryParams = {};
     component = new WriteReviewComponent(
       reviewsService as unknown as ReviewsService,
@@ -47,7 +59,7 @@ describe('WriteReviewComponent', () => {
       toastMock as unknown as ToastService,
     );
     component.ngOnInit();
-    expect(component.productListingId()).toBeNull();
+    expect(component.sellerId()).toBeNull();
   });
 
   it('should not be valid initially', () => {
@@ -55,7 +67,7 @@ describe('WriteReviewComponent', () => {
     expect(component.isValid).toBe(false);
   });
 
-  it('should be valid with rating, text, and listingId', () => {
+  it('should be valid with rating, text, and sellerId', () => {
     component.ngOnInit();
     component.setRating(4);
     component.onTextChange('Great product!');
@@ -81,7 +93,7 @@ describe('WriteReviewComponent', () => {
     expect(component.isValid).toBe(false);
   });
 
-  it('should not be valid without listingId', () => {
+  it('should not be valid without sellerId', () => {
     route.snapshot.queryParams = {};
     component = new WriteReviewComponent(
       reviewsService as unknown as ReviewsService,
@@ -134,9 +146,11 @@ describe('WriteReviewComponent', () => {
     component.submit();
 
     expect(reviewsService.submit).toHaveBeenCalledWith({
-      productListingId: 'listing1',
+      sellerId: 'seller1',
+      productListingId: undefined,
       rating: 5,
       text: 'Excellent product!',
+      images: [],
     });
     expect(component.success()).toBe(true);
     expect(component.submitting()).toBe(false);
@@ -200,9 +214,66 @@ describe('WriteReviewComponent', () => {
     component.submit();
 
     expect(reviewsService.submit).toHaveBeenCalledWith({
-      productListingId: 'listing1',
+      sellerId: 'seller1',
+      productListingId: undefined,
       rating: 3,
       text: 'Some review text',
+      images: [],
     });
+  });
+
+  // ── Image upload ────────────────────────────────────────────
+
+  it('adds a valid image to the previews', () => {
+    const file = new File(['x'], 'a.png', { type: 'image/png' });
+    // Fake FileReader whose onload fires synchronously when readAsDataURL runs.
+    class FakeFileReader {
+      onload: (() => void) | null = null;
+      result = 'data:img';
+      readAsDataURL(): void {
+        this.onload?.();
+      }
+    }
+    vi.stubGlobal('FileReader', FakeFileReader);
+    component.onFilesSelected({ target: { files: [file], value: '' } } as any);
+    expect(component.previews().length).toBe(1);
+    vi.unstubAllGlobals();
+  });
+
+  it('rejects a disallowed image type', () => {
+    const file = new File(['x'], 'a.gif', { type: 'image/gif' });
+    component.onFilesSelected({ target: { files: [file], value: '' } } as any);
+    expect(component.error()).toContain('JPEG');
+    expect(component.previews().length).toBe(0);
+  });
+
+  it('caps the number of images at the maximum', () => {
+    component.previews.set([
+      { file: {} as File, url: 'a' },
+      { file: {} as File, url: 'b' },
+    ]);
+    const file = new File(['x'], 'c.png', { type: 'image/png' });
+    component.onFilesSelected({ target: { files: [file], value: '' } } as any);
+    expect(component.error()).toContain('up to');
+    expect(component.previews().length).toBe(2);
+  });
+
+  it('removes an image by index', () => {
+    component.previews.set([
+      { file: {} as File, url: 'a' },
+      { file: {} as File, url: 'b' },
+    ]);
+    component.removeImage(0);
+    expect(component.previews().map((p) => p.url)).toEqual(['b']);
+  });
+
+  it('submits the selected image files', () => {
+    component.ngOnInit();
+    component.setRating(5);
+    component.onTextChange('Great with photos');
+    const file = new File(['x'], 'a.png', { type: 'image/png' });
+    component.previews.set([{ file, url: 'data:img' }]);
+    component.submit();
+    expect(reviewsService.submit).toHaveBeenCalledWith(expect.objectContaining({ images: [file] }));
   });
 });

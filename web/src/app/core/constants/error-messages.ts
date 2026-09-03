@@ -8,6 +8,8 @@ export const ERROR_MSG = {
   REGISTER_FAILED: 'Registration failed. Please try again.',
   VERIFICATION_LOAD_FAILED: 'Failed to load verification status.',
   VERIFICATION_SUBMIT_FAILED: 'Failed to submit verification request.',
+  VERIFICATION_ATTEMPTS_EXHAUSTED:
+    'You have used all your ID verification attempts. Please contact support.',
   VERIFICATION_APPROVE_FAILED: 'Failed to approve verification.',
   VERIFICATION_REJECT_FAILED: 'Failed to reject verification.',
   VERIFICATIONS_LOAD_FAILED: 'Failed to load verification requests.',

@@ -95,6 +95,13 @@ export class AuthController {
     return this.authService.enableMfa(user.sub);
   }
 
+  @Post('mfa/disable')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async disableMfa(@CurrentUser() user: AuthUser) {
+    return this.authService.disableMfa(user.sub);
+  }
+
   @Post('mfa/verify')
   @HttpCode(HttpStatus.OK)
   async verifyMfa(

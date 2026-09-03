@@ -6,6 +6,7 @@ import { Subject, takeUntil } from 'rxjs';
 import { environment } from '../../../../environments/environment';
 import { API } from '../../../core/constants/api-endpoints';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
+import { ToastService } from '../../../core/services/toast.service';
 import {
   IdVerificationRequest,
   IdVerificationStatus,
@@ -123,7 +124,10 @@ export class IdVerificationsComponent implements OnInit, OnDestroy {
     return pages;
   });
 
-  constructor(private readonly http: HttpClient) {}
+  constructor(
+    private readonly http: HttpClient,
+    private readonly toast: ToastService,
+  ) {}
 
   ngOnInit(): void {
     this.loadVerifications();
@@ -208,11 +212,13 @@ export class IdVerificationsComponent implements OnInit, OnDestroy {
       .subscribe({
         next: () => {
           this.actionLoading.set(null);
+          this.toast.success('Verification approved.');
           this.loadVerifications();
         },
-        error: (err) => {
+        error: () => {
           this.actionLoading.set(null);
           this.error.set(ERROR_MSG.VERIFICATION_APPROVE_FAILED);
+          this.toast.error(ERROR_MSG.VERIFICATION_APPROVE_FAILED);
         },
       });
   }
@@ -243,11 +249,13 @@ export class IdVerificationsComponent implements OnInit, OnDestroy {
           this.actionLoading.set(null);
           this.rejectingId = null;
           this.rejectionReason = '';
+          this.toast.success('Verification rejected.');
           this.loadVerifications();
         },
-        error: (err) => {
+        error: () => {
           this.actionLoading.set(null);
           this.error.set(ERROR_MSG.VERIFICATION_REJECT_FAILED);
+          this.toast.error(ERROR_MSG.VERIFICATION_REJECT_FAILED);
         },
       });
   }

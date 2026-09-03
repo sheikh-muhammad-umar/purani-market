@@ -86,13 +86,16 @@ export class UsersService {
     }
     const user = await this.userModel
       .findById(userId)
-      .select('profile emailVerified phoneVerified idVerified createdAt')
+      .select(
+        'profile emailVerified phoneVerified idVerified createdAt averageRating reviewCount',
+      )
       .lean()
       .exec();
     if (!user) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
     return {
+      _id: user._id.toString(),
       name:
         `${user.profile?.firstName || ''} ${user.profile?.lastName || ''}`.trim() ||
         'User',
@@ -102,6 +105,8 @@ export class UsersService {
       phoneVerified: user.phoneVerified ?? false,
       idVerified: user.idVerified ?? false,
       memberSince: user.createdAt,
+      averageRating: user.averageRating ?? 0,
+      reviewCount: user.reviewCount ?? 0,
     };
   }
 }

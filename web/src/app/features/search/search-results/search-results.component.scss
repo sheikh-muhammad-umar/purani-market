@@ -46,20 +46,6 @@
   }
 }
 
-.clear-all-btn {
-  background: none;
-  border: none;
-  color: var(--secondary);
-  font-size: var(--text-xs);
-  font-weight: 600;
-  cursor: pointer;
-  padding: var(--space-half);
-
-  &:hover {
-    text-decoration: underline;
-  }
-}
-
 /* ---- Search Layout ---- */
 .search-layout {
   display: flex;
@@ -73,6 +59,13 @@
   align-self: flex-start;
   position: sticky;
   top: calc(var(--header-height) + var(--space-2));
+
+  /* Pin the sidebar to the viewport height so tall filter lists scroll inside
+     the panel rather than forcing the whole page to scroll. The offset matches
+     the sticky `top` (plus a little breathing room at the bottom). */
+  max-height: calc(100vh - var(--header-height) - var(--space-3));
+  display: flex;
+  flex-direction: column;
 
   /* User explicitly collapsed via toggle button */
   &.collapsed .filter-body {
@@ -89,6 +82,7 @@
   align-items: center;
   justify-content: space-between;
   margin-bottom: var(--space-2);
+  flex-shrink: 0; /* header stays fixed; only the body scrolls */
 }
 
 .filter-title {
@@ -110,6 +104,15 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-2);
+
+  /* Independent scroll: the filters scroll within the pinned sidebar. */
+  flex: 1;
+  min-height: 0;
+  overflow-y: auto;
+  /* A little right padding so the scrollbar doesn't overlap the cards. */
+  padding-right: var(--space-half);
+  /* Thin, unobtrusive scrollbar that only shows when needed. */
+  scrollbar-width: thin;
 }
 
 /* Filter Cards */
@@ -354,6 +357,25 @@
   margin-bottom: var(--space-4);
 }
 
+/* ---- Shorts rail (secondary result set) ---- */
+.shorts-section {
+  margin-top: var(--space-6);
+}
+
+/* Portrait 9:16 tiles, so columns are narrower than the listing grid. */
+.shorts-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: var(--space-3);
+  margin-top: var(--space-3);
+}
+
+@media (max-width: 767px) {
+  .shorts-grid {
+    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  }
+}
+
 /* The card, grid, pagination and empty state now come from shared primitives
    (app-listing-card, .auto-grid, app-pagination, app-empty-state), so their
    styles have been removed from this file rather than maintained per feature. */
@@ -444,6 +466,9 @@
     bottom: 0;
     width: 100%;
     height: 100%;
+    /* The overlay itself scrolls on mobile — undo the desktop viewport cap so
+       it isn't double-bounded. */
+    max-height: none;
     z-index: 200;
     background: var(--background);
     overflow-y: auto;
@@ -460,6 +485,14 @@
     /* On mobile, always show filter body when overlay is open */
     &.mobile-open .filter-body {
       display: flex;
+    }
+
+    /* The whole overlay scrolls, so the body shouldn't be its own scroll area. */
+    .filter-body {
+      overflow-y: visible;
+      flex: initial;
+      min-height: auto;
+      padding-right: 0;
     }
 
     .filter-header {

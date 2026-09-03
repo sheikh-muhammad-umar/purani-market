@@ -67,6 +67,9 @@ export interface Listing {
   status: ListingStatus;
   isFeatured: boolean;
   sellerVerified?: boolean;
+  /** Denormalized seller rating (average of approved reviews) and its count. */
+  sellerRating?: number;
+  sellerReviewCount?: number;
   featuredUntil?: Date;
   rejectionReason?: string;
   rejectionCount?: number;

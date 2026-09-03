@@ -121,6 +121,9 @@ export class ShortVideo {
   @Prop({ type: Number, default: 0 })
   favoriteCount!: number;
 
+  @Prop({ type: Number, default: 0 })
+  shareCount!: number;
+
   @Prop({ type: Date })
   expiresAt?: Date;
 

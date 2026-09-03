@@ -44,8 +44,16 @@ describe('AuthService', () => {
     sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
     sendReminderEmail: jest.fn().mockResolvedValue(undefined),
     sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
+    sendPasswordChangedEmail: jest.fn().mockResolvedValue(undefined),
     sendEmailChangeVerification: jest.fn().mockResolvedValue(undefined),
     sendEmailChangeNotification: jest.fn().mockResolvedValue(undefined),
+    sendPhoneChangeNotification: jest.fn().mockResolvedValue(undefined),
+    sendOtpEmail: jest.fn().mockResolvedValue(undefined),
+    sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
+    sendMfaEnabledEmail: jest.fn().mockResolvedValue(undefined),
+    sendMfaDisabledEmail: jest.fn().mockResolvedValue(undefined),
+    sendAccountLockedEmail: jest.fn().mockResolvedValue(undefined),
+    sendNewDeviceLoginEmail: jest.fn().mockResolvedValue(undefined),
   };
 
   const mockSmsService = {

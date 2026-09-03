@@ -1,0 +1,76 @@
+<div class="seller-reviews">
+  @if (loading()) {
+    <div class="reviews-skeleton">
+      @for (i of skeletons; track i) {
+        <div class="review-skeleton-card">
+          <app-skeleton variant="circle" width="40px" />
+          <div class="review-skeleton-meta">
+            <app-skeleton variant="block" width="30%" height="0.85rem" />
+            <app-skeleton variant="text" [lines]="2" />
+          </div>
+        </div>
+      }
+    </div>
+  } @else if (error()) {
+    <app-empty-state icon="warning" title="Couldn't load reviews" [message]="error()!" />
+  } @else if (reviews().length === 0) {
+    <app-empty-state
+      icon="star"
+      title="No reviews yet"
+      message="This seller hasn't received any reviews."
+    />
+  } @else {
+    <div class="reviews-summary">
+      <app-star-rating
+        size="lg"
+        [rating]="averageRating()"
+        [count]="total()"
+        [showValue]="true"
+        [showCount]="true"
+      />
+    </div>
+
+    <div class="reviews-list">
+      @for (review of reviews(); track review._id) {
+        <div class="review-card">
+          <div class="review-header">
+            <div class="reviewer">
+              @if (reviewerAvatar(review); as avatar) {
+                <img class="reviewer-avatar" [src]="avatar" alt="" />
+              } @else {
+                <span class="reviewer-avatar placeholder" aria-hidden="true">👤</span>
+              }
+              <span class="reviewer-name">{{ reviewerName(review) }}</span>
+            </div>
+            <span class="review-date">{{ formatDate(review.createdAt) }}</span>
+          </div>
+
+          <app-star-rating
+            size="sm"
+            [rating]="review.rating"
+            [showValue]="false"
+            [showCount]="false"
+          />
+
+          <p class="review-text">{{ review.text }}</p>
+
+          @if (review.images && review.images.length > 0) {
+            <div class="review-photos">
+              @for (img of review.images; track img.url) {
+                <button type="button" class="review-photo" (click)="openLightbox(img.url)">
+                  <img [src]="img.url" alt="Review photo" loading="lazy" />
+                </button>
+              }
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</div>
+
+@if (lightboxUrl(); as url) {
+  <div class="review-lightbox" (click)="closeLightbox()">
+    <img [src]="url" alt="Review photo" />
+  </div>
+}

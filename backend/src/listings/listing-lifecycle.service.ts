@@ -46,6 +46,7 @@ import {
   DELETION_REASON_MAX_REJECTIONS,
 } from '../common/constants/index.js';
 import { daysToMs } from '../common/utils/time.js';
+import { CronLock } from '../common/decorators/cron-lock.decorator.js';
 
 @Injectable()
 export class ListingLifecycleService {
@@ -82,6 +83,7 @@ export class ListingLifecycleService {
   // ─── 1. Expire active listings after 30 days (no package) ───
 
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async handleExpiredListings(): Promise<number> {
     const now = new Date();
     const expiredListings = await this.listingModel
@@ -154,6 +156,7 @@ export class ListingLifecycleService {
   // ─── 2. Cleanup deactivated listings after 7 days ───
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async handleStaleDeactivatedListings(): Promise<number> {
     const cutoff = new Date(Date.now() - daysToMs(this.deactivatedCleanupDays));
     const staleListings = await this.listingModel
@@ -218,6 +221,7 @@ export class ListingLifecycleService {
   // ─── 3. Send listing expiration reminders (3 days, 1 day before) ───
 
   @Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async sendListingExpiryReminders(): Promise<number> {
     let sent = 0;
     const now = new Date();
@@ -258,6 +262,7 @@ export class ListingLifecycleService {
   // ─── 4. Send featured ad expiration reminders ───
 
   @Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async sendFeaturedExpiryReminders(): Promise<number> {
     let sent = 0;
     const now = new Date();
@@ -298,6 +303,7 @@ export class ListingLifecycleService {
   // ─── 5. Send package expiration reminders (unused slots about to expire) ───
 
   @Cron(CronExpression.EVERY_DAY_AT_9AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async sendPackageExpiryReminders(): Promise<number> {
     let sent = 0;
     const now = new Date();
@@ -363,6 +369,7 @@ export class ListingLifecycleService {
   // ─── 6. Handle expired AD_SLOTS packages — reduce seller listingLimit ───
 
   @Cron(CronExpression.EVERY_DAY_AT_1AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async handleExpiredAdSlotPackages(): Promise<number> {
     const now = new Date();
 
@@ -494,6 +501,7 @@ export class ListingLifecycleService {
    * Runs after the slot-expiry cron so the day's limit changes are already in.
    */
   @Cron(CronExpression.EVERY_DAY_AT_2AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async enforceListingLimits(): Promise<number> {
     const now = new Date();
     const graceCutoff = new Date(
@@ -641,6 +649,7 @@ export class ListingLifecycleService {
   // ─── 7. Fail stale pending payments (>24h) ───
 
   @Cron(CronExpression.EVERY_HOUR, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async handleStalePendingPayments(): Promise<number> {
     const cutoff = new Date(
       Date.now() - STALE_PENDING_PAYMENT_HOURS * 60 * 60 * 1000,
@@ -694,6 +703,7 @@ export class ListingLifecycleService {
   // ─── 8. Cleanup max-rejected listings (3 rejections, no resubmission in 30 days) ───
 
   @Cron(CronExpression.EVERY_DAY_AT_4AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async handleStaleRejectedListings(): Promise<number> {
     const cutoff = new Date(Date.now() - daysToMs(this.activeDays));
 
@@ -750,6 +760,7 @@ export class ListingLifecycleService {
   // ─── 9. Auto-revert stale reserved listings (>14 days) ───
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async handleStaleReservedListings(): Promise<number> {
     const cutoff = new Date(Date.now() - daysToMs(STALE_RESERVED_DAYS));
     const newExpiresAt = new Date(Date.now() + daysToMs(this.activeDays));
@@ -808,6 +819,7 @@ export class ListingLifecycleService {
   // ─── 10. Auto-approve stale PENDING_REVIEW listings ───
 
   @Cron(CronExpression.EVERY_DAY_AT_5AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async handleStalePendingReviewListings(): Promise<number> {
     const cutoff = new Date(Date.now() - daysToMs(STALE_PENDING_REVIEW_DAYS));
 
@@ -865,6 +877,7 @@ export class ListingLifecycleService {
   // ─── 11. Cleanup orphaned favorites for deleted/expired listings ───
 
   @Cron(CronExpression.EVERY_DAY_AT_4AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async cleanupOrphanedFavorites(): Promise<number> {
     const deletedListingIds = await this.listingModel
       .find({
@@ -888,6 +901,7 @@ export class ListingLifecycleService {
   // ─── 12. Guard activeListingCount consistency (floor at 0) ───
 
   @Cron(CronExpression.EVERY_DAY_AT_6AM, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async fixNegativeActiveListingCounts(): Promise<number> {
     const result = await this.userModel.updateMany(
       { activeListingCount: { $lt: 0 } },

@@ -29,6 +29,20 @@ export interface VariantMetrics {
   contacts: number;
   conversions: number;
   avgClickPosition: number;
+  /** Whether this variant is the baseline all others are compared against. */
+  isControl: boolean;
+  /** Converting subjects / exposed subjects, as a percentage. */
+  conversionRate: number;
+  /** Distinct subjects who converted at least once. */
+  convertedSubjects: number;
+  /** Relative change in conversion rate vs control (%). Null for control/no data. */
+  upliftVsControl: number | null;
+  /** Two-proportion z-test p-value vs control. Null for control/insufficient data. */
+  pValue: number | null;
+  /** Confidence the difference is real (100 - p*100), percent. Null if no data. */
+  confidence: number | null;
+  /** True when confidence ≥ 95%. */
+  isSignificant: boolean;
 }
 
 export interface ExperimentMetrics {
@@ -38,6 +52,12 @@ export interface ExperimentMetrics {
   variants: VariantMetrics[];
   startedAt?: string;
   totalSubjects: number;
+  /** Variant used as the control/baseline. */
+  controlVariantId: string | null;
+  /** Recommended winner (significant + highest conversion). Null if none yet. */
+  winnerVariantId: string | null;
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 export type StatusFilter = '' | 'draft' | 'running' | 'paused' | 'completed';

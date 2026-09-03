@@ -12,6 +12,8 @@ export interface PublicSellerProfile {
   phoneVerified: boolean;
   idVerified: boolean;
   memberSince: string;
+  averageRating: number;
+  reviewCount: number;
 }
 
 @Injectable({ providedIn: 'root' })

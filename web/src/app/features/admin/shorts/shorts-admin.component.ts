@@ -2,7 +2,11 @@ import { Component, OnInit, signal, inject } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
-import { ShortsService, ShortVideo } from '../../../core/services/shorts.service';
+import {
+  ShortsService,
+  ShortVideo,
+  ShortsPackagePurchase,
+} from '../../../core/services/shorts.service';
 import { CategoriesService } from '../../../core/services/categories.service';
 import { Category } from '../../../core/models/category.model';
 import { FormatDurationPipe } from '../../../shared/pipes/format-duration.pipe';
@@ -15,6 +19,8 @@ import { DatePickerComponent } from '../../../shared/components/date-picker/date
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
+import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'app-shorts-admin',
@@ -34,9 +40,12 @@ import { ModalComponent } from '../../../shared/components/modal/modal.component
   styleUrl: './shorts-admin.component.scss',
 })
 export class ShortsAdminComponent implements OnInit {
-  readonly activeTab = signal<'all' | 'moderation'>('all');
+  readonly activeTab = signal<'all' | 'moderation' | 'payments'>('all');
   readonly shorts = signal<ShortVideo[]>([]);
   readonly pendingShorts = signal<ShortVideo[]>([]);
+  readonly pendingPurchases = signal<ShortsPackagePurchase[]>([]);
+  readonly payLoading = signal(false);
+  readonly payActionLoading = signal<string | null>(null);
   readonly loading = signal(true);
   readonly modLoading = signal(true);
   readonly total = signal(0);
@@ -115,6 +124,8 @@ export class ShortsAdminComponent implements OnInit {
   constructor(
     private readonly shortsService: ShortsService,
     private readonly categoriesService: CategoriesService,
+    private readonly confirmModal: ConfirmModalService,
+    private readonly toast: ToastService,
   ) {}
 
   private readonly route = inject(ActivatedRoute);
@@ -129,11 +140,65 @@ export class ShortsAdminComponent implements OnInit {
     this.loadCategories();
   }
 
-  switchTab(tab: 'all' | 'moderation'): void {
+  switchTab(tab: 'all' | 'moderation' | 'payments'): void {
     this.activeTab.set(tab);
     if (tab === 'moderation' && this.pendingShorts().length === 0 && !this.modLoading()) {
       this.loadPendingShorts();
     }
+    if (tab === 'payments' && this.pendingPurchases().length === 0 && !this.payLoading()) {
+      this.loadPendingPurchases();
+    }
+  }
+
+  // --- Payments (manual shorts package confirmation) ---
+  loadPendingPurchases(): void {
+    this.payLoading.set(true);
+    this.shortsService.adminListPurchases('pending').subscribe({
+      next: (purchases) => {
+        this.pendingPurchases.set(purchases);
+        this.payLoading.set(false);
+      },
+      error: () => this.payLoading.set(false),
+    });
+  }
+
+  async confirmPurchase(purchase: ShortsPackagePurchase): Promise<void> {
+    const confirmed = await this.confirmModal.confirm({
+      title: 'Confirm Payment',
+      message: `Confirm payment for this shorts package? This activates the seller's ${purchase.quantity} short(s) for ${purchase.duration} day(s).`,
+      confirmText: 'Confirm Payment',
+      variant: 'info',
+    });
+    if (!confirmed) return;
+
+    this.payActionLoading.set(purchase._id);
+    this.shortsService.adminConfirmPayment(purchase._id).subscribe({
+      next: () => {
+        this.pendingPurchases.update((list) => list.filter((p) => p._id !== purchase._id));
+        this.payActionLoading.set(null);
+        this.toast.success('Payment confirmed and package activated.');
+      },
+      error: () => {
+        this.payActionLoading.set(null);
+        this.toast.error('Failed to confirm payment.');
+      },
+    });
+  }
+
+  getPurchaseSellerName(purchase: ShortsPackagePurchase): string {
+    const s = purchase.sellerId as any;
+    if (s?.profile) return `${s.profile.firstName || ''} ${s.profile.lastName || ''}`.trim();
+    return 'Unknown';
+  }
+
+  getPurchaseSellerContact(purchase: ShortsPackagePurchase): string {
+    const s = purchase.sellerId as any;
+    return s?.email || s?.phone || '';
+  }
+
+  getPurchasePackageName(purchase: ShortsPackagePurchase): string {
+    const p = purchase.packageId as any;
+    return p?.name || 'Package';
   }
 
   // --- All Shorts ---
@@ -213,15 +278,27 @@ export class ShortsAdminComponent implements OnInit {
     });
   }
 
-  approveShort(id: string): void {
+  async approveShort(id: string): Promise<void> {
+    const confirmed = await this.confirmModal.confirm({
+      title: 'Approve Short',
+      message: 'Approve this short? It will go live and become visible to everyone.',
+      confirmText: 'Approve',
+      variant: 'info',
+    });
+    if (!confirmed) return;
+
     this.modActionLoading.set(id);
     this.shortsService.adminApproveShort(id).subscribe({
       next: () => {
         this.pendingShorts.update((list) => list.filter((s) => s._id !== id));
         this.pendingCount.update((c) => c - 1);
         this.modActionLoading.set(null);
+        this.toast.success('Short approved.');
       },
-      error: () => this.modActionLoading.set(null),
+      error: () => {
+        this.modActionLoading.set(null);
+        this.toast.error('Failed to approve short.');
+      },
     });
   }
 
@@ -241,18 +318,31 @@ export class ShortsAdminComponent implements OnInit {
         this.pendingCount.update((c) => c - 1);
         this.rejectingShort.set(null);
         this.modActionLoading.set(null);
+        this.toast.success('Short rejected.');
       },
-      error: () => this.modActionLoading.set(null),
+      error: () => {
+        this.modActionLoading.set(null);
+        this.toast.error('Failed to reject short.');
+      },
     });
   }
 
-  deleteShort(id: string): void {
-    if (!confirm('Are you sure you want to delete this short?')) return;
+  async deleteShort(id: string): Promise<void> {
+    const confirmed = await this.confirmModal.confirm({
+      title: 'Delete Short',
+      message: 'Are you sure you want to delete this short? This cannot be undone.',
+      confirmText: 'Delete',
+      variant: 'danger',
+    });
+    if (!confirmed) return;
+
     this.shortsService.adminDeleteShort(id).subscribe({
       next: () => {
         this.shorts.update((list) => list.filter((s) => s._id !== id));
         this.pendingShorts.update((list) => list.filter((s) => s._id !== id));
+        this.toast.success('Short deleted.');
       },
+      error: () => this.toast.error('Failed to delete short.'),
     });
   }
 

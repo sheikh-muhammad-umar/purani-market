@@ -12,7 +12,14 @@ import { SellerSeoDto } from './dto/seller-seo.dto.js';
 import { HomeSeoDto } from './dto/home-seo.dto.js';
 import { SearchSeoDto } from './dto/search-seo.dto.js';
 import { PageSeoDto } from './dto/page-seo.dto.js';
+import { ShortSeoDto } from './dto/short-seo.dto.js';
 import { ERROR } from '../common/constants/error-messages.js';
+import {
+  SEO_BASE_URL,
+  SEO_SITE_NAME,
+  SEO_OG_DEFAULT_IMAGE,
+  SEO_ROUTE_PATTERNS,
+} from '../common/constants/index.js';
 
 @Controller('api/seo')
 export class SeoController {
@@ -52,22 +59,32 @@ export class SeoController {
     return this.seoService.getHomeSeo();
   }
 
+  /** SEO for the shorts feed (collection) page. */
   @Get('shorts')
-  async getShortsSeo(): Promise<any> {
+  getShortsSeo(): Record<string, unknown> {
+    const url = `${SEO_BASE_URL}${SEO_ROUTE_PATTERNS.SHORTS}`;
     return {
-      title: 'Short Videos - Product Showcases | marketplace.pk',
-      description:
-        'Watch short product videos from sellers. Discover products through quick 1-minute video showcases on marketplace.pk.',
-      canonical: 'https://marketplace.pk/shorts',
+      title: `Short Videos - Product Showcases | ${SEO_SITE_NAME}`,
+      description: `Watch short product videos from sellers. Discover products through quick video showcases on ${SEO_SITE_NAME}.`,
+      canonicalUrl: url,
       ogType: 'website',
-      ogImage: 'https://marketplace.pk/assets/og-shorts.png',
+      ogImage: SEO_OG_DEFAULT_IMAGE,
       jsonLd: {
         '@context': 'https://schema.org',
         '@type': 'CollectionPage',
         name: 'Short Videos',
         description: 'Product showcase short videos from sellers',
-        url: 'https://marketplace.pk/shorts',
+        url,
       },
     };
+  }
+
+  /** SEO for a single short video (VideoObject rich result). */
+  @Get('shorts/:id')
+  async getShortSeo(@Param('id') id: string): Promise<ShortSeoDto> {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new BadRequestException(ERROR.INVALID_LISTING_ID);
+    }
+    return this.seoService.getShortSeo(id);
   }
 }

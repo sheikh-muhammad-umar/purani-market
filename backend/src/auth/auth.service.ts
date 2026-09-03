@@ -38,6 +38,7 @@ import { OAuth2Client } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
 import { ERROR } from '../common/constants/error-messages.js';
 import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
+import { CronLock } from '../common/decorators/cron-lock.decorator.js';
 import { OtpReason } from '../common/enums/otp-reason.enum.js';
 import { RecommendationService } from '../ai/recommendation.service.js';
 import { UserAction } from '../ai/enums/user-action.enum.js';
@@ -45,7 +46,9 @@ import {
   BCRYPT_COST_FACTOR,
   EMAIL_TOKEN_EXPIRY_HOURS,
   PHONE_OTP_EXPIRY_MINUTES,
+  EMAIL_OTP_EXPIRY_MINUTES,
   MAX_RESENDS_PER_HOUR,
+  MAX_OTP_VERIFY_ATTEMPTS,
   UNVERIFIED_REMINDER_HOURS,
   MFA_MAX_FAILED_ATTEMPTS,
   MFA_FAILED_WINDOW_MINUTES,
@@ -182,11 +185,20 @@ export class AuthService {
     await record.save();
 
     // Mark email as verified
-    await this.userModel
-      .findByIdAndUpdate(record.userId, {
-        emailVerified: true,
-      })
+    const verifiedUser = await this.userModel
+      .findByIdAndUpdate(
+        record.userId,
+        {
+          emailVerified: true,
+        },
+        { new: true },
+      )
       .exec();
+
+    // Send a welcome email now that the address is confirmed
+    if (verifiedUser?.email) {
+      await this.emailService.sendWelcomeEmail(verifiedUser.email);
+    }
 
     this.trackOtp(
       UserAction.OTP_VERIFIED,
@@ -221,9 +233,35 @@ export class AuthService {
       throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
+    // Guard against brute force: invalidate the OTP once too many wrong
+    // attempts have been made against it.
+    if (record.attempts >= MAX_OTP_VERIFY_ATTEMPTS) {
+      record.used = true;
+      await record.save();
+      this.trackOtp(
+        UserAction.OTP_FAILED,
+        user._id.toString(),
+        record.type === VerificationType.WHATSAPP
+          ? OtpChannel.WHATSAPP
+          : OtpChannel.SMS,
+        OtpReason.REGISTRATION,
+      );
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
+    }
+
     // Compare OTP hash
     const isValid = await bcrypt.compare(otp, record.token);
     if (!isValid) {
+      record.attempts += 1;
+      await record.save();
+      this.trackOtp(
+        UserAction.OTP_FAILED,
+        user._id.toString(),
+        record.type === VerificationType.WHATSAPP
+          ? OtpChannel.WHATSAPP
+          : OtpChannel.SMS,
+        OtpReason.REGISTRATION,
+      );
       throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
@@ -334,6 +372,7 @@ export class AuthService {
   // ─── Cron: Send reminders to unverified accounts ───
 
   @Cron(CronExpression.EVERY_DAY_AT_9AM)
+  @CronLock()
   async checkUnverifiedAccounts(): Promise<void> {
     const reminderThreshold = new Date(
       Date.now() - UNVERIFIED_REMINDER_HOURS * 60 * 60 * 1000,
@@ -366,6 +405,7 @@ export class AuthService {
   // ─── Cron: Cleanup expired verification tokens ───
 
   @Cron(CronExpression.EVERY_DAY_AT_2AM)
+  @CronLock()
   async cleanupExpiredVerificationTokens(): Promise<void> {
     const result = await this.verificationTokenModel
       .deleteMany({
@@ -383,6 +423,7 @@ export class AuthService {
   // ─── Cron: Cleanup expired pending email/phone changes ───
 
   @Cron(CronExpression.EVERY_DAY_AT_3AM)
+  @CronLock()
   async cleanupExpiredPendingChanges(): Promise<void> {
     const now = new Date();
 
@@ -411,6 +452,7 @@ export class AuthService {
   // ─── Cron: Unlock expired MFA lockouts ───
 
   @Cron(CronExpression.EVERY_HOUR)
+  @CronLock()
   async unlockExpiredMfaLockouts(): Promise<void> {
     const now = new Date();
 
@@ -461,7 +503,18 @@ export class AuthService {
     }
 
     if (user.status === UserStatus.SUSPENDED) {
-      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
+      // A suspension with an elapsed `suspendedUntil` lifts itself: reactivate
+      // on the next login attempt rather than requiring a manual unsuspend or a
+      // separate cron. A suspension with no end date (e.g. a manual admin ban)
+      // stays until an admin clears it.
+      if (user.suspendedUntil && user.suspendedUntil <= new Date()) {
+        user.status = UserStatus.ACTIVE;
+        user.suspendedUntil = undefined;
+        user.suspensionReason = undefined;
+        await user.save();
+      } else {
+        throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
+      }
     }
 
     // Verify password
@@ -479,10 +532,13 @@ export class AuthService {
     }
 
     // Record login timestamp and device info
+    const loginAt = new Date();
+    const device = userAgent || 'unknown';
+    await this.maybeAlertNewDevice(user, device, loginAt);
     await this.userModel
       .findByIdAndUpdate(user._id, {
-        lastLoginAt: new Date(),
-        lastLoginDevice: userAgent || 'unknown',
+        lastLoginAt: loginAt,
+        lastLoginDevice: device,
       })
       .exec();
 
@@ -507,6 +563,22 @@ export class AuthService {
         role: user.role,
       },
     };
+  }
+
+  /**
+   * Emails the user when a sign-in comes from a device that differs from the
+   * last one on record. Skipped for the very first login (no prior device).
+   */
+  private async maybeAlertNewDevice(
+    user: UserDocument,
+    device: string,
+    when: Date,
+  ): Promise<void> {
+    if (!user.email) return;
+    if (!user.lastLoginDevice) return; // first-ever login, nothing to compare
+    if (user.lastLoginDevice === device) return;
+
+    await this.emailService.sendNewDeviceLoginEmail(user.email, device, when);
   }
 
   async socialLogin(dto: SocialLoginDto): Promise<{
@@ -798,7 +870,38 @@ export class AuthService {
       })
       .exec();
 
+    // Notify the user that 2FA was enabled
+    if (user.email) {
+      await this.emailService.sendMfaEnabledEmail(user.email);
+    }
+
     return { secret, qrCodeUrl };
+  }
+
+  async disableMfa(userId: string): Promise<{ message: string }> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    if (!user.mfa?.enabled) {
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+
+    await this.userModel
+      .findByIdAndUpdate(userId, {
+        'mfa.enabled': false,
+        'mfa.failedAttempts': 0,
+        $unset: { 'mfa.totpSecret': '', 'mfa.lockedUntil': '' },
+      })
+      .exec();
+
+    // Notify the user that 2FA was disabled
+    if (user.email) {
+      await this.emailService.sendMfaDisabledEmail(user.email);
+    }
+
+    return { message: 'Two-factor authentication disabled' };
   }
 
   async verifyMfa(
@@ -860,6 +963,13 @@ export class AuthService {
       await this.userModel.findByIdAndUpdate(userId, updateFields).exec();
 
       if (failedAttempts >= MFA_MAX_FAILED_ATTEMPTS) {
+        // Notify the user their account was locked after repeated failures
+        if (user.email) {
+          await this.emailService.sendAccountLockedEmail(
+            user.email,
+            MFA_LOCKOUT_MINUTES,
+          );
+        }
         throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
       }
 
@@ -867,12 +977,15 @@ export class AuthService {
     }
 
     // Reset failed attempts on success
+    const loginAt = new Date();
+    const device = userAgent || 'unknown';
+    await this.maybeAlertNewDevice(user, device, loginAt);
     await this.userModel
       .findByIdAndUpdate(userId, {
         'mfa.failedAttempts': 0,
         'mfa.lockedUntil': null,
-        lastLoginAt: new Date(),
-        lastLoginDevice: userAgent || 'unknown',
+        lastLoginAt: loginAt,
+        lastLoginDevice: device,
       })
       .exec();
 
@@ -972,14 +1085,23 @@ export class AuthService {
     const passwordHash = await bcrypt.hash(newPassword, BCRYPT_COST_FACTOR);
 
     // Update user password
-    await this.userModel
-      .findByIdAndUpdate(record.userId, {
-        passwordHash,
-      })
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(
+        record.userId,
+        {
+          passwordHash,
+        },
+        { new: true },
+      )
       .exec();
 
     // Invalidate all sessions by removing all refresh tokens from Redis
     await this.invalidateAllSessions(record.userId.toString());
+
+    // Notify the user their password was changed
+    if (updatedUser?.email) {
+      await this.emailService.sendPasswordChangedEmail(updatedUser.email);
+    }
 
     this.trackOtp(
       UserAction.OTP_VERIFIED,
@@ -1194,6 +1316,23 @@ export class AuthService {
       throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
+    // Guard against brute force: discard the pending change once too many
+    // wrong attempts have been made against it.
+    if (user.pendingPhoneChange.attempts >= MAX_OTP_VERIFY_ATTEMPTS) {
+      await this.userModel
+        .findByIdAndUpdate(user._id, {
+          $unset: { pendingPhoneChange: 1 },
+        })
+        .exec();
+      this.trackOtp(
+        UserAction.OTP_FAILED,
+        userId,
+        OtpChannel.SMS,
+        OtpReason.PHONE_CHANGE,
+      );
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
+    }
+
     // Verify OTP
     const isValid = await bcrypt.compare(otp, user.pendingPhoneChange.otpHash);
     if (!isValid) {
@@ -1203,6 +1342,12 @@ export class AuthService {
           $inc: { 'pendingPhoneChange.attempts': 1 },
         })
         .exec();
+      this.trackOtp(
+        UserAction.OTP_FAILED,
+        userId,
+        OtpChannel.SMS,
+        OtpReason.PHONE_CHANGE,
+      );
       throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
@@ -1219,6 +1364,8 @@ export class AuthService {
 
     const newPhone = user.pendingPhoneChange.newPhone;
 
+    const notifyEmail = user.email;
+
     // Update phone, mark verified, clear pending change
     await this.userModel
       .findByIdAndUpdate(user._id, {
@@ -1230,6 +1377,11 @@ export class AuthService {
 
     // Invalidate all sessions
     await this.invalidateAllSessions(user._id.toString());
+
+    // Notify the account's email that the phone number changed
+    if (notifyEmail) {
+      await this.emailService.sendPhoneChangeNotification(notifyEmail);
+    }
 
     this.trackOtp(
       UserAction.OTP_VERIFIED,
@@ -1337,7 +1489,7 @@ export class AuthService {
     const otp = this.generateOtp();
     const otpHash = await bcrypt.hash(otp, BCRYPT_COST_FACTOR);
     const expiresAt = new Date(
-      Date.now() + PHONE_OTP_EXPIRY_MINUTES * 60 * 1000,
+      Date.now() + EMAIL_OTP_EXPIRY_MINUTES * 60 * 1000,
     );
 
     await this.verificationTokenModel.create({
@@ -1354,7 +1506,7 @@ export class AuthService {
       UserAction.OTP_SENT,
       userId,
       OtpChannel.EMAIL,
-      OtpReason.RESEND,
+      targetEmail ? OtpReason.EMAIL_CHANGE : OtpReason.REGISTRATION,
     );
 
     return { message: 'Verification code sent to your email.' };
@@ -1377,8 +1529,24 @@ export class AuthService {
       throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
+    const otpReason = record.targetEmail
+      ? OtpReason.EMAIL_CHANGE
+      : OtpReason.REGISTRATION;
+
+    // Guard against brute force: invalidate the OTP once too many wrong
+    // attempts have been made against it.
+    if (record.attempts >= MAX_OTP_VERIFY_ATTEMPTS) {
+      record.used = true;
+      await record.save();
+      this.trackOtp(UserAction.OTP_FAILED, userId, OtpChannel.EMAIL, otpReason);
+      throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
+    }
+
     const isValid = await bcrypt.compare(otp, record.token);
     if (!isValid) {
+      record.attempts += 1;
+      await record.save();
+      this.trackOtp(UserAction.OTP_FAILED, userId, OtpChannel.EMAIL, otpReason);
       throw new BadRequestException(PUBLIC_ERROR.VERIFICATION_FAILED);
     }
 
@@ -1400,14 +1568,16 @@ export class AuthService {
       update.email = record.targetEmail;
     }
 
-    await this.userModel.findByIdAndUpdate(userId, update).exec();
+    const otpVerifiedUser = await this.userModel
+      .findByIdAndUpdate(userId, update, { new: true })
+      .exec();
 
-    this.trackOtp(
-      UserAction.OTP_VERIFIED,
-      userId,
-      OtpChannel.EMAIL,
-      OtpReason.REGISTRATION,
-    );
+    // Send a welcome email for first-time verification (not email changes)
+    if (!record.targetEmail && otpVerifiedUser?.email) {
+      await this.emailService.sendWelcomeEmail(otpVerifiedUser.email);
+    }
+
+    this.trackOtp(UserAction.OTP_VERIFIED, userId, OtpChannel.EMAIL, otpReason);
 
     return { message: 'Email verified successfully.' };
   }

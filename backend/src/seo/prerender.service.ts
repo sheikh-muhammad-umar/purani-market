@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { InjectRedis } from '@nestjs-modules/ioredis';
+import { CronLock } from '../common/decorators/cron-lock.decorator.js';
 import Redis from 'ioredis';
 import {
   SEO_STATIC_PAGES,
@@ -52,6 +53,7 @@ export class PrerenderService {
    * Refresh the home page prerender cache every hour.
    */
   @Cron(CronExpression.EVERY_HOUR)
+  @CronLock()
   async refreshHomePage(): Promise<void> {
     this.logger.log('Starting home page prerender refresh');
     await this.refreshRoute(PrerenderService.HOME_PAGE, SEO_PRERENDER_HOME_TTL);
@@ -61,6 +63,7 @@ export class PrerenderService {
    * Refresh all static pages prerender cache every 24 hours.
    */
   @Cron(CronExpression.EVERY_DAY_AT_MIDNIGHT)
+  @CronLock()
   async refreshStaticPages(): Promise<void> {
     this.logger.log(
       `Starting static pages prerender refresh (${PrerenderService.STATIC_PAGES.length} pages)`,

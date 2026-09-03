@@ -442,6 +442,23 @@
   text-align: right;
 }
 
+/* Clickable attribute value: navigates to search filtered by this value */
+a.details-value--link {
+  color: var(--primary, var(--text-primary));
+  text-decoration: none;
+  cursor: pointer;
+  transition:
+    color 0.15s ease,
+    text-decoration-color 0.15s ease;
+
+  &:hover,
+  &:focus-visible {
+    text-decoration: underline;
+    text-underline-offset: 3px;
+    color: var(--primary-hover, var(--primary, var(--text-primary)));
+  }
+}
+
 /* Features Tags */
 .features-tags {
   display: flex;
@@ -588,6 +605,17 @@
 .action-bar-icon {
   display: grid;
   place-items: center;
+
+  &:not(.btn-icon) {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    white-space: nowrap;
+  }
+}
+
+.action-bar-phone {
+  font-weight: 600;
 }
 
 .action-bar-whatsapp {
@@ -1219,4 +1247,28 @@
     border-right: none;
     padding: var(--space-2);
   }
+}
+
+/* Owner-only performance panel */
+.owner-performance-note {
+  margin: 0 0 var(--space-2);
+  font-size: var(--text-xs);
+  color: var(--text-secondary);
+  line-height: 1.5;
+}
+
+.report-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  margin-top: var(--space-2);
+  padding: 6px 8px;
+  border: none;
+  background: none;
+  color: var(--text-muted);
+  font-size: var(--text-xs);
+  cursor: pointer;
+}
+.report-btn:hover {
+  color: var(--danger);
 }

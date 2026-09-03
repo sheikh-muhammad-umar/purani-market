@@ -10,6 +10,7 @@ import {
   HomeSeoResponse,
   SearchSeoResponse,
   PageSeoResponse,
+  ShortSeoResponse,
 } from '../models/seo.models';
 
 @Injectable({ providedIn: 'root' })
@@ -43,6 +44,10 @@ export class SeoApiService {
 
   getPageSeo(slug: string): Observable<PageSeoResponse | null> {
     return this.withSsrTimeout(this.api.get<PageSeoResponse>(API.SEO_PAGE(slug)));
+  }
+
+  getShortSeo(id: string): Observable<ShortSeoResponse | null> {
+    return this.withSsrTimeout(this.api.get<ShortSeoResponse>(API.SEO_SHORT(id)));
   }
 
   /**

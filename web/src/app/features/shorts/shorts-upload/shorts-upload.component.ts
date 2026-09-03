@@ -18,6 +18,7 @@ import {
 import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { PromoBannerComponent } from '../../../shared/components/promo-banner/promo-banner.component';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
 import { ROUTES } from '../../../core/constants/routes';
 import {
@@ -193,6 +194,7 @@ export class ShortsUploadComponent {
     private readonly listingsService: ListingsService,
     private readonly confirmModal: ConfirmModalService,
     private readonly tracker: ActivityTrackerService,
+    private readonly toast: ToastService,
   ) {
     this.loadStats();
     this.loadUsablePackages();
@@ -545,6 +547,7 @@ export class ShortsUploadComponent {
         this.tracker.track(TrackingEvent.SHORT_UPLOAD_SUCCESS, {
           metadata: { categoryId: this.selectedCategoryId },
         });
+        this.toast.success('Short uploaded! It will go live once approved.');
         this.router.navigate([ROUTES.LISTINGS_MY], { queryParams: { tab: 'shorts' } });
       },
       error: (err) => {
@@ -552,7 +555,13 @@ export class ShortsUploadComponent {
         this.tracker.track(TrackingEvent.SHORT_UPLOAD_FAIL, {
           metadata: { error: err.error?.message },
         });
-        this.error.set('Upload failed. Please try again.');
+        // Prefer the server's reason (e.g. bad file, limit reached) when present.
+        const msg =
+          typeof err?.error?.message === 'string'
+            ? err.error.message
+            : 'Upload failed. Please try again.';
+        this.error.set(msg);
+        this.toast.error(msg);
       },
     });
   }

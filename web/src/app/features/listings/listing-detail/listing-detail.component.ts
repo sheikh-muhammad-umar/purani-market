@@ -34,6 +34,33 @@ import { ConfirmModalService } from '../../../shared/components/confirm-modal/co
 import { ToastService } from '../../../core/services/toast.service';
 import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.component';
+import {
+  StatTilesComponent,
+  StatTile,
+} from '../../../shared/components/stat-tiles/stat-tiles.component';
+import {
+  EngagementService,
+  ItemEngagement,
+  EMPTY_ENGAGEMENT,
+} from '../../../core/services/engagement.service';
+import { ReportModalComponent } from '../../../shared/components/report-modal/report-modal.component';
+import { ReportTargetType } from '../../../core/models/report.model';
+import { StarRatingComponent } from '../../../shared/components/star-rating/star-rating.component';
+
+/**
+ * One row of the listing "Details" table.
+ *
+ * `filterValue` is the single, raw value that round-trips cleanly to a `/search`
+ * attribute filter (e.g. `Automatic`, `Toyota`, `2021`). It is `null` for
+ * composite values — multiselect lists, `{min,max}` ranges — whose rendered
+ * `value` string cannot be filtered on as-is, so those rows render as plain text.
+ */
+interface DetailAttributeRow {
+  key: string;
+  label: string;
+  value: string;
+  filterValue: string | null;
+}
 
 @Component({
   selector: 'app-listing-detail',
@@ -46,6 +73,9 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
     ListingCardComponent,
     AppLoaderComponent,
     AdSlotComponent,
+    StatTilesComponent,
+    ReportModalComponent,
+    StarRatingComponent,
   ],
   templateUrl: './listing-detail.component.html',
   styleUrls: ['./listing-detail.component.scss'],
@@ -104,6 +134,14 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
    */
   readonly contactBarVisible = signal(false);
 
+  /**
+   * Whether the seller's phone number has been revealed. Starts hidden so the
+   * Call button first shows a "Call" label; the first tap reveals the number
+   * (turning the button into a `tel:` link that opens the phone app), and a
+   * second tap dials it.
+   */
+  readonly phoneRevealed = signal(false);
+
   private priceCardObserver?: IntersectionObserver;
 
   /**
@@ -133,6 +171,9 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
 
   ngOnDestroy(): void {
     this.priceCardObserver?.disconnect();
+    // Collapse the Call button back to its "Call" label so the number is not
+    // pre-revealed if this view is revisited.
+    this.phoneRevealed.set(false);
   }
 
   constructor(
@@ -146,6 +187,7 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
     public readonly tracker: ActivityTrackerService,
     private readonly confirmModal: ConfirmModalService,
     private readonly toast: ToastService,
+    private readonly engagementService: EngagementService,
     private readonly categoriesService?: CategoriesService,
     private readonly locationService?: LocationService,
   ) {}
@@ -172,13 +214,13 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
    * rendered. Keys present on the listing but no longer defined by the category
    * are appended so historic data is never silently hidden.
    */
-  readonly detailAttributeRows = computed<{ key: string; label: string; value: string }[]>(() => {
+  readonly detailAttributeRows = computed<DetailAttributeRow[]>(() => {
     const listing = this.listing();
     if (!listing?.categoryAttributes) return [];
 
     const stored = listing.categoryAttributes;
     const defs = this.categoryAttributeDefs();
-    const rows: { key: string; label: string; value: string }[] = [];
+    const rows: DetailAttributeRow[] = [];
     const seen = new Set<string>();
 
     for (const def of defs) {
@@ -190,6 +232,7 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
         key: def.key,
         label: def.unit ? `${def.name} (${def.unit})` : def.name,
         value,
+        filterValue: this.attributeFilterValue(stored[def.key], def),
       });
     }
 
@@ -197,11 +240,19 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
       if (seen.has(key)) continue;
       const value = this.formatAttributeValue(key, raw);
       if (value === '') continue;
-      rows.push({ key, label: this.formatLabel(key), value });
+      rows.push({
+        key,
+        label: this.formatLabel(key),
+        value,
+        filterValue: this.attributeFilterValue(raw),
+      });
     }
 
     return rows;
   });
+
+  /** Category slug used to scope attribute-filter links to the right category on /search. */
+  readonly categorySlug = signal('');
 
   mapEmbedUrl = computed<SafeResourceUrl | null>(() => {
     const l = this.listing();
@@ -216,6 +267,73 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
     const user = this.authService.user();
     const listing = this.listing();
     return !!user && !!listing && user._id === listing.sellerId;
+  });
+
+  // ── Reporting ─────────────────────────────────────────────────
+  readonly ReportTargetType = ReportTargetType;
+  readonly showReportModal = signal(false);
+
+  /** Open the report dialog, sending the user through login first if needed. */
+  openReport(): void {
+    const listing = this.listing();
+    if (!listing) return;
+    if (!this.authService.isAuthenticated()) {
+      this.loginModal.open(`/listings/${listing._id}`);
+      return;
+    }
+    this.showReportModal.set(true);
+  }
+
+  closeReport(): void {
+    this.showReportModal.set(false);
+  }
+
+  /** This listing's engagement, loaded only for its owner. */
+  readonly ownerEngagement = signal<ItemEngagement | null>(null);
+
+  /**
+   * Fetches engagement when the viewer owns the listing.
+   *
+   * Skipped for everybody else so a buyer's page load does not pay for a query
+   * whose result they are not allowed to see. The endpoint is scoped server-side
+   * regardless.
+   */
+  private loadOwnerEngagement(listing: Listing): void {
+    const user = this.authService.user();
+    if (!user || user._id !== listing.sellerId) {
+      this.ownerEngagement.set(null);
+      return;
+    }
+
+    this.engagementService.getListingEngagement().subscribe({
+      next: (byId) => this.ownerEngagement.set(byId.get(listing._id) ?? null),
+      error: () => this.ownerEngagement.set(null),
+    });
+  }
+
+  /**
+   * Performance figures shown to the seller on their own listing.
+   *
+   * Here as well as on the listings table because this is the page a seller
+   * actually opens to check on an ad, and it is where they decide whether to
+   * promote it.
+   */
+  readonly ownerTiles = computed<StatTile[]>(() => {
+    const stats = this.ownerEngagement() ?? EMPTY_ENGAGEMENT;
+    return [
+      {
+        label: 'Leads',
+        value: stats.leads,
+        icon: 'person_check',
+        hint: 'Distinct people who tried to reach you about this listing, counted once each.',
+        emphasis: true,
+      },
+      { label: 'Views', value: stats.views, icon: 'visibility' },
+      { label: 'Likes', value: stats.likes, icon: 'favorite' },
+      { label: 'Chats', value: stats.chats, icon: 'chat' },
+      { label: 'Calls', value: stats.calls, icon: 'call' },
+      { label: 'WhatsApp', value: stats.whatsapp, icon: 'sms' },
+    ];
   });
 
   currentImage = computed(() => {
@@ -247,11 +365,13 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
     this.listingsService.getById(id).subscribe({
       next: (listing) => {
         this.listing.set(listing);
+        this.phoneRevealed.set(false);
         this.loading.set(false);
         this.loadReviews(listing._id);
         this.loadSimilarListings(listing.categoryId);
         this.loadCategoryAttributeDefs(listing.categoryId);
         this.checkFavoriteStatus(listing._id);
+        this.loadOwnerEngagement(listing);
         this.tracker.track(TrackingEvent.VIEW, {
           productListingId: listing._id,
           categoryId: listing.categoryId,
@@ -390,6 +510,20 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Query params for a clickable attribute value, e.g. `{ category: 'cars',
+   * transmission: 'Automatic' }`. The search page reads any non-standard param
+   * as a category-attribute filter keyed by the attribute's own key, so this is
+   * all that's needed to land on the matching, category-scoped results.
+   */
+  attributeQueryParams(row: DetailAttributeRow): Record<string, string> {
+    const params: Record<string, string> = {};
+    const slug = this.categorySlug();
+    if (slug) params['category'] = slug;
+    if (row.filterValue) params[row.key] = row.filterValue;
+    return params;
+  }
+
+  /**
    * Renders a stored attribute value as display text. Returns `''` for values
    * that carry no information so the caller can omit the row.
    */
@@ -441,6 +575,42 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * The single value that filters cleanly on `/search` for this attribute, or
+   * `null` when the attribute cannot round-trip to one filter param.
+   *
+   * The search page keys attribute filters by the attribute's own key and
+   * expects one scalar value per key. Scalars (text/select/number/year) pass
+   * through as-is. `province_city` is stored as `{ province, city }` and indexed
+   * as the most specific place name, so it filters by the province (matching the
+   * requested "Registration City: Punjab, Multan -> all Punjab" behaviour).
+   * Multiselect arrays, `{min,max}` ranges and booleans have no meaningful
+   * single-value filter, so they stay as plain text.
+   */
+  private attributeFilterValue(raw: unknown, def?: CategoryAttribute): string | null {
+    if (raw === null || raw === undefined) return null;
+    if (typeof raw === 'boolean') return null;
+    if (Array.isArray(raw)) return null;
+
+    if (typeof raw === 'object') {
+      const record = raw as Record<string, unknown>;
+      if ('provinceId' in record || 'cityId' in record) {
+        const province = typeof record['province'] === 'string' ? record['province'].trim() : '';
+        if (province) return province;
+        // Older listings store only ids; fall back to the resolved label's
+        // leading province segment when available.
+        const label = this.provinceCityLabels()[def?.key ?? ''] ?? '';
+        const provinceFromLabel = label.split(',')[0]?.trim();
+        return provinceFromLabel || null;
+      }
+      // `{min,max}` ranges and any other object shape are not single-value.
+      return null;
+    }
+
+    const text = String(raw).trim();
+    return text === '' ? null : text;
+  }
+
+  /**
    * Loads the category's attribute definitions so the details table can use the
    * admin-authored names, units and ordering instead of raw storage keys.
    *
@@ -456,6 +626,16 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
       },
       error: () => {
         /* keep the key-based fallback */
+      },
+    });
+
+    // Resolve the category slug so attribute-value links can scope the search to
+    // this category. Without a slug the links still work but search the whole
+    // catalogue; scoping keeps results relevant.
+    this.categoriesService.getById(categoryId).subscribe({
+      next: (category) => this.categorySlug.set(category?.slug ?? ''),
+      error: () => {
+        /* unscoped links are an acceptable fallback */
       },
     });
   }
@@ -687,5 +867,20 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
       productListingId: listingId,
       metadata: { type },
     });
+  }
+
+  /**
+   * First tap on the Call button reveals the phone number instead of dialling.
+   * Returns whether the number was just revealed (i.e. the dial should be
+   * suppressed for this tap). Once revealed, subsequent taps fall through to
+   * the `tel:` link so the phone app opens.
+   */
+  revealPhone(listingId: string): boolean {
+    if (this.phoneRevealed()) {
+      return false;
+    }
+    this.phoneRevealed.set(true);
+    this.trackContact(listingId, 'call');
+    return true;
   }
 }

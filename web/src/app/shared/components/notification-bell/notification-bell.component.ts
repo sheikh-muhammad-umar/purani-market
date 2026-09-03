@@ -98,6 +98,34 @@ export class NotificationBellComponent implements OnInit {
     }
   }
 
+  /**
+   * Deep link for a notification based on its data payload, or null when there
+   * is nowhere useful to go. Shorts notifications open the short; listing
+   * notifications open the listing.
+   */
+  notificationLink(notification: UserNotification): string | null {
+    const data = notification.data;
+    if (!data) return null;
+    if (data.shortId) return ROUTES.SHORTS;
+    if (data.listingId) return `${ROUTES.LISTINGS}/${data.listingId}`;
+    return null;
+  }
+
+  notificationQueryParams(notification: UserNotification): Record<string, string> | null {
+    const data = notification.data;
+    if (data?.shortId) return { id: data.shortId };
+    return null;
+  }
+
+  hasLink(notification: UserNotification): boolean {
+    return this.notificationLink(notification) !== null;
+  }
+
+  closeDropdown(): void {
+    this.open.set(false);
+    this.expandedId.set(null);
+  }
+
   markAsRead(notification: UserNotification): void {
     if (notification.read) return;
     this.http

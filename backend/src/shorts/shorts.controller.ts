@@ -25,7 +25,7 @@ import { UpdateShortDto } from './dto/update-short.dto.js';
 import { CreateShortsPackageDto } from './dto/create-shorts-package.dto.js';
 import { UpdateShortsPackageDto } from './dto/update-shorts-package.dto.js';
 import { PurchaseShortsPackageDto } from './dto/purchase-shorts-package.dto.js';
-import { UpdateShortStatusDto } from './dto/update-short-status.dto.js';
+import { RejectShortDto } from './dto/update-short-status.dto.js';
 import { ListShortsQueryDto } from './dto/list-shorts-query.dto.js';
 
 @Controller('api/shorts')
@@ -195,6 +195,16 @@ export class ShortsController {
     return this.shortsService.unlikeShort(id, userId);
   }
 
+  /** Record a share of a short (public — no auth required) */
+  @Post(':id/share')
+  @UseGuards(OptionalJwtAuthGuard)
+  async shareShort(
+    @Param('id') id: string,
+    @CurrentUser('sub') userId?: string,
+  ) {
+    return this.shortsService.recordShare(id, userId);
+  }
+
   /** Get my liked/favorite shorts */
   @Get('my/liked')
   @UseGuards(JwtAuthGuard)
@@ -272,11 +282,8 @@ export class ShortsController {
   @Patch('admin/:id/reject')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async adminRejectShort(
-    @Param('id') id: string,
-    @Body() dto: UpdateShortStatusDto,
-  ) {
-    return this.shortsService.adminRejectShort(id, dto.rejectionReason || '');
+  async adminRejectShort(@Param('id') id: string, @Body() dto: RejectShortDto) {
+    return this.shortsService.adminRejectShort(id, dto.rejectionReason);
   }
 
   /** Admin: Delete a short */
@@ -313,6 +320,14 @@ export class ShortsController {
   @Roles(UserRole.ADMIN)
   async adminGetPackages() {
     return this.shortsService.getPackages(false);
+  }
+
+  /** Admin: List shorts package purchases (pending by default) */
+  @Get('admin/purchases')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.ADMIN)
+  async adminListPurchases(@Query('status') status?: string) {
+    return this.shortsService.adminListPurchases(status as any);
   }
 
   /** Admin: Confirm payment for a purchase */

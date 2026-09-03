@@ -7,16 +7,20 @@ const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/marketpl
 const categoriesData = [
   // ===== MOBILES =====
   {
-    name: 'Mobiles', slug: 'mobiles', parent: null, level: 1, sortOrder: 1, icon: '📱', color: '#FFD658',
+    name: 'Mobiles', slug: 'mobiles', parent: null, level: 1, sortOrder: 1, icon: 'mobiles.png', color: '#FFD658',
+    // `brand` intentionally lives on each child (Mobile Phones/Smart Watches/
+    // Tablets) where it is tuned per type, not on this parent — defining it in
+    // both places collides on the `brand` key and blocks admin attribute edits.
     attributes: [
       { name: 'Condition', key: 'condition_detail', type: 'select', options: ['New', 'Used', 'Refurbished', 'Open Box'], required: false },
-      { name: 'Brand', key: 'brand', type: 'select', options: ['Apple', 'Samsung', 'Xiaomi', 'OnePlus', 'Oppo', 'Vivo', 'Realme', 'Google', 'Motorola', 'Huawei', 'Nokia', 'Infinix', 'Tecno'], required: false },
     ],
     children: [
       {
         name: 'Mobile Phones', slug: 'mobile-phones', sortOrder: 1,
+        // Brand comes from the admin-managed mobile brand registry (the brand
+        // picker), stored in the listing's top-level brandId/brandName. Model is
+        // kept as an attribute because mobiles have no model registry.
         attributes: [
-          { name: 'Brand', key: 'brand', type: 'select', options: ['Apple', 'Samsung', 'Xiaomi', 'OnePlus', 'Oppo', 'Vivo', 'Realme', 'Google', 'Motorola', 'Huawei', 'Nokia', 'Infinix', 'Tecno'], required: true },
           { name: 'Model', key: 'model', type: 'text', required: true },
           { name: 'Storage', key: 'storage', type: 'select', options: ['16GB', '32GB', '64GB', '128GB', '256GB', '512GB', '1TB'], required: true },
           { name: 'RAM', key: 'ram', type: 'select', options: ['2GB', '3GB', '4GB', '6GB', '8GB', '12GB', '16GB'], required: false },
@@ -62,14 +66,16 @@ const categoriesData = [
 
   // ===== VEHICLES =====
   {
-    name: 'Vehicles', slug: 'vehicles', parent: null, level: 1, sortOrder: 2, icon: '🚗', color: '#FE7500',
+    name: 'Vehicles', slug: 'vehicles', parent: null, level: 1, sortOrder: 2, icon: 'vehicles.png', color: '#FE7500',
     attributes: [],
     children: [
       {
         name: 'Cars', slug: 'cars', sortOrder: 1,
+        // Make/Model/Variant come from the admin-managed vehicle brand registry
+        // (vehicle_brands/vehicle_models/vehicle_variants), shown as the brand
+        // picker and stored in the listing's top-level brand fields. Defining
+        // make/model here too would duplicate the picker and the stored value.
         attributes: [
-          { name: 'Make', key: 'make', type: 'select', options: ['Toyota', 'Honda', 'Suzuki', 'Hyundai', 'KIA', 'BMW', 'Mercedes', 'Audi', 'Nissan', 'Mitsubishi', 'Daihatsu', 'Changan', 'MG', 'Proton', 'FAW', 'Prince', 'United'], required: true },
-          { name: 'Model', key: 'model', type: 'text', required: true },
           { name: 'Year', key: 'year', type: 'number', required: true },
           { name: 'Mileage', key: 'mileage', type: 'number', unit: 'km', required: false },
           { name: 'Fuel Type', key: 'fuel_type', type: 'select', options: ['Petrol', 'Diesel', 'CNG', 'Hybrid', 'Electric', 'LPG'], required: false },
@@ -85,9 +91,31 @@ const categoriesData = [
       },
       { name: 'Cars Accessories', slug: 'cars-accessories', sortOrder: 2 },
       { name: 'Spare Parts', slug: 'car-spare-parts', sortOrder: 3 },
-      { name: 'Buses, Vans & Trucks', slug: 'buses-vans-trucks', sortOrder: 4 },
-      { name: 'Rickshaw & Chingchi', slug: 'rickshaw-chingchi', sortOrder: 5 },
-      { name: 'Tractors & Trailers', slug: 'tractors-trailers', sortOrder: 6 },
+      { name: 'Buses, Vans & Trucks', slug: 'buses-vans-trucks', sortOrder: 4,
+        attributes: [
+          { name: 'Type', key: 'commercial_vehicle_type', type: 'select', options: ['Bus', 'Mini Bus', 'Van', 'Truck', 'Mini Truck', 'Pickup', 'Loader', 'Trailer Head'], required: true },
+          { name: 'Make', key: 'make', type: 'text', required: false },
+          { name: 'Model', key: 'model', type: 'text', required: false },
+          { name: 'Year', key: 'year', type: 'number', required: false },
+          { name: 'Mileage', key: 'mileage', type: 'number', unit: 'km', required: false },
+          { name: 'Fuel Type', key: 'fuel_type', type: 'select', options: ['Diesel', 'Petrol', 'CNG', 'Hybrid', 'Electric'], required: false },
+        ],
+        features: ['AC', 'Power Steering', 'New Tyres', 'Load Body', 'Sleeper Cabin'],
+      },
+      { name: 'Rickshaw & Chingchi', slug: 'rickshaw-chingchi', sortOrder: 5,
+        attributes: [
+          { name: 'Type', key: 'rickshaw_type', type: 'select', options: ['Auto Rickshaw', 'Loader Rickshaw', 'Chingchi', 'Electric Rickshaw'], required: false },
+          { name: 'Year', key: 'year', type: 'number', required: false },
+        ],
+      },
+      { name: 'Tractors & Trailers', slug: 'tractors-trailers', sortOrder: 6,
+        attributes: [
+          { name: 'Type', key: 'tractor_type', type: 'select', options: ['Tractor', 'Trailer', 'Harvester', 'Cultivator', 'Plough', 'Other Implement'], required: true },
+          { name: 'Make', key: 'make', type: 'select', options: ['Massey Ferguson', 'Fiat', 'New Holland', 'Belarus', 'John Deere', 'Other'], required: false },
+          { name: 'Year', key: 'year', type: 'number', required: false },
+          { name: 'Horsepower', key: 'horsepower', type: 'number', unit: 'hp', required: false },
+        ],
+      },
       { name: 'Cars on Installments', slug: 'cars-installments', sortOrder: 7 },
       { name: 'Boats', slug: 'boats', sortOrder: 8 },
       { name: 'Other Vehicles', slug: 'other-vehicles', sortOrder: 9 },
@@ -96,7 +124,7 @@ const categoriesData = [
 
   // ===== PROPERTY FOR SALE =====
   {
-    name: 'Property for Sale', slug: 'property-sale', parent: null, level: 1, sortOrder: 3, icon: '🏠', color: '#0CC0DF',
+    name: 'Property for Sale', slug: 'property-sale', parent: null, level: 1, sortOrder: 3, icon: 'property-for-sale.png', color: '#0CC0DF',
     attributes: [
       { name: 'Area Size', key: 'area_size', type: 'number', unit: 'sq ft', required: false },
       { name: 'Area Unit', key: 'area_unit', type: 'select', options: ['Marla', 'Kanal', 'Sq. Ft.', 'Sq. Yd.', 'Sq. M.'], required: false },
@@ -125,45 +153,140 @@ const categoriesData = [
 
   // ===== PROPERTY FOR RENT =====
   {
-    name: 'Property for Rent', slug: 'property-rent', parent: null, level: 1, sortOrder: 4, icon: '🏢', color: '#B6D84C',
+    name: 'Property for Rent', slug: 'property-rent', parent: null, level: 1, sortOrder: 4, icon: 'property-for-rent.png', color: '#B6D84C',
+    // Shared rent fields (inherited). Children must not reuse these keys.
     attributes: [
       { name: 'Area Size', key: 'area_size', type: 'number', unit: 'sq ft', required: false },
+      { name: 'Area Unit', key: 'area_unit', type: 'select', options: ['Marla', 'Kanal', 'Sq. Ft.', 'Sq. Yd.'], required: false },
+      { name: 'Furnishing', key: 'furnishing', type: 'select', options: ['Furnished', 'Semi-Furnished', 'Unfurnished'], required: false },
+      { name: 'Rent Frequency', key: 'rent_frequency', type: 'select', options: ['Monthly', 'Yearly', 'Weekly', 'Daily'], required: false },
     ],
     children: [
-      { name: 'Houses', slug: 'houses-rent', sortOrder: 1 },
-      { name: 'Apartments & Flats', slug: 'apartments-rent', sortOrder: 2 },
-      { name: 'Portions & Floors', slug: 'portions-rent', sortOrder: 3 },
-      { name: 'Rooms', slug: 'rooms-rent', sortOrder: 4 },
-      { name: 'Shops - Offices - Commercial', slug: 'commercial-rent', sortOrder: 5 },
-      { name: 'Roommates & Paying Guests', slug: 'roommates', sortOrder: 6 },
-      { name: 'Vacation Rentals', slug: 'vacation-rentals', sortOrder: 7 },
+      { name: 'Houses', slug: 'houses-rent', sortOrder: 1,
+        attributes: [
+          { name: 'Bedrooms', key: 'bedrooms', type: 'number', required: false },
+          { name: 'Bathrooms', key: 'bathrooms', type: 'number', required: false },
+        ],
+        features: ['Parking', 'Lawn/Garden', 'Servant Quarter', 'Security', 'CCTV', 'Electricity Backup', 'Gas', 'Water Supply', 'Pet Friendly'],
+      },
+      { name: 'Apartments & Flats', slug: 'apartments-rent', sortOrder: 2,
+        attributes: [
+          { name: 'Bedrooms', key: 'bedrooms', type: 'number', required: false },
+          { name: 'Bathrooms', key: 'bathrooms', type: 'number', required: false },
+          { name: 'Floor', key: 'floor', type: 'number', required: false },
+        ],
+        features: ['Lift/Elevator', 'Parking', 'Security', 'CCTV', 'Intercom', 'Electricity Backup', 'Gas', 'Balcony'],
+      },
+      { name: 'Portions & Floors', slug: 'portions-rent', sortOrder: 3,
+        attributes: [
+          { name: 'Bedrooms', key: 'bedrooms', type: 'number', required: false },
+          { name: 'Bathrooms', key: 'bathrooms', type: 'number', required: false },
+        ],
+        features: ['Separate Entrance', 'Parking', 'Gas', 'Electricity Backup', 'Water Supply'],
+      },
+      { name: 'Rooms', slug: 'rooms-rent', sortOrder: 4,
+        features: ['Attached Bathroom', 'Furnished', 'Wi-Fi', 'Meals Included', 'Separate Entrance'],
+      },
+      { name: 'Shops - Offices - Commercial', slug: 'commercial-rent', sortOrder: 5,
+        attributes: [
+          { name: 'Type', key: 'commercial_type', type: 'select', options: ['Shop', 'Office', 'Warehouse', 'Building', 'Plaza', 'Showroom', 'Factory'], required: false },
+        ],
+        features: ['Main Road', 'Parking', 'Lift/Elevator', 'Security', 'Corner'],
+      },
+      { name: 'Roommates & Paying Guests', slug: 'roommates', sortOrder: 6,
+        features: ['Furnished', 'Meals Included', 'Wi-Fi', 'Laundry', 'For Students', 'For Professionals'],
+      },
+      { name: 'Vacation Rentals', slug: 'vacation-rentals', sortOrder: 7,
+        features: ['Furnished', 'Wi-Fi', 'AC', 'Kitchen', 'Parking', 'Pool', 'Hilltop/View'],
+      },
     ],
   },
 
   // ===== ELECTRONICS =====
   {
-    name: 'Electronics & Home Appliances', slug: 'electronics', parent: null, level: 1, sortOrder: 5, icon: '💻', color: '#F35145',
-    attributes: [],
+    name: 'Electronics & Home Appliances', slug: 'electronics', parent: null, level: 1, sortOrder: 5, icon: 'electronics-home-appliences.png', color: '#F35145',
+    // Shared across all electronics subcategories via inheritance. Children must
+    // not redeclare these keys (brand, warranty_status).
+    attributes: [
+      { name: 'Condition', key: 'condition_detail', type: 'select', options: ['New', 'Open Box', 'Refurbished', 'Used'], required: false },
+      { name: 'Brand', key: 'brand', type: 'text', required: false },
+      { name: 'Warranty', key: 'warranty_status', type: 'select', options: ['Under Warranty', 'No Warranty', 'Expired'], required: false },
+    ],
     children: [
-      { name: 'Computers & Accessories', slug: 'computers', sortOrder: 1 },
-      { name: 'TV - Video - Audio', slug: 'tv-video-audio', sortOrder: 2 },
-      { name: 'AC & Coolers', slug: 'ac-coolers', sortOrder: 3 },
-      { name: 'Kitchen Appliances', slug: 'kitchen-appliances', sortOrder: 4 },
-      { name: 'Fridges & Freezers', slug: 'fridges-freezers', sortOrder: 5 },
-      { name: 'Washing Machines & Dryers', slug: 'washing-machines', sortOrder: 6 },
-      { name: 'Cameras & Accessories', slug: 'cameras', sortOrder: 7 },
-      { name: 'Games & Entertainment', slug: 'games-entertainment', sortOrder: 8 },
-      { name: 'Generators & UPS', slug: 'generators-ups', sortOrder: 9 },
+      { name: 'Computers & Accessories', slug: 'computers', sortOrder: 1,
+        attributes: [
+          { name: 'Type', key: 'computer_type', type: 'select', options: ['Laptop', 'Desktop PC', 'All-in-One', 'Tablet', 'Monitor', 'Printer', 'Keyboard/Mouse', 'Storage', 'Networking', 'Components', 'Other'], required: true },
+          { name: 'RAM', key: 'ram', type: 'select', options: ['2GB', '4GB', '8GB', '16GB', '32GB', '64GB'], required: false },
+          { name: 'Storage', key: 'storage', type: 'select', options: ['128GB', '256GB', '512GB', '1TB', '2TB'], required: false },
+          { name: 'Processor', key: 'processor', type: 'text', required: false },
+        ],
+        features: ['Box Packed', 'With Charger', 'Gaming', 'Touch Screen', 'SSD', 'Backlit Keyboard'],
+      },
+      { name: 'TV - Video - Audio', slug: 'tv-video-audio', sortOrder: 2,
+        attributes: [
+          { name: 'Type', key: 'av_type', type: 'select', options: ['LED TV', 'LCD TV', 'Smart TV', 'Home Theater', 'Sound Bar', 'Speakers', 'Amplifier', 'DVD/Blu-ray', 'Other'], required: true },
+          { name: 'Screen Size', key: 'screen_size', type: 'number', unit: 'in', required: false },
+          { name: 'Resolution', key: 'resolution', type: 'select', options: ['HD', 'Full HD', '4K UHD', '8K'], required: false },
+        ],
+        features: ['Smart', 'Wi-Fi', 'Bluetooth', 'Wall Mount Included', 'Remote Included', 'Box Packed'],
+      },
+      { name: 'AC & Coolers', slug: 'ac-coolers', sortOrder: 3,
+        attributes: [
+          { name: 'Type', key: 'cooling_type', type: 'select', options: ['Split AC', 'Window AC', 'Inverter AC', 'Portable AC', 'Air Cooler', 'Fan'], required: true },
+          { name: 'Capacity', key: 'capacity_ton', type: 'select', options: ['0.75 Ton', '1 Ton', '1.5 Ton', '2 Ton'], required: false },
+        ],
+        features: ['Inverter', 'Energy Efficient', 'Heat & Cool', 'With Installation', 'Remote Included'],
+      },
+      { name: 'Kitchen Appliances', slug: 'kitchen-appliances', sortOrder: 4,
+        attributes: [
+          { name: 'Type', key: 'kitchen_type', type: 'select', options: ['Microwave', 'Oven', 'Stove/Hob', 'Blender/Juicer', 'Food Processor', 'Air Fryer', 'Toaster', 'Kettle', 'Dishwasher', 'Other'], required: true },
+        ],
+        features: ['Box Packed', 'Energy Efficient', 'Stainless Steel', 'Imported', 'With Accessories'],
+      },
+      { name: 'Fridges & Freezers', slug: 'fridges-freezers', sortOrder: 5,
+        attributes: [
+          { name: 'Type', key: 'fridge_type', type: 'select', options: ['Single Door', 'Double Door', 'French Door', 'Side by Side', 'Deep Freezer', 'Mini Fridge'], required: true },
+          { name: 'Capacity', key: 'capacity_litre', type: 'number', unit: 'L', required: false },
+        ],
+        features: ['Inverter', 'Frost Free', 'Energy Efficient', 'Water Dispenser', 'Box Packed'],
+      },
+      { name: 'Washing Machines & Dryers', slug: 'washing-machines', sortOrder: 6,
+        attributes: [
+          { name: 'Type', key: 'washer_type', type: 'select', options: ['Top Load', 'Front Load', 'Semi Automatic', 'Fully Automatic', 'Twin Tub', 'Dryer'], required: true },
+          { name: 'Capacity', key: 'capacity_kg', type: 'number', unit: 'kg', required: false },
+        ],
+        features: ['Fully Automatic', 'Inverter', 'Dryer Included', 'Energy Efficient', 'Box Packed'],
+      },
+      { name: 'Cameras & Accessories', slug: 'cameras', sortOrder: 7,
+        attributes: [
+          { name: 'Type', key: 'camera_type', type: 'select', options: ['DSLR', 'Mirrorless', 'Point & Shoot', 'Action Camera', 'Camcorder', 'CCTV', 'Lens', 'Drone', 'Accessory'], required: true },
+        ],
+        features: ['With Lens', 'Box Packed', '4K Video', 'Wi-Fi', 'With Bag', 'Imported'],
+      },
+      { name: 'Games & Entertainment', slug: 'games-entertainment', sortOrder: 8,
+        attributes: [
+          { name: 'Type', key: 'gaming_type', type: 'select', options: ['Console', 'Controller', 'Games/CDs', 'VR Headset', 'Gaming PC', 'Handheld', 'Accessory'], required: true },
+          { name: 'Platform', key: 'platform', type: 'select', options: ['PlayStation', 'Xbox', 'Nintendo', 'PC', 'Other'], required: false },
+        ],
+        features: ['Box Packed', 'With Games', 'With Controllers', 'Imported', 'Modded'],
+      },
+      { name: 'Generators & UPS', slug: 'generators-ups', sortOrder: 9,
+        attributes: [
+          { name: 'Type', key: 'power_type', type: 'select', options: ['Generator', 'UPS', 'Inverter', 'Solar Inverter', 'Battery', 'Stabilizer'], required: true },
+          { name: 'Power Rating', key: 'power_rating', type: 'text', required: false },
+        ],
+        features: ['With Battery', 'Fuel Efficient', 'Silent', 'Auto Start', 'Warranty'],
+      },
       { name: 'Other Home Appliances', slug: 'other-appliances', sortOrder: 10 },
     ],
   },
 
   // ===== BIKES =====
   {
-    name: 'Bikes', slug: 'bikes', parent: null, level: 1, sortOrder: 6, icon: '🏍️', color: '#0097B2',
+    name: 'Bikes', slug: 'bikes', parent: null, level: 1, sortOrder: 6, icon: 'bikes.png', color: '#0097B2',
+    // Make/Model/Variant come from the admin-managed vehicle brand registry
+    // (the brand picker), so they are not defined as attributes here.
     attributes: [
-      { name: 'Make', key: 'make', type: 'text', required: false },
-      { name: 'Model', key: 'model', type: 'text', required: false },
       { name: 'Year', key: 'year', type: 'number', required: false },
       { name: 'Engine Capacity', key: 'engine_cc', type: 'number', unit: 'cc', required: false },
       { name: 'Mileage', key: 'mileage', type: 'number', unit: 'km', required: false },
@@ -221,7 +344,7 @@ const categoriesData = [
 
   // ===== BUSINESS =====
   {
-    name: 'Business & Agriculture', slug: 'business', parent: null, level: 1, sortOrder: 7, icon: '🏭', color: '#00BF63',
+    name: 'Business & Agriculture', slug: 'business', parent: null, level: 1, sortOrder: 7, icon: 'business-industrial-agriculture.png', color: '#00BF63',
     children: [
       { name: 'Food & Restaurants', slug: 'food-restaurants', sortOrder: 1 },
       { name: 'Medical & Pharma', slug: 'medical-pharma', sortOrder: 2 },
@@ -235,7 +358,7 @@ const categoriesData = [
 
   // ===== FASHION & BEAUTY =====
   {
-    name: 'Fashion & Beauty', slug: 'fashion-beauty', parent: null, level: 1, sortOrder: 8, icon: '👗', color: '#E91E8C',
+    name: 'Fashion & Beauty', slug: 'fashion-beauty', parent: null, level: 1, sortOrder: 8, icon: 'fashion-beauty.png', color: '#E91E8C',
     attributes: [
       { name: 'Condition', key: 'condition_detail', type: 'select', options: ['New with Tags', 'New without Tags', 'Like New', 'Gently Used', 'Used'], required: false },
       { name: 'Gender', key: 'gender', type: 'select', options: ['Men', 'Women', 'Unisex', 'Boys', 'Girls'], required: false },
@@ -255,7 +378,8 @@ const categoriesData = [
       {
         name: 'Watches', slug: 'watches', sortOrder: 2,
         attributes: [
-          { name: 'Brand', key: 'brand', type: 'select', options: ['Rolex', 'Casio', 'Seiko', 'Citizen', 'Fossil', 'Tissot', 'Omega', 'Tag Heuer', 'Apple', 'Samsung', 'Rado', 'Other'], required: false },
+          // `brand` is inherited from the Fashion & Beauty parent; redefining it
+          // here collides with the parent key and blocks admin attribute edits.
           { name: 'Type', key: 'watch_type', type: 'select', options: ['Analog', 'Digital', 'Smart Watch', 'Chronograph', 'Automatic'], required: false },
           { name: 'Strap Material', key: 'strap_material', type: 'select', options: ['Leather', 'Metal', 'Rubber', 'Silicone', 'Fabric', 'Ceramic'], required: false },
         ],
@@ -308,7 +432,8 @@ const categoriesData = [
         attributes: [
           { name: 'Type', key: 'fragrance_type', type: 'select', options: ['Perfume', 'Body Spray', 'Attar', 'Deodorant', 'Gift Set', 'Roll-On'], required: false },
           { name: 'Volume', key: 'volume', type: 'text', required: false },
-          { name: 'Brand', key: 'brand', type: 'text', required: false },
+          // `brand` inherited from the Fashion & Beauty parent (removing the
+          // duplicate key so the subcategory stays editable in admin).
         ],
         features: ['Original', 'Sealed', 'Long Lasting', 'Imported', 'Box Included', 'Tester'],
       },
@@ -316,7 +441,8 @@ const categoriesData = [
         name: 'Makeup', slug: 'makeup', sortOrder: 9,
         attributes: [
           { name: 'Type', key: 'makeup_type', type: 'select', options: ['Foundation', 'Lipstick', 'Mascara', 'Eyeliner', 'Blush', 'Concealer', 'Primer', 'Setting Spray', 'Palette', 'Brush Set', 'Nail Polish'], required: false },
-          { name: 'Brand', key: 'brand', type: 'text', required: false },
+          // `brand` inherited from the Fashion & Beauty parent (removing the
+          // duplicate key so the subcategory stays editable in admin).
         ],
         features: ['Original', 'Sealed', 'Imported', 'Cruelty Free', 'Waterproof', 'Long Lasting', 'Matte', 'Glossy'],
       },
@@ -347,7 +473,7 @@ const categoriesData = [
 
   // ===== ANIMALS =====
   {
-    name: 'Animals', slug: 'animals', parent: null, level: 1, sortOrder: 9, icon: '🐾', color: '#8B5E3C',
+    name: 'Animals', slug: 'animals', parent: null, level: 1, sortOrder: 9, icon: 'animals.png', color: '#8B5E3C',
     attributes: [
       { name: 'Age', key: 'age', type: 'text', required: false },
       { name: 'Gender', key: 'gender', type: 'select', options: ['Male', 'Female', 'Pair', 'Unknown'], required: false },
@@ -439,7 +565,7 @@ const categoriesData = [
 
   // ===== FURNITURE & HOME DECOR =====
   {
-    name: 'Furniture & Home Decor', slug: 'furniture-home-decor', parent: null, level: 1, sortOrder: 10, icon: '🛋️', color: '#A0522D',
+    name: 'Furniture & Home Decor', slug: 'furniture-home-decor', parent: null, level: 1, sortOrder: 10, icon: 'furniture-home-decor.png', color: '#A0522D',
     attributes: [
       { name: 'Condition', key: 'condition_detail', type: 'select', options: ['New', 'Like New', 'Gently Used', 'Used', 'Needs Repair'], required: false },
       { name: 'Material', key: 'material', type: 'select', options: ['Wood', 'Metal', 'Plastic', 'Glass', 'Fabric', 'Leather', 'Rattan', 'MDF', 'Particle Board', 'Other'], required: false },
@@ -512,7 +638,7 @@ const categoriesData = [
 
   // ===== BOOKS, SPORTS & HOBBIES =====
   {
-    name: 'Books, Sports & Hobbies', slug: 'books-sports-hobbies', parent: null, level: 1, sortOrder: 11, icon: '📚', color: '#6A5ACD',
+    name: 'Books, Sports & Hobbies', slug: 'books-sports-hobbies', parent: null, level: 1, sortOrder: 11, icon: 'books-sports-hobbies.png', color: '#6A5ACD',
     attributes: [
       { name: 'Condition', key: 'condition_detail', type: 'select', options: ['New', 'Like New', 'Good', 'Acceptable'], required: false },
     ],
@@ -563,7 +689,7 @@ const categoriesData = [
 
   // ===== KIDS =====
   {
-    name: 'Kids', slug: 'kids', parent: null, level: 1, sortOrder: 12, icon: '🧸', color: '#FF69B4',
+    name: 'Kids', slug: 'kids', parent: null, level: 1, sortOrder: 12, icon: 'kids.png', color: '#FF69B4',
     attributes: [
       { name: 'Condition', key: 'condition_detail', type: 'select', options: ['New', 'Like New', 'Gently Used', 'Used'], required: false },
       { name: 'Age Group', key: 'age_group', type: 'select', options: ['0-6 Months', '6-12 Months', '1-2 Years', '2-4 Years', '4-8 Years', '8-12 Years', '12+ Years'], required: false },
@@ -615,7 +741,7 @@ const categoriesData = [
 
   // ===== SERVICES =====
   {
-    name: 'Services', slug: 'services', parent: null, level: 1, sortOrder: 13, icon: '🔧', color: '#4682B4',
+    name: 'Services', slug: 'services', parent: null, level: 1, sortOrder: 13, icon: 'services.png', color: '#4682B4',
     attributes: [
       { name: 'Service Type', key: 'service_type', type: 'select', options: ['One-Time', 'Recurring', 'Contract', 'Hourly', 'Project Based'], required: false },
       { name: 'Availability', key: 'availability', type: 'select', options: ['Available Now', 'By Appointment', 'Weekdays Only', 'Weekends Only', '24/7'], required: false },
@@ -669,7 +795,7 @@ const categoriesData = [
 
   // ===== JOBS =====
   {
-    name: 'Jobs', slug: 'jobs', parent: null, level: 1, sortOrder: 14, icon: '💼', color: '#2E8B57',
+    name: 'Jobs', slug: 'jobs', parent: null, level: 1, sortOrder: 14, icon: 'jobs.png', color: '#2E8B57',
     attributes: [
       { name: 'Job Type', key: 'job_type', type: 'select', options: ['Full Time', 'Part Time', 'Contract', 'Freelance', 'Internship', 'Remote'], required: false },
       { name: 'Salary Range', key: 'salary_range', type: 'select', options: ['10K-25K', '25K-50K', '50K-100K', '100K-200K', '200K-500K', '500K+', 'Negotiable'], required: false },
@@ -712,6 +838,87 @@ const categoriesData = [
       { name: 'Architecture & Interior Design', slug: 'architecture-interior-design-jobs', sortOrder: 25 },
     ],
   },
+
+  // ===== GARDENING =====
+  {
+    name: 'Gardening', slug: 'gardening', parent: null, level: 1, sortOrder: 15, icon: 'gardening.png', color: '#3E9C4A',
+    // Shared across every gardening subcategory. Keep these keys off the
+    // children — the admin API rejects a child attribute that reuses a
+    // parent key, and inheritance already surfaces them everywhere.
+    attributes: [
+      { name: 'Condition', key: 'condition_detail', type: 'select', options: ['New', 'Like New', 'Used', 'Needs Repair'], required: false },
+    ],
+    children: [
+      {
+        name: 'Plants & Trees', slug: 'plants-trees', sortOrder: 1,
+        attributes: [
+          { name: 'Plant Type', key: 'plant_type', type: 'select', options: ['Indoor', 'Outdoor', 'Flowering', 'Fruit', 'Succulent & Cactus', 'Herb', 'Bonsai', 'Climber', 'Shrub', 'Tree', 'Other'], required: true },
+          { name: 'Height', key: 'plant_height', type: 'number', unit: 'in', required: false },
+          { name: 'Sunlight', key: 'sunlight', type: 'select', options: ['Full Sun', 'Partial Sun', 'Shade', 'Indoor Light'], required: false },
+          { name: 'Color', key: 'color', type: 'text', required: false },
+        ],
+        features: ['Potted', 'With Soil', 'Organic', 'Air Purifying', 'Low Maintenance', 'Pet Friendly', 'Flowering'],
+      },
+      {
+        name: 'Seeds & Bulbs', slug: 'seeds-bulbs', sortOrder: 2,
+        attributes: [
+          { name: 'Seed Type', key: 'seed_type', type: 'select', options: ['Vegetable', 'Fruit', 'Flower', 'Herb', 'Grass/Lawn', 'Tree', 'Bulb', 'Mixed'], required: true },
+          { name: 'Quantity', key: 'quantity', type: 'text', required: false },
+        ],
+        features: ['Organic', 'Non-GMO', 'Hybrid', 'Sealed Pack', 'Imported', 'High Germination'],
+      },
+      {
+        name: 'Garden Tools', slug: 'garden-tools', sortOrder: 3,
+        attributes: [
+          { name: 'Tool Type', key: 'tool_type', type: 'select', options: ['Shovel & Spade', 'Rake', 'Pruner & Shears', 'Trowel', 'Hoe', 'Watering Can', 'Wheelbarrow', 'Lawn Mower', 'Hedge Trimmer', 'Leaf Blower', 'Tool Set', 'Other'], required: true },
+          { name: 'Power Source', key: 'power_source', type: 'select', options: ['Manual', 'Electric', 'Battery', 'Petrol'], required: false },
+          { name: 'Brand', key: 'brand', type: 'text', required: false },
+        ],
+        features: ['Branded', 'Imported', 'Rust Proof', 'Ergonomic Handle', 'Cordless', 'With Warranty'],
+      },
+      {
+        name: 'Pots & Planters', slug: 'pots-planters', sortOrder: 4,
+        attributes: [
+          { name: 'Material', key: 'pot_material', type: 'select', options: ['Plastic', 'Clay/Terracotta', 'Ceramic', 'Cement', 'Fiberglass', 'Metal', 'Wood', 'Hanging'], required: false },
+          { name: 'Size', key: 'pot_size', type: 'select', options: ['Small', 'Medium', 'Large', 'Extra Large'], required: false },
+        ],
+        features: ['With Drainage', 'With Saucer', 'Self Watering', 'Set', 'Decorative', 'Frost Resistant'],
+      },
+      {
+        name: 'Soil & Fertilizers', slug: 'soil-fertilizers', sortOrder: 5,
+        attributes: [
+          { name: 'Type', key: 'soil_type', type: 'select', options: ['Potting Mix', 'Compost', 'Organic Fertilizer', 'Chemical Fertilizer', 'Vermicompost', 'Peat Moss', 'Cocopeat', 'Manure', 'Perlite'], required: true },
+          { name: 'Weight', key: 'weight', type: 'number', unit: 'kg', required: false },
+        ],
+        features: ['Organic', 'Chemical Free', 'Slow Release', 'Sealed Pack', 'All Purpose', 'Bulk Available'],
+      },
+      {
+        name: 'Irrigation & Watering', slug: 'irrigation-watering', sortOrder: 6,
+        attributes: [
+          { name: 'Type', key: 'irrigation_type', type: 'select', options: ['Drip System', 'Sprinkler', 'Garden Hose', 'Watering Can', 'Nozzle', 'Timer', 'Water Pump', 'Other'], required: false },
+        ],
+        features: ['Automatic', 'Adjustable', 'Weather Resistant', 'Complete Kit', 'Water Saving'],
+      },
+      {
+        name: 'Pest & Weed Control', slug: 'pest-weed-control', sortOrder: 7,
+        attributes: [
+          { name: 'Type', key: 'control_type', type: 'select', options: ['Insecticide', 'Fungicide', 'Herbicide', 'Organic Spray', 'Trap', 'Net', 'Repellent'], required: false },
+        ],
+        features: ['Organic', 'Pet Safe', 'Ready to Use', 'Concentrate', 'Odorless'],
+      },
+      {
+        name: 'Outdoor & Garden Decor', slug: 'garden-decor', sortOrder: 8,
+        attributes: [
+          { name: 'Type', key: 'decor_type', type: 'select', options: ['Garden Statue', 'Fountain', 'Solar Light', 'Wind Chime', 'Bird Feeder', 'Artificial Grass', 'Garden Arch', 'Stepping Stone', 'Other'], required: false },
+        ],
+        features: ['Weather Resistant', 'Solar Powered', 'Handmade', 'Set', 'LED', 'Rust Proof'],
+      },
+      { name: 'Greenhouses & Sheds', slug: 'greenhouses-sheds', sortOrder: 9,
+        features: ['Foldable', 'UV Protected', 'Walk-In', 'With Shelves', 'Weatherproof'],
+      },
+      { name: 'Other Gardening', slug: 'other-gardening', sortOrder: 10 },
+    ],
+  },
 ];
 
 async function seed() {
@@ -731,6 +938,11 @@ async function seed() {
       const doc = {
         name: cat.name,
         slug: cat.slug,
+        // `icon` (emoji) and `hasBrands` are real schema fields but were
+        // previously dropped here, so seeded categories rendered without their
+        // icons. Persist them, defaulting to the schema defaults when absent.
+        icon: cat.icon || '',
+        hasBrands: cat.hasBrands || false,
         parentId: parentId,
         level: level,
         isActive: true,
@@ -739,6 +951,7 @@ async function seed() {
           ...a,
           options: a.options || [],
           required: a.required || false,
+          allowOther: a.allowOther || false,
         })),
         features: cat.features || [],
         createdAt: new Date(),

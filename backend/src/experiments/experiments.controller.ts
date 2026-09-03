@@ -99,7 +99,16 @@ export class ExperimentsController {
   @Get(':key/metrics')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN)
-  async getMetrics(@Param('key') key: string) {
-    return this.experimentsService.getMetrics(key);
+  async getMetrics(
+    @Param('key') key: string,
+    @Query('dateFrom') dateFrom?: string,
+    @Query('dateTo') dateTo?: string,
+    @Query('controlVariantId') controlVariantId?: string,
+  ) {
+    return this.experimentsService.getMetrics(key, {
+      dateFrom,
+      dateTo,
+      controlVariantId,
+    });
   }
 }

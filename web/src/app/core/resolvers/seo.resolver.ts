@@ -5,12 +5,14 @@ import { SeoApiService } from '../services/seo-api.service';
 import { MetaService } from '../services/meta.service';
 import { StructuredDataService } from '../services/structured-data.service';
 import { extractIdFromSlug } from '../utils/slug';
+import { SEO_BASE_URL } from '../constants/seo';
 import {
   ListingSeoResponse,
   SellerSeoResponse,
   HomeSeoResponse,
   SearchSeoResponse,
   PageSeoResponse,
+  ShortSeoResponse,
 } from '../models/seo.models';
 
 /**
@@ -87,6 +89,8 @@ export const sellerSeoResolver: ResolveFn<SellerSeoResponse | null> = (
         canonicalUrl: data.canonicalUrl,
         ogType: 'profile',
       });
+
+      meta.setHreflangTags(data.canonicalUrl);
 
       structuredData.setSellerData(data.personJsonLd);
     }),
@@ -201,6 +205,66 @@ export const pageSeoResolver: ResolveFn<PageSeoResponse | null> = (
       }
 
       meta.setHreflangTags(data.canonicalUrl);
+    }),
+    catchError(() => {
+      meta.setFallbackMeta();
+      return of(null);
+    }),
+  );
+};
+
+/**
+ * Route resolver for a single short video, keyed off the `?id=` query param the
+ * shorts feed uses to open a specific short. Sets meta + VideoObject JSON-LD +
+ * og:video / Twitter player tags. When no `id` is present (the plain feed), it
+ * leaves the feed's own generic meta alone.
+ */
+export const shortSeoResolver: ResolveFn<ShortSeoResponse | null> = (
+  route: ActivatedRouteSnapshot,
+): Observable<ShortSeoResponse | null> => {
+  const seoApi = inject(SeoApiService);
+  const meta = inject(MetaService);
+  const structuredData = inject(StructuredDataService);
+
+  const id = route.queryParamMap.get('id');
+  if (!id) {
+    // Feed view (no specific short) — use the shorts collection defaults.
+    meta.setPageMeta({
+      title: 'Short Videos - Product Showcases | marketplace.pk',
+      description:
+        'Watch short product videos from sellers. Discover products through quick video showcases.',
+      canonicalUrl: `${SEO_BASE_URL}/shorts`,
+      ogType: 'website',
+    });
+    return of(null);
+  }
+
+  return seoApi.getShortSeo(id).pipe(
+    tap((data) => {
+      if (!data) {
+        meta.setFallbackMeta();
+        return;
+      }
+
+      meta.setPageMeta({
+        title: data.title,
+        description: data.description,
+        imageUrl: data.imageUrl,
+        canonicalUrl: data.canonicalUrl,
+        ogType: 'video.other',
+        twitterCard: 'summary_large_image',
+      });
+
+      meta.setVideoTags({
+        videoUrl: data.videoUrl,
+        playerUrl: data.embedUrl,
+        imageUrl: data.imageUrl,
+      });
+
+      meta.setHreflangTags(data.canonicalUrl);
+
+      structuredData.setVideoData(data.videoJsonLd);
+      structuredData.setBreadcrumbData(data.categoryBreadcrumb);
     }),
     catchError(() => {
       meta.setFallbackMeta();

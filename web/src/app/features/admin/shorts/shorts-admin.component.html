@@ -10,6 +10,12 @@
         <span class="tab-badge">{{ pendingCount() }}</span>
       }
     </button>
+    <button [class.active]="activeTab() === 'payments'" (click)="switchTab('payments')">
+      <span class="material-symbols-rounded tab-icon">payments</span> Package Payments
+      @if (pendingPurchases().length > 0) {
+        <span class="tab-badge">{{ pendingPurchases().length }}</span>
+      }
+    </button>
   </div>
 
   <!-- ALL SHORTS TAB -->
@@ -308,6 +314,78 @@
               </div>
             </div>
           </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- PACKAGE PAYMENTS TAB -->
+  @if (activeTab() === 'payments') {
+    <div class="page-header">
+      <h1>Package Payments</h1>
+      @if (!payLoading()) {
+        <span class="count-badge">{{ pendingPurchases().length }} pending</span>
+      }
+    </div>
+
+    @if (payLoading()) {
+      <div class="loading-state">
+        <div class="spinner"></div>
+        <p>Loading pending payments...</p>
+      </div>
+    }
+
+    @if (!payLoading() && pendingPurchases().length === 0) {
+      <app-empty-state
+        icon="payments"
+        title="No pending payments"
+        message="There are no shorts package payments awaiting confirmation."
+      />
+    }
+
+    @if (!payLoading() && pendingPurchases().length > 0) {
+      <div class="card-list">
+        @for (purchase of pendingPurchases(); track purchase._id) {
+          <div class="short-card">
+            <div class="short-info">
+              <span class="short-title">{{ getPurchasePackageName(purchase) }}</span>
+              <span class="short-seller">{{ getPurchaseSellerName(purchase) }}</span>
+            </div>
+            <div class="short-stats">
+              <div class="stat-item">
+                <span class="stat-value">{{ purchase.quantity }}</span>
+                <span class="stat-label">Shorts</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value">{{ purchase.duration }}d</span>
+                <span class="stat-label">Duration</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value">{{ purchase.price | number }}</span>
+                <span class="stat-label">Price</span>
+              </div>
+              <div class="stat-item">
+                <span class="stat-value">{{ purchase.createdAt | date: 'd MMM' }}</span>
+                <span class="stat-label">Requested</span>
+              </div>
+            </div>
+            <div class="short-actions">
+              <button
+                class="btn-action btn-approve"
+                [disabled]="payActionLoading() === purchase._id"
+                (click)="confirmPurchase(purchase)"
+              >
+                <span class="material-symbols-rounded" style="font-size: 14px">check_circle</span>
+                Confirm
+              </button>
+            </div>
+          </div>
+          @if (getPurchaseSellerContact(purchase)) {
+            <div class="rejection-reason-bar">
+              <span class="material-symbols-rounded" style="font-size: 14px">contact_mail</span>
+              {{ getPurchaseSellerContact(purchase) }}
+            </div>
+          }
         }
       </div>
     }

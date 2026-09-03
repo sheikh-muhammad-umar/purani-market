@@ -12,6 +12,7 @@ import {
   SearchSuggestion,
 } from '../../../core/services/search.service';
 import { CategoriesService } from '../../../core/services/categories.service';
+import { MetaService } from '../../../core/services/meta.service';
 import { LocationService } from '../../../core/services/location.service';
 import { RecentSearchesService } from '../../../core/services/recent-searches.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
@@ -70,6 +71,11 @@ describe('SearchResultsComponent', () => {
   let searchServiceMock: {
     search: ReturnType<typeof vi.fn>;
     getSuggestions: ReturnType<typeof vi.fn>;
+    searchShorts: ReturnType<typeof vi.fn>;
+  };
+  let metaServiceMock: {
+    setPaginationLinks: ReturnType<typeof vi.fn>;
+    removePaginationLinks: ReturnType<typeof vi.fn>;
   };
   let categoriesServiceMock: {
     getAll: ReturnType<typeof vi.fn>;
@@ -118,6 +124,12 @@ describe('SearchResultsComponent', () => {
     searchServiceMock = {
       search: vi.fn().mockReturnValue(of(mockSearchResponse)),
       getSuggestions: vi.fn().mockReturnValue(of([])),
+      searchShorts: vi.fn().mockReturnValue(of({ items: [], total: 0 })),
+    };
+
+    metaServiceMock = {
+      setPaginationLinks: vi.fn(),
+      removePaginationLinks: vi.fn(),
     };
 
     categoriesServiceMock = {
@@ -189,6 +201,7 @@ describe('SearchResultsComponent', () => {
           brandsServiceMock as unknown as BrandsService,
           experimentsServiceMock as unknown as ExperimentsService,
           advertisingServiceMock as unknown as AdvertisingService,
+          metaServiceMock as unknown as MetaService,
         ),
     );
   });
@@ -449,6 +462,7 @@ describe('SearchResultsComponent', () => {
           brandsServiceMock as unknown as BrandsService,
           experimentsServiceMock as unknown as ExperimentsService,
           advertisingServiceMock as unknown as AdvertisingService,
+          metaServiceMock as unknown as MetaService,
         ),
     );
     component.ngOnInit();
@@ -475,6 +489,7 @@ describe('SearchResultsComponent', () => {
           brandsServiceMock as unknown as BrandsService,
           experimentsServiceMock as unknown as ExperimentsService,
           advertisingServiceMock as unknown as AdvertisingService,
+          metaServiceMock as unknown as MetaService,
         ),
     );
     component.ngOnInit();
@@ -509,6 +524,7 @@ describe('SearchResultsComponent', () => {
           brandsServiceMock as unknown as BrandsService,
           experimentsServiceMock as unknown as ExperimentsService,
           advertisingServiceMock as unknown as AdvertisingService,
+          metaServiceMock as unknown as MetaService,
         ),
     );
     component.ngOnInit();
@@ -535,6 +551,7 @@ describe('SearchResultsComponent', () => {
           brandsServiceMock as unknown as BrandsService,
           experimentsServiceMock as unknown as ExperimentsService,
           advertisingServiceMock as unknown as AdvertisingService,
+          metaServiceMock as unknown as MetaService,
         ),
     );
     component.ngOnInit();
@@ -559,6 +576,7 @@ describe('SearchResultsComponent', () => {
           brandsServiceMock as unknown as BrandsService,
           experimentsServiceMock as unknown as ExperimentsService,
           advertisingServiceMock as unknown as AdvertisingService,
+          metaServiceMock as unknown as MetaService,
         ),
     );
     component.ngOnInit();

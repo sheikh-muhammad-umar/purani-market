@@ -194,6 +194,17 @@ export class ProductListing {
   @Prop({ type: Boolean, default: false })
   sellerVerified!: boolean;
 
+  /**
+   * Denormalized seller rating, mirrored from the seller's User document so a
+   * listing/search card can show stars without a per-card lookup. Kept in step
+   * by ReviewsService when the seller's rating changes.
+   */
+  @Prop({ type: Number, default: 0 })
+  sellerRating!: number;
+
+  @Prop({ type: Number, default: 0 })
+  sellerReviewCount!: number;
+
   @Prop({ type: Date })
   featuredUntil?: Date;
 

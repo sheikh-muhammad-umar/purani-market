@@ -63,6 +63,9 @@ export class ShortsPackagesComponent implements OnInit {
 
     this.shortsService.purchasePackage(pkg._id, 'manual').subscribe({
       next: () => {
+        this.tracker.track(TrackingEvent.SHORT_PACKAGE_PURCHASE, {
+          metadata: { packageId: pkg._id, packageName: pkg.name, price: pkg.price },
+        });
         this.toast.success('Package purchased! Payment confirmation pending.');
         this.shortsService.getMyPurchases().subscribe({
           next: (purchases) => this.purchases.set(purchases),

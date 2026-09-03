@@ -39,7 +39,6 @@
     <section aria-label="Browse categories">
       <app-section-header
         title="Browse by Category"
-        subtitle="Jump straight to what you need"
         icon="grid_view"
         linkText="All categories"
         [link]="ROUTES.CATEGORIES"
@@ -75,7 +74,6 @@
     <section aria-label="Featured ads">
       <app-section-header
         title="Featured Ads"
-        subtitle="Hand-picked listings from verified sellers"
         icon="auto_awesome"
         iconColor="var(--accent)"
         linkText="See all"
@@ -121,7 +119,6 @@
       <section aria-label="Short videos">
         <app-section-header
           title="Shorts"
-          subtitle="See items in motion before you buy"
           icon="play_circle"
           iconColor="var(--primary)"
           linkText="See all"
@@ -148,7 +145,6 @@
     <section aria-label="Recommended for you">
       <app-section-header
         title="Recommended for You"
-        subtitle="Based on what you've been viewing"
         icon="thumb_up"
         linkText="See all"
         [link]="ROUTES.SEARCH"
@@ -189,7 +185,6 @@
       <app-section-header
         title="Near You"
         [note]="userCity() ? '· ' + userCity() : ''"
-        subtitle="Fresh listings in your area"
         icon="location_on"
         linkText="See all"
         [link]="ROUTES.SEARCH"

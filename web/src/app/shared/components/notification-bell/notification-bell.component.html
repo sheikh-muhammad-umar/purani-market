@@ -34,6 +34,16 @@
               >{{ n.body }}</span
             >
             <span class="notification-time">{{ n.createdAt | date: 'short' }}</span>
+            @if (expandedId() === n._id && hasLink(n)) {
+              <a
+                class="notification-view-link"
+                [routerLink]="notificationLink(n)"
+                [queryParams]="notificationQueryParams(n)"
+                (click)="$event.stopPropagation(); closeDropdown()"
+              >
+                View
+              </a>
+            }
           </div>
           @if (!n.read) {
             <span class="unread-dot" aria-label="Unread"></span>

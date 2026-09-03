@@ -8,6 +8,10 @@ import {
   ProductListing,
   ProductListingSchema,
 } from '../listings/schemas/product-listing.schema.js';
+import {
+  ShortVideo,
+  ShortVideoSchema,
+} from '../shorts/schemas/short-video.schema.js';
 import { SearchIndexService } from './search-index.service.js';
 import { SearchSyncService } from './search-sync.service.js';
 import { SearchService } from './search.service.js';
@@ -18,6 +22,7 @@ import { SearchController } from './search.controller.js';
   imports: [
     MongooseModule.forFeature([
       { name: ProductListing.name, schema: ProductListingSchema },
+      { name: ShortVideo.name, schema: ShortVideoSchema },
     ]),
     ElasticsearchModule.registerAsync({
       inject: [ConfigService],

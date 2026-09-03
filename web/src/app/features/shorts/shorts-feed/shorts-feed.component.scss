@@ -142,7 +142,10 @@
 }
 
 .upload-btn {
-  padding: 5px 12px;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 5px 14px 5px 10px;
   background: var(--primary);
   color: var(--on-primary);
   border-radius: 20px;
@@ -150,6 +153,21 @@
   font-size: 11px;
   font-weight: 600;
   white-space: nowrap;
+  transition:
+    background-color 0.15s,
+    transform 0.1s;
+
+  &:hover {
+    background: var(--primary-dark);
+  }
+  &:active {
+    transform: scale(0.97);
+  }
+}
+
+.upload-btn-icon {
+  font-size: 16px;
+  line-height: 1;
 }
 
 .mute-btn {
@@ -431,7 +449,10 @@
 
   .upload-btn {
     font-size: 10px;
-    padding: 4px 10px;
+    padding: 4px 10px 4px 8px;
+  }
+  .upload-btn-icon {
+    font-size: 14px;
   }
 
   .filter-chip-wrap {
@@ -458,6 +479,9 @@
 
   .upload-btn {
     font-size: 9px;
-    padding: 3px 8px;
+    padding: 3px 8px 3px 6px;
+  }
+  .upload-btn-icon {
+    font-size: 13px;
   }
 }

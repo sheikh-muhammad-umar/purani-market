@@ -20,7 +20,6 @@
             </button>
           </span>
         }
-        <button class="clear-all-btn" (click)="clearAllFilters()">Clear all</button>
       </div>
     </section>
   }
@@ -581,6 +580,18 @@
           }
         </div>
 
+        <!-- Matching shorts (secondary rail) -->
+        @if (shorts().length > 0) {
+          <section class="shorts-section" aria-label="Related shorts">
+            <app-section-header title="Shorts" icon="movie" iconColor="var(--accent)" />
+            <div class="shorts-grid" role="list">
+              @for (short of shorts(); track short._id) {
+                <app-short-card role="listitem" [short]="short" />
+              }
+            </div>
+          </section>
+        }
+
         <app-pagination
           [currentPage]="currentPage()"
           [totalPages]="totalPages()"
@@ -609,6 +620,17 @@
                 Clear all filters
               </button>
             </div>
+          }
+
+          @if (shorts().length > 0) {
+            <section class="shorts-section" aria-label="Related shorts">
+              <app-section-header title="Shorts" icon="movie" iconColor="var(--accent)" />
+              <div class="shorts-grid" role="list">
+                @for (short of shorts(); track short._id) {
+                  <app-short-card role="listitem" [short]="short" />
+                }
+              </div>
+            </section>
           }
 
           @if (suggestedTerms().length > 0) {

@@ -13,7 +13,15 @@ import {
 import { isPlatformBrowser, CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute, Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { Subject, takeUntil, debounceTime, distinctUntilChanged, switchMap, of } from 'rxjs';
+import {
+  Subject,
+  takeUntil,
+  debounceTime,
+  distinctUntilChanged,
+  switchMap,
+  of,
+  catchError,
+} from 'rxjs';
 import {
   SearchService,
   SearchParams,
@@ -42,6 +50,10 @@ import { ROUTES } from '../../../core/constants/routes';
 import { SORT_OPTIONS, CONDITION_FILTER_OPTIONS } from '../../../core/constants/select-options';
 import { SearchSortOption } from '../../../core/constants/enums';
 import { ListingCardComponent } from '../../../shared/components/listing-card/listing-card.component';
+import { ShortCardComponent } from '../../../shared/components/short-card/short-card.component';
+import { ShortVideo } from '../../../core/services/shorts.service';
+import { MetaService } from '../../../core/services/meta.service';
+import { SEO_BASE_URL } from '../../../core/constants/seo';
 import { SectionHeaderComponent } from '../../../shared/components/section-header/section-header.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
@@ -100,6 +112,7 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
     CustomSelectComponent,
     AdSlotComponent,
     ListingCardComponent,
+    ShortCardComponent,
     SectionHeaderComponent,
     EmptyStateComponent,
     PaginationComponent,
@@ -116,6 +129,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly query = signal('');
   readonly results = signal<Listing[]>([]);
   readonly featuredAds = signal<Listing[]>([]);
+  /** Matching shorts, shown as a secondary section within results. */
+  readonly shorts = signal<ShortVideo[]>([]);
   readonly totalResults = signal(0);
   readonly currentPage = signal(1);
   readonly pageSize = 20;
@@ -246,6 +261,26 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly selectedFilterBrandId = signal<string>('');
   readonly selectedFilterModelId = signal<string>('');
   readonly selectedFilterVariantId = signal<string>('');
+
+  /**
+   * A brand *name* restored from a readable URL (`?brand=Apple`) that still
+   * needs mapping to its id once the category's brand list loads. Held here so
+   * `setFilterBrands` can upgrade `selectedFilterBrandId` from the name to the
+   * real id, which the dropdown and model chain key off.
+   */
+  private pendingBrandName = '';
+
+  /**
+   * Display names for the currently selected brand/model/variant, keyed by id.
+   *
+   * The chip label must not depend on the category-scoped brand *list* being
+   * loaded: that list arrives via a slow, race-prone chain
+   * (`checkVehicleCategory` per ancestor -> `getByCategory`), and every other
+   * `buildActiveFilters` call fires before it, so the chip kept showing the raw
+   * id. Resolving the name by a direct id lookup the moment a selection is
+   * restored from the URL makes the label self-contained and reliable.
+   */
+  private readonly brandChainNames = signal<Record<string, string>>({});
 
   readonly brandFilterOptions = computed<SelectOption[]>(() => [
     { value: '', label: 'All Brands' },
@@ -528,7 +563,34 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     private readonly brandsService: BrandsService,
     private readonly experiments: ExperimentsService,
     private readonly advertising: AdvertisingService,
+    private readonly meta: MetaService,
   ) {}
+
+  /**
+   * Emit rel="prev"/rel="next" pagination links for the current result page so
+   * crawlers understand the paginated series. Built from the same slug-based
+   * query params the URL uses, against the canonical base.
+   */
+  private updatePaginationLinks(): void {
+    const page = this.currentPage();
+    const total = this.totalPages();
+
+    const buildUrl = (targetPage: number): string => {
+      const params = new URLSearchParams();
+      const q = this.query();
+      if (q) params.set('q', q);
+      const slug = this.selectedCategorySlug();
+      if (slug) params.set('category', slug);
+      if (targetPage > 1) params.set('page', String(targetPage));
+      const qs = params.toString();
+      return `${SEO_BASE_URL}/search${qs ? `?${qs}` : ''}`;
+    };
+
+    this.meta.setPaginationLinks({
+      prevUrl: page > 1 ? buildUrl(page - 1) : undefined,
+      nextUrl: page < total ? buildUrl(page + 1) : undefined,
+    });
+  }
 
   /**
    * Keeps the page behind the mobile overlay from scrolling.
@@ -604,6 +666,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    // Don't leak this page's prev/next links onto the next route.
+    this.meta.removePaginationLinks();
     if (this.mobileQuery) {
       this.mobileQuery.removeEventListener('change', this.onViewportChange);
     }
@@ -868,16 +932,44 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.expandedCategories.update((set) => {
       const next = new Set(set);
       if (next.has(catId)) {
+        // Collapsing: also drop any expanded descendants so a reopened branch
+        // starts fully closed.
         next.delete(catId);
-      } else {
-        next.add(catId);
+        for (const id of this.descendantIds(catId)) next.delete(id);
+        return next;
       }
+
+      // Expanding: accordion behaviour — only one branch open per level. Close
+      // every sibling (same parent) and everything under them, then open this one.
+      const cats = this.categories();
+      const parentId = cats.find((c) => c._id === catId)?.parentId || '';
+      for (const sibling of this.getSubcategories(parentId)) {
+        if (sibling._id === catId) continue;
+        next.delete(sibling._id);
+        for (const id of this.descendantIds(sibling._id)) next.delete(id);
+      }
+      next.add(catId);
       return next;
     });
   }
 
+  /** All descendant category ids beneath the given category, at any depth. */
+  private descendantIds(catId: string): string[] {
+    const result: string[] = [];
+    const stack = [...this.getSubcategories(catId)];
+    while (stack.length > 0) {
+      const cat = stack.pop()!;
+      result.push(cat._id);
+      stack.push(...this.getSubcategories(cat._id));
+    }
+    return result;
+  }
+
   private autoExpandCategory(catId: string): void {
-    // Find the category and expand all its ancestors + itself
+    // Expand exactly the selected category's ancestor chain (plus itself) and
+    // nothing else. Replacing the set rather than adding to it preserves the
+    // "one branch open at a time" rule when a selection lands in a different
+    // branch than the one the user had open.
     const cats = this.categories();
     const toExpand = new Set<string>();
     let current = cats.find((c) => c._id === catId);
@@ -889,13 +981,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       toExpand.add(current.parentId);
       current = cats.find((c) => c._id === current!.parentId);
     }
-    if (toExpand.size > 0) {
-      this.expandedCategories.update((set) => {
-        const next = new Set(set);
-        toExpand.forEach((id) => next.add(id));
-        return next;
-      });
-    }
+    this.expandedCategories.set(toExpand);
   }
 
   toggleFilters(): void {
@@ -1052,38 +1138,134 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     });
 
     // Brand / Model / Variant active filters
+    const names = this.brandChainNames();
     const brandId = this.selectedFilterBrandId();
     if (brandId) {
-      const brand = this.filterBrands().find((b) => b._id === brandId);
+      const name = names[brandId] || this.filterBrands().find((b) => b._id === brandId)?.name;
       filters.push({
         key: 'brandFilter',
         label: 'Brand',
         value: brandId,
-        displayValue: `Brand: ${brand?.name || brandId}`,
+        displayValue: `Brand: ${name || brandId}`,
       });
     }
     const modelId = this.selectedFilterModelId();
     if (modelId) {
-      const model = this.filterModels().find((m) => m._id === modelId);
+      const name = names[modelId] || this.filterModels().find((m) => m._id === modelId)?.name;
       filters.push({
         key: 'modelFilter',
         label: 'Model',
         value: modelId,
-        displayValue: `Model: ${model?.name || modelId}`,
+        displayValue: `Model: ${name || modelId}`,
       });
     }
     const variantId = this.selectedFilterVariantId();
     if (variantId) {
-      const variant = this.filterVariants().find((v) => v._id === variantId);
+      const name = names[variantId] || this.filterVariants().find((v) => v._id === variantId)?.name;
       filters.push({
         key: 'variantFilter',
         label: 'Variant',
         value: variantId,
-        displayValue: `Variant: ${variant?.name || variantId}`,
+        displayValue: `Variant: ${name || variantId}`,
       });
     }
 
     return filters;
+  }
+
+  /**
+   * Resolves the display names for a restored brand/model/variant selection by
+   * direct id lookup, independent of the category-scoped option lists. Each
+   * resolved name is merged into `brandChainNames` and the chips are rebuilt so
+   * the label flips from the raw id to the real name as soon as it arrives.
+   *
+   * A brand id may belong to either the plain brand collection or the vehicle
+   * brand collection, so the plain lookup falls back to the vehicle one on a
+   * 404 rather than guessing from the category.
+   */
+  private resolveBrandChainNames(brandId: string, modelId: string, variantId: string): void {
+    if (brandId && this.isObjectId(brandId) && !this.brandChainNames()[brandId]) {
+      this.brandsService
+        .getById(brandId)
+        .pipe(
+          catchError(() => this.brandsService.getVehicleBrandById(brandId)),
+          takeUntil(this.destroy$),
+        )
+        .subscribe({
+          next: (brand) => this.setBrandChainName(brandId, brand?.name),
+          error: () => {
+            /* leave the id showing rather than blanking the chip */
+          },
+        });
+    }
+    if (modelId && this.isObjectId(modelId) && !this.brandChainNames()[modelId]) {
+      this.brandsService
+        .getModelById(modelId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (model) => this.setBrandChainName(modelId, model?.name),
+          error: () => {
+            /* keep id */
+          },
+        });
+    }
+    if (variantId && this.isObjectId(variantId) && !this.brandChainNames()[variantId]) {
+      this.brandsService
+        .getVariantById(variantId)
+        .pipe(takeUntil(this.destroy$))
+        .subscribe({
+          next: (variant) => this.setBrandChainName(variantId, variant?.name),
+          error: () => {
+            /* keep id */
+          },
+        });
+    }
+  }
+
+  /** Records a resolved brand-chain name and refreshes the chips. */
+  private setBrandChainName(id: string, name?: string): void {
+    if (!name) return;
+    this.brandChainNames.update((map) => ({ ...map, [id]: name }));
+    this.activeFilters.set(this.buildActiveFilters());
+  }
+
+  /** True when the value looks like a Mongo ObjectId (24 hex chars). */
+  private isObjectId(value: string): boolean {
+    return /^[a-f0-9]{24}$/i.test(value);
+  }
+
+  /**
+   * Display name for a selected brand id, for building a readable URL. Prefers
+   * the resolved name map, then the loaded option list. Returns '' if the name
+   * isn't known yet (caller falls back to the raw value).
+   */
+  private brandDisplayName(brandId: string): string {
+    if (!this.isObjectId(brandId)) return brandId; // already a name
+    return (
+      this.brandChainNames()[brandId] ||
+      this.filterBrands().find((b) => b._id === brandId)?.name ||
+      ''
+    );
+  }
+
+  /** Display name for a selected model id (resolved name map or loaded list). */
+  private modelDisplayName(modelId: string): string {
+    if (!this.isObjectId(modelId)) return modelId;
+    return (
+      this.brandChainNames()[modelId] ||
+      this.filterModels().find((m) => m._id === modelId)?.name ||
+      ''
+    );
+  }
+
+  /** Display name for a selected variant id (resolved name map or loaded list). */
+  private variantDisplayName(variantId: string): string {
+    if (!this.isObjectId(variantId)) return variantId;
+    return (
+      this.brandChainNames()[variantId] ||
+      this.filterVariants().find((v) => v._id === variantId)?.name ||
+      ''
+    );
   }
 
   private setupFilterDebounce(): void {
@@ -1174,7 +1356,17 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: ({ attributes }) => {
-          this.categoryFilters.set((attributes || []).filter((a) => a.type !== 'text'));
+          // `text` attributes aren't filterable. Also drop a `brand` attribute
+          // when this category already has the dedicated brand-chain filter:
+          // otherwise mobile categories (which define a `brand` select attribute
+          // *and* have hasBrands) render two "Brand" cards. loadBrandsForFilter
+          // set hasBrandsFilter synchronously above, so it's reliable here.
+          const brandChainActive = this.hasBrandsFilter();
+          this.categoryFilters.set(
+            (attributes || []).filter(
+              (a) => a.type !== 'text' && !(brandChainActive && a.key === 'brand'),
+            ),
+          );
           if (attributes?.some((a) => a.type === 'province_city')) {
             this.loadProvinces();
           }
@@ -1245,8 +1437,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
                 .pipe(takeUntil(this.destroy$))
                 .subscribe({
                   next: (brands) =>
-                    this.filterBrands.set(brands.map((b) => ({ _id: b._id, name: b.name }))),
-                  error: () => this.filterBrands.set([]),
+                    this.setFilterBrands(brands.map((b) => ({ _id: b._id, name: b.name }))),
+                  error: () => this.setFilterBrands([]),
                 });
             }
             if (checked === catPath.length && !found) {
@@ -1256,8 +1448,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
                 .pipe(takeUntil(this.destroy$))
                 .subscribe({
                   next: (brands) =>
-                    this.filterBrands.set(brands.map((b) => ({ _id: b._id, name: b.name }))),
-                  error: () => this.filterBrands.set([]),
+                    this.setFilterBrands(brands.map((b) => ({ _id: b._id, name: b.name }))),
+                  error: () => this.setFilterBrands([]),
                 });
             }
           },
@@ -1270,8 +1462,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
                 .pipe(takeUntil(this.destroy$))
                 .subscribe({
                   next: (brands) =>
-                    this.filterBrands.set(brands.map((b) => ({ _id: b._id, name: b.name }))),
-                  error: () => this.filterBrands.set([]),
+                    this.setFilterBrands(brands.map((b) => ({ _id: b._id, name: b.name }))),
+                  error: () => this.setFilterBrands([]),
                 });
             }
           },
@@ -1280,12 +1472,50 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   }
 
   /**
+   * Stores the brand option list and rebuilds the active-filter chips.
+   *
+   * Brands load asynchronously after the URL is parsed, so a brand restored from
+   * a shared or reloaded link (`?brand=<id>`) has its chip built before any name
+   * is known — leaving it showing the raw id. Rebuilding the chips once the
+   * names arrive lets `buildActiveFilters` resolve "Brand: Apple" instead of
+   * "Brand: 69e7...". Only rebuilds when a brand is actually selected so we don't
+   * churn chips on every category browse.
+   */
+  private setFilterBrands(brands: BrandOption[]): void {
+    this.filterBrands.set(brands);
+
+    // Upgrade a name-only restore (`?brand=Apple`) to the real id now that the
+    // options are known, so the dropdown highlights the selection and the API
+    // call switches to the precise brandId.
+    if (this.pendingBrandName) {
+      const match = brands.find(
+        (b) => b.name.toLowerCase() === this.pendingBrandName.toLowerCase(),
+      );
+      if (match) {
+        this.selectedFilterBrandId.set(match._id);
+        this.setBrandChainName(match._id, match.name);
+        this.pendingBrandName = '';
+      }
+    }
+
+    if (this.selectedFilterBrandId()) {
+      this.activeFilters.set(this.buildActiveFilters());
+    }
+  }
+
+  /**
    * Reapplies a brand/model/variant selection restored from the URL, refetching
    * the dependent option lists so the dropdowns can show names rather than ids.
    */
   private restoreBrandChain(brandId: string, modelId: string, variantId: string): void {
+    // The URL carries the brand *name* while internal state holds the id, so a
+    // param that resolves to the already-selected brand is not a real change —
+    // otherwise writing the name back to the URL would bounce the selection.
+    const brandUnchanged =
+      brandId === this.selectedFilterBrandId() ||
+      (!!brandId && this.brandDisplayName(this.selectedFilterBrandId()) === brandId);
     const changed =
-      brandId !== this.selectedFilterBrandId() ||
+      !brandUnchanged ||
       modelId !== this.selectedFilterModelId() ||
       variantId !== this.selectedFilterVariantId();
     if (!changed) return;
@@ -1294,7 +1524,21 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.selectedFilterModelId.set(modelId);
     this.selectedFilterVariantId.set(variantId);
 
-    if (!brandId) {
+    // The URL now carries a readable brand *name*. Remember it so setFilterBrands
+    // can map it to the real id once the brand list loads; until then the name
+    // still drives the chip (via brandChainNames) and the API call (buildSearchParams
+    // sends a non-id value as `brand=<name>`). Model/variant fetches below need a
+    // real id, so skip them for a name-only restore.
+    this.pendingBrandName = brandId && !this.isObjectId(brandId) ? brandId : '';
+    if (this.pendingBrandName) {
+      this.setBrandChainName(brandId, brandId);
+    }
+
+    // Resolve names by direct id lookup so the chips show "Brand: Apple" without
+    // waiting on the category-scoped brand list.
+    this.resolveBrandChainNames(brandId, modelId, variantId);
+
+    if (!brandId || this.pendingBrandName) {
       this.filterModels.set([]);
       this.filterVariants.set([]);
       return;
@@ -1305,24 +1549,40 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
         .getModelsByBrand(brandId)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (models) => this.filterModels.set(models),
-          error: () => this.filterModels.set([]),
+          next: (models) => this.setFilterModels(models),
+          error: () => this.setFilterModels([]),
         });
       this.brandsService
         .getVariantsByModel(modelId)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (variants) => this.filterVariants.set(variants),
-          error: () => this.filterVariants.set([]),
+          next: (variants) => this.setFilterVariants(variants),
+          error: () => this.setFilterVariants([]),
         });
     } else {
       this.brandsService
         .getModelsByBrand(brandId)
         .pipe(takeUntil(this.destroy$))
         .subscribe({
-          next: (models) => this.filterModels.set(models),
-          error: () => this.filterModels.set([]),
+          next: (models) => this.setFilterModels(models),
+          error: () => this.setFilterModels([]),
         });
+    }
+  }
+
+  /** Stores models and refreshes chips so a URL-restored model shows its name. */
+  private setFilterModels(models: VehicleModel[]): void {
+    this.filterModels.set(models);
+    if (this.selectedFilterModelId()) {
+      this.activeFilters.set(this.buildActiveFilters());
+    }
+  }
+
+  /** Stores variants and refreshes chips so a URL-restored variant shows its name. */
+  private setFilterVariants(variants: VehicleVariant[]): void {
+    this.filterVariants.set(variants);
+    if (this.selectedFilterVariantId()) {
+      this.activeFilters.set(this.buildActiveFilters());
     }
   }
 
@@ -1335,6 +1595,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.selectedFilterBrandId.set('');
     this.selectedFilterModelId.set('');
     this.selectedFilterVariantId.set('');
+    this.brandChainNames.set({});
+    this.pendingBrandName = '';
   }
 
   onBrandFilterChange(brandId: string): void {
@@ -1343,6 +1605,11 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.selectedFilterVariantId.set('');
     this.filterModels.set([]);
     this.filterVariants.set([]);
+
+    // The dropdown already knows the name; record it so the chip is correct
+    // immediately without a round-trip.
+    const brandName = this.filterBrands().find((b) => b._id === brandId)?.name;
+    this.setBrandChainName(brandId, brandName);
 
     if (brandId && this.isVehicleCategoryFilter()) {
       this.brandsService
@@ -1362,6 +1629,9 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     this.selectedFilterVariantId.set('');
     this.filterVariants.set([]);
 
+    const modelName = this.filterModels().find((m) => m._id === modelId)?.name;
+    this.setBrandChainName(modelId, modelName);
+
     if (modelId) {
       this.brandsService
         .getVariantsByModel(modelId)
@@ -1377,6 +1647,8 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
 
   onVariantFilterChange(variantId: string): void {
     this.selectedFilterVariantId.set(variantId);
+    const variantName = this.filterVariants().find((v) => v._id === variantId)?.name;
+    this.setBrandChainName(variantId, variantName);
     this.currentPage.set(1);
     this.updateUrlAndSearch();
   }
@@ -1507,16 +1779,35 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     // Brand / Model / Variant filters
     const brandId = this.selectedFilterBrandId();
     if (brandId) {
-      if (this.isVehicleCategoryFilter()) {
-        params['vehicleBrandId'] = brandId;
+      if (this.isObjectId(brandId)) {
+        // A real brand selection carries the brand's ObjectId.
+        if (this.isVehicleCategoryFilter()) {
+          params['vehicleBrandId'] = brandId;
+        } else {
+          params['brandId'] = brandId;
+        }
       } else {
-        params['brandId'] = brandId;
+        // A shareable link may carry the brand *name* (e.g. `?brand=Apple`).
+        // The API resolves that against the indexed brand names.
+        params['brand'] = brandId;
       }
     }
+    // Model/variant filter by NAME, not id. Listings store modelName/variantName
+    // (many seeded rows have no modelId, or an id that doesn't line up with the
+    // registry), so matching on the id returned nothing. The name matches
+    // whatever the listing actually stored — the same reason brand goes by name.
     const modelId = this.selectedFilterModelId();
-    if (modelId) params['modelId'] = modelId;
+    if (modelId) {
+      const name = this.modelDisplayName(modelId);
+      if (name) params['modelName'] = name;
+      else params['modelId'] = modelId;
+    }
     const variantId = this.selectedFilterVariantId();
-    if (variantId) params['variantId'] = variantId;
+    if (variantId) {
+      const name = this.variantDisplayName(variantId);
+      if (name) params['variantName'] = name;
+      else params['variantId'] = variantId;
+    }
 
     // Apply A/B experiment configs to search params.
     // Experiment configs use the same key names the backend accepts
@@ -1566,6 +1857,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
           this.suggestedTerms.set(res.suggestions || []);
           this.facets.set(res.facets || []);
           this.loading.set(false);
+          this.updatePaginationLinks();
           this.loadInFeedAds();
           this.trackSearchImpression(params, res.total);
         },
@@ -1575,6 +1867,33 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
           this.totalResults.set(0);
           this.loading.set(false);
         },
+      });
+
+    this.loadShorts(params);
+  }
+
+  /**
+   * Fetches matching shorts as a secondary rail. Only on the first page and
+   * only when there's a text query — shorts complement keyword searches rather
+   * than category browsing. Failures are swallowed so the main results are
+   * never affected.
+   */
+  private loadShorts(params: SearchParams): void {
+    if (params.page && Number(params.page) > 1) {
+      this.shorts.set([]);
+      return;
+    }
+    if (!params.q) {
+      this.shorts.set([]);
+      return;
+    }
+
+    this.searchService
+      .searchShorts({ q: params.q, category: params.category, limit: 12 })
+      .pipe(takeUntil(this.destroy$))
+      .subscribe({
+        next: (res) => this.shorts.set(res.items || []),
+        error: () => this.shorts.set([]),
       });
   }
 
@@ -1596,7 +1915,13 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     if (condition) queryParams['condition'] = condition;
     if (this.verifiedSellerOnly()) queryParams['verifiedSeller'] = 'true';
     const brand = this.selectedFilterBrandId();
-    if (brand) queryParams['brand'] = brand;
+    if (brand) {
+      // Put the readable brand *name* in the URL (e.g. `brand=Apple`) rather
+      // than the ObjectId, so shared/bookmarked links are human-friendly. The
+      // internal state and dropdown still key off the id; restoreBrandChain
+      // maps a name back to its id when the link is reopened.
+      queryParams['brand'] = this.brandDisplayName(brand) || brand;
+    }
     const model = this.selectedFilterModelId();
     if (model) queryParams['model'] = model;
     const variant = this.selectedFilterVariantId();

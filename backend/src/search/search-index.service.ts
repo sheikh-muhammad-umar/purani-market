@@ -2,8 +2,45 @@ import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 
 export const LISTINGS_INDEX = 'product_listings';
+export const SHORTS_INDEX = 'short_videos';
 
 export const FEATURED_BOOST_FACTOR = 5;
+
+/** Minimal mapping for shorts — enough to search title/description and filter. */
+export const shortsIndexMapping = {
+  properties: {
+    title: {
+      type: 'text' as const,
+      analyzer: 'standard',
+      fields: { keyword: { type: 'keyword' as const, ignore_above: 256 } },
+    },
+    description: { type: 'text' as const, analyzer: 'standard' },
+    categoryId: { type: 'keyword' as const },
+    categoryName: {
+      type: 'text' as const,
+      fields: { keyword: { type: 'keyword' as const, ignore_above: 100 } },
+    },
+    sellerId: { type: 'keyword' as const },
+    status: { type: 'keyword' as const },
+    price: { type: 'float' as const },
+    viewCount: { type: 'integer' as const },
+    favoriteCount: { type: 'integer' as const },
+    location_text: {
+      type: 'object' as const,
+      properties: {
+        province: { type: 'keyword' as const },
+        city: { type: 'keyword' as const },
+        area: { type: 'keyword' as const },
+        provinceId: { type: 'keyword' as const },
+        cityId: { type: 'keyword' as const },
+        areaId: { type: 'keyword' as const },
+      },
+    },
+    thumbnailUrl: { type: 'keyword' as const, index: false },
+    videoUrl: { type: 'keyword' as const, index: false },
+    createdAt: { type: 'date' as const },
+  },
+};
 
 export const listingsIndexSettings = {
   analysis: {
@@ -225,10 +262,25 @@ export class SearchIndexService implements OnModuleInit {
           `Elasticsearch index already exists: ${LISTINGS_INDEX}`,
         );
       }
+
+      await this.ensureShortsIndex();
     } catch (error) {
       this.logger.warn(
         `Elasticsearch unavailable — search features disabled. ${(error as Error).message}`,
       );
+    }
+  }
+
+  async ensureShortsIndex(): Promise<void> {
+    const exists = await this.esService.indices.exists({
+      index: SHORTS_INDEX,
+    });
+    if (!exists) {
+      await this.esService.indices.create({
+        index: SHORTS_INDEX,
+        mappings: shortsIndexMapping,
+      });
+      this.logger.log(`Created Elasticsearch index: ${SHORTS_INDEX}`);
     }
   }
 

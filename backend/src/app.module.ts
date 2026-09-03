@@ -28,6 +28,7 @@ import { ExperimentsModule } from './experiments/experiments.module.js';
 import { ShortsModule } from './shorts/shorts.module.js';
 import { EngagementModule } from './engagement/engagement.module.js';
 import { AdvertisingModule } from './advertising/advertising.module.js';
+import { ReportsModule } from './reports/reports.module.js';
 import { AppController } from './app.controller.js';
 import { AppService } from './app.service.js';
 
@@ -107,6 +108,7 @@ import { AppService } from './app.service.js';
     ShortsModule,
     EngagementModule,
     AdvertisingModule,
+    ReportsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

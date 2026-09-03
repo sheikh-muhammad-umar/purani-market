@@ -18,7 +18,7 @@ import {
   ProductListingDocument,
   ListingStatus,
 } from '../listings/schemas/product-listing.schema.js';
-import { LISTINGS_INDEX } from './search-index.service.js';
+import { LISTINGS_INDEX, SHORTS_INDEX } from './search-index.service.js';
 import { SearchSyncService } from './search-sync.service.js';
 import { SearchQueryDto, SearchSortOption } from './dto/search-query.dto.js';
 import { SuggestionQueryDto } from './dto/suggestion-query.dto.js';
@@ -105,6 +105,133 @@ export class SearchService {
       this.logger.warn('Falling back to MongoDB search');
       return this.mongoFallbackSearch(query, page, limit);
     }
+  }
+
+  /**
+   * Searches active shorts for the global search results page.
+   *
+   * Kept separate from listing search: the shorts index has a minimal mapping
+   * (plain `standard` analyzer, no synonym/delimited/edge-ngram sub-fields, a
+   * flat `price` rather than `price.amount`, and no `isFeatured`), so the listing
+   * query and sort clauses do not apply. Results are mapped into a partial
+   * `ShortVideo` shape the frontend's short-card renders directly.
+   *
+   * ES-unavailable is not fatal — shorts are a secondary result set, so a
+   * failure returns empty rather than erroring the whole search page.
+   */
+  async searchShorts(query: SearchQueryDto): Promise<{
+    items: any[];
+    total: number;
+    page: number;
+    limit: number;
+    totalPages: number;
+  }> {
+    const page = query.page || 1;
+    const limit = query.limit || 20;
+    const from = (page - 1) * limit;
+
+    const filter: any[] = [{ term: { status: 'active' } }];
+    if (query.category && Types.ObjectId.isValid(query.category)) {
+      filter.push({ term: { categoryId: query.category } });
+    }
+    if (query.cityId) {
+      filter.push({ term: { 'location_text.cityId': query.cityId } });
+    }
+    if (query.provinceId) {
+      filter.push({ term: { 'location_text.provinceId': query.provinceId } });
+    }
+
+    const must: any[] = [];
+    if (query.q) {
+      must.push({
+        multi_match: {
+          query: query.q,
+          fields: ['title^3', 'description', 'categoryName'],
+          type: 'best_fields',
+          fuzziness: 'AUTO',
+        },
+      });
+    }
+
+    // Sort: relevance when searching by text, else newest. Price sort targets
+    // the flat `price` field (there is no `price.amount` on this index).
+    let sort: any[];
+    if (query.sort === SearchSortOption.PRICE_ASC) {
+      sort = [{ price: 'asc' }];
+    } else if (query.sort === SearchSortOption.PRICE_DESC) {
+      sort = [{ price: 'desc' }];
+    } else if (query.sort === SearchSortOption.NEWEST || !query.q) {
+      sort = [{ createdAt: 'desc' }];
+    } else {
+      sort = ['_score'];
+    }
+
+    try {
+      const response = await this.esService.search({
+        index: SHORTS_INDEX,
+        from,
+        size: limit,
+        query: {
+          bool: {
+            filter,
+            ...(must.length ? { must } : {}),
+          },
+        },
+        sort,
+      });
+
+      const hits = response.hits.hits;
+      const total =
+        typeof response.hits.total === 'number'
+          ? response.hits.total
+          : (response.hits.total?.value ?? 0);
+
+      const items = hits.map((hit: any) => this.mapShortHit(hit));
+
+      return {
+        items,
+        total,
+        page,
+        limit,
+        totalPages: Math.ceil(total / limit),
+      };
+    } catch (error: any) {
+      // Secondary result set — never fail the page over shorts.
+      this.logger.warn(`Shorts search failed: ${error.message}`);
+      return { items: [], total: 0, page, limit, totalPages: 0 };
+    }
+  }
+
+  /**
+   * Reshapes a flat ES shorts hit into the partial `ShortVideo` the frontend
+   * short-card expects (notably a nested `video` object). Fields the index does
+   * not store (duration, compressedUrl, currency) are simply absent; the card
+   * tolerates that.
+   */
+  private mapShortHit(hit: any): any {
+    const s = hit._source ?? {};
+    return {
+      _id: hit._id,
+      _score: hit._score,
+      title: s.title,
+      description: s.description,
+      categoryName: s.categoryName,
+      price: s.price,
+      viewCount: s.viewCount ?? 0,
+      favoriteCount: s.favoriteCount ?? 0,
+      video: {
+        url: s.videoUrl,
+        thumbnailUrl: s.thumbnailUrl,
+      },
+      location: s.location_text
+        ? {
+            province: s.location_text.province,
+            city: s.location_text.city,
+            area: s.location_text.area,
+          }
+        : undefined,
+      createdAt: s.createdAt,
+    };
   }
 
   /**
@@ -396,6 +523,16 @@ export class SearchService {
     if (query.vehicleBrandId) {
       filter.vehicleBrandId = new Types.ObjectId(query.vehicleBrandId);
     }
+    // Brand-by-name filter, matching the ES path above. A listing stores the
+    // name under either `brandName` or `vehicleBrandName`, so match either.
+    if (query.brand && !query.brandId && !query.vehicleBrandId) {
+      const brandPattern = exactMatchRegex(query.brand);
+      filter.$or = [
+        ...((filter.$or as Record<string, unknown>[] | undefined) ?? []),
+        { brandName: brandPattern },
+        { vehicleBrandName: brandPattern },
+      ];
+    }
     if (query.modelId) {
       filter.modelId = new Types.ObjectId(query.modelId);
     }
@@ -404,6 +541,9 @@ export class SearchService {
     }
     if (query.variantId) {
       filter.variantId = new Types.ObjectId(query.variantId);
+    }
+    if (query.variantName) {
+      filter.variantName = exactMatchRegex(query.variantName);
     }
 
     if (query.verifiedSeller) {
@@ -719,6 +859,22 @@ export class SearchService {
     if (query.vehicleBrandId) {
       filter.push({ term: { vehicleBrandId: query.vehicleBrandId } });
     }
+    // Brand-by-name filter (e.g. `?brand=Apple`). Only applied when no explicit
+    // brand id is given. `brandName`/`vehicleBrandName` are indexed as analyzed
+    // text with a `.keyword` sub-field; exact match must target the keyword
+    // field, and a listing carries only one of the two, so either matching is
+    // enough.
+    if (query.brand && !query.brandId && !query.vehicleBrandId) {
+      filter.push({
+        bool: {
+          should: [
+            { term: { 'brandName.keyword': query.brand } },
+            { term: { 'vehicleBrandName.keyword': query.brand } },
+          ],
+          minimum_should_match: 1,
+        },
+      });
+    }
     if (query.modelId) {
       filter.push({ term: { modelId: query.modelId } });
     }
@@ -729,6 +885,11 @@ export class SearchService {
     }
     if (query.variantId) {
       filter.push({ term: { variantId: query.variantId } });
+    }
+    if (query.variantName) {
+      filter.push({
+        match_phrase_prefix: { variantName: query.variantName },
+      });
     }
 
     // Verified seller filter

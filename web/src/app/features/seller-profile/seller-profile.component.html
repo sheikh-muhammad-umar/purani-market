@@ -44,17 +44,45 @@
           </span>
         }
         <span class="sp-since">Member since {{ formatDate(seller()!.memberSince) }}</span>
+        <app-star-rating
+          [rating]="seller()!.averageRating"
+          [count]="seller()!.reviewCount"
+          [showEmptyLabel]="true"
+        />
         <app-verification-badges
           [emailVerified]="seller()!.emailVerified"
           [phoneVerified]="seller()!.phoneVerified"
           [idVerified]="seller()!.idVerified"
         ></app-verification-badges>
       </div>
-      <div class="sp-stat">
-        <span class="sp-stat-val">{{ totalListings() }}</span>
-        <span class="sp-stat-label">Active Ads</span>
+      <div class="sp-header-aside">
+        @if (canReport()) {
+          <div class="sp-actions">
+            <button type="button" class="sp-rate-btn" (click)="rateSeller()">
+              <span class="material-symbols-rounded" style="font-size: 16px">star</span>
+              Rate seller
+            </button>
+            <button type="button" class="sp-report-btn" (click)="openReport()">
+              <span class="material-symbols-rounded" style="font-size: 16px">flag</span>
+              Report seller
+            </button>
+          </div>
+        }
+        <div class="sp-stat">
+          <span class="sp-stat-val">{{ totalListings() }}</span>
+          <span class="sp-stat-label">Active Ads</span>
+        </div>
       </div>
     </div>
+
+    @if (showReportModal()) {
+      <app-report-modal
+        [targetType]="ReportTargetType.USER"
+        [targetId]="seller()!._id"
+        [targetLabel]="seller()!.name"
+        (closed)="closeReport()"
+      />
+    }
 
     <!-- Tabs -->
     <div class="sp-tabs">
@@ -71,6 +99,13 @@
         (click)="switchTab(TAB.SHORTS)"
       >
         Shorts ({{ totalShorts() }})
+      </button>
+      <button
+        class="sp-tab"
+        [class.active]="activeTab() === TAB.REVIEWS"
+        (click)="switchTab(TAB.REVIEWS)"
+      >
+        Reviews ({{ seller()!.reviewCount }})
       </button>
     </div>
 
@@ -115,6 +150,12 @@
           }
         </div>
       }
+    }
+
+    <!-- Reviews -->
+    @if (activeTab() === TAB.REVIEWS) {
+      <h2 class="sp-section-title">Reviews of this seller</h2>
+      <app-seller-reviews [sellerId]="seller()!._id" />
     }
   }
 

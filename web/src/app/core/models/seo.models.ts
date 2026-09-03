@@ -1,7 +1,19 @@
 // ── Frontend SEO configuration interfaces ──
 
 /** Supported Open Graph page types. */
-export type OgType = 'website' | 'product' | 'profile';
+export type OgType = 'website' | 'product' | 'profile' | 'video.other';
+
+/** Open Graph video / Twitter player tags for a short video page. */
+export interface VideoMetaConfig {
+  /** Direct video content URL (og:video / og:video:secure_url). */
+  videoUrl: string;
+  /** Watch/player page URL (twitter:player). */
+  playerUrl: string;
+  /** Poster image (twitter:image). */
+  imageUrl: string;
+  width?: number;
+  height?: number;
+}
 
 /** Supported Twitter Card types. */
 export type TwitterCardType = 'summary' | 'summary_large_image';
@@ -93,4 +105,18 @@ export interface HomeSeoResponse {
   canonicalUrl: string;
   websiteJsonLd: Record<string, unknown>;
   organizationJsonLd: Record<string, unknown>;
+}
+
+export interface ShortSeoResponse {
+  title: string;
+  description: string;
+  imageUrl: string;
+  videoUrl: string;
+  embedUrl: string;
+  sellerName: string;
+  uploadDate: string;
+  canonicalUrl: string;
+  categoryBreadcrumb: BreadcrumbItem[];
+  videoJsonLd: Record<string, unknown>;
+  breadcrumbJsonLd: Record<string, unknown>;
 }

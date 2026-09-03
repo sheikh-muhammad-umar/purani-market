@@ -1,0 +1,1648 @@
+[{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a0d"
+  },
+  "name": "Apple",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.118Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.118Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a0e"
+  },
+  "name": "Samsung",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.139Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.139Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a0f"
+  },
+  "name": "Huawei",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.148Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.148Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a10"
+  },
+  "name": "Xiaomi",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.157Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.157Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a11"
+  },
+  "name": "Oppo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.160Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.160Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a12"
+  },
+  "name": "Vivo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.162Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.162Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a13"
+  },
+  "name": "Realme",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.163Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.163Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a14"
+  },
+  "name": "OnePlus",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.165Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.165Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a15"
+  },
+  "name": "Google",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.166Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.166Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a16"
+  },
+  "name": "Sony",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.168Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.168Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a17"
+  },
+  "name": "LG",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.170Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.170Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a18"
+  },
+  "name": "Motorola",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.171Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.171Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a19"
+  },
+  "name": "Nokia",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.173Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.173Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a1a"
+  },
+  "name": "Honor",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.175Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.175Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a1b"
+  },
+  "name": "HTC",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.176Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.176Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a1c"
+  },
+  "name": "Asus",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.178Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.178Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a1d"
+  },
+  "name": "Lenovo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.180Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.180Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a1e"
+  },
+  "name": "ZTE",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.181Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.181Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a1f"
+  },
+  "name": "TCL",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.182Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.182Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a20"
+  },
+  "name": "Alcatel",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.184Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.184Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a21"
+  },
+  "name": "BlackBerry",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.185Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.185Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a22"
+  },
+  "name": "Infinix",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.187Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.187Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a23"
+  },
+  "name": "Tecno",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.188Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.188Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a24"
+  },
+  "name": "itel",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.189Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.189Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a25"
+  },
+  "name": "Micromax",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.191Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.191Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a26"
+  },
+  "name": "Lava",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.192Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.192Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a27"
+  },
+  "name": "Karbonn",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.193Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.193Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a28"
+  },
+  "name": "Spice",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.194Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.194Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a29"
+  },
+  "name": "Panasonic",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.196Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.196Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a2a"
+  },
+  "name": "Sharp",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.197Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.197Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a2b"
+  },
+  "name": "Meizu",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.198Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.198Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a2c"
+  },
+  "name": "Coolpad",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.199Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.199Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a2d"
+  },
+  "name": "Redmi",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.201Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.201Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a2e"
+  },
+  "name": "Poco",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.202Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.202Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a2f"
+  },
+  "name": "iQOO",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.204Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.204Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a30"
+  },
+  "name": "ZUK",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.206Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.206Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a31"
+  },
+  "name": "Fairphone",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.207Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.207Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a32"
+  },
+  "name": "LeEco / LeTV",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.209Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.209Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a33"
+  },
+  "name": "Smartisan",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.210Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.210Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a34"
+  },
+  "name": "Gionee",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.212Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.212Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a35"
+  },
+  "name": "UMIDIGI",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.215Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.215Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a36"
+  },
+  "name": "Doogee",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.217Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.217Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a37"
+  },
+  "name": "Cubot",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.219Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.219Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a38"
+  },
+  "name": "Oukitel",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.220Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.220Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a39"
+  },
+  "name": "Ulefone",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.222Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.222Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a3a"
+  },
+  "name": "Blackview",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.223Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.223Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a3b"
+  },
+  "name": "Elephone",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.225Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.225Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a3c"
+  },
+  "name": "HomTom",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.226Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.226Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a3d"
+  },
+  "name": "Vernee",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.227Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.227Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a3e"
+  },
+  "name": "Maze",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.229Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.229Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a3f"
+  },
+  "name": "Meiigoo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.231Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.231Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a40"
+  },
+  "name": "BLU",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.233Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.233Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a41"
+  },
+  "name": "Razer Phone",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.234Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.234Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a42"
+  },
+  "name": "Nubia",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.236Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.236Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a43"
+  },
+  "name": "RedMagic",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.237Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.237Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a44"
+  },
+  "name": "Black Shark",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.239Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.239Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a45"
+  },
+  "name": "Palm",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.240Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.240Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a46"
+  },
+  "name": "Vertu",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.241Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.241Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a47"
+  },
+  "name": "Turing Phone",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.243Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.243Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a48"
+  },
+  "name": "Hydrogen One",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.244Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.244Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a49"
+  },
+  "name": "Yota",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.246Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.246Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a4a"
+  },
+  "name": "Energizer",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.247Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.247Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a4b"
+  },
+  "name": "Vsmart",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.249Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.249Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a4c"
+  },
+  "name": "Wiko",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.250Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.250Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a4d"
+  },
+  "name": "BQ",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.251Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.251Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a4e"
+  },
+  "name": "Kenxinda",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.252Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.252Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a4f"
+  },
+  "name": "Philips",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.254Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.254Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a50"
+  },
+  "name": "Maxwest",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.256Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.256Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a51"
+  },
+  "name": "Sanyo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.257Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.257Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a52"
+  },
+  "name": "Casio",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.258Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.258Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a53"
+  },
+  "name": "NEC",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.259Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.259Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a54"
+  },
+  "name": "Kyocera",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.260Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.260Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a55"
+  },
+  "name": "Sendo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.261Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.261Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a56"
+  },
+  "name": "Icemobile",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.263Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.263Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a57"
+  },
+  "name": "Plum",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.265Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.265Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a58"
+  },
+  "name": "Verykool",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.266Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.266Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a59"
+  },
+  "name": "Stern",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.268Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.268Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a5a"
+  },
+  "name": "E-TEN",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.269Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.269Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a5b"
+  },
+  "name": "Gigabyte",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.271Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.271Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a5c"
+  },
+  "name": "Advan",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.272Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.272Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a5d"
+  },
+  "name": "Mito",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.274Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.274Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a5e"
+  },
+  "name": "Smartfren",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.275Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.275Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a5f"
+  },
+  "name": "Azumi",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.276Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.276Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a60"
+  },
+  "name": "Evercoss",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.278Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.278Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a61"
+  },
+  "name": "IMobile",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.279Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.279Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a62"
+  },
+  "name": "InFocus",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.281Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.281Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a63"
+  },
+  "name": "Nuu",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.282Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.282Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a64"
+  },
+  "name": "VKworld",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.284Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.284Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a65"
+  },
+  "name": "Hotwav",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.285Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.285Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a66"
+  },
+  "name": "QMobile",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.286Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.286Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a67"
+  },
+  "name": "Mobilink",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.288Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.288Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a68"
+  },
+  "name": "Nothing",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.289Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.289Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a69"
+  },
+  "name": "Sparx",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.291Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.291Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a6a"
+  },
+  "name": "Dcode",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.292Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.292Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a6b"
+  },
+  "name": "Sego",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.294Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.294Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a6c"
+  },
+  "name": "Rivo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.295Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.295Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a6d"
+  },
+  "name": "Haier",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.297Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.297Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a6e"
+  },
+  "name": "HMD",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.298Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.298Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a6f"
+  },
+  "name": "Microsoft Mobile",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.299Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.299Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a70"
+  },
+  "name": "Sony Ericsson",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.301Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.301Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a71"
+  },
+  "name": "Xtouch",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.302Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.302Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a72"
+  },
+  "name": "Dizo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.304Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.304Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7b18998ee6a88dea12a73"
+  },
+  "name": "Unihertz",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T17:19:05.307Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T17:19:05.307Z"
+  }
+}]

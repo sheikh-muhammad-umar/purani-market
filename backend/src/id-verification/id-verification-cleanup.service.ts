@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { ConfigService } from '@nestjs/config';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Model } from 'mongoose';
+import { CronLock } from '../common/decorators/cron-lock.decorator.js';
 import {
   IdVerification,
   IdVerificationDocument,
@@ -29,6 +30,7 @@ export class IdVerificationCleanupService {
   // ─── Cron: Auto-expire stale pending ID verifications ───
 
   @Cron(CronExpression.EVERY_DAY_AT_5AM)
+  @CronLock()
   async expireStaleVerifications(): Promise<number> {
     const cutoff = new Date(Date.now() - daysToMs(this.staleDays));
 

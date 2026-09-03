@@ -11,6 +11,7 @@ import {
 import { UsersModule } from '../users/users.module.js';
 import { ListingsModule } from '../listings/listings.module.js';
 import { AiModule } from '../ai/ai.module.js';
+import { NotificationsModule } from '../notifications/notifications.module.js';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { AiModule } from '../ai/ai.module.js';
     ]),
     UsersModule,
     ListingsModule, // for StorageService
+    NotificationsModule, // for NotificationsService
     forwardRef(() => AiModule), // for AdminTrackerService
   ],
   controllers: [IdVerificationController],

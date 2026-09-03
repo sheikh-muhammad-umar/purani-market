@@ -13,6 +13,7 @@ import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { NotificationCountService } from '../../../core/services/notification-count.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { ConfirmModalService } from '../../../shared/components/confirm-modal/confirm-modal.component';
 import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 @Component({
@@ -37,6 +38,7 @@ export class UserProfileComponent implements OnInit {
   private readonly apiUrl = environment.apiUrl;
   private readonly wsService = inject(WebSocketService);
   private readonly notificationCount = inject(NotificationCountService);
+  private readonly confirmModal = inject(ConfirmModalService);
 
   constructor(
     private readonly fb: FormBuilder,
@@ -160,7 +162,16 @@ export class UserProfileComponent implements OnInit {
     ).toUpperCase();
   });
 
-  logout(): void {
+  async logout(): Promise<void> {
+    const confirmed = await this.confirmModal.confirm({
+      title: 'Log out',
+      message: 'Are you sure you want to log out?',
+      confirmText: 'Log out',
+      cancelText: 'Stay signed in',
+      variant: 'warning',
+    });
+    if (!confirmed) return;
+
     this.wsService.disconnect();
     this.notificationCount.setCount(0);
     this.notificationCount.stop();

@@ -3,6 +3,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Model } from 'mongoose';
 import { Message, MessageDocument } from './schemas/message.schema.js';
+import { CronLock } from '../common/decorators/cron-lock.decorator.js';
 
 @Injectable()
 export class MessagingCleanupService {
@@ -16,6 +17,7 @@ export class MessagingCleanupService {
   // ─── Cron: Expire live location shares ───
 
   @Cron(CronExpression.EVERY_HOUR)
+  @CronLock()
   async expireLiveLocations(): Promise<number> {
     const now = new Date();
 

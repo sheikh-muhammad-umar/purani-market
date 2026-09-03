@@ -1,0 +1,72 @@
+[{
+  "_id": {
+    "$oid": "69d6b2c5da8b30bb9bcdb613"
+  },
+  "name": "Khyber Pakhtunkhwa",
+  "createdAt": {
+    "$date": "2026-04-08T19:55:49.232Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-08T23:22:24.086Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69d6b2c5da8b30bb9bcdb614"
+  },
+  "name": "Punjab",
+  "createdAt": {
+    "$date": "2026-04-08T19:55:49.232Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-08T19:55:49.232Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69d6b2c5da8b30bb9bcdb615"
+  },
+  "name": "Azad Jammu & Kashmir",
+  "createdAt": {
+    "$date": "2026-04-08T19:55:49.232Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-08T19:55:49.232Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69d6b2c5da8b30bb9bcdb616"
+  },
+  "name": "Balochistan",
+  "createdAt": {
+    "$date": "2026-04-08T19:55:49.232Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-08T19:55:49.232Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69d6b2c5da8b30bb9bcdb617"
+  },
+  "name": "Gilgit-Baltistan",
+  "createdAt": {
+    "$date": "2026-04-08T19:55:49.232Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-08T19:55:49.232Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69d6dad7156639e040c59270"
+  },
+  "name": "Sindh",
+  "createdAt": {
+    "$date": "2026-04-08T22:46:47.430Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-08T22:46:47.430Z"
+  }
+}]

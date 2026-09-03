@@ -78,6 +78,12 @@ export interface ShortsPackagePurchase {
   _id: string;
   purchaseType: 'shorts';
   packageId: { _id: string; name: string };
+  sellerId?: {
+    _id: string;
+    profile?: { firstName?: string; lastName?: string };
+    email?: string;
+    phone?: string;
+  };
   quantity: number;
   remainingQuantity: number;
   duration: number;
@@ -167,6 +173,10 @@ export class ShortsService {
     return this.api.delete<{ liked: boolean; favoriteCount: number }>(API.SHORT_LIKE(id));
   }
 
+  shareShort(id: string): Observable<{ shareCount: number }> {
+    return this.api.post<{ shareCount: number }>(API.SHORT_SHARE(id), {});
+  }
+
   // Packages
   getAvailablePackages(): Observable<ShortsPackage[]> {
     return this.api.get<ShortsPackage[]>(API.SHORTS_PACKAGES_AVAILABLE);
@@ -222,6 +232,10 @@ export class ShortsService {
 
   adminUpdatePackage(id: string, data: Partial<ShortsPackage>): Observable<ShortsPackage> {
     return this.api.patch<ShortsPackage>(API.SHORTS_ADMIN_PACKAGES_UPDATE(id), data);
+  }
+
+  adminListPurchases(status: string = 'pending'): Observable<ShortsPackagePurchase[]> {
+    return this.api.get<ShortsPackagePurchase[]>(API.SHORTS_ADMIN_PURCHASES, { status });
   }
 
   adminConfirmPayment(purchaseId: string): Observable<any> {

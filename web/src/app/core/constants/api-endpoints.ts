@@ -73,6 +73,7 @@ export const API = {
 
   // Search
   SEARCH: '/search',
+  SEARCH_SHORTS: '/search/shorts',
   SEARCH_SUGGESTIONS: '/search/suggestions',
 
   // Favorites
@@ -167,6 +168,7 @@ export const API = {
   SEO_HOME: '/seo/home',
   SEO_SEARCH: '/seo/search',
   SEO_PAGE: (slug: string) => `/seo/page/${slug}`,
+  SEO_SHORT: (id: string) => `/seo/shorts/${id}`,
 
   // Experiments / A/B Testing
   EXPERIMENTS_ASSIGNMENTS: '/experiments/assignments',
@@ -176,6 +178,17 @@ export const API = {
   EXPERIMENT_PAUSE: (key: string) => `/experiments/${key}/pause`,
   EXPERIMENT_COMPLETE: (key: string) => `/experiments/${key}/complete`,
   EXPERIMENT_METRICS: (key: string) => `/experiments/${key}/metrics`,
+
+  // Reports
+  REPORTS: '/reports',
+  ADMIN_REPORTS: '/reports/admin/all',
+  ADMIN_REPORT: (id: string) => `/reports/admin/${id}`,
+  ADMIN_REPORT_REVIEW: (id: string) => `/reports/admin/${id}/review`,
+
+  // Reviews / ratings admin moderation
+  ADMIN_REVIEWS: '/reviews/admin/all',
+  ADMIN_REVIEW: (id: string) => `/reviews/admin/${id}`,
+  ADMIN_REVIEW_MODERATE: (id: string) => `/reviews/admin/${id}/review`,
 
   // Shorts
   SHORTS_FEED: '/shorts/feed',
@@ -197,6 +210,7 @@ export const API = {
   // Seller engagement (own items only)
   ENGAGEMENT_LISTINGS: '/engagement/listings',
   ENGAGEMENT_SHORTS: '/engagement/shorts',
+  LISTINGS_MY_VIEW_COUNTS: '/listings/my/view-counts',
   SHORTS_ADMIN_LIST: '/shorts/admin/list',
   SHORTS_ADMIN_APPROVE: (id: string) => `/shorts/admin/${id}/approve`,
   SHORTS_ADMIN_REJECT: (id: string) => `/shorts/admin/${id}/reject`,

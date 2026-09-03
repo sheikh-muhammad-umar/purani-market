@@ -6,6 +6,7 @@ import {
   OpenGraphConfig,
   TwitterCardConfig,
   PaginationLinksConfig,
+  VideoMetaConfig,
 } from '../models/seo.models';
 import {
   SEO_PLACEHOLDER_IMAGE,
@@ -134,6 +135,48 @@ export class MetaService {
   }
 
   /**
+   * Set Open Graph video and Twitter player tags for a short-video page, so a
+   * shared short renders as a playable card on social platforms.
+   */
+  setVideoTags(config: VideoMetaConfig): void {
+    this.removeVideoTags();
+    if (config.videoUrl) {
+      this.meta.updateTag({ property: 'og:video', content: config.videoUrl });
+      this.meta.updateTag({ property: 'og:video:secure_url', content: config.videoUrl });
+      this.meta.updateTag({ property: 'og:video:type', content: 'video/mp4' });
+      if (config.width) {
+        this.meta.updateTag({ property: 'og:video:width', content: String(config.width) });
+      }
+      if (config.height) {
+        this.meta.updateTag({ property: 'og:video:height', content: String(config.height) });
+      }
+    }
+    // Twitter player card — points at the watch page, not the raw file.
+    this.meta.updateTag({ name: 'twitter:card', content: 'player' });
+    if (config.playerUrl) {
+      this.meta.updateTag({ name: 'twitter:player', content: config.playerUrl });
+    }
+    if (config.width) {
+      this.meta.updateTag({ name: 'twitter:player:width', content: String(config.width) });
+    }
+    if (config.height) {
+      this.meta.updateTag({ name: 'twitter:player:height', content: String(config.height) });
+    }
+  }
+
+  /** Remove all OG video and Twitter player tags (for non-video pages). */
+  removeVideoTags(): void {
+    this.meta.removeTag('property="og:video"');
+    this.meta.removeTag('property="og:video:secure_url"');
+    this.meta.removeTag('property="og:video:type"');
+    this.meta.removeTag('property="og:video:width"');
+    this.meta.removeTag('property="og:video:height"');
+    this.meta.removeTag('name="twitter:player"');
+    this.meta.removeTag('name="twitter:player:width"');
+    this.meta.removeTag('name="twitter:player:height"');
+  }
+
+  /**
    * Set rel="next" and/or rel="prev" pagination link elements.
    * Removes any stale pagination links before injecting new ones.
    */
@@ -214,6 +257,9 @@ export class MetaService {
 
     // Product price tags
     this.removeProductPriceTags();
+
+    // Video / player tags
+    this.removeVideoTags();
 
     // Pagination links
     this.removePaginationLinks();

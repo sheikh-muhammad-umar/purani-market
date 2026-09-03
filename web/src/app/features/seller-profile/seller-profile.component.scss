@@ -16,13 +16,24 @@
 
 .sp-header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 16px;
   padding: 20px;
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
   margin-bottom: 24px;
+}
+
+/* Right-hand column: actions stacked above the stat card so they share the
+   same edge and fill what would otherwise be dead space in the header. */
+.sp-header-aside {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+  flex-shrink: 0;
+  min-width: 168px;
 }
 
 .sp-avatar {
@@ -65,8 +76,10 @@
   display: flex;
   flex-direction: column;
   align-items: center;
+  gap: 2px;
   padding: 12px 20px;
   background: var(--background);
+  border: 1px solid var(--border);
   border-radius: 10px;
   flex-shrink: 0;
 }
@@ -161,7 +174,12 @@
 @media (max-width: 767px) {
   .sp-header {
     flex-direction: column;
-    align-items: flex-start;
+    align-items: stretch;
+  }
+
+  .sp-header-aside {
+    min-width: 0;
+    width: 100%;
   }
 
   .sp-stat {
@@ -170,4 +188,41 @@
     width: 100%;
     justify-content: center;
   }
+}
+
+.sp-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.sp-rate-btn,
+.sp-report-btn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--card);
+  color: var(--text-secondary);
+  font-size: var(--text-sm);
+  font-weight: 500;
+  white-space: nowrap;
+  cursor: pointer;
+  transition:
+    color var(--duration-base) var(--ease-out),
+    border-color var(--duration-base) var(--ease-out),
+    background-color var(--duration-base) var(--ease-out);
+}
+.sp-rate-btn:hover {
+  color: var(--primary);
+  border-color: var(--primary);
+  background: var(--primary-subtle);
+}
+.sp-report-btn:hover {
+  color: var(--danger);
+  border-color: var(--danger);
+  background: var(--background);
 }

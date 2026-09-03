@@ -9,6 +9,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Model, Types } from 'mongoose';
 import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
+import { CronLock } from '../common/decorators/cron-lock.decorator.js';
 import {
   containsRegex,
   exactMatchRegex,
@@ -550,6 +551,7 @@ export class AdvertisingService {
    * its dates even between runs.
    */
   @Cron(CronExpression.EVERY_HOUR, { timeZone: CRON_TIMEZONE })
+  @CronLock()
   async syncCampaignStatuses(): Promise<{
     activated: number;
     completed: number;

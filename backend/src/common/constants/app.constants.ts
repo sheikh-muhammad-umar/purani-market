@@ -46,6 +46,15 @@ export const VIEW_DEDUP_WINDOW_SECONDS = parseInt(
 
 // ─── Listing Lifecycle ──────────────────────────────────────
 export const LISTING_EXPIRY_REMINDER_DAYS = [3, 1];
+
+/**
+ * How close to expiry a listing counts as "expiring soon".
+ *
+ * Matched to the first expiry reminder, so the tab and the notification agree: a
+ * seller who has just been emailed about an ad finds it under the same heading
+ * when they come to look.
+ */
+export const LISTING_EXPIRING_SOON_DAYS = LISTING_EXPIRY_REMINDER_DAYS[0];
 export const PACKAGE_EXPIRY_REMINDER_DAYS = [3, 1];
 
 /**
@@ -80,6 +89,34 @@ export const STALE_RESERVED_DAYS = parseInt(
 );
 export const MAX_REJECTION_COUNT = parseInt(
   process.env.MAX_REJECTION_COUNT || '3',
+  10,
+);
+
+// ─── Reports / Moderation ───────────────────────────────────
+/**
+ * Upheld reports that trigger an automatic account suspension. Suspension fires
+ * once the count reaches this value (i.e. the 3rd approved report).
+ */
+export const MAX_APPROVED_REPORTS = parseInt(
+  process.env.MAX_APPROVED_REPORTS || '3',
+  10,
+);
+
+/** How long an auto-suspension for exceeding the report threshold lasts. */
+export const REPORT_SUSPENSION_MONTHS = parseInt(
+  process.env.REPORT_SUSPENSION_MONTHS || '3',
+  10,
+);
+
+/** Max screenshots a reporter may attach as evidence. */
+export const MAX_REPORT_SCREENSHOTS = parseInt(
+  process.env.MAX_REPORT_SCREENSHOTS || '5',
+  10,
+);
+
+/** Max photos a reviewer may attach to a rating. */
+export const MAX_REVIEW_IMAGES = parseInt(
+  process.env.MAX_REVIEW_IMAGES || '2',
   10,
 );
 export const STALE_PENDING_REVIEW_DAYS = parseInt(
@@ -122,8 +159,10 @@ export const CACHE_TTL_SEO_SELLER = 1800; // 30 minutes
 export const CACHE_TTL_SEO_HOME = 3600; // 1 hour
 export const CACHE_KEY_SEO_SEARCH = 'seo:search:';
 export const CACHE_KEY_SEO_PAGE = 'seo:page:';
+export const CACHE_KEY_SEO_SHORT = 'seo:short:';
 export const CACHE_TTL_SEO_SEARCH = 600; // 10 minutes
 export const CACHE_TTL_SEO_PAGE = 86400; // 24 hours
+export const CACHE_TTL_SEO_SHORT = 300; // 5 minutes
 
 // ─── Sitemap Cache ──────────────────────────────────────────
 export const CACHE_KEY_SITEMAP = 'seo:sitemap:';
@@ -168,6 +207,7 @@ export const SEO_ROUTE_PATTERNS = {
   SELLER: '/seller',
   SEARCH: '/search',
   PAGES: '/pages',
+  SHORTS: '/shorts',
 } as const;
 
 /** Robots.txt crawl directives. */

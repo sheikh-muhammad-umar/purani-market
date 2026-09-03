@@ -14,6 +14,7 @@ import {
 import { User, UserDocument } from '../users/schemas/user.schema.js';
 import { StorageService } from '../listings/storage.service.js';
 import { ListingsService } from '../listings/listings.service.js';
+import { NotificationsService } from '../notifications/notifications.service.js';
 import { ERROR } from '../common/constants/error-messages.js';
 import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { MAX_ID_VERIFICATION_ATTEMPTS } from '../common/constants/app.constants.js';
@@ -44,6 +45,7 @@ export class IdVerificationService {
     private readonly userModel: Model<UserDocument>,
     private readonly storageService: StorageService,
     private readonly listingsService: ListingsService,
+    private readonly notificationsService: NotificationsService,
   ) {}
 
   async submitVerification(
@@ -307,6 +309,26 @@ export class IdVerificationService {
     // seller's listings, so updating the user flag is not enough on its own —
     // without this the badge keeps asserting the previous decision.
     await this.listingsService.syncSellerVerified(String(verification.userId));
+
+    // Let the user know the outcome. A rejected review always has a reason at
+    // this point (guarded above), so it is safe to surface. Notification
+    // failures must not fail the review — it is a side effect, not the record.
+    const targetUserId = String(verification.userId);
+    try {
+      if (status === IdVerificationStatus.APPROVED) {
+        await this.notificationsService.sendIdVerificationApprovedNotification(
+          targetUserId,
+        );
+      } else {
+        await this.notificationsService.sendIdVerificationRejectedNotification(
+          targetUserId,
+          verification.rejectionReason!,
+        );
+      }
+    } catch {
+      // Swallow: the review outcome is already persisted; a missed push should
+      // not surface as a failed admin action.
+    }
 
     return verification;
   }

@@ -1,0 +1,7889 @@
+[{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83259a"
+  },
+  "name": "S-Line",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832599"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832597"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.073Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.073Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325ab"
+  },
+  "name": "quattro",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325aa"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832597"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.097Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.097Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d7"
+  },
+  "name": "Ext",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d6"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.154Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.154Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325da"
+  },
+  "name": "1.3L MT Comfort",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d9"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.157Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.157Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325db"
+  },
+  "name": "1.5L DCT Comfort",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d9"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.162Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.162Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325dc"
+  },
+  "name": "1.5L DCT Lumiere",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d9"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.163Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.163Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325dd"
+  },
+  "name": "Black Edition",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d9"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.164Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.164Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325e5"
+  },
+  "name": "Base Model 1.0",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325e4"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.174Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.174Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325e6"
+  },
+  "name": "Comfort",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325e4"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.175Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.175Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325e7"
+  },
+  "name": "Plus",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325e4"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.177Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.177Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325e8"
+  },
+  "name": "Plus 1.2",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325e4"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.178Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.178Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325ec"
+  },
+  "name": "Comfort",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325eb"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.183Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.183Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325ed"
+  },
+  "name": "FutureSense",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325eb"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.184Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.184Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325ee"
+  },
+  "name": "FutureSense 7 Seat",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325eb"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.186Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.186Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832614"
+  },
+  "name": "CL",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832613"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83260f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.235Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.235Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832616"
+  },
+  "name": "Activa",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832615"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83260f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.238Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.238Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832617"
+  },
+  "name": "Style",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832615"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83260f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.239Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.239Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83261c"
+  },
+  "name": "CX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83261b"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83260f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.245Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.245Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832621"
+  },
+  "name": "Custom",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832620"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83260f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.250Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.250Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832622"
+  },
+  "name": "X",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832620"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83260f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.251Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.251Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832626"
+  },
+  "name": "Custom",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832625"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83260f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.255Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.255Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832630"
+  },
+  "name": "Custom",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83262f"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83260f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.267Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.267Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832665"
+  },
+  "name": "1.5T",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832664"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832663"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.328Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.328Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832666"
+  },
+  "name": "2.0T",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832664"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832663"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.329Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.329Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832667"
+  },
+  "name": "HEV",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832664"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832663"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.330Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.330Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832668"
+  },
+  "name": "PHEV",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832664"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832663"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.331Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.331Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83266a"
+  },
+  "name": "1.5T",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832669"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832663"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.333Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.333Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83266b"
+  },
+  "name": "HEV",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832669"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832663"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.334Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.334Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83266c"
+  },
+  "name": "Top",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832669"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832663"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.335Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.335Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832674"
+  },
+  "name": "i-VTEC S",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832673"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.344Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.344Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832676"
+  },
+  "name": "PP1",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832675"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.346Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.346Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83267a"
+  },
+  "name": "1.2L CVT",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832679"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.349Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.349Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83267b"
+  },
+  "name": "1.2L M/T",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832679"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.350Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.350Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83267c"
+  },
+  "name": "1.5L ASPIRE CVT",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832679"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.351Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.351Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83267d"
+  },
+  "name": "1.5L ASPIRE M/T",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832679"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.352Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.352Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83267e"
+  },
+  "name": "1.5L ASPIRE S CVT",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832679"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.353Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.353Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83267f"
+  },
+  "name": "1.5L CVT",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832679"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.354Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.354Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832681"
+  },
+  "name": "Oriel",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832680"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.356Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.356Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832682"
+  },
+  "name": "RS",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832680"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.357Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.357Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832683"
+  },
+  "name": "Standard",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832680"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.358Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.358Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83268a"
+  },
+  "name": "e:HEV",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832689"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.366Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.366Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83268b"
+  },
+  "name": "VTi",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832689"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.367Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.367Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83268c"
+  },
+  "name": "VTi-S",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832689"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.369Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.369Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832690"
+  },
+  "name": "RX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83268f"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.373Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.373Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832691"
+  },
+  "name": "Type R",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83268f"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.374Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.374Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832692"
+  },
+  "name": "Type S",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83268f"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.376Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.376Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832693"
+  },
+  "name": "ZX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83268f"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.377Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.377Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326ac"
+  },
+  "name": "Hybrid",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326ab"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326a8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.410Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.410Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326b9"
+  },
+  "name": "Hybrid Signature",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326b8"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326a8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.424Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.424Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326ba"
+  },
+  "name": "Hybrid Smart",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326b8"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326a8"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.425Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.425Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326e5"
+  },
+  "name": "1.0 AT",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326e4"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326dc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.472Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.472Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326e6"
+  },
+  "name": "1.0 MT",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326e4"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326dc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.473Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.473Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326eb"
+  },
+  "name": "1.6T HEV AWD",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326ea"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326dc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.479Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.479Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326ec"
+  },
+  "name": "1.6T HEV FWD",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326ea"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326dc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.480Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.480Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326ed"
+  },
+  "name": "3.5 FWD",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326ea"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326dc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.480Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.480Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326f0"
+  },
+  "name": "Limited Edition",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326ef"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326dc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.484Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.484Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326f2"
+  },
+  "name": "Alpha",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326f1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326dc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.486Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.486Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326f3"
+  },
+  "name": "FWD",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326f1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326dc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.487Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.487Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326f4"
+  },
+  "name": "HEV",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326f1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326dc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.488Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.488Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326f6"
+  },
+  "name": "EX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326f5"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326dc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.489Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.489Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326f7"
+  },
+  "name": "EX+",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326f5"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8326dc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.490Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.490Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83270e"
+  },
+  "name": "PHEV",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83270d"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832708"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.528Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.528Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83270f"
+  },
+  "name": "Trophy",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83270d"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832708"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.529Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.529Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832714"
+  },
+  "name": "MCE Essence",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832713"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832708"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.534Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.534Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832715"
+  },
+  "name": "MCE Long Range",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832713"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832708"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.535Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.535Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832729"
+  },
+  "name": "GT Sport Tech",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832728"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83271a"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.557Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.557Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83272b"
+  },
+  "name": "FC3S",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83272a"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83271a"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.560Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.560Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83272c"
+  },
+  "name": "Spirit R",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83272a"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83271a"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.562Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.562Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83272e"
+  },
+  "name": "Base Grade",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83272d"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83271a"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.564Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.564Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83272f"
+  },
+  "name": "Rotary Engine 40TH Anniversary",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83272d"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83271a"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.567Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.567Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832730"
+  },
+  "name": "Type E",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83272d"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83271a"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.568Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.568Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832731"
+  },
+  "name": "Type E Sport Prestige Limited II",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83272d"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83271a"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.569Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.569Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832732"
+  },
+  "name": "Type S",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83272d"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83271a"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.570Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.570Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83273a"
+  },
+  "name": "C180",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832739"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832736"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.579Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.579Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83273b"
+  },
+  "name": "C250",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832739"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832736"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.580Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.580Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832742"
+  },
+  "name": "E200",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832741"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832736"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.589Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.589Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832743"
+  },
+  "name": "E250",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832741"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832736"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.590Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.590Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832744"
+  },
+  "name": "E300",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832741"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832736"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.591Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.591Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832745"
+  },
+  "name": "E350",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832741"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832736"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.592Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.592Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832754"
+  },
+  "name": "S400",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832753"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832736"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.614Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.614Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832755"
+  },
+  "name": "S500",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832753"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832736"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.614Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.614Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832762"
+  },
+  "name": "GLX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832761"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83275b"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.630Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.630Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832764"
+  },
+  "name": "GSR",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832763"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83275b"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.632Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.632Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832765"
+  },
+  "name": "GSR-Premium",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832763"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83275b"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.634Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.634Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832769"
+  },
+  "name": "G",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832768"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83275b"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.638Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.638Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83276b"
+  },
+  "name": "Exceed",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83276a"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83275b"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.640Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.640Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83276c"
+  },
+  "name": "GLX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83276a"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb83275b"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.641Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.641Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832788"
+  },
+  "name": "Highway Star",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832787"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.674Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.674Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83278c"
+  },
+  "name": "Base Grade",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83278b"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.679Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.679Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83278d"
+  },
+  "name": "Black Edition",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83278b"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.679Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.679Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83278e"
+  },
+  "name": "Premium Edition",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83278b"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.680Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.680Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83278f"
+  },
+  "name": "Pure Edition",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83278b"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.682Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.682Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83279b"
+  },
+  "name": "Aura",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83279a"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.698Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.698Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83279c"
+  },
+  "name": "e-Power",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83279a"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.699Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.699Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327a8"
+  },
+  "name": "Spec-R",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327a7"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.719Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.719Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327a9"
+  },
+  "name": "Spec-S",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327a7"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.720Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.720Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ab"
+  },
+  "name": "350 GT Hybrid",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327aa"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.723Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.723Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ad"
+  },
+  "name": "EX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ac"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.726Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.726Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ae"
+  },
+  "name": "Super",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ac"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.727Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.727Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327be"
+  },
+  "name": "Carrera",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327bd"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327bc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.748Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.748Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327c0"
+  },
+  "name": "S",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327bf"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327bc"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.751Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.751Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327cd"
+  },
+  "name": "R3",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327cc"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ca"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.767Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.767Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327e0"
+  },
+  "name": "Premium",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327df"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327dd"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.791Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.791Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327e2"
+  },
+  "name": "Sport",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327dd"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.794Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.794Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327e6"
+  },
+  "name": "DIT",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327e5"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327dd"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.799Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.799Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327e8"
+  },
+  "name": "Custom",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327e7"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327dd"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.802Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.802Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327f1"
+  },
+  "name": "E",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327f0"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.813Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.813Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327f2"
+  },
+  "name": "VX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327f0"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.814Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.814Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327f3"
+  },
+  "name": "VXL AGS",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327f0"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.815Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.815Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327f4"
+  },
+  "name": "VXR",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327f0"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.817Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.817Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327f5"
+  },
+  "name": "VXR AGS",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327f0"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.818Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.818Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327f9"
+  },
+  "name": "VX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327f8"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.822Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.822Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327fe"
+  },
+  "name": "Auto Gear Shift",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327fd"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.829Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.829Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ff"
+  },
+  "name": "VXL",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327fd"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.830Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.830Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832800"
+  },
+  "name": "VXLi",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327fd"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.830Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.830Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832801"
+  },
+  "name": "VXR",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327fd"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.831Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.831Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832802"
+  },
+  "name": "VXRi",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327fd"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.833Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.833Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832804"
+  },
+  "name": "Join",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832803"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.835Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.835Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832806"
+  },
+  "name": "PZ Turbo",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832805"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.837Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.837Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832810"
+  },
+  "name": "Eminent",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83280f"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.849Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.849Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832811"
+  },
+  "name": "RXi",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83280f"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.851Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.851Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832817"
+  },
+  "name": "VX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832816"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.858Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.858Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832818"
+  },
+  "name": "VXR",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832816"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.859Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.859Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832821"
+  },
+  "name": "DLX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832820"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.870Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.870Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832822"
+  },
+  "name": "GL",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832820"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.871Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.871Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832823"
+  },
+  "name": "GL Manual",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832820"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.872Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.872Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832824"
+  },
+  "name": "GLX CVT",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832820"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.872Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.872Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832828"
+  },
+  "name": "AGS",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832827"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.878Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.878Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832829"
+  },
+  "name": "FX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832827"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.878Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.878Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83282a"
+  },
+  "name": "Stingray",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832827"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.879Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.879Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83282b"
+  },
+  "name": "VX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832827"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.880Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.880Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83282c"
+  },
+  "name": "VXL",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832827"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.881Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.881Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832837"
+  },
+  "name": "GR",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832836"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.895Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.895Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83283d"
+  },
+  "name": "G",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83283c"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.902Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.902Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83284b"
+  },
+  "name": "2-door convertible",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83284a"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.922Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.922Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83284c"
+  },
+  "name": "2-door coupe",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83284a"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.923Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.923Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83284d"
+  },
+  "name": "3-door liftback",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83284a"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.924Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.924Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83284e"
+  },
+  "name": "Convertible",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83284a"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.926Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.926Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83284f"
+  },
+  "name": "SS-II",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83284a"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.927Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.927Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832854"
+  },
+  "name": "2D",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.933Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.933Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832855"
+  },
+  "name": "Altis",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.935Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.935Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832856"
+  },
+  "name": "Altis 1.6 X CVT-i",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.936Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.936Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832857"
+  },
+  "name": "Altis 1.6 X CVT-i Special Edition",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.937Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.937Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832858"
+  },
+  "name": "Altis Grande X CVT-i 1.8 Beige Interior",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.938Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.938Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832859"
+  },
+  "name": "Altis Grande X CVT-i 1.8 Black Interior",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.939Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.939Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83285a"
+  },
+  "name": "Altis X",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.940Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.940Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83285b"
+  },
+  "name": "Altis X CVT-i 1.8",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.941Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.941Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83285c"
+  },
+  "name": "Altis X Manual 1.6",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.942Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.942Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83285d"
+  },
+  "name": "GLi",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.943Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.943Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83285e"
+  },
+  "name": "SE",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.944Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.944Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83285f"
+  },
+  "name": "SE Saloon",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.945Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.945Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832860"
+  },
+  "name": "X",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.946Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.946Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832861"
+  },
+  "name": "XE",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.947Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.947Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832862"
+  },
+  "name": "XLi",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832853"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.948Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.948Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832864"
+  },
+  "name": "Luxel",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832863"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.950Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.950Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832865"
+  },
+  "name": "X",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832863"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.951Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.951Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832867"
+  },
+  "name": "1.8",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832866"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.953Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.953Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832868"
+  },
+  "name": "1.8 HEV",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832866"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.954Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.954Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832869"
+  },
+  "name": "1.8 HEV X",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832866"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.955Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.955Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83286a"
+  },
+  "name": "1.8 X",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832866"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.956Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.956Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83286c"
+  },
+  "name": "X",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb83286b"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.957Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.957Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832872"
+  },
+  "name": "Athlete",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832871"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.963Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.963Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832873"
+  },
+  "name": "Royal",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832871"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.964Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.964Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832874"
+  },
+  "name": "Super",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832871"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.965Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.965Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83287a"
+  },
+  "name": "2.7 G",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832879"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.972Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.972Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83287b"
+  },
+  "name": "2.7 V",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832879"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.973Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.973Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83287c"
+  },
+  "name": "2.8 Sigma 4",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832879"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.974Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.974Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83287d"
+  },
+  "name": "GR-S",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832879"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.975Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.975Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83287e"
+  },
+  "name": "Legender",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832879"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.976Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.976Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832882"
+  },
+  "name": "Champ",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832881"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.980Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.980Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832883"
+  },
+  "name": "Double Cabin",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832881"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.981Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.981Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832884"
+  },
+  "name": "E",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832881"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.982Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.982Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832885"
+  },
+  "name": "GR Sport 2.4D",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832881"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.983Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.983Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832886"
+  },
+  "name": "Revo",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832881"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.985Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.985Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832887"
+  },
+  "name": "Revo G 2.8",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832881"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.986Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.986Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832888"
+  },
+  "name": "Revo G Automatic 2.8",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832881"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.987Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.987Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832889"
+  },
+  "name": "Revo GR-S",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832881"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.988Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.988Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83288a"
+  },
+  "name": "Revo Rocco",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832881"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.988Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.988Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83288b"
+  },
+  "name": "Revo V Automatic 2.8",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832881"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.989Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.989Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83288c"
+  },
+  "name": "Single Cabin",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832881"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.990Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.990Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83288d"
+  },
+  "name": "Vigo",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832881"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.991Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.991Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832891"
+  },
+  "name": "AX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832890"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.996Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.996Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832892"
+  },
+  "name": "GX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832890"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.997Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.997Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832893"
+  },
+  "name": "V8",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832890"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.998Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.998Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832894"
+  },
+  "name": "VX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832890"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.999Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.999Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb832895"
+  },
+  "name": "ZX",
+  "modelId": {
+    "$oid": "69e7f2c3b79ae9d6eb832890"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.001Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.001Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb832897"
+  },
+  "name": "Coupe",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb832896"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.003Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.003Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb83289a"
+  },
+  "name": "Spyder",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb832899"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.006Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.006Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb83289c"
+  },
+  "name": "Grande",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb83289b"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.009Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.009Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb83289d"
+  },
+  "name": "Grande 2.0",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb83289b"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.010Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.010Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb83289e"
+  },
+  "name": "Grande 2.5",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb83289b"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.011Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.011Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328a0"
+  },
+  "name": "250G",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb83289f"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.013Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.013Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328a1"
+  },
+  "name": "300 G",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb83289f"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.014Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.014Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328a4"
+  },
+  "name": "G",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328a3"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.018Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.018Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328a5"
+  },
+  "name": "Hana",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328a3"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.019Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.019Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328a6"
+  },
+  "name": "X",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328a3"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.020Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.020Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328ae"
+  },
+  "name": "RZ",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328ad"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.033Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.033Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328af"
+  },
+  "name": "TX",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328ad"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.034Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.034Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b0"
+  },
+  "name": "TX Limited",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328ad"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.035Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.035Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b1"
+  },
+  "name": "TZ",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328ad"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.036Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.036Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b2"
+  },
+  "name": "VX",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328ad"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.037Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.037Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b4"
+  },
+  "name": "F",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b3"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.039Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.039Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b5"
+  },
+  "name": "G",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b3"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.040Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.040Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b6"
+  },
+  "name": "X",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b3"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.041Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.041Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b8"
+  },
+  "name": "G",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b7"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.044Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.044Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b9"
+  },
+  "name": "G Touring",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328b7"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.044Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.044Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328c7"
+  },
+  "name": "1.0",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328c6"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.061Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.061Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328c8"
+  },
+  "name": "1.3",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328c6"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.061Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.061Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328c9"
+  },
+  "name": "GT Turbo",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328c6"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.062Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.062Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328cc"
+  },
+  "name": "3.0 Premium",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328cb"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.065Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.065Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328cd"
+  },
+  "name": "Turbo",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328cb"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.066Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.066Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328cf"
+  },
+  "name": "SSR-G",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328ce"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.069Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.069Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328d0"
+  },
+  "name": "SSR-X",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328ce"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.070Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.070Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328d9"
+  },
+  "name": "F",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328d8"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.080Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.080Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328da"
+  },
+  "name": "Jewela",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328d8"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.081Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.081Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328db"
+  },
+  "name": "RS",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328d8"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.082Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.082Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328dc"
+  },
+  "name": "U",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328d8"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.084Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.084Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e2"
+  },
+  "name": "1.3",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.091Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.091Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e3"
+  },
+  "name": "1.5",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.092Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.092Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e4"
+  },
+  "name": "AERO CVT 1.3",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.093Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.093Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e5"
+  },
+  "name": "AERO CVT 1.5",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.094Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.094Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e6"
+  },
+  "name": "ATIV",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.095Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.095Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e7"
+  },
+  "name": "ATIV CVT 1.3",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.096Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.096Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e8"
+  },
+  "name": "ATIV MT 1.3",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.097Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.097Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e9"
+  },
+  "name": "ATIV X CVT 1.5",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.097Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.097Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328ea"
+  },
+  "name": "ATIV X CVT 1.5 Beige Interior",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.098Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.098Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328eb"
+  },
+  "name": "ATIV X CVT 1.5 Black Interior",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.100Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.100Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328ec"
+  },
+  "name": "ATIV X MT 1.5",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.101Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.101Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328ed"
+  },
+  "name": "GLI CVT 1.3",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.102Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.102Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328ee"
+  },
+  "name": "GLI MT 1.3",
+  "modelId": {
+    "$oid": "69e7f2c4b79ae9d6eb8328e1"
+  },
+  "brandId": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.103Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.103Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc727"
+  },
+  "name": "Extrema",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc726"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc725"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.625Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.625Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc728"
+  },
+  "name": "Factory",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc726"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc725"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.626Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.626Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc72a"
+  },
+  "name": "Factory",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc729"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc725"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.629Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.629Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc72c"
+  },
+  "name": "125",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc72b"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc725"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.633Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.633Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc72d"
+  },
+  "name": "200",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc72b"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc725"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.634Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.634Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc72e"
+  },
+  "name": "300",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc72b"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc725"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.636Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.636Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc737"
+  },
+  "name": "M Competition",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc736"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc731"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.651Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.651Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc739"
+  },
+  "name": "M Competition",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc738"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc731"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.654Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.654Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc73c"
+  },
+  "name": "M Package",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc73b"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc731"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.659Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.659Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc74b"
+  },
+  "name": "Trail",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc74a"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc741"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.681Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.681Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc74d"
+  },
+  "name": "Trail",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc74c"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc741"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.684Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.684Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc753"
+  },
+  "name": "X",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc752"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc741"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.692Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.692Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc755"
+  },
+  "name": "X",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc754"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc741"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.695Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.695Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc767"
+  },
+  "name": "SE5",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc766"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc765"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.719Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.719Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc768"
+  },
+  "name": "RS-S",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc766"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc765"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.721Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.721Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc76f"
+  },
+  "name": "250cc",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc76e"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc769"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.730Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.730Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc770"
+  },
+  "name": "300cc",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc76e"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc769"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.732Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.732Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc771"
+  },
+  "name": "400cc",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc76e"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc769"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.733Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.733Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc773"
+  },
+  "name": "250cc",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc772"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc769"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.735Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.735Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc774"
+  },
+  "name": "300cc",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc772"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc769"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.736Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.736Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc775"
+  },
+  "name": "400cc",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc772"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc769"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.737Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.737Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc778"
+  },
+  "name": "Excellence",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc777"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc776"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.741Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.741Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc779"
+  },
+  "name": "Self Start Alloy Rim",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc777"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc776"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.743Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.743Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc77b"
+  },
+  "name": "Euro II",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc77a"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc776"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.745Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.745Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc77c"
+  },
+  "name": "Self Start Alloy Rim",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc77a"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc776"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.746Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.746Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc77e"
+  },
+  "name": "HD Plus",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc77d"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc776"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.749Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.749Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc77f"
+  },
+  "name": "Jazba",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc77d"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc776"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.750Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.750Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc780"
+  },
+  "name": "Self Start",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc77d"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc776"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.751Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.751Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc783"
+  },
+  "name": "Euro II",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc782"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc776"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.754Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.754Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc792"
+  },
+  "name": "V4",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc791"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc78e"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.776Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.776Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc793"
+  },
+  "name": "V4 S",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc791"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc78e"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.777Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.777Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc794"
+  },
+  "name": "Pikes Peak",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc791"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc78e"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.778Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.778Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc795"
+  },
+  "name": "Rally",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc791"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc78e"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.779Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.779Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc796"
+  },
+  "name": "RS",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc791"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc78e"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.781Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.781Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc798"
+  },
+  "name": "V4",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc797"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc78e"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.783Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.783Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc799"
+  },
+  "name": "V4 S",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc797"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc78e"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.784Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.784Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc79a"
+  },
+  "name": "Tricolore",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc797"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc78e"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.785Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.785Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc79b"
+  },
+  "name": "Tricolore Italia",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc797"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc78e"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.786Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.786Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7a8"
+  },
+  "name": "Air",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7a7"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7a6"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.803Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.803Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7a9"
+  },
+  "name": "Pro",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7a7"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7a6"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.804Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.804Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7ae"
+  },
+  "name": "3W",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7ad"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7a6"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.811Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.811Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7b0"
+  },
+  "name": "Air",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7af"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7a6"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.814Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.814Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7b1"
+  },
+  "name": "Pro",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7af"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7a6"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.815Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.815Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7b5"
+  },
+  "name": "Pro",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7b4"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7b2"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.820Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.820Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7c0"
+  },
+  "name": "Self Start",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7bf"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7be"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.833Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.833Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7ce"
+  },
+  "name": "Euro II",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7cd"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7cb"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.857Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.857Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7d8"
+  },
+  "name": "DCT",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d7"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.871Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.871Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7d9"
+  },
+  "name": "Adventure Sports",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d7"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.873Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.873Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7da"
+  },
+  "name": "Adventure Sports DCT",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d7"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.874Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.874Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7dc"
+  },
+  "name": "e:I",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7db"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.876Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.876Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7dd"
+  },
+  "name": "e:II",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7db"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.878Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.878Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7de"
+  },
+  "name": "e:I Pro",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7db"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.879Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.879Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7df"
+  },
+  "name": "e:II Pro",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7db"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.881Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.881Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7e5"
+  },
+  "name": "X",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7e4"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.889Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.889Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7e6"
+  },
+  "name": "Super Four",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7e4"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.890Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.890Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7e7"
+  },
+  "name": "Super Bol d'Or",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7e4"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.891Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.891Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7ea"
+  },
+  "name": "Super Four",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7e9"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.895Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.895Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7eb"
+  },
+  "name": "Super Bol d'Or",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7e9"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.896Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.896Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7f0"
+  },
+  "name": "RR",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7ef"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.915Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.915Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7f2"
+  },
+  "name": "Euro 2",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7f1"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.920Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.920Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7f5"
+  },
+  "name": "Dream",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7f4"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.926Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.926Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7f8"
+  },
+  "name": "Deluxe",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7f7"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.930Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.930Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7f9"
+  },
+  "name": "Dream",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7f7"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.932Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.932Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7fa"
+  },
+  "name": "S",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7f7"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.934Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.934Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7fb"
+  },
+  "name": "Special Edition",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7f7"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.935Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.935Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7fc"
+  },
+  "name": "Gold",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc7f7"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.936Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.936Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc804"
+  },
+  "name": "300",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc803"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.949Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.949Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc805"
+  },
+  "name": "500",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc803"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.950Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.950Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc806"
+  },
+  "name": "500 SE",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc803"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.952Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.952Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc807"
+  },
+  "name": "1100",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc803"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.957Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.957Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc808"
+  },
+  "name": "1100 DCT",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc803"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.959Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.959Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc809"
+  },
+  "name": "1100 DCT SE",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc803"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.961Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.961Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc80a"
+  },
+  "name": "1100T",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc803"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.963Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.963Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc80b"
+  },
+  "name": "1100T DCT",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc803"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.965Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.965Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc81c"
+  },
+  "name": "RR",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc81b"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.995Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.995Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc81e"
+  },
+  "name": "ABS",
+  "modelId": {
+    "$oid": "69e7f7168e50da5a5a8fc81d"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.000Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.000Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc820"
+  },
+  "name": "ABS",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc81f"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.003Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.003Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc821"
+  },
+  "name": "KRT Edition",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc81f"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.005Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.005Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc822"
+  },
+  "name": "KRT Edition ABS",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc81f"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.007Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.007Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc824"
+  },
+  "name": "ABS",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc823"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.010Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.010Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc826"
+  },
+  "name": "Carbon",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc825"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.014Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.014Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc828"
+  },
+  "name": "ABS",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc827"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.016Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.016Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc829"
+  },
+  "name": "SE",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc827"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.017Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.017Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc82a"
+  },
+  "name": "KRT Edition",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc827"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.019Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.019Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc82c"
+  },
+  "name": "ABS",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc82b"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.022Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.022Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc82d"
+  },
+  "name": "KRT Edition",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc82b"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.023Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.023Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc82f"
+  },
+  "name": "ABS",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc82e"
+  },
+  "brandId": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.026Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.026Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc846"
+  },
+  "name": "Supreme",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc845"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc842"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.062Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.062Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc850"
+  },
+  "name": "Self Start",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc84f"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc848"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.076Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.076Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc853"
+  },
+  "name": "Limited Edition",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc852"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc848"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.081Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.081Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc877"
+  },
+  "name": "Passion Plus",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc876"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc875"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.130Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.130Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc879"
+  },
+  "name": "Power Plus",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc878"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc875"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.133Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.133Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc87b"
+  },
+  "name": "Jack Pot",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc87a"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc875"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.136Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.136Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc87c"
+  },
+  "name": "Power Plus",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc87a"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc875"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.137Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.137Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc87f"
+  },
+  "name": "Wego",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc87e"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc875"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.142Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.142Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc880"
+  },
+  "name": "Robinson",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc87e"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc875"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.143Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.143Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc898"
+  },
+  "name": "Premium 70",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc897"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc891"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.185Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.185Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc899"
+  },
+  "name": "Tokyo",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc897"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc891"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.186Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.186Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc89f"
+  },
+  "name": "Deluxe",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc89e"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc89d"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.195Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.195Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8a2"
+  },
+  "name": "Plus",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8a1"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc89d"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.200Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.200Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8a3"
+  },
+  "name": "SE",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8a1"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc89d"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.201Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.201Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8ab"
+  },
+  "name": "S",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8aa"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc8a7"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.214Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.214Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8ae"
+  },
+  "name": "SE",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8ad"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc8a7"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.218Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.218Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8b8"
+  },
+  "name": "Aegis",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8b7"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc8a7"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.235Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.235Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8bb"
+  },
+  "name": "ABS",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8ba"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc8a7"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.240Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.240Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8bc"
+  },
+  "name": "XT",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8ba"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc8a7"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.242Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.242Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8bd"
+  },
+  "name": "XT Adventure",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8ba"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc8a7"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.243Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.243Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8d6"
+  },
+  "name": "Deluxe",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8d5"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc8d3"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.282Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.282Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8d7"
+  },
+  "name": "Euro II",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8d5"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc8d3"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.283Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.283Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8d9"
+  },
+  "name": "Ultimate Thrill",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8d8"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc8d3"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.286Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.286Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8f2"
+  },
+  "name": "World Raid",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8f1"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc8eb"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.320Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.320Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8f4"
+  },
+  "name": "DX",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8f3"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc8eb"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.323Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.323Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8f6"
+  },
+  "name": "G",
+  "modelId": {
+    "$oid": "69e7f7178e50da5a5a8fc8f5"
+  },
+  "brandId": {
+    "$oid": "69e7f7178e50da5a5a8fc8eb"
+  },
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.325Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.325Z"
+  }
+}]

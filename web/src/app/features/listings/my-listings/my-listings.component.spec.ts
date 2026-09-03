@@ -162,6 +162,18 @@ describe('MyListingsComponent', () => {
 
     routeMock = { snapshot: { queryParams: {} } };
 
+    listingsService.getMyViewCounts = vi.fn().mockReturnValue(
+      of({
+        all: 9,
+        active: 5,
+        pending: 0,
+        rejected: 2,
+        inactive: 1,
+        expiring_soon: 1,
+        expired: 0,
+      }),
+    );
+
     // Engagement is fetched once for the whole account and looked up by id.
     engagementService = {
       getListingEngagement: vi.fn().mockReturnValue(
@@ -205,7 +217,7 @@ describe('MyListingsComponent', () => {
   });
 
   it('should load listings on init', () => {
-    expect(listingsService.getMyListings).toHaveBeenCalledWith(1, 50);
+    expect(listingsService.getMyListings).toHaveBeenCalledWith(1, 50, 'all');
     expect(component.listings().length).toBe(3);
     expect(component.total()).toBe(3);
     expect(component.loading()).toBe(false);
@@ -411,5 +423,76 @@ describe('MyListingsComponent', () => {
     listingsService.deleteListing.mockReturnValue(throwError(() => new Error('fail')));
     component.deleteListing('l1');
     expect(component.actionLoading()).toBeNull();
+  });
+
+  describe('status filters', () => {
+    it('starts on all ads', () => {
+      expect(component.activeView()).toBe('all');
+      expect(listingsService.getMyListings).toHaveBeenCalledWith(1, 50, 'all');
+    });
+
+    it('asks the server for the chosen view rather than filtering the page', () => {
+      component.selectView('rejected');
+
+      // Filtering client-side would show "2 of 40" while hiding matches on later
+      // pages, so the view has to reach the query.
+      expect(listingsService.getMyListings).toHaveBeenCalledWith(1, 50, 'rejected');
+    });
+
+    it('returns to page one when the filter changes', () => {
+      component.page.set(3);
+
+      component.selectView('active');
+
+      // Page three of Active may not exist, which would show an empty table over
+      // a filter that does have matches.
+      expect(component.page()).toBe(1);
+    });
+
+    it('ignores selecting the view already shown', () => {
+      const before = listingsService.getMyListings.mock.calls.length;
+      component.selectView('all');
+      expect(listingsService.getMyListings.mock.calls.length).toBe(before);
+    });
+
+    it('shows every tab with its count, even at zero', () => {
+      const tabs = component.viewTabs();
+
+      expect(tabs.map((t) => t.view)).toEqual([
+        'all',
+        'active',
+        'pending',
+        'rejected',
+        'expiring_soon',
+        'expired',
+        'inactive',
+      ]);
+      // Zero is shown; a tab is never dropped, so the set does not shift under
+      // the cursor as ads change state.
+      expect(tabs.find((t) => t.view === 'expired')?.count).toBe(0);
+      expect(tabs.find((t) => t.view === 'rejected')?.count).toBe(2);
+    });
+
+    it('marks the selected tab', () => {
+      component.selectView('expiring_soon');
+      const selected = component.viewTabs().filter((t) => t.selected);
+      expect(selected).toHaveLength(1);
+      expect(selected[0].view).toBe('expiring_soon');
+    });
+
+    it('leaves counts undefined when they cannot be loaded', () => {
+      // Rendered as absent rather than 0, so a failure never reads as "none".
+      listingsService.getMyViewCounts.mockReturnValue(throwError(() => new Error('nope')));
+      component.loadAll();
+      expect(component.viewTabs().every((t) => t.count === undefined)).toBe(true);
+    });
+
+    it('names the filter in the empty message', () => {
+      component.selectView('rejected');
+      expect(component.emptyViewTitle()).toBe('No rejected ads');
+
+      component.selectView('expiring_soon');
+      expect(component.emptyViewTitle()).toBe('No expiring soon ads');
+    });
   });
 });

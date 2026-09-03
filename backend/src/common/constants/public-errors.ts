@@ -24,6 +24,16 @@ export const PUBLIC_ERROR = {
     message: 'This action has already been performed.',
   },
 
+  // Reports
+  REPORT_ALREADY_PENDING: {
+    code: 'RPT_001',
+    message: 'You already have a pending report for this.',
+  },
+  REPORT_ALREADY_REVIEWED: {
+    code: 'RPT_002',
+    message: 'This report has already been reviewed.',
+  },
+
   // Messaging
   MESSAGING_FAILED: {
     code: 'MSG_001',

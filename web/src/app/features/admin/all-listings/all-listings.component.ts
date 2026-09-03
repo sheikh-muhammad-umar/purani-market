@@ -13,6 +13,7 @@ import {
   REVIEW_COUNT_OPTIONS,
 } from '../../../core/constants/select-options';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
+import { ToastService } from '../../../core/services/toast.service';
 import { buildMapEmbedUrl } from '../../../core/utils/map-link';
 import {
   CustomSelectComponent,
@@ -232,6 +233,7 @@ export class AllListingsComponent implements OnInit {
     private readonly categoriesService: CategoriesService,
     private readonly locationService: LocationService,
     private readonly sanitizer: DomSanitizer,
+    private readonly toast: ToastService,
   ) {}
 
   private readonly stateKey = 'admin-all-listings';
@@ -474,9 +476,11 @@ export class AllListingsComponent implements OnInit {
         this.modTotalListings.update((t) => t - 1);
         this.pendingCount.update((c) => c - 1);
         this.modActionLoading.set(null);
+        this.toast.success('Listing approved.');
       },
       error: () => {
         this.modActionLoading.set(null);
+        this.toast.error('Failed to approve listing.');
       },
     });
   }
@@ -510,25 +514,35 @@ export class AllListingsComponent implements OnInit {
     this.bulkProcessing.set(true);
     const ids = Array.from(this.selectedIds);
     let completed = 0;
+    let succeeded = 0;
+    let failed = 0;
+
+    const finish = () => {
+      if (completed !== ids.length) return;
+      this.selectedIds = new Set();
+      this.bulkProcessing.set(false);
+      if (succeeded > 0) {
+        this.toast.success(`${succeeded} listing${succeeded === 1 ? '' : 's'} approved.`);
+      }
+      if (failed > 0) {
+        this.toast.error(`Failed to approve ${failed} listing${failed === 1 ? '' : 's'}.`);
+      }
+    };
 
     for (const id of ids) {
       this.adminService.approveListing(id).subscribe({
         next: () => {
           completed++;
+          succeeded++;
           this.pendingListings.update((list) => list.filter((l) => l._id !== id));
           this.pendingCount.update((c) => c - 1);
           this.modTotalListings.update((t) => t - 1);
-          if (completed === ids.length) {
-            this.selectedIds = new Set();
-            this.bulkProcessing.set(false);
-          }
+          finish();
         },
         error: () => {
           completed++;
-          if (completed === ids.length) {
-            this.selectedIds = new Set();
-            this.bulkProcessing.set(false);
-          }
+          failed++;
+          finish();
         },
       });
     }
@@ -581,9 +595,11 @@ export class AllListingsComponent implements OnInit {
         delete this.selectedRejectReasonIds[listing._id];
         delete this.rejectCustomNote[listing._id];
         this.modActionLoading.set(null);
+        this.toast.success('Listing rejected.');
       },
       error: () => {
         this.modActionLoading.set(null);
+        this.toast.error('Failed to reject listing.');
       },
     });
   }

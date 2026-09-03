@@ -96,6 +96,7 @@ export const TAB = {
   ADS: 'ads',
   LISTINGS: 'listings',
   SHORTS: 'shorts',
+  REVIEWS: 'reviews',
 } as const;
 
 export type TabType = (typeof TAB)[keyof typeof TAB];

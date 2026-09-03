@@ -1,0 +1,64 @@
+<app-modal title="Report" [subtitle]="subtitle()" size="md" (closed)="close()">
+  <div class="report-form">
+    @if (error()) {
+      <div class="alert alert-error">{{ error() }}</div>
+    }
+
+    <div class="form-group">
+      <label class="form-label">Reason</label>
+      <app-custom-select
+        [options]="reasonOptions"
+        [ngModel]="reason()"
+        (ngModelChange)="reason.set($event)"
+        placeholder="Select a reason"
+      ></app-custom-select>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label">What's the problem?</label>
+      <textarea
+        class="form-input"
+        rows="4"
+        [ngModel]="message()"
+        (ngModelChange)="onMessageChange($event)"
+        placeholder="Describe what happened. Be specific — include names, prices, or links where relevant."
+      ></textarea>
+      <div class="char-count">{{ messageLength() }}/{{ MAX_MESSAGE }}</div>
+    </div>
+
+    <div class="form-group">
+      <label class="form-label"> Screenshots (optional, up to {{ MAX_SCREENSHOTS }}) </label>
+      <input
+        type="file"
+        accept="image/jpeg,image/png,image/webp"
+        multiple
+        (change)="onFilesSelected($event)"
+        [disabled]="previews().length >= MAX_SCREENSHOTS"
+      />
+      @if (previews().length > 0) {
+        <div class="screenshot-previews">
+          @for (p of previews(); track p.url; let i = $index) {
+            <div class="preview-thumb">
+              <img [src]="p.url" alt="Screenshot preview" />
+              <button
+                type="button"
+                class="remove-btn"
+                aria-label="Remove screenshot"
+                (click)="removeScreenshot(i)"
+              >
+                <span class="material-symbols-rounded">close</span>
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  </div>
+
+  <div slot="footer" class="report-actions">
+    <button type="button" class="btn btn-outline" (click)="close()">Cancel</button>
+    <button type="button" class="btn btn-primary" [disabled]="!isValid()" (click)="submit()">
+      {{ submitting() ? 'Submitting…' : 'Submit report' }}
+    </button>
+  </div>
+</app-modal>

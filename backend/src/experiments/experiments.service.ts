@@ -38,11 +38,49 @@ export interface VariantMetrics {
   subjects: number;
   impressions: number;
   clicks: number;
-  ctr: number; // click-through rate
+  ctr: number; // click-through rate (clicks / impressions), percent
   favorites: number;
   contacts: number;
   conversions: number;
   avgClickPosition: number;
+  /** Whether this variant is treated as the baseline for comparisons. */
+  isControl: boolean;
+  /**
+   * Conversion rate = converting subjects / exposed subjects, as a percentage.
+   * "Converting" counts distinct subjects with a CONVERSION event, so the rate
+   * is bounded 0–100 and comparable across variants of different sizes.
+   */
+  conversionRate: number;
+  /** Distinct subjects who fired at least one CONVERSION event. */
+  convertedSubjects: number;
+  /**
+   * Relative change in conversion rate versus the control, as a percentage
+   * (e.g. +12.5 means 12.5% better than control). Null for the control itself
+   * or when the control has no conversion rate to compare against.
+   */
+  upliftVsControl: number | null;
+  /**
+   * Two-proportion z-test p-value for this variant's conversion rate against
+   * the control. Null for the control or when there isn't enough data.
+   */
+  pValue: number | null;
+  /** Confidence that the difference from control is real (100 - p*100), percent. */
+  confidence: number | null;
+  /** True when confidence ≥ 95% (p ≤ 0.05). */
+  isSignificant: boolean;
+}
+
+export interface ExperimentAnalysis extends ExperimentMetrics {
+  /** The variantId used as the control/baseline (first variant by default). */
+  controlVariantId: string | null;
+  /**
+   * The recommended winner: the significant variant with the highest
+   * conversion rate. Null when no variant reaches significance.
+   */
+  winnerVariantId: string | null;
+  /** Date range the metrics were computed over, echoed back for the UI. */
+  dateFrom?: string;
+  dateTo?: string;
 }
 
 @Injectable()
@@ -136,15 +174,20 @@ export class ExperimentsService {
       metadata?: Record<string, any>;
     },
   ): Promise<void> {
+    // Guard the cast even though the DTO validates it: the service is also
+    // callable from other modules, and `new Types.ObjectId(bad)` throws.
+    const listingObjectId =
+      data?.listingId && Types.ObjectId.isValid(data.listingId)
+        ? new Types.ObjectId(data.listingId)
+        : undefined;
+
     await this.eventModel.create({
       experimentKey,
       variantId,
       eventType,
       subjectId,
       searchQuery: data?.searchQuery,
-      listingId: data?.listingId
-        ? new Types.ObjectId(data.listingId)
-        : undefined,
+      listingId: listingObjectId,
       position: data?.position,
       totalResults: data?.totalResults,
       metadata: data?.metadata,
@@ -153,7 +196,20 @@ export class ExperimentsService {
 
   // ── Analytics ─────────────────────────────────────────────────
 
-  async getMetrics(experimentKey: string): Promise<ExperimentMetrics> {
+  /**
+   * Detailed analysis for one experiment: per-variant funnel counts, unique
+   * subjects, CTR, conversion rate, and — against the control variant — uplift,
+   * a two-proportion z-test p-value, confidence, and a significance flag.
+   *
+   * `dateFrom`/`dateTo` (ISO strings) optionally scope the event window so an
+   * admin can inspect a specific period; omitted, it covers all retained events.
+   * The first variant is treated as the control unless `controlVariantId` is
+   * given, matching how experiments are conventionally authored (control first).
+   */
+  async getMetrics(
+    experimentKey: string,
+    options?: { dateFrom?: string; dateTo?: string; controlVariantId?: string },
+  ): Promise<ExperimentAnalysis> {
     const experiment = await this.experimentModel
       .findOne({ key: experimentKey })
       .lean()
@@ -162,8 +218,12 @@ export class ExperimentsService {
       throw new NotFoundException(`Experiment "${experimentKey}" not found`);
     }
 
+    const match: Record<string, any> = { experimentKey };
+    const createdAt = this.buildDateRange(options?.dateFrom, options?.dateTo);
+    if (createdAt) match.createdAt = createdAt;
+
     const pipeline = [
-      { $match: { experimentKey } },
+      { $match: match },
       {
         $group: {
           _id: { variantId: '$variantId', eventType: '$eventType' },
@@ -175,6 +235,10 @@ export class ExperimentsService {
     ];
 
     const results = await this.eventModel.aggregate(pipeline).exec();
+
+    // Determine the control variant up front so its rate can anchor comparisons.
+    const controlVariantId =
+      options?.controlVariantId ?? experiment.variants[0]?.id ?? null;
 
     // Build metrics per variant
     const variantMetrics: Map<string, VariantMetrics> = new Map();
@@ -191,11 +255,20 @@ export class ExperimentsService {
         contacts: 0,
         conversions: 0,
         avgClickPosition: 0,
+        isControl: variant.id === controlVariantId,
+        conversionRate: 0,
+        convertedSubjects: 0,
+        upliftVsControl: null,
+        pValue: null,
+        confidence: null,
+        isSignificant: false,
       });
     }
 
-    // Populate from aggregation results
+    // Distinct subjects across all events (exposure) and distinct converting
+    // subjects, tracked separately so the conversion rate is per-subject.
     const subjectSets = new Map<string, Set<string>>();
+    const convertedSets = new Map<string, Set<string>>();
     for (const row of results) {
       const { variantId, eventType } = row._id;
       const metrics = variantMetrics.get(variantId);
@@ -220,19 +293,65 @@ export class ExperimentsService {
           break;
         case ExperimentEventType.CONVERSION:
           metrics.conversions = row.count;
+          convertedSets.set(variantId, new Set(row.uniqueSubjects));
           break;
       }
     }
 
-    // Calculate CTR and subject counts
+    // Calculate CTR, subject counts, and conversion rate.
     let totalSubjects = 0;
     for (const [variantId, metrics] of variantMetrics) {
       metrics.subjects = subjectSets.get(variantId)?.size ?? 0;
-      metrics.ctr =
-        metrics.impressions > 0
-          ? Math.round((metrics.clicks / metrics.impressions) * 10000) / 100
-          : 0;
+      metrics.convertedSubjects = convertedSets.get(variantId)?.size ?? 0;
+      metrics.ctr = roundPct(metrics.clicks, metrics.impressions);
+      metrics.conversionRate = roundPct(
+        metrics.convertedSubjects,
+        metrics.subjects,
+      );
       totalSubjects += metrics.subjects;
+    }
+
+    // Significance vs control (two-proportion z-test on conversion).
+    const control = controlVariantId
+      ? variantMetrics.get(controlVariantId)
+      : undefined;
+    let winnerVariantId: string | null = null;
+    let bestRate = control?.conversionRate ?? 0;
+
+    if (control) {
+      for (const metrics of variantMetrics.values()) {
+        if (metrics.variantId === control.variantId) continue;
+
+        metrics.upliftVsControl =
+          control.conversionRate > 0
+            ? Math.round(
+                ((metrics.conversionRate - control.conversionRate) /
+                  control.conversionRate) *
+                  1000,
+              ) / 10
+            : null;
+
+        const p = twoProportionPValue(
+          metrics.convertedSubjects,
+          metrics.subjects,
+          control.convertedSubjects,
+          control.subjects,
+        );
+        metrics.pValue = p;
+        metrics.confidence =
+          p === null ? null : Math.round((1 - p) * 1000) / 10;
+        metrics.isSignificant = p !== null && p <= 0.05;
+
+        // A winner must beat the control on conversion AND be significant.
+        if (
+          metrics.isSignificant &&
+          metrics.conversionRate > bestRate &&
+          metrics.conversionRate > control.conversionRate
+        ) {
+          bestRate = metrics.conversionRate;
+          winnerVariantId = metrics.variantId;
+        }
+      }
     }
 
     return {
@@ -242,7 +361,32 @@ export class ExperimentsService {
       variants: Array.from(variantMetrics.values()),
       startedAt: experiment.startedAt,
       totalSubjects,
+      controlVariantId,
+      winnerVariantId,
+      dateFrom: options?.dateFrom,
+      dateTo: options?.dateTo,
     };
+  }
+
+  /** Build a Mongo `createdAt` range from ISO date strings, or null if none. */
+  private buildDateRange(
+    dateFrom?: string,
+    dateTo?: string,
+  ): { $gte?: Date; $lte?: Date } | null {
+    const range: { $gte?: Date; $lte?: Date } = {};
+    if (dateFrom) {
+      const d = new Date(dateFrom);
+      if (!isNaN(d.getTime())) range.$gte = d;
+    }
+    if (dateTo) {
+      const d = new Date(dateTo);
+      if (!isNaN(d.getTime())) {
+        // Inclusive of the whole "to" day.
+        d.setHours(23, 59, 59, 999);
+        range.$lte = d;
+      }
+    }
+    return range.$gte || range.$lte ? range : null;
   }
 
   // ── CRUD ──────────────────────────────────────────────────────
@@ -327,4 +471,64 @@ export class ExperimentsService {
     this.lastRefresh = now;
     return this.runningExperiments;
   }
+}
+
+// ── Statistics helpers ──────────────────────────────────────────
+//
+// Kept as pure module functions (not methods) so they are trivially unit
+// testable and free of any Mongo/Nest dependencies.
+
+/** numerator/denominator as a percentage rounded to 2 dp; 0 when denom is 0. */
+export function roundPct(numerator: number, denominator: number): number {
+  if (denominator <= 0) return 0;
+  return Math.round((numerator / denominator) * 10000) / 100;
+}
+
+/**
+ * Two-proportion z-test, returning a two-tailed p-value for the difference
+ * between a variant's and the control's conversion proportion.
+ *
+ * Returns null when there isn't enough data for the normal approximation to be
+ * meaningful (any group empty, or the pooled proportion degenerate at 0 or 1) —
+ * the caller then reports "not enough data" rather than a misleading p-value.
+ */
+export function twoProportionPValue(
+  convA: number,
+  nA: number,
+  convB: number,
+  nB: number,
+): number | null {
+  if (nA <= 0 || nB <= 0) return null;
+
+  const pA = convA / nA;
+  const pB = convB / nB;
+  const pPooled = (convA + convB) / (nA + nB);
+  if (pPooled <= 0 || pPooled >= 1) return null;
+
+  const se = Math.sqrt(pPooled * (1 - pPooled) * (1 / nA + 1 / nB));
+  if (se === 0) return null;
+
+  const z = (pA - pB) / se;
+  // Two-tailed: P(|Z| > |z|) = 2 * (1 - Φ(|z|)).
+  const p = 2 * (1 - normalCdf(Math.abs(z)));
+  // Clamp to [0,1] against tiny floating-point overshoot.
+  return Math.min(1, Math.max(0, p));
+}
+
+/**
+ * Standard normal CDF via the Abramowitz & Stegun 7.1.26 error-function
+ * approximation (max abs error ~1.5e-7) — accurate enough for A/B confidence
+ * reporting without pulling in a stats dependency.
+ */
+export function normalCdf(x: number): number {
+  const t = 1 / (1 + 0.2316419 * Math.abs(x));
+  const d = 0.3989422804014327 * Math.exp(-(x * x) / 2);
+  const prob =
+    d *
+    t *
+    (0.31938153 +
+      t *
+        (-0.356563782 +
+          t * (1.781477937 + t * (-1.821255978 + t * 1.330274429))));
+  return x > 0 ? 1 - prob : prob;
 }

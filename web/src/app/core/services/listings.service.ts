@@ -6,6 +6,7 @@ import { Listing } from '../models';
 import { STORAGE_SELECTED_LOCATION } from '../constants/storage-keys';
 import { DEFAULT_COUNTRY } from '../constants/app';
 import { API } from '../constants/api-endpoints';
+import { OwnListingView } from '../constants/own-listing-view';
 
 export interface ListingsResponse {
   data: Listing[];
@@ -143,14 +144,30 @@ export class ListingsService {
     return this.api.get<Listing>(API.LISTING_BY_ID(id));
   }
 
-  getMyListings(page: number = 1, limit: number = 20): Observable<ListingsResponse> {
+  /**
+   * The seller's own listings, optionally narrowed to one view.
+   *
+   * The view is applied server-side so it composes with pagination: filtering the
+   * loaded page instead would show "3 of 40" while hiding matches on later pages.
+   */
+  getMyListings(
+    page: number = 1,
+    limit: number = 20,
+    view: OwnListingView = 'all',
+  ): Observable<ListingsResponse> {
     return this.api.get<ListingsResponse>(API.LISTINGS, {
       mine: true,
       page,
       limit,
       sort: 'createdAt',
       order: 'desc',
+      view,
     });
+  }
+
+  /** How many of the seller's listings sit in each view, for the filter tabs. */
+  getMyViewCounts(): Observable<Record<OwnListingView, number>> {
+    return this.api.get<Record<OwnListingView, number>>(API.LISTINGS_MY_VIEW_COUNTS);
   }
 
   create(payload: CreateListingPayload): Observable<Listing> {

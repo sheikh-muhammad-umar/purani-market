@@ -43,6 +43,8 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
   readonly descExpanded = signal(false);
   readonly isLiked = signal(false);
   readonly likeCount = signal(0);
+  /** Guards against double-firing like/unlike from rapid taps. */
+  readonly likePending = signal(false);
   readonly sellerInitial = computed(() =>
     (this.short?.sellerId?.profile?.firstName?.[0] || 'S').toUpperCase(),
   );
@@ -53,6 +55,8 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
 
   private animationFrame: number | null = null;
   private viewInitialized = false;
+  /** Ensures a full watch-through is reported at most once per instance. */
+  private watchCompleteTracked = false;
 
   constructor(
     private readonly shortsService: ShortsService,
@@ -167,26 +171,60 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
     }
   }
 
+  /**
+   * Fires when the video reaches the end. The player loops, so this marks a
+   * full watch-through. Reported once per player instance to avoid inflating
+   * the metric while the loop keeps replaying.
+   */
+  onVideoEnded(): void {
+    if (this.watchCompleteTracked) return;
+    this.watchCompleteTracked = true;
+    const video = this.videoRef?.nativeElement;
+    this.tracker.track(TrackingEvent.SHORT_VIEW, {
+      shortVideoId: this.short._id,
+      metadata: {
+        sellerId: this.short.sellerId._id,
+        completed: true,
+        watchSeconds: video?.duration ? Math.round(video.duration) : undefined,
+      },
+    });
+  }
+
   toggleLike(): void {
-    if (this.isLiked()) {
-      this.shortsService.unlikeShort(this.short._id).subscribe({
-        next: (res) => {
-          this.isLiked.set(false);
-          this.likeCount.set(res.favoriteCount);
-          this.tracker.track(TrackingEvent.SHORT_UNLIKE, { metadata: { shortId: this.short._id } });
-        },
-      });
-    } else {
-      this.shortsService.likeShort(this.short._id).subscribe({
-        next: (res) => {
-          this.isLiked.set(true);
-          this.likeCount.set(res.favoriteCount);
-          this.tracker.track(TrackingEvent.SHORT_LIKE, {
-            metadata: { shortId: this.short._id, sellerId: this.short.sellerId._id },
-          });
-        },
-      });
-    }
+    // In-flight lock: ignore taps until the current request settles, so rapid
+    // taps cannot fire overlapping like/unlike calls.
+    if (this.likePending()) return;
+
+    const wasLiked = this.isLiked();
+    const prevCount = this.likeCount();
+
+    // Optimistic update — flip immediately, reconcile with the server response.
+    this.isLiked.set(!wasLiked);
+    this.likeCount.set(prevCount + (wasLiked ? -1 : 1));
+    this.likePending.set(true);
+
+    const request$ = wasLiked
+      ? this.shortsService.unlikeShort(this.short._id)
+      : this.shortsService.likeShort(this.short._id);
+
+    request$.subscribe({
+      next: (res) => {
+        this.isLiked.set(res.liked);
+        this.likeCount.set(res.favoriteCount);
+        this.likePending.set(false);
+        this.tracker.track(wasLiked ? TrackingEvent.SHORT_UNLIKE : TrackingEvent.SHORT_LIKE, {
+          shortVideoId: this.short._id,
+          metadata: { sellerId: this.short.sellerId._id },
+        });
+      },
+      error: () => {
+        // Roll back the optimistic change and let the user know.
+        this.isLiked.set(wasLiked);
+        this.likeCount.set(prevCount);
+        this.likePending.set(false);
+        this.toast.error('Could not update your like. Please try again.');
+      },
+    });
   }
 
   startChat(): void {
@@ -234,19 +272,35 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
 
   shareShort(): void {
     this.tracker.track(TrackingEvent.SHORT_SHARE, {
-      metadata: { shortId: this.short._id, sellerId: this.short.sellerId._id },
+      shortVideoId: this.short._id,
+      metadata: { sellerId: this.short.sellerId._id },
     });
+
+    // Record the share server-side so it counts toward shareCount/analytics.
+    // Best-effort — a failure here must not block the share UX.
+    this.shortsService.shareShort(this.short._id).subscribe({ error: () => {} });
 
     const url = `${window.location.origin}/shorts?id=${this.short._id}`;
     const title = this.short.title || this.short.description || 'Check out this short';
 
     if (navigator.share) {
-      navigator.share({ title, url }).catch(() => {});
-    } else {
-      navigator.clipboard.writeText(url).then(
-        () => this.toast.success('Link copied to clipboard'),
+      navigator.share({ title, url }).then(
         () => {},
+        (err: any) => {
+          // AbortError = the user dismissed the share sheet; not worth a toast.
+          if (err?.name === 'AbortError') return;
+          this.copyLinkFallback(url);
+        },
       );
+    } else {
+      this.copyLinkFallback(url);
     }
+  }
+
+  private copyLinkFallback(url: string): void {
+    navigator.clipboard.writeText(url).then(
+      () => this.toast.success('Link copied to clipboard'),
+      () => this.toast.error('Could not share this short.'),
+    );
   }
 }

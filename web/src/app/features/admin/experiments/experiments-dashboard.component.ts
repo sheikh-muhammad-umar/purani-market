@@ -18,6 +18,8 @@ import {
 } from '../../../shared/components/custom-select/custom-select.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
 import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { ChartComponent } from '../../../shared/components/chart/chart.component';
+import type { ChartSeries } from '../../../shared/components/chart/chart.types';
 import {
   Experiment,
   ExperimentMetrics,
@@ -36,6 +38,7 @@ import {
     CustomSelectComponent,
     EmptyStateComponent,
     ModalComponent,
+    ChartComponent,
   ],
   templateUrl: './experiments-dashboard.component.html',
   styleUrl: './experiments-dashboard.component.scss',
@@ -65,12 +68,67 @@ export class ExperimentsDashboardComponent implements OnInit {
   // Metrics view
   readonly selectedMetrics = signal<ExperimentMetrics | null>(null);
   readonly metricsLoading = signal(false);
-  readonly winningVariant = computed(() => {
+  private metricsKey: string | null = null;
+
+  // Metrics date range (applied to the results query).
+  metricsDateFrom = '';
+  metricsDateTo = '';
+
+  /**
+   * The statistically-sound winner: the variant the backend flagged as
+   * significant with the highest conversion. Null until one variant is proven
+   * better — deliberately conservative so we never crown a lead that is noise.
+   */
+  readonly winningVariant = computed<VariantMetrics | null>(() => {
+    const metrics = this.selectedMetrics();
+    if (!metrics?.winnerVariantId) return null;
+    return metrics.variants.find((v) => v.variantId === metrics.winnerVariantId) ?? null;
+  });
+
+  /**
+   * The variant currently ahead on conversion rate, whether or not it is
+   * significant. Shown as "leading" so the admin sees direction of travel
+   * before significance is reached, without mistaking it for a decision.
+   */
+  readonly leadingVariant = computed<VariantMetrics | null>(() => {
     const metrics = this.selectedMetrics();
     if (!metrics || metrics.variants.length === 0) return null;
-    const withData = metrics.variants.filter((v) => v.impressions > 0);
+    const withData = metrics.variants.filter((v) => v.subjects > 0);
     if (withData.length === 0) return null;
-    return withData.reduce((best, v) => (v.ctr > best.ctr ? v : best));
+    return withData.reduce((best, v) => (v.conversionRate > best.conversionRate ? v : best));
+  });
+
+  readonly controlVariant = computed<VariantMetrics | null>(() => {
+    const metrics = this.selectedMetrics();
+    if (!metrics) return null;
+    return metrics.variants.find((v) => v.isControl) ?? null;
+  });
+
+  /** Conversion rate per variant, as a bar chart. */
+  readonly conversionChart = computed<{ labels: string[]; series: ChartSeries[] }>(() => {
+    const variants = this.selectedMetrics()?.variants ?? [];
+    return {
+      labels: variants.map((v) => v.variantName),
+      series: [
+        {
+          label: 'Conversion rate',
+          data: variants.map((v) => v.conversionRate),
+          color: 'success',
+        },
+      ],
+    };
+  });
+
+  /** Funnel counts (impressions → clicks → favorites → contacts → conversions). */
+  readonly funnelChart = computed<{ labels: string[]; series: ChartSeries[] }>(() => {
+    const variants = this.selectedMetrics()?.variants ?? [];
+    return {
+      labels: ['Impressions', 'Clicks', 'Favorites', 'Contacts', 'Conversions'],
+      series: variants.map((v) => ({
+        label: v.variantName,
+        data: [v.impressions, v.clicks, v.favorites, v.contacts, v.conversions],
+      })),
+    };
   });
 
   readonly filteredExperiments = computed(() => {
@@ -274,9 +332,28 @@ export class ExperimentsDashboardComponent implements OnInit {
   // ── Metrics ───────────────────────────────────────────────────
 
   viewMetrics(key: string): void {
+    this.metricsKey = key;
+    this.loadMetrics();
+  }
+
+  /** Re-fetch metrics for the open experiment, applying the current date range. */
+  applyMetricsDateRange(): void {
+    if (this.metricsKey) this.loadMetrics();
+  }
+
+  private loadMetrics(): void {
+    const key = this.metricsKey;
+    if (!key) return;
+
     this.metricsLoading.set(true);
+    const params: Record<string, string> = {};
+    if (this.metricsDateFrom) params['dateFrom'] = this.metricsDateFrom;
+    if (this.metricsDateTo) params['dateTo'] = this.metricsDateTo;
+
     this.http
-      .get<ExperimentMetrics>(`${this.apiUrl}${API.EXPERIMENT_METRICS(key)}`)
+      .get<ExperimentMetrics>(`${this.apiUrl}${API.EXPERIMENT_METRICS(key)}`, {
+        params,
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (metrics) => {
@@ -292,6 +369,30 @@ export class ExperimentsDashboardComponent implements OnInit {
 
   closeMetrics(): void {
     this.selectedMetrics.set(null);
+    this.metricsKey = null;
+    this.metricsDateFrom = '';
+    this.metricsDateTo = '';
+  }
+
+  /** Human label for a variant's significance state. */
+  significanceLabel(v: VariantMetrics): string {
+    if (v.isControl) return 'Control';
+    if (v.confidence === null) return 'Not enough data';
+    if (v.isSignificant) return `Significant (${v.confidence}%)`;
+    return `Not significant (${v.confidence}%)`;
+  }
+
+  significanceColor(v: VariantMetrics): string {
+    if (v.isControl) return 'var(--text-muted)';
+    if (v.confidence === null) return 'var(--text-muted)';
+    return v.isSignificant ? 'var(--success)' : 'var(--warning)';
+  }
+
+  /** Formats an uplift value like "+12.5%" / "-4%", or "—" when not comparable. */
+  formatUplift(uplift: number | null): string {
+    if (uplift === null) return '—';
+    const sign = uplift > 0 ? '+' : '';
+    return `${sign}${uplift}%`;
   }
 
   getStatusColor(status: string): string {

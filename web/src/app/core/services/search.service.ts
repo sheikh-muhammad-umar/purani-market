@@ -2,6 +2,7 @@ import { Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { ApiService } from './api.service';
 import { Listing } from '../models';
+import { ShortVideo } from './shorts.service';
 import { API } from '../constants/api-endpoints';
 
 export interface SearchParams {
@@ -54,6 +55,19 @@ export interface SearchSuggestion {
   type: 'recent' | 'trending' | 'ai';
 }
 
+/**
+ * Shorts search results. Items are a partial {@link ShortVideo} — the search
+ * index stores only what's needed to render a short-card, so fields like
+ * `video.duration` and `currency` may be absent (the card tolerates that).
+ */
+export interface ShortsSearchResponse {
+  items: ShortVideo[];
+  total: number;
+  page: number;
+  limit: number;
+  totalPages: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class SearchService {
   constructor(private readonly api: ApiService) {}
@@ -70,5 +84,15 @@ export class SearchService {
 
   getSuggestions(query: string): Observable<SearchSuggestion[]> {
     return this.api.get<SearchSuggestion[]>(API.SEARCH_SUGGESTIONS, { q: query });
+  }
+
+  searchShorts(params: SearchParams): Observable<ShortsSearchResponse> {
+    const cleanParams: Record<string, string | number | boolean> = {};
+    Object.entries(params).forEach(([key, value]) => {
+      if (value !== undefined && value !== null && value !== '') {
+        cleanParams[key] = value;
+      }
+    });
+    return this.api.get<ShortsSearchResponse>(API.SEARCH_SHORTS, cleanParams);
   }
 }

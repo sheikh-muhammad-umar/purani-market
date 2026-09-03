@@ -22,7 +22,28 @@ export class ReviewsService {
     return this.api.get<ReviewsResponse>(API.REVIEWS_BY_SELLER(sellerId));
   }
 
-  submit(review: { productListingId: string; rating: number; text: string }): Observable<Review> {
-    return this.api.post<Review>(API.REVIEWS, review);
+  /**
+   * Submit a review. Sent as multipart/form-data so up to two optional photos
+   * ride along; the browser sets the multipart boundary, so no Content-Type is
+   * set by hand.
+   */
+  submit(review: {
+    sellerId: string;
+    rating: number;
+    text: string;
+    productListingId?: string;
+    images?: File[];
+  }): Observable<Review> {
+    const fd = new FormData();
+    fd.append('sellerId', review.sellerId);
+    fd.append('rating', String(review.rating));
+    fd.append('text', review.text);
+    if (review.productListingId) {
+      fd.append('productListingId', review.productListingId);
+    }
+    for (const file of review.images ?? []) {
+      fd.append('images', file);
+    }
+    return this.api.post<Review>(API.REVIEWS, fd);
   }
 }

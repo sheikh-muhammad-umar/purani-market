@@ -16,6 +16,7 @@ import { AdPackageType } from '../packages/schemas/ad-package.schema';
 import { EntitlementKind } from '../packages/entitlements';
 import { PackagesService } from '../packages/packages.service';
 import { ViewCounterService } from '../views/view-counter.service';
+import { SearchSyncService } from '../search/search-sync.service';
 import { User } from '../users/schemas/user.schema';
 import { StorageService } from '../listings/storage.service';
 import { NotificationsService } from '../notifications/notifications.service';
@@ -172,6 +173,13 @@ describe('ShortsService — shorts entitlement', () => {
         {
           provide: ViewCounterService,
           useValue: { shouldCountView: jest.fn().mockResolvedValue(true) },
+        },
+        {
+          provide: SearchSyncService,
+          useValue: {
+            indexShort: jest.fn().mockResolvedValue(undefined),
+            removeShort: jest.fn().mockResolvedValue(undefined),
+          },
         },
       ],
     }).compile();

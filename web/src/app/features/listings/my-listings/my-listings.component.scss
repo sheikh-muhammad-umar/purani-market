@@ -23,9 +23,16 @@
   flex-shrink: 0;
 
   .btn {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
     white-space: nowrap;
     padding: var(--space-1) var(--space-2);
     font-size: var(--text-sm);
+  }
+
+  .inline-icon {
+    font-size: 18px;
   }
 }
 
@@ -322,7 +329,9 @@
 .meters-row {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--space-2);
+  gap: var(--space-3);
+  /* Separate the meters from the stat tiles above, which otherwise sit flush. */
+  margin-top: var(--space-3);
   margin-bottom: var(--space-3);
 
   @media (max-width: 767px) {
@@ -331,7 +340,7 @@
 }
 
 .meter-card {
-  padding: var(--space-2) var(--space-3);
+  padding: var(--space-3) var(--space-4);
   &:hover {
     transform: none;
   }
@@ -340,7 +349,7 @@
 .meter-title {
   font-size: var(--text-base);
   font-weight: var(--weight-semibold);
-  margin-bottom: var(--space-1);
+  margin-bottom: var(--space-2);
 }
 
 .meter-bar-container {
@@ -688,12 +697,13 @@
   }
 
   .meters-row {
-    gap: var(--space-1);
+    gap: var(--space-2);
+    margin-top: var(--space-2);
     margin-bottom: var(--space-2);
   }
 
   .meter-card {
-    padding: var(--space-2);
+    padding: var(--space-3);
   }
 
   /* Convert table to card list */
@@ -857,5 +867,100 @@
   .listing-thumb {
     width: 48px;
     height: 48px;
+  }
+}
+
+/* ─── Status filter chips ─────────────────────────────────── */
+.view-filters {
+  display: flex;
+  gap: var(--space-1);
+  margin-bottom: var(--space-2);
+  padding-bottom: var(--space-half);
+  /* Scrolls rather than wrapping: seven chips would stack into three rows on a
+     phone and push the table below the fold. */
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+}
+
+.view-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-half);
+  flex: 0 0 auto;
+  padding: 8px var(--space-2);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--card);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: var(--text-sm);
+  font-weight: var(--weight-semibold);
+  cursor: pointer;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+
+  &:hover {
+    border-color: var(--primary);
+    color: var(--text-primary);
+  }
+
+  /* Keyboard focus must stay obvious — these are the primary navigation for the
+     page and are reachable by tab. */
+  &:focus-visible {
+    outline: none;
+    box-shadow: var(--shadow-focus);
+    border-color: var(--primary);
+  }
+
+  &.selected {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: #fff;
+  }
+}
+
+.view-chip-icon {
+  font-size: 18px;
+}
+
+.view-chip-count {
+  min-width: 20px;
+  padding: 0 6px;
+  border-radius: var(--radius-full);
+  background: var(--background);
+  color: var(--text-secondary);
+  font-family: var(--font-mono);
+  font-size: var(--text-xs);
+  line-height: 20px;
+  text-align: center;
+
+  .view-chip.selected & {
+    /* Translucent white so the badge stays legible on the filled chip without a
+       second colour to maintain. */
+    background: rgba(255, 255, 255, 0.25);
+    color: #fff;
+  }
+}
+
+@media (max-width: 767px) {
+  .view-chip {
+    padding: 6px var(--space-1);
+    font-size: var(--text-xs);
+  }
+
+  .view-chip-icon {
+    font-size: 16px;
+  }
+}
+
+/* Very small phones: the icon alone carries the chip that is selected, and
+   labels stay for the rest, so the row still fits without truncation. */
+@media (max-width: 375px) {
+  .view-chip-icon {
+    display: none;
   }
 }

@@ -1,7 +1,10 @@
 export const BCRYPT_COST_FACTOR = 12;
 export const EMAIL_TOKEN_EXPIRY_HOURS = 24;
 export const PHONE_OTP_EXPIRY_MINUTES = 10;
+export const EMAIL_OTP_EXPIRY_MINUTES = 10;
 export const MAX_RESENDS_PER_HOUR = 5;
+/** Max failed verification attempts allowed against a single OTP before it is invalidated. */
+export const MAX_OTP_VERIFY_ATTEMPTS = 5;
 export const UNVERIFIED_REMINDER_HOURS = 24;
 export const MFA_MAX_FAILED_ATTEMPTS = 5;
 export const MFA_FAILED_WINDOW_MINUTES = 15;

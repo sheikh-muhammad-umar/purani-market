@@ -44,6 +44,15 @@ export class ShortsVideoService {
       // Get video info (duration, dimensions)
       const info = await this.getVideoInfo(inputPath);
 
+      // A video we cannot probe cannot be size-checked. Rejecting here closes
+      // the hole where an unprobable (or crafted) file defaulted to duration 0
+      // and slipped past the 60s cap into storage.
+      if (!info.probed || !(info.duration > 0)) {
+        throw new BadRequestException(
+          'Could not read this video. Please upload a valid MP4, WebM, or MOV file.',
+        );
+      }
+
       if (info.duration > this.MAX_DURATION) {
         throw new BadRequestException(
           `Video duration (${Math.ceil(info.duration)}s) exceeds maximum of ${this.MAX_DURATION}s. Please trim your video before uploading.`,
@@ -123,9 +132,12 @@ export class ShortsVideoService {
     }
   }
 
-  private async getVideoInfo(
-    filePath: string,
-  ): Promise<{ duration: number; width: number; height: number }> {
+  private async getVideoInfo(filePath: string): Promise<{
+    duration: number;
+    width: number;
+    height: number;
+    probed: boolean;
+  }> {
     try {
       const { stdout } = await execFileAsync('ffprobe', [
         '-v',
@@ -146,12 +158,15 @@ export class ShortsVideoService {
         duration: parseFloat(data.format?.duration ?? '0'),
         width: videoStream?.width ?? 720,
         height: videoStream?.height ?? 1280,
+        // Only a real video stream counts as a successful probe. A file with no
+        // video stream (audio-only, corrupt) must not pass the duration gate.
+        probed: !!videoStream,
       };
     } catch (err) {
-      this.logger.warn(
-        `ffprobe failed, using defaults: ${(err as Error).message}`,
-      );
-      return { duration: 0, width: 720, height: 1280 };
+      // `probed: false` — the caller rejects the upload rather than defaulting
+      // the duration to 0 and letting an unbounded file through.
+      this.logger.warn(`ffprobe failed: ${(err as Error).message}`);
+      return { duration: 0, width: 720, height: 1280, probed: false };
     }
   }
 

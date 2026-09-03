@@ -1,0 +1,2635 @@
+[{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832595"
+  },
+  "name": "Adam",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.054Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:29:13.173Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832597"
+  },
+  "name": "Audi",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.069Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.069Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325ad"
+  },
+  "name": "BAIC",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.100Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.100Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325b1"
+  },
+  "name": "BMW",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.105Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:26:55.916Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325c7"
+  },
+  "name": "BYD",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.135Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.135Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325cd"
+  },
+  "name": "Bentley",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.142Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.142Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d0"
+  },
+  "name": "Bugatti",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.145Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.145Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d2"
+  },
+  "name": "Buick",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.147Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.147Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d5"
+  },
+  "name": "Cadillac",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.152Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.152Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325d8"
+  },
+  "name": "Changan",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.155Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.155Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325f1"
+  },
+  "name": "Chery",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.189Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.189Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8325f9"
+  },
+  "name": "Chevrolet",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.201Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.201Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832603"
+  },
+  "name": "Chrysler",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.213Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.213Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832605"
+  },
+  "name": "DFSK",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.216Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.216Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83260a"
+  },
+  "name": "Daehan",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.222Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.222Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83260c"
+  },
+  "name": "Daewoo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.224Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.224Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83260f"
+  },
+  "name": "Daihatsu",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.228Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.228Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832636"
+  },
+  "name": "Datsun",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.274Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.274Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83263b"
+  },
+  "name": "Deepal",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.280Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.280Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83263f"
+  },
+  "name": "Dodge",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.285Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.285Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832643"
+  },
+  "name": "Dongfeng",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.289Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.289Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832647"
+  },
+  "name": "FAW",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.294Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.294Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83264d"
+  },
+  "name": "Fiat",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.301Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.301Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832650"
+  },
+  "name": "Ford",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.304Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.304Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832658"
+  },
+  "name": "Forthing",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.313Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.313Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83265a"
+  },
+  "name": "GAC",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.315Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.315Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83265c"
+  },
+  "name": "GMC",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.317Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.317Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83265e"
+  },
+  "name": "GUGO",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.319Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.319Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832661"
+  },
+  "name": "Genesis",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.323Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.323Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832663"
+  },
+  "name": "Haval",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.325Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.325Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83266d"
+  },
+  "name": "Hino",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.336Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.336Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83266f"
+  },
+  "name": "Honda",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.338Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.338Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326a3"
+  },
+  "name": "Honri",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.400Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.400Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326a5"
+  },
+  "name": "Hummer",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.402Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.402Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326a8"
+  },
+  "name": "Hyundai",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.405Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.405Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326bc"
+  },
+  "name": "Isuzu",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.428Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.428Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326c1"
+  },
+  "name": "JAC",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.434Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.434Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326c5"
+  },
+  "name": "JMEV",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.438Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.438Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326c7"
+  },
+  "name": "JW Forland",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.440Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.440Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326cb"
+  },
+  "name": "Jaecoo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.445Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.445Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326cf"
+  },
+  "name": "Jaguar",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.448Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.448Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326d3"
+  },
+  "name": "Jeep",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.453Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.453Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326d9"
+  },
+  "name": "Jetour",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.459Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.459Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326dc"
+  },
+  "name": "KIA",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.462Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.462Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326f8"
+  },
+  "name": "Land Rover",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.492Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.492Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8326fc"
+  },
+  "name": "Lexus",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.496Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.496Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832708"
+  },
+  "name": "MG",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.521Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.521Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832716"
+  },
+  "name": "MINI",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.536Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.536Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832718"
+  },
+  "name": "Master",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.538Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.538Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83271a"
+  },
+  "name": "Mazda",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.540Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.540Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832736"
+  },
+  "name": "Mercedes-Benz",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.575Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.575Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83275b"
+  },
+  "name": "Mitsubishi",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.621Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.621Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832777"
+  },
+  "name": "Mushtaq",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.654Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.654Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832779"
+  },
+  "name": "Nissan",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.656Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.656Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327b3"
+  },
+  "name": "ORA",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.733Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.733Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327b5"
+  },
+  "name": "Omoda",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.735Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.735Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327b7"
+  },
+  "name": "Perodua",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.737Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.737Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327b9"
+  },
+  "name": "Peugeot",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.740Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.740Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327bc"
+  },
+  "name": "Porsche",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.745Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.745Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327c4"
+  },
+  "name": "Power",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.756Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.756Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327c6"
+  },
+  "name": "Prince",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.758Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.758Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ca"
+  },
+  "name": "Proton",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.763Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.763Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327cf"
+  },
+  "name": "Range Rover",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.769Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.769Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327d4"
+  },
+  "name": "Rinco",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.776Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.776Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327d6"
+  },
+  "name": "Seres",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.779Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.779Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327d8"
+  },
+  "name": "Sogo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.781Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.781Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327da"
+  },
+  "name": "SsangYong",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.784Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.784Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327dd"
+  },
+  "name": "Subaru",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.788Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.788Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb8327ed"
+  },
+  "name": "Suzuki",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.809Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.809Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb83282f"
+  },
+  "name": "Tank",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.885Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.885Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832831"
+  },
+  "name": "Tesla",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.887Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.887Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c3b79ae9d6eb832835"
+  },
+  "name": "Toyota",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:23.892Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:23.892Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328f1"
+  },
+  "name": "United",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.106Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.106Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328f4"
+  },
+  "name": "Vauxhall",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.110Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.110Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328f6"
+  },
+  "name": "Volkswagen",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.112Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.112Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328f9"
+  },
+  "name": "Volvo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.115Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.115Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f2c4b79ae9d6eb8328fb"
+  },
+  "name": "Xpeng",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T21:57:24.117Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T21:57:24.117Z"
+  },
+  "vehicleType": "car"
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc71f"
+  },
+  "name": "Aima",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.596Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.596Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc723"
+  },
+  "name": "Ali Khan Auto Company",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.615Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.615Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc725"
+  },
+  "name": "Aprilia",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.621Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.621Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc72f"
+  },
+  "name": "Asia Hero",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.637Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.637Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc731"
+  },
+  "name": "BMW",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.640Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.640Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc73d"
+  },
+  "name": "BRG",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.660Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.660Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc73f"
+  },
+  "name": "Benda",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.662Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.662Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc741"
+  },
+  "name": "Benelli",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.665Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.665Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc756"
+  },
+  "name": "Benling",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.696Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.696Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc75c"
+  },
+  "name": "Bingo Electric",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.705Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.705Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc75e"
+  },
+  "name": "Bionic",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.708Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.708Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc760"
+  },
+  "name": "CF MOTO",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.710Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.710Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc765"
+  },
+  "name": "Can-am spyder",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.717Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.717Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc769"
+  },
+  "name": "Chinese Bikes",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.722Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.722Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc776"
+  },
+  "name": "Crown",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.739Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.739Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc78a"
+  },
+  "name": "Derbi",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.765Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.765Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc78e"
+  },
+  "name": "Ducati",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.770Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.770Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc79d"
+  },
+  "name": "E Turbo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.790Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.790Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7a0"
+  },
+  "name": "Eagle",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.794Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.794Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7a4"
+  },
+  "name": "EcoDost",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.799Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.799Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7a6"
+  },
+  "name": "Evee",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.801Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.801Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7b2"
+  },
+  "name": "Eveon",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.816Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.816Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7b7"
+  },
+  "name": "Express",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.823Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.823Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7b9"
+  },
+  "name": "Ezbike",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.825Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.825Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7bb"
+  },
+  "name": "FUEGO",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.827Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.827Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7be"
+  },
+  "name": "Ghani",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.831Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.831Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7c1"
+  },
+  "name": "Habib",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.834Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.834Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7c3"
+  },
+  "name": "Harley Davidson",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.836Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.836Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7c9"
+  },
+  "name": "Hero",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.851Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.851Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7cb"
+  },
+  "name": "Hi Speed",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.853Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.853Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc7d5"
+  },
+  "name": "Honda",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.867Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.867Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc80c"
+  },
+  "name": "Huaguan",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.967Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.967Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc80e"
+  },
+  "name": "Jolta Electric",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.970Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.970Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc812"
+  },
+  "name": "KEEWAY",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.977Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.977Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc815"
+  },
+  "name": "KTM",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.983Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.983Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7168e50da5a5a8fc818"
+  },
+  "name": "Kawasaki",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:50.987Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:50.987Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc831"
+  },
+  "name": "Kove",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.028Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.028Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc833"
+  },
+  "name": "Leader",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.032Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.032Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc835"
+  },
+  "name": "Lectrix",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.034Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.034Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc837"
+  },
+  "name": "Lifan",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.038Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.038Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc840"
+  },
+  "name": "Loncin",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.053Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.053Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc842"
+  },
+  "name": "MS Jaguar Motorcycle",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.056Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.056Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc848"
+  },
+  "name": "Metro",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.065Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.065Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc857"
+  },
+  "name": "NPTC",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.087Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.087Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc85b"
+  },
+  "name": "New Asia",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.093Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.093Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc85d"
+  },
+  "name": "OVERDRIVE",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.096Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.096Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc85f"
+  },
+  "name": "OW",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.099Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.099Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc864"
+  },
+  "name": "Pak Hero",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.106Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.106Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc866"
+  },
+  "name": "Pakzon Electric",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.107Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.107Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc868"
+  },
+  "name": "Power",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.109Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.109Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc86a"
+  },
+  "name": "QINGQI",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.112Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.112Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc86c"
+  },
+  "name": "QJ Motor",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.115Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.115Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc870"
+  },
+  "name": "Ravi",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.120Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.120Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc873"
+  },
+  "name": "Razy Motors",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.124Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.124Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc875"
+  },
+  "name": "Road Prince",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.127Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.127Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc885"
+  },
+  "name": "Safari",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.152Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.152Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc887"
+  },
+  "name": "Shelby",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.157Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.157Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc88b"
+  },
+  "name": "Sigma",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.163Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.163Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc88f"
+  },
+  "name": "Super Asia",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.170Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.170Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc891"
+  },
+  "name": "Super Power",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.174Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.174Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc89b"
+  },
+  "name": "Super Speed",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.190Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.190Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc89d"
+  },
+  "name": "Super Star",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.192Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.192Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8a7"
+  },
+  "name": "Suzuki",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.208Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.208Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8be"
+  },
+  "name": "Taro",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.245Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.245Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8c4"
+  },
+  "name": "Toyo",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.254Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.254Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8c6"
+  },
+  "name": "Treet",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.257Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.257Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8c8"
+  },
+  "name": "U.M",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.261Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.261Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8ca"
+  },
+  "name": "Union Star",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.264Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.264Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8cd"
+  },
+  "name": "Unique",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.268Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.268Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8d3"
+  },
+  "name": "United",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.278Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.278Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8dc"
+  },
+  "name": "United Auto and Motorsports",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.290Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.290Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8de"
+  },
+  "name": "Vlektra",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.293Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.293Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8e0"
+  },
+  "name": "YJ Future",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.295Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.295Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8e4"
+  },
+  "name": "Yadea",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.301Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.301Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8eb"
+  },
+  "name": "Yamaha",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.312Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.312Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc8fc"
+  },
+  "name": "ZXMCO",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.333Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.333Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc900"
+  },
+  "name": "Zhongfa EV",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.338Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.338Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69e7f7178e50da5a5a8fc902"
+  },
+  "name": "Zongshen",
+  "categoryId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "vehicleType": "motorcycle",
+  "isActive": true,
+  "createdAt": {
+    "$date": "2026-04-21T22:15:51.341Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T22:15:51.341Z"
+  }
+}]

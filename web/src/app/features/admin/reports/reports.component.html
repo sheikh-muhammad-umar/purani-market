@@ -1,0 +1,190 @@
+<div class="reports-page">
+  <div class="page-header">
+    <div>
+      <h1>Reports</h1>
+      <p class="page-subtitle">Review reports filed against sellers and listings</p>
+    </div>
+  </div>
+
+  <!-- Filters -->
+  <div class="filters-bar">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search report messages..."
+      [(ngModel)]="searchQuery"
+      (keyup.enter)="onSearch()"
+    />
+    <app-custom-select
+      [options]="statusOptions"
+      [(ngModel)]="statusFilter"
+      (ngModelChange)="onFilterChange()"
+      placeholder="All Statuses"
+    ></app-custom-select>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <app-loader />
+  } @else if (reports().length === 0) {
+    <app-empty-state
+      icon="flag"
+      title="No reports found"
+      message="There are no reports matching this filter."
+    />
+  } @else {
+    <div class="reports-table-wrap">
+      <table class="reports-table">
+        <thead>
+          <tr>
+            <th>Reported</th>
+            <th>Type</th>
+            <th>Reason</th>
+            <th>Reporter</th>
+            <th>Reports</th>
+            <th>Status</th>
+            <th>Filed</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of reports(); track r._id) {
+            <tr>
+              <td>
+                <strong>{{ reportedName(r) }}</strong>
+                <div class="muted">{{ reportedContact(r) }}</div>
+              </td>
+              <td>
+                <span class="type-chip">{{ r.targetType }}</span>
+              </td>
+              <td>{{ r.reason }}</td>
+              <td>{{ reporterName(r) }}</td>
+              <td>{{ r.reportedUser?.reportCount ?? 0 }}</td>
+              <td>
+                <span class="status-badge" [class]="'status-' + r.status">{{ r.status }}</span>
+              </td>
+              <td>{{ formatDate(r.createdAt) }}</td>
+              <td>
+                <button class="btn btn-sm btn-outline" (click)="openDetail(r)">Review</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination
+      [currentPage]="currentPage()"
+      [totalPages]="totalPages()"
+      (pageChange)="goToPage($event)"
+    />
+  }
+</div>
+
+<!-- Detail / review modal -->
+@if (selected(); as r) {
+  <app-modal title="Review report" size="lg" (closed)="closeDetail()">
+    <div class="report-detail">
+      <div class="detail-grid">
+        <div>
+          <span class="detail-label">Reported {{ r.targetType }}</span>
+          <span class="detail-value">{{ reportedName(r) }}</span>
+          <span class="muted">{{ reportedContact(r) }}</span>
+        </div>
+        <div>
+          <span class="detail-label">Upheld reports so far</span>
+          <span class="detail-value">{{ r.reportedUser?.reportCount ?? 0 }}</span>
+        </div>
+        <div>
+          <span class="detail-label">Reporter</span>
+          <span class="detail-value">{{ reporterName(r) }}</span>
+        </div>
+        <div>
+          <span class="detail-label">Reason</span>
+          <span class="detail-value">{{ r.reason }}</span>
+        </div>
+        <div>
+          <span class="detail-label">Status</span>
+          <span class="status-badge" [class]="'status-' + r.status">{{ r.status }}</span>
+        </div>
+        <div>
+          <span class="detail-label">Filed</span>
+          <span class="detail-value">{{ formatDate(r.createdAt) }}</span>
+        </div>
+      </div>
+
+      <div class="detail-message">
+        <span class="detail-label">Message</span>
+        <p>{{ r.message }}</p>
+      </div>
+
+      @if (r.screenshots.length > 0) {
+        <div class="detail-screenshots">
+          <span class="detail-label">Screenshots ({{ r.screenshots.length }})</span>
+          <div class="screenshot-grid">
+            @for (s of r.screenshots; track s.url) {
+              <button type="button" class="shot" (click)="openLightbox(s.url)">
+                <img [src]="s.url" alt="Report screenshot" />
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (r.reviewNote) {
+        <div class="detail-message">
+          <span class="detail-label">Review note</span>
+          <p>{{ r.reviewNote }}</p>
+        </div>
+      }
+
+      @if (rejecting) {
+        <div class="form-group">
+          <label class="form-label">Note (optional)</label>
+          <textarea
+            class="form-input"
+            rows="2"
+            [(ngModel)]="reviewNote"
+            placeholder="Reason for rejecting (optional)"
+          ></textarea>
+        </div>
+      }
+    </div>
+
+    <div slot="footer" class="review-actions">
+      @if (r.status === ReportStatus.PENDING) {
+        @if (rejecting) {
+          <button class="btn btn-outline" (click)="cancelReject()">Back</button>
+          <button
+            class="btn btn-danger"
+            [disabled]="actionLoading() === r._id"
+            (click)="confirmReject()"
+          >
+            Confirm reject
+          </button>
+        } @else {
+          <button class="btn btn-outline" (click)="startReject()">Reject</button>
+          <button
+            class="btn btn-primary"
+            [disabled]="actionLoading() === r._id"
+            (click)="approve()"
+          >
+            Approve
+          </button>
+        }
+      } @else {
+        <button class="btn btn-outline" (click)="closeDetail()">Close</button>
+      }
+    </div>
+  </app-modal>
+}
+
+<!-- Screenshot lightbox -->
+@if (lightboxUrl) {
+  <div class="lightbox" (click)="closeLightbox()">
+    <img [src]="lightboxUrl" alt="Report screenshot" />
+  </div>
+}

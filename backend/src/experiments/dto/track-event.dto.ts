@@ -1,4 +1,11 @@
-import { IsString, IsOptional, IsNumber, IsEnum, Min } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsNumber,
+  IsEnum,
+  IsMongoId,
+  Min,
+} from 'class-validator';
 import { ExperimentEventType } from '../schemas/experiment-event.schema.js';
 
 export class TrackEventDto {
@@ -19,8 +26,10 @@ export class TrackEventDto {
   @IsString()
   searchQuery?: string;
 
+  // Validated as a Mongo ObjectId: trackEvent constructs `new Types.ObjectId`
+  // from this, which throws (unhandled 500) on a malformed value.
   @IsOptional()
-  @IsString()
+  @IsMongoId()
   listingId?: string;
 
   @IsOptional()

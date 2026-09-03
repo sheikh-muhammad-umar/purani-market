@@ -24,6 +24,8 @@ export const ERROR = {
   VERIFICATION_ALL_IMAGES_REQUIRED:
     'All 4 images are required: cnicFront, cnicBack, selfieFront, selfieBack',
   VERIFICATION_INVALID_IMAGE_TYPE: 'Only JPEG and PNG images are allowed',
+  REPORT_INVALID_IMAGE_TYPE: 'Only JPEG, PNG, and WebP screenshots are allowed',
+  REVIEW_INVALID_IMAGE_TYPE: 'Only JPEG, PNG, and WebP photos are allowed',
   DUPLICATE_IMAGE_DETECTED:
     'Duplicate images are not allowed. Each uploaded image must be unique.',
   NO_FILE_PROVIDED: 'No file provided',

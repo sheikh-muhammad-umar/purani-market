@@ -10,6 +10,7 @@ import { FcmProvider } from './providers/fcm.provider';
 import { HmsProvider } from './providers/hms.provider';
 import { User } from '../users/schemas/user.schema';
 import { Favorite } from '../favorites/schemas/favorite.schema';
+import { UserNotification } from './schemas/user-notification.schema';
 
 describe('NotificationsService', () => {
   let service: NotificationsService;
@@ -17,6 +18,7 @@ describe('NotificationsService', () => {
   let hmsProvider: HmsProvider;
   let mockUserModel: any;
   let mockFavoriteModel: any;
+  let mockUserNotificationModel: any;
 
   const userId = new Types.ObjectId();
   const listingId = new Types.ObjectId();
@@ -53,6 +55,10 @@ describe('NotificationsService', () => {
       }),
     };
 
+    mockUserNotificationModel = {
+      create: jest.fn().mockResolvedValue({}),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       providers: [
         NotificationsService,
@@ -60,6 +66,10 @@ describe('NotificationsService', () => {
         HmsProvider,
         { provide: getModelToken(User.name), useValue: mockUserModel },
         { provide: getModelToken(Favorite.name), useValue: mockFavoriteModel },
+        {
+          provide: getModelToken(UserNotification.name),
+          useValue: mockUserNotificationModel,
+        },
         {
           provide: ConfigService,
           useValue: {

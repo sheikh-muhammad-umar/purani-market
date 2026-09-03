@@ -14,6 +14,7 @@ import {
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ListingsService } from './listings.service.js';
+import { parseOwnListingView } from './own-listing-view.js';
 import { MediaService } from './media.service.js';
 import { PackagesService } from '../packages/packages.service.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
@@ -52,6 +53,7 @@ export class ListingsController {
     @Query('province') province?: string,
     @Query('city') city?: string,
     @Query('area') area?: string,
+    @Query('view') view?: string,
     @CurrentUser('sub') userId?: string,
   ) {
     // `mine` wins over an explicit sellerId, and is the only thing that unlocks
@@ -69,9 +71,35 @@ export class ListingsController {
       sort || 'createdAt',
       order === 'asc' ? 'asc' : 'desc',
       sellerId,
-      { categoryId, provinceId, cityId, areaId, province, city, area },
+      {
+        categoryId,
+        provinceId,
+        cityId,
+        areaId,
+        province,
+        city,
+        area,
+        // Parsed rather than cast, so an unknown value falls back to "all"
+        // instead of reaching the query and matching nothing — a seller mistyping
+        // a URL should see their listings, not an empty page.
+        ownView: parseOwnListingView(view),
+      },
       ownListings,
     );
+  }
+
+  /**
+   * How many of the caller's own listings sit in each filter view.
+   *
+   * Its own endpoint rather than part of the list response because the counts
+   * describe the whole account and do not change as the seller pages through or
+   * switches tabs — folding them into the list would recompute all seven on every
+   * page change.
+   */
+  @Get('my/view-counts')
+  @UseGuards(JwtAuthGuard)
+  async getMyViewCounts(@CurrentUser('sub') userId: string) {
+    return this.listingsService.getOwnViewCounts(userId);
   }
 
   @Get('featured')
@@ -128,11 +156,18 @@ export class ListingsController {
       listing.sellerId.toString(),
     );
 
-    // Enrich with seller verification info for authenticated users only
+    // Seller name + rating are public info, shown to everyone.
+    const publicSeller = {
+      sellerName: seller.sellerName,
+      sellerRating: seller.rating,
+      sellerReviewCount: seller.reviewCount,
+    };
+
+    // Enrich with seller verification/stats for authenticated users only
     if (userId) {
       return {
         ...obj,
-        sellerName: seller.sellerName,
+        ...publicSeller,
         sellerEmailVerified: seller.emailVerified,
         sellerPhoneVerified: seller.phoneVerified,
         sellerIdVerified: seller.idVerified,
@@ -142,7 +177,7 @@ export class ListingsController {
       };
     }
 
-    return { ...obj, sellerName: seller.sellerName };
+    return { ...obj, ...publicSeller };
   }
 
   @Post()

@@ -19,6 +19,7 @@ import {
 } from '../../../core/constants/enums';
 import { PLACEHOLDER_IMAGE, PAGE_SIZE_LARGE, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
+import { OWN_LISTING_VIEW_TABS, OwnListingView } from '../../../core/constants/own-listing-view';
 import { extractPackageDetails } from '../../../core/utils/package-details';
 import { FormatDurationPipe } from '../../../shared/pipes/format-duration.pipe';
 import { FormatStatusPipe } from '../../../shared/pipes/format-status.pipe';
@@ -82,6 +83,40 @@ export class MyListingsComponent implements OnInit {
   purchases = signal<PackagePurchase[]>([]);
   confirmDeleteId = signal<string | null>(null);
   actionLoading = signal<string | null>(null);
+
+  readonly VIEW_TABS = OWN_LISTING_VIEW_TABS;
+
+  /** Which slice of the seller's ads is on screen. */
+  readonly activeView = signal<OwnListingView>('all');
+  /** How many ads sit in each view, for the tab badges. */
+  readonly viewCounts = signal<Partial<Record<OwnListingView, number>>>({});
+
+  /**
+   * Tabs with their counts attached.
+   *
+   * Every tab is shown even at zero, so the set does not shift around as a
+   * seller's ads move between states — a tab appearing and disappearing under the
+   * cursor is worse than one reading 0. The count is omitted until it has
+   * loaded rather than shown as 0, which would otherwise read as "no rejected
+   * ads" a moment before saying there are two.
+   */
+  readonly viewTabs = computed(() =>
+    this.VIEW_TABS.map((tab) => ({
+      ...tab,
+      count: this.viewCounts()[tab.view],
+      selected: this.activeView() === tab.view,
+    })),
+  );
+
+  /** Wording for an empty filter, so the message names the filter the seller chose. */
+  readonly emptyViewTitle = computed(() => {
+    const tab = this.VIEW_TABS.find((t) => t.view === this.activeView());
+    return `No ${(tab?.label ?? 'matching').toLowerCase()} ads`;
+  });
+
+  readonly emptyViewIcon = computed(
+    () => this.VIEW_TABS.find((t) => t.view === this.activeView())?.icon ?? 'inventory_2',
+  );
 
   /** Per-listing engagement, keyed by listing id. */
   readonly listingEngagement = signal<Map<string, ItemEngagement>>(new Map());
@@ -224,6 +259,7 @@ export class MyListingsComponent implements OnInit {
 
   loadAll(): void {
     this.loadListings();
+    this.loadViewCounts();
     this.loadListingEngagement();
     this.loadUser();
     this.loadPurchases();
@@ -243,9 +279,23 @@ export class MyListingsComponent implements OnInit {
     });
   }
 
+  /**
+   * Switches filter tab.
+   *
+   * Resets to page one: staying on page three of Active while switching to
+   * Rejected would ask for a page that view has no rows for and show an empty
+   * table over a filter that does have matches.
+   */
+  selectView(view: OwnListingView): void {
+    if (view === this.activeView()) return;
+    this.activeView.set(view);
+    this.page.set(1);
+    this.loadListings();
+  }
+
   loadListings(): void {
     this.loading.set(true);
-    this.listingsService.getMyListings(this.page(), PAGE_SIZE_LARGE).subscribe({
+    this.listingsService.getMyListings(this.page(), PAGE_SIZE_LARGE, this.activeView()).subscribe({
       next: (res: any) => {
         const data = Array.isArray(res) ? res : (res?.data ?? []);
         this.listings.set(data);
@@ -256,6 +306,19 @@ export class MyListingsComponent implements OnInit {
         this.listings.set([]);
         this.loading.set(false);
       },
+    });
+  }
+
+  /**
+   * Tab counts, refreshed alongside the table.
+   *
+   * Reloaded after actions that move an ad between views — deactivating or
+   * deleting one — so a badge cannot keep claiming a state the ad has left.
+   */
+  private loadViewCounts(): void {
+    this.listingsService.getMyViewCounts().subscribe({
+      next: (counts) => this.viewCounts.set(counts),
+      error: () => this.viewCounts.set({}),
     });
   }
 
@@ -332,6 +395,8 @@ export class MyListingsComponent implements OnInit {
           metadata: { previousStatus: listing.status, newStatus: status, title: listing.title },
         });
         this.loadListings();
+        // The ad has just moved between views, so the badges are now stale.
+        this.loadViewCounts();
       },
       error: () => {
         this.actionLoading.set(null);

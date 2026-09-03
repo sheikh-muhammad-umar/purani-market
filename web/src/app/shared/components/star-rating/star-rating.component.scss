@@ -1,0 +1,47 @@
+.star-rating {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: var(--text-sm);
+  line-height: 1;
+
+  &.sm {
+    font-size: var(--text-xs);
+  }
+  &.lg {
+    font-size: var(--text-lg);
+  }
+}
+
+.stars {
+  display: inline-flex;
+}
+
+.star {
+  position: relative;
+  display: inline-block;
+  width: 1em;
+  height: 1em;
+}
+
+.star-bg {
+  color: var(--border);
+}
+
+.star-fill {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  white-space: nowrap;
+  color: #f5a623; /* warm amber, standard rating gold */
+}
+
+.rating-value {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.rating-count {
+  color: var(--text-muted);
+  font-size: 0.9em;
+}

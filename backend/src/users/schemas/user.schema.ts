@@ -243,6 +243,38 @@ export class User {
   @Prop({ type: String, enum: UserStatus, default: UserStatus.ACTIVE })
   status!: UserStatus;
 
+  /**
+   * How many reports against this user an admin has upheld. Denormalised
+   * counter (like `activeListingCount`) so the suspension threshold can be
+   * checked without re-counting the reports collection on every approval.
+   */
+  @Prop({ type: Number, default: 0 })
+  reportCount!: number;
+
+  /**
+   * When a suspension lifts. Set when the account is suspended (e.g. 3 months
+   * out for exceeding the report threshold); login compares against it so the
+   * account comes back automatically rather than needing a manual unsuspend.
+   */
+  @Prop({ type: Date })
+  suspendedUntil?: Date;
+
+  /** Human-readable reason shown to the user / admin for the suspension. */
+  @Prop({ type: String })
+  suspensionReason?: string;
+
+  /**
+   * Denormalized seller rating: average of this user's APPROVED reviews (1 dp)
+   * and the count behind it. Kept on the user so seller cards, profiles, and
+   * JSON-LD can show a rating without an aggregation per render. Recomputed by
+   * ReviewsService whenever a review is created, moderated, or auto-approved.
+   */
+  @Prop({ type: Number, default: 0 })
+  averageRating!: number;
+
+  @Prop({ type: Number, default: 0 })
+  reviewCount!: number;
+
   @Prop({ type: Date })
   lastLoginAt?: Date;
 

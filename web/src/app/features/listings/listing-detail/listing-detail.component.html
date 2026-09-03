@@ -90,6 +90,10 @@
               [src]="currentImage()"
               [alt]="l.title"
               (click)="openLightbox()"
+              width="800"
+              height="600"
+              [attr.fetchpriority]="currentImageIndex() === 0 ? 'high' : null"
+              decoding="async"
               style="cursor: zoom-in"
             />
             @if ((l.images.length || 0) > 1) {
@@ -133,7 +137,14 @@
                   (click)="currentImageIndex.set(i)"
                   type="button"
                 >
-                  <img [src]="img.thumbnailUrl || img.url" [alt]="'Thumbnail ' + (i + 1)" />
+                  <img
+                    [src]="img.thumbnailUrl || img.url"
+                    [alt]="l.title + ' — photo ' + (i + 1)"
+                    width="80"
+                    height="80"
+                    loading="lazy"
+                    decoding="async"
+                  />
                 </button>
               }
             </div>
@@ -193,6 +204,19 @@
           </div>
         </div>
 
+        <!-- Owner-only performance panel. Placed above the details, since a
+             seller opening their own ad is usually here to check on it. -->
+        @if (isOwner()) {
+          <div class="detail-section owner-performance">
+            <h3>Your listing performance</h3>
+            <p class="owner-performance-note">
+              Only you can see this. Leads count people, not taps — someone who calls twice and then
+              messages is one lead.
+            </p>
+            <app-stat-tiles [tiles]="ownerTiles()" ariaLabel="Performance of your listing" />
+          </div>
+        }
+
         <!-- Details Table -->
         <div class="detail-section">
           <h3>Details</h3>
@@ -204,7 +228,18 @@
             @for (row of detailAttributeRows(); track row.key) {
               <div class="details-row">
                 <span class="details-label">{{ row.label }}</span>
-                <span class="details-value">{{ row.value }}</span>
+                @if (row.filterValue) {
+                  <a
+                    class="details-value details-value--link"
+                    [routerLink]="ROUTES.SEARCH"
+                    [queryParams]="attributeQueryParams(row)"
+                    [title]="'See all listings with ' + row.label + ': ' + row.filterValue"
+                  >
+                    {{ row.value }}
+                  </a>
+                } @else {
+                  <span class="details-value">{{ row.value }}</span>
+                }
               </div>
             }
             <div class="details-row">
@@ -347,11 +382,12 @@
                 <span class="material-symbols-rounded" style="font-size: 18px">chat</span> Message
               </a>
               <a
-                [href]="'tel:' + l.contactInfo.phone"
+                [href]="phoneRevealed() ? 'tel:' + l.contactInfo.phone : null"
                 class="btn btn-outline btn-full sidebar-btn"
-                (click)="trackContact(l._id, 'call')"
+                (click)="revealPhone(l._id) && $event.preventDefault()"
               >
-                <span class="material-symbols-rounded" style="font-size: 18px">call</span> Call
+                <span class="material-symbols-rounded" style="font-size: 18px">call</span>
+                {{ phoneRevealed() ? l.contactInfo.phone : 'Call' }}
               </a>
               <a
                 [href]="getWhatsAppLink(l.contactInfo.phone, l.title)"
@@ -395,16 +431,13 @@
             <div class="seller-avatar">👤</div>
             <div class="seller-info-col">
               <span class="seller-name">{{ l.sellerName || 'Seller' }}</span>
-              @if (totalReviews() > 0) {
-                <span class="seller-rating"
-                  ><span
-                    class="material-symbols-rounded"
-                    style="font-size: 14px; vertical-align: middle"
-                    >star</span
-                  >
-                  {{ formattedRating() }} ({{ totalReviews() }} reviews)</span
-                >
-              }
+              <app-star-rating
+                class="seller-rating"
+                size="sm"
+                [rating]="l.sellerRating ?? 0"
+                [count]="l.sellerReviewCount ?? 0"
+                [showEmptyLabel]="true"
+              />
               <span class="seller-since"
                 >Member since {{ listing()?.createdAt | date: 'yyyy' }}</span
               >
@@ -434,9 +467,24 @@
             View all ads from this seller
             <span class="material-symbols-rounded" style="font-size: 16px">arrow_forward</span>
           </a>
+          @if (!isOwner()) {
+            <button type="button" class="report-btn" (click)="openReport()">
+              <span class="material-symbols-rounded" style="font-size: 16px">flag</span>
+              Report this listing
+            </button>
+          }
         </div>
       </div>
     </div>
+
+    @if (showReportModal()) {
+      <app-report-modal
+        [targetType]="ReportTargetType.LISTING"
+        [targetId]="l._id"
+        [targetLabel]="l.title"
+        (closed)="closeReport()"
+      />
+    }
 
     <!-- Fixed contact bar (mobile/tablet only).
          The sidebar stacks far below the fold once the layout is single-column,
@@ -455,12 +503,18 @@
         @if (authService.isAuthenticated()) {
           <div class="action-bar-actions">
             <a
-              [href]="'tel:' + l.contactInfo.phone"
-              class="btn btn-ghost btn-icon action-bar-icon"
-              aria-label="Call seller"
-              (click)="trackContact(l._id, 'call')"
+              [href]="phoneRevealed() ? 'tel:' + l.contactInfo.phone : null"
+              class="btn btn-ghost action-bar-icon"
+              [class.btn-icon]="!phoneRevealed()"
+              [attr.aria-label]="
+                phoneRevealed() ? 'Call ' + l.contactInfo.phone : 'Show phone number'
+              "
+              (click)="revealPhone(l._id) && $event.preventDefault()"
             >
               <span class="material-symbols-rounded">call</span>
+              @if (phoneRevealed()) {
+                <span class="action-bar-phone">{{ l.contactInfo.phone }}</span>
+              }
             </a>
             <a
               [href]="getWhatsAppLink(l.contactInfo.phone, l.title)"

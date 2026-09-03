@@ -10,6 +10,7 @@ import {
 import { User } from '../users/schemas/user.schema';
 import { StorageService } from '../listings/storage.service';
 import { ListingsService } from '../listings/listings.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 describe('IdVerificationService', () => {
   let service: IdVerificationService;
@@ -17,6 +18,10 @@ describe('IdVerificationService', () => {
   let userModel: any;
   let listingsService: { syncSellerVerified: jest.Mock };
   let storageService: { saveFile: jest.Mock };
+  let notificationsService: {
+    sendIdVerificationApprovedNotification: jest.Mock;
+    sendIdVerificationRejectedNotification: jest.Mock;
+  };
 
   const verificationId = new Types.ObjectId();
   const adminId = new Types.ObjectId();
@@ -48,6 +53,10 @@ describe('IdVerificationService', () => {
     storageService = {
       saveFile: jest.fn().mockResolvedValue({ url: 'u', thumbnailUrl: 't' }),
     };
+    notificationsService = {
+      sendIdVerificationApprovedNotification: jest.fn().mockResolvedValue(true),
+      sendIdVerificationRejectedNotification: jest.fn().mockResolvedValue(true),
+    };
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -59,6 +68,7 @@ describe('IdVerificationService', () => {
         { provide: getModelToken(User.name), useValue: userModel },
         { provide: StorageService, useValue: storageService },
         { provide: ListingsService, useValue: listingsService },
+        { provide: NotificationsService, useValue: notificationsService },
       ],
     }).compile();
 
@@ -83,6 +93,9 @@ describe('IdVerificationService', () => {
       expect(listingsService.syncSellerVerified).toHaveBeenCalledWith(
         userId.toString(),
       );
+      expect(
+        notificationsService.sendIdVerificationApprovedNotification,
+      ).toHaveBeenCalledWith(userId.toString());
     });
 
     /**
@@ -109,6 +122,9 @@ describe('IdVerificationService', () => {
       expect(listingsService.syncSellerVerified).toHaveBeenCalledWith(
         userId.toString(),
       );
+      expect(
+        notificationsService.sendIdVerificationRejectedNotification,
+      ).toHaveBeenCalledWith(userId.toString(), 'Document unreadable');
     });
 
     it('should refuse to review a record that is not pending', async () => {

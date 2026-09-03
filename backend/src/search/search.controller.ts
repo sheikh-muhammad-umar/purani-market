@@ -27,9 +27,11 @@ const KNOWN_KEYS = new Set([
   'blockPhase',
   'brandId',
   'vehicleBrandId',
+  'brand',
   'modelId',
   'modelName',
   'variantId',
+  'variantName',
   'lat',
   'lng',
   'radius',
@@ -77,6 +79,12 @@ export class SearchController {
       query.filters = { ...(query.filters || {}), ...attrFilters };
     }
     return this.searchService.search(query);
+  }
+
+  @Get('shorts')
+  @UsePipes(new ValidationPipe({ transform: true, whitelist: true }))
+  async searchShorts(@Query() query: SearchQueryDto) {
+    return this.searchService.searchShorts(query);
   }
 
   @Get('suggestions')

@@ -3,8 +3,14 @@
     <div class="page-header">
       <h1>My Listings & Shorts</h1>
       <div class="header-actions">
-        <a [routerLink]="ROUTES.LISTINGS_CREATE" class="btn btn-primary">+ Post Ad</a>
-        <a [routerLink]="ROUTES.SHORTS_UPLOAD" class="btn btn-primary">+ Upload Short</a>
+        <a [routerLink]="ROUTES.LISTINGS_CREATE" class="btn btn-primary">
+          <span class="material-symbols-rounded inline-icon" aria-hidden="true">add_box</span>
+          Post Ad
+        </a>
+        <a [routerLink]="ROUTES.SHORTS_UPLOAD" class="btn btn-primary">
+          <span class="material-symbols-rounded inline-icon" aria-hidden="true">video_call</span>
+          Upload Short
+        </a>
       </div>
     </div>
 
@@ -94,6 +100,34 @@
         </div>
       </div>
 
+      <!-- Status filters. A scrolling row of chips rather than a dropdown, so the
+           counts are visible without opening anything; it scrolls horizontally on
+           a phone instead of wrapping into three rows of buttons. -->
+      <div class="view-filters" role="tablist" aria-label="Filter your ads by status">
+        @for (tab of viewTabs(); track tab.view) {
+          <button
+            type="button"
+            role="tab"
+            class="view-chip"
+            [class.selected]="tab.selected"
+            [attr.aria-selected]="tab.selected"
+            (click)="selectView(tab.view)"
+          >
+            <span class="material-symbols-rounded view-chip-icon" aria-hidden="true">{{
+              tab.icon
+            }}</span>
+            <span class="view-chip-label">{{ tab.label }}</span>
+            <!-- Omitted until loaded: a placeholder 0 would read as "none" a
+                 moment before saying there are two. -->
+            @if (tab.count !== undefined) {
+              <span class="view-chip-count" [attr.aria-label]="tab.count + ' ads'">{{
+                tab.count
+              }}</span>
+            }
+          </button>
+        }
+      </div>
+
       <!-- Listings Table -->
       @if (loading()) {
         <div class="listings-table-wrapper">
@@ -135,13 +169,26 @@
           </table>
         </div>
       } @else if (listings().length === 0) {
-        <app-empty-state
-          icon="inventory_2"
-          title="No listings yet"
-          message="Start selling by posting your first ad"
-          actionText="Post Your First Ad"
-          [actionLink]="ROUTES.LISTINGS_CREATE"
-        />
+        <!-- An empty filter is not an empty account. Telling a seller with forty
+             ads to "post your first ad" because Rejected is empty would be
+             nonsense, so the filtered case offers a way back instead. -->
+        @if (activeView() !== 'all') {
+          <app-empty-state
+            [icon]="emptyViewIcon()"
+            [title]="emptyViewTitle()"
+            message="Nothing here right now. Try another filter."
+            actionText="Show all ads"
+            (actionClicked)="selectView('all')"
+          />
+        } @else {
+          <app-empty-state
+            icon="inventory_2"
+            title="No listings yet"
+            message="Start selling by posting your first ad"
+            actionText="Post Your First Ad"
+            [actionLink]="ROUTES.LISTINGS_CREATE"
+          />
+        }
       } @else {
         <div class="listings-table-wrapper">
           <table class="listings-table" role="table">

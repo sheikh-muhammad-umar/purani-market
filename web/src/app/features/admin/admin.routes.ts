@@ -136,6 +136,14 @@ export const ADMIN_ROUTES: Routes = [
           ),
       },
       {
+        path: 'reports',
+        loadComponent: () => import('./reports/reports.component').then((m) => m.ReportsComponent),
+      },
+      {
+        path: 'reviews',
+        loadComponent: () => import('./reviews/reviews.component').then((m) => m.ReviewsComponent),
+      },
+      {
         path: 'notifications',
         loadComponent: () =>
           import('./notifications/notification-manager.component').then(

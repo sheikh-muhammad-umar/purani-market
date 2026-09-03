@@ -12,6 +12,10 @@ import {
   Favorite,
   FavoriteDocument,
 } from '../favorites/schemas/favorite.schema.js';
+import {
+  UserNotification,
+  UserNotificationDocument,
+} from './schemas/user-notification.schema.js';
 import { ERROR } from '../common/constants/error-messages.js';
 
 export enum NotificationType {
@@ -34,6 +38,8 @@ export class NotificationsService {
     @InjectModel(User.name) private readonly userModel: Model<UserDocument>,
     @InjectModel(Favorite.name)
     private readonly favoriteModel: Model<FavoriteDocument>,
+    @InjectModel(UserNotification.name)
+    private readonly userNotificationModel: Model<UserNotificationDocument>,
     private readonly configService: ConfigService,
   ) {
     this.activeDays = this.configService.get<number>('listing.activeDays')!;
@@ -65,12 +71,40 @@ export class NotificationsService {
       return false;
     }
 
+    // Persist an in-app record so the notification appears in the bell/list,
+    // not only as a transient push. Previously `sendToUser` sent a push and
+    // nothing more, so targeted notifications (short approved/rejected, listing
+    // status, etc.) never showed up in the in-app list. Best-effort — a failure
+    // here must not block the push.
+    await this.persistUserNotification(userId, type, payload);
+
     if (!user.deviceTokens || user.deviceTokens.length === 0) {
-      this.logger.debug(`User ${userId} has no device tokens, skipping`);
+      this.logger.debug(`User ${userId} has no device tokens, skipping push`);
       return false;
     }
 
     return this.dispatchToDevices(user.deviceTokens, payload);
+  }
+
+  /** Stores an in-app notification row. Failures are logged, never thrown. */
+  private async persistUserNotification(
+    userId: string,
+    type: NotificationType,
+    payload: PushNotificationPayload,
+  ): Promise<void> {
+    try {
+      await this.userNotificationModel.create({
+        userId: new Types.ObjectId(userId),
+        title: payload.title,
+        body: payload.body,
+        category: type,
+        data: payload.data,
+      });
+    } catch (err) {
+      this.logger.warn(
+        `Failed to persist in-app notification for ${userId}: ${(err as Error).message}`,
+      );
+    }
   }
 
   /**
@@ -395,6 +429,87 @@ export class NotificationsService {
       title: 'Account suspended',
       body: 'Your account has been suspended. All your active listings have been deactivated.',
       data: { type: 'account_suspended' },
+    });
+  }
+
+  /** Tells a user a report against them was upheld by moderation. */
+  async sendReportApprovedNotification(
+    userId: string,
+    reason?: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'A report against you was upheld',
+      body: reason
+        ? `Moderation upheld a report about your account or listing. Note: ${reason}`
+        : 'Moderation reviewed a report about your account or listing and found it valid. Repeated valid reports can lead to suspension.',
+      data: { type: 'report_approved' },
+    });
+  }
+
+  /**
+   * Suspension notice that carries when the ban lifts, used by the automatic
+   * report-threshold suspension so the user knows how long it lasts.
+   */
+  async sendAccountSuspendedUntilNotification(
+    userId: string,
+    until: Date,
+    reason?: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'Account suspended',
+      body:
+        `Your account has been suspended until ${until.toDateString()}. ` +
+        `All your active listings have been deactivated.` +
+        (reason ? ` Reason: ${reason}` : ''),
+      data: { type: 'account_suspended', until: until.toISOString() },
+    });
+  }
+
+  /** Tells a reviewer their review was approved and is now live. */
+  async sendReviewApprovedNotification(
+    userId: string,
+    sellerName: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'Your review is live',
+      body: `Your review of ${sellerName} has been approved and is now published.`,
+      data: { type: 'review_approved' },
+    });
+  }
+
+  /** Tells a reviewer their review was rejected (and removed). */
+  async sendReviewRejectedNotification(
+    userId: string,
+    sellerName: string,
+    reason?: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'Your review was not approved',
+      body: reason
+        ? `Your review of ${sellerName} was not approved and has been removed. Reason: ${reason}`
+        : `Your review of ${sellerName} was not approved and has been removed. It may have breached our review guidelines.`,
+      data: { type: 'review_rejected' },
+    });
+  }
+
+  async sendIdVerificationApprovedNotification(
+    userId: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'ID verification approved',
+      body: 'Your identity has been verified. You now have a verified badge on your profile and listings.',
+      data: { type: 'id_verification_approved' },
+    });
+  }
+
+  async sendIdVerificationRejectedNotification(
+    userId: string,
+    rejectionReason: string,
+  ): Promise<boolean> {
+    return this.sendToUser(userId, NotificationType.PRODUCT_UPDATES, {
+      title: 'ID verification rejected',
+      body: `Your ID verification was rejected. Reason: ${rejectionReason}`,
+      data: { type: 'id_verification_rejected' },
     });
   }
 

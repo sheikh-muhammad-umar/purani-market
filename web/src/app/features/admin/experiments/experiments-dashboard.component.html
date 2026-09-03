@@ -260,15 +260,52 @@
       {{ metrics.status }}
     </span>
 
+    <!-- Date range filter -->
+    <div class="metrics-daterange">
+      <label class="form-label">
+        From
+        <input
+          type="date"
+          class="form-input"
+          [(ngModel)]="metricsDateFrom"
+          (change)="applyMetricsDateRange()"
+        />
+      </label>
+      <label class="form-label">
+        To
+        <input
+          type="date"
+          class="form-input"
+          [(ngModel)]="metricsDateTo"
+          (change)="applyMetricsDateRange()"
+        />
+      </label>
+      @if (metricsLoading()) {
+        <span class="metrics-loading">Loading…</span>
+      }
+    </div>
+
     <div class="metrics-summary">
       <div class="metric-card">
-        <span class="metric-value">{{ selectedMetrics()!.totalSubjects }}</span>
+        <span class="metric-value">{{ metrics.totalSubjects }}</span>
         <span class="metric-label">Total Subjects</span>
       </div>
       @if (winningVariant(); as winner) {
         <div class="metric-card winner">
           <span class="metric-value">{{ winner.variantName }}</span>
-          <span class="metric-label">Leading ({{ winner.ctr }}% CTR)</span>
+          <span class="metric-label">
+            Winner · {{ winner.conversionRate }}% conv.
+            @if (winner.confidence !== null) {
+              ({{ winner.confidence }}% confident)
+            }
+          </span>
+        </div>
+      } @else if (leadingVariant(); as leader) {
+        <div class="metric-card">
+          <span class="metric-value">{{ leader.variantName }}</span>
+          <span class="metric-label">
+            Leading · {{ leader.conversionRate }}% conv. (not yet significant)
+          </span>
         </div>
       }
     </div>
@@ -283,24 +320,48 @@
             <th>Impressions</th>
             <th>Clicks</th>
             <th>CTR</th>
+            <th>Conv. Rate</th>
+            <th>Uplift</th>
+            <th>Significance</th>
             <th>Avg Position</th>
             <th>Favorites</th>
             <th>Contacts</th>
           </tr>
         </thead>
         <tbody>
-          @for (v of selectedMetrics()!.variants; track v.variantId) {
+          @for (v of metrics.variants; track v.variantId) {
             <tr [class.winner-row]="winningVariant() === v">
               <td class="variant-cell">
                 <strong>{{ v.variantName }}</strong>
                 <code>{{ v.variantId }}</code>
+                @if (v.isControl) {
+                  <span class="control-tag">control</span>
+                }
               </td>
               <td>{{ v.weight }}%</td>
               <td>{{ v.subjects }}</td>
               <td>{{ v.impressions }}</td>
               <td>{{ v.clicks }}</td>
-              <td class="ctr-cell">
-                <strong>{{ v.ctr }}%</strong>
+              <td class="ctr-cell">{{ v.ctr }}%</td>
+              <td class="conv-cell">
+                <strong>{{ v.conversionRate }}%</strong>
+                <small>{{ v.convertedSubjects }}/{{ v.subjects }}</small>
+              </td>
+              <td
+                [style.color]="
+                  v.upliftVsControl && v.upliftVsControl > 0
+                    ? 'var(--success)'
+                    : v.upliftVsControl && v.upliftVsControl < 0
+                      ? 'var(--danger)'
+                      : ''
+                "
+              >
+                {{ formatUplift(v.upliftVsControl) }}
+              </td>
+              <td>
+                <span class="sig-badge" [style.color]="significanceColor(v)">
+                  {{ significanceLabel(v) }}
+                </span>
               </td>
               <td>{{ v.avgClickPosition > 0 ? v.avgClickPosition.toFixed(1) : '—' }}</td>
               <td>{{ v.favorites }}</td>
@@ -311,24 +372,35 @@
       </table>
     </div>
 
-    <!-- Visual CTR Comparison -->
-    <div class="ctr-comparison">
-      <h4>Click-Through Rate Comparison</h4>
-      <div class="ctr-bars">
-        @for (v of selectedMetrics()!.variants; track v.variantId) {
-          <div class="ctr-bar-row">
-            <span class="ctr-bar-label">{{ v.variantName }}</span>
-            <div class="ctr-bar-track">
-              <div
-                class="ctr-bar-fill"
-                [style.width.%]="v.ctr"
-                [class.winner-bar]="winningVariant() === v"
-              ></div>
-            </div>
-            <span class="ctr-bar-value">{{ v.ctr }}%</span>
-          </div>
-        }
-      </div>
+    <!-- Conversion rate comparison chart -->
+    <div class="metrics-chart">
+      <h4>Conversion Rate by Variant</h4>
+      <app-chart
+        kind="bar"
+        valueFormat="percent"
+        ariaLabel="Conversion rate by variant"
+        [labels]="conversionChart().labels"
+        [series]="conversionChart().series"
+        [height]="220"
+      />
     </div>
+
+    <!-- Engagement funnel chart -->
+    <div class="metrics-chart">
+      <h4>Engagement Funnel</h4>
+      <app-chart
+        kind="bar"
+        ariaLabel="Engagement funnel by variant"
+        [legend]="true"
+        [labels]="funnelChart().labels"
+        [series]="funnelChart().series"
+        [height]="240"
+      />
+    </div>
+
+    <p class="metrics-note">
+      Significance is a two-proportion z-test on conversion rate against the control variant. A
+      winner is only declared at ≥95% confidence.
+    </p>
   </app-modal>
 }

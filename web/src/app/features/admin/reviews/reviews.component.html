@@ -1,0 +1,188 @@
+<div class="reviews-page">
+  <div class="page-header">
+    <div>
+      <h1>Reviews</h1>
+      <p class="page-subtitle">Moderate seller ratings and reviews</p>
+    </div>
+  </div>
+
+  <div class="filters-bar">
+    <input
+      type="text"
+      class="search-input"
+      placeholder="Search review comments..."
+      [(ngModel)]="searchQuery"
+      (keyup.enter)="onSearch()"
+    />
+    <app-custom-select
+      [options]="statusOptions"
+      [(ngModel)]="statusFilter"
+      (ngModelChange)="onFilterChange()"
+      placeholder="All Statuses"
+    ></app-custom-select>
+  </div>
+
+  @if (error()) {
+    <div class="alert alert-error">{{ error() }}</div>
+  }
+
+  @if (loading()) {
+    <app-loader />
+  } @else if (reviews().length === 0) {
+    <app-empty-state
+      icon="reviews"
+      title="No reviews found"
+      message="There are no reviews matching this filter."
+    />
+  } @else {
+    <div class="reviews-table-wrap">
+      <table class="reviews-table">
+        <thead>
+          <tr>
+            <th>Seller</th>
+            <th>Rating</th>
+            <th>Comment</th>
+            <th>Reviewer</th>
+            <th>Photos</th>
+            <th>Status</th>
+            <th>Date</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody>
+          @for (r of reviews(); track r._id) {
+            <tr>
+              <td>
+                <strong>{{ sellerName(r) }}</strong>
+                <div class="muted">{{ listingTitle(r) }}</div>
+              </td>
+              <td>
+                <app-star-rating size="sm" [rating]="r.rating" [count]="1" [showCount]="false" />
+              </td>
+              <td class="comment-cell">{{ r.text }}</td>
+              <td>{{ reviewerName(r) }}</td>
+              <td>{{ r.images.length || '—' }}</td>
+              <td>
+                <span class="status-badge" [class]="'status-' + r.status">{{ r.status }}</span>
+              </td>
+              <td>{{ formatDate(r.createdAt) }}</td>
+              <td>
+                <button class="btn btn-sm btn-outline" (click)="openDetail(r)">Review</button>
+              </td>
+            </tr>
+          }
+        </tbody>
+      </table>
+    </div>
+
+    <app-pagination
+      [currentPage]="currentPage()"
+      [totalPages]="totalPages()"
+      (pageChange)="goToPage($event)"
+    />
+  }
+</div>
+
+<!-- Detail / moderation modal -->
+@if (selected(); as r) {
+  <app-modal title="Review" size="lg" (closed)="closeDetail()">
+    <div class="review-detail">
+      <div class="detail-grid">
+        <div>
+          <span class="detail-label">Seller</span>
+          <span class="detail-value">{{ sellerName(r) }}</span>
+        </div>
+        <div>
+          <span class="detail-label">Listing</span>
+          <span class="detail-value">{{ listingTitle(r) }}</span>
+        </div>
+        <div>
+          <span class="detail-label">Reviewer</span>
+          <span class="detail-value">{{ reviewerName(r) }}</span>
+        </div>
+        <div>
+          <span class="detail-label">Rating</span>
+          <app-star-rating [rating]="r.rating" [count]="1" [showCount]="false" />
+        </div>
+        <div>
+          <span class="detail-label">Status</span>
+          <span class="status-badge" [class]="'status-' + r.status">{{ r.status }}</span>
+        </div>
+        <div>
+          <span class="detail-label">Date</span>
+          <span class="detail-value">{{ formatDate(r.createdAt) }}</span>
+        </div>
+      </div>
+
+      <div class="detail-message">
+        <span class="detail-label">Comment</span>
+        <p>{{ r.text }}</p>
+      </div>
+
+      @if (r.images.length > 0) {
+        <div class="detail-photos">
+          <span class="detail-label">Photos ({{ r.images.length }})</span>
+          <div class="photo-grid">
+            @for (img of r.images; track img.url) {
+              <button type="button" class="shot" (click)="openLightbox(img.url)">
+                <img [src]="img.url" alt="Review photo" />
+              </button>
+            }
+          </div>
+        </div>
+      }
+
+      @if (r.moderationNote) {
+        <div class="detail-message">
+          <span class="detail-label">Moderation note</span>
+          <p>{{ r.moderationNote }}</p>
+        </div>
+      }
+
+      @if (rejecting) {
+        <div class="form-group">
+          <label class="form-label">Note (optional)</label>
+          <textarea
+            class="form-input"
+            rows="2"
+            [(ngModel)]="moderationNote"
+            placeholder="Reason for rejecting — shared with the reviewer (optional)"
+          ></textarea>
+        </div>
+      }
+    </div>
+
+    <div slot="footer" class="review-actions">
+      @if (rejecting) {
+        <button class="btn btn-outline" (click)="cancelReject()">Back</button>
+        <button
+          class="btn btn-danger"
+          [disabled]="actionLoading() === r._id"
+          (click)="confirmReject()"
+        >
+          Confirm reject &amp; delete
+        </button>
+      } @else {
+        <!-- Rejecting a review deletes it (whether pending or already live). -->
+        <button class="btn btn-outline" (click)="startReject()">Reject</button>
+        @if (r.status === ReviewStatus.PENDING) {
+          <button
+            class="btn btn-primary"
+            [disabled]="actionLoading() === r._id"
+            (click)="approve()"
+          >
+            Approve
+          </button>
+        } @else {
+          <button class="btn btn-ghost" (click)="closeDetail()">Close</button>
+        }
+      }
+    </div>
+  </app-modal>
+}
+
+@if (lightboxUrl) {
+  <div class="lightbox" (click)="closeLightbox()">
+    <img [src]="lightboxUrl" alt="Review photo" />
+  </div>
+}

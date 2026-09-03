@@ -24,7 +24,7 @@ export interface SelectOption {
     <div class="cs-wrap" [class.cs-open]="isOpen()" [class.cs-disabled]="disabled">
       <button type="button" class="cs-trigger" (click)="toggle()" [disabled]="disabled">
         @if (selectedLabel()) {
-          <span class="cs-text">{{ selectedLabel() }}</span>
+          <span class="cs-text" [title]="selectedLabel()">{{ selectedLabel() }}</span>
         } @else {
           <span class="cs-placeholder">{{ placeholder }}</span>
         }
@@ -50,6 +50,7 @@ export interface SelectOption {
               type="button"
               class="cs-option"
               [class.cs-active]="opt.value === value"
+              [title]="opt.label"
               (click)="select(opt)"
             >
               {{ opt.label }}

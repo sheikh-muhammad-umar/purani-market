@@ -11,6 +11,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { ConfigService } from '@nestjs/config';
 import { ViewCounterService } from '../views/view-counter.service.js';
+import { OwnListingView, ownViewConditions } from './own-listing-view.js';
 import {
   DEFAULT_CURRENCY,
   SEO_SELLER_FALLBACK_NAME,
@@ -122,6 +123,8 @@ export class ListingsService {
       province?: string;
       city?: string;
       area?: string;
+      /** Owner-only slice, e.g. rejected or expiring soon. Ignored otherwise. */
+      ownView?: OwnListingView;
     },
     /**
      * Include statuses other than active. Only ever true for a seller looking at
@@ -149,6 +152,11 @@ export class ListingsService {
     // drafts, listings awaiting moderation and rejected ones.
     if (!includeAllStatuses) {
       filter.status = ListingStatus.ACTIVE;
+    } else if (filters?.ownView) {
+      // Only applied for an owner. A public request already has its status pinned
+      // to active above, and letting this through there would have exposed
+      // pending and rejected listings to anyone who guessed the parameter.
+      Object.assign(filter, ownViewConditions(filters.ownView));
     }
 
     if (filters?.categoryId) {
@@ -195,6 +203,53 @@ export class ListingsService {
       limit: safeLimit,
       totalPages: Math.ceil(total / safeLimit),
     };
+  }
+
+  /**
+   * How many of the seller's listings fall in each view.
+   *
+   * Feeds the counts on the filter tabs, which is what makes them worth having:
+   * a seller can see that two ads were rejected without opening each tab to find
+   * out. Without this they would have to click through six of them.
+   *
+   * One aggregation with a `$facet` rather than seven `countDocuments` calls, and
+   * one clock for every branch so a listing on the expiry boundary cannot be
+   * counted in two views at once.
+   */
+  async getOwnViewCounts(
+    sellerId: string,
+  ): Promise<Record<OwnListingView, number>> {
+    if (!Types.ObjectId.isValid(sellerId)) {
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+
+    const now = new Date();
+    const views = Object.values(OwnListingView);
+
+    const facet = Object.fromEntries(
+      views.map((view) => [
+        view,
+        [{ $match: ownViewConditions(view, now) }, { $count: 'count' }],
+      ]),
+    );
+
+    const [result] = await this.listingModel
+      .aggregate<Record<string, { count: number }[]>>([
+        {
+          $match: {
+            sellerId: new Types.ObjectId(sellerId),
+            deletedAt: { $exists: false },
+          },
+        },
+        { $facet: facet },
+      ])
+      .exec();
+
+    // A view with no listings is absent from the facet output; reported as 0 so
+    // the client can render every tab without knowing which came back.
+    return Object.fromEntries(
+      views.map((view) => [view, result?.[view]?.[0]?.count ?? 0]),
+    ) as Record<OwnListingView, number>;
   }
 
   async getFeaturedAds(
@@ -828,13 +883,15 @@ export class ListingsService {
     activeAdsCount: number;
     responseRate: number;
     avgResponseTime: string;
+    rating: number;
+    reviewCount: number;
   }> {
     const sellerObjId = new Types.ObjectId(sellerId);
     const [user, activeAdsCount, conversations] = await Promise.all([
       this.userModel
         .findById(sellerId)
         .select(
-          'emailVerified phoneVerified idVerified profile.firstName profile.lastName',
+          'emailVerified phoneVerified idVerified profile.firstName profile.lastName averageRating reviewCount',
         )
         .lean()
         .exec(),
@@ -905,6 +962,8 @@ export class ListingsService {
       activeAdsCount,
       responseRate,
       avgResponseTime,
+      rating: (user as any)?.averageRating ?? 0,
+      reviewCount: (user as any)?.reviewCount ?? 0,
     };
   }
 

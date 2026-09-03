@@ -8,6 +8,7 @@ import { SlugService } from './slug.service.js';
 import { ProductListing } from '../listings/schemas/product-listing.schema.js';
 import { Category } from '../categories/schemas/category.schema.js';
 import { User } from '../users/schemas/user.schema.js';
+import { ShortVideo } from '../shorts/schemas/short-video.schema.js';
 
 describe('SeoService - Endpoint Methods', () => {
   let service: SeoService;
@@ -90,11 +91,13 @@ describe('SeoService - Endpoint Methods', () => {
   let mockListingModel: ReturnType<typeof createMockModel>;
   let mockCategoryModel: ReturnType<typeof createMockModel>;
   let mockUserModel: ReturnType<typeof createMockModel>;
+  let mockShortVideoModel: ReturnType<typeof createMockModel>;
 
   beforeEach(async () => {
     mockListingModel = createMockModel();
     mockCategoryModel = createMockModel();
     mockUserModel = createMockModel();
+    mockShortVideoModel = createMockModel();
 
     mockRedis = {
       get: jest.fn().mockResolvedValue(null),
@@ -111,6 +114,10 @@ describe('SeoService - Endpoint Methods', () => {
         },
         { provide: getModelToken(Category.name), useValue: mockCategoryModel },
         { provide: getModelToken(User.name), useValue: mockUserModel },
+        {
+          provide: getModelToken(ShortVideo.name),
+          useValue: mockShortVideoModel,
+        },
         { provide: getRedisConnectionToken(), useValue: mockRedis },
       ],
     }).compile();

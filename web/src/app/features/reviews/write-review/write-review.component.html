@@ -7,11 +7,14 @@
             ><span class="material-symbols-rounded">check_circle</span></span
           >
           <h2>Review Submitted</h2>
-          <p>Thank you for your feedback!</p>
+          <p>
+            Thanks for your feedback! Your review is pending admin approval and will appear on the
+            seller's profile once approved.
+          </p>
         </div>
       } @else {
-        <h2 class="auth-title">Write a Review</h2>
-        <p class="auth-subtitle">Share your experience with this product and seller</p>
+        <h2 class="auth-title">Rate this seller</h2>
+        <p class="auth-subtitle">Share your experience dealing with this seller</p>
 
         @if (error()) {
           <div class="alert alert-error">{{ error() }}</div>
@@ -66,6 +69,34 @@
               >
                 {{ textLength }} / {{ MAX_TEXT_LENGTH }}
               </div>
+            </div>
+
+            <div class="form-group">
+              <label class="form-label">Photos (optional, up to {{ MAX_IMAGES }})</label>
+              <input
+                type="file"
+                accept="image/jpeg,image/png,image/webp"
+                multiple
+                (change)="onFilesSelected($event)"
+                [disabled]="previews().length >= MAX_IMAGES"
+              />
+              @if (previews().length > 0) {
+                <div class="review-image-previews">
+                  @for (p of previews(); track p.url; let i = $index) {
+                    <div class="review-preview-thumb">
+                      <img [src]="p.url" alt="Review photo preview" />
+                      <button
+                        type="button"
+                        class="remove-btn"
+                        aria-label="Remove photo"
+                        (click)="removeImage(i)"
+                      >
+                        <span class="material-symbols-rounded">close</span>
+                      </button>
+                    </div>
+                  }
+                </div>
+              }
             </div>
 
             <button

@@ -133,6 +133,16 @@ export enum UserAction {
   ADMIN_ID_VERIFICATION_APPROVE = 'admin_id_verification_approve',
   ADMIN_ID_VERIFICATION_REJECT = 'admin_id_verification_reject',
 
+  // Reports
+  REPORT_SUBMIT = 'report_submit',
+  ADMIN_REPORT_APPROVE = 'admin_report_approve',
+  ADMIN_REPORT_REJECT = 'admin_report_reject',
+  USER_AUTO_SUSPENDED = 'user_auto_suspended',
+
+  // Reviews / ratings moderation
+  ADMIN_REVIEW_APPROVE = 'admin_review_approve',
+  ADMIN_REVIEW_REJECT = 'admin_review_reject',
+
   // Package application
   PACKAGE_APPLY_SUCCESS = 'package_apply_success',
   PACKAGE_APPLY_FAILED = 'package_apply_failed',

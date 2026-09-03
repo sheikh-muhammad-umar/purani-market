@@ -50,6 +50,8 @@ export class AdminLayoutComponent {
       title: 'Management',
       items: [
         { label: 'ID Verifications', icon: 'verified_user', path: ROUTES.ADMIN_ID_VERIFICATIONS },
+        { label: 'Reports', icon: 'flag', path: ROUTES.ADMIN_REPORTS },
+        { label: 'Reviews', icon: 'reviews', path: ROUTES.ADMIN_REVIEWS },
         { label: 'Activity', icon: 'timeline', path: ROUTES.ADMIN_ACTIVITY },
         { label: 'Payments', icon: 'payments', path: ROUTES.ADMIN_PAYMENTS },
         {

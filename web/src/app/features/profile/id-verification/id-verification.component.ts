@@ -1,7 +1,7 @@
 import { Component, OnInit, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterLink, ActivatedRoute } from '@angular/router';
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { environment } from '../../../../environments/environment';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ROUTES } from '../../../core/constants/routes';
@@ -17,6 +17,9 @@ import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
 
 type CnicField = 'cnicFront' | 'cnicBack' | 'selfieFront' | 'selfieBack';
+
+/** Backend public error code for "no ID verification attempts remaining". */
+const ID_VERIFICATION_ATTEMPTS_EXHAUSTED_CODE = 'IDV_002';
 
 @Component({
   selector: 'app-id-verification',
@@ -189,11 +192,27 @@ export class IdVerificationComponent implements OnInit {
         this.resetForm();
         this.loadStatus();
       },
-      error: (err) => {
+      error: (err: HttpErrorResponse) => {
         this.submitting.set(false);
-        this.error.set(ERROR_MSG.VERIFICATION_SUBMIT_FAILED);
+        this.error.set(this.submitErrorMessage(err));
+        // Attempts may have been spent (or exhausted) on the server; refresh so
+        // the banner and remaining-attempts count reflect the real state.
+        this.loadStatus();
       },
     });
+  }
+
+  /**
+   * Turns a submit failure into a specific message. The backend tags the
+   * "no attempts left" case with its own code (IDV_002) and returns a
+   * user-safe message; anything else collapses to the generic failure so we
+   * never surface internal detail.
+   */
+  private submitErrorMessage(err: HttpErrorResponse): string {
+    if (err?.error?.code === ID_VERIFICATION_ATTEMPTS_EXHAUSTED_CODE) {
+      return ERROR_MSG.VERIFICATION_ATTEMPTS_EXHAUSTED;
+    }
+    return ERROR_MSG.VERIFICATION_SUBMIT_FAILED;
   }
 
   removeFile(field: CnicField): void {

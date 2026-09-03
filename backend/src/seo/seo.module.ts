@@ -10,6 +10,10 @@ import {
   CategorySchema,
 } from '../categories/schemas/category.schema.js';
 import { User, UserSchema } from '../users/schemas/user.schema.js';
+import {
+  ShortVideo,
+  ShortVideoSchema,
+} from '../shorts/schemas/short-video.schema.js';
 import { SeoController } from './seo.controller.js';
 import { SitemapController } from './sitemap.controller.js';
 import { RobotsController } from './robots.controller.js';
@@ -25,6 +29,7 @@ import { PrerenderService } from './prerender.service.js';
       { name: ProductListing.name, schema: ProductListingSchema },
       { name: Category.name, schema: CategorySchema },
       { name: User.name, schema: UserSchema },
+      { name: ShortVideo.name, schema: ShortVideoSchema },
     ]),
   ],
   controllers: [SeoController, SitemapController, RobotsController],
