@@ -146,15 +146,77 @@ describe('UsersService', () => {
   });
 
   describe('sanitizeUser', () => {
+    /**
+     * Stands in for a hydrated document: `toJSON()` applies the schema transform,
+     * which is where the secret-field list actually lives. The real bug was that
+     * this method used `toObject()`, which skips that transform.
+     */
+    const hydrated = (overrides: Record<string, unknown> = {}) => {
+      const doc = { ...mockUser, ...overrides };
+      return {
+        ...doc,
+        toJSON: () => {
+          const ret: Record<string, any> = JSON.parse(JSON.stringify(doc));
+          delete ret.passwordHash;
+          delete ret.__v;
+          delete ret.deletedAt;
+          if (ret.mfa) delete ret.mfa.totpSecret;
+          if (ret.pendingEmailChange)
+            delete ret.pendingEmailChange.verificationToken;
+          if (ret.pendingPhoneChange) delete ret.pendingPhoneChange.otpHash;
+          return ret;
+        },
+      };
+    };
+
     it('should remove passwordHash, __v, and mfa.totpSecret', () => {
-      const result = service.sanitizeUser(mockUser as any);
+      const result = service.sanitizeUser(hydrated() as any);
       expect(result['passwordHash']).toBeUndefined();
       expect(result['__v']).toBeUndefined();
       expect((result['mfa'] as any)?.totpSecret).toBeUndefined();
     });
 
+    it('should strip the pending email-change token and phone OTP hash', () => {
+      // These leaked through /api/users/me. The token completes an email change
+      // outright; the hash is a six-digit code, brute-forceable offline.
+      const result = service.sanitizeUser(
+        hydrated({
+          pendingEmailChange: {
+            newEmail: 'new@example.com',
+            verificationToken: 'live-token',
+            expiresAt: new Date(),
+          },
+          pendingPhoneChange: {
+            newPhone: '+923009999999',
+            otpHash: 'bcrypt-hash',
+            expiresAt: new Date(),
+            attempts: 0,
+          },
+        }) as any,
+      );
+
+      expect(
+        (result['pendingEmailChange'] as any).verificationToken,
+      ).toBeUndefined();
+      expect((result['pendingPhoneChange'] as any).otpHash).toBeUndefined();
+      // The rest of the pending change stays, so the UI can still show what is
+      // awaiting confirmation.
+      expect((result['pendingEmailChange'] as any).newEmail).toBe(
+        'new@example.com',
+      );
+    });
+
+    it('should not return push notification handles', () => {
+      const result = service.sanitizeUser(
+        hydrated({
+          deviceTokens: [{ platform: 'android', token: 'fcm-handle' }],
+        }) as any,
+      );
+      expect(result['deviceTokens']).toBeUndefined();
+    });
+
     it('should keep other fields intact', () => {
-      const result = service.sanitizeUser(mockUser as any);
+      const result = service.sanitizeUser(hydrated() as any);
       expect(result['email']).toBe('test@example.com');
       expect(result['role']).toBe('buyer');
       expect((result['profile'] as any).firstName).toBe('John');

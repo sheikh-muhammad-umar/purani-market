@@ -835,9 +835,13 @@ export class AuthService {
       await this.redis.set(`bl:${payload.jti}`, '1', 'EX', accessTtl);
     }
 
-    // Remove all refresh tokens for this user by scanning
-    // For simplicity, we'll rely on the client discarding the refresh token
-    // and the access token being blacklisted
+    // Revoke the refresh tokens too. Blacklisting only the access token left the
+    // 7-day refresh token working, so a stolen one kept minting access tokens
+    // long after the victim thought they had signed out — the previous comment
+    // here relied on "the client discarding the refresh token", which an attacker
+    // holding it will not do.
+    await this.invalidateAllSessions(userId);
+
     this.logger.log(`User ${userId} logged out`);
 
     return { message: 'Logged out successfully' };

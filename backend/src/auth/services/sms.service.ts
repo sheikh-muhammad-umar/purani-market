@@ -56,7 +56,7 @@ export class SmsService {
 
   private async sendSms(to: string, body: string): Promise<void> {
     if (!this.client || !this.smsFrom) {
-      this.logger.log(`[STUB SMS] To: ${to} | ${body}`);
+      this.logStubMessage('SMS', to, body);
       return;
     }
 
@@ -70,9 +70,30 @@ export class SmsService {
     }
   }
 
+  /**
+   * Logs an unsent message when no provider is configured.
+   *
+   * The body carries the live OTP, so it is printed only in local development.
+   * Twilio credentials default to empty strings, so a production deploy with a
+   * missing or mistyped variable used to fail open into writing every phone
+   * number and verification code to stdout, where logs are aggregated and widely
+   * readable. Outside development this records that delivery failed and nothing
+   * more — which is also the louder signal, because the messages genuinely are
+   * not arriving.
+   */
+  private logStubMessage(channel: string, to: string, body: string): void {
+    if (process.env.NODE_ENV === 'development') {
+      this.logger.log(`[STUB ${channel}] To: ${to} | ${body}`);
+      return;
+    }
+    this.logger.error(
+      `${channel} not configured — a message to a user was not delivered. Set the Twilio credentials.`,
+    );
+  }
+
   private async sendWhatsApp(to: string, body: string): Promise<void> {
     if (!this.client || !this.whatsappFrom) {
-      this.logger.log(`[STUB WhatsApp] To: ${to} | ${body}`);
+      this.logStubMessage('WhatsApp', to, body);
       return;
     }
 

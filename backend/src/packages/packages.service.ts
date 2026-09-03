@@ -489,8 +489,12 @@ export class PackagesService {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
-    // Derive payment method from the stored purchase rather than the callback
-    const paymentMethod = payload.paymentMethod || purchases[0].paymentMethod;
+    // The verifying gateway comes from the stored purchase, never from the
+    // callback. Preferring `payload.paymentMethod` — as this did, despite the
+    // comment saying otherwise — let whoever sent the callback choose which
+    // gateway checked their signature, and so pick the one whose configuration
+    // was weakest.
+    const paymentMethod = purchases[0].paymentMethod;
 
     const verification = await this.paymentsService.verifyCallback(
       paymentMethod,

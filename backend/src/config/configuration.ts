@@ -42,7 +42,10 @@ export default () => ({
   },
 
   jwt: {
-    secret: process.env.JWT_SECRET || 'your-jwt-secret-change-in-production',
+    // No fallback. `env.validation.ts` makes this mandatory and rejects
+    // placeholder values, so reaching here without one is a boot failure rather
+    // than a silent downgrade to a secret published in this repository.
+    secret: process.env.JWT_SECRET,
     accessExpiration: process.env.JWT_ACCESS_EXPIRATION || '15m',
     refreshExpiration: process.env.JWT_REFRESH_EXPIRATION || '7d',
   },

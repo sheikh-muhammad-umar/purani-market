@@ -70,13 +70,23 @@ export class UsersService {
   /**
    * Strip sensitive fields before returning user data to the client.
    */
+  /**
+   * Strip sensitive fields before returning user data to the client.
+   *
+   * Goes through `toJSON()` so the schema's own transform is the single place
+   * that decides what is secret. It used to use `toObject()`, which skips that
+   * transform, and then re-deleted a shorter list by hand — so `/api/users/me`
+   * returned `pendingEmailChange.verificationToken`, the live token that
+   * completes an email change, alongside `pendingPhoneChange.otpHash`, a hash of
+   * a six-digit code that is trivially brute-forced offline. Anything that could
+   * read that response body could take the account over.
+   *
+   * `deviceTokens` are dropped on top: push-notification handles have no reason
+   * to appear in a profile response.
+   */
   sanitizeUser(user: UserDocument): Record<string, unknown> {
-    const obj = user.toObject() as unknown as Record<string, unknown>;
-    delete obj['passwordHash'];
-    delete obj['__v'];
-    if (obj['mfa'] && typeof obj['mfa'] === 'object') {
-      delete (obj['mfa'] as Record<string, unknown>)['totpSecret'];
-    }
+    const obj = user.toJSON() as unknown as Record<string, unknown>;
+    delete obj['deviceTokens'];
     return obj;
   }
 
