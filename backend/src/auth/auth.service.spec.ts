@@ -21,6 +21,7 @@ import { VerificationToken } from './schemas/verification-token.schema.js';
 import { SocialProvider } from './dto/social-login.dto.js';
 import { RecommendationService } from '../ai/recommendation.service.js';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 describe('AuthService', () => {
   let service: AuthService;
@@ -225,6 +226,25 @@ describe('AuthService', () => {
 
       await expect(service.verifyEmail('invalid-token')).rejects.toThrow(
         BadRequestException,
+      );
+    });
+
+    it('should look the email token up by its digest, not its plain value', async () => {
+      mockVerificationTokenModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+
+      await expect(service.verifyEmail('the-emailed-token')).rejects.toThrow(
+        BadRequestException,
+      );
+
+      expect(mockVerificationTokenModel.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token: crypto
+            .createHash('sha256')
+            .update('the-emailed-token')
+            .digest('hex'),
+        }),
       );
     });
   });
@@ -1508,6 +1528,54 @@ describe('AuthService', () => {
       );
     });
 
+    it('should store only a digest, never the token that was emailed', async () => {
+      // The reset token used to be persisted verbatim, so any read of the
+      // database was a working password reset for every pending request.
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: 'user123',
+          email: 'test@example.com',
+        }),
+      });
+      mockVerificationTokenModel.updateMany.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+      mockVerificationTokenModel.create.mockResolvedValue({});
+
+      await service.forgotPassword('test@example.com');
+
+      const emailedToken = mockEmailService.sendPasswordResetEmail.mock
+        .calls[0][1] as string;
+      const stored = mockVerificationTokenModel.create.mock.calls[0][0]
+        .token as string;
+
+      expect(stored).not.toBe(emailedToken);
+      expect(stored).toBe(
+        crypto.createHash('sha256').update(emailedToken).digest('hex'),
+      );
+      // The digest must not be usable as the link itself.
+      expect(stored).not.toContain(emailedToken);
+    });
+
+    it('should look the reset token up by its digest', async () => {
+      mockVerificationTokenModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+
+      await expect(
+        service.resetPassword('the-emailed-token', 'NewPassword123'),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(mockVerificationTokenModel.findOne).toHaveBeenCalledWith(
+        expect.objectContaining({
+          token: crypto
+            .createHash('sha256')
+            .update('the-emailed-token')
+            .digest('hex'),
+        }),
+      );
+    });
+
     it('should return generic success for unregistered email', async () => {
       mockUserModel.findOne.mockReturnValue({
         exec: jest.fn().mockResolvedValue(null),
@@ -1687,6 +1755,31 @@ describe('AuthService', () => {
       expect(mockEmailService.sendEmailChangeVerification).toHaveBeenCalledWith(
         'new@example.com',
         expect.any(String),
+      );
+    });
+
+    it('should store only a digest of the email-change token', async () => {
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(mockUser),
+      });
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+      mockUserModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+
+      await service.requestEmailChange('user123', 'new@example.com');
+
+      const emailedToken = mockEmailService.sendEmailChangeVerification.mock
+        .calls[0][1] as string;
+      const stored: string =
+        mockUserModel.findByIdAndUpdate.mock.calls[0][1].pendingEmailChange
+          .verificationToken;
+
+      expect(stored).not.toBe(emailedToken);
+      expect(stored).toBe(
+        crypto.createHash('sha256').update(emailedToken).digest('hex'),
       );
     });
 

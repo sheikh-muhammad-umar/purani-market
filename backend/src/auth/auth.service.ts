@@ -168,7 +168,7 @@ export class AuthService {
   async verifyEmail(token: string): Promise<{ message: string }> {
     const record = await this.verificationTokenModel
       .findOne({
-        token,
+        token: this.hashLinkToken(token),
         type: VerificationType.EMAIL,
         used: false,
       })
@@ -978,6 +978,24 @@ export class AuthService {
   }
 
   /**
+   * One-way transform for the long random tokens that arrive in email links.
+   *
+   * They were stored verbatim, so any read of the database — a backup, an
+   * analytics replica, a log line, an over-broad query — handed over a working
+   * password reset for every account with one outstanding. Storing the digest
+   * means a copy of the collection is inert: the link that was emailed cannot be
+   * recovered from it.
+   *
+   * SHA-256 rather than bcrypt, unlike the OTPs: these are looked up *by* their
+   * value, which a per-record salt would make impossible, and at 256 bits of
+   * entropy there is nothing to brute-force, which is the only thing bcrypt's
+   * cost factor buys. Short OTPs stay on bcrypt for exactly that reason.
+   */
+  private hashLinkToken(token: string): string {
+    return crypto.createHash('sha256').update(token).digest('hex');
+  }
+
+  /**
    * Checks a TOTP code without leaking why it failed.
    *
    * `verifySync` throws on a malformed secret rather than returning false, which
@@ -1196,7 +1214,8 @@ export class AuthService {
     await this.verificationTokenModel.create({
       userId: user._id,
       type: VerificationType.PASSWORD_RESET,
-      token,
+      // Only the digest is persisted; `token` itself exists solely in the email.
+      token: this.hashLinkToken(token),
       expiresAt,
     });
 
@@ -1218,7 +1237,7 @@ export class AuthService {
   ): Promise<{ message: string }> {
     const record = await this.verificationTokenModel
       .findOne({
-        token,
+        token: this.hashLinkToken(token),
         type: VerificationType.PASSWORD_RESET,
         used: false,
       })
@@ -1306,7 +1325,11 @@ export class AuthService {
     // Store pending change on user document
     await this.userModel
       .findByIdAndUpdate(userId, {
-        pendingEmailChange: { newEmail, verificationToken: token, expiresAt },
+        pendingEmailChange: {
+          newEmail,
+          verificationToken: this.hashLinkToken(token),
+          expiresAt,
+        },
         $inc: { 'verificationChangeCount.count': 1 },
       })
       .exec();
@@ -1327,7 +1350,7 @@ export class AuthService {
   async verifyEmailChange(token: string): Promise<{ message: string }> {
     const user = await this.userModel
       .findOne({
-        'pendingEmailChange.verificationToken': token,
+        'pendingEmailChange.verificationToken': this.hashLinkToken(token),
       })
       .exec();
 
@@ -1577,7 +1600,7 @@ export class AuthService {
     await this.verificationTokenModel.create({
       userId,
       type: VerificationType.EMAIL,
-      token,
+      token: this.hashLinkToken(token),
       expiresAt,
     });
 
