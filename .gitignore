@@ -8,9 +8,12 @@ web/dist/
 web/.angular/
 
 # ─── Environment files ────────────────────────────────
+# `.env` alone does not match `.env.production`, which is how the deployment
+# environment files ended up committed. Ignore every variant and allow only the
+# checked-in template back in.
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # ─── OS files ─────────────────────────────────────────
 .DS_Store

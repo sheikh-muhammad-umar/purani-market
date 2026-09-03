@@ -14,6 +14,11 @@ on:
         type: choice
         options: [all, ios, android, huawei]
 
+# Least privilege: none of these jobs write to the repository, and the default
+# GITHUB_TOKEN grants more than they need.
+permissions:
+  contents: read
+
 jobs:
   android:
     name: Android Build & Deploy

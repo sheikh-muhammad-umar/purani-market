@@ -4,6 +4,11 @@ on:
   push:
     branches: [main]
 
+# Least privilege: none of these jobs write to the repository, and the default
+# GITHUB_TOKEN grants more than they need.
+permissions:
+  contents: read
+
 jobs:
   deploy-staging:
     name: Build & Deploy to Staging
@@ -34,14 +39,22 @@ jobs:
 
       - name: Deploy to staging server
         uses: appleboy/ssh-action@v1
+        # The registry URL is forwarded to the remote shell as an environment
+        # variable instead of being spliced into the script text, so it stays out
+        # of the staging host's shell history and any `set -x` trace. `envs`
+        # names which of this step's variables ssh-action exports on the far side
+        # — the remote shell inherits nothing from the runner on its own.
+        env:
+          IMAGE_TAG: staging-${{ github.sha }}
+          REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
         with:
           host: ${{ secrets.STAGING_HOST }}
           username: ${{ secrets.STAGING_USER }}
           key: ${{ secrets.STAGING_SSH_KEY }}
+          envs: IMAGE_TAG,REGISTRY_URL
           script: |
+            set -euo pipefail
             cd /opt/marketplace
-            export IMAGE_TAG=staging-${{ github.sha }}
-            export REGISTRY_URL=${{ secrets.REGISTRY_URL }}
             docker compose -f docker-compose.yml -f docker-compose.staging.yml pull backend
             docker compose -f docker-compose.yml -f docker-compose.staging.yml up -d --no-deps backend
             docker image prune -f

@@ -4,8 +4,14 @@ services:
   mongodb:
     image: mongo:7
     restart: unless-stopped
+    # Bound to the loopback interface. "27017:27017" publishes on 0.0.0.0, which
+    # on any cloud host without a strict firewall is an internet-reachable
+    # database — and this base file has no authentication, so that was
+    # unauthenticated remote access. The backend reaches it over the compose
+    # network by service name and does not need the mapping at all; it is kept,
+    # narrowed, only so local tooling can still connect.
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongodb_data:/data/db
     environment:
@@ -24,7 +30,7 @@ services:
     image: redis:7-alpine
     restart: unless-stopped
     ports:
-      - "6379:6379"
+      - "127.0.0.1:6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
@@ -37,9 +43,13 @@ services:
     image: docker.elastic.co/elasticsearch/elasticsearch:8.18.0
     restart: unless-stopped
     ports:
-      - "9200:9200"
+      - "127.0.0.1:9200:9200"
     environment:
       - discovery.type=single-node
+      # Left off for local work only. The staging and production overlays turn it
+      # on and override the healthcheck below to authenticate; without that, both
+      # deployments ran an Elasticsearch that accepted any request, and the app
+      # connects anonymously whenever no credentials are configured.
       - xpack.security.enabled=false
       - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
     volumes:

@@ -4,6 +4,11 @@ on:
   pull_request:
     branches: [main]
 
+# Least privilege: none of these jobs write to the repository, and the default
+# GITHUB_TOKEN grants more than they need.
+permissions:
+  contents: read
+
 jobs:
   backend-checks:
     name: Backend Lint & Test

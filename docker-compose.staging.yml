@@ -2,14 +2,41 @@ version: "3.8"
 
 # Staging overrides — use with: docker compose -f docker-compose.yml -f docker-compose.staging.yml up
 services:
+  # Staging holds real data and is reachable from the internet, so it gets the
+  # same credentials production does. It previously inherited the base file
+  # unchanged, leaving Mongo, Redis and Elasticsearch open.
   mongodb:
     environment:
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD}
       MONGO_INITDB_DATABASE: marketplace_staging
+
+  redis:
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+
+  elasticsearch:
+    environment:
+      - xpack.security.enabled=true
+      - ELASTIC_PASSWORD=${ELASTIC_PASSWORD}
+    # The base healthcheck calls _cluster/health anonymously, which returns 401
+    # once security is on — the container would never report healthy and the
+    # backend, which waits on it, would never start.
+    healthcheck:
+      test:
+        [
+          "CMD-SHELL",
+          "curl -fs -u elastic:$${ELASTIC_PASSWORD} http://localhost:9200/_cluster/health || exit 1",
+        ]
 
   backend:
     env_file:
       - ./backend/.env.staging
     environment:
       NODE_ENV: staging
-      MONGODB_URI: mongodb://mongodb:27017/marketplace_staging
+      MONGODB_URI: mongodb://${MONGO_ROOT_USER}:${MONGO_ROOT_PASSWORD}@mongodb:27017/marketplace_staging?authSource=admin
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_DB: 1
+      # Both .env files ship these blank, and the client only sends credentials
+      # when username and password are both set.
+      ELASTICSEARCH_USERNAME: elastic
+      ELASTICSEARCH_PASSWORD: ${ELASTIC_PASSWORD}
