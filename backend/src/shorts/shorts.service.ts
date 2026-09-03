@@ -58,6 +58,11 @@ import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { EntitlementKind, remainingOf } from '../packages/entitlements.js';
 import { PackagesService } from '../packages/packages.service.js';
 import { ViewCounterService } from '../views/view-counter.service.js';
+import { isAdminRole } from '../common/enums/user-role.enum.js';
+import {
+  ProductListing,
+  ProductListingDocument,
+} from '../listings/schemas/product-listing.schema.js';
 import { SearchSyncService } from '../search/search-sync.service.js';
 import { daysToMs, daysFromNow, startOfMonth } from '../common/utils/time.js';
 
@@ -74,6 +79,8 @@ export class ShortsService {
     private readonly shortsPurchaseModel: Model<PackagePurchaseDocument>,
     @InjectModel(User.name)
     private readonly userModel: Model<UserDocument>,
+    @InjectModel(ProductListing.name)
+    private readonly listingModel: Model<ProductListingDocument>,
     @InjectModel(ShortLike.name)
     private readonly shortLikeModel: Model<ShortLikeDocument>,
     private readonly storageService: StorageService,
@@ -124,6 +131,8 @@ export class ShortsService {
   ): Promise<ShortVideoDocument> {
     // Validate file
     this.validateShortFile(file);
+
+    await this.assertOwnsLinkedListing(sellerId, dto.linkedListingId);
 
     // Check user's short limits
     const { canPost, reason, purchase } = await this.checkCanPostShort(
@@ -270,7 +279,18 @@ export class ShortsService {
     return short;
   }
 
-  async getShortById(id: string): Promise<ShortVideoDocument> {
+  /**
+   * Fetches one short, hiding anything not yet public from everyone but its owner.
+   *
+   * Only DELETED was excluded before, so a PENDING_REVIEW or REJECTED short —
+   * with its rejection reason, its video URL and the fact it was paid for — was
+   * readable by anyone holding the id. The listing equivalent has always gated
+   * non-public states behind owner-or-admin; this brings shorts in line.
+   */
+  async getShortById(
+    id: string,
+    viewer?: { userId?: string; role?: string },
+  ): Promise<ShortVideoDocument> {
     if (!Types.ObjectId.isValid(id)) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
@@ -281,7 +301,60 @@ export class ShortsService {
     if (!short || short.status === ShortVideoStatus.DELETED) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
+
+    const isPublic = ShortsService.PUBLICLY_VISIBLE_STATUSES.includes(
+      short.status,
+    );
+    if (!isPublic) {
+      // `sellerId` is populated above, so it arrives as a document rather than
+      // an id — both shapes have to be handled to compare it to the viewer.
+      const rawSeller = short.sellerId as unknown as
+        | Types.ObjectId
+        | { _id: Types.ObjectId };
+      const sellerId =
+        rawSeller && typeof rawSeller === 'object' && '_id' in rawSeller
+          ? rawSeller._id.toString()
+          : String(rawSeller);
+      const isOwner = !!viewer?.userId && sellerId === viewer.userId;
+      const isAdmin = isAdminRole(viewer?.role);
+      if (!isOwner && !isAdmin) {
+        throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+      }
+    }
+
     return short;
+  }
+
+  /** States anyone may see. Anything else is owner-or-admin only. */
+  private static readonly PUBLICLY_VISIBLE_STATUSES = [
+    ShortVideoStatus.ACTIVE,
+    ShortVideoStatus.EXPIRED,
+  ];
+
+  /**
+   * Confirms a listing the seller wants to attach actually belongs to them.
+   *
+   * Nothing checked this, so a short could be linked to any seller's listing —
+   * putting your video on a stranger's ad, or borrowing a well-performing
+   * listing's traffic.
+   */
+  private async assertOwnsLinkedListing(
+    sellerId: string,
+    linkedListingId?: string,
+  ): Promise<void> {
+    if (!linkedListingId) return;
+    if (!Types.ObjectId.isValid(linkedListingId)) {
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+
+    const listing = await this.listingModel
+      .findById(linkedListingId)
+      .select('sellerId')
+      .exec();
+
+    if (!listing || listing.sellerId.toString() !== sellerId) {
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
+    }
   }
 
   async getPublicFeed(
@@ -517,6 +590,7 @@ export class ShortsService {
       } as any;
     }
     if (dto.linkedListingId !== undefined) {
+      await this.assertOwnsLinkedListing(sellerId, dto.linkedListingId);
       short.linkedListingId = dto.linkedListingId
         ? new Types.ObjectId(dto.linkedListingId)
         : undefined;

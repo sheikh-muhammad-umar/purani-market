@@ -30,9 +30,15 @@ export class StorageService {
     const uniqueName = `${randomUUID()}-${filename.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
     const dir = path.join(this.uploadDir, folder);
 
-    // Prevent path traversal
+    // Prevent path traversal.
+    //
+    // Compared with a trailing separator, not by bare prefix: `startsWith`
+    // alone also accepts a sibling directory whose name merely begins with the
+    // upload directory's, so a folder resolving to `<cwd>/uploads_elsewhere`
+    // passed. The folder is caller-supplied — one segment of it comes from a URL
+    // parameter — so this is the boundary, not a formality.
     const resolvedDir = path.resolve(dir);
-    if (!resolvedDir.startsWith(this.uploadDir)) {
+    if (!this.isInsideUploadDir(resolvedDir)) {
       throw new Error('Invalid upload path');
     }
 
@@ -52,7 +58,7 @@ export class StorageService {
     try {
       const filePath = path.resolve(this.uploadDir, key);
       // Prevent path traversal
-      if (!filePath.startsWith(this.uploadDir)) {
+      if (!this.isInsideUploadDir(filePath)) {
         this.logger.warn(`Path traversal attempt blocked: ${key}`);
         return;
       }
@@ -60,6 +66,19 @@ export class StorageService {
     } catch (err: any) {
       this.logger.warn(`Failed to delete file ${key}: ${err.message}`);
     }
+  }
+
+  /**
+   * Whether a resolved path is the upload directory or genuinely beneath it.
+   *
+   * The separator is what makes this different from a prefix test: without it,
+   * `<cwd>/uploads-public` counts as inside `<cwd>/uploads`.
+   */
+  private isInsideUploadDir(resolved: string): boolean {
+    return (
+      resolved === this.uploadDir ||
+      resolved.startsWith(this.uploadDir + path.sep)
+    );
   }
 
   private ensureDir(dir: string): void {

@@ -434,6 +434,41 @@ export class MessagingService {
     return this.conversationModel.findById(conversationId).exec();
   }
 
+  /**
+   * Throws unless the user is one of the two parties to the conversation.
+   *
+   * Exists so a caller can establish that *before* doing expensive or persistent
+   * work. The media endpoints used to process and store an upload first and only
+   * discover the caller was a stranger when `sendMessage` refused it — by which
+   * point attacker-controlled bytes were on disk under a publicly-served path,
+   * in someone else's conversation folder, with nothing to clean them up.
+   */
+  async assertParticipant(
+    conversationId: string,
+    userId: string,
+  ): Promise<ConversationDocument> {
+    if (!Types.ObjectId.isValid(conversationId)) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    const conversation = await this.conversationModel
+      .findById(conversationId)
+      .exec();
+
+    if (!conversation) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    if (
+      conversation.buyerId.toString() !== userId &&
+      conversation.sellerId.toString() !== userId
+    ) {
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
+    }
+
+    return conversation;
+  }
+
   async markConversationRead(
     conversationId: string,
     userId: string,

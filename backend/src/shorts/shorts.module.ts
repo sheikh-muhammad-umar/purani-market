@@ -22,6 +22,10 @@ import { PackagesModule } from '../packages/packages.module.js';
 import { ViewCounterModule } from '../views/view-counter.module.js';
 import { SearchModule } from '../search/search.module.js';
 import { User, UserSchema } from '../users/schemas/user.schema.js';
+import {
+  ProductListing,
+  ProductListingSchema,
+} from '../listings/schemas/product-listing.schema.js';
 
 @Module({
   imports: [
@@ -32,6 +36,8 @@ import { User, UserSchema } from '../users/schemas/user.schema.js';
       { name: PackagePurchase.name, schema: PackagePurchaseSchema },
       { name: ShortLike.name, schema: ShortLikeSchema },
       { name: User.name, schema: UserSchema },
+      // Read-only: used to confirm a seller owns the listing they attach a short to.
+      { name: ProductListing.name, schema: ProductListingSchema },
     ]),
     forwardRef(() => ListingsModule),
     UsersModule,

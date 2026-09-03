@@ -105,8 +105,9 @@ export class ShortsController {
     @Param('id') id: string,
     @Req() req: unknown,
     @CurrentUser('sub') userId?: string,
+    @CurrentUser('role') role?: string,
   ) {
-    const short = await this.shortsService.getShortById(id);
+    const short = await this.shortsService.getShortById(id, { userId, role });
     // Fire-and-forget: a view is not worth delaying the response for, and a
     // failure to count one must not fail the request.
     void this.shortsService

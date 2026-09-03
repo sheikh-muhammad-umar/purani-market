@@ -96,6 +96,10 @@ export class MessagingController {
   ) {
     if (!file) throw new BadRequestException(ERROR.NO_IMAGE_FILE);
 
+    // Before the file is written, not after. sendMessage below performs the same
+    // check, but by then the upload is already stored under a public path.
+    await this.messagingService.assertParticipant(conversationId, userId);
+
     const media = await this.chatMediaService.processImage(
       conversationId,
       file,
@@ -121,6 +125,8 @@ export class MessagingController {
     @Body('duration') duration?: string,
   ) {
     if (!file) throw new BadRequestException(ERROR.NO_AUDIO_FILE);
+
+    await this.messagingService.assertParticipant(conversationId, userId);
 
     const media = await this.chatMediaService.processVoiceNote(
       conversationId,

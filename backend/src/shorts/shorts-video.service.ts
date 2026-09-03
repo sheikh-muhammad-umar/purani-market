@@ -27,6 +27,22 @@ export class ShortsVideoService {
    * 2. Compress to reduce size by ~50% while maintaining quality
    * 3. Generate thumbnail
    */
+
+  /**
+   * A filename safe to join onto a temporary directory.
+   *
+   * The multipart filename is attacker-controlled: joined raw, a name like
+   * `x/../../../tmp/evil.sh` resolved clean out of the temp directory and turned
+   * an upload into an arbitrary-path write with attacker-chosen bytes. Only the
+   * basename is kept and everything outside a conservative character class is
+   * replaced, matching what StorageService already does for permanent files.
+   */
+  private safeTempName(originalName: string): string {
+    const base = path.basename(originalName || 'upload');
+    const cleaned = base.replace(/[^a-zA-Z0-9._-]/g, '_').slice(0, 100);
+    return cleaned.replace(/^\.+/, '_') || 'upload';
+  }
+
   async processShortVideo(
     buffer: Buffer,
     originalName: string,
@@ -34,7 +50,10 @@ export class ShortsVideoService {
     const tmpDir = path.join(os.tmpdir(), `shorts-${randomUUID()}`);
     await fs.promises.mkdir(tmpDir, { recursive: true });
 
-    const inputPath = path.join(tmpDir, `input-${originalName}`);
+    const inputPath = path.join(
+      tmpDir,
+      `input-${this.safeTempName(originalName)}`,
+    );
     const outputPath = path.join(tmpDir, 'output.mp4');
     const thumbPath = path.join(tmpDir, 'thumb.jpg');
 
@@ -104,7 +123,10 @@ export class ShortsVideoService {
     const tmpDir = path.join(os.tmpdir(), `shorts-trim-${randomUUID()}`);
     await fs.promises.mkdir(tmpDir, { recursive: true });
 
-    const inputPath = path.join(tmpDir, `input-${originalName}`);
+    const inputPath = path.join(
+      tmpDir,
+      `input-${this.safeTempName(originalName)}`,
+    );
     const outputPath = path.join(tmpDir, 'trimmed.mp4');
 
     try {

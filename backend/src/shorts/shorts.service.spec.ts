@@ -5,6 +5,7 @@ import { BadRequestException } from '@nestjs/common';
 import { Types } from 'mongoose';
 import { ShortsService } from './shorts.service';
 import { ShortVideo } from './schemas/short-video.schema';
+import { ProductListing } from '../listings/schemas/product-listing.schema';
 import { ShortsPackage } from './schemas/shorts-package.schema';
 import { ShortLike } from './schemas/short-like.schema';
 import {
@@ -137,6 +138,17 @@ describe('ShortsService — shorts entitlement', () => {
         {
           provide: getModelToken(User.name),
           useValue: { findById: jest.fn() },
+        },
+        {
+          // Read-only, for the linked-listing ownership check.
+          provide: getModelToken(ProductListing.name),
+          useValue: {
+            findById: jest.fn().mockReturnValue({
+              select: jest.fn().mockReturnValue({
+                exec: jest.fn().mockResolvedValue(null),
+              }),
+            }),
+          },
         },
         {
           provide: getModelToken(ShortLike.name),
