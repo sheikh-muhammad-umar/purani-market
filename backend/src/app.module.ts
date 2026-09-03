@@ -72,14 +72,27 @@ import { AppService } from './app.service.js';
       },
     }),
 
-    // Rate limiting
+    /**
+     * Rate limiting.
+     *
+     * Two named tiers, because one set of limits cannot serve both purposes. The
+     * strict `auth` tier is what protects credential endpoints; a generous
+     * `default` tier is what makes it safe to apply throttling to everything
+     * else. Previously only `AuthController` opted in, so search — the most
+     * expensive endpoint in the app — every file upload, and the tracking
+     * endpoint were entirely unthrottled.
+     */
     ThrottlerModule.forRootAsync({
       inject: [ConfigService],
       useFactory: (configService: ConfigService) => ({
+        // One throttler, deliberately. Every configured throttler applies to
+        // every route, so adding a second strict one here would have imposed the
+        // strict limit everywhere — which is what a first attempt at this did.
+        // Credential endpoints tighten it per-controller with @Throttle instead.
         throttlers: [
           {
-            ttl: configService.get<number>('throttle.ttl') ?? 900000,
-            limit: configService.get<number>('throttle.limit') ?? 10,
+            ttl: configService.get<number>('throttle.defaultTtl') ?? 60000,
+            limit: configService.get<number>('throttle.defaultLimit') ?? 120,
           },
         ],
       }),

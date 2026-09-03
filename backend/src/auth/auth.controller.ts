@@ -24,7 +24,11 @@ import { VerifyEmailChangeDto } from './dto/verify-email-change.dto.js';
 import { ChangePhoneDto } from './dto/change-phone.dto.js';
 import { VerifyPhoneChangeDto } from './dto/verify-phone-change.dto.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
-import { CustomThrottlerGuard } from '../common/guards/throttler.guard.js';
+import { Throttle } from '@nestjs/throttler';
+import {
+  THROTTLE_AUTH_LIMIT,
+  THROTTLE_AUTH_TTL,
+} from '../common/constants/app.constants.js';
 import { CurrentUser } from '../common/decorators/current-user.decorator.js';
 
 interface AuthUser {
@@ -36,8 +40,15 @@ interface AuthUser {
   jti: string;
 }
 
+/**
+ * Tightens the app-wide throttle for every route here: these are the endpoints
+ * where a handful of attempts per window is the entire point, against the
+ * generous default that exists so browsing is not disrupted.
+ */
 @Controller('api/auth')
-@UseGuards(CustomThrottlerGuard)
+@Throttle({
+  default: { ttl: THROTTLE_AUTH_TTL, limit: THROTTLE_AUTH_LIMIT },
+})
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 

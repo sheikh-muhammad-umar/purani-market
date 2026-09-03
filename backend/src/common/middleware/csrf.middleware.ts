@@ -6,6 +6,9 @@ const CSRF_TOKEN_HEADER = 'x-csrf-token';
 const CSRF_COOKIE_NAME = '_csrf';
 const SAFE_METHODS = new Set(['GET', 'HEAD', 'OPTIONS']);
 const IS_PRODUCTION = process.env.NODE_ENV === 'production';
+/** Only local development skips validation; staging is a real deployment. */
+const IS_DEVELOPMENT =
+  (process.env.NODE_ENV ?? 'development') === 'development';
 
 /**
  * CSRF double-submit cookie middleware.
@@ -43,9 +46,12 @@ export class CsrfMiddleware implements NestMiddleware {
       return;
     }
 
-    // In non-production, CORS origin restrictions handle cross-origin safety.
-    // Cookie-based CSRF doesn't work cross-origin over HTTP (different ports).
-    if (!IS_PRODUCTION) {
+    // Skipped only for local development, where the client is on a different
+    // port over plain HTTP and a sameSite cookie cannot be shared. This used to
+    // test `!IS_PRODUCTION`, which also disabled the check in staging — a real
+    // deployment, served over TLS on its own domain, where cookies work exactly
+    // as they do in production.
+    if (IS_DEVELOPMENT) {
       next();
       return;
     }

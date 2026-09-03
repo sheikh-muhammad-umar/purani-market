@@ -72,17 +72,31 @@ describe('CsrfMiddleware', () => {
     );
   });
 
-  describe('non-production (CSRF validation skipped)', () => {
-    // NODE_ENV is 'test' in this suite, so validation is skipped
+  describe('outside local development', () => {
+    // NODE_ENV is 'test' here, which is not 'development' — so validation runs.
+    // The bypass used to be `!IS_PRODUCTION`, which also disabled the check in
+    // staging: a real deployment on its own domain over TLS, where cookies
+    // behave exactly as they do in production.
 
-    it('should allow POST without CSRF token in non-production', () => {
+    it('rejects a POST carrying no CSRF token', () => {
       const { req, res, next } = createMockReqRes({
         method: 'POST',
         cookies: {},
         headers: {},
       });
-      middleware.use(req, res, next);
-      expect(next).toHaveBeenCalled();
+
+      expect(() => middleware.use(req, res, next)).toThrow(ForbiddenException);
+      expect(next).not.toHaveBeenCalled();
+    });
+
+    it('rejects a POST whose header does not match the cookie', () => {
+      const { req, res, next } = createMockReqRes({
+        method: 'POST',
+        cookies: { _csrf: 'cookie-token' },
+        headers: { 'x-csrf-token': 'different-token' },
+      });
+
+      expect(() => middleware.use(req, res, next)).toThrow(ForbiddenException);
     });
   });
 

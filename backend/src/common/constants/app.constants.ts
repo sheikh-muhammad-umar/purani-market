@@ -27,6 +27,22 @@ export const ROBOTS_CRAWL_DELAY = parseInt(
   10,
 );
 
+// ─── Rate limiting ──────────────────────────────────────────
+/**
+ * The strict window applied to credential endpoints.
+ *
+ * Read here rather than through ConfigService because `@Throttle` is a decorator,
+ * evaluated at class definition time, when no injector exists yet.
+ */
+export const THROTTLE_AUTH_TTL = parseInt(
+  process.env.THROTTLE_TTL || '900000',
+  10,
+);
+export const THROTTLE_AUTH_LIMIT = parseInt(
+  process.env.THROTTLE_LIMIT || '10',
+  10,
+);
+
 // ─── View Deduplication ─────────────────────────────────────
 export const VIEW_DEDUP_PREFIX = 'view';
 

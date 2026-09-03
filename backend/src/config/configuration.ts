@@ -51,8 +51,14 @@ export default () => ({
   },
 
   throttle: {
+    // Strict tier, for credential endpoints.
     ttl: parseInt(process.env.THROTTLE_TTL || '900000', 10),
     limit: parseInt(process.env.THROTTLE_LIMIT || '10', 10),
+    // Generous tier applied to everything else. Loose enough not to interfere
+    // with normal browsing, tight enough to stop a single client hammering
+    // search or uploads.
+    defaultTtl: parseInt(process.env.THROTTLE_DEFAULT_TTL || '60000', 10),
+    defaultLimit: parseInt(process.env.THROTTLE_DEFAULT_LIMIT || '120', 10),
   },
 
   cors: {
