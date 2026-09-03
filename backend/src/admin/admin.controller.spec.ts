@@ -181,6 +181,7 @@ describe('AdminController', () => {
           role: UserRole.USER,
         },
         'admin-id',
+        UserRole.ADMIN,
         {},
       );
 
@@ -188,6 +189,7 @@ describe('AdminController', () => {
       expect(adminService.updateUserRole).toHaveBeenCalledWith(
         mockUserId,
         UserRole.USER,
+        { id: 'admin-id', role: UserRole.ADMIN },
       );
     });
   });

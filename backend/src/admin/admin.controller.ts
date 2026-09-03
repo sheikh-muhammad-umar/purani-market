@@ -128,11 +128,18 @@ export class AdminController {
     @Param('id') id: string,
     @Body() dto: UpdateUserRoleDto,
     @CurrentUser('sub') adminId: string,
+    @CurrentUser('role') adminRole: UserRole,
     @Req() req: any,
   ) {
     const oldUser = await this.adminService.findUserById(id);
     const previousRole = oldUser.role;
-    const user = await this.adminService.updateUserRole(id, dto.role);
+    // The acting admin is passed through so the service can refuse a
+    // self-promotion or an attempt on a super-admin. The role comes from the
+    // JWT strategy, which re-reads it from the database on every request.
+    const user = await this.adminService.updateUserRole(id, dto.role, {
+      id: adminId,
+      role: adminRole,
+    });
     this.tracker.track(
       adminId,
       UserAction.ADMIN_USER_ROLE_CHANGE,

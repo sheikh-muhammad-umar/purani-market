@@ -422,10 +422,39 @@ export class AdminService {
     return user;
   }
 
-  async updateUserRole(userId: string, role: UserRole): Promise<UserDocument> {
+  /**
+   * Changes a user's role.
+   *
+   * Guarded three ways, because the role field is the keys to the platform and
+   * this route sits at plain admin level:
+   * - Only a super-admin may grant super-admin. Without this any admin could
+   *   promote themselves — `UpdateUserRoleDto` accepts the whole `UserRole` enum,
+   *   so `super_admin` was a valid value from an admin-level caller.
+   * - Only a super-admin may change a super-admin's role, so an admin cannot
+   *   demote the account that supervises them.
+   * - Nobody may change their own role, which is what turns the first rule from
+   *   a policy into something an admin cannot route around.
+   */
+  async updateUserRole(
+    userId: string,
+    role: UserRole,
+    actor: { id: string; role: UserRole },
+  ): Promise<UserDocument> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    const actorIsSuperAdmin = actor.role === UserRole.SUPER_ADMIN;
+
+    if (actor.id === userId) {
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
+    }
+    if (role === UserRole.SUPER_ADMIN && !actorIsSuperAdmin) {
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
+    }
+    if (user.role === UserRole.SUPER_ADMIN && !actorIsSuperAdmin) {
+      throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
 
     user.role = role;

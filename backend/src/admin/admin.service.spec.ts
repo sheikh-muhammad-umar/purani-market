@@ -1,7 +1,7 @@
 import { PackagesService } from '../packages/packages.service';
 import { Test, TestingModule } from '@nestjs/testing';
 import { getModelToken } from '@nestjs/mongoose';
-import { NotFoundException } from '@nestjs/common';
+import { NotFoundException, ForbiddenException } from '@nestjs/common';
 import { AdminService } from './admin.service.js';
 import { User, UserRole, UserStatus } from '../users/schemas/user.schema.js';
 import {
@@ -469,7 +469,10 @@ describe('AdminService', () => {
         exec: jest.fn().mockResolvedValue(user),
       });
 
-      await service.updateUserRole(mockUserId, UserRole.USER);
+      await service.updateUserRole(mockUserId, UserRole.USER, {
+        id: 'another-admin',
+        role: UserRole.ADMIN,
+      });
 
       expect(user.role).toBe(UserRole.USER);
       expect(user.save).toHaveBeenCalled();
@@ -484,8 +487,76 @@ describe('AdminService', () => {
       });
 
       await expect(
-        service.updateUserRole('nonexistent', UserRole.ADMIN),
+        service.updateUserRole('nonexistent', UserRole.ADMIN, {
+          id: 'admin-1',
+          role: UserRole.ADMIN,
+        }),
       ).rejects.toThrow(NotFoundException);
+    });
+
+    it('refuses to let an admin grant super-admin', async () => {
+      userModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ ...mockUser, save: jest.fn() }),
+      });
+
+      // UpdateUserRoleDto accepts the whole enum, so without this the route was a
+      // self-service promotion to the top role.
+      await expect(
+        service.updateUserRole(mockUserId, UserRole.SUPER_ADMIN, {
+          id: 'admin-1',
+          role: UserRole.ADMIN,
+        }),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('lets a super-admin grant super-admin', async () => {
+      const user = {
+        ...mockUser,
+        save: jest.fn().mockResolvedValue(undefined),
+      };
+      userModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(user),
+      });
+
+      await service.updateUserRole(mockUserId, UserRole.SUPER_ADMIN, {
+        id: 'super-1',
+        role: UserRole.SUPER_ADMIN,
+      });
+
+      expect(user.role).toBe(UserRole.SUPER_ADMIN);
+    });
+
+    it('refuses to let an admin change a super-admin', async () => {
+      userModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          ...mockUser,
+          role: UserRole.SUPER_ADMIN,
+          save: jest.fn(),
+        }),
+      });
+
+      // Otherwise an admin could demote the account that supervises them.
+      await expect(
+        service.updateUserRole(mockUserId, UserRole.USER, {
+          id: 'admin-1',
+          role: UserRole.ADMIN,
+        }),
+      ).rejects.toThrow(ForbiddenException);
+    });
+
+    it('refuses to let anyone change their own role', async () => {
+      userModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ ...mockUser, save: jest.fn() }),
+      });
+
+      // This is what turns the rule above into something an admin cannot route
+      // around by editing their own account.
+      await expect(
+        service.updateUserRole(mockUserId, UserRole.SUPER_ADMIN, {
+          id: mockUserId,
+          role: UserRole.SUPER_ADMIN,
+        }),
+      ).rejects.toThrow(ForbiddenException);
     });
   });
 
