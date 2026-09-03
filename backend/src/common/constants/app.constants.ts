@@ -270,6 +270,18 @@ export const SHORTS_MAX_DURATION_SECONDS = 60;
 export const SHORTS_MAX_FILE_SIZE = 15 * 1024 * 1024; // 15 MB
 export const SHORTS_EXPIRY_REMINDER_DAYS = [2, 1];
 
+/** Default page size for the public shorts feed. */
+export const SHORTS_FEED_DEFAULT_LIMIT = 10;
+
+/**
+ * Hard ceiling on the shorts feed page size.
+ *
+ * The value reaches `$sample: { size: … }`, so an uncapped request asked MongoDB
+ * to sample the whole collection through three joins — mass extraction and a
+ * memory exhaustion from one unauthenticated parameter.
+ */
+export const SHORTS_FEED_MAX_LIMIT = 50;
+
 /**
  * Prefix for the reference stamped on a manually-paid purchase.
  *

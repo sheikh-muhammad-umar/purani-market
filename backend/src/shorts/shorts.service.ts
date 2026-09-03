@@ -47,6 +47,8 @@ import {
   DEFAULT_CURRENCY,
   MANUAL_PAYMENT_REFERENCE_PREFIX,
   SHORTS_ALLOWED_MIMETYPES,
+  SHORTS_FEED_DEFAULT_LIMIT,
+  SHORTS_FEED_MAX_LIMIT,
   SHORTS_EXPIRY_REMINDER_DAYS,
   SHORTS_FREE_DURATION_DAYS,
   SHORTS_FREE_LIMIT,
@@ -59,6 +61,12 @@ import { EntitlementKind, remainingOf } from '../packages/entitlements.js';
 import { PackagesService } from '../packages/packages.service.js';
 import { ViewCounterService } from '../views/view-counter.service.js';
 import { isAdminRole } from '../common/enums/user-role.enum.js';
+import { exactMatchRegex } from '../common/utils/sanitize-regex.js';
+import {
+  asPageNumber,
+  asPageSize,
+  asQueryString,
+} from '../common/utils/query-params.js';
 import {
   ProductListing,
   ProductListingDocument,
@@ -325,6 +333,14 @@ export class ShortsService {
     return short;
   }
 
+  /** Rejects a malformed id instead of letting the driver throw a cast error. */
+  private toObjectId(value: string): Types.ObjectId {
+    if (!Types.ObjectId.isValid(value)) {
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+    return new Types.ObjectId(value);
+  }
+
   /** States anyone may see. Anything else is owner-or-admin only. */
   private static readonly PUBLICLY_VISIBLE_STATUSES = [
     ShortVideoStatus.ACTIVE,
@@ -357,6 +373,13 @@ export class ShortsService {
     }
   }
 
+  /**
+   * The public shorts feed.
+   *
+   * `limit` is capped here rather than trusted from the caller: it flows into
+   * `$sample: { size: limit }`, so an uncapped value was mass extraction and a
+   * memory denial-of-service in one unauthenticated parameter.
+   */
   async getPublicFeed(
     page: number = 1,
     limit: number = 10,
@@ -377,30 +400,50 @@ export class ShortsService {
     limit: number;
     seed: string;
   }> {
+    const safePage = asPageNumber(page);
+    const safeLimit = asPageSize(limit, {
+      fallback: SHORTS_FEED_DEFAULT_LIMIT,
+      max: SHORTS_FEED_MAX_LIMIT,
+    });
     const filter: Record<string, any> = { status: ShortVideoStatus.ACTIVE };
 
-    if (filters?.categoryId) {
-      filter.categoryId = new Types.ObjectId(filters.categoryId);
+    // This endpoint is public and unauthenticated, and its parameters arrive as
+    // bare `@Query('name')` values — so the global validation pipe never sees a
+    // class to check, and the extended query parser can deliver an object where
+    // a string is declared. Coerced before use, and ids validated rather than
+    // handed to the driver, which threw a cast error and returned a 500.
+    const categoryId = asQueryString(filters?.categoryId);
+    const provinceId = asQueryString(filters?.provinceId);
+    const cityId = asQueryString(filters?.cityId);
+    const areaId = asQueryString(filters?.areaId);
+    const city = asQueryString(filters?.city);
+    const search = asQueryString(filters?.search);
+
+    if (categoryId) filter.categoryId = this.toObjectId(categoryId);
+    if (provinceId) {
+      filter['location.provinceId'] = this.toObjectId(provinceId);
     }
-    if (filters?.provinceId) {
-      filter['location.provinceId'] = new Types.ObjectId(filters.provinceId);
+    if (cityId) filter['location.cityId'] = this.toObjectId(cityId);
+    if (areaId) filter['location.areaId'] = this.toObjectId(areaId);
+    if (city) {
+      // Escaped and anchored. Passing the raw value into `$regex` let an
+      // unauthenticated caller send a catastrophic-backtracking pattern for
+      // MongoDB to evaluate — CPU burn on the database for the price of one
+      // request — and `?city=.*` quietly matched every city.
+      filter['location.city'] = exactMatchRegex(city);
     }
-    if (filters?.cityId) {
-      filter['location.cityId'] = new Types.ObjectId(filters.cityId);
-    }
-    if (filters?.areaId) {
-      filter['location.areaId'] = new Types.ObjectId(filters.areaId);
-    }
-    if (filters?.city) {
-      filter['location.city'] = { $regex: filters.city, $options: 'i' };
-    }
-    if (filters?.search) {
-      filter.$text = { $search: filters.search };
+    if (search) {
+      filter.$text = { $search: search };
     }
 
-    // Exclude already-seen shorts
-    if (filters?.seen && filters.seen.length > 0) {
-      filter._id = { $nin: filters.seen.map((id) => new Types.ObjectId(id)) };
+    // Exclude already-seen shorts. Anything that is not a valid id is dropped
+    // rather than thrown at the driver.
+    const seenIds = (filters?.seen ?? [])
+      .filter((id): id is string => typeof id === 'string')
+      .filter((id) => Types.ObjectId.isValid(id))
+      .map((id) => new Types.ObjectId(id));
+    if (seenIds.length > 0) {
+      filter._id = { $nin: seenIds };
     }
 
     const total = await this.shortVideoModel
@@ -417,7 +460,7 @@ export class ShortsService {
       data = await this.shortVideoModel
         .find(filter)
         .sort({ score: { $meta: 'textScore' } })
-        .limit(limit)
+        .limit(safeLimit)
         .populate(
           'sellerId',
           'profile.firstName profile.lastName profile.avatar phone',
@@ -429,7 +472,7 @@ export class ShortsService {
       // Use aggregation with $sample for true random
       const pipeline: any[] = [
         { $match: filter },
-        { $sample: { size: limit } },
+        { $sample: { size: safeLimit } },
       ];
 
       const rawDocs = await this.shortVideoModel.aggregate(pipeline).exec();
@@ -447,7 +490,7 @@ export class ShortsService {
         .exec();
     }
 
-    return { data, total, page, limit, seed };
+    return { data, total, page: safePage, limit: safeLimit, seed };
   }
 
   private hashSeed(seed: string): number {

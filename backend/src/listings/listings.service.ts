@@ -53,7 +53,18 @@ import { AdminTrackerService } from '../ai/admin-tracker.service.js';
 import { UserAction } from '../ai/enums/user-action.enum.js';
 import { AdPackageType } from '../packages/schemas/ad-package.schema.js';
 import { EntitlementKind } from '../packages/entitlements.js';
-import { OTHER_OPTION_ID, LISTING_PUBLIC_SELECT } from './constants/index.js';
+import {
+  OTHER_OPTION_ID,
+  LISTING_PUBLIC_SELECT,
+  LISTING_SORT_FIELDS,
+} from './constants/index.js';
+import {
+  asPageNumber,
+  asPageSize,
+  asQueryString,
+  asSortField,
+  asSortOrder,
+} from '../common/utils/query-params.js';
 import { PaginatedListings } from './interfaces/paginated-listings.interface.js';
 import { daysToMs } from '../common/utils/time.js';
 
@@ -133,10 +144,24 @@ export class ListingsService {
      */
     includeAllStatuses = false,
   ): Promise<PaginatedListings> {
-    const safePage = Math.max(1, page);
-    const safeLimit = Math.min(Math.max(1, limit), 100);
+    const safePage = asPageNumber(page);
+    const safeLimit = asPageSize(limit, { fallback: 20, max: 100 });
     const skip = (safePage - 1) * safeLimit;
     const filter: Record<string, any> = { deletedAt: { $exists: false } };
+
+    // Every filter value is coerced to a real string first. These arrive from a
+    // bare `@Query('name')` parameter, where the global validation pipe has no
+    // class to validate and so does nothing, and the extended query parser turns
+    // `?city[$ne]=x` into an object — which then reached a Mongo filter, a
+    // `$regex`, or `exactMatchRegex`, where it either injected an operator or
+    // threw inside `.replace()` and surfaced as a 500.
+    const categoryId = asQueryString(filters?.categoryId);
+    const provinceId = asQueryString(filters?.provinceId);
+    const cityId = asQueryString(filters?.cityId);
+    const areaId = asQueryString(filters?.areaId);
+    const province = asQueryString(filters?.province);
+    const city = asQueryString(filters?.city);
+    const area = asQueryString(filters?.area);
 
     if (sellerId) {
       if (!Types.ObjectId.isValid(sellerId)) {
@@ -159,32 +184,39 @@ export class ListingsService {
       Object.assign(filter, ownViewConditions(filters.ownView));
     }
 
-    if (filters?.categoryId) {
-      if (Types.ObjectId.isValid(filters.categoryId)) {
-        filter.categoryPath = new Types.ObjectId(filters.categoryId);
-      } else {
-        filter.categoryPath = filters.categoryId;
+    // `categoryPath` holds ObjectIds, so a value that is not one could never
+    // match anyway — it was only ever a way to get a raw client value into the
+    // filter. Rejected outright rather than ignored, since dropping the filter
+    // silently would answer a narrow question with the whole catalogue.
+    if (categoryId) {
+      if (!Types.ObjectId.isValid(categoryId)) {
+        throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
       }
+      filter.categoryPath = new Types.ObjectId(categoryId);
     }
-    if (filters?.provinceId) {
-      filter['location.provinceId'] = new Types.ObjectId(filters.provinceId);
-    } else if (filters?.province) {
-      filter['location.province'] = exactMatchRegex(filters.province);
+    if (provinceId) {
+      filter['location.provinceId'] = this.toObjectId(provinceId);
+    } else if (province) {
+      filter['location.province'] = exactMatchRegex(province);
     }
-    if (filters?.cityId) {
-      filter['location.cityId'] = new Types.ObjectId(filters.cityId);
-    } else if (filters?.city) {
-      filter['location.city'] = exactMatchRegex(filters.city);
+    if (cityId) {
+      filter['location.cityId'] = this.toObjectId(cityId);
+    } else if (city) {
+      filter['location.city'] = exactMatchRegex(city);
     }
-    if (filters?.areaId) {
-      filter['location.areaId'] = new Types.ObjectId(filters.areaId);
-    } else if (filters?.area) {
-      filter['location.area'] = exactMatchRegex(filters.area);
+    if (areaId) {
+      filter['location.areaId'] = this.toObjectId(areaId);
+    } else if (area) {
+      filter['location.area'] = exactMatchRegex(area);
     }
 
     const sortObj: Record<string, 1 | -1> = {
       isFeatured: -1,
-      [sort]: order === 'asc' ? 1 : -1,
+      // Checked against an allow-list. Spreading the caller's field name let any
+      // field reach `.sort()`: an unindexed sort is a cheap denial-of-service,
+      // and ordering by a field the projection strips still leaks its ordering.
+      [asSortField(sort, LISTING_SORT_FIELDS, 'createdAt')]:
+        asSortOrder(order) === 'asc' ? 1 : -1,
     };
     const [data, total] = await Promise.all([
       this.listingModel
@@ -203,6 +235,14 @@ export class ListingsService {
       limit: safeLimit,
       totalPages: Math.ceil(total / safeLimit),
     };
+  }
+
+  /** Rejects a malformed id rather than letting the driver throw a cast error. */
+  private toObjectId(value: string): Types.ObjectId {
+    if (!Types.ObjectId.isValid(value)) {
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+    return new Types.ObjectId(value);
   }
 
   /**

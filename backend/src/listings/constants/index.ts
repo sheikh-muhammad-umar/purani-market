@@ -14,5 +14,23 @@ export const OTHER_OPTION_ID = 'other';
  * contact details from a list: the detail page fetches the listing on its own, and
  * admin screens use their own unprojected queries.
  */
+/**
+ * Fields a caller may sort a listing search by.
+ *
+ * An allow-list because the field name used to be spread straight into `.sort()`,
+ * which let a caller force an unindexed sort over the whole collection and — more
+ * subtly — order results by a field the projection hides, revealing its relative
+ * values without ever returning it.
+ */
+export const LISTING_SORT_FIELDS = [
+  'createdAt',
+  'updatedAt',
+  'price.amount',
+  'viewCount',
+  'favoriteCount',
+] as const;
+
+export type ListingSortField = (typeof LISTING_SORT_FIELDS)[number];
+
 export const LISTING_PUBLIC_SELECT =
   '-purchaseId -rejectionReasonIds -rejectionNote -rejectedAt -deactivatedAt -deletionReason -contactInfo -__v';

@@ -1115,4 +1115,77 @@ describe('ListingsService', () => {
       );
     });
   });
+
+  describe('query parameter hardening', () => {
+    /** The shape the extended query parser produces for ?x[$ne]=y. */
+    const injected = { $ne: null } as unknown as string;
+
+    it('does not let an injected operator reach the filter', async () => {
+      await service.findAll(1, 20, 'createdAt', 'desc', undefined, {
+        city: injected,
+        province: injected,
+      });
+
+      const filter = mockListingModel.find.mock.calls[0][0];
+      // Coerced away entirely rather than applied: an absent filter is safe,
+      // a `{ $ne: null }` one matches everything.
+      expect(filter['location.city']).toBeUndefined();
+      expect(filter['location.province']).toBeUndefined();
+    });
+
+    it('rejects a category id that is not an ObjectId', async () => {
+      // categoryPath holds ObjectIds, so a raw string could never match — it was
+      // only ever a route for client-controlled values into the query.
+      await expect(
+        service.findAll(1, 20, 'createdAt', 'desc', undefined, {
+          categoryId: 'not-an-id',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('rejects an injected object where a location id belongs', async () => {
+      await expect(
+        service.findAll(1, 20, 'createdAt', 'desc', undefined, {
+          provinceId: 'nope',
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('ignores a sort field that is not on the allow-list', async () => {
+      await service.findAll(1, 20, 'contactInfo.phone', 'desc');
+
+      const sortArg = mockListingModel.find.mock.results[0].value.sort.mock
+        .calls[0][0] as Record<string, number>;
+      // Falls back rather than ordering by a hidden field, which would leak its
+      // ordering even though the projection strips it.
+      expect(sortArg['contactInfo.phone']).toBeUndefined();
+      expect(sortArg.createdAt).toBe(-1);
+    });
+
+    it('accepts an allowed sort field', async () => {
+      await service.findAll(1, 20, 'price.amount', 'asc');
+
+      const sortArg = mockListingModel.find.mock.results[0].value.sort.mock
+        .calls[0][0] as Record<string, number>;
+      expect(sortArg['price.amount']).toBe(1);
+    });
+
+    it('caps the page size and floors the page', async () => {
+      const result = await service.findAll(0, 100000);
+
+      expect(result.limit).toBe(100);
+      expect(result.page).toBe(1);
+    });
+
+    it('treats a non-numeric page size as the default', async () => {
+      // `parseInt('abc')` used to become NaN and propagate into skip/limit.
+      const result = await service.findAll(
+        'abc' as unknown as number,
+        'abc' as unknown as number,
+      );
+
+      expect(result.page).toBe(1);
+      expect(result.limit).toBe(20);
+    });
+  });
 });
