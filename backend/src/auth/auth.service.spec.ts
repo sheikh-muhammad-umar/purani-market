@@ -481,9 +481,23 @@ describe('AuthService', () => {
       );
 
       expect(result.mfaRequired).toBe(true);
-      expect(result.userId).toBe('user123');
       expect(result.accessToken).toBeUndefined();
       expect(result.refreshToken).toBeUndefined();
+      // A ticket, not the user id: the id is not a secret, so handing it back
+      // let anyone with a TOTP code alone finish the login.
+      expect(result.mfaToken).toBe('mock-token');
+      expect(result).not.toHaveProperty('userId');
+      expect(mockJwtService.sign).toHaveBeenCalledWith(
+        expect.objectContaining({ sub: 'user123', type: 'mfa' }),
+        expect.objectContaining({ expiresIn: '5m' }),
+      );
+      // Recorded so it can be spent exactly once.
+      expect(mockRedis.set).toHaveBeenCalledWith(
+        expect.stringMatching(/^mfa:/),
+        'user123',
+        'EX',
+        300,
+      );
     });
 
     it('should set lastLoginDevice to "unknown" when no user-agent', async () => {
@@ -945,15 +959,36 @@ describe('AuthService', () => {
       expect(result.secret).toBeDefined();
       expect(typeof result.secret).toBe('string');
       expect(result.qrCodeUrl).toMatch(/^data:image\/png;base64,/);
+      // Pending only. Enabling here locked out anyone who opened the setup
+      // screen and never paired their authenticator.
       expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
         'user123',
         expect.objectContaining({
-          'mfa.totpSecret': expect.any(String),
-          'mfa.enabled': true,
+          'mfa.pendingTotpSecret': expect.any(String),
           'mfa.failedAttempts': 0,
           'mfa.lockedUntil': null,
         }),
       );
+      const [, update] = mockUserModel.findByIdAndUpdate.mock.calls[0];
+      expect(update).not.toHaveProperty('mfa.enabled');
+      expect(update).not.toHaveProperty('mfa.totpSecret');
+    });
+
+    it('should not notify the user until setup is confirmed', async () => {
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: { toString: () => 'user123' },
+          email: 'test@example.com',
+          mfa: { enabled: false },
+        }),
+      });
+      mockUserModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+
+      await service.enableMfa('user123');
+
+      expect(mockEmailService.sendMfaEnabledEmail).not.toHaveBeenCalled();
     });
 
     it('should throw NotFoundException for non-existent user', async () => {
@@ -985,6 +1020,23 @@ describe('AuthService', () => {
   describe('verifyMfa', () => {
     const totpSecret = 'WD4LCTZHTBPX7VOL2YK4CU5HEAZANJFA';
 
+    /** A ticket string the stubs below resolve to the given user. */
+    const ticketFor = (userId: string) => `ticket:${userId}`;
+    const jtiFor = (userId: string) => `jti-${ticketFor(userId)}`;
+
+    beforeEach(() => {
+      // Stand in for a real signed ticket: decode the id out of the string and
+      // treat its jti as present in Redis (i.e. issued and not yet spent).
+      mockJwtService.verify.mockImplementation((token: string) => {
+        const userId = token.replace(/^ticket:/, '');
+        return { sub: userId, role: 'buyer', type: 'mfa', jti: `jti-${token}` };
+      });
+      mockRedis.get.mockImplementation(async (key: string) => {
+        const match = /^mfa:jti-ticket:(.+)$/.exec(key);
+        return match ? match[1] : null;
+      });
+    });
+
     it('should return tokens on valid TOTP code', async () => {
       const { generateSync } = require('otplib');
       const validCode = generateSync({ secret: totpSecret });
@@ -1013,7 +1065,7 @@ describe('AuthService', () => {
         .mockReturnValueOnce('mfa-refresh-token');
 
       const result = await service.verifyMfa(
-        'user123',
+        ticketFor('user123'),
         validCode,
         'Mozilla/5.0',
       );
@@ -1050,9 +1102,9 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      await expect(service.verifyMfa('user123', '000000')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.verifyMfa(ticketFor('user123'), '000000'),
+      ).rejects.toThrow(UnauthorizedException);
 
       // Should increment failed attempts
       expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
@@ -1072,6 +1124,8 @@ describe('AuthService', () => {
           enabled: true,
           totpSecret,
           failedAttempts: 4,
+          // Recent, so this attempt continues the run rather than starting one.
+          lastFailedAt: new Date(),
           lockedUntil: null,
         },
       };
@@ -1082,9 +1136,9 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      await expect(service.verifyMfa('user123', '000000')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.verifyMfa(ticketFor('user123'), '000000'),
+      ).rejects.toThrow(ForbiddenException);
 
       // Should set lockedUntil
       expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
@@ -1113,9 +1167,9 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue(mockUser),
       });
 
-      await expect(service.verifyMfa('user123', '123456')).rejects.toThrow(
-        ForbiddenException,
-      );
+      await expect(
+        service.verifyMfa(ticketFor('user123'), '123456'),
+      ).rejects.toThrow(ForbiddenException);
     });
 
     it('should throw UnauthorizedException for non-existent user', async () => {
@@ -1123,9 +1177,9 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue(null),
       });
 
-      await expect(service.verifyMfa('nonexistent', '123456')).rejects.toThrow(
-        UnauthorizedException,
-      );
+      await expect(
+        service.verifyMfa(ticketFor('nonexistent'), '123456'),
+      ).rejects.toThrow(UnauthorizedException);
     });
 
     it('should throw BadRequestException when MFA is not enabled', async () => {
@@ -1139,7 +1193,296 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue(mockUser),
       });
 
-      await expect(service.verifyMfa('user123', '123456')).rejects.toThrow(
+      await expect(
+        service.verifyMfa(ticketFor('user123'), '123456'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    // ─── The ticket is what proves the password step happened ───
+
+    it('should reject a ticket that does not verify', async () => {
+      mockJwtService.verify.mockImplementation(() => {
+        throw new Error('invalid signature');
+      });
+
+      await expect(service.verifyMfa('forged', '123456')).rejects.toThrow(
+        UnauthorizedException,
+      );
+      // Rejected before the account is even looked up.
+      expect(mockUserModel.findById).not.toHaveBeenCalled();
+    });
+
+    it('should reject an access token used in place of a ticket', async () => {
+      // Otherwise any valid session token would double as a ticket, and the
+      // separation between the two halves of the login would be cosmetic.
+      mockJwtService.verify.mockReturnValue({
+        sub: 'user123',
+        role: 'buyer',
+        type: 'access',
+        jti: 'access-jti',
+      });
+
+      await expect(
+        service.verifyMfa('an-access-token', '123456'),
+      ).rejects.toThrow(UnauthorizedException);
+      expect(mockUserModel.findById).not.toHaveBeenCalled();
+    });
+
+    it('should reject a ticket whose jti is no longer held (spent or unknown)', async () => {
+      mockRedis.get.mockResolvedValue(null);
+
+      await expect(
+        service.verifyMfa(ticketFor('user123'), '123456'),
+      ).rejects.toThrow(UnauthorizedException);
+      expect(mockUserModel.findById).not.toHaveBeenCalled();
+    });
+
+    it('should reject a ticket whose jti is held for a different user', async () => {
+      // Guards against swapping the signed body for another account's while
+      // reusing a live jti.
+      mockRedis.get.mockResolvedValue('someone-else');
+
+      await expect(
+        service.verifyMfa(ticketFor('user123'), '123456'),
+      ).rejects.toThrow(UnauthorizedException);
+      expect(mockUserModel.findById).not.toHaveBeenCalled();
+    });
+
+    it('should spend the ticket once the code is accepted', async () => {
+      const { generateSync } = require('otplib');
+      const validCode = generateSync({ secret: totpSecret });
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: { toString: () => 'user123' },
+          email: 'test@example.com',
+          role: 'buyer',
+          mfa: {
+            enabled: true,
+            totpSecret,
+            failedAttempts: 0,
+            lockedUntil: null,
+          },
+        }),
+      });
+      mockUserModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+
+      await service.verifyMfa(ticketFor('user123'), validCode);
+
+      expect(mockRedis.del).toHaveBeenCalledWith(`mfa:${jtiFor('user123')}`);
+    });
+
+    it('should leave the ticket usable after a wrong code', async () => {
+      // A typo should cost a retry, not send the user back to the password
+      // screen. Guessing is bounded by the per-account lockout instead.
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: { toString: () => 'user123' },
+          email: 'test@example.com',
+          role: 'buyer',
+          mfa: {
+            enabled: true,
+            totpSecret,
+            failedAttempts: 0,
+            lockedUntil: null,
+          },
+        }),
+      });
+      mockUserModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(
+        service.verifyMfa(ticketFor('user123'), '000000'),
+      ).rejects.toThrow(UnauthorizedException);
+
+      expect(mockRedis.del).not.toHaveBeenCalledWith(
+        `mfa:${jtiFor('user123')}`,
+      );
+    });
+
+    it('should start a fresh failure count when the last failure is outside the window', async () => {
+      // The 15-minute window was computed and discarded, so wrong codes months
+      // apart accumulated into a lockout.
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: { toString: () => 'user123' },
+          email: 'test@example.com',
+          role: 'buyer',
+          mfa: {
+            enabled: true,
+            totpSecret,
+            failedAttempts: 4,
+            lastFailedAt: new Date(Date.now() - 60 * 60 * 1000),
+            lockedUntil: null,
+          },
+        }),
+      });
+      mockUserModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(
+        service.verifyMfa(ticketFor('user123'), '000000'),
+      ).rejects.toThrow(UnauthorizedException);
+
+      expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        'user123',
+        expect.objectContaining({ 'mfa.failedAttempts': 1 }),
+      );
+    });
+
+    it('should record when each failure happened so the window can be applied', async () => {
+      // Without this the window has nothing to measure against and the lockout
+      // could never trigger.
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: { toString: () => 'user123' },
+          email: 'test@example.com',
+          role: 'buyer',
+          mfa: {
+            enabled: true,
+            totpSecret,
+            failedAttempts: 0,
+            lockedUntil: null,
+          },
+        }),
+      });
+      mockUserModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+
+      await expect(
+        service.verifyMfa(ticketFor('user123'), '000000'),
+      ).rejects.toThrow(UnauthorizedException);
+
+      expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        'user123',
+        expect.objectContaining({ 'mfa.lastFailedAt': expect.any(Date) }),
+      );
+    });
+  });
+
+  describe('confirmMfa', () => {
+    const totpSecret = 'WD4LCTZHTBPX7VOL2YK4CU5HEAZANJFA';
+
+    const pendingUser = () => ({
+      _id: { toString: () => 'user123' },
+      email: 'test@example.com',
+      role: 'buyer',
+      mfa: { enabled: false, pendingTotpSecret: totpSecret },
+    });
+
+    it('should enable MFA and promote the pending secret on a valid code', async () => {
+      const { generateSync } = require('otplib');
+      const validCode = generateSync({ secret: totpSecret });
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(pendingUser()),
+      });
+      mockUserModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+
+      await service.confirmMfa('user123', validCode);
+
+      expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        'user123',
+        expect.objectContaining({
+          'mfa.totpSecret': totpSecret,
+          'mfa.enabled': true,
+          $unset: { 'mfa.pendingTotpSecret': '' },
+        }),
+      );
+      expect(mockEmailService.sendMfaEnabledEmail).toHaveBeenCalledWith(
+        'test@example.com',
+      );
+    });
+
+    it('should not enable MFA on an invalid code', async () => {
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(pendingUser()),
+      });
+
+      await expect(service.confirmMfa('user123', '000000')).rejects.toThrow(
+        UnauthorizedException,
+      );
+      expect(mockUserModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should reject confirmation when setup was never started', async () => {
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: { toString: () => 'user123' },
+          email: 'test@example.com',
+          role: 'buyer',
+          mfa: { enabled: false },
+        }),
+      });
+
+      await expect(service.confirmMfa('user123', '123456')).rejects.toThrow(
+        BadRequestException,
+      );
+    });
+  });
+
+  describe('disableMfa', () => {
+    const enabledUser = async () => ({
+      _id: { toString: () => 'user123' },
+      email: 'test@example.com',
+      role: 'buyer',
+      passwordHash: await bcrypt.hash('password123', 10),
+      mfa: { enabled: true, totpSecret: 'SECRET' },
+    });
+
+    it('should require the correct password', async () => {
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(await enabledUser()),
+      });
+
+      await expect(service.disableMfa('user123', 'wrong')).rejects.toThrow(
+        UnauthorizedException,
+      );
+      expect(mockUserModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should disable MFA and clear both secrets on the correct password', async () => {
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(await enabledUser()),
+      });
+      mockUserModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+
+      await service.disableMfa('user123', 'password123');
+
+      expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
+        'user123',
+        expect.objectContaining({
+          'mfa.enabled': false,
+          $unset: {
+            'mfa.totpSecret': '',
+            'mfa.pendingTotpSecret': '',
+            'mfa.lockedUntil': '',
+          },
+        }),
+      );
+      expect(mockEmailService.sendMfaDisabledEmail).toHaveBeenCalledWith(
+        'test@example.com',
+      );
+    });
+
+    it('should reject a social-only account that has no password to re-enter', async () => {
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: { toString: () => 'user123' },
+          email: 'test@example.com',
+          role: 'buyer',
+          mfa: { enabled: true, totpSecret: 'SECRET' },
+        }),
+      });
+
+      await expect(service.disableMfa('user123', 'anything')).rejects.toThrow(
         BadRequestException,
       );
     });

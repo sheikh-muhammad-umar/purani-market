@@ -98,8 +98,28 @@ export class MfaSettings {
   @Prop({ type: String })
   totpSecret?: string;
 
+  /**
+   * A secret that has been shown to the user as a QR code but not yet proven to
+   * work.
+   *
+   * Enabling used to write `totpSecret` and `enabled: true` in one step, which
+   * locked out anyone who opened the setup screen and walked away — the next
+   * login demanded codes from an authenticator that had never been paired. The
+   * secret now waits here until a code generated from it comes back.
+   */
+  @Prop({ type: String })
+  pendingTotpSecret?: string;
+
   @Prop({ type: Number, default: 0 })
   failedAttempts!: number;
+
+  /**
+   * When the most recent wrong code was submitted, so `failedAttempts` can be
+   * scoped to a rolling window instead of accumulating for the life of the
+   * account.
+   */
+  @Prop({ type: Date })
+  lastFailedAt?: Date;
 
   @Prop({ type: Date })
   lockedUntil?: Date;
@@ -140,7 +160,10 @@ export class DeviceToken {
       delete ret.passwordHash;
       delete ret.__v;
       delete ret.deletedAt;
-      if (ret.mfa) delete ret.mfa.totpSecret;
+      if (ret.mfa) {
+        delete ret.mfa.totpSecret;
+        delete ret.mfa.pendingTotpSecret;
+      }
       if (ret.pendingEmailChange)
         delete ret.pendingEmailChange.verificationToken;
       if (ret.pendingPhoneChange) delete ret.pendingPhoneChange.otpHash;

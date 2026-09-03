@@ -17,7 +17,13 @@ export interface JwtPayload {
   permissions?: string[];
   emailVerified?: boolean;
   phoneVerified?: boolean;
-  type: 'access' | 'refresh';
+  /**
+   * `mfa` is the half-authenticated ticket issued between a correct password and
+   * a correct TOTP code. `validate` below accepts only `access`, so a ticket can
+   * never be presented as a bearer token — the whitelist is what makes adding a
+   * type safe.
+   */
+  type: 'access' | 'refresh' | 'mfa';
   jti: string;
 }
 

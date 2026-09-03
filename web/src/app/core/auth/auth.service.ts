@@ -134,12 +134,35 @@ export class AuthService {
 
   // --- MFA ---
 
+  /**
+   * Begins setup and returns the QR code. MFA is not active until
+   * {@link confirmMfa} succeeds, so abandoning this screen is harmless.
+   */
   enableMfa(): Observable<MfaEnableResponse> {
     return this.http.post<MfaEnableResponse>(`${this.apiUrl}${API.AUTH_MFA_ENABLE}`, {});
   }
 
+  /** Completes setup by proving the authenticator app produces valid codes. */
+  confirmMfa(code: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_MFA_CONFIRM}`, { code });
+  }
+
+  /**
+   * Second half of an MFA login.
+   *
+   * @param mfaToken the ticket from the login response. Previously this sent a
+   * field the server did not read while omitting the one it required, so MFA
+   * logins from the browser could not complete at all.
+   */
   verifyMfa(mfaToken: string, code: string): Observable<AuthTokens> {
     return this.http.post<AuthTokens>(`${this.apiUrl}${API.AUTH_MFA_VERIFY}`, { mfaToken, code });
+  }
+
+  /** Requires the account password: an access token alone must not remove MFA. */
+  disableMfa(password: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_MFA_DISABLE}`, {
+      password,
+    });
   }
 
   // --- Phone Management ---

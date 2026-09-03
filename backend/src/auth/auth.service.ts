@@ -54,6 +54,8 @@ import {
   MFA_FAILED_WINDOW_MINUTES,
   MFA_LOCKOUT_MINUTES,
   MFA_ISSUER,
+  MFA_TICKET_EXPIRATION,
+  MFA_TICKET_TTL_SECONDS,
   PASSWORD_RESET_EXPIRY_MINUTES,
   EMAIL_CHANGE_EXPIRY_HOURS,
   PHONE_CHANGE_OTP_EXPIRY_MINUTES,
@@ -484,7 +486,7 @@ export class AuthService {
     refreshToken?: string;
     user?: { id: string; email?: string; phone?: string; role: string };
     mfaRequired?: boolean;
-    userId?: string;
+    mfaToken?: string;
   }> {
     if (!email && !phone) {
       throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
@@ -523,11 +525,14 @@ export class AuthService {
       throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
 
-    // Check if MFA is enabled — return partial response requiring MFA verification
+    // Password is correct but the account owes a second factor. Hand back a
+    // ticket that records that fact; `verifyMfa` will not issue a session
+    // without one. Returning the bare user id here (as this used to) proved
+    // nothing, because a user id is not a secret.
     if (user.mfa?.enabled) {
       return {
         mfaRequired: true,
-        userId: user._id.toString(),
+        mfaToken: await this.issueMfaTicket(user),
       };
     }
 
@@ -864,13 +869,54 @@ export class AuthService {
     const otpauthUrl = generateTotpURI({ label, issuer: MFA_ISSUER, secret });
     const qrCodeUrl = await QRCode.toDataURL(otpauthUrl);
 
-    // Store the TOTP secret
+    // Held as *pending* and deliberately not switched on. Enabling in this same
+    // call locked out every user who opened the setup screen and never finished
+    // pairing: their next login demanded a code from an authenticator that had
+    // no secret in it. `confirmMfa` promotes this once a code proves the app
+    // works.
     await this.userModel
       .findByIdAndUpdate(userId, {
-        'mfa.totpSecret': secret,
+        'mfa.pendingTotpSecret': secret,
+        'mfa.failedAttempts': 0,
+        'mfa.lockedUntil': null,
+      })
+      .exec();
+
+    return { secret, qrCodeUrl };
+  }
+
+  /**
+   * Completes setup by checking a code from the newly paired authenticator.
+   *
+   * This is the only place `mfa.enabled` becomes true, so the requirement can
+   * never be switched on for a secret the user cannot generate codes from.
+   */
+  async confirmMfa(userId: string, code: string): Promise<{ message: string }> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    if (user.mfa?.enabled) {
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+
+    const pending = user.mfa?.pendingTotpSecret;
+    if (!pending) {
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+
+    if (!this.isTotpValid(code, pending)) {
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
+    }
+
+    await this.userModel
+      .findByIdAndUpdate(userId, {
+        'mfa.totpSecret': pending,
         'mfa.enabled': true,
         'mfa.failedAttempts': 0,
         'mfa.lockedUntil': null,
+        $unset: { 'mfa.pendingTotpSecret': '' },
       })
       .exec();
 
@@ -879,10 +925,17 @@ export class AuthService {
       await this.emailService.sendMfaEnabledEmail(user.email);
     }
 
-    return { secret, qrCodeUrl };
+    return { message: 'Two-factor authentication enabled' };
   }
 
-  async disableMfa(userId: string): Promise<{ message: string }> {
+  /**
+   * @param password the account password, re-entered. Without it, a stolen
+   * access token was enough to remove the second factor.
+   */
+  async disableMfa(
+    userId: string,
+    password: string,
+  ): Promise<{ message: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
@@ -892,11 +945,27 @@ export class AuthService {
       throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
 
+    // Accounts created through a social provider have no password to re-enter;
+    // sending them down the bcrypt path would compare against undefined and
+    // always fail, leaving them unable to ever turn MFA off.
+    if (!user.passwordHash) {
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
+    }
+
     await this.userModel
       .findByIdAndUpdate(userId, {
         'mfa.enabled': false,
         'mfa.failedAttempts': 0,
-        $unset: { 'mfa.totpSecret': '', 'mfa.lockedUntil': '' },
+        $unset: {
+          'mfa.totpSecret': '',
+          'mfa.pendingTotpSecret': '',
+          'mfa.lockedUntil': '',
+        },
       })
       .exec();
 
@@ -908,8 +977,90 @@ export class AuthService {
     return { message: 'Two-factor authentication disabled' };
   }
 
+  /**
+   * Checks a TOTP code without leaking why it failed.
+   *
+   * `verifySync` throws on a malformed secret rather than returning false, which
+   * would surface as a 500 and distinguish "bad secret" from "bad code".
+   */
+  private isTotpValid(code: string, secret: string): boolean {
+    try {
+      return verifyTotp({ token: code, secret }).valid;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Mints the proof that a password check succeeded.
+   *
+   * Signed with the same key as the session tokens but carrying `type: 'mfa'`,
+   * which `JwtStrategy` refuses — so the ticket opens nothing on its own. The
+   * jti is also recorded in Redis and removed when spent, making the ticket
+   * single-use: one password check buys one session, not a five-minute window in
+   * which to mint many.
+   */
+  private async issueMfaTicket(user: UserDocument): Promise<string> {
+    const jti = crypto.randomUUID();
+    const ticket = this.jwtService.sign(
+      {
+        sub: user._id.toString(),
+        role: user.role,
+        type: 'mfa',
+        jti,
+      } as Record<string, unknown>,
+      { expiresIn: MFA_TICKET_EXPIRATION as any },
+    );
+
+    await this.redis.set(
+      `mfa:${jti}`,
+      user._id.toString(),
+      'EX',
+      MFA_TICKET_TTL_SECONDS,
+    );
+
+    return ticket;
+  }
+
+  /**
+   * Validates a ticket and returns the user id it was issued for.
+   *
+   * Every rejection is the same 401: a caller probing tickets learns nothing
+   * about which ones exist.
+   */
+  private async resolveMfaTicket(mfaToken: string): Promise<{
+    userId: string;
+    jti: string;
+  }> {
+    let payload: JwtPayload;
+    try {
+      payload = this.jwtService.verify<JwtPayload>(mfaToken);
+    } catch {
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
+    }
+
+    if (payload.type !== 'mfa' || !payload.jti || !payload.sub) {
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
+    }
+
+    // Signature and expiry are not enough on their own — this is what makes a
+    // spent ticket stop working before its five minutes are up.
+    const storedUserId = await this.redis.get(`mfa:${payload.jti}`);
+    if (!storedUserId || storedUserId !== payload.sub) {
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
+    }
+
+    return { userId: payload.sub, jti: payload.jti };
+  }
+
+  /**
+   * Exchanges an MFA ticket plus a TOTP code for a session.
+   *
+   * @param mfaToken the ticket from `login`. It carries the user identity, so
+   * the caller no longer names the account it wants a session for.
+   */
   async verifyMfa(
-    userId: string,
+    mfaToken: string,
     code: string,
     userAgent?: string,
   ): Promise<{
@@ -917,6 +1068,8 @@ export class AuthService {
     refreshToken: string;
     user: { id: string; email?: string; phone?: string; role: string };
   }> {
+    const { userId, jti } = await this.resolveMfaTicket(mfaToken);
+
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
@@ -931,30 +1084,23 @@ export class AuthService {
       throw new ForbiddenException(PUBLIC_ERROR.FORBIDDEN);
     }
 
-    // Verify the TOTP code
-    let isValid = false;
-    try {
-      const verifyResult = verifyTotp({
-        token: code,
-        secret: user.mfa.totpSecret,
-      });
-      isValid = verifyResult.valid;
-    } catch {
-      // If verification throws (e.g., invalid secret format), treat as invalid
-      isValid = false;
-    }
+    const isValid = this.isTotpValid(code, user.mfa.totpSecret);
 
     if (!isValid) {
-      // Increment failed attempts
-      const windowStart = new Date(
-        Date.now() - MFA_FAILED_WINDOW_MINUTES * 60 * 1000,
-      );
-      const failedAttempts = (user.mfa.failedAttempts || 0) + 1;
+      // MFA_FAILED_WINDOW_MINUTES used to be computed here and then ignored, so
+      // the counter only ever reset on a success or the hourly cron: five
+      // mistyped codes months apart added up to a lockout. Failures older than
+      // the window now start a fresh count.
+      const windowStart = Date.now() - MFA_FAILED_WINDOW_MINUTES * 60 * 1000;
+      const lastFailedAt = user.mfa.lastFailedAt?.getTime() ?? 0;
+      const withinWindow = lastFailedAt >= windowStart;
+      const failedAttempts = withinWindow
+        ? (user.mfa.failedAttempts || 0) + 1
+        : 1;
 
-      // Check if we need to reset the counter (outside the window)
-      // We use a simple counter approach: if lockedUntil has passed, reset
       const updateFields: Record<string, any> = {
         'mfa.failedAttempts': failedAttempts,
+        'mfa.lastFailedAt': new Date(),
       };
 
       if (failedAttempts >= MFA_MAX_FAILED_ATTEMPTS) {
@@ -979,6 +1125,11 @@ export class AuthService {
 
       throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
     }
+
+    // Spend the ticket. Only on success, so a mistyped code costs a retry rather
+    // than sending the user back to the password screen — the per-account
+    // lockout above is what bounds guessing, not the ticket.
+    await this.redis.del(`mfa:${jti}`);
 
     // Reset failed attempts on success
     const loginAt = new Date();

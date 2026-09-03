@@ -16,6 +16,8 @@ describe('AuthController', () => {
     logout: jest.fn(),
     socialLogin: jest.fn(),
     enableMfa: jest.fn(),
+    confirmMfa: jest.fn(),
+    disableMfa: jest.fn(),
     verifyMfa: jest.fn(),
     forgotPassword: jest.fn(),
     resetPassword: jest.fn(),
@@ -264,8 +266,8 @@ describe('AuthController', () => {
   });
 
   describe('POST /api/auth/mfa/verify', () => {
-    it('should call authService.verifyMfa with userId and code', async () => {
-      const dto = { userId: 'user123', code: '123456' };
+    it('should forward the MFA ticket and code, never a caller-supplied user id', async () => {
+      const dto = { mfaToken: 'mfa-ticket-jwt', code: '123456' };
       const expected = {
         accessToken: 'access-token',
         refreshToken: 'refresh-token',
@@ -277,9 +279,57 @@ describe('AuthController', () => {
 
       expect(result).toEqual(expected);
       expect(mockAuthService.verifyMfa).toHaveBeenCalledWith(
-        'user123',
+        'mfa-ticket-jwt',
         '123456',
         'Mozilla/5.0',
+      );
+    });
+  });
+
+  describe('POST /api/auth/mfa/confirm', () => {
+    it('should confirm setup for the authenticated user', async () => {
+      const user = {
+        sub: 'user123',
+        jti: 'jti-123',
+        role: 'buyer',
+        type: 'access',
+      };
+      const expected = { message: 'Two-factor authentication enabled' };
+      mockAuthService.confirmMfa.mockResolvedValue(expected);
+
+      const result = await controller.confirmMfa(
+        { code: '123456' },
+        user as any,
+      );
+
+      expect(result).toEqual(expected);
+      expect(mockAuthService.confirmMfa).toHaveBeenCalledWith(
+        'user123',
+        '123456',
+      );
+    });
+  });
+
+  describe('POST /api/auth/mfa/disable', () => {
+    it('should pass the re-entered password through to the service', async () => {
+      const user = {
+        sub: 'user123',
+        jti: 'jti-123',
+        role: 'buyer',
+        type: 'access',
+      };
+      const expected = { message: 'Two-factor authentication disabled' };
+      mockAuthService.disableMfa.mockResolvedValue(expected);
+
+      const result = await controller.disableMfa(
+        { password: 'password123' },
+        user as any,
+      );
+
+      expect(result).toEqual(expected);
+      expect(mockAuthService.disableMfa).toHaveBeenCalledWith(
+        'user123',
+        'password123',
       );
     });
   });

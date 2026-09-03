@@ -1,1 +1,23 @@
 /* Component-specific styles (shared auth styles are global) */
+
+/*
+ * Was an inline style attribute on the input. Moved here so the letter spacing
+ * can be relaxed on narrow screens — at 0.5em the six characters plus the
+ * trailing space overflowed the field on small phones.
+ */
+.code-input {
+  text-align: center;
+  font-family: var(--font-mono);
+  font-size: var(--text-xl);
+  letter-spacing: 0.5em;
+  /* Offsets the trailing letter-spacing so the digits stay optically centred. */
+  text-indent: 0.5em;
+}
+
+@media (max-width: 380px) {
+  .code-input {
+    font-size: var(--text-lg);
+    letter-spacing: 0.3em;
+    text-indent: 0.3em;
+  }
+}

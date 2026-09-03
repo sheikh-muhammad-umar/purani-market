@@ -1,7 +1,7 @@
 import { Component, OnInit, OnDestroy, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { ReactiveFormsModule, FormBuilder, FormGroup, Validators } from '@angular/forms';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink, ActivatedRoute } from '@angular/router';
 import { AuthService } from '../../../core/auth/auth.service';
 import { ThemeService } from '../../../core/services/theme.service';
 import { User } from '../../../core/models/user.model';
@@ -63,6 +63,8 @@ export class SettingsComponent implements OnInit, OnDestroy {
     private readonly authService: AuthService,
     public readonly themeService: ThemeService,
     private readonly http: HttpClient,
+    private readonly router: Router,
+    private readonly route: ActivatedRoute,
   ) {
     this.emailForm = this.fb.group({
       newEmail: ['', [Validators.required, Validators.email]],
@@ -83,6 +85,15 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   ngOnInit(): void {
     this.loadUser();
+
+    // The MFA screen redirects back here after enabling or disabling; without
+    // this the toggle silently flips and the user gets no confirmation.
+    const mfaResult = this.route.snapshot.queryParamMap.get('mfa');
+    if (mfaResult === 'enabled') {
+      this.successMessage.set('Two-factor authentication is on.');
+    } else if (mfaResult === 'disabled') {
+      this.successMessage.set('Two-factor authentication is off.');
+    }
   }
 
   ngOnDestroy(): void {
@@ -282,26 +293,20 @@ export class SettingsComponent implements OnInit, OnDestroy {
 
   // --- MFA ---
 
+  /**
+   * Hands off to the MFA screen for both directions.
+   *
+   * Enabling used to call the API straight from here, which returned the QR code
+   * into a discarded response and left the user told that "setup initiated" with
+   * nothing to scan. Disabling only ever printed a message. Both now go to the
+   * screen that can actually show a QR code and collect a password.
+   */
   toggleMfa(): void {
     const currentUser = this.user();
     if (!currentUser) return;
 
-    if (currentUser.mfa?.enabled) {
-      // Disable MFA - in a real app this would require verification
-      this.successMessage.set('MFA management requires additional verification.');
-    } else {
-      this.mfaLoading.set(true);
-      this.authService.enableMfa().subscribe({
-        next: () => {
-          this.mfaLoading.set(false);
-          this.successMessage.set('MFA setup initiated. Check your authenticator app.');
-          this.loadUser();
-        },
-        error: () => {
-          this.mfaLoading.set(false);
-          this.errorMessage.set('Failed to enable MFA.');
-        },
-      });
-    }
+    void this.router.navigate([ROUTES.AUTH_MFA], {
+      queryParams: currentUser.mfa?.enabled ? { disable: 'true' } : { setup: 'true' },
+    });
   }
 }

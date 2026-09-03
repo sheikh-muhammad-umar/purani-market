@@ -17,6 +17,8 @@ import { LoginDto } from './dto/login.dto.js';
 import { RefreshTokenDto } from './dto/refresh-token.dto.js';
 import { SocialLoginDto } from './dto/social-login.dto.js';
 import { VerifyMfaDto } from './dto/verify-mfa.dto.js';
+import { ConfirmMfaDto } from './dto/confirm-mfa.dto.js';
+import { DisableMfaDto } from './dto/disable-mfa.dto.js';
 import { ForgotPasswordDto } from './dto/forgot-password.dto.js';
 import { ResetPasswordDto } from './dto/reset-password.dto.js';
 import { ChangeEmailDto } from './dto/change-email.dto.js';
@@ -99,6 +101,10 @@ export class AuthController {
     return this.authService.socialLogin(dto);
   }
 
+  /**
+   * Starts MFA setup: returns the secret and QR code. Does not switch MFA on —
+   * `mfa/confirm` does that, once the user proves the authenticator is paired.
+   */
   @Post('mfa/enable')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
@@ -106,20 +112,32 @@ export class AuthController {
     return this.authService.enableMfa(user.sub);
   }
 
+  @Post('mfa/confirm')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async confirmMfa(@Body() dto: ConfirmMfaDto, @CurrentUser() user: AuthUser) {
+    return this.authService.confirmMfa(user.sub, dto.code);
+  }
+
   @Post('mfa/disable')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
-  async disableMfa(@CurrentUser() user: AuthUser) {
-    return this.authService.disableMfa(user.sub);
+  async disableMfa(@Body() dto: DisableMfaDto, @CurrentUser() user: AuthUser) {
+    return this.authService.disableMfa(user.sub, dto.password);
   }
 
+  /**
+   * Second half of an MFA login. Unguarded by design — the caller has no session
+   * yet — but it requires the ticket `login` issued, so it is not reachable
+   * without having passed the password check.
+   */
   @Post('mfa/verify')
   @HttpCode(HttpStatus.OK)
   async verifyMfa(
     @Body() dto: VerifyMfaDto,
     @Headers('user-agent') userAgent?: string,
   ) {
-    return this.authService.verifyMfa(dto.userId, dto.code, userAgent);
+    return this.authService.verifyMfa(dto.mfaToken, dto.code, userAgent);
   }
 
   @Post('forgot-password')

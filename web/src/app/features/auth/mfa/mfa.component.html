@@ -5,14 +5,21 @@
       <p class="auth-subtitle">Scan the QR code with your authenticator app</p>
 
       @if (setupLoading()) {
-        <app-loader mode="inline" [loading]="true" message="Verifying..." />
+        <app-loader mode="inline" [loading]="true" message="Preparing setup..." />
       } @else if (setupData()) {
         <div class="qr-container">
           <img [src]="setupData()!.qrCodeUrl" alt="MFA QR Code" />
           <p class="info-text">Can't scan? Enter this key manually:</p>
           <div class="secret-key">{{ setupData()!.secret }}</div>
         </div>
+        <p class="info-text">
+          Two-factor sign-in stays off until you enter a code from the app below, so you cannot get
+          locked out by leaving this page.
+        </p>
       }
+    } @else if (isDisableMode()) {
+      <h1 class="auth-title">Turn Off Two-Factor</h1>
+      <p class="auth-subtitle">Confirm your password to remove the second step at sign-in</p>
     } @else {
       <h1 class="auth-title">Two-Factor Authentication</h1>
       <p class="auth-subtitle">Enter the 6-digit code from your authenticator app</p>
@@ -22,49 +29,70 @@
       <div class="alert alert-error" role="alert">{{ errorMessage() }}</div>
     }
 
-    <form [formGroup]="mfaForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
-      <div class="form-group">
-        <label for="code" class="form-label">Verification Code</label>
-        <input
-          id="code"
-          type="text"
-          formControlName="code"
-          class="form-input"
-          placeholder="000000"
-          maxlength="6"
-          autocomplete="one-time-code"
-          inputmode="numeric"
-          style="
-            text-align: center;
-            font-family: var(--font-mono);
-            font-size: var(--text-xl);
-            letter-spacing: 0.5em;
-          "
-        />
-        @if (mfaForm.get('code')?.touched && mfaForm.get('code')?.errors) {
-          <span class="form-error">Please enter a valid 6-digit code</span>
-        }
-      </div>
-
-      <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
-        @if (loading()) {
-          <span class="spinner" aria-hidden="true"></span>
-          Verifying...
-        } @else {
-          @if (isSetupMode()) {
-            Verify & Enable MFA
-          } @else {
-            Verify
+    @if (isDisableMode()) {
+      <form [formGroup]="disableForm" (ngSubmit)="onDisableSubmit()" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="password" class="form-label">Password</label>
+          <input
+            id="password"
+            type="password"
+            formControlName="password"
+            class="form-input"
+            autocomplete="current-password"
+          />
+          @if (disableForm.get('password')?.touched && disableForm.get('password')?.errors) {
+            <span class="form-error">Please enter your password</span>
           }
-        }
-      </button>
-    </form>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner" aria-hidden="true"></span>
+            Turning off...
+          } @else {
+            Turn Off Two-Factor
+          }
+        </button>
+      </form>
+    } @else {
+      <form [formGroup]="mfaForm" (ngSubmit)="onSubmit()" class="auth-form" novalidate>
+        <div class="form-group">
+          <label for="code" class="form-label">Verification Code</label>
+          <input
+            id="code"
+            type="text"
+            formControlName="code"
+            class="form-input code-input"
+            placeholder="000000"
+            maxlength="6"
+            autocomplete="one-time-code"
+            inputmode="numeric"
+          />
+          @if (mfaForm.get('code')?.touched && mfaForm.get('code')?.errors) {
+            <span class="form-error">Please enter a valid 6-digit code</span>
+          }
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-full" [disabled]="loading()">
+          @if (loading()) {
+            <span class="spinner" aria-hidden="true"></span>
+            Verifying...
+          } @else {
+            @if (isSetupMode()) {
+              Verify & Enable MFA
+            } @else {
+              Verify
+            }
+          }
+        </button>
+      </form>
+    }
 
     <p class="auth-footer">
-      @if (!isSetupMode()) {
-        <a [routerLink]="ROUTES.AUTH_LOGIN">Back to Sign In</a>
-      } @else {
+      @if (isSetupMode() || isDisableMode()) {
         <a [routerLink]="ROUTES.PROFILE">Back to Settings</a>
+      } @else {
+        <a [routerLink]="ROUTES.AUTH_LOGIN">Back to Sign In</a>
       }
     </p>
   </div>
