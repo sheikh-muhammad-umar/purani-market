@@ -166,17 +166,69 @@ export class SearchService {
       sort = ['_score'];
     }
 
+    const boolQuery = {
+      bool: {
+        filter,
+        ...(must.length ? { must } : {}),
+      },
+    };
+
+    // When ranking by relevance (a text query with no explicit price/newest
+    // sort), fold popularity and freshness into the score so a well-watched,
+    // recent short outranks a dead one of equal textual match. Kept out of the
+    // explicit price/newest sorts, where the user has asked for a specific order.
+    const rankByRelevance =
+      sort.length === 1 && sort[0] === '_score' && must.length > 0;
+
+    const scoredQuery = rankByRelevance
+      ? {
+          function_score: {
+            query: boolQuery,
+            // Multiply the text score by popularity and recency factors.
+            score_mode: 'sum' as const,
+            boost_mode: 'multiply' as const,
+            functions: [
+              // Saturating popularity boost — early views/favourites matter
+              // most, and the log dampens runaway counts from dominating.
+              {
+                field_value_factor: {
+                  field: 'viewCount',
+                  modifier: 'ln1p' as const,
+                  factor: 0.6,
+                  missing: 0,
+                },
+              },
+              {
+                field_value_factor: {
+                  field: 'favoriteCount',
+                  modifier: 'ln1p' as const,
+                  factor: 1.2,
+                  missing: 0,
+                },
+              },
+              // Gentle freshness decay: full weight for ~a week, tapering off
+              // over the following month so stale shorts sink slowly.
+              {
+                gauss: {
+                  createdAt: {
+                    origin: 'now',
+                    scale: '30d',
+                    offset: '7d',
+                    decay: 0.5,
+                  },
+                },
+              },
+            ],
+          },
+        }
+      : boolQuery;
+
     try {
       const response = await this.esService.search({
         index: SHORTS_INDEX,
         from,
         size: limit,
-        query: {
-          bool: {
-            filter,
-            ...(must.length ? { must } : {}),
-          },
-        },
+        query: scoredQuery,
         sort,
       });
 

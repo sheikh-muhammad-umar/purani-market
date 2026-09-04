@@ -9,8 +9,10 @@ import {
   OnDestroy,
   signal,
   computed,
+  PLATFORM_ID,
+  inject,
 } from '@angular/core';
-import { CommonModule } from '@angular/common';
+import { CommonModule, isPlatformBrowser } from '@angular/common';
 import { Router, RouterLink } from '@angular/router';
 import { ShortsService, ShortVideo } from '../../../core/services/shorts.service';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
@@ -55,6 +57,7 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
 
   private animationFrame: number | null = null;
   private viewInitialized = false;
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   /** Ensures a full watch-through is reported at most once per instance. */
   private watchCompleteTracked = false;
 
@@ -70,6 +73,9 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
     this.viewInitialized = true;
     this.likeCount.set(this.short.favoriteCount);
     this.isLiked.set(!!this.short.isLikedByMe);
+    // Video playback is a browser-only concern. During SSR the referenced
+    // element has no media API (play/pause are undefined), so bail out.
+    if (!this.isBrowser) return;
     if (this.isActive) {
       this.autoPlayWhenReady();
     }
@@ -120,6 +126,7 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
   }
 
   private play(): void {
+    if (!this.isBrowser) return;
     const video = this.videoRef?.nativeElement;
     if (!video) return;
 
@@ -136,6 +143,7 @@ export class ShortsPlayerComponent implements OnChanges, AfterViewInit, OnDestro
   }
 
   private pause(): void {
+    if (!this.isBrowser) return;
     const video = this.videoRef?.nativeElement;
     if (video) {
       video.pause();

@@ -23,25 +23,44 @@
 .filter-chip {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  padding: var(--space-half) var(--space-1);
+  gap: 4px;
+  padding: 4px 6px 4px 12px;
   background: var(--primary);
   color: var(--on-primary);
   border-radius: var(--radius-full);
   font-size: var(--text-xs);
   font-weight: 500;
+  line-height: 1.2;
+  max-width: 100%;
+}
+
+.filter-chip .chip-label {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .chip-remove {
-  background: none;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 18px;
+  height: 18px;
+  background: rgba(255, 255, 255, 0.18);
   border: none;
-  color: rgba(255, 255, 255, 0.8);
+  border-radius: 50%;
+  color: rgba(255, 255, 255, 0.85);
   font-size: 10px;
   cursor: pointer;
   padding: 0;
   line-height: 1;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 
   &:hover {
+    background: rgba(255, 255, 255, 0.3);
     color: #fff;
   }
 }
@@ -341,7 +360,10 @@
 }
 
 .sort-controls app-custom-select {
-  min-width: 170px;
+  /* The dropdown panel now grows to fit its options, so the trigger only needs
+     to comfortably show the selected label rather than reserve space for the
+     widest option. */
+  min-width: 128px;
 }
 
 .filter-toggle-mobile {
@@ -362,17 +384,92 @@
   margin-top: var(--space-6);
 }
 
-/* Portrait 9:16 tiles, so columns are narrower than the listing grid. */
-.shorts-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
-  gap: var(--space-3);
+/* When the rail sits above the results, it leads the column, so drop the top
+   gap and separate it from what follows instead. */
+.shorts-section-top {
+  margin-top: 0;
+  margin-bottom: var(--space-5);
+  padding-bottom: var(--space-5);
+  border-bottom: 1px solid var(--border);
+}
+
+/* Horizontal carousel: portrait 9:16 tiles read far better in a single row
+   than wrapped in a grid, and a row keeps the rail from dominating the page. */
+.shorts-rail {
+  position: relative;
   margin-top: var(--space-3);
 }
 
+.shorts-track {
+  display: flex;
+  gap: var(--space-3);
+  overflow-x: auto;
+  scroll-behavior: smooth;
+  scroll-snap-type: x proximity;
+  /* Room for the tile lift on hover, and clearance so shadows aren't clipped. */
+  padding-block: var(--space-1);
+  /* Firefox */
+  scrollbar-width: none;
+}
+
+/* Hide the scrollbar (WebKit/Blink) — navigation is via the arrow buttons. */
+.shorts-track::-webkit-scrollbar {
+  display: none;
+}
+
+.shorts-track-item {
+  flex: 0 0 auto;
+  width: 160px;
+  scroll-snap-align: start;
+}
+
+/* Circular scroll buttons overlaid at each edge of the rail. Hidden on touch
+   viewports, where native swipe is the expected interaction. */
+.shorts-nav {
+  position: absolute;
+  top: 50%;
+  z-index: 2;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  transform: translateY(-50%);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--card);
+  color: var(--text-primary);
+  box-shadow: var(--shadow-hover);
+  cursor: pointer;
+  transition:
+    background-color var(--duration-base) var(--ease-out),
+    transform var(--duration-fast) var(--ease-out);
+}
+
+.shorts-nav:hover {
+  background: var(--primary);
+  color: var(--on-primary);
+}
+
+.shorts-nav:active {
+  transform: translateY(-50%) scale(0.94);
+}
+
+.shorts-nav-prev {
+  left: calc(-1 * var(--space-2));
+}
+
+.shorts-nav-next {
+  right: calc(-1 * var(--space-2));
+}
+
 @media (max-width: 767px) {
-  .shorts-grid {
-    grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  .shorts-track-item {
+    width: 140px;
+  }
+
+  /* Touch devices scroll by swipe; the buttons would only get in the way. */
+  .shorts-nav {
+    display: none;
   }
 }
 
@@ -385,6 +482,49 @@
 @media (max-width: 767px) {
   .auto-grid.force-single {
     grid-template-columns: 1fr;
+  }
+}
+
+/* ---- Infinite scroll footer ---- */
+
+/* Zero-height trigger; the observer's rootMargin gives the real lead time, so
+   this only needs to exist in the flow near the end of the list. */
+.load-more-sentinel {
+  width: 100%;
+  height: 1px;
+}
+
+.results-footer {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--space-6);
+  padding: var(--space-4) 0;
+}
+
+.load-more-spinner {
+  width: 28px;
+  height: 28px;
+  border: 3px solid var(--border);
+  border-top-color: var(--primary);
+  border-radius: var(--radius-full);
+  animation: results-spin 0.7s linear infinite;
+}
+
+@keyframes results-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.results-end {
+  font-size: var(--text-sm);
+  color: var(--text-muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .load-more-spinner {
+    animation-duration: 2s;
   }
 }
 
@@ -509,7 +649,10 @@
     display: inline-flex;
     align-items: center;
     justify-content: center;
-    padding: 6px 8px;
+    /* Match the sort trigger height (min-height: 38px) so all three controls
+       in the row line up. */
+    height: 38px;
+    padding: 0 10px;
   }
 
   /* Layout stacks */
@@ -531,7 +674,7 @@
     gap: var(--space-half);
 
     app-custom-select {
-      min-width: 130px;
+      min-width: 108px;
     }
   }
 

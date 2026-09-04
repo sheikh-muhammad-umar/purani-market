@@ -10,7 +10,7 @@
       <div class="active-filters">
         @for (filter of activeFilters(); track filter.key) {
           <span class="filter-chip">
-            {{ filter.displayValue }}
+            <span class="chip-label">{{ filter.displayValue }}</span>
             <button
               class="chip-remove"
               (click)="removeFilter(filter)"
@@ -541,6 +541,43 @@
           }
         </div>
       } @else if (hasResults()) {
+        <!-- Matching shorts (shown above results to give short-form prominence) -->
+        @if (shorts().length > 0) {
+          <section class="shorts-section shorts-section-top" aria-label="Related shorts">
+            <app-section-header
+              title="Related Shorts"
+              icon="movie"
+              iconColor="var(--accent)"
+              linkText="See all"
+              [link]="ROUTES.SHORTS"
+              [linkQueryParams]="shortsSeeAllParams()"
+            />
+            <div class="shorts-rail">
+              <button
+                type="button"
+                class="shorts-nav shorts-nav-prev"
+                aria-label="Scroll shorts left"
+                (click)="scrollShorts(track, -1)"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+              </button>
+              <div #track class="shorts-track" role="list">
+                @for (short of shorts(); track short._id) {
+                  <app-short-card class="shorts-track-item" role="listitem" [short]="short" />
+                }
+              </div>
+              <button
+                type="button"
+                class="shorts-nav shorts-nav-next"
+                aria-label="Scroll shorts right"
+                (click)="scrollShorts(track, 1)"
+              >
+                <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+              </button>
+            </div>
+          </section>
+        }
+
         <!-- Featured Ads -->
         @if (featuredAds().length > 0) {
           <section class="featured-section" aria-label="Featured ads">
@@ -580,24 +617,19 @@
           }
         </div>
 
-        <!-- Matching shorts (secondary rail) -->
-        @if (shorts().length > 0) {
-          <section class="shorts-section" aria-label="Related shorts">
-            <app-section-header title="Shorts" icon="movie" iconColor="var(--accent)" />
-            <div class="shorts-grid" role="list">
-              @for (short of shorts(); track short._id) {
-                <app-short-card role="listitem" [short]="short" />
-              }
-            </div>
-          </section>
+        <!-- Infinite scroll: the sentinel triggers the next page as it nears the
+             viewport; the footer reflects loading / end-of-list state. -->
+        @if (hasMore()) {
+          <div #loadMoreSentinel class="load-more-sentinel" aria-hidden="true"></div>
         }
 
-        <app-pagination
-          [currentPage]="currentPage()"
-          [totalPages]="totalPages()"
-          label="Search results pagination"
-          (pageChange)="loadPage($event)"
-        />
+        <div class="results-footer" aria-live="polite">
+          @if (loadingMore()) {
+            <span class="load-more-spinner" role="status" aria-label="Loading more results"></span>
+          } @else if (!hasMore() && results().length > 0) {
+            <span class="results-end">You've reached the end of the results.</span>
+          }
+        </div>
       } @else {
         <app-empty-state
           icon="search_off"
@@ -624,11 +656,36 @@
 
           @if (shorts().length > 0) {
             <section class="shorts-section" aria-label="Related shorts">
-              <app-section-header title="Shorts" icon="movie" iconColor="var(--accent)" />
-              <div class="shorts-grid" role="list">
-                @for (short of shorts(); track short._id) {
-                  <app-short-card role="listitem" [short]="short" />
-                }
+              <app-section-header
+                title="Related Shorts"
+                icon="movie"
+                iconColor="var(--accent)"
+                linkText="See all"
+                [link]="ROUTES.SHORTS"
+                [linkQueryParams]="shortsSeeAllParams()"
+              />
+              <div class="shorts-rail">
+                <button
+                  type="button"
+                  class="shorts-nav shorts-nav-prev"
+                  aria-label="Scroll shorts left"
+                  (click)="scrollShorts(emptyTrack, -1)"
+                >
+                  <span class="material-symbols-rounded" aria-hidden="true">chevron_left</span>
+                </button>
+                <div #emptyTrack class="shorts-track" role="list">
+                  @for (short of shorts(); track short._id) {
+                    <app-short-card class="shorts-track-item" role="listitem" [short]="short" />
+                  }
+                </div>
+                <button
+                  type="button"
+                  class="shorts-nav shorts-nav-next"
+                  aria-label="Scroll shorts right"
+                  (click)="scrollShorts(emptyTrack, 1)"
+                >
+                  <span class="material-symbols-rounded" aria-hidden="true">chevron_right</span>
+                </button>
               </div>
             </section>
           }

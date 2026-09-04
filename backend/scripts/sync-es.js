@@ -3,6 +3,7 @@ const { MongoClient } = require('mongodb');
 const MONGO_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/marketplace';
 const ES_URL = process.env.ELASTICSEARCH_NODE || 'http://localhost:9200';
 const INDEX = 'product_listings';
+const SHORTS_INDEX = 'short_videos';
 
 async function sync() {
   const client = new MongoClient(MONGO_URI);
@@ -115,8 +116,92 @@ async function sync() {
     if (errors.length > 0) {
       console.log('First error:', JSON.stringify(errors[0].index.error, null, 2));
     }
+
+    // ── Step 4: Sync active shorts into their own index ──
+    await syncShorts(db);
   } finally {
     await client.close();
+  }
+}
+
+/**
+ * Mirrors listing sync for the shorts index. The document shape matches
+ * SearchSyncService.indexShort so the search query (searchShorts) finds the
+ * same fields it expects. Kept in this script because sync-es previously only
+ * covered listings, which left short_videos empty and the search-page shorts
+ * rail blank even when active shorts existed in Mongo.
+ */
+async function syncShorts(db) {
+  const shorts = await db.collection('short_videos').find({ status: 'active' }).toArray();
+  console.log(`\nFound ${shorts.length} active shorts to sync`);
+
+  // Recreate the index so orphaned/renamed docs don't linger.
+  const existsRes = await fetch(`${ES_URL}/${SHORTS_INDEX}`, { method: 'HEAD' });
+  if (existsRes.ok) {
+    await fetch(`${ES_URL}/${SHORTS_INDEX}`, { method: 'DELETE' });
+  }
+  try {
+    const { shortsIndexMapping } = require('../dist/search/search-index.service.js');
+    const createRes = await fetch(`${ES_URL}/${SHORTS_INDEX}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ mappings: shortsIndexMapping }),
+    });
+    const createResult = await createRes.json();
+    if (createResult.error) {
+      console.error('Failed to create shorts index:', createResult.error.reason);
+      return;
+    }
+    console.log('Created shorts index with mapping');
+  } catch (e) {
+    console.warn('Could not load shorts mapping from dist — creating index without it');
+    await fetch(`${ES_URL}/${SHORTS_INDEX}`, { method: 'PUT' });
+  }
+
+  if (shorts.length === 0) {
+    console.log('No active shorts — shorts index cleared');
+    return;
+  }
+
+  const body = [];
+  for (const doc of shorts) {
+    body.push(JSON.stringify({ index: { _index: SHORTS_INDEX, _id: doc._id.toString() } }));
+    body.push(
+      JSON.stringify({
+        title: doc.title,
+        description: doc.description,
+        categoryId: doc.categoryId?.toString(),
+        categoryName: doc.categoryName,
+        sellerId: doc.sellerId?.toString(),
+        status: doc.status,
+        price: doc.price,
+        viewCount: doc.viewCount || 0,
+        favoriteCount: doc.favoriteCount || 0,
+        location_text: {
+          province: doc.location?.province,
+          city: doc.location?.city,
+          area: doc.location?.area,
+          provinceId: doc.location?.provinceId?.toString(),
+          cityId: doc.location?.cityId?.toString(),
+          areaId: doc.location?.areaId?.toString(),
+        },
+        thumbnailUrl: doc.video?.thumbnailUrl,
+        videoUrl: doc.video?.url,
+        createdAt: doc.createdAt,
+      }),
+    );
+  }
+
+  const res = await fetch(`${ES_URL}/_bulk`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/x-ndjson' },
+    body: body.join('\n') + '\n',
+  });
+  const result = await res.json();
+  const errors = result.items?.filter((i) => i.index?.error) || [];
+  console.log(`Indexed ${result.items?.length || 0} shorts, ${errors.length} errors`);
+  if (errors.length > 0) {
+    console.log('First shorts error:', JSON.stringify(errors[0].index.error, null, 2));
   }
 }
 

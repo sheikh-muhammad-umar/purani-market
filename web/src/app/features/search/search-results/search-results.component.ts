@@ -56,7 +56,6 @@ import { MetaService } from '../../../core/services/meta.service';
 import { SEO_BASE_URL } from '../../../core/constants/seo';
 import { SectionHeaderComponent } from '../../../shared/components/section-header/section-header.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
-import { PaginationComponent } from '../../../shared/components/pagination/pagination.component';
 import { Listing, Category, CategoryAttribute } from '../../../core/models';
 import { VehicleModel, VehicleVariant, BrandOption } from '../../../core/models/brand.model';
 import { BrandsService } from '../../../core/services/brands.service';
@@ -73,6 +72,14 @@ const IN_FEED_AD_INTERVAL = 8;
 
 /** Most sponsored cards to request for one page of results. */
 const IN_FEED_AD_SLOTS = 3;
+
+/**
+ * Minimum number of ad slots between two placements of the same creative.
+ * Repeats are allowed (standard feed behaviour), but never inside this window,
+ * so the same ad can't land back-to-back as the user scrolls. Ignored only when
+ * the pool is too small to honour it.
+ */
+const IN_FEED_AD_MIN_SPACING = 3;
 
 const KNOWN_QUERY_PARAMS = new Set([
   'q',
@@ -115,7 +122,6 @@ import { AdSlotComponent } from '../../../shared/components/ad-slot/ad-slot.comp
     ShortCardComponent,
     SectionHeaderComponent,
     EmptyStateComponent,
-    PaginationComponent,
   ],
   templateUrl: './search-results.component.html',
   styleUrls: ['./search-results.component.scss'],
@@ -135,6 +141,14 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly currentPage = signal(1);
   readonly pageSize = 20;
   readonly loading = signal(false);
+  /**
+   * Distinct from `loading`: a page-2+ fetch triggered by infinite scroll. Kept
+   * separate so the skeleton grid (driven by `loading`) never blanks out the
+   * results already on screen — only a small footer spinner shows.
+   */
+  readonly loadingMore = signal(false);
+  /** True while more pages remain to be appended. */
+  readonly hasMore = computed(() => this.currentPage() < this.totalPages());
   readonly sortBy = signal<SearchSortOption>(SearchSortOption.RELEVANCE);
   /** null = no user interaction yet (CSS handles default), true/false = user toggled */
   readonly filtersOpen = signal<boolean | null>(null);
@@ -160,6 +174,35 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   @ViewChild('filterClose') private filterCloseEl?: ElementRef<HTMLButtonElement>;
   @ViewChild('filterTrigger') private filterTriggerEl?: ElementRef<HTMLButtonElement>;
 
+  /** Bottom-of-list sentinel; when it scrolls into view the next page loads. */
+  private infiniteObserver?: IntersectionObserver;
+
+  /**
+   * Observes the infinite-scroll sentinel. Angular calls this setter as the
+   * element enters/leaves the DOM (it lives inside `@if (hasResults())`), so the
+   * observer is wired up exactly when the sentinel exists and torn down when it
+   * doesn't. SSR-guarded — there is no IntersectionObserver on the server, and
+   * the first page is already rendered there.
+   */
+  @ViewChild('loadMoreSentinel')
+  private set loadMoreSentinel(ref: ElementRef<HTMLElement> | undefined) {
+    this.infiniteObserver?.disconnect();
+    this.infiniteObserver = undefined;
+
+    const el = ref?.nativeElement;
+    if (!el || !this.isBrowser || typeof IntersectionObserver === 'undefined') return;
+
+    this.infiniteObserver = new IntersectionObserver(
+      (entries) => {
+        if (entries.some((e) => e.isIntersecting)) this.loadMore();
+      },
+      // Start fetching a little before the sentinel is fully visible so the next
+      // page is usually ready by the time the user reaches the end.
+      { rootMargin: '400px 0px' },
+    );
+    this.infiniteObserver.observe(el);
+  }
+
   /** Filter sections the user has folded away, by section id. */
   readonly collapsedSections = signal<Set<string>>(new Set());
   readonly mobileColumns = signal<1 | 2>(this.loadMobileColumns());
@@ -180,35 +223,97 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   readonly facets = signal<SearchFacet[]>([]);
 
   /**
-   * Sponsored cards to interleave among the results.
-   *
-   * Fetched once per result set and handed to each slot, rather than letting
-   * every inserted card fetch for itself.
+   * Pool of distinct sponsored creatives fetched so far, accumulated across
+   * pages. This is the supply the grid draws from — it is NOT a 1:1 slot map.
+   * Slot assignment (with spacing and controlled repeats) is done by
+   * `inFeedSlots`. Reset on a fresh (page-1) search.
    */
   readonly inFeedAds = signal<ServedAd[]>([]);
 
   /**
+   * Concrete ad-slot assignments for the results currently on screen.
+   *
+   * One entry per ad slot the grid can show (an ad sits after every
+   * `IN_FEED_AD_INTERVAL`th card). Creatives are drawn from the accumulated pool
+   * and *cycle* — so once the pool is exhausted an ad repeats rather than the
+   * slot going blank (standard infinite-feed behaviour, option B). A creative is
+   * never reused within `IN_FEED_AD_MIN_SPACING` slots unless the pool is too
+   * small to avoid it, which keeps the same ad from landing back-to-back.
+   *
+   * Recomputed as results and the pool grow; the pure cycle keeps a given slot
+   * stable across recomputes (slot N always resolves to the same creative for a
+   * given pool), so ads don't reshuffle under the user while scrolling.
+   */
+  private readonly inFeedSlots = computed<ServedAd[]>(() => {
+    const pool = this.inFeedAds();
+    if (pool.length === 0) return [];
+
+    const slotCount = Math.floor(this.results().length / IN_FEED_AD_INTERVAL);
+    if (slotCount === 0) return [];
+
+    const slots: ServedAd[] = [];
+    for (let slot = 0; slot < slotCount; slot++) {
+      // Base pick cycles through the pool so every creative gets airtime and
+      // the assignment for a slot is deterministic for a given pool size.
+      let pick = slot % pool.length;
+
+      // Nudge forward off any creative shown within the spacing window, but only
+      // as far as the pool allows — with fewer creatives than the window we
+      // simply accept the closest repeat rather than leaving the slot empty.
+      const window = Math.min(IN_FEED_AD_MIN_SPACING, pool.length - 1);
+      for (let step = 0; step < pool.length; step++) {
+        const candidate = pool[pick];
+        const tooClose = slots
+          .slice(Math.max(0, slot - window))
+          .some((a) => a.creativeId === candidate.creativeId);
+        if (!tooClose) break;
+        pick = (pick + 1) % pool.length;
+      }
+
+      slots.push(pool[pick]);
+    }
+    return slots;
+  });
+
+  /**
    * The sponsored card that belongs after the card at `index`, if any.
    *
-   * Ads are spaced `IN_FEED_AD_INTERVAL` cards apart and only as many as were
-   * actually returned are placed, so a partly-sold slot leaves the grid intact.
+   * Ads sit after every `IN_FEED_AD_INTERVAL`th card; the creative comes from
+   * the precomputed `inFeedSlots` assignment.
    */
   inFeedAdAfter(index: number): ServedAd | null {
     const position = index + 1;
     if (position % IN_FEED_AD_INTERVAL !== 0) return null;
-    const ads = this.inFeedAds();
     const slot = position / IN_FEED_AD_INTERVAL - 1;
-    return ads[slot] ?? null;
+    return this.inFeedSlots()[slot] ?? null;
   }
 
-  private loadInFeedAds(): void {
+  /**
+   * Fetches a batch of sponsored creatives into the pool.
+   *
+   * `append` distinguishes the two callers: a fresh (page-1) search replaces the
+   * pool, while an infinite-scroll page adds its batch so more distinct
+   * creatives become available deeper in the list. New creatives are de-duped
+   * into the pool (each creative appears once as supply); actual placement,
+   * including any deliberate repeats to fill slots, is decided by `inFeedSlots`.
+   */
+  private loadInFeedAds(append = false): void {
     this.advertising
       .serve('in_feed', {
         categoryId: this.selectedCategoryId() || undefined,
         limit: IN_FEED_AD_SLOTS,
       })
       .pipe(takeUntil(this.destroy$))
-      .subscribe((ads) => this.inFeedAds.set(ads));
+      .subscribe((ads) => {
+        if (!append) {
+          this.inFeedAds.set(ads);
+          return;
+        }
+        this.inFeedAds.update((prev) => {
+          const seen = new Set(prev.map((a) => a.creativeId));
+          return [...prev, ...ads.filter((a) => !seen.has(a.creativeId))];
+        });
+      });
   }
 
   /** Facets indexed by attribute key for template lookups. */
@@ -552,6 +657,32 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   /** Number of filters currently applied, used for the mobile badge. */
   readonly activeFilterCount = computed(() => this.activeFilters().length);
 
+  /**
+   * Query params carried onto the shorts "See all" link so the shorts page can
+   * open scoped to the same search the rail was built from.
+   */
+  readonly shortsSeeAllParams = computed<Record<string, string>>(() => {
+    const params: Record<string, string> = {};
+    const q = this.query();
+    if (q) params['q'] = q;
+    const slug = this.selectedCategorySlug();
+    if (slug) params['category'] = slug;
+    return params;
+  });
+
+  /**
+   * Scrolls a shorts carousel roughly one viewport-width in the given
+   * direction. Driven from the template with the track element itself, so the
+   * two rails (results / no-results branch) share one handler without needing a
+   * ViewChild per branch.
+   */
+  scrollShorts(track: HTMLElement, direction: -1 | 1): void {
+    // Nudge by ~90% of the visible width so a card or two stays on screen for
+    // continuity rather than paging a full, disorienting screen.
+    const amount = track.clientWidth * 0.9 * direction;
+    track.scrollBy({ left: amount, behavior: 'smooth' });
+  }
+
   constructor(
     private readonly route: ActivatedRoute,
     private readonly router: Router,
@@ -616,7 +747,6 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       const q = params.get('q') || '';
       const categorySlug = params.get('category') || '';
       const sort = (params.get('sort') as SearchSortOption) || SearchSortOption.RELEVANCE;
-      const page = Number(params.get('page')) || 1;
       const minPrice = params.get('minPrice') ? Number(params.get('minPrice')) : null;
       const maxPrice = params.get('maxPrice') ? Number(params.get('maxPrice')) : null;
       const condition = params.get('condition') || '';
@@ -625,7 +755,9 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       this.searchInput.set(q);
       this.selectedCategorySlug.set(categorySlug);
       this.sortBy.set(sort);
-      this.currentPage.set(page);
+      // Every navigation-driven search starts a fresh first page; infinite
+      // scroll accumulates from there client-side rather than via the URL.
+      this.currentPage.set(1);
       this.minPrice.set(minPrice);
       this.maxPrice.set(maxPrice);
       this.selectedCondition.set(condition);
@@ -666,6 +798,7 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   ngOnDestroy(): void {
     this.destroy$.next();
     this.destroy$.complete();
+    this.infiniteObserver?.disconnect();
     // Don't leak this page's prev/next links onto the next route.
     this.meta.removePaginationLinks();
     if (this.mobileQuery) {
@@ -1834,7 +1967,17 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     if (hash === this.lastSearchHash) return;
     this.lastSearchHash = hash;
 
-    this.loading.set(true);
+    // Page 1 is a fresh search (new query/filter/sort) and replaces the list;
+    // any higher page is an infinite-scroll append. This single check is the
+    // reset chokepoint — every filter/sort/query path routes through
+    // updateUrlAndSearch, which rebuilds params with page 1.
+    const isFirstPage = Number(params.page ?? 1) <= 1;
+
+    if (isFirstPage) {
+      this.loading.set(true);
+    } else {
+      this.loadingMore.set(true);
+    }
     this.activeFilters.set(this.buildActiveFilters());
 
     if (params.q) {
@@ -1850,22 +1993,39 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res: SearchResponse) => {
-          this.results.set(res.items || []);
-          this.featuredAds.set(res.featuredAds || []);
+          if (isFirstPage) {
+            this.results.set(res.items || []);
+            this.featuredAds.set(res.featuredAds || []);
+          } else {
+            // Append the next page. De-dupe by id so a listing shifting between
+            // pages (new arrivals, re-ranking) can't render twice.
+            const seen = new Set(this.results().map((r) => r._id));
+            const next = (res.items || []).filter((r) => !seen.has(r._id));
+            this.results.update((prev) => [...prev, ...next]);
+          }
           this.totalResults.set(res.total);
           this.relatedCategories.set(res.relatedCategories || []);
           this.suggestedTerms.set(res.suggestions || []);
           this.facets.set(res.facets || []);
           this.loading.set(false);
+          this.loadingMore.set(false);
           this.updatePaginationLinks();
-          this.loadInFeedAds();
+          // First page replaces the ad set; each appended page fetches another
+          // batch so sponsored cards keep appearing at a steady interval as the
+          // infinite list grows, rather than stopping after the first ~24 cards.
+          this.loadInFeedAds(!isFirstPage);
           this.trackSearchImpression(params, res.total);
         },
         error: () => {
-          this.results.set([]);
-          this.featuredAds.set([]);
-          this.totalResults.set(0);
+          // On a failed append, keep what's already loaded — only a fresh search
+          // clears the list. This also lets the sentinel retry on next scroll.
+          if (isFirstPage) {
+            this.results.set([]);
+            this.featuredAds.set([]);
+            this.totalResults.set(0);
+          }
           this.loading.set(false);
+          this.loadingMore.set(false);
         },
       });
 
@@ -1873,23 +2033,47 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
   }
 
   /**
-   * Fetches matching shorts as a secondary rail. Only on the first page and
-   * only when there's a text query — shorts complement keyword searches rather
-   * than category browsing. Failures are swallowed so the main results are
-   * never affected.
+   * Loads the next page of listings for infinite scroll. Bumps `currentPage`
+   * and re-runs the search directly (not via the URL) so scrolling doesn't spam
+   * the history with `page=2,3,4`. Bumping the page changes the params hash, so
+   * executeSearch's dedup guard lets the fetch through; the append vs replace
+   * decision there keys off the page number.
+   */
+  loadMore(): void {
+    if (this.loading() || this.loadingMore() || !this.hasMore()) return;
+    this.currentPage.update((p) => p + 1);
+    this.executeSearch();
+  }
+
+  /**
+   * Fetches matching shorts as a secondary rail. Runs on the first page only,
+   * and whenever the search is scoped by a keyword *or* a category — a category
+   * browse is just as good a relevance signal as free text, and shorts are worth
+   * surfacing there too. The user's saved location is forwarded so nearby shorts
+   * rank first. Failures are swallowed so the main results are never affected.
    */
   private loadShorts(params: SearchParams): void {
     if (params.page && Number(params.page) > 1) {
       this.shorts.set([]);
       return;
     }
-    if (!params.q) {
+    // Need at least one relevance scope; an unscoped browse would surface an
+    // arbitrary global feed, which isn't "related".
+    if (!params.q && !params.category) {
       this.shorts.set([]);
       return;
     }
 
     this.searchService
-      .searchShorts({ q: params.q, category: params.category, limit: 12 })
+      .searchShorts({
+        q: params.q,
+        category: params.category,
+        // Localize the rail using the same header location the listing search uses.
+        provinceId: params['provinceId'],
+        cityId: params['cityId'],
+        areaId: params['areaId'],
+        limit: 12,
+      })
       .pipe(takeUntil(this.destroy$))
       .subscribe({
         next: (res) => this.shorts.set(res.items || []),
@@ -1905,8 +2089,9 @@ export class SearchResultsComponent implements OnInit, OnDestroy {
     if (slug) queryParams['category'] = slug;
     const sort = this.sortBy();
     if (sort !== SearchSortOption.RELEVANCE) queryParams['sort'] = sort;
-    const page = this.currentPage();
-    if (page > 1) queryParams['page'] = page;
+    // Page is intentionally not written to the URL: infinite scroll accumulates
+    // pages client-side, and persisting `page=N` would make a filter change or a
+    // reload resume mid-list instead of starting fresh.
     const min = this.minPrice();
     if (min !== null) queryParams['minPrice'] = min;
     const max = this.maxPrice();

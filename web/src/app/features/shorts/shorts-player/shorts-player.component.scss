@@ -33,8 +33,20 @@ video {
   position: absolute;
   bottom: 12px;
   left: 12px;
-  right: 60px;
+  right: 72px;
+  z-index: 1;
   color: white;
+}
+
+.player-wrapper::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  height: 30%;
+  pointer-events: none;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.55) 0%, rgba(0, 0, 0, 0) 100%);
 }
 .short-price {
   display: none; // replaced by price-badge
@@ -105,26 +117,43 @@ video {
 }
 .actions-sidebar {
   position: absolute;
-  right: 12px;
-  bottom: 80px;
+  right: 8px;
+  bottom: 16px;
+  z-index: 1;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
   align-items: center;
 }
 .action-btn {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 2px;
+  gap: 4px;
   background: none;
   border: none;
+  padding: 0;
   color: white;
   cursor: pointer;
   text-decoration: none;
+  -webkit-tap-highlight-color: transparent;
+
+  /* Bare icons over the video — no chip backing. A drop-shadow keeps them
+     legible on bright frames. */
+  .action-icon {
+    display: grid;
+    place-items: center;
+    width: 38px;
+    height: 38px;
+    transition: transform 0.16s ease;
+  }
+
+  &:active .action-icon {
+    transform: scale(0.92);
+  }
 
   &.liked .action-icon {
-    color: #ef4444;
+    color: #ff3b5c;
     .material-symbols-rounded {
       font-variation-settings:
         'FILL' 1,
@@ -133,10 +162,14 @@ video {
         'opsz' 24;
     }
   }
+
+  &.liked:active .action-icon {
+    transform: scale(1.12);
+  }
 }
 .action-icon {
-  font-size: 24px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  color: #fff;
+  filter: drop-shadow(0 1px 3px rgba(0, 0, 0, 0.55));
 
   .material-symbols-rounded {
     font-size: 26px;
@@ -144,11 +177,19 @@ video {
 }
 .action-count {
   font-size: 11px;
-  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5);
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.7);
 }
 
 .whatsapp-action {
-  color: #25d366;
+  .action-icon {
+    color: #25d366;
+  }
+
+  .action-count {
+    color: #25d366;
+  }
 }
 
 .owner-badge {
@@ -166,6 +207,7 @@ video {
   bottom: 0;
   left: 0;
   right: 0;
+  z-index: 2;
   height: 3px;
   background: rgba(255, 255, 255, 0.3);
 }
@@ -173,4 +215,57 @@ video {
   height: 100%;
   background: var(--primary);
   transition: width 0.1s linear;
+}
+
+// ═══════════════════════════════════════════════════════════
+// Desktop (>=1024px): centred portrait video with the action rail sitting
+// OUTSIDE the video on its right, YouTube-Shorts style. The feed sets
+// --shorts-video-width; the card is wider to leave room for the rail.
+// ═══════════════════════════════════════════════════════════
+@media (min-width: 1024px) {
+  .player-wrapper {
+    // Portrait video box. The card is (video + rail) wide; the video sits on
+    // the left of that width and the rail fills the right, so the whole group
+    // reads as centred within the page. Overflow is visible so the rail can
+    // sit just outside the video edge.
+    width: var(--shorts-video-width);
+    margin: 0;
+    border-radius: 14px;
+    overflow: visible;
+  }
+
+  video {
+    object-fit: cover;
+    border-radius: 14px;
+  }
+
+  // Keep the readability scrim clipped to the rounded video box.
+  .player-wrapper::after {
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+  }
+
+  // Seller info / caption stay on the video, clear of the (now external) rail.
+  .overlay-bottom {
+    right: 12px;
+  }
+
+  // Move the whole action rail just outside the video's right edge.
+  .actions-sidebar {
+    left: calc(100% + 14px);
+    right: auto;
+    bottom: 8px;
+  }
+
+  // Round the progress bar to match the video corners.
+  .progress-bar {
+    border-bottom-left-radius: 14px;
+    border-bottom-right-radius: 14px;
+    overflow: hidden;
+  }
+
+  // Match the rounded video so the pause dim doesn't show square corners.
+  .play-overlay {
+    border-radius: 14px;
+  }
 }

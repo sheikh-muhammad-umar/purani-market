@@ -28,10 +28,19 @@
   }
 }
 
+/* Usable height for the immersive feed. The video must fit between the fixed
+   header and (where present) the fixed mobile bottom nav, otherwise the
+   progress bar slides underneath the nav. Desktop (>=1024px) has no bottom
+   nav, so only the header is subtracted; the responsive blocks below add the
+   nav height back in for the breakpoints where it shows. */
+:host {
+  --shorts-viewport: calc(100dvh - var(--header-height));
+}
+
 .shorts-page {
   position: relative;
   width: 100%;
-  height: calc(100dvh - 70px);
+  height: var(--shorts-viewport);
   overflow: hidden;
   display: flex;
   justify-content: center;
@@ -53,9 +62,35 @@
   }
 }
 
+// ─── Desktop: YouTube-Shorts-style centred portrait column with the action
+//     rail sitting outside the video, not overlapping it. ──────────────────
+@media (min-width: 1024px) {
+  :host {
+    // Width the action rail reserves to the right of the video (fits the
+    // widest label, "WhatsApp", without clipping).
+    --shorts-rail-width: 110px;
+    // A portrait (9:16) video sized to the available height, capped so it
+    // never gets absurdly wide on very tall windows.
+    --shorts-video-width: min(calc(var(--shorts-viewport) * 9 / 16), 460px);
+  }
+
+  .shorts-container {
+    // Video + external rail, centred by the flex parent (.shorts-page).
+    max-width: none;
+    width: calc(var(--shorts-video-width) + var(--shorts-rail-width));
+  }
+
+  // Video sits on the left of the card; pin mute to the video's top-right,
+  // not the card's (which extends under the external action rail).
+  .mute-btn {
+    right: calc(var(--shorts-rail-width) + 12px);
+    top: 12px;
+  }
+}
+
 .short-card {
   width: 100%;
-  height: calc(100dvh - 70px);
+  height: var(--shorts-viewport);
   flex-shrink: 0;
   scroll-snap-align: start;
   scroll-snap-stop: always;
@@ -408,21 +443,25 @@
   font-family: inherit;
 }
 
-// ─── Tablet ─────────────────────────────────────────────
+// ─── Tablet — full-screen immersive video, actions overlay (like mobile) ──
 @media (min-width: 768px) and (max-width: 1023px) {
-  .shorts-page {
-    height: calc(100vh - 60px);
+  :host {
+    // Header shrinks to 56px here and the fixed bottom nav is visible, so both
+    // must come out of the height or the progress bar hides behind the nav.
+    --shorts-viewport: calc(100dvh - 56px - var(--mobile-nav-height));
   }
 
   .shorts-container {
-    max-width: 400px;
+    // Fill the whole width so the video is edge to edge, not a narrow column.
+    max-width: 100%;
   }
 }
 
 // ─── Mobile ─────────────────────────────────────────────
 @media (max-width: 767px) {
-  .shorts-page {
-    height: calc(100dvh - 60px - 55px); // header + bottom nav
+  :host {
+    // Header (56px at this breakpoint) + fixed bottom nav.
+    --shorts-viewport: calc(100dvh - 56px - var(--mobile-nav-height));
   }
 
   .shorts-container {
@@ -431,7 +470,6 @@
 
   .short-card {
     border-radius: 0;
-    height: calc(100dvh - 60px - 55px);
   }
 
   .shorts-overlay-header {

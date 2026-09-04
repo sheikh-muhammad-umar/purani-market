@@ -31,7 +31,16 @@ import { SkeletonComponent } from '../skeleton/skeleton.component';
 
       <article class="sc">
         <div class="sc-media">
-          @if (item.video.thumbnailUrl) {
+          @if (posterSrc()) {
+            <!-- Prefer a real frame from the video itself -->
+            <video
+              class="sc-thumb"
+              [src]="posterSrc()"
+              preload="metadata"
+              muted
+              playsinline
+            ></video>
+          } @else if (item.video.thumbnailUrl) {
             <img
               class="sc-thumb"
               [src]="item.video.thumbnailUrl"
@@ -39,15 +48,6 @@ import { SkeletonComponent } from '../skeleton/skeleton.component';
               loading="lazy"
               decoding="async"
             />
-          } @else {
-            <!-- No poster available, so fall back to the video's first frame -->
-            <video
-              class="sc-thumb"
-              [src]="item.video.compressedUrl || item.video.url"
-              preload="metadata"
-              muted
-              playsinline
-            ></video>
           }
 
           <span class="sc-play">
@@ -270,6 +270,7 @@ import { SkeletonComponent } from '../skeleton/skeleton.component';
         line-height: var(--leading-snug);
         letter-spacing: var(--tracking-normal);
         color: var(--text-primary);
+        min-height: calc(2 * var(--text-xs) * var(--leading-snug));
       }
 
       .sc-link {
@@ -356,6 +357,13 @@ export class ShortCardComponent {
   protected readonly label = computed(
     () => this.short()?.title || this.short()?.description || 'Short video',
   );
+
+  protected readonly posterSrc = computed(() => {
+    const video = this.short()?.video;
+    const src = video?.compressedUrl || video?.url;
+    if (!src) return '';
+    return src.includes('#') ? src : `${src}#t=0.1`;
+  });
 
   protected readonly durationLabel = computed(() => {
     const seconds = this.short()?.video?.duration;
