@@ -20,6 +20,7 @@ import { User } from '../users/schemas/user.schema.js';
 import { VerificationToken } from './schemas/verification-token.schema.js';
 import { SocialProvider } from './dto/social-login.dto.js';
 import { RecommendationService } from '../ai/recommendation.service.js';
+import { ListingsService } from '../listings/listings.service.js';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
@@ -119,6 +120,10 @@ describe('AuthService', () => {
         {
           provide: RecommendationService,
           useValue: { trackActivity: jest.fn().mockResolvedValue(undefined) },
+        },
+        {
+          provide: ListingsService,
+          useValue: { syncSellerVerified: jest.fn().mockResolvedValue(0) },
         },
       ],
     }).compile();

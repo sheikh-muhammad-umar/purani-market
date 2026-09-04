@@ -283,8 +283,15 @@ describe('ListingsController', () => {
         mockReq,
       );
       expect(result.viewCount).toBe(11);
-      // Anonymous users don't get seller verification info
-      expect((result as any).sellerEmailVerified).toBeUndefined();
+      // Seller verification status is a public trust signal, so anonymous users
+      // receive the per-channel flags (mirroring the public `sellerVerified`
+      // seal). They stay consistent with the badges shown in the UI.
+      expect((result as any).sellerEmailVerified).toBe(true);
+      expect((result as any).sellerPhoneVerified).toBe(true);
+      expect((result as any).sellerIdVerified).toBe(false);
+      // But private operational stats remain authenticated-only.
+      expect((result as any).sellerActiveAdsCount).toBeUndefined();
+      expect((result as any).sellerResponseRate).toBeUndefined();
     });
 
     it('should propagate NotFoundException from service', async () => {

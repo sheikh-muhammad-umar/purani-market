@@ -24,7 +24,11 @@ import { extractIdFromSlug, slugify } from '../../../core/utils/slug';
 import { PriceFormatPipe } from '../../../shared/pipes/price-format.pipe';
 import { ActivityTrackerService } from '../../../core/services/activity-tracker.service';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
-import { PLACEHOLDER_IMAGE, CURRENCY_SYMBOL } from '../../../core/constants/app';
+import {
+  PLACEHOLDER_IMAGE,
+  CURRENCY_SYMBOL,
+  VERIFIED_SELLER_TOOLTIP,
+} from '../../../core/constants/app';
 import { ROUTES } from '../../../core/constants/routes';
 import { ListingStatus } from '../../../core/constants/enums';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
@@ -82,6 +86,7 @@ interface DetailAttributeRow {
 })
 export class ListingDetailComponent implements OnInit, OnDestroy {
   readonly ROUTES = ROUTES;
+  readonly VERIFIED_SELLER_TOOLTIP = VERIFIED_SELLER_TOOLTIP;
   readonly ListingStatus = ListingStatus;
   readonly CURRENCY_SYMBOL = CURRENCY_SYMBOL;
   readonly TrackingEvent = TrackingEvent;
@@ -96,6 +101,27 @@ export class ListingDetailComponent implements OnInit, OnDestroy {
     const name = l.sellerName || 'seller';
     const slug = slugify(name);
     return `/seller/${slug}-${l.sellerId}`;
+  });
+
+  /**
+   * Whether to show the "Verified" seal next to the seller name.
+   *
+   * The seal must agree with the email/phone/ID badges shown beneath it, so it
+   * is derived from the same per-channel flags (verified = all three) whenever
+   * those are present. Only when the granular flags are absent from the
+   * response do we fall back to the denormalized `sellerVerified` boolean.
+   */
+  readonly sellerVerified = computed(() => {
+    const l = this.listing();
+    if (!l) return false;
+    const hasGranular =
+      l.sellerEmailVerified !== undefined ||
+      l.sellerPhoneVerified !== undefined ||
+      l.sellerIdVerified !== undefined;
+    if (hasGranular) {
+      return !!l.sellerEmailVerified && !!l.sellerPhoneVerified && !!l.sellerIdVerified;
+    }
+    return !!l.sellerVerified;
   });
 
   // Reviews

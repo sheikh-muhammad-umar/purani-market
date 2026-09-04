@@ -312,10 +312,20 @@
 }
 
 .lc-verified-icon {
-  font-size: 13px;
-  font-variation-settings: 'FILL' 1;
-  /* Matches the "Verified Sellers Only" filter icon color. */
-  color: var(--success-text);
+  flex-shrink: 0;
+  font-size: 15px;
+  line-height: 1;
+  /* Keep the fill and shrink the optical size so the filled seal + check read
+     clearly at this small size. Setting only 'FILL' 1 would drop the other
+     axes, leaving the glyph tuned for a 24px optical size. */
+  font-variation-settings:
+    'FILL' 1,
+    'wght' 500,
+    'GRAD' 0,
+    'opsz' 20;
+  /* The badge is a dark glass overlay, so use a bright green (not the
+     dark-on-light --success-text) so the check stays visible on the image. */
+  color: #22d39f;
 }
 
 /* ---- Loading placeholder ---- */

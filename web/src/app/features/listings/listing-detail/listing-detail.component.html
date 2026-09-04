@@ -430,7 +430,21 @@
           <div class="seller-row">
             <div class="seller-avatar">👤</div>
             <div class="seller-info-col">
-              <span class="seller-name">{{ l.sellerName || 'Seller' }}</span>
+              <span class="seller-name-row">
+                <span class="seller-name">{{ l.sellerName || 'Seller' }}</span>
+                @if (sellerVerified()) {
+                  <span
+                    class="seller-verified"
+                    [title]="VERIFIED_SELLER_TOOLTIP"
+                    aria-label="Verified seller"
+                  >
+                    <span class="material-symbols-rounded seller-verified-icon" aria-hidden="true"
+                      >verified</span
+                    >
+                    Verified
+                  </span>
+                }
+              </span>
               <app-star-rating
                 class="seller-rating"
                 size="sm"

@@ -41,6 +41,7 @@ import { PUBLIC_ERROR } from '../common/constants/public-errors.js';
 import { CronLock } from '../common/decorators/cron-lock.decorator.js';
 import { OtpReason } from '../common/enums/otp-reason.enum.js';
 import { RecommendationService } from '../ai/recommendation.service.js';
+import { ListingsService } from '../listings/listings.service.js';
 import { UserAction } from '../ai/enums/user-action.enum.js';
 import {
   BCRYPT_COST_FACTOR,
@@ -80,6 +81,7 @@ export class AuthService {
     private readonly configService: ConfigService,
     @InjectRedis() private readonly redis: Redis,
     private readonly tracker: RecommendationService,
+    private readonly listingsService: ListingsService,
   ) {
     this.accessExpiration =
       this.configService.get<string>('jwt.accessExpiration') ?? '15m';
@@ -202,6 +204,9 @@ export class AuthService {
       await this.emailService.sendWelcomeEmail(verifiedUser.email);
     }
 
+    // Email may have been the last unverified channel — refresh listing badges.
+    await this.syncSellerBadge(record.userId.toString());
+
     this.trackOtp(
       UserAction.OTP_VERIFIED,
       record.userId.toString(),
@@ -277,6 +282,9 @@ export class AuthService {
         phoneVerified: true,
       })
       .exec();
+
+    // Phone may have been the last unverified channel — refresh listing badges.
+    await this.syncSellerBadge(user._id.toString());
 
     const verifyChannel =
       record.type === VerificationType.WHATSAPP
@@ -636,10 +644,16 @@ export class AuthService {
 
       if (user) {
         user.socialLogins.push({ provider, providerId });
-        if (!user.emailVerified) {
+        const emailJustVerified = !user.emailVerified;
+        if (emailJustVerified) {
           user.emailVerified = true;
         }
         await user.save();
+        // Linking a social account can confirm a previously unverified email,
+        // which may complete the seller's verification.
+        if (emailJustVerified) {
+          await this.syncSellerBadge(user._id.toString());
+        }
       } else {
         // 3. Create new user account
         user = await this.userModel.create({
@@ -1445,6 +1459,10 @@ export class AuthService {
       })
       .exec();
 
+    // The confirmed email is verified — refresh listing badges in case this
+    // completed the seller's verification.
+    await this.syncSellerBadge(user._id.toString());
+
     // Invalidate all sessions
     await this.invalidateAllSessions(user._id.toString());
 
@@ -1618,6 +1636,10 @@ export class AuthService {
         $unset: { pendingPhoneChange: 1 },
       })
       .exec();
+
+    // The confirmed phone is verified — refresh listing badges in case this
+    // completed the seller's verification.
+    await this.syncSellerBadge(user._id.toString());
 
     // Invalidate all sessions
     await this.invalidateAllSessions(user._id.toString());
@@ -1831,9 +1853,36 @@ export class AuthService {
       await this.emailService.sendWelcomeEmail(otpVerifiedUser.email);
     }
 
+    // Email is now verified — refresh listing badges in case this completed
+    // the seller's verification.
+    await this.syncSellerBadge(userId);
+
     this.trackOtp(UserAction.OTP_VERIFIED, userId, OtpChannel.EMAIL, otpReason);
 
     return { message: 'Email verified successfully.' };
+  }
+
+  /**
+   * Realigns the denormalized `sellerVerified` badge on a user's listings after
+   * their email/phone/ID verification state changes here.
+   *
+   * `sellerVerified` is "email AND phone AND ID all verified", so verifying the
+   * last missing channel (commonly phone or email) can flip a seller to fully
+   * verified — but that value is copied onto each listing and does not refresh
+   * itself. Without this, the seller's existing listings keep showing the old
+   * (unverified) badge until some unrelated write happens to resync them.
+   *
+   * Best-effort: a badge-sync failure must never block or fail the actual
+   * verification, so errors are swallowed and logged.
+   */
+  private async syncSellerBadge(userId: string): Promise<void> {
+    try {
+      await this.listingsService.syncSellerVerified(userId);
+    } catch (err) {
+      this.logger.warn(
+        `Failed to sync seller badge for user ${userId}: ${(err as Error).message}`,
+      );
+    }
   }
 
   private async sendPhoneVerification(

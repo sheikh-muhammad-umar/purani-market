@@ -156,21 +156,25 @@ export class ListingsController {
       listing.sellerId.toString(),
     );
 
-    // Seller name + rating are public info, shown to everyone.
+    // Seller name, rating, and verification status are public trust signals
+    // shown to everyone. The per-channel flags must be public because the
+    // denormalized `sellerVerified` seal (email AND phone AND ID) is already in
+    // the response for anonymous users; withholding the granular flags made the
+    // badges render "not verified" alongside a "Verified" seal.
     const publicSeller = {
       sellerName: seller.sellerName,
       sellerRating: seller.rating,
       sellerReviewCount: seller.reviewCount,
+      sellerEmailVerified: seller.emailVerified,
+      sellerPhoneVerified: seller.phoneVerified,
+      sellerIdVerified: seller.idVerified,
     };
 
-    // Enrich with seller verification/stats for authenticated users only
+    // Enrich with private seller stats for authenticated users only.
     if (userId) {
       return {
         ...obj,
         ...publicSeller,
-        sellerEmailVerified: seller.emailVerified,
-        sellerPhoneVerified: seller.phoneVerified,
-        sellerIdVerified: seller.idVerified,
         sellerActiveAdsCount: seller.activeAdsCount,
         sellerResponseRate: seller.responseRate,
         sellerAvgResponseTime: seller.avgResponseTime,

@@ -6,6 +6,7 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ScheduleModule } from '@nestjs/schedule';
 import { UsersModule } from '../users/users.module.js';
 import { AiModule } from '../ai/ai.module.js';
+import { ListingsModule } from '../listings/listings.module.js';
 import {
   VerificationToken,
   VerificationTokenSchema,
@@ -23,6 +24,7 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
     ScheduleModule.forRoot(),
     UsersModule,
     forwardRef(() => AiModule),
+    ListingsModule, // for ListingsService.syncSellerVerified after verification changes
     PassportModule.register({ defaultStrategy: 'jwt' }),
     JwtModule.registerAsync({
       imports: [ConfigModule],
