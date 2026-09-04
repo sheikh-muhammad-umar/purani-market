@@ -104,10 +104,15 @@ export class AuthService {
     });
   }
 
-  sendEmailOtp(targetEmail?: string): Observable<{ message: string }> {
+  /**
+   * @param password required only when `targetEmail` differs from the address on
+   * the account — that case moves where password resets are delivered, so the
+   * server re-checks the password.
+   */
+  sendEmailOtp(targetEmail?: string, password?: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(
       `${this.apiUrl}${API.AUTH_SEND_EMAIL_OTP}`,
-      targetEmail ? { targetEmail } : {},
+      targetEmail ? { targetEmail, ...(password ? { password } : {}) } : {},
     );
   }
 
@@ -162,6 +167,17 @@ export class AuthService {
   disableMfa(password: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_MFA_DISABLE}`, {
       password,
+    });
+  }
+
+  /**
+   * Changes the password while signed in. Ends every session, including this
+   * one, so the caller has to sign in again afterwards.
+   */
+  changePassword(currentPassword: string, newPassword: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_CHANGE_PASSWORD}`, {
+      currentPassword,
+      newPassword,
     });
   }
 

@@ -24,6 +24,9 @@ import { ResetPasswordDto } from './dto/reset-password.dto.js';
 import { ChangeEmailDto } from './dto/change-email.dto.js';
 import { VerifyEmailChangeDto } from './dto/verify-email-change.dto.js';
 import { ChangePhoneDto } from './dto/change-phone.dto.js';
+import { ChangePasswordDto } from './dto/change-password.dto.js';
+import { SendEmailOtpDto } from './dto/send-email-otp.dto.js';
+import { VerifyEmailOtpDto } from './dto/verify-email-otp.dto.js';
 import { VerifyPhoneChangeDto } from './dto/verify-phone-change.dto.js';
 import { JwtAuthGuard } from '../common/guards/jwt-auth.guard.js';
 import { Throttle } from '@nestjs/throttler';
@@ -174,7 +177,31 @@ export class AuthController {
     @Body() dto: ChangeEmailDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.authService.requestEmailChange(user.sub, dto.newEmail);
+    return this.authService.requestEmailChange(
+      user.sub,
+      dto.newEmail,
+      dto.password,
+    );
+  }
+
+  /**
+   * Change a password while signed in, by proving knowledge of the current one.
+   *
+   * The only route to a new password used to be the emailed reset link, so there
+   * was no way to rotate a password without a recovery email round trip.
+   */
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  @UseGuards(JwtAuthGuard)
+  async changePassword(
+    @Body() dto: ChangePasswordDto,
+    @CurrentUser() user: AuthUser,
+  ) {
+    return this.authService.changePassword(
+      user.sub,
+      dto.currentPassword,
+      dto.newPassword,
+    );
   }
 
   /**
@@ -188,21 +215,30 @@ export class AuthController {
     return this.authService.verifyEmailChange(dto.token);
   }
 
+  /**
+   * Sends an email OTP. With `targetEmail`, this is the second route to changing
+   * the account's address, so it requires the password; without it, it just
+   * verifies the address already on file.
+   */
   @Post('send-email-otp')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async sendEmailOtp(
-    @Body() dto: { targetEmail?: string },
+    @Body() dto: SendEmailOtpDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.authService.sendEmailOtp(user.sub, dto.targetEmail);
+    return this.authService.sendEmailOtp(
+      user.sub,
+      dto.targetEmail,
+      dto.password,
+    );
   }
 
   @Post('verify-email-otp')
   @HttpCode(HttpStatus.OK)
   @UseGuards(JwtAuthGuard)
   async verifyEmailOtp(
-    @Body() dto: { otp: string },
+    @Body() dto: VerifyEmailOtpDto,
     @CurrentUser() user: AuthUser,
   ) {
     return this.authService.verifyEmailOtp(user.sub, dto.otp);
@@ -215,7 +251,11 @@ export class AuthController {
     @Body() dto: ChangePhoneDto,
     @CurrentUser() user: AuthUser,
   ) {
-    return this.authService.requestPhoneChange(user.sub, dto.newPhone);
+    return this.authService.requestPhoneChange(
+      user.sub,
+      dto.newPhone,
+      dto.password,
+    );
   }
 
   @Post('change-phone/verify')

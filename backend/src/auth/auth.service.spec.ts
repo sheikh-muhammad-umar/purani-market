@@ -23,6 +23,13 @@ import { RecommendationService } from '../ai/recommendation.service.js';
 import * as bcrypt from 'bcrypt';
 import * as crypto from 'crypto';
 
+/**
+ * The password re-entered for step-up checks on the operations that can hand an
+ * account over: change email, change phone, disable MFA, change password.
+ */
+const STEP_UP_PASSWORD = 'password123';
+const STEP_UP_PASSWORD_HASH = bcrypt.hashSync(STEP_UP_PASSWORD, 10);
+
 describe('AuthService', () => {
   let service: AuthService;
 
@@ -1384,6 +1391,204 @@ describe('AuthService', () => {
     });
   });
 
+  // ─── Step-up: operations that can hand the account over ───
+
+  describe('step-up re-authentication', () => {
+    const withPassword = () => ({
+      _id: { toString: () => 'user123' },
+      email: 'old@example.com',
+      phone: '+923001234567',
+      passwordHash: STEP_UP_PASSWORD_HASH,
+      verificationChangeCount: { count: 0, resetAt: null },
+    });
+
+    beforeEach(() => {
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(withPassword()),
+      });
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(null),
+      });
+      mockUserModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+    });
+
+    it('should refuse an email change on a wrong password', async () => {
+      // A stolen access token was previously enough to point the recovery
+      // address at an attacker's inbox, which is a permanent account takeover.
+      await expect(
+        service.requestEmailChange('user123', 'new@example.com', 'wrong'),
+      ).rejects.toThrow(UnauthorizedException);
+
+      expect(
+        mockEmailService.sendEmailChangeVerification,
+      ).not.toHaveBeenCalled();
+      expect(mockUserModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should refuse a phone change on a wrong password', async () => {
+      await expect(
+        service.requestPhoneChange('user123', '+923009876543', 'wrong'),
+      ).rejects.toThrow(UnauthorizedException);
+
+      expect(mockSmsService.sendOtp).not.toHaveBeenCalled();
+      expect(mockUserModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should not ask for a password to re-verify the number already on the account', async () => {
+      // Listing creation drives this endpoint to confirm the phone a user already
+      // has. Requiring a password there would put a password prompt in the middle
+      // of posting an ad, so the step-up applies only when the number moves.
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: { toString: () => 'user123' },
+          phone: '+923001234567',
+          phoneVerified: false,
+          passwordHash: STEP_UP_PASSWORD_HASH,
+          verificationChangeCount: { count: 0, resetAt: null },
+        }),
+      });
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest
+          .fn()
+          .mockResolvedValue({ _id: { toString: () => 'user123' } }),
+      });
+      mockVerificationTokenModel.create.mockResolvedValue({});
+
+      const result = await service.requestPhoneChange(
+        'user123',
+        '+923001234567',
+      );
+
+      expect(result.message).toContain('OTP sent');
+      expect(mockSmsService.sendOtp).toHaveBeenCalled();
+    });
+
+    it('should refuse an OTP to a new address on a wrong password', async () => {
+      // send-email-otp with a targetEmail is the second route to changing the
+      // recovery address, and the one the web UI uses. Closing only change-email
+      // would have left this beside it.
+      await expect(
+        service.sendEmailOtp('user123', 'attacker@evil.com', 'wrong'),
+      ).rejects.toThrow(UnauthorizedException);
+
+      expect(mockEmailService.sendOtpEmail).not.toHaveBeenCalled();
+      expect(mockVerificationTokenModel.create).not.toHaveBeenCalled();
+    });
+
+    it('should still send an OTP to the address already on the account without a password', async () => {
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: { toString: () => 'user123' },
+          email: 'old@example.com',
+          emailVerified: false,
+          passwordHash: STEP_UP_PASSWORD_HASH,
+          verificationChangeCount: { count: 0, resetAt: null },
+        }),
+      });
+      mockVerificationTokenModel.countDocuments.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(0),
+      });
+      mockVerificationTokenModel.updateMany.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+      mockVerificationTokenModel.create.mockResolvedValue({});
+
+      const result = await service.sendEmailOtp('user123');
+
+      expect(result.message).toContain('sent');
+      expect(mockEmailService.sendOtpEmail).toHaveBeenCalled();
+    });
+
+    it('should check the password before checking whether the address is taken', async () => {
+      // Otherwise the endpoint answers "is this email registered?" for anyone
+      // holding a token, without proving they own the account.
+      mockUserModel.findOne.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({ _id: 'someone-else' }),
+      });
+
+      await expect(
+        service.requestEmailChange('user123', 'taken@example.com', 'wrong'),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should refuse a social-only account with no password to re-enter', async () => {
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({
+          _id: { toString: () => 'user123' },
+          email: 'social@example.com',
+          verificationChangeCount: { count: 0, resetAt: null },
+        }),
+      });
+
+      await expect(
+        service.requestEmailChange('user123', 'new@example.com', 'anything'),
+      ).rejects.toThrow(BadRequestException);
+    });
+  });
+
+  describe('changePassword', () => {
+    const withPassword = () => ({
+      _id: { toString: () => 'user123' },
+      email: 'test@example.com',
+      passwordHash: STEP_UP_PASSWORD_HASH,
+    });
+
+    it('should require the current password', async () => {
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(withPassword()),
+      });
+
+      await expect(
+        service.changePassword('user123', 'wrong', 'BrandNewPass9'),
+      ).rejects.toThrow(UnauthorizedException);
+      expect(mockUserModel.findByIdAndUpdate).not.toHaveBeenCalled();
+    });
+
+    it('should store a hash of the new password, never the password', async () => {
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(withPassword()),
+      });
+      mockUserModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+
+      await service.changePassword(
+        'user123',
+        STEP_UP_PASSWORD,
+        'BrandNewPass9',
+      );
+
+      const update = mockUserModel.findByIdAndUpdate.mock.calls[0][1];
+      const stored: string = update.passwordHash;
+      expect(stored).not.toBe('BrandNewPass9');
+      expect(await bcrypt.compare('BrandNewPass9', stored)).toBe(true);
+    });
+
+    it('should drop every other session', async () => {
+      // The reason to change a password is usually that it may be known to
+      // someone else; leaving their session alive would defeat the point.
+      mockUserModel.findById.mockReturnValue({
+        exec: jest.fn().mockResolvedValue(withPassword()),
+      });
+      mockUserModel.findByIdAndUpdate.mockReturnValue({
+        exec: jest.fn().mockResolvedValue({}),
+      });
+
+      await service.changePassword(
+        'user123',
+        STEP_UP_PASSWORD,
+        'BrandNewPass9',
+      );
+
+      expect(mockRedis.smembers).toHaveBeenCalledWith('rt_set:user123');
+      expect(mockEmailService.sendPasswordChangedEmail).toHaveBeenCalledWith(
+        'test@example.com',
+      );
+    });
+  });
+
   describe('confirmMfa', () => {
     const totpSecret = 'WD4LCTZHTBPX7VOL2YK4CU5HEAZANJFA';
 
@@ -1732,6 +1937,9 @@ describe('AuthService', () => {
     const mockUser = {
       _id: { toString: () => 'user123' },
       email: 'old@example.com',
+      // Moving the recovery address re-checks the password, so the fixture needs
+      // a real hash to compare against.
+      passwordHash: STEP_UP_PASSWORD_HASH,
       verificationChangeCount: { count: 0, resetAt: null },
     };
 
@@ -1749,6 +1957,7 @@ describe('AuthService', () => {
       const result = await service.requestEmailChange(
         'user123',
         'new@example.com',
+        STEP_UP_PASSWORD,
       );
 
       expect(result.message).toContain('Verification link sent');
@@ -1769,7 +1978,11 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      await service.requestEmailChange('user123', 'new@example.com');
+      await service.requestEmailChange(
+        'user123',
+        'new@example.com',
+        STEP_UP_PASSWORD,
+      );
 
       const emailedToken = mockEmailService.sendEmailChangeVerification.mock
         .calls[0][1] as string;
@@ -1794,7 +2007,11 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      await service.requestEmailChange('user123', 'new@example.com');
+      await service.requestEmailChange(
+        'user123',
+        'new@example.com',
+        STEP_UP_PASSWORD,
+      );
 
       expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
         'user123',
@@ -1817,7 +2034,11 @@ describe('AuthService', () => {
       });
 
       await expect(
-        service.requestEmailChange('user123', 'taken@example.com'),
+        service.requestEmailChange(
+          'user123',
+          'taken@example.com',
+          STEP_UP_PASSWORD,
+        ),
       ).rejects.toThrow(ConflictException);
     });
 
@@ -1837,7 +2058,11 @@ describe('AuthService', () => {
       });
 
       await expect(
-        service.requestEmailChange('user123', 'new@example.com'),
+        service.requestEmailChange(
+          'user123',
+          'new@example.com',
+          STEP_UP_PASSWORD,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
 
@@ -1847,7 +2072,11 @@ describe('AuthService', () => {
       });
 
       await expect(
-        service.requestEmailChange('nonexistent', 'new@example.com'),
+        service.requestEmailChange(
+          'nonexistent',
+          'new@example.com',
+          STEP_UP_PASSWORD,
+        ),
       ).rejects.toThrow(NotFoundException);
     });
   });
@@ -1945,6 +2174,7 @@ describe('AuthService', () => {
     const mockUser = {
       _id: { toString: () => 'user123' },
       phone: '+923001234567',
+      passwordHash: STEP_UP_PASSWORD_HASH,
       verificationChangeCount: { count: 0, resetAt: null },
     };
 
@@ -1962,6 +2192,7 @@ describe('AuthService', () => {
       const result = await service.requestPhoneChange(
         'user123',
         '+923009876543',
+        STEP_UP_PASSWORD,
       );
 
       expect(result.message).toContain('OTP sent');
@@ -1982,7 +2213,11 @@ describe('AuthService', () => {
         exec: jest.fn().mockResolvedValue({}),
       });
 
-      await service.requestPhoneChange('user123', '+923009876543');
+      await service.requestPhoneChange(
+        'user123',
+        '+923009876543',
+        STEP_UP_PASSWORD,
+      );
 
       expect(mockUserModel.findByIdAndUpdate).toHaveBeenCalledWith(
         'user123',
@@ -2006,7 +2241,11 @@ describe('AuthService', () => {
       });
 
       await expect(
-        service.requestPhoneChange('user123', '+923009876543'),
+        service.requestPhoneChange(
+          'user123',
+          '+923009876543',
+          STEP_UP_PASSWORD,
+        ),
       ).rejects.toThrow(ConflictException);
     });
 
@@ -2026,7 +2265,11 @@ describe('AuthService', () => {
       });
 
       await expect(
-        service.requestPhoneChange('user123', '+923009876543'),
+        service.requestPhoneChange(
+          'user123',
+          '+923009876543',
+          STEP_UP_PASSWORD,
+        ),
       ).rejects.toThrow(BadRequestException);
     });
   });

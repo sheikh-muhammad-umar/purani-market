@@ -376,7 +376,7 @@ describe('AuthController', () => {
         role: 'buyer',
         type: 'access',
       };
-      const dto = { newEmail: 'new@example.com' };
+      const dto = { newEmail: 'new@example.com', password: 'password123' };
       const expected = {
         message: 'Verification link sent to new email address',
       };
@@ -388,6 +388,9 @@ describe('AuthController', () => {
       expect(mockAuthService.requestEmailChange).toHaveBeenCalledWith(
         'user123',
         'new@example.com',
+        // The re-entered password has to reach the service, or the step-up check
+        // is decorative.
+        'password123',
       );
     });
   });
@@ -415,7 +418,7 @@ describe('AuthController', () => {
         role: 'buyer',
         type: 'access',
       };
-      const dto = { newPhone: '+923009876543' };
+      const dto = { newPhone: '+923009876543', password: 'password123' };
       const expected = { message: 'OTP sent to new phone number' };
       mockAuthService.requestPhoneChange.mockResolvedValue(expected);
 
@@ -425,6 +428,7 @@ describe('AuthController', () => {
       expect(mockAuthService.requestPhoneChange).toHaveBeenCalledWith(
         'user123',
         '+923009876543',
+        'password123',
       );
     });
   });

@@ -68,6 +68,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
   ) {
     this.emailForm = this.fb.group({
       newEmail: ['', [Validators.required, Validators.email]],
+      // Moving the address moves where password resets are delivered, so the
+      // server re-checks the password rather than trusting the session alone.
+      password: ['', [Validators.required]],
     });
 
     this.emailOtpForm = this.fb.group({
@@ -137,8 +140,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.emailChangeError.set('');
 
     const newEmail: string = this.emailForm.value.newEmail;
+    const password: string = this.emailForm.value.password;
 
-    this.authService.sendEmailOtp(newEmail).subscribe({
+    this.authService.sendEmailOtp(newEmail, password).subscribe({
       next: () => {
         this.emailChanging.set(false);
         this.emailOtpSent.set(true);
@@ -151,7 +155,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
         this.emailChangeError.set(
           isConflict
             ? 'This email is already in use by another account.'
-            : 'Failed to send verification code. Please try again.',
+            : err?.status === 401
+              ? 'That password is not correct.'
+              : 'Failed to send verification code. Please try again.',
         );
       },
     });
@@ -164,8 +170,9 @@ export class SettingsComponent implements OnInit, OnDestroy {
     this.emailChangeSuccess.set('');
 
     const newEmail: string = this.emailForm.value.newEmail;
+    const password: string = this.emailForm.value.password;
 
-    this.authService.sendEmailOtp(newEmail).subscribe({
+    this.authService.sendEmailOtp(newEmail, password).subscribe({
       next: () => {
         this.emailChanging.set(false);
         this.emailChangeSuccess.set(`Code resent to ${newEmail}`);

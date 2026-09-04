@@ -25,6 +25,7 @@ export const API = {
   AUTH_CHANGE_PHONE: '/auth/change-phone',
   AUTH_CHANGE_PHONE_VERIFY: '/auth/change-phone/verify',
   AUTH_CHANGE_EMAIL: '/auth/change-email',
+  AUTH_CHANGE_PASSWORD: '/auth/change-password',
 
   // Users
   USERS_ME: '/users/me',

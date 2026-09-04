@@ -945,17 +945,7 @@ export class AuthService {
       throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
 
-    // Accounts created through a social provider have no password to re-enter;
-    // sending them down the bcrypt path would compare against undefined and
-    // always fail, leaving them unable to ever turn MFA off.
-    if (!user.passwordHash) {
-      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
-    }
-
-    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
-    if (!isPasswordValid) {
-      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
-    }
+    await this.assertPasswordMatches(user, password);
 
     await this.userModel
       .findByIdAndUpdate(userId, {
@@ -975,6 +965,64 @@ export class AuthService {
     }
 
     return { message: 'Two-factor authentication disabled' };
+  }
+
+  /**
+   * Re-checks the account password before a change that could hand the account
+   * over.
+   *
+   * A bearer token proves only that someone held it at some point — it says
+   * nothing about whether that someone is the owner. For operations whose whole
+   * effect is to move control of the account (the recovery email, the recovery
+   * phone, the second factor), that is not enough on its own.
+   *
+   * Accounts created through a social provider have no password to re-enter;
+   * comparing against an absent hash would fail forever and strand them, so they
+   * are refused explicitly.
+   */
+  private async assertPasswordMatches(
+    user: UserDocument,
+    password: string,
+  ): Promise<void> {
+    if (!user.passwordHash) {
+      throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
+    }
+
+    const isPasswordValid = await bcrypt.compare(password, user.passwordHash);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException(PUBLIC_ERROR.AUTH_FAILED);
+    }
+  }
+
+  /**
+   * Changes the password of a signed-in user who knows the current one.
+   *
+   * Every session is dropped afterwards, matching the reset flow: if the reason
+   * for changing was a suspected compromise, leaving the other sessions alive
+   * would defeat the point.
+   */
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ): Promise<{ message: string }> {
+    const user = await this.userModel.findById(userId).exec();
+    if (!user) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    await this.assertPasswordMatches(user, currentPassword);
+
+    const passwordHash = await bcrypt.hash(newPassword, BCRYPT_COST_FACTOR);
+    await this.userModel.findByIdAndUpdate(userId, { passwordHash }).exec();
+
+    await this.invalidateAllSessions(userId);
+
+    if (user.email) {
+      await this.emailService.sendPasswordChangedEmail(user.email);
+    }
+
+    return { message: 'Password changed successfully' };
   }
 
   /**
@@ -1301,11 +1349,17 @@ export class AuthService {
   async requestEmailChange(
     userId: string,
     newEmail: string,
+    password: string,
   ): Promise<{ message: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
+
+    // Before anything else: the new address becomes the account's recovery
+    // channel, so this request is an account handover if it is not the owner
+    // making it.
+    await this.assertPasswordMatches(user, password);
 
     // Check if new email is already in use
     const existing = await this.userModel.findOne({ email: newEmail }).exec();
@@ -1413,6 +1467,7 @@ export class AuthService {
   async requestPhoneChange(
     userId: string,
     newPhone: string,
+    password?: string,
   ): Promise<{ message: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
@@ -1443,6 +1498,17 @@ export class AuthService {
       );
       return { message: 'OTP sent to your phone number' };
     }
+
+    // Everything above either rejects the request or re-sends a code to a number
+    // already on this account — no change of control, so no password needed. That
+    // matters because listing creation drives this endpoint to verify the phone a
+    // user already has; demanding a password there would put a password prompt in
+    // the middle of posting an ad.
+    //
+    // Past this point the recovery number genuinely moves, which is an account
+    // handover if the caller is not the owner. A bearer token alone does not show
+    // that.
+    await this.assertPasswordMatches(user, password ?? '');
 
     // Enforce rate limit: max 3 change requests per 24 hours
     this.enforceChangeRateLimit(user);
@@ -1617,6 +1683,7 @@ export class AuthService {
   async sendEmailOtp(
     userId: string,
     targetEmail?: string,
+    password?: string,
   ): Promise<{ message: string }> {
     const user = await this.userModel.findById(userId).exec();
     if (!user) {
@@ -1628,8 +1695,17 @@ export class AuthService {
       throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
     }
 
-    // If sending to a new address, check it isn't already taken by another account
+    // A targetEmail makes this an email *change*, completed by verifyEmailOtp —
+    // the second route to moving the recovery address, and the one the web UI
+    // actually uses. It asked for no password, so a stolen access token could
+    // send a code to an attacker's inbox and hand them the account; closing only
+    // `change-email` would have left this door open next to it.
+    //
+    // Verifying the address already on the account changes nothing and stays
+    // password-free.
     if (targetEmail && targetEmail !== user.email) {
+      await this.assertPasswordMatches(user, password ?? '');
+
       const existing = await this.userModel
         .findOne({ email: targetEmail, _id: { $ne: user._id } })
         .exec();
