@@ -14,12 +14,26 @@ export interface ConversationShort {
   status?: string;
 }
 
+/**
+ * The other party on a conversation. The conversations endpoint populates
+ * `buyerId`/`sellerId` with this subset of the user document, so these fields
+ * arrive as objects there even though they are plain ids elsewhere.
+ */
+export interface ConversationParty {
+  _id: string;
+  profile?: {
+    firstName?: string;
+    lastName?: string;
+    avatar?: string;
+  };
+}
+
 export interface Conversation {
   _id: string;
   productListingId: string | ConversationListing;
   shortVideoId?: string | ConversationShort;
-  buyerId: string;
-  sellerId: string;
+  buyerId: string | ConversationParty;
+  sellerId: string | ConversationParty;
   lastMessageAt: Date;
   lastMessagePreview: string;
   createdAt: Date;

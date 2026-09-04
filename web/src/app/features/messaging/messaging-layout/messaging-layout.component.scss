@@ -55,6 +55,98 @@
   }
 }
 
+/* ---- Buying / Selling tabs ---- */
+.msg-tabs {
+  display: flex;
+  flex-shrink: 0;
+  gap: 4px;
+  padding: var(--space-1) var(--space-2) 0;
+}
+
+.msg-tab {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+  position: relative;
+  padding: 8px 10px;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--background);
+  color: var(--text-secondary);
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
+
+  &:hover:not(.active) {
+    color: var(--text-primary);
+    border-color: var(--text-muted);
+  }
+
+  &.active {
+    background: var(--primary);
+    border-color: var(--primary);
+    color: var(--on-primary);
+  }
+
+  /* Keyboard focus must stay visible on both the active and inactive states. */
+  &:focus-visible {
+    outline: 2px solid var(--primary);
+    outline-offset: 2px;
+  }
+}
+
+.msg-tab-icon {
+  font-size: 17px;
+  flex-shrink: 0;
+}
+
+.msg-tab-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msg-tab-count {
+  font-size: 11px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  padding: 1px 6px;
+  border-radius: var(--radius-full);
+  background: var(--surface);
+  color: var(--text-muted);
+
+  .msg-tab.active & {
+    /* Translucent white keeps the count legible on the filled active pill
+       without hardcoding a second brand colour. */
+    background: rgba(255, 255, 255, 0.22);
+    color: var(--on-primary);
+  }
+}
+
+/* Unread marker on the tab itself, so the other tab can signal activity while
+   the user is reading this one. */
+.msg-tab-dot {
+  position: absolute;
+  top: 5px;
+  right: 7px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--error);
+
+  .msg-tab.active & {
+    background: #fff;
+  }
+}
+
 .msg-search {
   flex-shrink: 0;
   display: flex;
@@ -170,10 +262,37 @@
   flex-shrink: 0;
 }
 
+.msg-item-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+}
+
 .msg-item-price {
   font-size: 12px;
   font-weight: 700;
   color: var(--primary);
+  flex-shrink: 0;
+}
+
+/* The other party in the thread. Truncates before the price does, since the
+   price is short and fixed while names are unbounded. */
+.msg-item-party {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  min-width: 0;
+  font-size: 12px;
+  color: var(--text-muted);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.msg-item-party-icon {
+  font-size: 13px;
+  flex-shrink: 0;
 }
 
 .msg-item-preview {

@@ -10,19 +10,67 @@
         </span>
       }
     </div>
+    <!-- Buying and selling are separate jobs, so they get separate lists rather
+         than one interleaved feed the user has to mentally sort. -->
+    <div class="msg-tabs" role="tablist" aria-label="Conversation type">
+      <button
+        type="button"
+        class="msg-tab"
+        role="tab"
+        id="msg-tab-buying"
+        [class.active]="activeTab() === 'buying'"
+        [attr.aria-selected]="activeTab() === 'buying'"
+        [attr.tabindex]="activeTab() === 'buying' ? 0 : -1"
+        aria-controls="msg-tabpanel"
+        (click)="selectTab('buying')"
+      >
+        <span class="material-symbols-rounded msg-tab-icon" aria-hidden="true">shopping_bag</span>
+        <span class="msg-tab-label">Buying</span>
+        <span class="msg-tab-count">{{ buyingConversations().length }}</span>
+        @if (buyingUnread() > 0) {
+          <span class="msg-tab-dot" aria-hidden="true"></span>
+          <span class="sr-only">{{ buyingUnread() }} unread</span>
+        }
+      </button>
+      <button
+        type="button"
+        class="msg-tab"
+        role="tab"
+        id="msg-tab-selling"
+        [class.active]="activeTab() === 'selling'"
+        [attr.aria-selected]="activeTab() === 'selling'"
+        [attr.tabindex]="activeTab() === 'selling' ? 0 : -1"
+        aria-controls="msg-tabpanel"
+        (click)="selectTab('selling')"
+      >
+        <span class="material-symbols-rounded msg-tab-icon" aria-hidden="true">sell</span>
+        <span class="msg-tab-label">Selling</span>
+        <span class="msg-tab-count">{{ sellingConversations().length }}</span>
+        @if (sellingUnread() > 0) {
+          <span class="msg-tab-dot" aria-hidden="true"></span>
+          <span class="sr-only">{{ sellingUnread() }} unread</span>
+        }
+      </button>
+    </div>
+
     <div class="msg-search">
       <span class="material-symbols-rounded" aria-hidden="true">search</span>
       <!-- Previously this input had no binding at all — pure decoration. -->
       <input
         type="search"
-        placeholder="Search conversations"
+        [placeholder]="activeTab() === 'buying' ? 'Search buying chats' : 'Search selling chats'"
         aria-label="Search conversations"
         [value]="search()"
         (input)="onSearchInput($event)"
       />
     </div>
 
-    <div class="msg-list">
+    <div
+      class="msg-list"
+      id="msg-tabpanel"
+      role="tabpanel"
+      [attr.aria-labelledby]="activeTab() === 'buying' ? 'msg-tab-buying' : 'msg-tab-selling'"
+    >
       @if (loading()) {
         @for (i of SKELETON_ITEMS; track i) {
           <div class="msg-item-skeleton">
@@ -69,7 +117,19 @@
                 <span class="msg-item-name">{{ view?.title }}</span>
                 <span class="msg-item-time">{{ view?.timeAgo }}</span>
               </div>
-              <span class="msg-item-price">{{ view?.price }}</span>
+              <div class="msg-item-meta">
+                <span class="msg-item-price">{{ view?.price }}</span>
+                <!-- Once split by role, "who" matters as much as "what": the
+                     buyer asking, or the seller being asked. -->
+                @if (view?.partyName) {
+                  <span class="msg-item-party">
+                    <span class="material-symbols-rounded msg-item-party-icon" aria-hidden="true">
+                      person
+                    </span>
+                    {{ view!.partyName }}
+                  </span>
+                }
+              </div>
               <p class="msg-item-preview">{{ conv.lastMessagePreview || 'No messages yet' }}</p>
             </div>
             <!-- A counted badge rather than a bare dot, which carried no text
@@ -91,13 +151,24 @@
               [message]="'Nothing matches “' + search() + '”.'"
               [compact]="true"
             />
-          } @else {
+          } @else if (activeTab() === 'buying') {
             <app-empty-state
-              icon="chat_bubble_outline"
-              title="No conversations yet"
+              icon="shopping_bag"
+              title="No buying chats yet"
               message="Message a seller from any listing and the thread shows up here."
               actionText="Browse listings"
               [actionLink]="ROUTES.SEARCH"
+              [compact]="true"
+            />
+          } @else {
+            <!-- Selling threads are started by buyers, so the useful nudge here
+                 is to post something worth messaging about. -->
+            <app-empty-state
+              icon="sell"
+              title="No selling chats yet"
+              message="When someone messages you about a listing, it shows up here."
+              actionText="Post a listing"
+              [actionLink]="ROUTES.LISTINGS_CREATE"
               [compact]="true"
             />
           }

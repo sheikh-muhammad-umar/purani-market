@@ -12,7 +12,7 @@ import { Subscription } from 'rxjs';
 import { MessagingService } from '../../../core/services/messaging.service';
 import { WebSocketService } from '../../../core/services/websocket.service';
 import { AuthService } from '../../../core/auth';
-import { Conversation, ConversationListing } from '../../../core/models';
+import { Conversation, ConversationListing, ConversationParty } from '../../../core/models';
 import { PLACEHOLDER_IMAGE, CURRENCY_SYMBOL } from '../../../core/constants/app';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
@@ -22,12 +22,21 @@ import { SKELETON_ITEMS } from '../messaging.constants';
 import { ChatWindowComponent } from '../chat-window/chat-window.component';
 import { ToastService } from '../../../core/services/toast.service';
 
+/**
+ * Which side of the marketplace a thread sits on for the signed-in user.
+ * `buying` = they contacted a seller; `selling` = someone contacted them.
+ */
+export type InboxTab = 'buying' | 'selling';
+
 /** Precomputed view data for a single conversation row. */
 interface ConversationView {
   title: string;
   image: string;
   price: string;
   timeAgo: string;
+  /** The person on the other end, so a row says who as well as what. */
+  partyName: string;
+  partyAvatar: string;
 }
 
 @Component({
@@ -50,6 +59,12 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
   loadError = signal(false);
   search = signal('');
   selectedConversationId = signal<string | null>(null);
+  /**
+   * Active inbox tab. Buying and selling threads are two different jobs — one
+   * is chasing a purchase, the other is answering customers — so they are kept
+   * apart instead of interleaved in one list.
+   */
+  activeTab = signal<InboxTab>('buying');
   readonly SKELETON_ITEMS = SKELETON_ITEMS;
   readonly ROUTES = ROUTES;
   readonly PLACEHOLDER_IMAGE = PLACEHOLDER_IMAGE;
@@ -60,16 +75,36 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
    */
   readonly conversationViews = computed<Record<string, ConversationView>>(() => {
     const convs = this.conversations();
+    const myId = this.currentUserId();
     const views: Record<string, ConversationView> = {};
     for (const conv of convs) {
+      // Show whoever is NOT the signed-in user.
+      const other = this.roleOf(conv, myId) === 'buying' ? conv.sellerId : conv.buyerId;
       views[conv._id] = {
         title: this.extractListingTitle(conv),
         image: this.extractListingImage(conv),
         price: this.extractListingPrice(conv),
         timeAgo: this.computeTimeAgo(conv.lastMessageAt),
+        partyName: this.extractPartyName(other),
+        partyAvatar: this.extractPartyAvatar(other),
       };
     }
     return views;
+  });
+
+  /** Signed-in user's id, used to decide which side of a thread they are on. */
+  private readonly currentUserId = computed(() => this.authService.user()?._id ?? '');
+
+  /** Threads where the user is the buyer. */
+  readonly buyingConversations = computed<Conversation[]>(() => {
+    const myId = this.currentUserId();
+    return this.conversations().filter((c) => this.roleOf(c, myId) === 'buying');
+  });
+
+  /** Threads where the user is the seller. */
+  readonly sellingConversations = computed<Conversation[]>(() => {
+    const myId = this.currentUserId();
+    return this.conversations().filter((c) => this.roleOf(c, myId) === 'selling');
   });
 
   /**
@@ -79,14 +114,18 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
    */
   readonly visibleConversations = computed<Conversation[]>(() => {
     const query = this.search().toLowerCase().trim();
-    const convs = this.conversations();
+    const convs =
+      this.activeTab() === 'buying' ? this.buyingConversations() : this.sellingConversations();
     if (!query) return convs;
 
     const views = this.conversationViews();
     return convs.filter((conv) => {
-      const title = views[conv._id]?.title?.toLowerCase() ?? '';
+      const view = views[conv._id];
+      const title = view?.title?.toLowerCase() ?? '';
       const preview = conv.lastMessagePreview?.toLowerCase() ?? '';
-      return title.includes(query) || preview.includes(query);
+      // The other party is on screen now, so it should be searchable too.
+      const party = view?.partyName?.toLowerCase() ?? '';
+      return title.includes(query) || preview.includes(query) || party.includes(query);
     });
   });
 
@@ -95,7 +134,40 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
     Object.values(this.unreadCounts()).reduce((sum, n) => sum + (n || 0), 0),
   );
 
+  /** Unread total for the buying tab, so its badge can flag waiting replies. */
+  readonly buyingUnread = computed(() => this.sumUnread(this.buyingConversations()));
+
+  /** Unread total for the selling tab. */
+  readonly sellingUnread = computed(() => this.sumUnread(this.sellingConversations()));
+
+  private sumUnread(convs: Conversation[]): number {
+    const counts = this.unreadCounts();
+    return convs.reduce((sum, c) => sum + (counts[c._id] || 0), 0);
+  }
+
+  /**
+   * Which side of a thread the given user is on.
+   *
+   * `buyerId`/`sellerId` arrive populated as objects from the conversations
+   * endpoint but are plain ids elsewhere, so both shapes are handled. Anything
+   * that is not clearly the user's own buyer slot is treated as selling, which
+   * keeps a thread visible in exactly one tab rather than dropping it.
+   */
+  private roleOf(conv: Conversation, myId: string): InboxTab {
+    return this.idOf(conv.buyerId) === myId ? 'buying' : 'selling';
+  }
+
+  /** Normalizes a possibly-populated reference down to its id. */
+  private idOf(ref: string | ConversationParty | undefined): string {
+    if (!ref) return '';
+    return typeof ref === 'object' ? (ref._id ?? '') : ref;
+  }
+
   private subs: Subscription[] = [];
+  /** Guards the one-time default tab pick so it never fights a user's choice. */
+  private tabInitialized = false;
+  private conversationsLoaded = false;
+  private unreadLoaded = false;
 
   constructor(
     private readonly messagingService: MessagingService,
@@ -132,9 +204,50 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
       this.subs.push(
         this.route.paramMap.subscribe((params) => {
           this.selectedConversationId.set(params.get('id'));
+          this.syncTabToSelection();
         }),
       );
     }
+  }
+
+  /**
+   * Moves the active tab to whichever side owns the open thread.
+   *
+   * A link straight to a thread (notification, deep link) can land on a
+   * conversation that lives in the other tab; without this the chat opens while
+   * the visible list has no matching row, which reads as a broken selection.
+   */
+  private syncTabToSelection(): void {
+    const id = this.selectedConversationId();
+    if (!id) return;
+    const conv = this.conversations().find((c) => c._id === id);
+    if (!conv) return; // Conversations may not have loaded yet; retried on load.
+    this.activeTab.set(this.roleOf(conv, this.currentUserId()));
+  }
+
+  /**
+   * Picks the more useful starting tab on first load: whichever side has unread
+   * messages, else whichever has any threads at all. A seller-only account
+   * would otherwise open onto an empty "Buying" list.
+   */
+  private applyDefaultTab(): void {
+    if (this.tabInitialized) return;
+
+    // A deep-linked thread decides the tab on its own.
+    if (this.selectedConversationId()) {
+      this.syncTabToSelection();
+      this.tabInitialized = true;
+      return;
+    }
+
+    const buyingUnread = this.buyingUnread();
+    const sellingUnread = this.sellingUnread();
+    if (buyingUnread || sellingUnread) {
+      this.activeTab.set(sellingUnread > buyingUnread ? 'selling' : 'buying');
+    } else if (this.buyingConversations().length === 0 && this.sellingConversations().length > 0) {
+      this.activeTab.set('selling');
+    }
+    this.tabInitialized = true;
   }
 
   private initiateChat(payload: { productListingId?: string; shortVideoId?: string }): void {
@@ -164,6 +277,10 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
 
         if (existing) {
           this.selectedConversationId.set(existing._id);
+          // Shorts threads can put the user on either side, so follow the data
+          // rather than assuming this is a buying thread.
+          this.syncTabToSelection();
+          this.tabInitialized = true;
         } else {
           this.messagingService.startConversation(payload).subscribe({
             next: (response: any) => {
@@ -208,7 +325,31 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
     this.router.navigateByUrl(ROUTES.MESSAGING);
   }
 
+  /**
+   * Switches tab and clears any open thread, since the selected conversation
+   * belongs to the tab being left and would otherwise stay open with no row
+   * highlighted in the new list.
+   */
+  selectTab(tab: InboxTab): void {
+    if (this.activeTab() === tab) return;
+    this.activeTab.set(tab);
+    if (this.selectedConversationId()) this.deselectConversation();
+  }
+
   // --- Private extraction helpers (called only from computed, not template) ---
+
+  /** Display name of the other party, falling back when the profile is sparse. */
+  private extractPartyName(ref: string | ConversationParty | undefined): string {
+    if (!ref || typeof ref !== 'object') return '';
+    const first = ref.profile?.firstName?.trim() ?? '';
+    const last = ref.profile?.lastName?.trim() ?? '';
+    return [first, last].filter(Boolean).join(' ');
+  }
+
+  private extractPartyAvatar(ref: string | ConversationParty | undefined): string {
+    if (!ref || typeof ref !== 'object') return '';
+    return ref.profile?.avatar ?? '';
+  }
 
   private extractListingTitle(conversation: Conversation): string {
     // Check short video first
@@ -293,6 +434,10 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
         this.conversations.set(list);
         this.loadError.set(false);
         this.loading.set(false);
+        this.conversationsLoaded = true;
+        // A deep-linked thread may have arrived before its conversation did.
+        this.syncTabToSelection();
+        this.maybeApplyDefaultTab();
       },
       error: () => {
         // Without this the sidebar showed "No conversations yet" on a network
@@ -303,7 +448,22 @@ export class MessagingLayoutComponent implements OnInit, OnDestroy {
     });
 
     this.messagingService.getUnreadPerConversation().subscribe({
-      next: (counts) => this.unreadCounts.set(counts),
+      next: (counts) => {
+        this.unreadCounts.set(counts);
+        this.unreadLoaded = true;
+        this.maybeApplyDefaultTab();
+      },
+      // Unread counts are decoration here; a failure must not block the default
+      // tab from being chosen off the conversation lists alone.
+      error: () => {
+        this.unreadLoaded = true;
+        this.maybeApplyDefaultTab();
+      },
     });
+  }
+
+  /** Defers the one-time tab pick until both feeds are in, so it sees unread. */
+  private maybeApplyDefaultTab(): void {
+    if (this.conversationsLoaded && this.unreadLoaded) this.applyDefaultTab();
   }
 }
