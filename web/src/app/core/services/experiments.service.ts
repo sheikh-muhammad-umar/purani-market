@@ -1,5 +1,6 @@
-import { Injectable, inject } from '@angular/core';
-import { Observable, shareReplay, tap } from 'rxjs';
+import { Injectable, PLATFORM_ID, inject } from '@angular/core';
+import { isPlatformBrowser } from '@angular/common';
+import { Observable, of, catchError, shareReplay, tap } from 'rxjs';
 import { ApiService } from './api.service';
 import { VisitorIdentityService } from './visitor-identity.service';
 import { API } from '../constants/api-endpoints';
@@ -32,6 +33,7 @@ export interface TrackEventPayload {
 @Injectable({ providedIn: 'root' })
 export class ExperimentsService {
   private readonly identity = inject(VisitorIdentityService);
+  private readonly isBrowser = isPlatformBrowser(inject(PLATFORM_ID));
   private assignmentsCache$: Observable<VariantAssignment[]> | null = null;
   private assignmentsMap = new Map<string, VariantAssignment>();
 
@@ -42,6 +44,12 @@ export class ExperimentsService {
    * Cached for the session — assignments don't change mid-session.
    */
   getAssignments(): Observable<VariantAssignment[]> {
+    // Assignments are visitor-scoped and only matter in the browser: during SSR
+    // there's no real visitor id, and the render must not depend on — or be
+    // broken by — the experiments backend being reachable.
+    if (!this.isBrowser) {
+      return of([]);
+    }
     if (!this.assignmentsCache$) {
       const visitorId = this.getVisitorId();
       this.assignmentsCache$ = this.api
@@ -53,6 +61,9 @@ export class ExperimentsService {
               this.assignmentsMap.set(a.experimentKey, a);
             }
           }),
+          // Experiments are supplementary: a fetch failure degrades to "no
+          // assignments" rather than surfacing an error on the page.
+          catchError(() => of([] as VariantAssignment[])),
           shareReplay({ bufferSize: 1, refCount: false }),
         );
     }
@@ -105,9 +116,10 @@ export class ExperimentsService {
    * Get or create a persistent visitor ID for anonymous users.
    *
    * Shared with activity tracking and ad delivery, so an experiment result can
-   * be joined to what the visitor actually did. `'ssr'` is kept as the
-   * server-side value because assignments are requested during server rendering
-   * and the endpoint requires a non-empty id.
+   * be joined to what the visitor actually did. Experiment calls only run in
+   * the browser, but `'ssr'` is kept as a defensive fallback for the rare case
+   * the identity service hasn't produced an id yet, since the endpoint requires
+   * a non-empty value.
    */
   private getVisitorId(): string {
     return this.identity.visitorId() ?? 'ssr';
