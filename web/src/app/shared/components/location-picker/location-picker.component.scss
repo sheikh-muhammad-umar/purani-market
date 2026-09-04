@@ -39,16 +39,6 @@
   line-height: 1.15;
 }
 
-/* Static caption above the value, so the control reads as a labelled field
-   rather than a bare place name. */
-.lp-label-hint {
-  font-size: 10px;
-  font-weight: var(--weight-medium);
-  letter-spacing: var(--tracking-wider);
-  text-transform: uppercase;
-  color: var(--text-muted);
-}
-
 .lp-label-value {
   overflow: hidden;
   font-weight: var(--weight-semibold);
@@ -72,10 +62,6 @@
   max-width: 132px;
   padding: 6px 10px;
   background: var(--surface-secondary);
-}
-
-.lp-trigger-compact .lp-label-hint {
-  display: none;
 }
 
 /* ---- Panel ---- */
