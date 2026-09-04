@@ -68,15 +68,19 @@
 .cs-dropdown {
   position: absolute;
   top: calc(100% + 4px);
-  left: 0;
-  right: 0;
-  width: auto;
+  /* Centered under the trigger: any width beyond the trigger spreads evenly to
+     both sides instead of drifting to one edge. */
+  left: 50%;
+  transform: translateX(-50%);
+  min-width: 100%;
+  width: max-content;
+  max-width: min(260px, calc(100vw - 24px));
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 10px;
   box-shadow: var(--shadow-dropdown);
   z-index: 50;
-  max-height: 220px;
+  max-height: 260px;
   overflow-y: auto;
   overflow-x: hidden;
   scrollbar-width: thin;
@@ -84,6 +88,26 @@
 }
 
 @keyframes csSlide {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+/* When the trigger sits near the right edge, anchor the panel to the right so
+   it opens inward instead of overflowing off-screen. */
+.cs-wrap.cs-align-end .cs-dropdown {
+  left: auto;
+  right: 0;
+  transform: none;
+  animation-name: csSlideEnd;
+}
+
+@keyframes csSlideEnd {
   from {
     opacity: 0;
     transform: translateY(-4px);
@@ -98,7 +122,7 @@
   display: block;
   width: 100%;
   text-align: left;
-  padding: 9px 14px;
+  padding: 8px 14px;
   border: none;
   background: none;
   font-family: inherit;
@@ -106,9 +130,10 @@
   color: var(--text-primary);
   cursor: pointer;
   transition: background 0.1s;
-  white-space: normal;
-  overflow-wrap: anywhere;
-  line-height: 1.35;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  line-height: 1.4;
   box-sizing: border-box;
 
   &:hover {
@@ -118,9 +143,6 @@
     color: var(--primary);
     font-weight: 600;
     background: rgba(13, 165, 195, 0.06);
-  }
-  & + & {
-    border-top: 1px solid var(--border);
   }
 }
 

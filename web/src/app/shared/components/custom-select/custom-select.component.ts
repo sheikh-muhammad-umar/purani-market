@@ -21,7 +21,12 @@ export interface SelectOption {
   standalone: true,
   imports: [CommonModule],
   template: `
-    <div class="cs-wrap" [class.cs-open]="isOpen()" [class.cs-disabled]="disabled">
+    <div
+      class="cs-wrap"
+      [class.cs-open]="isOpen()"
+      [class.cs-disabled]="disabled"
+      [class.cs-align-end]="alignEnd()"
+    >
       <button type="button" class="cs-trigger" (click)="toggle()" [disabled]="disabled">
         @if (selectedLabel()) {
           <span class="cs-text" [title]="selectedLabel()">{{ selectedLabel() }}</span>
@@ -81,6 +86,7 @@ export class CustomSelectComponent implements ControlValueAccessor {
   @ViewChild('searchInput') searchInput!: ElementRef<HTMLInputElement>;
 
   isOpen = signal(false);
+  alignEnd = signal(false);
   value: string | number = '';
   searchQuery = signal('');
 
@@ -102,8 +108,21 @@ export class CustomSelectComponent implements ControlValueAccessor {
     this.isOpen.update((v) => !v);
     if (this.isOpen()) {
       this.searchQuery.set('');
+      this.updateAlignment();
       setTimeout(() => this.searchInput?.nativeElement?.focus(), 0);
     }
+  }
+
+  /**
+   * The dropdown grows to fit its widest option, so a trigger sitting close to
+   * the right edge would push the panel off-screen. Anchor it to the right in
+   * that case so it opens inward.
+   */
+  private updateAlignment(): void {
+    const el = this.elRef.nativeElement as HTMLElement;
+    const rect = el.getBoundingClientRect();
+    const spaceRight = window.innerWidth - rect.left;
+    this.alignEnd.set(spaceRight < 320);
   }
 
   select(opt: SelectOption): void {
