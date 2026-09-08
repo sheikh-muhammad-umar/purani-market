@@ -11,7 +11,11 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { ConfigService } from '@nestjs/config';
 import { NotificationsService } from '../notifications/notifications.service.js';
 import { CronLock } from '../common/decorators/cron-lock.decorator.js';
-import { FALLBACK_LISTING_LIMIT } from './constants/package-durations.js';
+import {
+  FALLBACK_LISTING_LIMIT,
+  getBundleDurations,
+  getPackageDurations,
+} from './constants/package-durations.js';
 import { CRON_TIMEZONE, DEFAULT_CURRENCY } from '../common/constants/index.js';
 import {
   AdPackage,
@@ -22,6 +26,7 @@ import {
   EntitlementGrant,
   EntitlementKind,
   grants,
+  missingBundleKinds,
   normaliseEntitlements,
   packageEntitlements,
   purchaseBalances,
@@ -89,6 +94,7 @@ export class PackagesService {
     }));
 
     const { type, quantity, entitlements } = this.resolvePackageShape(dto);
+    this.assertDurationAllowed(type, dto.duration);
 
     const pkg = new this.adPackageModel({
       name: dto.name,
@@ -128,6 +134,19 @@ export class PackagesService {
         throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
       }
       const type = typeForEntitlements(entitlements);
+
+      // An all-in-one is defined as covering all three kinds, so a partial list is
+      // refused rather than stored. `typeForEntitlements` labels anything broader
+      // than a single legacy kind a bundle, which without this would let a
+      // shorts-only or slots-and-featured list be sold under the all-in-one name
+      // and leave the buyer short of what it promises.
+      if (type === AdPackageType.BUNDLE) {
+        const missing = missingBundleKinds(entitlements);
+        if (missing.length > 0) {
+          throw new BadRequestException(ERROR.BUNDLE_MISSING_KINDS(missing));
+        }
+      }
+
       return {
         type,
         quantity: totalQuantity(entitlements),
@@ -150,6 +169,27 @@ export class PackagesService {
       throw new BadRequestException(PUBLIC_ERROR.BAD_REQUEST);
     }
     return { type: dto.type, quantity: dto.quantity, entitlements: [] };
+  }
+
+  /**
+   * Rejects a duration this kind of package is not sold on.
+   *
+   * All-in-one packages run to 60 and 90 days because they include shorts, which
+   * have always been sold on those terms; single-purpose ad packages keep their own
+   * shorter set. The request-level validator can only check the union of the two,
+   * since a PATCH may change `duration` without restating the entitlements that
+   * decide the type — so the narrower rule belongs here, where the type is known.
+   */
+  private assertDurationAllowed(type: AdPackageType, duration: number): void {
+    const allowed =
+      type === AdPackageType.BUNDLE
+        ? getBundleDurations()
+        : getPackageDurations();
+    if (!allowed.includes(duration)) {
+      throw new BadRequestException(
+        ERROR.PACKAGE_DURATION_NOT_ALLOWED(duration, allowed),
+      );
+    }
   }
 
   async updatePackage(
@@ -193,7 +233,53 @@ export class PackagesService {
       })) as any;
     }
 
+    // Checked once both are settled rather than beside each assignment: a single
+    // request can change either, and it is the resulting pair that has to be
+    // sellable. Validating `dto.duration` alone would wave through a package
+    // switched from bundle to featured ads while keeping a 90-day term.
+    this.assertDurationAllowed(pkg.type, pkg.duration);
+
     return pkg.save();
+  }
+
+  /**
+   * Withdraws a package from the catalogue.
+   *
+   * Deletes the document when nothing has ever been bought from it. Once purchases
+   * exist it is deactivated instead, because purchase history and revenue reporting
+   * populate `packageId` for the name and type — dropping the row would blank out
+   * orders sellers have paid for. Either way it stops being offered, which is the
+   * point of deleting it; the outcome is reported so the caller can say which
+   * happened rather than implying the record is gone.
+   */
+  async deletePackage(id: string): Promise<{
+    id: string;
+    deleted: boolean;
+    purchaseCount: number;
+  }> {
+    if (!Types.ObjectId.isValid(id)) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    const pkg = await this.adPackageModel.findById(id).exec();
+    if (!pkg) {
+      throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+    }
+
+    const purchaseCount = await this.packagePurchaseModel
+      .countDocuments({ packageId: pkg._id })
+      .exec();
+
+    if (purchaseCount === 0) {
+      await this.adPackageModel.deleteOne({ _id: pkg._id }).exec();
+      return { id, deleted: true, purchaseCount };
+    }
+
+    if (pkg.isActive) {
+      pkg.isActive = false;
+      await pkg.save();
+    }
+    return { id, deleted: false, purchaseCount };
   }
 
   async findAll(): Promise<AdPackageDocument[]> {

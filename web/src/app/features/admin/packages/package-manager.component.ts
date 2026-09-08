@@ -1,36 +1,51 @@
 import { Component, OnInit, signal, computed } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { ActivatedRoute } from '@angular/router';
 import {
   AdminService,
   CreatePackagePayload,
   UpdatePackagePayload,
 } from '../../../core/services/admin.service';
 import { CategoriesService } from '../../../core/services/categories.service';
+import { AuthService } from '../../../core/auth/auth.service';
 import { AdPackage, EntitlementKind, PackageType } from '../../../core/models';
 import { Category } from '../../../core/models/category.model';
 import {
-  PACKAGE_TYPE_OPTIONS,
+  SINGLE_PURPOSE_PACKAGE_TYPE_OPTIONS,
   DURATION_OPTIONS,
+  BUNDLE_DURATION_OPTIONS,
   ENTITLEMENT_KIND_OPTIONS,
 } from '../../../core/constants/select-options';
-import { ENTITLEMENT_LABELS, PACKAGE_TYPE_LABELS } from '../../../core/constants/app';
+import {
+  BUNDLE_DEFAULT_QUANTITIES,
+  BUNDLE_ENTITLEMENT_KINDS,
+  ENTITLEMENT_LABELS,
+  PACKAGE_TYPE_LABELS,
+} from '../../../core/constants/app';
 import {
   CustomSelectComponent,
   SelectOption,
 } from '../../../shared/components/custom-select/custom-select.component';
 import { EmptyStateComponent } from '../../../shared/components/empty-state/empty-state.component';
-import {
-  EntitlementKind as EntitlementKindEnum,
-  PackageType as PackageTypeEnum,
-} from '../../../core/constants/enums';
+import { ModalComponent } from '../../../shared/components/modal/modal.component';
+import { PackageType as PackageTypeEnum } from '../../../core/constants/enums';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { FormPanel, CategoryPricingGroup, PricingDisplayGroup } from './package-manager.interfaces';
 
+/**
+ * Manages ad packages, in one of two modes set by the route.
+ *
+ * All-in-one packages share this screen because they are rows in the same
+ * collection with the same fields; only which packages are listed and which shape
+ * the form authors differ. `bundleMode` splits the two so each list shows one kind
+ * of product — before this, all-in-one packages were mixed in among the
+ * single-purpose ones with nothing but a type badge to tell them apart.
+ */
 @Component({
   selector: 'app-package-manager',
   standalone: true,
-  imports: [CommonModule, FormsModule, CustomSelectComponent, EmptyStateComponent],
+  imports: [CommonModule, FormsModule, CustomSelectComponent, EmptyStateComponent, ModalComponent],
   templateUrl: './package-manager.component.html',
   styleUrls: ['./package-manager.component.scss'],
 })
@@ -38,11 +53,16 @@ export class PackageManagerComponent implements OnInit {
   readonly PackageTypeEnum = PackageTypeEnum;
   readonly PACKAGE_TYPE_LABELS = PACKAGE_TYPE_LABELS;
 
+  /** Whether this screen is managing all-in-one packages rather than single-purpose ones. */
+  readonly bundleMode: boolean;
+
   readonly loading = signal(true);
   readonly error = signal<string | null>(null);
+  readonly notice = signal<string | null>(null);
   readonly saving = signal(false);
   readonly packages = signal<AdPackage[]>([]);
   readonly categories = signal<Category[]>([]);
+  readonly pendingDelete = signal<AdPackage | null>(null);
 
   // Search & filter
   searchQuery = '';
@@ -51,7 +71,7 @@ export class PackageManagerComponent implements OnInit {
 
   readonly typeFilterOptions: SelectOption[] = [
     { value: '', label: 'All Types' },
-    ...PACKAGE_TYPE_OPTIONS,
+    ...SINGLE_PURPOSE_PACKAGE_TYPE_OPTIONS,
   ];
 
   readonly statusFilterOptions: SelectOption[] = [
@@ -60,8 +80,34 @@ export class PackageManagerComponent implements OnInit {
     { value: 'inactive', label: 'Inactive' },
   ];
 
+  /** Heading and empty-state wording, so one template serves both modes. */
+  get listTitle(): string {
+    return this.bundleMode ? 'All in One Packages' : 'Ad Packages';
+  }
+
+  get formTitle(): string {
+    const what = this.bundleMode ? 'All in One Package' : 'Package';
+    return `${this.activePanel === 'create' ? 'Create' : 'Edit'} ${what}`;
+  }
+
+  /**
+   * Whether the operator may change packages on this screen.
+   *
+   * All-in-one packages are restricted to super admins server-side. Reflecting that
+   * here means an ordinary admin sees the catalogue read-only instead of filling in
+   * a form that is rejected on save.
+   */
+  readonly canManage = computed(() => !this.bundleMode || this.auth.isSuperAdmin());
+
   get filteredPackages(): AdPackage[] {
     let result = this.packages();
+
+    // Each mode shows only its own kind of product. The API returns every package,
+    // so this is what keeps all-in-one packages off the Ad Packages list and vice
+    // versa.
+    result = result.filter((p) =>
+      this.bundleMode ? p.type === PackageTypeEnum.BUNDLE : p.type !== PackageTypeEnum.BUNDLE,
+    );
 
     // Search
     const q = this.searchQuery.toLowerCase().trim();
@@ -69,8 +115,9 @@ export class PackageManagerComponent implements OnInit {
       result = result.filter((p) => p.name.toLowerCase().includes(q));
     }
 
-    // Type filter
-    if (this.filterType) {
+    // Type filter — every package in bundle mode has the same type, so it is only
+    // offered on the single-purpose list.
+    if (this.filterType && !this.bundleMode) {
       result = result.filter((p) => p.type === this.filterType);
     }
 
@@ -124,32 +171,36 @@ export class PackageManagerComponent implements OnInit {
    */
   formEntitlements: { kind: EntitlementKind; quantity: number }[] = [];
 
-  readonly typeOptions: SelectOption[] = PACKAGE_TYPE_OPTIONS;
-  readonly durationOptions: SelectOption[] = DURATION_OPTIONS;
+  readonly typeOptions: SelectOption[] = SINGLE_PURPOSE_PACKAGE_TYPE_OPTIONS;
   readonly entitlementKindOptions: SelectOption[] = ENTITLEMENT_KIND_OPTIONS;
   readonly ENTITLEMENT_LABELS = ENTITLEMENT_LABELS;
+
+  /**
+   * The terms this screen sells on.
+   *
+   * All-in-one packages run to 60 and 90 days because they include shorts; the
+   * single-purpose types keep their shorter set, which the server enforces too.
+   */
+  get durationOptions(): SelectOption[] {
+    return this.bundleMode ? BUNDLE_DURATION_OPTIONS : DURATION_OPTIONS;
+  }
 
   /** Whether the form is authoring an all-in-one package. */
   get isBundle(): boolean {
     return this.formType === PackageTypeEnum.BUNDLE;
   }
 
-  /** Kinds not yet on the form, so a kind cannot be added twice. */
-  get availableEntitlementKinds(): SelectOption[] {
-    const used = new Set(this.formEntitlements.map((e) => e.kind));
-    return this.entitlementKindOptions.filter((o) => !used.has(o.value as EntitlementKind));
-  }
-
   /** Explains why the form cannot be submitted, or '' when it can. */
   get formError(): string {
     if (!this.formName.trim()) return 'Give the package a name.';
     if (this.isBundle) {
-      const rows = this.formEntitlements.filter((e) => e.quantity > 0);
-      if (rows.length === 0) {
-        return 'An all-in-one package has to include at least one thing.';
-      }
-      if (rows.length === 1) {
-        return 'Only one thing included — pick that type directly instead.';
+      // Every kind is required: the server refuses an all-in-one that leaves one
+      // out, since a buyer paying for "all in one" would come away short.
+      const missing = this.formEntitlements
+        .filter((e) => !(e.quantity > 0))
+        .map((e) => ENTITLEMENT_LABELS[e.kind] ?? e.kind);
+      if (missing.length > 0) {
+        return `An all-in-one includes all three. Set an amount for: ${missing.join(', ')}.`;
       }
     } else if (this.formQuantity < 1) {
       return 'Quantity has to be at least 1.';
@@ -159,31 +210,6 @@ export class PackageManagerComponent implements OnInit {
 
   onTypeChange(type: PackageType): void {
     this.formType = type;
-    // Seed the rows so the operator has something to edit rather than an empty
-    // panel, and clear them again when leaving bundle mode.
-    if (type === PackageTypeEnum.BUNDLE && this.formEntitlements.length === 0) {
-      this.formEntitlements = [
-        { kind: EntitlementKindEnum.AD_SLOTS, quantity: 5 },
-        { kind: EntitlementKindEnum.FEATURED_ADS, quantity: 3 },
-      ];
-    }
-  }
-
-  addEntitlement(): void {
-    const next = this.availableEntitlementKinds[0];
-    if (!next) return;
-    this.formEntitlements = [
-      ...this.formEntitlements,
-      { kind: next.value as EntitlementKind, quantity: 1 },
-    ];
-  }
-
-  removeEntitlement(index: number): void {
-    this.formEntitlements = this.formEntitlements.filter((_, i) => i !== index);
-  }
-
-  setEntitlementKind(index: number, kind: EntitlementKind): void {
-    this.formEntitlements = this.formEntitlements.map((e, i) => (i === index ? { ...e, kind } : e));
   }
 
   /** Total across the rows, mirroring what the server stores as `quantity`. */
@@ -191,10 +217,28 @@ export class PackageManagerComponent implements OnInit {
     return this.formEntitlements.reduce((sum, e) => sum + (e.quantity || 0), 0);
   }
 
+  /**
+   * What an all-in-one grants, for the list row.
+   *
+   * The type badge is useless on the all-in-one list — every row reads "All in One"
+   * — so the column shows the amounts instead, which is what distinguishes one
+   * package from another there.
+   */
+  includedOf(pkg: AdPackage): { label: string; quantity: number }[] {
+    return (pkg.entitlements ?? []).map((e) => ({
+      label: ENTITLEMENT_LABELS[e.kind] ?? e.kind,
+      quantity: e.quantity,
+    }));
+  }
+
   constructor(
     private readonly adminService: AdminService,
     private readonly categoriesService: CategoriesService,
-  ) {}
+    private readonly auth: AuthService,
+    route: ActivatedRoute,
+  ) {
+    this.bundleMode = route.snapshot.data['bundleMode'] === true;
+  }
 
   ngOnInit(): void {
     this.loadPackages();
@@ -225,17 +269,23 @@ export class PackageManagerComponent implements OnInit {
   }
 
   openCreateForm(): void {
+    if (!this.canManage()) return;
     this.resetForm();
     this.activePanel = 'create';
   }
 
   openEditForm(pkg: AdPackage): void {
+    if (!this.canManage()) return;
     this.editingPackage = pkg;
     this.formName = pkg.name;
     this.formType = pkg.type;
     this.formDuration = pkg.duration;
     this.formQuantity = pkg.quantity;
-    this.formEntitlements = (pkg.entitlements ?? []).map((e) => ({ ...e }));
+    // An all-in-one always edits all three rows, filling in anything the stored
+    // package happens to be missing, so the form cannot be saved back incomplete.
+    this.formEntitlements = this.bundleMode
+      ? this.bundleRows(pkg.entitlements)
+      : (pkg.entitlements ?? []).map((e) => ({ ...e }));
     this.formDefaultPrice = pkg.defaultPrice;
     this.formIsActive = pkg.isActive;
     this.formCategoryPricing = pkg.categoryPricing
@@ -250,8 +300,51 @@ export class PackageManagerComponent implements OnInit {
     this.editingPackage = null;
   }
 
+  // --- Delete ---
+  askDelete(pkg: AdPackage): void {
+    if (!this.canManage()) return;
+    this.pendingDelete.set(pkg);
+  }
+
+  cancelDelete(): void {
+    this.pendingDelete.set(null);
+  }
+
+  /**
+   * Withdraws the package held in the confirmation dialog.
+   *
+   * The server keeps a package that has purchases and deactivates it instead, so
+   * paid orders still resolve to the package they name. The outcome is reported
+   * rather than assumed, because "deleted" and "deactivated" leave the catalogue
+   * looking different.
+   */
+  confirmDelete(): void {
+    const pkg = this.pendingDelete();
+    if (!pkg) return;
+    this.saving.set(true);
+    this.notice.set(null);
+    this.adminService.deletePackage(pkg._id).subscribe({
+      next: (result) => {
+        this.saving.set(false);
+        this.pendingDelete.set(null);
+        this.notice.set(
+          result.deleted
+            ? `Deleted "${pkg.name}".`
+            : `"${pkg.name}" has ${result.purchaseCount} purchase(s), so it was deactivated instead of deleted. Existing orders keep working; it is no longer offered.`,
+        );
+        if (this.editingPackage?._id === pkg._id) this.cancelForm();
+        this.loadPackages();
+      },
+      error: () => {
+        this.saving.set(false);
+        this.pendingDelete.set(null);
+        this.error.set(ERROR_MSG.PACKAGE_DELETE_FAILED);
+      },
+    });
+  }
+
   submitCreate(): void {
-    if (this.formError) return;
+    if (this.formError || !this.canManage()) return;
     const payload: CreatePackagePayload = {
       name: this.formName.trim(),
       duration: this.formDuration,
@@ -277,7 +370,7 @@ export class PackageManagerComponent implements OnInit {
   }
 
   submitEdit(): void {
-    if (!this.editingPackage || this.formError) return;
+    if (!this.editingPackage || this.formError || !this.canManage()) return;
     const payload: UpdatePackagePayload = {
       name: this.formName.trim(),
       duration: this.formDuration,
@@ -433,16 +526,32 @@ export class PackageManagerComponent implements OnInit {
     return { type: this.formType, quantity: this.formQuantity };
   }
 
+  /**
+   * The three rows an all-in-one is authored through, in a fixed order.
+   *
+   * Always all three, because the server refuses a partial one. Existing amounts
+   * are kept so editing a package does not silently reprice what it grants.
+   */
+  private bundleRows(
+    existing: { kind: EntitlementKind; quantity: number }[] = [],
+  ): { kind: EntitlementKind; quantity: number }[] {
+    return BUNDLE_ENTITLEMENT_KINDS.map((kind) => ({
+      kind: kind as EntitlementKind,
+      quantity:
+        existing.find((e) => e.kind === kind)?.quantity ?? BUNDLE_DEFAULT_QUANTITIES[kind] ?? 1,
+    }));
+  }
+
   private resetForm(): void {
     this.editingPackage = null;
     this.formName = '';
-    this.formType = PackageTypeEnum.FEATURED_ADS;
+    this.formType = this.bundleMode ? PackageTypeEnum.BUNDLE : PackageTypeEnum.FEATURED_ADS;
     this.formDuration = 7;
     this.formQuantity = 5;
-    this.formDefaultPrice = 500;
+    this.formDefaultPrice = this.bundleMode ? 1800 : 500;
     this.formIsActive = true;
     this.formCategoryPricing = [];
-    this.formEntitlements = [];
+    this.formEntitlements = this.bundleMode ? this.bundleRows() : [];
     this.pricingCatSearch = [];
   }
 }

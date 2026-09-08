@@ -61,6 +61,11 @@ export class AdminLayoutComponent {
           children: [
             { label: 'Listings', icon: 'list_alt', path: ROUTES.ADMIN_PACKAGES_LISTINGS },
             { label: 'Shorts', icon: 'play_circle', path: ROUTES.ADMIN_PACKAGES_SHORTS },
+            {
+              label: 'All in One',
+              icon: 'workspace_premium',
+              path: ROUTES.ADMIN_PACKAGES_ALL_IN_ONE,
+            },
             { label: 'Purchases', icon: 'receipt_long', path: ROUTES.ADMIN_PACKAGES_PURCHASES },
           ],
         },

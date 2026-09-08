@@ -22,6 +22,14 @@
         <span class="material-symbols-rounded inline-icon">play_circle</span>
         Shorts Packages
       </button>
+      <button
+        class="tab-btn"
+        [class.active]="activeTab() === TAB.ALL_IN_ONE"
+        (click)="switchTab(TAB.ALL_IN_ONE)"
+      >
+        <span class="material-symbols-rounded inline-icon">workspace_premium</span>
+        All in One
+      </button>
     </div>
 
     <!-- Ads Tab -->
@@ -60,27 +68,15 @@
           >
             All Durations
           </button>
-          <button
-            class="filter-chip"
-            [class.active]="selectedDuration() === 7"
-            (click)="setDuration(7)"
-          >
-            7 Days
-          </button>
-          <button
-            class="filter-chip"
-            [class.active]="selectedDuration() === 15"
-            (click)="setDuration(15)"
-          >
-            15 Days
-          </button>
-          <button
-            class="filter-chip"
-            [class.active]="selectedDuration() === 30"
-            (click)="setDuration(30)"
-          >
-            30 Days
-          </button>
+          @for (days of durationChips(); track days) {
+            <button
+              class="filter-chip"
+              [class.active]="selectedDuration() === days"
+              (click)="setDuration(days)"
+            >
+              {{ days }} Days
+            </button>
+          }
         </div>
         @if (categories().length > 0) {
           <div class="category-filter">
@@ -232,6 +228,126 @@
                 <span class="price-amount">{{ formatPrice(pkg.price) }}</span>
               </div>
               <button class="btn btn-primary btn-full">Purchase Package</button>
+            </div>
+          }
+        </div>
+      }
+    }
+
+    <!-- All in One Tab -->
+    @if (activeTab() === TAB.ALL_IN_ONE) {
+      <div class="all-in-one-card">
+        <h3>One package, everything included</h3>
+        <p>
+          Every all-in-one package comes with featured ads, ad slots and shorts. Each part is
+          tracked separately, so what you do not use stays available until the package expires.
+        </p>
+      </div>
+
+      <div class="filter-bar">
+        <div class="duration-filters">
+          <button
+            class="filter-chip"
+            [class.active]="selectedDuration() === null"
+            (click)="setDuration(null)"
+          >
+            All Durations
+          </button>
+          @for (days of durationChips(); track days) {
+            <button
+              class="filter-chip"
+              [class.active]="selectedDuration() === days"
+              (click)="setDuration(days)"
+            >
+              {{ days }} Days
+            </button>
+          }
+        </div>
+        @if (categories().length > 0) {
+          <div class="category-filter">
+            <label class="category-label">Category</label>
+            <app-custom-select
+              [options]="categoryFilterOptions()"
+              [ngModel]="selectedCategoryId() ?? ''"
+              (ngModelChange)="onCategoryChange($any($event))"
+              placeholder="All Categories"
+              [searchable]="true"
+            ></app-custom-select>
+          </div>
+        }
+      </div>
+
+      @if (loading()) {
+        <div class="packages-grid">
+          @for (i of [1, 2, 3]; track i) {
+            <div class="package-card-skeleton card">
+              <app-skeleton variant="block" width="40%" height="1em" />
+              <app-skeleton variant="block" width="80%" height="0.8em" />
+              <app-skeleton variant="block" width="60%" height="0.8em" />
+              <app-skeleton variant="block" width="40%" height="2em" radius="var(--radius-sm)" />
+            </div>
+          }
+        </div>
+      } @else if (error()) {
+        <app-empty-state
+          icon="warning"
+          title="Couldn't load packages"
+          [message]="error()!"
+          actionText="Retry"
+          (actionClicked)="loadPackages()"
+        />
+      } @else if (filteredBundles().length === 0) {
+        <app-empty-state
+          icon="workspace_premium"
+          title="No all-in-one packages available"
+          message="Check back later for new all-in-one offerings"
+        />
+      } @else {
+        <div class="packages-grid">
+          @for (pkg of filteredBundles(); track pkg._id) {
+            <div class="package-card card bundle-type">
+              <div class="package-badge">
+                <span class="badge badge-bundle">
+                  <span class="material-symbols-rounded inline-icon">workspace_premium</span>
+                  {{ getTypeLabel(pkg.type) }}
+                </span>
+              </div>
+              <h3 class="package-name">{{ pkg.name }}</h3>
+              <div class="package-details">
+                <!-- Listed per part rather than as one total: the parts are spent
+                     separately, so a single number would not say what you get. -->
+                @for (item of entitlementsOf(pkg); track item.label) {
+                  <div class="detail-row">
+                    <span class="detail-label">
+                      <span class="material-symbols-rounded inline-icon inline-icon-sm">{{
+                        item.icon
+                      }}</span>
+                      {{ item.label }}
+                    </span>
+                    <span class="detail-value">{{ item.quantity }}</span>
+                  </div>
+                }
+                <div class="detail-row">
+                  <span class="detail-label">Duration</span>
+                  <span class="detail-value">{{ getDurationLabel(pkg.duration) }}</span>
+                </div>
+              </div>
+              <div class="package-price">
+                <span class="price-amount">{{ formatPrice(resolvePrice(pkg)) }}</span>
+                @if (isCategoryPrice(pkg)) {
+                  <span class="price-note category-price-note">Category-specific price</span>
+                } @else if (pkg.categoryPricing.length > 0 && !selectedCategoryId()) {
+                  <span class="price-note">Category-specific pricing available</span>
+                }
+              </div>
+              <a
+                [routerLink]="['/packages/purchase', pkg._id]"
+                [queryParams]="selectedCategoryId() ? { categoryId: selectedCategoryId() } : {}"
+                class="btn btn-primary btn-full"
+                (click)="onPurchaseClick(pkg)"
+              >
+                Purchase Package
+              </a>
             </div>
           }
         </div>

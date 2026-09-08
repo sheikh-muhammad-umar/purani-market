@@ -80,6 +80,16 @@ export const ADMIN_ROUTES: Routes = [
             path: 'listings',
             loadComponent: () =>
               import('./packages/package-manager.component').then((m) => m.PackageManagerComponent),
+            data: { bundleMode: false },
+          },
+          {
+            // All-in-one packages reuse the ad-package manager: they live in the same
+            // collection and share every field, so the difference is which packages
+            // are listed and which shape the form authors — not a second screen.
+            path: 'all-in-one',
+            loadComponent: () =>
+              import('./packages/package-manager.component').then((m) => m.PackageManagerComponent),
+            data: { bundleMode: true },
           },
           {
             path: 'shorts',

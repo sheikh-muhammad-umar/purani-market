@@ -13,9 +13,12 @@ export const environment = {
   defaultCurrency: 'PKR',
   currencySymbol: 'Rs',
 
-  // Package durations (days) — keep in sync with backend PACKAGE_DURATIONS / SHORTS_PACKAGE_DURATIONS env vars
+  // Package durations (days) — keep in sync with the backend PACKAGE_DURATIONS /
+  // SHORTS_PACKAGE_DURATIONS / BUNDLE_PACKAGE_DURATIONS env vars
   packageDurations: [7, 15, 30],
   shortsPackageDurations: [7, 15, 30, 60, 90],
+  /** All-in-one terms. Longer than single-purpose ads because they include shorts. */
+  bundlePackageDurations: [7, 15, 30, 60, 90],
 
   // SEO
   seoBaseUrl: 'https://marketplace.pk',

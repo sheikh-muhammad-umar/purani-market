@@ -198,6 +198,14 @@ export interface UpdatePackagePayload {
   isActive?: boolean;
 }
 
+/** Outcome of withdrawing a package. See {@link AdminService.deletePackage}. */
+export interface DeletePackageResult {
+  id: string;
+  /** False when purchases existed, in which case the package was deactivated. */
+  deleted: boolean;
+  purchaseCount: number;
+}
+
 export interface AdminPurchasesParams {
   page?: number;
   limit?: number;
@@ -523,6 +531,17 @@ export class AdminService {
 
   updatePackage(id: string, payload: UpdatePackagePayload): Observable<AdPackage> {
     return this.http.patch<AdPackage>(`${this.baseUrl}${API.PACKAGE_BY_ID(id)}`, payload);
+  }
+
+  /**
+   * Withdraws a package from the catalogue.
+   *
+   * `deleted` is false when the package had purchases: the server deactivates it
+   * instead so paid orders keep the package they refer to. Callers should report
+   * which happened rather than claiming the record is gone.
+   */
+  deletePackage(id: string): Observable<DeletePackageResult> {
+    return this.http.delete<DeletePackageResult>(`${this.baseUrl}${API.PACKAGE_BY_ID(id)}`);
   }
 
   // --- Shorts (admin) ---

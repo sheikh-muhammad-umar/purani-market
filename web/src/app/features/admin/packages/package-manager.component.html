@@ -11,6 +11,20 @@
     </div>
   }
 
+  <!-- Outcome of the last withdrawal, which may have deactivated rather than deleted -->
+  @if (notice()) {
+    <div class="alert alert-info pkg-notice">
+      <p>{{ notice() }}</p>
+      <button class="btn-notice-dismiss" type="button" (click)="notice.set(null)">Dismiss</button>
+    </div>
+  }
+
+  @if (bundleMode && !canManage()) {
+    <div class="alert alert-warning">
+      Only a super admin can add, edit or delete all-in-one packages. You can view them here.
+    </div>
+  }
+
   <!-- Loading -->
   @if (loading() && !error()) {
     <div class="loading-state">
@@ -25,10 +39,12 @@
       <!-- Package List -->
       <div class="list-panel">
         <div class="list-header">
-          <h2>Ad Packages</h2>
-          <button class="btn btn-primary" (click)="openCreateForm()" [disabled]="saving()">
-            + New Package
-          </button>
+          <h2>{{ listTitle }}</h2>
+          @if (canManage()) {
+            <button class="btn btn-primary" (click)="openCreateForm()" [disabled]="saving()">
+              + New Package
+            </button>
+          }
         </div>
 
         <!-- Toolbar -->
@@ -39,11 +55,13 @@
             placeholder="Search packages..."
             [(ngModel)]="searchQuery"
           />
-          <app-custom-select
-            [options]="typeFilterOptions"
-            [(ngModel)]="filterType"
-            placeholder="All Types"
-          ></app-custom-select>
+          @if (!bundleMode) {
+            <app-custom-select
+              [options]="typeFilterOptions"
+              [(ngModel)]="filterType"
+              placeholder="All Types"
+            ></app-custom-select>
+          }
           <app-custom-select
             [options]="statusFilterOptions"
             [(ngModel)]="filterStatus"
@@ -69,17 +87,25 @@
         }
 
         @if (filteredPackages.length > 0) {
-          <table class="data-table" aria-label="Ad packages">
+          <table class="data-table" [attr.aria-label]="listTitle">
             <thead>
               <tr>
                 <th style="padding-left: 46px" class="sortable" (click)="sortPackages('name')">
                   Name
                   <span class="material-symbols-rounded sort-icon">{{ getSortIcon('name') }}</span>
                 </th>
-                <th class="sortable" (click)="sortPackages('type')">
-                  Type
-                  <span class="material-symbols-rounded sort-icon">{{ getSortIcon('type') }}</span>
-                </th>
+                @if (bundleMode) {
+                  <!-- Every row here is an all-in-one, so the amounts are what
+                       tell one package from another. -->
+                  <th>Includes</th>
+                } @else {
+                  <th class="sortable" (click)="sortPackages('type')">
+                    Type
+                    <span class="material-symbols-rounded sort-icon">{{
+                      getSortIcon('type')
+                    }}</span>
+                  </th>
+                }
                 <th class="sortable" (click)="sortPackages('duration')">
                   Duration
                   <span class="material-symbols-rounded sort-icon">{{
@@ -122,13 +148,23 @@
                       {{ pkg.name }}
                     </span>
                   </td>
-                  <td>
-                    <span
-                      class="type-badge"
-                      [class.featured]="pkg.type === PackageTypeEnum.FEATURED_ADS"
-                      >{{ PACKAGE_TYPE_LABELS[pkg.type] || pkg.type }}</span
-                    >
-                  </td>
+                  @if (bundleMode) {
+                    <td>
+                      <div class="pkg-includes">
+                        @for (item of includedOf(pkg); track item.label) {
+                          <span class="pkg-include-chip">{{ item.quantity }} {{ item.label }}</span>
+                        }
+                      </div>
+                    </td>
+                  } @else {
+                    <td>
+                      <span
+                        class="type-badge"
+                        [class.featured]="pkg.type === PackageTypeEnum.FEATURED_ADS"
+                        >{{ PACKAGE_TYPE_LABELS[pkg.type] || pkg.type }}</span
+                      >
+                    </td>
+                  }
                   <td>{{ pkg.duration }} days</td>
                   <td>{{ pkg.quantity }}</td>
                   <td class="price-cell">Rs {{ pkg.defaultPrice | number }}</td>
@@ -141,9 +177,20 @@
                     >
                   </td>
                   <td>
-                    <button class="btn-action" (click)="openEditForm(pkg)" [disabled]="saving()">
-                      Edit
-                    </button>
+                    @if (canManage()) {
+                      <button class="btn-action" (click)="openEditForm(pkg)" [disabled]="saving()">
+                        Edit
+                      </button>
+                      <button
+                        class="btn-action btn-action-danger"
+                        (click)="askDelete(pkg)"
+                        [disabled]="saving()"
+                      >
+                        Delete
+                      </button>
+                    } @else {
+                      <span class="pkg-readonly-hint">View only</span>
+                    }
                   </td>
                 </tr>
                 @if (isPackageExpanded(pkg._id) && pkg.categoryPricing.length) {
@@ -177,7 +224,7 @@
       @if (activePanel !== 'none') {
         <div class="form-panel">
           <div class="config-card">
-            <h3>{{ activePanel === 'create' ? 'Create Package' : 'Edit Package' }}</h3>
+            <h3>{{ formTitle }}</h3>
 
             <div class="form-group">
               <label for="pkg-name">Package Name</label>
@@ -189,15 +236,17 @@
               />
             </div>
 
-            <div class="form-group">
-              <label for="pkg-type">Type</label>
-              <app-custom-select
-                [options]="typeOptions"
-                [ngModel]="formType"
-                (ngModelChange)="onTypeChange($event)"
-                placeholder="Select type"
-              ></app-custom-select>
-            </div>
+            @if (!bundleMode) {
+              <div class="form-group">
+                <label for="pkg-type">Type</label>
+                <app-custom-select
+                  [options]="typeOptions"
+                  [ngModel]="formType"
+                  (ngModelChange)="onTypeChange($event)"
+                  placeholder="Select type"
+                ></app-custom-select>
+              </div>
+            }
 
             <div class="form-group">
               <label for="pkg-duration">Duration</label>
@@ -209,45 +258,26 @@
             </div>
 
             @if (isBundle) {
-              <!-- An all-in-one grants several things, so one quantity cannot
-                   describe it: each kind carries its own amount. -->
+              <!-- An all-in-one grants all three, so one quantity cannot describe
+                   it: each carries its own amount. The three rows are fixed because
+                   a package missing any of them is not an all-in-one. -->
               <div class="form-group pkg-entitlements">
                 <label>Included</label>
-                @for (row of formEntitlements; track $index) {
-                  <div class="pkg-ent-row">
-                    <app-custom-select
-                      [options]="entitlementKindOptions"
-                      [ngModel]="row.kind"
-                      (ngModelChange)="setEntitlementKind($index, $event)"
-                      placeholder="What"
-                    ></app-custom-select>
+                @for (row of formEntitlements; track row.kind) {
+                  <div class="pkg-ent-row pkg-ent-row-fixed">
+                    <label class="pkg-ent-label" [attr.for]="'pkg-ent-' + row.kind">
+                      {{ ENTITLEMENT_LABELS[row.kind] }}
+                    </label>
                     <input
+                      [id]="'pkg-ent-' + row.kind"
                       type="number"
                       min="1"
                       [(ngModel)]="row.quantity"
-                      [attr.aria-label]="ENTITLEMENT_LABELS[row.kind] + ' quantity'"
+                      [name]="'pkg-ent-' + row.kind"
                     />
-                    <button
-                      type="button"
-                      class="pkg-ent-remove"
-                      (click)="removeEntitlement($index)"
-                      [attr.aria-label]="'Remove ' + ENTITLEMENT_LABELS[row.kind]"
-                    >
-                      <span class="material-symbols-rounded">close</span>
-                    </button>
                   </div>
                 }
-                <div class="pkg-ent-actions">
-                  <button
-                    type="button"
-                    class="btn btn-secondary"
-                    (click)="addEntitlement()"
-                    [disabled]="availableEntitlementKinds.length === 0"
-                  >
-                    Add something
-                  </button>
-                  <span class="form-hint">{{ entitlementTotal }} units in total</span>
-                </div>
+                <span class="form-hint">{{ entitlementTotal }} units in total</span>
               </div>
             } @else {
               <div class="form-group">
@@ -358,5 +388,25 @@
         </div>
       }
     </div>
+  }
+
+  <!-- Delete confirmation -->
+  @if (pendingDelete(); as target) {
+    <app-modal
+      [title]="'Delete &quot;' + target.name + '&quot;?'"
+      size="sm"
+      (closed)="cancelDelete()"
+    >
+      <p class="alert alert-warning">
+        It stops being offered straight away. A package that has already been bought is deactivated
+        rather than removed, so existing orders keep working.
+      </p>
+      <div slot="footer">
+        <button class="btn btn-ghost" (click)="cancelDelete()" [disabled]="saving()">Cancel</button>
+        <button class="btn btn-danger" (click)="confirmDelete()" [disabled]="saving()">
+          {{ saving() ? 'Deleting...' : 'Delete' }}
+        </button>
+      </div>
+    </app-modal>
   }
 </div>

@@ -1,5 +1,9 @@
 import { Test, TestingModule } from '@nestjs/testing';
-import { NotFoundException, BadRequestException } from '@nestjs/common';
+import {
+  NotFoundException,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { Types } from 'mongoose';
 import { PackagesController } from './packages.controller';
 import { PackagesService } from './packages.service';
@@ -8,6 +12,8 @@ import {
   PaymentMethod,
   PaymentStatus,
 } from './schemas/package-purchase.schema';
+import { EntitlementKind } from './entitlement.types';
+import { UserRole } from '../common/enums/user-role.enum';
 import { AdminTrackerService } from '../ai/admin-tracker.service';
 
 describe('PackagesController', () => {
@@ -48,9 +54,27 @@ describe('PackagesController', () => {
     }),
     createPackage: jest.fn().mockResolvedValue(mockPackage),
     updatePackage: jest.fn().mockResolvedValue(mockPackage),
+    deletePackage: jest.fn().mockResolvedValue({
+      id: packageId.toString(),
+      deleted: true,
+      purchaseCount: 0,
+    }),
   };
 
+  /** A well-formed all-in-one payload: every kind an all-in-one must include. */
+  const bundleEntitlements = [
+    { kind: EntitlementKind.FEATURED_ADS, quantity: 2 },
+    { kind: EntitlementKind.AD_SLOTS, quantity: 10 },
+    { kind: EntitlementKind.SHORTS, quantity: 5 },
+  ];
+
   beforeEach(async () => {
+    // The service double is shared across cases, so call history has to be dropped
+    // between them: the permission tests assert a write did *not* happen, which an
+    // earlier case's call would otherwise satisfy. `clearAllMocks` drops history
+    // without removing the resolved values configured above.
+    jest.clearAllMocks();
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [PackagesController],
       providers: [
@@ -160,9 +184,41 @@ describe('PackagesController', () => {
         defaultPrice: 500,
       };
 
-      const result = await controller.createPackage(dto, 'admin-id', {});
+      const result = await controller.createPackage(
+        dto,
+        'admin-id',
+        UserRole.ADMIN,
+        {},
+      );
 
       expect(result).toEqual(mockPackage);
+      expect(service.createPackage).toHaveBeenCalledWith(dto);
+    });
+
+    it('should refuse an all-in-one package from a plain admin', async () => {
+      const dto = {
+        name: 'All in One 30',
+        duration: 30,
+        defaultPrice: 1800,
+        entitlements: bundleEntitlements,
+      };
+
+      await expect(
+        controller.createPackage(dto, 'admin-id', UserRole.ADMIN, {}),
+      ).rejects.toThrow(ForbiddenException);
+      expect(service.createPackage).not.toHaveBeenCalledWith(dto);
+    });
+
+    it('should allow a super admin to create an all-in-one package', async () => {
+      const dto = {
+        name: 'All in One 30',
+        duration: 30,
+        defaultPrice: 1800,
+        entitlements: bundleEntitlements,
+      };
+
+      await controller.createPackage(dto, 'admin-id', UserRole.SUPER_ADMIN, {});
+
       expect(service.createPackage).toHaveBeenCalledWith(dto);
     });
   });
@@ -175,6 +231,7 @@ describe('PackagesController', () => {
         packageId.toString(),
         dto,
         'admin-id',
+        UserRole.ADMIN,
         {},
       );
 
@@ -183,6 +240,72 @@ describe('PackagesController', () => {
         packageId.toString(),
         dto,
       );
+    });
+
+    it('should refuse an edit to an all-in-one package from a plain admin', async () => {
+      mockPackagesService.findById.mockResolvedValueOnce({
+        ...mockPackage,
+        type: AdPackageType.BUNDLE,
+      });
+
+      await expect(
+        controller.updatePackage(
+          packageId.toString(),
+          { defaultPrice: 600 },
+          'admin-id',
+          UserRole.ADMIN,
+          {},
+        ),
+      ).rejects.toThrow(ForbiddenException);
+      expect(service.updatePackage).not.toHaveBeenCalled();
+    });
+
+    it('should refuse a plain admin converting a package into an all-in-one', async () => {
+      await expect(
+        controller.updatePackage(
+          packageId.toString(),
+          { entitlements: bundleEntitlements },
+          'admin-id',
+          UserRole.ADMIN,
+          {},
+        ),
+      ).rejects.toThrow(ForbiddenException);
+      expect(service.updatePackage).not.toHaveBeenCalled();
+    });
+  });
+
+  describe('deletePackage', () => {
+    it('should delete a single-purpose package for an admin', async () => {
+      const result = await controller.deletePackage(
+        packageId.toString(),
+        'admin-id',
+        UserRole.ADMIN,
+        {},
+      );
+
+      expect(result).toEqual({
+        id: packageId.toString(),
+        deleted: true,
+        purchaseCount: 0,
+      });
+      expect(service.deletePackage).toHaveBeenCalledWith(packageId.toString());
+    });
+
+    it('should refuse deleting an all-in-one package as a plain admin', async () => {
+      mockPackagesService.findById.mockResolvedValueOnce({
+        ...mockPackage,
+        type: AdPackageType.BUNDLE,
+      });
+
+      await expect(
+        controller.deletePackage(
+          packageId.toString(),
+          'admin-id',
+          UserRole.ADMIN,
+          {},
+        ),
+      ).rejects.toThrow(ForbiddenException);
+      expect(service.deletePackage).not.toHaveBeenCalled();
     });
   });
 });

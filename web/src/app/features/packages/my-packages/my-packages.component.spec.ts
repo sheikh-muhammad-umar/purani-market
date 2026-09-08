@@ -16,6 +16,7 @@ function makePurchase(overrides: Partial<PackagePurchase> = {}): PackagePurchase
     type: overrides.type ?? 'featured_ads',
     quantity: overrides.quantity ?? 5,
     remainingQuantity: overrides.remainingQuantity ?? 3,
+    entitlements: overrides.entitlements,
     duration: overrides.duration ?? 7,
     price: overrides.price ?? 500,
     paymentMethod: overrides.paymentMethod ?? 'jazzcash',
@@ -163,6 +164,12 @@ describe('MyPackagesComponent', () => {
     expect(component.getTypeLabel('ad_slots')).toBe('Ad Slots');
   });
 
+  it('labels an all-in-one purchase as such', () => {
+    // Regression: the ternary this replaced returned 'Ad Slots' for anything that
+    // was not featured ads, so every bundle purchase was mislabelled.
+    expect(component.getTypeLabel('bundle')).toBe('All in One');
+  });
+
   it('should format price correctly', () => {
     expect(component.formatPrice(500)).toBe('Rs 500');
   });
@@ -216,5 +223,102 @@ describe('MyPackagesComponent', () => {
     );
     component.ngOnInit();
     expect(component.activePurchases().length).toBe(0);
+  });
+
+  describe('all-in-one purchases', () => {
+    /**
+     * An all-in-one purchase tracks a balance per kind and never decrements
+     * `remainingQuantity`, so these fixtures leave it at the purchased total —
+     * which is exactly what the database holds.
+     */
+    const makeBundle = (id: string, remaining: [number, number, number]) =>
+      makePurchase({
+        _id: id,
+        type: 'bundle',
+        quantity: 18,
+        remainingQuantity: 18,
+        entitlements: [
+          { kind: 'featured_ads', quantity: 3, remaining: remaining[0] },
+          { kind: 'ad_slots', quantity: 10, remaining: remaining[1] },
+          { kind: 'shorts', quantity: 5, remaining: remaining[2] },
+        ],
+      });
+
+    const partlyUsed = makeBundle('bundle-part', [1, 4, 2]);
+    const spentOut = makeBundle('bundle-spent', [0, 0, 0]);
+
+    beforeEach(() => {
+      packagesService.getMyPurchases.mockReturnValue(
+        of({ data: [activePurchase, partlyUsed, spentOut], total: 3 }),
+      );
+      component.ngOnInit();
+    });
+
+    it('keeps all-in-one purchases off the ad packages tab', () => {
+      expect(component.adsPurchases().map((p) => p._id)).toEqual(['active1']);
+      expect(component.activePurchases().map((p) => p._id)).toEqual(['active1']);
+    });
+
+    it('lists all-in-one purchases on their own tab', () => {
+      expect(component.bundlePurchases().map((p) => p._id)).toEqual([
+        'bundle-part',
+        'bundle-spent',
+      ]);
+    });
+
+    it('keeps a part-used all-in-one active', () => {
+      expect(component.activeBundles().map((p) => p._id)).toEqual(['bundle-part']);
+    });
+
+    it('moves a fully-spent all-in-one to history', () => {
+      // Regression: this was classified on `remainingQuantity`, which a bundle never
+      // decrements, so a spent-out package stayed under Active until it expired.
+      expect(component.historyBundles().map((p) => p._id)).toEqual(['bundle-spent']);
+    });
+
+    it('reports the balance of each kind separately', () => {
+      expect(
+        component.entitlementBalances(partlyUsed).map((e) => [e.label, e.remaining, e.quantity]),
+      ).toEqual([
+        ['Featured ads', 1, 3],
+        ['Ad slots', 4, 10],
+        ['Shorts', 2, 5],
+      ]);
+    });
+
+    it('has no balances to report for a single-purpose purchase', () => {
+      expect(component.entitlementBalances(activePurchase)).toEqual([]);
+    });
+
+    it('opens on the all-in-one tab when the query param asks for it', () => {
+      const onTab = new MyPackagesComponent(
+        packagesService as unknown as PackagesService,
+        { getMyPurchases: vi.fn().mockReturnValue(of([])) } as any,
+        categoriesService as unknown as CategoriesService,
+        tracker as unknown as ActivityTrackerService,
+        { snapshot: { queryParams: { tab: 'all_in_one' } } } as any,
+      );
+      onTab.ngOnInit();
+      expect(onTab.mainTab()).toBe('all_in_one');
+      expect(onTab.activeBundles().length).toBe(1);
+    });
+  });
+
+  describe('meterPercent', () => {
+    it('scales a balance to a percentage', () => {
+      expect(component.meterPercent(3, 6)).toBe(50);
+    });
+
+    it('reports nothing rather than dividing by zero', () => {
+      expect(component.meterPercent(0, 0)).toBe(0);
+    });
+
+    it('clamps the -1 a legacy purchase uses to mark processed expiry', () => {
+      expect(component.meterPercent(-1, 5)).toBe(0);
+    });
+
+    it('clamps a balance that somehow exceeds the total', () => {
+      expect(component.meterPercent(9, 5)).toBe(100);
+    });
   });
 });

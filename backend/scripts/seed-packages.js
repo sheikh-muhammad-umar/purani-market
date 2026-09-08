@@ -3,6 +3,64 @@ const { MongoClient } = require('mongodb');
 const MONGO_URI =
   process.env.MONGODB_URI || 'mongodb://localhost:27017/marketplace';
 
+/**
+ * All-in-one tiers, one package per term.
+ *
+ * `type: 'bundle'` with an explicit entitlement list, since one `quantity` cannot
+ * describe a package granting three different things — and all three are required,
+ * so a tier that left one out would be rejected by the API.
+ *
+ * Prices are listed per term rather than scaled from a monthly rate, so the longer
+ * terms come out as round numbers that read like a discount.
+ */
+const BUNDLE_TIERS = [
+  {
+    label: 'Starter',
+    entitlements: [
+      { kind: 'ad_slots', quantity: 10 },
+      { kind: 'featured_ads', quantity: 2 },
+      { kind: 'shorts', quantity: 1 },
+    ],
+    pricePerDuration: { 7: 600, 15: 1100, 30: 1800, 60: 3200, 90: 4500 },
+  },
+  {
+    label: 'Pro',
+    entitlements: [
+      { kind: 'ad_slots', quantity: 25 },
+      { kind: 'featured_ads', quantity: 10 },
+      { kind: 'shorts', quantity: 5 },
+    ],
+    pricePerDuration: { 7: 1500, 15: 2700, 30: 4500, 60: 8000, 90: 11000 },
+  },
+];
+
+/** Terms all-in-one packages are sold on. Mirrors BUNDLE_PACKAGE_DURATIONS. */
+const BUNDLE_DURATIONS = (process.env.BUNDLE_PACKAGE_DURATIONS || '7,15,30,60,90')
+  .split(',')
+  .map((d) => parseInt(d.trim(), 10))
+  .filter((d) => d > 0);
+
+function buildBundles() {
+  const now = new Date();
+  return BUNDLE_TIERS.flatMap((tier) =>
+    BUNDLE_DURATIONS.filter((duration) => tier.pricePerDuration[duration] !== undefined).map(
+      (duration) => ({
+        name: `All in One ${tier.label} - ${duration} Days`,
+        type: 'bundle',
+        duration,
+        // Headline figure only; spending is tracked per entitlement.
+        quantity: tier.entitlements.reduce((sum, e) => sum + e.quantity, 0),
+        entitlements: tier.entitlements.map((e) => ({ ...e })),
+        defaultPrice: tier.pricePerDuration[duration],
+        categoryPricing: [],
+        isActive: true,
+        createdAt: now,
+        updatedAt: now,
+      }),
+    ),
+  );
+}
+
 const packages = [
   // Featured Ads packages
   {
@@ -72,40 +130,7 @@ const packages = [
     createdAt: new Date(),
     updatedAt: new Date(),
   },
-  // All-in-one bundles. `type: 'bundle'` with an explicit entitlement list, since
-  // one `quantity` cannot describe a package that grants three different things.
-  {
-    name: 'All in One Starter',
-    type: 'bundle',
-    duration: 30,
-    quantity: 13,
-    entitlements: [
-      { kind: 'ad_slots', quantity: 10 },
-      { kind: 'featured_ads', quantity: 2 },
-      { kind: 'shorts', quantity: 1 },
-    ],
-    defaultPrice: 1800,
-    categoryPricing: [],
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
-  {
-    name: 'All in One Pro',
-    type: 'bundle',
-    duration: 30,
-    quantity: 40,
-    entitlements: [
-      { kind: 'ad_slots', quantity: 25 },
-      { kind: 'featured_ads', quantity: 10 },
-      { kind: 'shorts', quantity: 5 },
-    ],
-    defaultPrice: 4500,
-    categoryPricing: [],
-    isActive: true,
-    createdAt: new Date(),
-    updatedAt: new Date(),
-  },
+  ...buildBundles(),
 ];
 
 async function seed() {

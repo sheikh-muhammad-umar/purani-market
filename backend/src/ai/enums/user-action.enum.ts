@@ -108,6 +108,7 @@ export enum UserAction {
   ADMIN_LOCATION_DELETE = 'admin_location_delete',
   ADMIN_PACKAGE_CREATE = 'admin_package_create',
   ADMIN_PACKAGE_UPDATE = 'admin_package_update',
+  ADMIN_PACKAGE_DELETE = 'admin_package_delete',
   ADMIN_PACKAGE_REFUND = 'admin_package_refund',
   LISTING_LIMIT_EXCEEDED = 'listing_limit_exceeded',
   LISTINGS_DEACTIVATED_FOR_LIMIT = 'listings_deactivated_for_limit',

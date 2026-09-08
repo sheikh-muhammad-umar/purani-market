@@ -97,6 +97,8 @@ export const TAB = {
   LISTINGS: 'listings',
   SHORTS: 'shorts',
   REVIEWS: 'reviews',
+  /** All-in-one packages, which grant ad slots, featured ads and shorts together. */
+  ALL_IN_ONE: 'all_in_one',
 } as const;
 
 export type TabType = (typeof TAB)[keyof typeof TAB];

@@ -605,3 +605,78 @@ tr.expanded td {
 .sortable:hover .sort-icon {
   color: var(--primary);
 }
+
+/* Danger variant of the row action, for withdrawing a package */
+.btn-action-danger {
+  color: var(--error-text);
+  margin-left: var(--space-half);
+
+  &:hover:not(:disabled) {
+    background: var(--error-bg);
+  }
+}
+
+.pkg-readonly-hint {
+  font-size: var(--text-xs);
+  color: var(--text-muted);
+}
+
+/* Outcome banner: a withdrawal may have deactivated rather than deleted */
+.pkg-notice {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-2);
+}
+.btn-notice-dismiss {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: inherit;
+  font-family: var(--font-body);
+  font-size: var(--text-xs);
+  font-weight: var(--weight-semibold);
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* What an all-in-one grants, in the list row */
+.pkg-includes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-half);
+}
+.pkg-include-chip {
+  display: inline-block;
+  padding: 2px var(--space-1);
+  border-radius: var(--radius-sm);
+  font-size: 11px;
+  font-weight: var(--weight-semibold);
+  background: var(--info-bg);
+  color: var(--info-text);
+  white-space: nowrap;
+}
+
+/* The fixed three rows an all-in-one is authored through */
+.pkg-entitlements {
+  .form-hint {
+    display: block;
+    margin-top: var(--space-half);
+  }
+}
+.pkg-ent-row-fixed {
+  display: grid;
+  grid-template-columns: 1fr 96px;
+  align-items: center;
+  gap: var(--space-1);
+  margin-bottom: var(--space-half);
+
+  input {
+    width: 100%;
+  }
+}
+.pkg-ent-label {
+  margin: 0;
+  font-size: var(--text-sm);
+  color: var(--text-secondary);
+}

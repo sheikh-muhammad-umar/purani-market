@@ -8,6 +8,7 @@ import { ActivityTrackerService } from '../../../core/services/activity-tracker.
 import { ActivatedRoute } from '@angular/router';
 import { AdPackage, Category } from '../../../core/models';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
+import { TAB } from '../../../core/constants/enums';
 
 function makePackage(overrides: Partial<AdPackage> = {}): AdPackage {
   return {
@@ -17,6 +18,7 @@ function makePackage(overrides: Partial<AdPackage> = {}): AdPackage {
     duration: overrides.duration ?? 7,
     quantity: overrides.quantity ?? 5,
     defaultPrice: overrides.defaultPrice ?? 500,
+    entitlements: overrides.entitlements,
     categoryPricing: overrides.categoryPricing ?? [],
     isActive: overrides.isActive ?? true,
     createdAt: overrides.createdAt ?? new Date('2024-01-01'),
@@ -309,6 +311,80 @@ describe('PackageListComponent', () => {
           price: 500,
         },
       });
+    });
+  });
+
+  describe('all-in-one tab', () => {
+    const bundle = makePackage({
+      _id: 'b1',
+      name: 'All in One 90',
+      type: 'bundle',
+      duration: 90,
+      quantity: 18,
+      entitlements: [
+        { kind: 'featured_ads', quantity: 3 },
+        { kind: 'ad_slots', quantity: 10 },
+        { kind: 'shorts', quantity: 5 },
+      ],
+      defaultPrice: 4500,
+    });
+
+    beforeEach(() => {
+      packagesService.getAll.mockReturnValue(of({ data: [...mockPackages, bundle], total: 4 }));
+      component.ngOnInit();
+    });
+
+    it('keeps all-in-one packages off the ad packages tab', () => {
+      expect(component.filteredPackages().map((p) => p._id)).toEqual(['p1', 'p2', 'p3']);
+    });
+
+    it('lists all-in-one packages on their own tab', () => {
+      expect(component.filteredBundles().map((p) => p._id)).toEqual(['b1']);
+    });
+
+    it('breaks an all-in-one down per kind for the card', () => {
+      expect(component.entitlementsOf(bundle).map((e) => [e.label, e.quantity])).toEqual([
+        ['Featured ads', 3],
+        ['Ad slots', 10],
+        ['Shorts', 5],
+      ]);
+    });
+
+    it('offers the longer terms only on the all-in-one tab', () => {
+      expect(component.durationChips()).not.toContain(90);
+      component.switchTab(TAB.ALL_IN_ONE);
+      expect(component.durationChips()).toContain(90);
+    });
+
+    it('clears a duration that the new tab cannot match', () => {
+      // A 90-day filter carried onto the Ads tab would empty it for no visible
+      // reason, since no single-purpose package is sold that long.
+      component.switchTab(TAB.ALL_IN_ONE);
+      component.setDuration(90);
+      expect(component.filteredBundles().length).toBe(1);
+
+      component.switchTab(TAB.ADS);
+      expect(component.selectedDuration()).toBeNull();
+      expect(component.filteredPackages().length).toBe(3);
+    });
+
+    it('filters all-in-one packages by duration', () => {
+      component.switchTab(TAB.ALL_IN_ONE);
+      component.setDuration(30);
+      expect(component.filteredBundles().length).toBe(0);
+    });
+
+    it('opens on the all-in-one tab when the query param asks for it', () => {
+      const onTab = new PackageListComponent(
+        packagesService as unknown as PackagesService,
+        { getAvailablePackages: vi.fn().mockReturnValue(of([])) } as unknown as ShortsService,
+        categoriesService as unknown as CategoriesService,
+        tracker as unknown as ActivityTrackerService,
+        { snapshot: { queryParams: { tab: TAB.ALL_IN_ONE } } } as unknown as ActivatedRoute,
+      );
+      onTab.ngOnInit();
+      expect(onTab.activeTab()).toBe(TAB.ALL_IN_ONE);
+      expect(onTab.filteredBundles().length).toBe(1);
     });
   });
 });

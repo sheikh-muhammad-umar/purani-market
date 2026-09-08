@@ -66,6 +66,21 @@ export const ENTITLEMENT_LABELS: Record<string, string> = {
   shorts: 'Shorts',
 };
 
+/**
+ * What an all-in-one package always includes, in the order it is shown.
+ *
+ * Fixed rather than chosen per package: the server rejects an all-in-one that
+ * leaves any of the three out, so the form offers no way to build one.
+ */
+export const BUNDLE_ENTITLEMENT_KINDS = ['featured_ads', 'ad_slots', 'shorts'] as const;
+
+/** Starting amounts for a new all-in-one, so the form opens on a sellable package. */
+export const BUNDLE_DEFAULT_QUANTITIES: Record<string, number> = {
+  featured_ads: 3,
+  ad_slots: 10,
+  shorts: 5,
+};
+
 export const ENTITLEMENT_ICONS: Record<string, string> = {
   ad_slots: 'inventory_2',
   featured_ads: 'star',

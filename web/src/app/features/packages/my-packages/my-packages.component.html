@@ -26,6 +26,14 @@
         <span class="material-symbols-rounded inline-icon">play_circle</span>
         Shorts Packages
       </button>
+      <button
+        class="main-tab-btn"
+        [class.active]="mainTab() === TAB.ALL_IN_ONE"
+        (click)="switchMainTab(TAB.ALL_IN_ONE)"
+      >
+        <span class="material-symbols-rounded inline-icon">workspace_premium</span>
+        All in One
+      </button>
     </div>
 
     <!-- Ads Packages Tab -->
@@ -105,7 +113,9 @@
                       <div class="meter-bar">
                         <div
                           class="meter-fill"
-                          [style.width.%]="(purchase.remainingQuantity / purchase.quantity) * 100"
+                          [style.width.%]="
+                            meterPercent(purchase.remainingQuantity, purchase.quantity)
+                          "
                         ></div>
                       </div>
                     </div>
@@ -207,7 +217,7 @@
                   <div class="meter-bar">
                     <div
                       class="meter-fill"
-                      [style.width.%]="(purchase.remainingQuantity / purchase.quantity) * 100"
+                      [style.width.%]="meterPercent(purchase.remainingQuantity, purchase.quantity)"
                     ></div>
                   </div>
                 </div>
@@ -229,6 +239,143 @@
             </div>
           }
         </div>
+      }
+    }
+
+    <!-- All in One Tab -->
+    @if (mainTab() === TAB.ALL_IN_ONE) {
+      <div class="tab-bar">
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'active'"
+          (click)="setTab('active')"
+        >
+          Active ({{ activeBundles().length }})
+        </button>
+        <button
+          class="tab-btn"
+          [class.active]="activeTab() === 'history'"
+          (click)="setTab('history')"
+        >
+          History ({{ historyBundles().length }})
+        </button>
+      </div>
+
+      @if (loading()) {
+        <app-loader mode="inline" [loading]="true" message="Loading packages..." />
+      } @else if (error()) {
+        <app-empty-state
+          icon="warning"
+          title="Couldn't load packages"
+          [message]="error()!"
+          actionText="Retry"
+          (actionClicked)="loadPurchases()"
+        />
+      } @else {
+        @if (activeTab() === 'active') {
+          @if (activeBundles().length === 0) {
+            <app-empty-state
+              icon="workspace_premium"
+              title="No active all-in-one packages"
+              message="An all-in-one package covers featured ads, ad slots and shorts together"
+              actionText="Browse All in One"
+              [actionLink]="ROUTES.PACKAGES"
+              [actionQueryParams]="{ tab: 'all_in_one' }"
+            />
+          } @else {
+            <div class="purchases-grid">
+              @for (purchase of activeBundles(); track purchase._id) {
+                <div class="purchase-card card active-card">
+                  <div class="card-header">
+                    <span class="badge badge-bundle">
+                      <span class="material-symbols-rounded inline-icon-sm">workspace_premium</span>
+                      {{ getTypeLabel(purchase.type) }}
+                    </span>
+                    <span class="remaining-days"
+                      >{{ getRemainingDays(purchase.expiresAt) }} days left</span
+                    >
+                  </div>
+                  <div class="card-body-content">
+                    <!-- One meter per kind: the parts are spent separately, so a
+                         single combined figure would hide being out of one of them. -->
+                    @for (item of entitlementBalances(purchase); track item.label) {
+                      <div class="slots-meter">
+                        <div class="meter-label">
+                          <span>
+                            <span class="material-symbols-rounded inline-icon-sm">{{
+                              item.icon
+                            }}</span>
+                            {{ item.label }}
+                          </span>
+                          <span class="meter-value"
+                            >{{ item.remaining }} / {{ item.quantity }}</span
+                          >
+                        </div>
+                        <div class="meter-bar">
+                          <div
+                            class="meter-fill"
+                            [style.width.%]="meterPercent(item.remaining, item.quantity)"
+                          ></div>
+                        </div>
+                      </div>
+                    }
+                    <div class="detail-rows">
+                      <div class="detail-row">
+                        <span>Duration</span>
+                        <span>{{ purchase.duration }} days</span>
+                      </div>
+                      <div class="detail-row">
+                        <span>Expires</span>
+                        <span>{{ formatDate(purchase.expiresAt) }}</span>
+                      </div>
+                      <div class="detail-row">
+                        <span>Paid</span>
+                        <span class="price">{{ formatPrice(purchase.price) }}</span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        }
+
+        @if (activeTab() === 'history') {
+          @if (historyBundles().length === 0) {
+            <app-empty-state
+              icon="receipt_long"
+              title="No all-in-one history"
+              message="Your past and expired all-in-one packages will appear here"
+            />
+          } @else {
+            <div class="history-list">
+              @for (purchase of historyBundles(); track purchase._id) {
+                <div class="history-item card">
+                  <div class="history-main">
+                    <div class="history-info">
+                      <span class="badge" [ngClass]="getStatusBadgeClass(purchase.paymentStatus)">
+                        {{ purchase.paymentStatus }}
+                      </span>
+                      <span class="history-type">{{ getTypeLabel(purchase.type) }}</span>
+                      <span class="history-qty">
+                        @for (item of entitlementBalances(purchase); track item.label) {
+                          <span class="history-ent"
+                            >{{ item.label }} {{ item.remaining }}/{{ item.quantity }}</span
+                          >
+                        }
+                      </span>
+                    </div>
+                    <div class="history-meta">
+                      <span>{{ getPaymentMethodLabel(purchase.paymentMethod) }}</span>
+                      <span>{{ formatDate(purchase.createdAt) }}</span>
+                    </div>
+                  </div>
+                  <span class="history-price price">{{ formatPrice(purchase.price) }}</span>
+                </div>
+              }
+            </div>
+          }
+        }
       }
     }
   </div>

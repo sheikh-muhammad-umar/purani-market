@@ -142,6 +142,30 @@ export function typeForEntitlements(
   return AdPackageType.BUNDLE;
 }
 
+/**
+ * What an all-in-one has to include.
+ *
+ * The product is defined as covering all three, so a partial list is a mistake
+ * rather than a cheaper variant: a seller buying "all in one" and receiving no
+ * shorts has been short-changed, and an operator who meant to sell one thing has
+ * the single-purpose types for that.
+ */
+export const BUNDLE_KINDS: readonly EntitlementKind[] = [
+  EntitlementKind.FEATURED_ADS,
+  EntitlementKind.AD_SLOTS,
+  EntitlementKind.SHORTS,
+];
+
+/** Which of the required kinds an all-in-one list is missing, in display order. */
+export function missingBundleKinds(
+  entitlements: EntitlementGrant[],
+): EntitlementKind[] {
+  const present = new Set(
+    entitlements.filter((e) => e.quantity > 0).map((e) => e.kind),
+  );
+  return BUNDLE_KINDS.filter((kind) => !present.has(kind));
+}
+
 /** Total units across every entitlement, for display and legacy `quantity`. */
 export function totalQuantity(entitlements: EntitlementGrant[]): number {
   return entitlements.reduce((sum, e) => sum + e.quantity, 0);

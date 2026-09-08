@@ -90,6 +90,14 @@ export const ERROR = {
   INVALID_CATEGORY_ID_PARAM: 'A valid categoryId query parameter is required',
   INVALID_CATEGORY_ID_FILTER: 'Invalid categoryId',
 
+  // Package administration
+  BUNDLE_MISSING_KINDS: (missing: string[]) =>
+    `An all-in-one package must include featured ads, ad slots and shorts. Missing: ${missing.join(', ')}`,
+  PACKAGE_DURATION_NOT_ALLOWED: (duration: number, allowed: number[]) =>
+    `${duration} days is not available for this package type. Choose one of: ${allowed.join(', ')}`,
+  BUNDLE_SUPER_ADMIN_ONLY:
+    'Only a super admin can create, update or delete all-in-one packages',
+
   // Reviews
   CANNOT_REVIEW_OWN_LISTING: 'You cannot review your own listing',
   REVIEW_REQUIRES_CONVERSATION:

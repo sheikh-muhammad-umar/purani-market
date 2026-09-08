@@ -15,7 +15,13 @@ import {
   TabType,
 } from '../../../core/constants/enums';
 import { TrackingEvent } from '../../../core/enums/tracking-events';
-import { CURRENCY_SYMBOL, PAYMENT_METHOD_CONFIG } from '../../../core/constants/app';
+import {
+  CURRENCY_SYMBOL,
+  ENTITLEMENT_ICONS,
+  ENTITLEMENT_LABELS,
+  PACKAGE_TYPE_LABELS,
+  PAYMENT_METHOD_CONFIG,
+} from '../../../core/constants/app';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { ROUTES } from '../../../core/constants/routes';
 import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
@@ -81,6 +87,10 @@ export class MyPackagesComponent implements OnInit {
     if (tab === TAB.SHORTS) {
       this.mainTab.set(TAB.SHORTS);
       this.loadShortsPurchases();
+    } else if (tab === TAB.ALL_IN_ONE) {
+      // All-in-one purchases arrive in the same call as the ad purchases below,
+      // so this tab has nothing extra to fetch.
+      this.mainTab.set(TAB.ALL_IN_ONE);
     }
 
     this.loadCategories();
@@ -149,29 +159,84 @@ export class MyPackagesComponent implements OnInit {
     this.activeTab.set(tab);
   }
 
-  /** Active purchases — computed once per signal change, not per CD cycle. */
-  readonly activePurchases = computed(() => {
-    const now = new Date();
-    return this.purchases().filter(
-      (p) =>
-        p.paymentStatus === PaymentStatusEnum.COMPLETED &&
-        p.expiresAt &&
-        new Date(p.expiresAt) > now &&
-        p.remainingQuantity > 0,
+  /** Single-purpose ad purchases. All-in-one purchases have their own tab. */
+  readonly adsPurchases = computed(() =>
+    this.purchases().filter((p) => p.type !== PackageTypeEnum.BUNDLE),
+  );
+
+  /** All-in-one purchases, which carry a balance per kind rather than one total. */
+  readonly bundlePurchases = computed(() =>
+    this.purchases().filter((p) => p.type === PackageTypeEnum.BUNDLE),
+  );
+
+  /**
+   * How many units a purchase can still be spent on, whichever shape it uses.
+   *
+   * An all-in-one tracks a balance per entitlement and never decrements
+   * `remainingQuantity`, so reading that field alone reported a fully-spent bundle
+   * as untouched — it stayed under Active for ever and its meter never moved.
+   *
+   * A legacy purchase stores -1 in `remainingQuantity` to mean "expiry already
+   * processed", which is a marker rather than a balance, so it is clamped.
+   */
+  private remainingUnits(purchase: PackagePurchase): number {
+    if (purchase.entitlements?.length) {
+      return purchase.entitlements.reduce((sum, e) => sum + Math.max(0, e.remaining), 0);
+    }
+    return Math.max(0, purchase.remainingQuantity);
+  }
+
+  /** Whether a purchase is paid for, unexpired, and still has something left. */
+  private isActivePurchase(purchase: PackagePurchase): boolean {
+    return (
+      purchase.paymentStatus === PaymentStatusEnum.COMPLETED &&
+      !!purchase.expiresAt &&
+      new Date(purchase.expiresAt).getTime() > Date.now() &&
+      this.remainingUnits(purchase) > 0
     );
-  });
+  }
+
+  /** Active purchases — computed once per signal change, not per CD cycle. */
+  readonly activePurchases = computed(() =>
+    this.adsPurchases().filter((p) => this.isActivePurchase(p)),
+  );
 
   /** Expired / failed / fully-used purchases. */
-  readonly historyPurchases = computed(() => {
-    const now = new Date();
-    return this.purchases().filter(
-      (p) =>
-        p.paymentStatus !== PaymentStatusEnum.COMPLETED ||
-        !p.expiresAt ||
-        new Date(p.expiresAt) <= now ||
-        p.remainingQuantity <= 0,
-    );
-  });
+  readonly historyPurchases = computed(() =>
+    this.adsPurchases().filter((p) => !this.isActivePurchase(p)),
+  );
+
+  readonly activeBundles = computed(() =>
+    this.bundlePurchases().filter((p) => this.isActivePurchase(p)),
+  );
+
+  readonly historyBundles = computed(() =>
+    this.bundlePurchases().filter((p) => !this.isActivePurchase(p)),
+  );
+
+  /**
+   * What an all-in-one purchase still holds, per kind.
+   *
+   * Shown as one meter each because the parts are spent separately: a seller can be
+   * out of shorts while still holding featured ads, which a single combined figure
+   * would hide.
+   */
+  entitlementBalances(
+    purchase: PackagePurchase,
+  ): { label: string; icon: string; remaining: number; quantity: number }[] {
+    return (purchase.entitlements ?? []).map((e) => ({
+      label: ENTITLEMENT_LABELS[e.kind] ?? e.kind,
+      icon: ENTITLEMENT_ICONS[e.kind] ?? 'check',
+      remaining: Math.max(0, e.remaining),
+      quantity: e.quantity,
+    }));
+  }
+
+  /** Percentage for a meter bar, guarding the divide-by-zero a bad row could cause. */
+  meterPercent(remaining: number, total: number): number {
+    if (!total) return 0;
+    return Math.min(100, Math.max(0, (remaining / total) * 100));
+  }
 
   getStatusBadgeClass(status: PaymentStatus): string {
     switch (status) {
@@ -188,8 +253,14 @@ export class MyPackagesComponent implements OnInit {
     }
   }
 
+  /**
+   * Reads the label off the shared map rather than a ternary.
+   *
+   * The ternary this replaced returned "Ad Slots" for anything that was not
+   * featured ads, so every all-in-one purchase was labelled as ad slots.
+   */
   getTypeLabel(type: string): string {
-    return type === PackageTypeEnum.FEATURED_ADS ? 'Featured Ads' : 'Ad Slots';
+    return PACKAGE_TYPE_LABELS[type] ?? type;
   }
 
   formatPrice(price: number): string {

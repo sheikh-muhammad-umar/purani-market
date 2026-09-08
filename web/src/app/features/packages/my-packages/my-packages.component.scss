@@ -202,6 +202,11 @@
   display: flex;
   flex-direction: column;
   gap: var(--space-half);
+
+  /* An all-in-one stacks one meter per kind, so they need separating */
+  & + .slots-meter {
+    margin-top: var(--space-1);
+  }
 }
 
 .meter-label {
@@ -286,6 +291,20 @@
 .history-qty {
   font-size: var(--text-sm);
   color: var(--text-secondary);
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-1);
+}
+
+/* One per kind on an all-in-one history row, since it has no single total */
+.history-ent {
+  white-space: nowrap;
+}
+
+/* All-in-one purchases carry the premium tint, matching the browse page */
+.badge-bundle {
+  background: var(--primary-subtle);
+  color: var(--primary);
 }
 
 .history-meta {

@@ -119,6 +119,33 @@
   }
 }
 
+/* Intro for the All in One tab, matching the shorts tab's free-tier panel */
+.all-in-one-card {
+  padding: var(--space-2) var(--space-3);
+  background: rgba(var(--primary-rgb), 0.06);
+  border: 1px solid rgba(var(--primary-rgb), 0.2);
+  border-radius: var(--radius-md);
+  margin-bottom: var(--space-3);
+
+  h3 {
+    font-size: var(--text-base);
+    font-weight: var(--weight-semibold);
+    color: var(--primary);
+    margin-bottom: var(--space-1);
+  }
+
+  p {
+    font-size: var(--text-sm);
+    color: var(--text-secondary);
+    margin: 0;
+  }
+}
+
+.badge-bundle {
+  background: var(--primary-subtle);
+  color: var(--primary);
+}
+
 .package-desc {
   font-size: var(--text-sm);
   color: var(--text-muted);
@@ -196,6 +223,11 @@
 
   &.featured-type {
     border-color: var(--accent);
+  }
+
+  /* All-in-one packages are the premium tier, so they carry the primary edge. */
+  &.bundle-type {
+    border-color: var(--primary);
   }
 
   &:hover {

@@ -591,22 +591,69 @@ describe('PackagesService', () => {
       );
     });
 
-    it('keeps the list for a shorts-only package, which has no legacy type', async () => {
-      // Regression: dropping it left `type: bundle` with an empty list, which
-      // reads as granting nothing — the package would sell and deliver zero.
-      await service.createPackage({
-        name: 'Shorts only',
-        duration: 30,
-        defaultPrice: 400,
-        entitlements: [{ kind: EntitlementKind.SHORTS, quantity: 5 }],
-      } as any);
-
-      expect(mockAdPackageModel).toHaveBeenCalledWith(
-        expect.objectContaining({
-          type: AdPackageType.BUNDLE,
+    it('refuses a shorts-only package, which is not a whole all-in-one', async () => {
+      // Anything broader than one legacy kind resolves to `bundle`, and an
+      // all-in-one is defined as covering all three. Shorts on their own are sold
+      // from the shorts catalogue, so accepting this would put a package named
+      // "all in one" on the ads side that grants neither slots nor featured ads.
+      await expect(
+        service.createPackage({
+          name: 'Shorts only',
+          duration: 30,
+          defaultPrice: 400,
           entitlements: [{ kind: EntitlementKind.SHORTS, quantity: 5 }],
-        }),
-      );
+        } as any),
+      ).rejects.toThrow(BadRequestException);
+
+      expect(mockAdPackageModel).not.toHaveBeenCalled();
+    });
+
+    it('refuses an all-in-one missing one of the three kinds', async () => {
+      await expect(
+        service.createPackage({
+          name: 'Half a bundle',
+          duration: 30,
+          defaultPrice: 900,
+          entitlements: [
+            { kind: EntitlementKind.AD_SLOTS, quantity: 10 },
+            { kind: EntitlementKind.FEATURED_ADS, quantity: 2 },
+          ],
+        } as any),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('accepts the longer terms an all-in-one is sold on', async () => {
+      for (const duration of [7, 15, 30, 60, 90]) {
+        mockAdPackageModel.mockClear();
+        await service.createPackage({
+          name: `All in one ${duration}`,
+          duration,
+          defaultPrice: 1800,
+          entitlements: [
+            { kind: EntitlementKind.AD_SLOTS, quantity: 10 },
+            { kind: EntitlementKind.FEATURED_ADS, quantity: 2 },
+            { kind: EntitlementKind.SHORTS, quantity: 5 },
+          ],
+        } as any);
+
+        expect(mockAdPackageModel).toHaveBeenCalledWith(
+          expect.objectContaining({ type: AdPackageType.BUNDLE, duration }),
+        );
+      }
+    });
+
+    it('refuses a single-purpose package on an all-in-one-only term', async () => {
+      // 60 and 90 days exist because a bundle includes shorts; a featured-ads
+      // package has never been sold that long and must not inherit the wider set.
+      await expect(
+        service.createPackage({
+          name: 'Featured 90',
+          type: AdPackageType.FEATURED_ADS,
+          duration: 90,
+          quantity: 5,
+          defaultPrice: 500,
+        } as any),
+      ).rejects.toThrow(BadRequestException);
     });
 
     it('stores a single entitlement as its historical type, not a bundle', async () => {
@@ -634,6 +681,8 @@ describe('PackagesService', () => {
         duration: 30,
         defaultPrice: 900,
         entitlements: [
+          { kind: EntitlementKind.AD_SLOTS, quantity: 10 },
+          { kind: EntitlementKind.FEATURED_ADS, quantity: 2 },
           { kind: EntitlementKind.SHORTS, quantity: 3 },
           { kind: EntitlementKind.SHORTS, quantity: 2 },
         ],
@@ -642,8 +691,12 @@ describe('PackagesService', () => {
       expect(mockAdPackageModel).toHaveBeenCalledWith(
         expect.objectContaining({
           type: AdPackageType.BUNDLE,
-          quantity: 5,
-          entitlements: [{ kind: EntitlementKind.SHORTS, quantity: 5 }],
+          quantity: 17,
+          entitlements: [
+            { kind: EntitlementKind.AD_SLOTS, quantity: 10 },
+            { kind: EntitlementKind.FEATURED_ADS, quantity: 2 },
+            { kind: EntitlementKind.SHORTS, quantity: 5 },
+          ],
         }),
       );
     });

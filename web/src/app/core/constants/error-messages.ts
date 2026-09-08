@@ -34,6 +34,8 @@ export const ERROR_MSG = {
   MY_PACKAGES_LOAD_FAILED: 'Failed to load your packages. Please try again.',
   PACKAGE_CREATE_FAILED: 'Failed to create package.',
   PACKAGE_UPDATE_FAILED: 'Failed to update package.',
+  PACKAGE_DELETE_FAILED: 'Failed to delete package.',
+  BUNDLE_SUPER_ADMIN_ONLY: 'Only a super admin can add, edit or delete all-in-one packages.',
   PURCHASES_LOAD_FAILED: 'Failed to load purchases.',
   PURCHASE_REFUND_FAILED: 'Failed to refund this purchase. Please try again.',
   PURCHASE_CONFIRM_FAILED: 'Failed to confirm this payment. It may already have been confirmed.',

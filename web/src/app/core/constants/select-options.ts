@@ -56,6 +56,17 @@ export const PACKAGE_TYPE_OPTIONS: SelectOption[] = [
   { value: PackageType.BUNDLE, label: 'All in One' },
 ];
 
+/**
+ * The types the Ad Packages screen authors and filters.
+ *
+ * All in One is left out because it has its own screen: offering it here would let
+ * an ordinary admin open the bundle form only to be refused on save, since the API
+ * restricts all-in-one packages to super admins.
+ */
+export const SINGLE_PURPOSE_PACKAGE_TYPE_OPTIONS: SelectOption[] = PACKAGE_TYPE_OPTIONS.filter(
+  (o) => o.value !== PackageType.BUNDLE,
+);
+
 /** The individual things a package can grant, for authoring an all-in-one. */
 export const ENTITLEMENT_KIND_OPTIONS: SelectOption[] = [
   { value: EntitlementKind.AD_SLOTS, label: 'Ad slots' },
@@ -74,6 +85,14 @@ export const DURATION_OPTIONS: SelectOption[] = environment.packageDurations.map
 }));
 
 export const SHORTS_DURATION_OPTIONS: SelectOption[] = environment.shortsPackageDurations.map(
+  (d) => ({
+    value: d,
+    label: `${d} days`,
+  }),
+);
+
+/** All-in-one terms. Wider than {@link DURATION_OPTIONS} because they include shorts. */
+export const BUNDLE_DURATION_OPTIONS: SelectOption[] = environment.bundlePackageDurations.map(
   (d) => ({
     value: d,
     label: `${d} days`,
@@ -227,6 +246,7 @@ export const ACTION_FILTER_OPTIONS: SelectOption[] = [
   { value: 'admin_location_delete', label: 'Admin: Delete Location' },
   { value: 'admin_package_create', label: 'Admin: Create Package' },
   { value: 'admin_package_update', label: 'Admin: Update Package' },
+  { value: 'admin_package_delete', label: 'Admin: Delete Package' },
   { value: 'admin_notification_send', label: 'Admin: Send Notification' },
   { value: 'admin_export_report', label: 'Admin: Export Report' },
   { value: 'admin_rejection_reason_create', label: 'Admin: Create Rejection Reason' },

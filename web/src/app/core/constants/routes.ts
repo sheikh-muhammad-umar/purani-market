@@ -32,6 +32,7 @@ export const ROUTES = {
   ADMIN_PACKAGES: '/admin/packages',
   ADMIN_PACKAGES_LISTINGS: '/admin/packages/listings',
   ADMIN_PACKAGES_SHORTS: '/admin/packages/shorts',
+  ADMIN_PACKAGES_ALL_IN_ONE: '/admin/packages/all-in-one',
   ADMIN_PACKAGES_PURCHASES: '/admin/packages/purchases',
   ADMIN_NOTIFICATIONS: '/admin/notifications',
   ADMIN_CATEGORIES: '/admin/categories',
