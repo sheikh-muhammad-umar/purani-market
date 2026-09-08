@@ -213,7 +213,6 @@ export class ShortsService {
 
   adminRejectShort(id: string, rejectionReason: string): Observable<ShortVideo> {
     return this.api.patch<ShortVideo>(API.SHORTS_ADMIN_REJECT(id), {
-      status: 'rejected',
       rejectionReason,
     });
   }

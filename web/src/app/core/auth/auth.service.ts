@@ -99,9 +99,12 @@ export class AuthService {
   }
 
   resendVerification(emailOrPhone: string): Observable<{ message: string }> {
-    return this.http.post<{ message: string }>(`${this.apiUrl}${API.AUTH_RESEND_VERIFICATION}`, {
-      emailOrPhone,
-    });
+    const value = emailOrPhone.trim();
+    const body = value.includes('@') ? { email: value } : { phone: value };
+    return this.http.post<{ message: string }>(
+      `${this.apiUrl}${API.AUTH_RESEND_VERIFICATION}`,
+      body,
+    );
   }
 
   /**

@@ -13,6 +13,8 @@ export class RecommendationsService {
   }
 
   dismiss(listingId: string): Observable<void> {
-    return this.api.post<void>(API.RECOMMENDATIONS_DISMISS, { listingId });
+    return this.api.post<void>(API.RECOMMENDATIONS_DISMISS, {
+      productListingId: listingId,
+    });
   }
 }
