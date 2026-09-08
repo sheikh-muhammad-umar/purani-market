@@ -13,6 +13,10 @@ import {
   ListingStatus,
 } from '../listings/schemas/product-listing.schema.js';
 import { LISTING_PUBLIC_SELECT } from '../listings/constants/index.js';
+import {
+  partitionByPromotion,
+  promotedSlotPlan,
+} from '../listings/promoted-slots.js';
 import { Province, ProvinceDocument } from './schemas/province.schema.js';
 import { City, CityDocument } from './schemas/city.schema.js';
 import { Area, AreaDocument } from './schemas/area.schema.js';
@@ -105,7 +109,6 @@ export class LocationService {
   ): Promise<NearbyResult> {
     const safeLimit = Math.min(Math.max(1, limit ?? this.DEFAULT_LIMIT), 100);
     const safePage = Math.max(1, page ?? 1);
-    const skip = (safePage - 1) * safeLimit;
     const minResults = Math.min(safeLimit, 6);
 
     const baseFilter: Record<string, any> = {
@@ -134,29 +137,25 @@ export class LocationService {
 
       total = await this.listingModel.countDocuments(filter).exec();
       if (total >= minResults) {
-        data = await this.listingModel
-          .find(filter)
-          .select(LISTING_PUBLIC_SELECT)
-          .sort({ isFeatured: -1, createdAt: -1 })
-          .skip(skip)
-          .limit(safeLimit)
-          .exec();
+        data = await this.findWithPromotedSlots(
+          filter,
+          total,
+          safePage,
+          safeLimit,
+        );
         break;
       }
     }
 
     // If we exhausted all levels with < minResults, use the last (country-wide)
     if (data.length === 0) {
-      [data, total] = await Promise.all([
-        this.listingModel
-          .find(baseFilter)
-          .select(LISTING_PUBLIC_SELECT)
-          .sort({ isFeatured: -1, createdAt: -1 })
-          .skip(skip)
-          .limit(safeLimit)
-          .exec(),
-        this.listingModel.countDocuments(baseFilter).exec(),
-      ]);
+      total = await this.listingModel.countDocuments(baseFilter).exec();
+      data = await this.findWithPromotedSlots(
+        baseFilter,
+        total,
+        safePage,
+        safeLimit,
+      );
     }
 
     return {
@@ -166,6 +165,52 @@ export class LocationService {
       limit: safeLimit,
       totalPages: Math.ceil(total / safeLimit),
     };
+  }
+
+  /**
+   * One page of nearby listings: a few featured pinned on top, then the newest
+   * organic ones.
+   *
+   * `isFeatured` used to be the primary sort key here, which meant every featured
+   * listing in the fallback level came before any organic one — so the rail only
+   * ever showed featured ads. See `promoted-slots.ts` for why the slice offsets
+   * are derived from cumulative counts rather than `page * limit`.
+   */
+  private async findWithPromotedSlots(
+    filter: Record<string, any>,
+    total: number,
+    page: number,
+    limit: number,
+  ): Promise<ProductListingDocument[]> {
+    const { featuredFilter, organicFilter } = partitionByPromotion(filter);
+    const featuredTotal = await this.listingModel
+      .countDocuments(featuredFilter)
+      .exec();
+
+    const plan = promotedSlotPlan({ page, limit, total, featuredTotal });
+
+    const [featured, organic] = await Promise.all([
+      plan.featuredTake > 0
+        ? this.listingModel
+            .find(featuredFilter)
+            .select(LISTING_PUBLIC_SELECT)
+            .sort({ createdAt: -1 })
+            .skip(plan.featuredSkip)
+            .limit(plan.featuredTake)
+            .exec()
+        : [],
+      plan.organicTake > 0
+        ? this.listingModel
+            .find(organicFilter)
+            .select(LISTING_PUBLIC_SELECT)
+            .sort({ createdAt: -1 })
+            .skip(plan.organicSkip)
+            .limit(plan.organicTake)
+            .exec()
+        : [],
+    ]);
+
+    return [...featured, ...organic];
   }
 
   async findNearbyForRecommendations(

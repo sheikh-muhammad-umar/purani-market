@@ -296,10 +296,64 @@ describe('ListingsService', () => {
       expect(result.page).toBe(1);
       expect(result.limit).toBe(20);
       expect(result.totalPages).toBe(1);
-      expect(mockListingModel.find).toHaveBeenCalledWith({
+      // No `deletedAt` guard on the public path: soft-delete sets status and
+      // deletedAt in the same update, so ACTIVE already excludes deleted rows,
+      // and the unindexed predicate downgraded the pagination count from an
+      // index-only scan to fetching every match.
+      expect(mockListingModel.countDocuments).toHaveBeenCalledWith({
         status: ListingStatus.ACTIVE,
-        deletedAt: { $exists: false },
       });
+    });
+
+    it('should not add an unindexed deletedAt guard when status is pinned', async () => {
+      await service.findAll(1, 20);
+      // The base filter is the one the pagination total is counted over, which is
+      // where the cost was.
+      const filter = mockListingModel.countDocuments.mock.calls[0][0];
+      expect(filter.status).toBe(ListingStatus.ACTIVE);
+      expect(filter.deletedAt).toBeUndefined();
+      for (const call of mockListingModel.find.mock.calls) {
+        expect(call[0].status).toBe(ListingStatus.ACTIVE);
+        expect(call[0].deletedAt).toBeUndefined();
+      }
+    });
+
+    it('should not make isFeatured the primary sort key', async () => {
+      // Featured used to lead the sort, which is a gate rather than a boost: with
+      // 2,428 featured listings live, the first 122 pages were entirely featured
+      // and `sort=price` returned the cheapest *featured* listing, not the
+      // cheapest one.
+      await service.findAll(1, 20, 'price.amount', 'asc');
+
+      const sortArg = mockListingModel.find.mock.results[0].value.sort.mock
+        .calls[0][0] as Record<string, number>;
+      expect(sortArg.isFeatured).toBeUndefined();
+      expect(Object.keys(sortArg)[0]).toBe('price.amount');
+    });
+
+    it('should reserve bounded promoted slots on the public browse path', async () => {
+      await service.findAll(1, 20);
+
+      // Two counts: the pagination total, then how many qualify for promotion.
+      const [baseFilter, featuredFilter] =
+        mockListingModel.countDocuments.mock.calls.map(
+          (call: any[]) => call[0],
+        );
+      expect(baseFilter.isFeatured).toBeUndefined();
+      expect(featuredFilter.isFeatured).toBe(true);
+      // A lapsed paid window cannot hold a slot on a stale flag alone.
+      expect(featuredFilter.featuredUntil.$gt).toBeInstanceOf(Date);
+    });
+
+    it('should skip promotion for seller-scoped queries', async () => {
+      // A seller reading their own listings, or a visitor on a seller profile,
+      // wants that catalogue in the order asked for — not three of the same
+      // seller's ads pinned above it.
+      await service.findAll(1, 20, 'createdAt', 'desc', sellerId.toString());
+
+      expect(mockListingModel.countDocuments).toHaveBeenCalledTimes(1);
+      expect(mockListingModel.find).toHaveBeenCalledTimes(1);
+      expect(mockListingModel.find.mock.calls[0][0].isFeatured).toBeUndefined();
     });
 
     it('should clamp page to minimum 1', async () => {
@@ -320,7 +374,6 @@ describe('ListingsService', () => {
     it('should filter to one seller and still show only active listings', async () => {
       await service.findAll(1, 20, 'createdAt', 'desc', sellerId.toString());
       expect(mockListingModel.find).toHaveBeenCalledWith({
-        deletedAt: { $exists: false },
         sellerId: expect.anything(),
         status: ListingStatus.ACTIVE,
       });
@@ -338,8 +391,30 @@ describe('ListingsService', () => {
         true,
       );
       const filter = mockListingModel.find.mock.calls.at(-1)?.[0];
+      // The guard is REQUIRED here and must not be removed as a performance
+      // tidy-up: with no status pinned, dropping it would list the owner's
+      // soft-deleted listings back to them.
       expect(filter).toMatchObject({ deletedAt: { $exists: false } });
       expect(filter.sellerId).toBeDefined();
+      expect(filter.status).toBeUndefined();
+    });
+
+    /**
+     * The owner "all" view pins no status (ownViewConditions(ALL) returns {}), so
+     * it is the specific case that still depends on the deletedAt guard.
+     */
+    it('should keep the deletedAt guard for the owner all-statuses view', async () => {
+      await service.findAll(
+        1,
+        20,
+        'createdAt',
+        'desc',
+        sellerId.toString(),
+        { ownView: OwnListingView.ALL },
+        true,
+      );
+      const filter = mockListingModel.find.mock.calls.at(-1)?.[0];
+      expect(filter.deletedAt).toEqual({ $exists: false });
       expect(filter.status).toBeUndefined();
     });
 

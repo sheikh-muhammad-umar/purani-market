@@ -200,6 +200,28 @@ describe('HomeComponent', () => {
     expect(component.loadingFeatured()).toBe(false);
   });
 
+  it('should leave the featured section empty rather than backfilling it', () => {
+    // This section used to fall back to the latest listings, which put unfeatured
+    // ads under a "Featured Ads" heading — misrepresenting them, and devaluing the
+    // slot sellers pay for. An empty result renders the section's empty state.
+    listingsServiceMock.getFeaturedFiltered = vi
+      .fn()
+      .mockReturnValue(of({ data: [], total: 0, page: 1, limit: 10 }));
+    component = new HomeComponent(
+      categoriesServiceMock as unknown as CategoriesService,
+      listingsServiceMock as unknown as ListingsService,
+      shortsServiceMock as unknown as ShortsService,
+      recommendationsServiceMock as unknown as RecommendationsService,
+      { isAuthenticated: () => false, user: () => null } as unknown as AuthService,
+      trackerMock as unknown as ActivityTrackerService,
+      'browser',
+    );
+    component.ngOnInit();
+
+    expect(component.featuredListings()).toEqual([]);
+    expect(component.loadingFeatured()).toBe(false);
+  });
+
   it('should load recommendations on init', () => {
     component.ngOnInit();
     expect(recommendationsServiceMock.getRecommendations).toHaveBeenCalledWith(

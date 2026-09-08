@@ -18,6 +18,11 @@ import {
   ProductListingDocument,
   ListingStatus,
 } from '../listings/schemas/product-listing.schema.js';
+import {
+  esPromotionClauses,
+  partitionByPromotion,
+  promotedSlotPlan,
+} from '../listings/promoted-slots.js';
 import { LISTINGS_INDEX, SHORTS_INDEX } from './search-index.service.js';
 import { SearchSyncService } from './search-sync.service.js';
 import { SearchQueryDto, SearchSortOption } from './dto/search-query.dto.js';
@@ -394,28 +399,20 @@ export class SearchService {
     page: number,
     limit: number,
   ): Promise<SearchResult> {
-    const from = (page - 1) * limit;
     const rankingConfig = this.parseRankingConfig(query.rankingConfig, query);
     const baseQuery = await this.buildSearchQuery(query, rankingConfig);
-    const boostedQuery = this.searchSyncService.buildFeaturedBoostQuery(
+    const rankedQuery = this.searchSyncService.buildRankingQuery(
       baseQuery,
       rankingConfig,
     );
     const sortClause = this.buildSortClause(query.sort);
 
-    const response = await this.esService.search({
-      index: LISTINGS_INDEX,
-      from,
-      size: limit,
-      query: boostedQuery,
-      sort: sortClause,
-    });
-
-    const hits = response.hits.hits;
-    const total =
-      typeof response.hits.total === 'number'
-        ? response.hits.total
-        : (response.hits.total?.value ?? 0);
+    const { hits, total } = await this.esSearchWithPromotedSlots(
+      rankedQuery,
+      sortClause,
+      page,
+      limit,
+    );
 
     // If ES returned no results, fall back to MongoDB. This is a safety net for
     // a stale or partially-synced index, NOT a way to widen a search.
@@ -510,14 +507,96 @@ export class SearchService {
     };
   }
 
+  /**
+   * Runs one page of a search as a bounded number of promoted slots followed by
+   * organic results.
+   *
+   * Featured used to be a scoring signal instead (`weight: 5` inside
+   * `function_score`), which sounded like a boost but behaved as a gate: the
+   * search page's default sort is relevance, and with no text query every
+   * document has a base score of 1.0, so the flat +5 put all 2,425 featured
+   * listings ahead of all 37,610 organic ones. Pages 1 to 120 came back entirely
+   * featured.
+   *
+   * Costs one extra round trip: a `size: 0` request for the two bucket counts,
+   * which the slice offsets depend on, then both pages fetched in parallel.
+   */
+  private async esSearchWithPromotedSlots(
+    rankedQuery: any,
+    sortClause: any[],
+    page: number,
+    limit: number,
+  ): Promise<{ hits: any[]; total: number }> {
+    const { featuredClause, organicClause } = esPromotionClauses();
+
+    const counts = await this.esService.search({
+      index: LISTINGS_INDEX,
+      size: 0,
+      query: rankedQuery,
+      aggs: { promoted: { filter: featuredClause } },
+      /**
+       * Elasticsearch stops counting at 10,000 by default, which was already
+       * capping `totalPages`. The slot plan needs a real total: it infers the
+       * organic count as `total - featuredTotal`, and a capped total would make
+       * organic look exhausted and tip whole pages back to featured. Cheap on a
+       * `size: 0` request, and it fixes the page count as a side effect.
+       */
+      track_total_hits: true,
+    });
+
+    const total =
+      typeof counts.hits.total === 'number'
+        ? counts.hits.total
+        : (counts.hits.total?.value ?? 0);
+    const featuredTotal =
+      (counts.aggregations?.promoted as { doc_count?: number } | undefined)
+        ?.doc_count ?? 0;
+
+    const plan = promotedSlotPlan({ page, limit, total, featuredTotal });
+
+    /** The ranked query narrowed to one side of the partition. */
+    const bucket = (clause: Record<string, unknown>) => ({
+      bool: { must: [rankedQuery], filter: [clause] },
+    });
+
+    const [featured, organic] = await Promise.all([
+      plan.featuredTake > 0
+        ? this.esService.search({
+            index: LISTINGS_INDEX,
+            from: plan.featuredSkip,
+            size: plan.featuredTake,
+            query: bucket(featuredClause),
+            sort: sortClause,
+          })
+        : null,
+      plan.organicTake > 0
+        ? this.esService.search({
+            index: LISTINGS_INDEX,
+            from: plan.organicSkip,
+            size: plan.organicTake,
+            query: bucket(organicClause),
+            sort: sortClause,
+          })
+        : null,
+    ]);
+
+    return {
+      hits: [...(featured?.hits.hits ?? []), ...(organic?.hits.hits ?? [])],
+      total,
+    };
+  }
+
   private async mongoFallbackSearch(
     query: SearchQueryDto,
     page: number,
     limit: number,
   ): Promise<SearchResult> {
+    // `status: ACTIVE` is sufficient on its own: soft-delete sets `status` and
+    // `deletedAt` atomically, so the unindexed `deletedAt` predicate excluded
+    // nothing extra while forcing the accompanying countDocuments to fetch every
+    // matching document instead of counting from the index.
     const filter: Record<string, any> = {
       status: ListingStatus.ACTIVE,
-      deletedAt: { $exists: false },
     };
 
     if (query.q) {
@@ -632,28 +711,58 @@ export class SearchService {
       }
     }
 
-    let sortObj: Record<string, 1 | -1> = { isFeatured: -1, createdAt: -1 };
+    let sortObj: Record<string, 1 | -1> = { createdAt: -1 };
     if (query.sort === SearchSortOption.PRICE_ASC)
-      sortObj = { isFeatured: -1, 'price.amount': 1 };
+      sortObj = { 'price.amount': 1 };
     else if (query.sort === SearchSortOption.PRICE_DESC)
-      sortObj = { isFeatured: -1, 'price.amount': -1 };
+      sortObj = { 'price.amount': -1 };
     else if (query.sort === SearchSortOption.NEWEST)
-      sortObj = { isFeatured: -1, createdAt: -1 };
+      sortObj = { createdAt: -1 };
 
-    const skip = (page - 1) * limit;
-    const [items, total] = await Promise.all([
-      this.listingModel
-        .find(filter)
-        .sort(sortObj)
-        .skip(skip)
-        .limit(limit)
-        .lean()
-        .exec(),
+    /**
+     * Featured listings get a bounded number of pinned slots per page, matching
+     * the browse and nearby paths.
+     *
+     * `isFeatured` was the primary sort key here, so whenever Elasticsearch was
+     * unavailable search silently changed character: the ES path treats featured
+     * as one weighted signal in `buildFeaturedBoostQuery`, while this path put
+     * every featured listing ahead of every organic one. Two different answers to
+     * the same query depending on the health of a service the caller cannot see.
+     */
+    const { featuredFilter, organicFilter } = partitionByPromotion(filter);
+    const [total, featuredTotal] = await Promise.all([
       this.listingModel.countDocuments(filter).exec(),
+      this.listingModel.countDocuments(featuredFilter).exec(),
+    ]);
+
+    const plan = promotedSlotPlan({ page, limit, total, featuredTotal });
+
+    const [featured, organic] = await Promise.all([
+      plan.featuredTake > 0
+        ? this.listingModel
+            .find(featuredFilter)
+            .sort(sortObj)
+            .skip(plan.featuredSkip)
+            .limit(plan.featuredTake)
+            .lean()
+            .exec()
+        : [],
+      plan.organicTake > 0
+        ? this.listingModel
+            .find(organicFilter)
+            .sort(sortObj)
+            .skip(plan.organicSkip)
+            .limit(plan.organicTake)
+            .lean()
+            .exec()
+        : [],
     ]);
 
     return {
-      items: items.map((item: any) => ({ ...item, _id: item._id.toString() })),
+      items: [...featured, ...organic].map((item: any) => ({
+        ...item,
+        _id: item._id.toString(),
+      })),
       total,
       page,
       limit,

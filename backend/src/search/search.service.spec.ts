@@ -26,7 +26,7 @@ describe('SearchService', () => {
     };
 
     syncService = {
-      buildFeaturedBoostQuery: jest.fn((q) => ({
+      buildRankingQuery: jest.fn((q) => ({
         function_score: { query: q },
       })),
     };
@@ -129,7 +129,7 @@ describe('SearchService', () => {
       expect(result.items[0].title).toBe('iPhone 15');
     });
 
-    it('should use featured boost query', async () => {
+    it('should rank with the recency and popularity query', async () => {
       (esService.search as jest.Mock).mockResolvedValue({
         hits: { total: { value: 0 }, hits: [] },
         aggregations: {},
@@ -137,22 +137,29 @@ describe('SearchService', () => {
 
       await service.search({ q: 'car' });
 
-      expect(syncService.buildFeaturedBoostQuery).toHaveBeenCalled();
+      expect(syncService.buildRankingQuery).toHaveBeenCalled();
       const callArgs = (esService.search as jest.Mock).mock.calls[0][0];
       expect(callArgs.query).toHaveProperty('function_score');
     });
 
     it('should default to page 1 and limit 20', async () => {
+      // First call counts the two buckets, then each bucket's page is fetched.
       (esService.search as jest.Mock).mockResolvedValue({
-        hits: { total: { value: 0 }, hits: [] },
-        aggregations: {},
+        hits: { total: { value: 100 }, hits: [] },
+        aggregations: { promoted: { doc_count: 10 } },
       });
 
       await service.search({ q: 'test' });
 
-      const callArgs = (esService.search as jest.Mock).mock.calls[0][0];
-      expect(callArgs.from).toBe(0);
-      expect(callArgs.size).toBe(20);
+      const [counts, featured, organic] = (
+        esService.search as jest.Mock
+      ).mock.calls.map((call) => call[0]);
+      expect(counts.size).toBe(0);
+      // 3 promoted slots plus 17 organic makes the requested page of 20.
+      expect(featured.from).toBe(0);
+      expect(featured.size).toBe(3);
+      expect(organic.from).toBe(0);
+      expect(organic.size).toBe(17);
     });
 
     it('should return no-results alternatives when empty', async () => {
@@ -173,7 +180,7 @@ describe('SearchService', () => {
     it('should pass sort clause to Elasticsearch', async () => {
       (esService.search as jest.Mock).mockResolvedValue({
         hits: {
-          total: { value: 1 },
+          total: { value: 100 },
           hits: [
             {
               _id: ID1,
@@ -182,12 +189,44 @@ describe('SearchService', () => {
             },
           ],
         },
+        aggregations: { promoted: { doc_count: 10 } },
       });
 
       await service.search({ q: 'car', sort: SearchSortOption.PRICE_ASC });
 
-      const callArgs = (esService.search as jest.Mock).mock.calls[0][0];
-      expect(callArgs.sort[0]).toEqual({ 'price.amount': { order: 'asc' } });
+      // Both buckets take the caller's sort, so the promoted slots are exempt
+      // from position but not from ordering.
+      const paged = (esService.search as jest.Mock).mock.calls.slice(1);
+      expect(paged).toHaveLength(2);
+      for (const [callArgs] of paged) {
+        expect(callArgs.sort[0]).toEqual({ 'price.amount': { order: 'asc' } });
+      }
+    });
+
+    it('should bound featured to the promoted slots instead of leading the page', async () => {
+      // The regression: featured was a `weight: 5` scoring signal, and on the
+      // default relevance sort with no text query every document scores a base
+      // 1.0, so the flat +5 outranked everything else combined. Live search came
+      // back 20/20 featured for its first 120 pages.
+      (esService.search as jest.Mock).mockResolvedValue({
+        hits: { total: { value: 40035 }, hits: [] },
+        aggregations: { promoted: { doc_count: 2425 } },
+      });
+
+      await service.search({});
+
+      const [, featured, organic] = (
+        esService.search as jest.Mock
+      ).mock.calls.map((call) => call[0]);
+      expect(featured.query.bool.filter).toEqual([
+        { term: { isFeatured: true } },
+      ]);
+      // Exact complement, so nothing is shown twice and nothing is skipped.
+      expect(organic.query.bool.filter).toEqual([
+        { bool: { must_not: [{ term: { isFeatured: true } }] } },
+      ]);
+      expect(featured.size).toBe(3);
+      expect(organic.size).toBe(17);
     });
 
     it('should fall back to MongoDB when Elasticsearch fails', async () => {
@@ -235,10 +274,31 @@ describe('SearchService', () => {
         },
       });
 
+      // Term tracking is fire-and-forget, so the test cannot await it directly.
+      // Waiting for the call itself is exact and finishes as soon as it lands;
+      // a fixed sleep is a guess about scheduling that only gets worse the
+      // busier the machine is.
+      const tracked = new Promise<void>((resolve) => {
+        redis.zincrby.mockImplementation(() => {
+          resolve();
+          return Promise.resolve('1');
+        });
+      });
+
       await service.search({ q: 'laptop' });
 
-      // Give async tracking time to execute
-      await new Promise((r) => setTimeout(r, 50));
+      // Bounded only so a genuine failure says "never tracked" instead of
+      // sitting until Jest's own timeout with no explanation.
+      await Promise.race([
+        tracked,
+        new Promise<never>((_, reject) =>
+          setTimeout(
+            () => reject(new Error('search term was never tracked')),
+            2000,
+          ).unref(),
+        ),
+      ]);
+
       expect(redis.zincrby).toHaveBeenCalledWith('search:popular', 1, 'laptop');
     });
   });
@@ -1024,9 +1084,11 @@ describe('SearchService', () => {
         exec: jest.fn().mockResolvedValue([]),
       };
       listingModel.find.mockReturnValue(mockQuery);
-      listingModel.countDocuments.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(0),
-      });
+      // Non-zero, and fewer featured than total, so both the promoted and organic
+      // halves of the page are actually queried.
+      listingModel.countDocuments
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(100) })
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(10) });
 
       await service.search({ q: 'bluetooth' });
 
@@ -1050,14 +1112,17 @@ describe('SearchService', () => {
         exec: jest.fn().mockResolvedValue([]),
       };
       listingModel.find.mockReturnValue(mockQuery);
-      listingModel.countDocuments.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(0),
-      });
+      listingModel.countDocuments
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(100) })
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(10) });
 
       await service.search({ cityId: '507f1f77bcf86cd799439011' });
 
-      const filterArg = listingModel.find.mock.calls[0][0];
-      expect(filterArg['location.cityId']).toBeDefined();
+      // Both halves of the page must respect the caller's filters — a promoted
+      // slot may not smuggle in a listing from another city.
+      for (const call of listingModel.find.mock.calls) {
+        expect(call[0]['location.cityId']).toBeDefined();
+      }
     });
 
     it('should apply sort in MongoDB fallback', async () => {
@@ -1071,16 +1136,58 @@ describe('SearchService', () => {
         exec: jest.fn().mockResolvedValue([]),
       };
       listingModel.find.mockReturnValue(mockQuery);
-      listingModel.countDocuments.mockReturnValue({
-        exec: jest.fn().mockResolvedValue(0),
-      });
+      listingModel.countDocuments
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(100) })
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(10) });
 
       await service.search({ sort: SearchSortOption.PRICE_ASC });
 
-      expect(mockQuery.sort).toHaveBeenCalledWith({
-        isFeatured: -1,
-        'price.amount': 1,
-      });
+      // No isFeatured in the sort. It used to lead, so "price: low to high"
+      // returned the cheapest *featured* listing while Elasticsearch was down,
+      // even though the ES path ranks featured as one weighted signal.
+      expect(mockQuery.sort).toHaveBeenCalledWith({ 'price.amount': 1 });
+      expect(mockQuery.sort).not.toHaveBeenCalledWith(
+        expect.objectContaining({ isFeatured: expect.anything() }),
+      );
+    });
+
+    it('should reserve bounded promoted slots in MongoDB fallback', async () => {
+      (esService.search as jest.Mock).mockRejectedValue(new Error('ES down'));
+
+      const mockQuery = {
+        sort: jest.fn().mockReturnThis(),
+        skip: jest.fn().mockReturnThis(),
+        limit: jest.fn().mockReturnThis(),
+        lean: jest.fn().mockReturnThis(),
+        exec: jest.fn().mockResolvedValue([]),
+      };
+      listingModel.find.mockReturnValue(mockQuery);
+      listingModel.countDocuments
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(100) })
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(10) });
+
+      await service.search({});
+
+      const [featuredFilter, organicFilter] = listingModel.find.mock.calls.map(
+        (call: any[]) => call[0],
+      );
+      expect(featuredFilter.isFeatured).toBe(true);
+      expect(featuredFilter.featuredUntil.$gt).toBeInstanceOf(Date);
+      // The organic half is the exact complement, so nothing appears twice and
+      // nothing drops out of the result set.
+      expect(organicFilter.isFeatured).toBeUndefined();
+      expect(organicFilter.$and).toEqual([
+        {
+          $or: [
+            { isFeatured: { $ne: true } },
+            { featuredUntil: { $lte: expect.any(Date) } },
+            { featuredUntil: { $exists: false } },
+          ],
+        },
+      ]);
+      // 3 promoted of a 20-item page, and the rest organic.
+      expect(mockQuery.limit).toHaveBeenNthCalledWith(1, 3);
+      expect(mockQuery.limit).toHaveBeenNthCalledWith(2, 17);
     });
   });
 

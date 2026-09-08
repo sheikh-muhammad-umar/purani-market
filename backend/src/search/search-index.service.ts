@@ -4,8 +4,6 @@ import { ElasticsearchService } from '@nestjs/elasticsearch';
 export const LISTINGS_INDEX = 'product_listings';
 export const SHORTS_INDEX = 'short_videos';
 
-export const FEATURED_BOOST_FACTOR = 5;
-
 /** Minimal mapping for shorts — enough to search title/description and filter. */
 export const shortsIndexMapping = {
   properties: {

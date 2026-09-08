@@ -168,16 +168,13 @@ export class HomeComponent implements OnInit {
       }
     } catch {}
 
+    // No fallback to latest listings here. Backfilling this section put
+    // unfeatured ads under a "Featured Ads" heading, which misrepresents them and
+    // devalues the slot sellers pay for. An empty result renders the section's
+    // empty state instead.
     this.listingsService.getFeaturedFiltered({ city, limit: FEATURED_ADS_LIMIT }).subscribe({
       next: (res) => {
-        const data = res.data ?? [];
-        if (data.length > 0) {
-          this.featuredListings.set(data);
-        } else {
-          this.getLatestListings().subscribe({
-            next: (listings) => this.featuredListings.set(listings.slice(0, 10)),
-          });
-        }
+        this.featuredListings.set(res.data ?? []);
         this.loadingFeatured.set(false);
       },
       error: () => this.loadingFeatured.set(false),

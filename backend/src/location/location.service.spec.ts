@@ -119,5 +119,50 @@ describe('LocationService', () => {
       const result = await service.findNearby({ cityId: validCityId }, 200);
       expect(result.limit).toBe(100);
     });
+
+    it('should not sort by isFeatured', async () => {
+      // `isFeatured: -1` led this sort, so once the cascade fell back to a wider
+      // level every featured listing came before any organic one and the rail
+      // showed nothing but featured ads.
+      await service.findNearby({ cityId: validCityId });
+
+      const sortArg = mockListingModel.find.mock.results[0].value.sort.mock
+        .calls[0][0] as Record<string, number>;
+      expect(sortArg).toEqual({ createdAt: -1 });
+    });
+
+    it('should reserve bounded promoted slots', async () => {
+      mockListingModel.countDocuments
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(100) })
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(10) });
+
+      await service.findNearby({ cityId: validCityId }, 20);
+
+      const [featuredFilter, organicFilter] =
+        mockListingModel.find.mock.calls.map((call: any[]) => call[0]);
+      expect(featuredFilter.isFeatured).toBe(true);
+      expect(featuredFilter.featuredUntil.$gt).toBeInstanceOf(Date);
+      expect(organicFilter.isFeatured).toBeUndefined();
+      // Both halves stay inside the location the caller asked for.
+      expect(featuredFilter['location.cityId']).toBeDefined();
+      expect(organicFilter['location.cityId']).toBeDefined();
+    });
+
+    it('should scale slots down for the smaller home rail', async () => {
+      // The "Near You" rail asks for 12. A flat three would make a quarter of it
+      // promoted, so the slot count follows the page size.
+      mockListingModel.countDocuments
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(100) })
+        .mockReturnValueOnce({ exec: jest.fn().mockResolvedValue(10) });
+
+      await service.findNearby({ cityId: validCityId }, 12);
+
+      // The mock hands back one shared query object, so both calls land on it.
+      const limitCalls =
+        mockListingModel.find.mock.results[0].value.limit.mock.calls.map(
+          (call: any[]) => call[0],
+        );
+      expect(limitCalls).toEqual([2, 10]);
+    });
   });
 });

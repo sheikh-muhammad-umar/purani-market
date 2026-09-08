@@ -7,11 +7,7 @@ import {
 import { InjectConnection } from '@nestjs/mongoose';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { Connection } from 'mongoose';
-import {
-  LISTINGS_INDEX,
-  SHORTS_INDEX,
-  FEATURED_BOOST_FACTOR,
-} from './search-index.service.js';
+import { LISTINGS_INDEX, SHORTS_INDEX } from './search-index.service.js';
 import { DEFAULT_CURRENCY } from '../common/constants/index.js';
 
 export interface ListingDocument {
@@ -373,7 +369,25 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
     }
   }
 
-  buildFeaturedBoostQuery(
+  /**
+   * Wraps a query with the recency and popularity ranking signals.
+   *
+   * There is deliberately no featured signal here.
+   *
+   * This used to add `weight: FEATURED_BOOST_FACTOR` (5) for featured listings,
+   * which was described as a boost but behaved as a gate. `boost_mode: multiply`
+   * against a `match_all` base query — what the search page issues when there is
+   * no text query, which is its default — leaves every document with a base score
+   * of 1.0, so the function sum *is* the score. A flat +5 exceeds the realistic
+   * ceiling of the other three signals combined (recency caps at 1.5, and the
+   * view and favourite terms are log-damped), so every featured listing outranked
+   * every organic one. Measured against the live index: pages 1 through 120 of the
+   * default search came back 20/20 featured.
+   *
+   * Promotion is structural now — a bounded number of pinned slots per page, see
+   * `promoted-slots.ts` — so scoring it here as well would count it twice.
+   */
+  buildRankingQuery(
     baseQuery: any,
     ranking?: {
       recencyScale?: string;
@@ -391,11 +405,6 @@ export class SearchSyncService implements OnModuleInit, OnModuleDestroy {
       function_score: {
         query: baseQuery,
         functions: [
-          // Featured listings get a significant boost
-          {
-            filter: { term: { isFeatured: true } },
-            weight: FEATURED_BOOST_FACTOR,
-          },
           // Recency boost — newer listings score higher
           {
             gauss: {

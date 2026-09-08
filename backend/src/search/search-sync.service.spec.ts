@@ -2,7 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { getConnectionToken } from '@nestjs/mongoose';
 import { ElasticsearchService } from '@nestjs/elasticsearch';
 import { SearchSyncService } from './search-sync.service';
-import { LISTINGS_INDEX, FEATURED_BOOST_FACTOR } from './search-index.service';
+import { LISTINGS_INDEX } from './search-index.service';
 
 describe('SearchSyncService', () => {
   let service: SearchSyncService;
@@ -396,10 +396,10 @@ describe('SearchSyncService', () => {
     });
   });
 
-  describe('buildFeaturedBoostQuery', () => {
-    it('should wrap a base query with function_score including featured, recency, and popularity boosts', () => {
+  describe('buildRankingQuery', () => {
+    it('should wrap a base query with function_score including recency and popularity', () => {
       const baseQuery = { match: { title: 'iphone' } };
-      const result = service.buildFeaturedBoostQuery(baseQuery);
+      const result = service.buildRankingQuery(baseQuery);
 
       expect(result.function_score).toBeDefined();
       expect(result.function_score.query).toEqual(baseQuery);
@@ -407,25 +407,33 @@ describe('SearchSyncService', () => {
       expect(result.function_score.score_mode).toBe('sum');
 
       const functions = result.function_score.functions;
-      // Featured boost
-      expect(functions[0]).toEqual({
-        filter: { term: { isFeatured: true } },
-        weight: FEATURED_BOOST_FACTOR,
-      });
       // Recency decay
-      expect(functions[1].gauss).toBeDefined();
-      expect(functions[1].gauss.createdAt).toBeDefined();
+      expect(functions[0].gauss).toBeDefined();
+      expect(functions[0].gauss.createdAt).toBeDefined();
       // View count boost
-      expect(functions[2].field_value_factor.field).toBe('viewCount');
+      expect(functions[1].field_value_factor.field).toBe('viewCount');
       // Favorite count boost
-      expect(functions[3].field_value_factor.field).toBe('favoriteCount');
+      expect(functions[2].field_value_factor.field).toBe('favoriteCount');
     });
 
-    it('should use the correct boost factor for featured', () => {
-      const result = service.buildFeaturedBoostQuery({ match_all: {} });
-      expect(result.function_score.functions[0].weight).toBe(
-        FEATURED_BOOST_FACTOR,
-      );
+    it('should not score featured listings at all', () => {
+      // A `weight: 5` featured function used to lead this list. Against the
+      // default relevance sort with no text query every document scores a base
+      // 1.0, so a flat +5 exceeded everything the other signals could reach and
+      // put all 2,425 featured listings ahead of all 37,610 organic ones —
+      // pages 1 to 120 of live search were 20/20 featured.
+      //
+      // Promotion is a bounded number of pinned slots per page now, so scoring it
+      // here as well would count it twice.
+      const result = service.buildRankingQuery({ match_all: {} });
+      const functions = result.function_score.functions as {
+        filter?: { term?: { isFeatured?: boolean } };
+      }[];
+
+      expect(functions).toHaveLength(3);
+      expect(
+        functions.some((fn) => fn.filter?.term?.isFeatured !== undefined),
+      ).toBe(false);
     });
   });
 });
