@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, signal, computed, HostListener } from '@a
 import { CommonModule } from '@angular/common';
 import { NumberToWordsPipe } from '../../../shared/pipes/number-to-words.pipe';
 import {
+  FormsModule,
   ReactiveFormsModule,
   FormBuilder,
   FormGroup,
@@ -34,6 +35,10 @@ import { saveState, loadState, clearState } from '../../../core/utils/state-pers
 import { computeFileHash } from '../../../core/utils/file-hash';
 import { ERROR_MSG } from '../../../core/constants/error-messages';
 import { mapLinkValidator } from '../../../core/utils/map-link';
+import {
+  CustomSelectComponent,
+  SelectOption,
+} from '../../../shared/components/custom-select/custom-select.component';
 import { AvailablePackagesComponent } from './available-packages/available-packages.component';
 import { PromoBannerComponent } from '../../../shared/components/promo-banner/promo-banner.component';
 import { AppLoaderComponent } from '../../../shared/components/app-loader/app-loader.component';
@@ -66,13 +71,20 @@ export interface MediaItem {
  */
 const CREATE_BASE_DETAIL_KEYS = new Set(['title', 'description', 'price', 'condition']);
 
+/** Categories as `app-custom-select` options, keyed by id so renames stay safe. */
+function toCategoryOptions(categories: Category[]): SelectOption[] {
+  return categories.map((c) => ({ value: c._id, label: c.name }));
+}
+
 @Component({
   selector: 'app-create-listing',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     RouterLink,
+    CustomSelectComponent,
     AvailablePackagesComponent,
     PromoBannerComponent,
     NumberToWordsPipe,
@@ -110,6 +122,16 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   selectedCategory = computed(
     () => this.selectedLevel3() ?? this.selectedLevel2() ?? this.selectedLevel1(),
   );
+
+  // Category dropdown bindings — the pickers are searchable selects, so each
+  // level is exposed as options plus the currently selected id.
+  level1Options = computed<SelectOption[]>(() => toCategoryOptions(this.level1Categories()));
+  level2Options = computed<SelectOption[]>(() => toCategoryOptions(this.level2Categories()));
+  level3Options = computed<SelectOption[]>(() => toCategoryOptions(this.level3Categories()));
+  selectedLevel1Id = computed(() => this.selectedLevel1()?._id ?? '');
+  selectedLevel2Id = computed(() => this.selectedLevel2()?._id ?? '');
+  selectedLevel3Id = computed(() => this.selectedLevel3()?._id ?? '');
+
   categoryAttributes = signal<CategoryAttribute[]>([]);
   /** Cities per `province_city` attribute key, loaded on province selection. */
   attrCities = signal<Record<string, City[]>>({});
@@ -443,6 +465,21 @@ export class CreateListingComponent implements OnInit, OnDestroy {
   }
 
   // --- Category Step ---
+  onLevel1Change(id: string): void {
+    const cat = this.level1Categories().find((c) => c._id === id);
+    if (cat) this.selectLevel1(cat);
+  }
+
+  onLevel2Change(id: string): void {
+    const cat = this.level2Categories().find((c) => c._id === id);
+    if (cat) this.selectLevel2(cat);
+  }
+
+  onLevel3Change(id: string): void {
+    const cat = this.level3Categories().find((c) => c._id === id);
+    if (cat) this.selectLevel3(cat);
+  }
+
   selectLevel1(cat: Category): void {
     this.selectedLevel1.set(cat);
     this.selectedLevel2.set(null);

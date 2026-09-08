@@ -2,6 +2,7 @@ import { Component, OnInit, OnDestroy, signal, computed, HostListener } from '@a
 import { CommonModule } from '@angular/common';
 import { NumberToWordsPipe } from '../../../shared/pipes/number-to-words.pipe';
 import {
+  FormsModule,
   ReactiveFormsModule,
   FormBuilder,
   FormGroup,
@@ -9,7 +10,10 @@ import {
   FormControl,
 } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
-import { CustomSelectComponent } from '../../../shared/components/custom-select/custom-select.component';
+import {
+  CustomSelectComponent,
+  SelectOption,
+} from '../../../shared/components/custom-select/custom-select.component';
 import { Subject, takeUntil, forkJoin, of } from 'rxjs';
 import { map, catchError } from 'rxjs/operators';
 import { CategoriesService } from '../../../core/services/categories.service';
@@ -54,11 +58,17 @@ import {
  */
 const EDIT_BASE_DETAIL_KEYS = new Set(['title', 'description', 'price', 'condition']);
 
+/** Categories as `app-custom-select` options, keyed by id so renames stay safe. */
+function toCategoryOptions(categories: Category[]): SelectOption[] {
+  return categories.map((c) => ({ value: c._id, label: c.name }));
+}
+
 @Component({
   selector: 'app-edit-listing',
   standalone: true,
   imports: [
     CommonModule,
+    FormsModule,
     ReactiveFormsModule,
     CustomSelectComponent,
     NumberToWordsPipe,
@@ -96,6 +106,16 @@ export class EditListingComponent implements OnInit, OnDestroy {
   selectedCategory = computed(
     () => this.selectedLevel3() ?? this.selectedLevel2() ?? this.selectedLevel1(),
   );
+
+  // Category dropdown bindings — the pickers are searchable selects, so each
+  // level is exposed as options plus the currently selected id.
+  level1Options = computed<SelectOption[]>(() => toCategoryOptions(this.level1Categories()));
+  level2Options = computed<SelectOption[]>(() => toCategoryOptions(this.level2Categories()));
+  level3Options = computed<SelectOption[]>(() => toCategoryOptions(this.level3Categories()));
+  selectedLevel1Id = computed(() => this.selectedLevel1()?._id ?? '');
+  selectedLevel2Id = computed(() => this.selectedLevel2()?._id ?? '');
+  selectedLevel3Id = computed(() => this.selectedLevel3()?._id ?? '');
+
   categoryAttributes = signal<CategoryAttribute[]>([]);
   /** Cities per `province_city` attribute key, loaded on province selection. */
   attrCities = signal<Record<string, City[]>>({});
@@ -486,6 +506,21 @@ export class EditListingComponent implements OnInit, OnDestroy {
   }
 
   // --- Category ---
+  onLevel1Change(id: string): void {
+    const cat = this.level1Categories().find((c) => c._id === id);
+    if (cat) this.selectLevel1(cat);
+  }
+
+  onLevel2Change(id: string): void {
+    const cat = this.level2Categories().find((c) => c._id === id);
+    if (cat) this.selectLevel2(cat);
+  }
+
+  onLevel3Change(id: string): void {
+    const cat = this.level3Categories().find((c) => c._id === id);
+    if (cat) this.selectLevel3(cat);
+  }
+
   selectLevel1(cat: Category): void {
     this.selectedLevel1.set(cat);
     this.selectedLevel2.set(null);

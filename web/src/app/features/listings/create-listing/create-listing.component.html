@@ -59,53 +59,38 @@
           <div class="category-selection">
             <div class="category-level">
               <h4>Category</h4>
-              <div class="category-grid">
-                @for (cat of level1Categories(); track cat._id) {
-                  <button
-                    class="category-chip"
-                    [class.selected]="selectedLevel1()?._id === cat._id"
-                    (click)="selectLevel1(cat)"
-                    type="button"
-                  >
-                    {{ cat.name }}
-                  </button>
-                }
-              </div>
+              <app-custom-select
+                [options]="level1Options()"
+                placeholder="Select category"
+                [searchable]="true"
+                [ngModel]="selectedLevel1Id()"
+                (ngModelChange)="onLevel1Change($event)"
+              />
             </div>
 
-            @if (level2Categories().length > 0) {
+            @if (level2Options().length > 0) {
               <div class="category-level">
                 <h4>Subcategory</h4>
-                <div class="category-grid">
-                  @for (cat of level2Categories(); track cat._id) {
-                    <button
-                      class="category-chip"
-                      [class.selected]="selectedLevel2()?._id === cat._id"
-                      (click)="selectLevel2(cat)"
-                      type="button"
-                    >
-                      {{ cat.name }}
-                    </button>
-                  }
-                </div>
+                <app-custom-select
+                  [options]="level2Options()"
+                  placeholder="Select subcategory"
+                  [searchable]="true"
+                  [ngModel]="selectedLevel2Id()"
+                  (ngModelChange)="onLevel2Change($event)"
+                />
               </div>
             }
 
-            @if (level3Categories().length > 0) {
+            @if (level3Options().length > 0) {
               <div class="category-level">
                 <h4>Sub-subcategory</h4>
-                <div class="category-grid">
-                  @for (cat of level3Categories(); track cat._id) {
-                    <button
-                      class="category-chip"
-                      [class.selected]="selectedLevel3()?._id === cat._id"
-                      (click)="selectLevel3(cat)"
-                      type="button"
-                    >
-                      {{ cat.name }}
-                    </button>
-                  }
-                </div>
+                <app-custom-select
+                  [options]="level3Options()"
+                  placeholder="Select sub-subcategory"
+                  [searchable]="true"
+                  [ngModel]="selectedLevel3Id()"
+                  (ngModelChange)="onLevel3Change($event)"
+                />
               </div>
             }
           </div>
