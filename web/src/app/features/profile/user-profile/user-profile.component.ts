@@ -129,12 +129,10 @@ export class UserProfileComponent implements OnInit {
     this.successMessage.set('');
 
     const payload = {
-      profile: {
-        firstName: this.profileForm.value.firstName,
-        lastName: this.profileForm.value.lastName,
-        city: this.profileForm.value.city,
-        postalCode: this.profileForm.value.postalCode,
-      },
+      firstName: this.profileForm.value.firstName,
+      lastName: this.profileForm.value.lastName,
+      city: this.profileForm.value.city,
+      postalCode: this.profileForm.value.postalCode,
     };
 
     this.http.patch<User>(`${this.apiUrl}${API.USERS_ME}`, payload).subscribe({

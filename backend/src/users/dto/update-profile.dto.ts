@@ -3,6 +3,7 @@ import {
   IsOptional,
   IsNumber,
   IsArray,
+  IsBoolean,
   ValidateNested,
   ArrayMinSize,
   ArrayMaxSize,
@@ -20,6 +21,28 @@ export class UpdateLocationDto {
   @ArrayMaxSize(2)
   @IsOptional()
   coordinates?: number[];
+}
+
+export class UpdateNotificationPreferencesDto {
+  @IsBoolean()
+  @IsOptional()
+  messages?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  offers?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  productUpdates?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  promotions?: boolean;
+
+  @IsBoolean()
+  @IsOptional()
+  packageAlerts?: boolean;
 }
 
 export class UpdateProfileDto {
@@ -47,4 +70,9 @@ export class UpdateProfileDto {
   @IsString()
   @IsOptional()
   postalCode?: string;
+
+  @ValidateNested()
+  @Type(() => UpdateNotificationPreferencesDto)
+  @IsOptional()
+  notificationPreferences?: UpdateNotificationPreferencesDto;
 }

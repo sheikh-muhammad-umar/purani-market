@@ -56,6 +56,22 @@ export class UsersService {
       updateFields['profile.postalCode'] = dto.postalCode;
     }
 
+    if (dto.notificationPreferences !== undefined) {
+      for (const [key, value] of Object.entries(dto.notificationPreferences)) {
+        if (value !== undefined) {
+          updateFields[`notificationPreferences.${key}`] = value;
+        }
+      }
+    }
+
+    if (Object.keys(updateFields).length === 0) {
+      const current = await this.userModel.findById(userId).exec();
+      if (!current) {
+        throw new NotFoundException(PUBLIC_ERROR.NOT_FOUND);
+      }
+      return current;
+    }
+
     const user = await this.userModel
       .findByIdAndUpdate(userId, { $set: updateFields }, { new: true })
       .exec();
