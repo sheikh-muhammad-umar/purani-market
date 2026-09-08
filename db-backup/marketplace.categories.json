@@ -1,0 +1,7287 @@
+[{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef1c"
+  },
+  "name": "Mobiles",
+  "slug": "mobiles",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.791Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-30T02:34:38.808Z"
+  },
+  "hasBrands": true,
+  "icon": "mobiles.png",
+  "__v": 3
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef1d"
+  },
+  "name": "Mobile Phones",
+  "slug": "mobile-phones",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1c"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [
+    {
+      "name": "Model",
+      "key": "model",
+      "type": "text",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Storage",
+      "key": "storage",
+      "type": "select",
+      "options": [
+        "16GB",
+        "32GB",
+        "64GB",
+        "128GB",
+        "256GB",
+        "512GB",
+        "1TB"
+      ],
+      "required": true
+    },
+    {
+      "name": "RAM",
+      "key": "ram",
+      "type": "select",
+      "options": [
+        "2GB",
+        "3GB",
+        "4GB",
+        "6GB",
+        "8GB",
+        "12GB",
+        "16GB"
+      ],
+      "required": false
+    },
+    {
+      "name": "PTA Status",
+      "key": "pta_status",
+      "type": "select",
+      "options": [
+        "PTA Approved",
+        "Non-PTA",
+        "JV",
+        "CPID"
+      ],
+      "required": true
+    },
+    {
+      "name": "Battery Health",
+      "key": "battery_health",
+      "type": "text",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "options": [],
+      "required": false
+    }
+  ],
+  "features": [
+    "Charger",
+    "Box",
+    "Earphones",
+    "Screen Protector",
+    "Back Cover",
+    "Receipt/Warranty Card"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.793Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T22:58:04.132Z"
+  },
+  "__v": 1,
+  "hasBrands": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "name": "Accessories",
+  "slug": "mobile-accessories",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1c"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.794Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.794Z"
+  },
+  "hasBrands": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef1f"
+  },
+  "name": "Earphones",
+  "slug": "earphones",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.795Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.795Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef20"
+  },
+  "name": "Headphones",
+  "slug": "headphones",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.796Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.796Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef21"
+  },
+  "name": "Chargers",
+  "slug": "chargers",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.796Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.796Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef22"
+  },
+  "name": "Covers & Cases",
+  "slug": "covers-cases",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.797Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.797Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef23"
+  },
+  "name": "Power Banks",
+  "slug": "power-banks",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.798Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.798Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef24"
+  },
+  "name": "Charging Cables",
+  "slug": "charging-cables",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.800Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.800Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef25"
+  },
+  "name": "Screen Protectors",
+  "slug": "screen-protectors",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.801Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.801Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef26"
+  },
+  "name": "Mobile Stands",
+  "slug": "mobile-stands",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 8,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.802Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.802Z"
+  },
+  "hasBrands": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef27"
+  },
+  "name": "Selfie Sticks",
+  "slug": "selfie-sticks",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 9,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.802Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.802Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef28"
+  },
+  "name": "Ring Lights",
+  "slug": "ring-lights",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 10,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.803Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.803Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef29"
+  },
+  "name": "External Memory",
+  "slug": "external-memory",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 11,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.803Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.803Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef2a"
+  },
+  "name": "Converters",
+  "slug": "converters",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 12,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.804Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.804Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef2b"
+  },
+  "name": "Screens",
+  "slug": "screens",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 13,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.805Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.805Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef2c"
+  },
+  "name": "Other Accessories",
+  "slug": "other-mobile-accessories",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1e"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 14,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.805Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.805Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef2d"
+  },
+  "name": "Smart Watches",
+  "slug": "smart-watches",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1c"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [
+    {
+      "name": "Brand",
+      "key": "brand",
+      "type": "text",
+      "required": false,
+      "options": []
+    },
+    {
+      "name": "Connectivity",
+      "key": "connectivity",
+      "type": "select",
+      "options": [
+        "Bluetooth",
+        "WiFi",
+        "Cellular"
+      ],
+      "required": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.806Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.806Z"
+  },
+  "hasBrands": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef2e"
+  },
+  "name": "Tablets",
+  "slug": "tablets",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef1c"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [
+    {
+      "name": "Brand",
+      "key": "brand",
+      "type": "select",
+      "options": [
+        "Apple",
+        "Samsung",
+        "Huawei",
+        "Lenovo",
+        "Amazon"
+      ],
+      "required": false
+    },
+    {
+      "name": "Storage",
+      "key": "storage",
+      "type": "select",
+      "options": [
+        "32GB",
+        "64GB",
+        "128GB",
+        "256GB",
+        "512GB",
+        "1TB"
+      ],
+      "required": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.806Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.806Z"
+  },
+  "hasBrands": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef2f"
+  },
+  "name": "Vehicles",
+  "slug": "vehicles",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.807Z"
+  },
+  "updatedAt": {
+    "$date": "2026-08-30T02:34:38.807Z"
+  },
+  "hasBrands": false,
+  "icon": "vehicles.png"
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef30"
+  },
+  "name": "Cars",
+  "slug": "cars",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef2f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [
+    {
+      "name": "Year",
+      "key": "year",
+      "type": "year",
+      "options": [],
+      "required": true
+    },
+    {
+      "name": "Mileage",
+      "key": "mileage",
+      "type": "number",
+      "options": [],
+      "required": false,
+      "unit": "km"
+    },
+    {
+      "name": "Fuel Type",
+      "key": "fuel_type",
+      "type": "select",
+      "options": [
+        "Petrol",
+        "Diesel",
+        "CNG",
+        "Hybrid",
+        "Electric",
+        "LPG"
+      ],
+      "required": false
+    },
+    {
+      "name": "Transmission",
+      "key": "transmission",
+      "type": "select",
+      "options": [
+        "Automatic",
+        "Manual"
+      ],
+      "required": false
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Body Type",
+      "key": "body_type",
+      "type": "select",
+      "options": [
+        "Sedan",
+        "Hatchback",
+        "SUV",
+        "MPV",
+        "Pickup",
+        "Coupe",
+        "Crossover",
+        "Van",
+        "Wagon"
+      ],
+      "required": false
+    },
+    {
+      "name": "Engine Capacity",
+      "key": "engine_cc",
+      "type": "number",
+      "options": [],
+      "required": false,
+      "unit": "cc"
+    },
+    {
+      "name": "Number of Owners",
+      "key": "owners",
+      "type": "number",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Registration City",
+      "key": "registration_city",
+      "type": "province_city",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Assembly",
+      "key": "assembly",
+      "type": "select",
+      "options": [
+        "Local",
+        "Imported"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "ABS",
+    "Air Bags",
+    "Air Conditioning",
+    "Alloy Rims",
+    "AM/FM Radio",
+    "CD Player",
+    "Cool Box",
+    "Cruise Control",
+    "Climate Control",
+    "DVD Player",
+    "Front Camera",
+    "Heated Seats",
+    "Immobilizer Key",
+    "Keyless Entry",
+    "Navigation System",
+    "Power Locks",
+    "Power Mirrors",
+    "Power Steering",
+    "Power Windows",
+    "Rear AC Vent",
+    "Rear Camera",
+    "Sun Roof",
+    "Steering Switches",
+    "USB & Auxillary Cable"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.807Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T22:58:04.137Z"
+  },
+  "__v": 6,
+  "hasRegistrationCity": true,
+  "hasBrands": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef31"
+  },
+  "name": "Cars Accessories",
+  "slug": "cars-accessories",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef2f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.808Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.808Z"
+  },
+  "hasRegistrationCity": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef32"
+  },
+  "name": "Spare Parts",
+  "slug": "car-spare-parts",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef2f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.809Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.809Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef33"
+  },
+  "name": "Buses, Vans & Trucks",
+  "slug": "buses-vans-trucks",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef2f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [
+    {
+      "name": "Make",
+      "key": "make",
+      "type": "select",
+      "options": [
+        "Toyota",
+        "Honda",
+        "Suzuki",
+        "Hyundai",
+        "KIA",
+        "BMW",
+        "Mercedes",
+        "Audi",
+        "Nissan",
+        "Mitsubishi",
+        "Daihatsu",
+        "Changan",
+        "MG",
+        "Proton",
+        "FAW",
+        "Prince",
+        "United"
+      ],
+      "required": true
+    },
+    {
+      "name": "Model",
+      "key": "model",
+      "type": "text",
+      "options": [],
+      "required": true
+    },
+    {
+      "name": "Year",
+      "key": "year",
+      "type": "year",
+      "options": [],
+      "required": true
+    },
+    {
+      "name": "Mileage",
+      "key": "mileage",
+      "type": "number",
+      "options": [],
+      "required": false,
+      "unit": "km"
+    },
+    {
+      "name": "Fuel Type",
+      "key": "fuel_type",
+      "type": "select",
+      "options": [
+        "Petrol",
+        "Diesel",
+        "CNG",
+        "Hybrid",
+        "Electric",
+        "LPG"
+      ],
+      "required": false
+    },
+    {
+      "name": "Transmission",
+      "key": "transmission",
+      "type": "select",
+      "options": [
+        "Automatic",
+        "Manual"
+      ],
+      "required": false
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Body Type",
+      "key": "body_type",
+      "type": "select",
+      "options": [
+        "Sedan",
+        "Hatchback",
+        "SUV",
+        "MPV",
+        "Pickup",
+        "Coupe",
+        "Crossover",
+        "Van",
+        "Wagon"
+      ],
+      "required": false
+    },
+    {
+      "name": "Engine Capacity",
+      "key": "engine_cc",
+      "type": "number",
+      "options": [],
+      "required": false,
+      "unit": "cc"
+    },
+    {
+      "name": "Number of Owners",
+      "key": "owners",
+      "type": "number",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Registration City",
+      "key": "registration_city",
+      "type": "province_city",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Assembly",
+      "key": "assembly",
+      "type": "select",
+      "options": [
+        "Local",
+        "Imported"
+      ],
+      "required": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.810Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T18:31:56.736Z"
+  },
+  "__v": 1,
+  "hasBrands": false,
+  "hasRegistrationCity": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef34"
+  },
+  "name": "Rickshaw & Chingchi",
+  "slug": "rickshaw-chingchi",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef2f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [
+    {
+      "name": "Make",
+      "key": "make",
+      "type": "select",
+      "options": [
+        "Toyota",
+        "Honda",
+        "Suzuki",
+        "Hyundai",
+        "KIA",
+        "BMW",
+        "Mercedes",
+        "Audi",
+        "Nissan",
+        "Mitsubishi",
+        "Daihatsu",
+        "Changan",
+        "MG",
+        "Proton",
+        "FAW",
+        "Prince",
+        "United"
+      ],
+      "required": true
+    },
+    {
+      "name": "Model",
+      "key": "model",
+      "type": "text",
+      "options": [],
+      "required": true
+    },
+    {
+      "name": "Year",
+      "key": "year",
+      "type": "year",
+      "options": [],
+      "required": true
+    },
+    {
+      "name": "Mileage",
+      "key": "mileage",
+      "type": "number",
+      "options": [],
+      "required": false,
+      "unit": "km"
+    },
+    {
+      "name": "Fuel Type",
+      "key": "fuel_type",
+      "type": "select",
+      "options": [
+        "Petrol",
+        "Diesel",
+        "CNG",
+        "Hybrid",
+        "Electric",
+        "LPG"
+      ],
+      "required": false
+    },
+    {
+      "name": "Transmission",
+      "key": "transmission",
+      "type": "select",
+      "options": [
+        "Automatic",
+        "Manual"
+      ],
+      "required": false
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Body Type",
+      "key": "body_type",
+      "type": "select",
+      "options": [
+        "Sedan",
+        "Hatchback",
+        "SUV",
+        "MPV",
+        "Pickup",
+        "Coupe",
+        "Crossover",
+        "Van",
+        "Wagon"
+      ],
+      "required": false
+    },
+    {
+      "name": "Engine Capacity",
+      "key": "engine_cc",
+      "type": "number",
+      "options": [],
+      "required": false,
+      "unit": "cc"
+    },
+    {
+      "name": "Number of Owners",
+      "key": "owners",
+      "type": "number",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Registration City",
+      "key": "registration_city",
+      "type": "province_city",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Assembly",
+      "key": "assembly",
+      "type": "select",
+      "options": [
+        "Local",
+        "Imported"
+      ],
+      "required": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.812Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.812Z"
+  },
+  "hasRegistrationCity": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef35"
+  },
+  "name": "Tractors & Trailers",
+  "slug": "tractors-trailers",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef2f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [
+    {
+      "name": "Make",
+      "key": "make",
+      "type": "select",
+      "options": [
+        "Toyota",
+        "Honda",
+        "Suzuki",
+        "Hyundai",
+        "KIA",
+        "BMW",
+        "Mercedes",
+        "Audi",
+        "Nissan",
+        "Mitsubishi",
+        "Daihatsu",
+        "Changan",
+        "MG",
+        "Proton",
+        "FAW",
+        "Prince",
+        "United"
+      ],
+      "required": true
+    },
+    {
+      "name": "Model",
+      "key": "model",
+      "type": "text",
+      "options": [],
+      "required": true
+    },
+    {
+      "name": "Year",
+      "key": "year",
+      "type": "year",
+      "options": [],
+      "required": true
+    },
+    {
+      "name": "Mileage",
+      "key": "mileage",
+      "type": "number",
+      "options": [],
+      "required": false,
+      "unit": "km"
+    },
+    {
+      "name": "Fuel Type",
+      "key": "fuel_type",
+      "type": "select",
+      "options": [
+        "Petrol",
+        "Diesel",
+        "CNG",
+        "Hybrid",
+        "Electric",
+        "LPG"
+      ],
+      "required": false
+    },
+    {
+      "name": "Transmission",
+      "key": "transmission",
+      "type": "select",
+      "options": [
+        "Automatic",
+        "Manual"
+      ],
+      "required": false
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Body Type",
+      "key": "body_type",
+      "type": "select",
+      "options": [
+        "Sedan",
+        "Hatchback",
+        "SUV",
+        "MPV",
+        "Pickup",
+        "Coupe",
+        "Crossover",
+        "Van",
+        "Wagon"
+      ],
+      "required": false
+    },
+    {
+      "name": "Engine Capacity",
+      "key": "engine_cc",
+      "type": "number",
+      "options": [],
+      "required": false,
+      "unit": "cc"
+    },
+    {
+      "name": "Number of Owners",
+      "key": "owners",
+      "type": "number",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Registration City",
+      "key": "registration_city",
+      "type": "province_city",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Assembly",
+      "key": "assembly",
+      "type": "select",
+      "options": [
+        "Local",
+        "Imported"
+      ],
+      "required": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.817Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.817Z"
+  },
+  "hasRegistrationCity": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef36"
+  },
+  "name": "Cars on Installments",
+  "slug": "cars-installments",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef2f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.817Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.817Z"
+  },
+  "hasRegistrationCity": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef37"
+  },
+  "name": "Boats",
+  "slug": "boats",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef2f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 8,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.818Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.818Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef38"
+  },
+  "name": "Other Vehicles",
+  "slug": "other-vehicles",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef2f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 9,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.818Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.818Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef39"
+  },
+  "name": "Property for Sale",
+  "slug": "property-sale",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [
+    {
+      "name": "Area Size",
+      "key": "area_size",
+      "type": "number",
+      "options": [],
+      "required": false,
+      "unit": "sq ft",
+      "allowOther": false
+    },
+    {
+      "name": "Area Unit",
+      "key": "area_unit",
+      "type": "select",
+      "options": [
+        "Marla",
+        "Kanal",
+        "Sq. Ft.",
+        "Sq. Yd.",
+        "Sq. M."
+      ],
+      "required": false,
+      "allowOther": false
+    },
+    {
+      "name": "Location",
+      "key": "location",
+      "type": "province_city",
+      "options": [],
+      "required": false,
+      "allowOther": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.819Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-23T23:12:17.862Z"
+  },
+  "hasBrands": false,
+  "icon": "property-for-sale.png",
+  "__v": 1
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef3a"
+  },
+  "name": "Land & Plots",
+  "slug": "land-plots-sale",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef39"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.819Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.819Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef3b"
+  },
+  "name": "Houses",
+  "slug": "houses-sale",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef39"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [
+    {
+      "name": "Bedrooms",
+      "key": "bedrooms",
+      "type": "number",
+      "required": false,
+      "options": []
+    },
+    {
+      "name": "Bathrooms",
+      "key": "bathrooms",
+      "type": "number",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Parking",
+    "Lawn/Garden",
+    "Servant Quarter",
+    "Drawing Room",
+    "Dining Room",
+    "Store Room",
+    "Laundry Room",
+    "Study Room",
+    "Powder Room",
+    "Gym",
+    "Swimming Pool",
+    "Security",
+    "CCTV",
+    "Boundary Wall",
+    "Electricity Backup",
+    "Gas",
+    "Water Supply",
+    "Sewerage"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.820Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.820Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef3c"
+  },
+  "name": "Apartments & Flats",
+  "slug": "apartments-sale",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef39"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [
+    {
+      "name": "Bedrooms",
+      "key": "bedrooms",
+      "type": "number",
+      "required": false,
+      "options": []
+    },
+    {
+      "name": "Bathrooms",
+      "key": "bathrooms",
+      "type": "number",
+      "required": false,
+      "options": []
+    },
+    {
+      "name": "Floor",
+      "key": "floor",
+      "type": "number",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Lift/Elevator",
+    "Parking",
+    "Security",
+    "CCTV",
+    "Intercom",
+    "Electricity Backup",
+    "Gas",
+    "Central Heating",
+    "Central Cooling"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.820Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.820Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef3d"
+  },
+  "name": "Shops - Offices - Commercial",
+  "slug": "commercial-sale",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef39"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.821Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.821Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef3e"
+  },
+  "name": "Portions & Floors",
+  "slug": "portions-sale",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef39"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.821Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.821Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef3f"
+  },
+  "name": "Property for Rent",
+  "slug": "property-rent",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [
+    {
+      "name": "Area Size",
+      "key": "area_size",
+      "type": "number",
+      "unit": "sq ft",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.822Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-23T23:04:47.250Z"
+  },
+  "hasBrands": false,
+  "icon": "property-for-rent.png"
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef40"
+  },
+  "name": "Houses",
+  "slug": "houses-rent",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef3f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.822Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.822Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef41"
+  },
+  "name": "Apartments & Flats",
+  "slug": "apartments-rent",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef3f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.823Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.823Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef42"
+  },
+  "name": "Portions & Floors",
+  "slug": "portions-rent",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef3f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.823Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.823Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef43"
+  },
+  "name": "Rooms",
+  "slug": "rooms-rent",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef3f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.824Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.824Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef44"
+  },
+  "name": "Shops - Offices - Commercial",
+  "slug": "commercial-rent",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef3f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.824Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.824Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef45"
+  },
+  "name": "Roommates & Paying Guests",
+  "slug": "roommates",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef3f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.824Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.824Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef46"
+  },
+  "name": "Vacation Rentals",
+  "slug": "vacation-rentals",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef3f"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.825Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.825Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef47"
+  },
+  "name": "Electronics & Home Appliances",
+  "slug": "electronics",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.825Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T20:46:27.781Z"
+  },
+  "hasBrands": false,
+  "icon": "electronics-home-appliences.png"
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef48"
+  },
+  "name": "Computers & Accessories",
+  "slug": "computers",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef47"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.826Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.826Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef49"
+  },
+  "name": "TV - Video - Audio",
+  "slug": "tv-video-audio",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef47"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.826Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.826Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef4a"
+  },
+  "name": "AC & Coolers",
+  "slug": "ac-coolers",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef47"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.827Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.827Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef4b"
+  },
+  "name": "Kitchen Appliances",
+  "slug": "kitchen-appliances",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef47"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.827Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.827Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef4c"
+  },
+  "name": "Fridges & Freezers",
+  "slug": "fridges-freezers",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef47"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.828Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.828Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef4d"
+  },
+  "name": "Washing Machines & Dryers",
+  "slug": "washing-machines",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef47"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.828Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.828Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef4e"
+  },
+  "name": "Cameras & Accessories",
+  "slug": "cameras",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef47"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.829Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.829Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef4f"
+  },
+  "name": "Games & Entertainment",
+  "slug": "games-entertainment",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef47"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 8,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.829Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.829Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef50"
+  },
+  "name": "Generators & UPS",
+  "slug": "generators-ups",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef47"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 9,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.830Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.830Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef51"
+  },
+  "name": "Other Home Appliances",
+  "slug": "other-appliances",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef47"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 10,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.830Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.830Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "name": "Bikes",
+  "slug": "bikes",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [
+    {
+      "name": "Year",
+      "key": "year",
+      "type": "number",
+      "required": false,
+      "options": []
+    },
+    {
+      "name": "Engine Capacity",
+      "key": "engine_cc",
+      "type": "number",
+      "unit": "cc",
+      "required": false,
+      "options": []
+    },
+    {
+      "name": "Mileage",
+      "key": "mileage",
+      "type": "number",
+      "unit": "km",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.831Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T22:58:04.143Z"
+  },
+  "hasBrands": true,
+  "icon": "bikes.png"
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef53"
+  },
+  "name": "Motorcycles",
+  "slug": "motorcycles",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [
+    {
+      "name": "Fuel Type",
+      "key": "fuel_type",
+      "type": "select",
+      "options": [
+        "Petrol",
+        "Diesel",
+        "CNG",
+        "Hybrid",
+        "Electric",
+        "LPG"
+      ],
+      "required": false
+    },
+    {
+      "name": "Transmission",
+      "key": "transmission",
+      "type": "select",
+      "options": [
+        "Automatic",
+        "Manual"
+      ],
+      "required": false
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Body Type",
+      "key": "body_type",
+      "type": "select",
+      "options": [
+        "Sedan",
+        "Hatchback",
+        "SUV",
+        "MPV",
+        "Pickup",
+        "Coupe",
+        "Crossover",
+        "Van",
+        "Wagon"
+      ],
+      "required": false
+    },
+    {
+      "name": "Number of Owners",
+      "key": "owners",
+      "type": "number",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Registration City",
+      "key": "registration_city",
+      "type": "province_city",
+      "options": [],
+      "required": false
+    },
+    {
+      "name": "Assembly",
+      "key": "assembly",
+      "type": "select",
+      "options": [
+        "Local",
+        "Imported"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Self Start",
+    "Alloy Rims",
+    "Front Disc Brake",
+    "Rear Disc Brake",
+    "Wind Shield",
+    "Back Rest"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.831Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T22:33:03.890Z"
+  },
+  "hasRegistrationCity": true,
+  "__v": 1,
+  "hasBrands": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef54"
+  },
+  "name": "Standard",
+  "slug": "standard-bikes",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef53"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.832Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.832Z"
+  },
+  "hasRegistrationCity": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef55"
+  },
+  "name": "Sports & Heavy Bikes",
+  "slug": "sports-heavy-bikes",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef53"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.833Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.833Z"
+  },
+  "hasRegistrationCity": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef56"
+  },
+  "name": "Electric Bikes",
+  "slug": "electric-bikes",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef53"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.833Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.833Z"
+  },
+  "hasRegistrationCity": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef57"
+  },
+  "name": "Cafe Racers",
+  "slug": "cafe-racers",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef53"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.833Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.833Z"
+  },
+  "hasRegistrationCity": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef58"
+  },
+  "name": "Cruisers",
+  "slug": "cruisers",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef53"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.834Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.834Z"
+  },
+  "hasRegistrationCity": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef59"
+  },
+  "name": "Trail",
+  "slug": "trail-bikes",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef53"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.834Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.834Z"
+  },
+  "hasRegistrationCity": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef5a"
+  },
+  "name": "Others",
+  "slug": "other-motorcycles",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef53"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.835Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.835Z"
+  },
+  "hasRegistrationCity": true
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef5b"
+  },
+  "name": "Bicycles",
+  "slug": "bicycles",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.836Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.836Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef5c"
+  },
+  "name": "Road Bikes",
+  "slug": "road-bikes",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef5b"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.837Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.837Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef5d"
+  },
+  "name": "Mountain Bikes",
+  "slug": "mountain-bikes",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef5b"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.837Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.837Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef5e"
+  },
+  "name": "Hybrid Bikes",
+  "slug": "hybrid-bikes",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef5b"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.838Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.838Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef5f"
+  },
+  "name": "BMX Bikes",
+  "slug": "bmx-bikes",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef5b"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.838Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.838Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef60"
+  },
+  "name": "Folding Bikes",
+  "slug": "folding-bikes",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef5b"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.838Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.838Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef61"
+  },
+  "name": "Electric Bicycles",
+  "slug": "electric-bicycles",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef5b"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.839Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.839Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef62"
+  },
+  "name": "Scooters",
+  "slug": "scooters",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.839Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.839Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef63"
+  },
+  "name": "ATV & Quads",
+  "slug": "atv-quads",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.840Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.840Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef64"
+  },
+  "name": "Spare Parts",
+  "slug": "bike-spare-parts",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.840Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.840Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef65"
+  },
+  "name": "Tyres & Tubes",
+  "slug": "bike-tyres",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef64"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.841Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.841Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef66"
+  },
+  "name": "Exhausts",
+  "slug": "bike-exhausts",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef64"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.841Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.841Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef67"
+  },
+  "name": "Brakes",
+  "slug": "bike-brakes",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef64"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.842Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.842Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef68"
+  },
+  "name": "Batteries",
+  "slug": "bike-batteries",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef64"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.842Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.842Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef69"
+  },
+  "name": "Lighting",
+  "slug": "bike-lighting",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef64"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.843Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.843Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef6a"
+  },
+  "name": "Other Spare Parts",
+  "slug": "other-bike-parts",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef64"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.844Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.844Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef6b"
+  },
+  "name": "Bikes Accessories",
+  "slug": "bikes-accessories",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef52"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.844Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.844Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef6c"
+  },
+  "name": "Helmets",
+  "slug": "helmets",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef6b"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.845Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.845Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef6d"
+  },
+  "name": "Bike Covers",
+  "slug": "bike-covers",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef6b"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.845Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.845Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef6e"
+  },
+  "name": "Bike Locks",
+  "slug": "bike-locks",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef6b"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.846Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.846Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef6f"
+  },
+  "name": "Oils & Lubricants",
+  "slug": "oils-lubricants",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef6b"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.846Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.846Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef70"
+  },
+  "name": "Bike Gloves",
+  "slug": "bike-gloves",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef6b"
+  },
+  "level": 3,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.847Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.847Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef71"
+  },
+  "name": "Business & Agriculture",
+  "slug": "business",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.848Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T20:47:08.544Z"
+  },
+  "hasBrands": false,
+  "icon": "business-industrial-agriculture.png"
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef72"
+  },
+  "name": "Food & Restaurants",
+  "slug": "food-restaurants",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef71"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.848Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.848Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef73"
+  },
+  "name": "Medical & Pharma",
+  "slug": "medical-pharma",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef71"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.849Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.849Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef74"
+  },
+  "name": "Trade & Industrial",
+  "slug": "trade-industrial",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef71"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.849Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.849Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef75"
+  },
+  "name": "Construction & Machinery",
+  "slug": "construction-machinery",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef71"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.849Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.849Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef76"
+  },
+  "name": "Business for Sale",
+  "slug": "business-for-sale",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef71"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.850Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.850Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef77"
+  },
+  "name": "Agriculture",
+  "slug": "agriculture",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef71"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.850Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.850Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef78"
+  },
+  "name": "Other Business",
+  "slug": "other-business",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef71"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.851Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.851Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "name": "Fashion & Beauty",
+  "slug": "fashion-beauty",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 8,
+  "attributes": [
+    {
+      "name": "Condition",
+      "key": "condition_detail",
+      "type": "select",
+      "options": [
+        "New with Tags",
+        "New without Tags",
+        "Like New",
+        "Gently Used",
+        "Used"
+      ],
+      "required": false
+    },
+    {
+      "name": "Gender",
+      "key": "gender",
+      "type": "select",
+      "options": [
+        "Men",
+        "Women",
+        "Unisex",
+        "Boys",
+        "Girls"
+      ],
+      "required": false
+    },
+    {
+      "name": "Brand",
+      "key": "brand",
+      "type": "text",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.852Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T20:47:19.949Z"
+  },
+  "hasBrands": false,
+  "icon": "fashion-beauty.png"
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef7a"
+  },
+  "name": "Clothes",
+  "slug": "clothes",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "clothing_type",
+      "type": "select",
+      "options": [
+        "Eastern",
+        "Western",
+        "Casual",
+        "Formal",
+        "Sports",
+        "Sleepwear",
+        "Innerwear"
+      ],
+      "required": false
+    },
+    {
+      "name": "Size",
+      "key": "size",
+      "type": "select",
+      "options": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "3XL",
+        "Free Size"
+      ],
+      "required": false
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "required": false,
+      "options": []
+    },
+    {
+      "name": "Fabric",
+      "key": "fabric",
+      "type": "select",
+      "options": [
+        "Cotton",
+        "Silk",
+        "Chiffon",
+        "Lawn",
+        "Linen",
+        "Polyester",
+        "Denim",
+        "Wool",
+        "Velvet",
+        "Organza",
+        "Net"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Stitched",
+    "Unstitched",
+    "Ready to Wear",
+    "Handmade",
+    "Embroidered",
+    "Printed",
+    "Branded",
+    "Imported"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.853Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.853Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef7b"
+  },
+  "name": "Watches",
+  "slug": "watches",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "watch_type",
+      "type": "select",
+      "options": [
+        "Analog",
+        "Digital",
+        "Smart Watch",
+        "Chronograph",
+        "Automatic"
+      ],
+      "required": false
+    },
+    {
+      "name": "Strap Material",
+      "key": "strap_material",
+      "type": "select",
+      "options": [
+        "Leather",
+        "Metal",
+        "Rubber",
+        "Silicone",
+        "Fabric",
+        "Ceramic"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Original",
+    "Box Included",
+    "Warranty Card",
+    "Water Resistant",
+    "Luminous",
+    "Date Display"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.854Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T22:33:03.902Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef7c"
+  },
+  "name": "Skin & Hair",
+  "slug": "skin-hair",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "product_type",
+      "type": "select",
+      "options": [
+        "Skincare",
+        "Haircare",
+        "Face Wash",
+        "Serum",
+        "Moisturizer",
+        "Sunscreen",
+        "Shampoo",
+        "Conditioner",
+        "Hair Oil",
+        "Hair Tool"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Organic",
+    "Paraben Free",
+    "Cruelty Free",
+    "Dermatologist Tested",
+    "Imported",
+    "Sealed/New"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.854Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.854Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef7d"
+  },
+  "name": "Wedding",
+  "slug": "wedding",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [
+    {
+      "name": "Category",
+      "key": "wedding_category",
+      "type": "select",
+      "options": [
+        "Bridal Dress",
+        "Groom Sherwani",
+        "Mehndi Dress",
+        "Walima Dress",
+        "Baraat Dress",
+        "Decor",
+        "Jewellery Set",
+        "Accessories"
+      ],
+      "required": false
+    },
+    {
+      "name": "Size",
+      "key": "size",
+      "type": "select",
+      "options": [
+        "XS",
+        "S",
+        "M",
+        "L",
+        "XL",
+        "XXL",
+        "Custom"
+      ],
+      "required": false
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Handmade",
+    "Embroidered",
+    "Heavy Work",
+    "Dabka",
+    "Zardozi",
+    "Sequins",
+    "Stone Work",
+    "Custom Stitched",
+    "Once Worn",
+    "Brand New"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.854Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.854Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef7e"
+  },
+  "name": "Footwear",
+  "slug": "footwear",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "footwear_type",
+      "type": "select",
+      "options": [
+        "Sneakers",
+        "Sandals",
+        "Heels",
+        "Flats",
+        "Boots",
+        "Loafers",
+        "Slippers",
+        "Khussas",
+        "Formal Shoes",
+        "Sports Shoes"
+      ],
+      "required": false
+    },
+    {
+      "name": "Size",
+      "key": "shoe_size",
+      "type": "text",
+      "required": false,
+      "options": []
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Branded",
+    "Imported",
+    "Handmade",
+    "Leather",
+    "Comfortable",
+    "Non-Slip Sole",
+    "Box Included"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.855Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.855Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef7f"
+  },
+  "name": "Jewellery",
+  "slug": "jewellery",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "jewellery_type",
+      "type": "select",
+      "options": [
+        "Necklace",
+        "Earrings",
+        "Bracelet",
+        "Ring",
+        "Anklet",
+        "Brooch",
+        "Set",
+        "Nose Pin",
+        "Bangles",
+        "Pendant"
+      ],
+      "required": false
+    },
+    {
+      "name": "Material",
+      "key": "material",
+      "type": "select",
+      "options": [
+        "Gold",
+        "Silver",
+        "Artificial",
+        "Platinum",
+        "Rose Gold",
+        "Stainless Steel",
+        "Copper",
+        "Pearl"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Handmade",
+    "Branded",
+    "Imported",
+    "Hypoallergenic",
+    "Tarnish Free",
+    "Gift Box Included",
+    "Adjustable"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.855Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.855Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef80"
+  },
+  "name": "Bags",
+  "slug": "bags",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "bag_type",
+      "type": "select",
+      "options": [
+        "Handbag",
+        "Backpack",
+        "Clutch",
+        "Tote",
+        "Crossbody",
+        "Shoulder Bag",
+        "Wallet",
+        "Laptop Bag",
+        "Travel Bag",
+        "Pouch"
+      ],
+      "required": false
+    },
+    {
+      "name": "Material",
+      "key": "material",
+      "type": "select",
+      "options": [
+        "Leather",
+        "Faux Leather",
+        "Canvas",
+        "Nylon",
+        "Fabric",
+        "PU"
+      ],
+      "required": false
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Branded",
+    "Imported",
+    "Handmade",
+    "Waterproof",
+    "Multiple Compartments",
+    "Adjustable Strap",
+    "Dust Bag Included"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.856Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.856Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef81"
+  },
+  "name": "Fragrance",
+  "slug": "fragrance",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 8,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "fragrance_type",
+      "type": "select",
+      "options": [
+        "Perfume",
+        "Body Spray",
+        "Attar",
+        "Deodorant",
+        "Gift Set",
+        "Roll-On"
+      ],
+      "required": false
+    },
+    {
+      "name": "Volume",
+      "key": "volume",
+      "type": "text",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Original",
+    "Sealed",
+    "Long Lasting",
+    "Imported",
+    "Box Included",
+    "Tester"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.857Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T22:33:03.905Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef82"
+  },
+  "name": "Makeup",
+  "slug": "makeup",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 9,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "makeup_type",
+      "type": "select",
+      "options": [
+        "Foundation",
+        "Lipstick",
+        "Mascara",
+        "Eyeliner",
+        "Blush",
+        "Concealer",
+        "Primer",
+        "Setting Spray",
+        "Palette",
+        "Brush Set",
+        "Nail Polish"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Original",
+    "Sealed",
+    "Imported",
+    "Cruelty Free",
+    "Waterproof",
+    "Long Lasting",
+    "Matte",
+    "Glossy"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.858Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T22:33:03.907Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef83"
+  },
+  "name": "Bath & Body",
+  "slug": "bath-body",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 10,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "bath_type",
+      "type": "select",
+      "options": [
+        "Body Wash",
+        "Body Lotion",
+        "Soap",
+        "Scrub",
+        "Bath Bomb",
+        "Body Mist",
+        "Hand Cream",
+        "Gift Set"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Organic",
+    "Paraben Free",
+    "Imported",
+    "Sealed",
+    "Gift Set",
+    "Cruelty Free"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.859Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.859Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef84"
+  },
+  "name": "Fashion Accessories",
+  "slug": "fashion-accessories",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 11,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "accessory_type",
+      "type": "select",
+      "options": [
+        "Sunglasses",
+        "Belt",
+        "Scarf",
+        "Hat/Cap",
+        "Tie",
+        "Cufflinks",
+        "Hair Accessories",
+        "Socks",
+        "Gloves",
+        "Dupatta"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Branded",
+    "Imported",
+    "Handmade",
+    "UV Protection",
+    "Adjustable"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.859Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.859Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef85"
+  },
+  "name": "Other Fashion",
+  "slug": "other-fashion",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 12,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.860Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.860Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef86"
+  },
+  "name": "DIY Jewellery",
+  "slug": "diy-jewellery",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef79"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 13,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "diy_type",
+      "type": "select",
+      "options": [
+        "Beads",
+        "Findings",
+        "Wire",
+        "Tools",
+        "Charms",
+        "Chains",
+        "Stones",
+        "Thread",
+        "Kit"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Bulk Pack",
+    "Starter Kit",
+    "Premium Quality",
+    "Imported",
+    "Mixed Lot"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.861Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.861Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "name": "Animals",
+  "slug": "animals",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 9,
+  "attributes": [
+    {
+      "name": "Age",
+      "key": "age",
+      "type": "text",
+      "required": false,
+      "options": []
+    },
+    {
+      "name": "Gender",
+      "key": "gender",
+      "type": "select",
+      "options": [
+        "Male",
+        "Female",
+        "Pair",
+        "Unknown"
+      ],
+      "required": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.862Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T20:47:29.353Z"
+  },
+  "hasBrands": false,
+  "icon": "animals.png"
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef88"
+  },
+  "name": "Hens",
+  "slug": "hens",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [
+    {
+      "name": "Breed",
+      "key": "breed",
+      "type": "select",
+      "options": [
+        "Desi",
+        "Golden Misri",
+        "Australorp",
+        "Rhode Island Red",
+        "Fayoumi",
+        "Silkie",
+        "Aseel",
+        "Other"
+      ],
+      "required": false
+    },
+    {
+      "name": "Quantity",
+      "key": "quantity",
+      "type": "number",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Vaccinated",
+    "Laying Eggs",
+    "Healthy",
+    "Home Bred",
+    "Farm Bred"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.863Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.863Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef89"
+  },
+  "name": "Cats",
+  "slug": "cats",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [
+    {
+      "name": "Breed",
+      "key": "breed",
+      "type": "select",
+      "options": [
+        "Persian",
+        "Siamese",
+        "Maine Coon",
+        "British Shorthair",
+        "Ragdoll",
+        "Bengal",
+        "Semi Punch",
+        "Triple Coat",
+        "Doll Face",
+        "Other"
+      ],
+      "required": false
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Vaccinated",
+    "Trained",
+    "Litter Trained",
+    "Dewormed",
+    "Neutered/Spayed",
+    "With Accessories",
+    "Pedigree Certificate"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.863Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.863Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef8a"
+  },
+  "name": "Parrots",
+  "slug": "parrots",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [
+    {
+      "name": "Species",
+      "key": "species",
+      "type": "select",
+      "options": [
+        "Cockatiel",
+        "Budgerigar",
+        "African Grey",
+        "Macaw",
+        "Lovebird",
+        "Conure",
+        "Ringneck",
+        "Alexandrine",
+        "Eclectus",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Tame",
+    "Talking",
+    "Hand Fed",
+    "With Cage",
+    "DNA Tested",
+    "Healthy"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.864Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.864Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef8b"
+  },
+  "name": "Pet Food & Accessories",
+  "slug": "pet-food-accessories",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "pet_item_type",
+      "type": "select",
+      "options": [
+        "Food",
+        "Cage",
+        "Leash",
+        "Collar",
+        "Bed",
+        "Toy",
+        "Bowl",
+        "Grooming",
+        "Medicine",
+        "Aquarium",
+        "Other"
+      ],
+      "required": false
+    },
+    {
+      "name": "For Animal",
+      "key": "for_animal",
+      "type": "select",
+      "options": [
+        "Cat",
+        "Dog",
+        "Bird",
+        "Fish",
+        "Rabbit",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Branded",
+    "Imported",
+    "New",
+    "Sealed"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.865Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.865Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef8c"
+  },
+  "name": "Dogs",
+  "slug": "dogs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [
+    {
+      "name": "Breed",
+      "key": "breed",
+      "type": "select",
+      "options": [
+        "German Shepherd",
+        "Labrador",
+        "Golden Retriever",
+        "Husky",
+        "Rottweiler",
+        "Poodle",
+        "Bulldog",
+        "Doberman",
+        "Pitbull",
+        "Pomeranian",
+        "Other"
+      ],
+      "required": false
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Vaccinated",
+    "Trained",
+    "Dewormed",
+    "Neutered/Spayed",
+    "Pedigree Certificate",
+    "Microchipped",
+    "Guard Dog"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.866Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.866Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef8d"
+  },
+  "name": "Livestock",
+  "slug": "livestock",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "livestock_type",
+      "type": "select",
+      "options": [
+        "Cow",
+        "Buffalo",
+        "Goat",
+        "Sheep",
+        "Camel",
+        "Donkey",
+        "Other"
+      ],
+      "required": false
+    },
+    {
+      "name": "Weight",
+      "key": "weight",
+      "type": "text",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Vaccinated",
+    "Healthy",
+    "Pregnant",
+    "Milking",
+    "Qurbani Ready"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.866Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.866Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef8e"
+  },
+  "name": "Pigeons",
+  "slug": "pigeons",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [
+    {
+      "name": "Breed",
+      "key": "breed",
+      "type": "text",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Pair",
+    "Breeder",
+    "Fancy",
+    "High Flyer",
+    "Healthy"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.867Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.867Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef8f"
+  },
+  "name": "Rabbits",
+  "slug": "rabbits",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 8,
+  "attributes": [
+    {
+      "name": "Breed",
+      "key": "breed",
+      "type": "text",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Vaccinated",
+    "Tame",
+    "Pair",
+    "With Cage"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.868Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.868Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef90"
+  },
+  "name": "Finches",
+  "slug": "finches",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 9,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.868Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.868Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef91"
+  },
+  "name": "Fish",
+  "slug": "fish",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 10,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "fish_type",
+      "type": "select",
+      "options": [
+        "Goldfish",
+        "Guppy",
+        "Betta",
+        "Arowana",
+        "Oscar",
+        "Flowerhorn",
+        "Koi",
+        "Angel Fish",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "With Tank",
+    "Pair",
+    "Imported",
+    "Healthy"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.869Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.869Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef92"
+  },
+  "name": "Fertile Eggs",
+  "slug": "fertile-eggs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 11,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.870Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.870Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef93"
+  },
+  "name": "Other Birds",
+  "slug": "other-birds",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 12,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.870Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.870Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef94"
+  },
+  "name": "Ducks",
+  "slug": "ducks",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 13,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.871Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.871Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef95"
+  },
+  "name": "Other Animals",
+  "slug": "other-animals",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 14,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.871Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.871Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef96"
+  },
+  "name": "Doves",
+  "slug": "doves",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 15,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.872Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.872Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef97"
+  },
+  "name": "Peacocks",
+  "slug": "peacocks",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 16,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.873Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.873Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef98"
+  },
+  "name": "Horses",
+  "slug": "horses",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef87"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 17,
+  "attributes": [
+    {
+      "name": "Breed",
+      "key": "breed",
+      "type": "text",
+      "required": false,
+      "options": []
+    },
+    {
+      "name": "Height",
+      "key": "height",
+      "type": "text",
+      "required": false,
+      "options": []
+    }
+  ],
+  "features": [
+    "Trained",
+    "Vaccinated",
+    "Racing",
+    "Riding",
+    "With Saddle"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.873Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.873Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "name": "Furniture & Home Decor",
+  "slug": "furniture-home-decor",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 10,
+  "attributes": [
+    {
+      "name": "Condition",
+      "key": "condition_detail",
+      "type": "select",
+      "options": [
+        "New",
+        "Like New",
+        "Gently Used",
+        "Used",
+        "Needs Repair"
+      ],
+      "required": false
+    },
+    {
+      "name": "Material",
+      "key": "material",
+      "type": "select",
+      "options": [
+        "Wood",
+        "Metal",
+        "Plastic",
+        "Glass",
+        "Fabric",
+        "Leather",
+        "Rattan",
+        "MDF",
+        "Particle Board",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.874Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T20:47:43.618Z"
+  },
+  "hasBrands": false,
+  "icon": "furniture-home-decor.png"
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef9a"
+  },
+  "name": "Beds & Wardrobes",
+  "slug": "beds-wardrobes",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "furniture_type",
+      "type": "select",
+      "options": [
+        "Single Bed",
+        "Double Bed",
+        "King Size",
+        "Bunk Bed",
+        "Wardrobe",
+        "Dressing Table",
+        "Side Table",
+        "Bedroom Set"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "With Mattress",
+    "Storage",
+    "Branded",
+    "Imported",
+    "Solid Wood",
+    "Assembly Required"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.875Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.875Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef9b"
+  },
+  "name": "Sofa & Chairs",
+  "slug": "sofa-chairs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "seating_type",
+      "type": "select",
+      "options": [
+        "Sofa Set",
+        "L-Shape Sofa",
+        "Recliner",
+        "Bean Bag",
+        "Office Chair",
+        "Rocking Chair",
+        "Dining Chair",
+        "Stool"
+      ],
+      "required": false
+    },
+    {
+      "name": "Seating Capacity",
+      "key": "seating_capacity",
+      "type": "select",
+      "options": [
+        "1 Seater",
+        "2 Seater",
+        "3 Seater",
+        "5 Seater",
+        "7 Seater",
+        "9 Seater"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "With Cushions",
+    "Washable Covers",
+    "Reclining",
+    "Branded",
+    "Imported",
+    "Solid Wood Frame"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.875Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.875Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef9c"
+  },
+  "name": "Other Household Items",
+  "slug": "other-household",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.876Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.876Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef9d"
+  },
+  "name": "Tables & Dining",
+  "slug": "tables-dining",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "table_type",
+      "type": "select",
+      "options": [
+        "Dining Table",
+        "Coffee Table",
+        "Study Table",
+        "Console Table",
+        "Center Table",
+        "Dining Set"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "With Chairs",
+    "Extendable",
+    "Glass Top",
+    "Solid Wood",
+    "Foldable"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.877Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.877Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef9e"
+  },
+  "name": "Office Furniture",
+  "slug": "office-furniture",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "office_type",
+      "type": "select",
+      "options": [
+        "Office Desk",
+        "Office Chair",
+        "Filing Cabinet",
+        "Bookshelf",
+        "Conference Table",
+        "Workstation",
+        "Reception Desk"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Ergonomic",
+    "Adjustable Height",
+    "With Drawers",
+    "Branded",
+    "Assembly Required"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.877Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.877Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6ef9f"
+  },
+  "name": "Home Decoration",
+  "slug": "home-decoration",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "decor_type",
+      "type": "select",
+      "options": [
+        "Wall Art",
+        "Vase",
+        "Candle",
+        "Photo Frame",
+        "Clock",
+        "Showpiece",
+        "Artificial Plants",
+        "Wall Shelf",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Handmade",
+    "Imported",
+    "Branded",
+    "Set"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.878Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.878Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efa0"
+  },
+  "name": "Garden & Outdoor",
+  "slug": "garden-outdoor",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "garden_type",
+      "type": "select",
+      "options": [
+        "Garden Chair",
+        "Swing",
+        "Planter",
+        "Lawn Mower",
+        "BBQ Grill",
+        "Umbrella",
+        "Fountain",
+        "Garden Tools",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Weather Resistant",
+    "Foldable",
+    "With Cushions",
+    "Rust Proof"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.878Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.878Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efa1"
+  },
+  "name": "Home DIY & Renovations",
+  "slug": "home-diy-renovations",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 8,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.882Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.882Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efa2"
+  },
+  "name": "Kitchen Essentials",
+  "slug": "kitchen-essentials",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 9,
+  "attributes": [],
+  "features": [
+    "Non-Stick",
+    "Stainless Steel",
+    "Branded",
+    "Set",
+    "Dishwasher Safe"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.883Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.883Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efa3"
+  },
+  "name": "Bathroom Accessories",
+  "slug": "bathroom-accessories",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 10,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.884Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.884Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efa4"
+  },
+  "name": "Painting & Mirrors",
+  "slug": "painting-mirrors",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 11,
+  "attributes": [],
+  "features": [
+    "Framed",
+    "Handmade",
+    "Canvas",
+    "Wall Mounted",
+    "Full Length"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.884Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.884Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efa5"
+  },
+  "name": "Lighting",
+  "slug": "lighting",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 12,
+  "attributes": [],
+  "features": [
+    "LED",
+    "Chandelier",
+    "Dimmable",
+    "Smart",
+    "Solar",
+    "Energy Saving"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.885Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.885Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efa6"
+  },
+  "name": "Curtains & Blinds",
+  "slug": "curtains-blinds",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 13,
+  "attributes": [],
+  "features": [
+    "Blackout",
+    "Sheer",
+    "Thermal",
+    "With Rod",
+    "Custom Size"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.885Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.885Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efa7"
+  },
+  "name": "Rugs & Carpets",
+  "slug": "rugs-carpets",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 14,
+  "attributes": [],
+  "features": [
+    "Handwoven",
+    "Machine Made",
+    "Washable",
+    "Anti-Slip",
+    "Imported"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.886Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.886Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efa8"
+  },
+  "name": "Home Essentials",
+  "slug": "home-essentials",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6ef99"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 15,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.886Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.886Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efa9"
+  },
+  "name": "Books, Sports & Hobbies",
+  "slug": "books-sports-hobbies",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 11,
+  "attributes": [
+    {
+      "name": "Condition",
+      "key": "condition_detail",
+      "type": "select",
+      "options": [
+        "New",
+        "Like New",
+        "Good",
+        "Acceptable"
+      ],
+      "required": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.887Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T20:48:05.675Z"
+  },
+  "hasBrands": false,
+  "icon": "books-sports-hobbies.png"
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efaa"
+  },
+  "name": "Books & Magazines",
+  "slug": "books-magazines",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efa9"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [
+    {
+      "name": "Genre",
+      "key": "genre",
+      "type": "select",
+      "options": [
+        "Fiction",
+        "Non-Fiction",
+        "Academic",
+        "Religious",
+        "Self-Help",
+        "Children",
+        "Comics",
+        "Magazines",
+        "Novels",
+        "Other"
+      ],
+      "required": false
+    },
+    {
+      "name": "Language",
+      "key": "language",
+      "type": "select",
+      "options": [
+        "English",
+        "Urdu",
+        "Arabic",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Hardcover",
+    "Paperback",
+    "First Edition",
+    "Signed",
+    "Set/Collection",
+    "Imported"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.887Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.887Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efab"
+  },
+  "name": "Gym & Fitness",
+  "slug": "gym-fitness",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efa9"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "fitness_type",
+      "type": "select",
+      "options": [
+        "Treadmill",
+        "Dumbbells",
+        "Bench Press",
+        "Exercise Bike",
+        "Elliptical",
+        "Resistance Bands",
+        "Yoga Mat",
+        "Weight Plates",
+        "Multi Gym",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Commercial Grade",
+    "Foldable",
+    "With Display",
+    "Adjustable",
+    "Branded",
+    "Home Use"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.888Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.888Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efac"
+  },
+  "name": "Sports Equipment",
+  "slug": "sports-equipment",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efa9"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [
+    {
+      "name": "Sport",
+      "key": "sport",
+      "type": "select",
+      "options": [
+        "Cricket",
+        "Football",
+        "Badminton",
+        "Tennis",
+        "Table Tennis",
+        "Basketball",
+        "Swimming",
+        "Boxing",
+        "Hockey",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Branded",
+    "Professional",
+    "Beginner",
+    "With Bag/Case",
+    "Imported"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.888Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.888Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efad"
+  },
+  "name": "Arts & Crafts",
+  "slug": "arts-crafts",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efa9"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [
+    "Handmade",
+    "Kit",
+    "Professional Grade",
+    "Beginner Friendly"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.889Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.889Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efae"
+  },
+  "name": "Other Hobbies",
+  "slug": "other-hobbies",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efa9"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.889Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.889Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efaf"
+  },
+  "name": "Musical Instruments",
+  "slug": "musical-instruments",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efa9"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "instrument_type",
+      "type": "select",
+      "options": [
+        "Guitar",
+        "Piano/Keyboard",
+        "Drums",
+        "Violin",
+        "Flute",
+        "Harmonium",
+        "Tabla",
+        "Ukulele",
+        "Dholak",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Branded",
+    "With Case",
+    "Acoustic",
+    "Electric",
+    "Beginner",
+    "Professional"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.890Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.890Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efb0"
+  },
+  "name": "Camping & Hiking",
+  "slug": "camping-hiking",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efa9"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [],
+  "features": [
+    "Waterproof",
+    "Lightweight",
+    "Branded",
+    "Complete Kit"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.890Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.890Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efb1"
+  },
+  "name": "Collectables",
+  "slug": "collectables",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efa9"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 8,
+  "attributes": [],
+  "features": [
+    "Rare",
+    "Antique",
+    "Limited Edition",
+    "Mint Condition",
+    "With Certificate"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.891Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.891Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efb2"
+  },
+  "name": "Crafts & DIY Supplies",
+  "slug": "crafts-diy-supplies",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efa9"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 9,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.891Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.891Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efb3"
+  },
+  "name": "Calendars",
+  "slug": "calendars",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efa9"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 10,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.892Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.892Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efb4"
+  },
+  "name": "Kids",
+  "slug": "kids",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 12,
+  "attributes": [
+    {
+      "name": "Condition",
+      "key": "condition_detail",
+      "type": "select",
+      "options": [
+        "New",
+        "Like New",
+        "Gently Used",
+        "Used"
+      ],
+      "required": false
+    },
+    {
+      "name": "Age Group",
+      "key": "age_group",
+      "type": "select",
+      "options": [
+        "0-6 Months",
+        "6-12 Months",
+        "1-2 Years",
+        "2-4 Years",
+        "4-8 Years",
+        "8-12 Years",
+        "12+ Years"
+      ],
+      "required": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.892Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T20:48:12.806Z"
+  },
+  "hasBrands": false,
+  "icon": "kids.png"
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efb5"
+  },
+  "name": "Toys",
+  "slug": "toys",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efb4"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "toy_type",
+      "type": "select",
+      "options": [
+        "Action Figures",
+        "Dolls",
+        "Building Blocks",
+        "Board Games",
+        "Puzzles",
+        "Remote Control",
+        "Stuffed Animals",
+        "Educational",
+        "Outdoor",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Branded",
+    "Imported",
+    "Battery Operated",
+    "Educational",
+    "Safe/Non-Toxic",
+    "With Box"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.892Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.892Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efb6"
+  },
+  "name": "Kids Vehicles",
+  "slug": "kids-vehicles",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efb4"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "vehicle_type",
+      "type": "select",
+      "options": [
+        "Bicycle",
+        "Tricycle",
+        "Electric Car",
+        "Scooter",
+        "Walker",
+        "Ride-On",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "With Training Wheels",
+    "Rechargeable",
+    "With Remote",
+    "Adjustable Seat",
+    "With Music/Lights"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.893Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.893Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efb7"
+  },
+  "name": "Baby Gear",
+  "slug": "baby-gear",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efb4"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "gear_type",
+      "type": "select",
+      "options": [
+        "Stroller",
+        "Car Seat",
+        "High Chair",
+        "Baby Carrier",
+        "Crib",
+        "Bouncer",
+        "Play Mat",
+        "Baby Monitor",
+        "Other"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Branded",
+    "Foldable",
+    "Adjustable",
+    "With Canopy",
+    "Washable",
+    "Safety Certified"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.893Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.893Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efb8"
+  },
+  "name": "Kids Accessories",
+  "slug": "kids-accessories",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efb4"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [
+    "Branded",
+    "Imported",
+    "Safe/Non-Toxic"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.894Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.894Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efb9"
+  },
+  "name": "Swings & Slides",
+  "slug": "swings-slides",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efb4"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [
+    "Indoor",
+    "Outdoor",
+    "Foldable",
+    "With Safety Belt",
+    "Multi-Activity"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.894Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.894Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efba"
+  },
+  "name": "Kids Furniture",
+  "slug": "kids-furniture",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efb4"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [],
+  "features": [
+    "With Storage",
+    "Adjustable",
+    "Themed",
+    "Safety Edges"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.894Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.894Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efbb"
+  },
+  "name": "Kids Clothing",
+  "slug": "kids-clothing",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efb4"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [
+    {
+      "name": "Size",
+      "key": "size",
+      "type": "text",
+      "required": false,
+      "options": []
+    },
+    {
+      "name": "Gender",
+      "key": "gender",
+      "type": "select",
+      "options": [
+        "Boy",
+        "Girl",
+        "Unisex"
+      ],
+      "required": false
+    }
+  ],
+  "features": [
+    "Branded",
+    "Imported",
+    "Cotton",
+    "Set",
+    "Party Wear",
+    "Casual"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.895Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.895Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efbc"
+  },
+  "name": "Bath & Diapers",
+  "slug": "bath-diapers",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efb4"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 8,
+  "attributes": [],
+  "features": [
+    "Organic",
+    "Hypoallergenic",
+    "Branded",
+    "Bulk Pack",
+    "Sealed"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.896Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.896Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "name": "Services",
+  "slug": "services",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 13,
+  "attributes": [
+    {
+      "name": "Service Type",
+      "key": "service_type",
+      "type": "select",
+      "options": [
+        "One-Time",
+        "Recurring",
+        "Contract",
+        "Hourly",
+        "Project Based"
+      ],
+      "required": false
+    },
+    {
+      "name": "Availability",
+      "key": "availability",
+      "type": "select",
+      "options": [
+        "Available Now",
+        "By Appointment",
+        "Weekdays Only",
+        "Weekends Only",
+        "24/7"
+      ],
+      "required": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.896Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T20:48:22.619Z"
+  },
+  "hasBrands": false,
+  "icon": "services.png"
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efbe"
+  },
+  "name": "Other Services",
+  "slug": "other-services",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.897Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.897Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efbf"
+  },
+  "name": "Car Rental",
+  "slug": "car-rental",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [
+    "With Driver",
+    "Self Drive",
+    "AC",
+    "Insurance Included",
+    "Airport Pickup"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.897Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.897Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efc0"
+  },
+  "name": "Home & Office Repair",
+  "slug": "home-office-repair",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [
+    "Electrician",
+    "Plumber",
+    "Carpenter",
+    "Painter",
+    "AC Repair",
+    "Appliance Repair"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.898Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.898Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efc1"
+  },
+  "name": "Tuitions & Academies",
+  "slug": "tuitions-academies",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [
+    "Home Tuition",
+    "Online",
+    "Group Class",
+    "One-on-One",
+    "Certified Teacher"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.899Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.899Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efc2"
+  },
+  "name": "Domestic Help",
+  "slug": "domestic-help",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [
+    "Full Time",
+    "Part Time",
+    "Live-In",
+    "Experienced",
+    "References Available"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.900Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.900Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efc3"
+  },
+  "name": "Web Development",
+  "slug": "web-development",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [],
+  "features": [
+    "WordPress",
+    "Custom Development",
+    "E-Commerce",
+    "Mobile App",
+    "SEO",
+    "Maintenance"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.900Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.900Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efc4"
+  },
+  "name": "Electronics & Computer Repair",
+  "slug": "electronics-computer-repair",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [],
+  "features": [
+    "Mobile Repair",
+    "Laptop Repair",
+    "Data Recovery",
+    "Software",
+    "Hardware",
+    "Home Service"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.901Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.901Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efc5"
+  },
+  "name": "Drivers & Taxi",
+  "slug": "drivers-taxi",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 8,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.901Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.901Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efc6"
+  },
+  "name": "Event Services",
+  "slug": "event-services",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 9,
+  "attributes": [],
+  "features": [
+    "Wedding",
+    "Birthday",
+    "Corporate",
+    "Sound System",
+    "Catering",
+    "Decoration"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.902Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.902Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efc7"
+  },
+  "name": "Construction Services",
+  "slug": "construction-services",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 10,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.903Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.903Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efc8"
+  },
+  "name": "Travel & Visa",
+  "slug": "travel-visa",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 11,
+  "attributes": [],
+  "features": [
+    "Visa Assistance",
+    "Tour Package",
+    "Hotel Booking",
+    "Flight Booking",
+    "Umrah/Hajj"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.904Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.904Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efc9"
+  },
+  "name": "Health & Beauty",
+  "slug": "health-beauty-services",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 12,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.905Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.905Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efca"
+  },
+  "name": "Consultancy Services",
+  "slug": "consultancy-services",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 13,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.905Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.905Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efcb"
+  },
+  "name": "Farm & Fresh Food",
+  "slug": "farm-fresh-food",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 14,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.906Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.906Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efcc"
+  },
+  "name": "Architecture & Interior Design",
+  "slug": "architecture-interior-design",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 15,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.906Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.906Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efcd"
+  },
+  "name": "Movers & Packers",
+  "slug": "movers-packers",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 16,
+  "attributes": [],
+  "features": [
+    "Local",
+    "Intercity",
+    "International",
+    "Packing Included",
+    "Insurance"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.907Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.907Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efce"
+  },
+  "name": "Video & Photography",
+  "slug": "video-photography",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 17,
+  "attributes": [],
+  "features": [
+    "Wedding",
+    "Event",
+    "Product",
+    "Drone",
+    "Editing",
+    "Studio"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.907Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.907Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efcf"
+  },
+  "name": "Renting Services",
+  "slug": "renting-services",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 18,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.908Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.908Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efd0"
+  },
+  "name": "Camera Installation",
+  "slug": "camera-installation",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 19,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.908Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.908Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efd1"
+  },
+  "name": "Car Services",
+  "slug": "car-services",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 20,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.909Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.909Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efd2"
+  },
+  "name": "Tailor Services",
+  "slug": "tailor-services",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 21,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.909Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.909Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efd3"
+  },
+  "name": "Catering & Restaurant",
+  "slug": "catering-restaurant",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 22,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.910Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.910Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efd4"
+  },
+  "name": "Insurance Services",
+  "slug": "insurance-services",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efbd"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 23,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.910Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.910Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "name": "Jobs",
+  "slug": "jobs",
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 14,
+  "attributes": [
+    {
+      "name": "Job Type",
+      "key": "job_type",
+      "type": "select",
+      "options": [
+        "Full Time",
+        "Part Time",
+        "Contract",
+        "Freelance",
+        "Internship",
+        "Remote"
+      ],
+      "required": false
+    },
+    {
+      "name": "Salary Range",
+      "key": "salary_range",
+      "type": "select",
+      "options": [
+        "10K-25K",
+        "25K-50K",
+        "50K-100K",
+        "100K-200K",
+        "200K-500K",
+        "500K+",
+        "Negotiable"
+      ],
+      "required": false
+    },
+    {
+      "name": "Experience",
+      "key": "experience",
+      "type": "select",
+      "options": [
+        "Fresh",
+        "1-2 Years",
+        "2-5 Years",
+        "5-10 Years",
+        "10+ Years"
+      ],
+      "required": false
+    },
+    {
+      "name": "Education",
+      "key": "education",
+      "type": "select",
+      "options": [
+        "Matric",
+        "Intermediate",
+        "Bachelors",
+        "Masters",
+        "PhD",
+        "Any"
+      ],
+      "required": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.911Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-21T20:48:32.859Z"
+  },
+  "hasBrands": false,
+  "icon": "jobs.png"
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efd6"
+  },
+  "name": "Other Jobs",
+  "slug": "other-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.912Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.912Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efd7"
+  },
+  "name": "Online",
+  "slug": "online-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [],
+  "features": [
+    "Work from Home",
+    "Flexible Hours",
+    "No Experience Required",
+    "Training Provided"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.912Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.912Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efd8"
+  },
+  "name": "Restaurants & Hospitality",
+  "slug": "restaurants-hospitality-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.913Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.913Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efd9"
+  },
+  "name": "Sales",
+  "slug": "sales-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [],
+  "features": [
+    "Commission Based",
+    "Target Based",
+    "Field Work",
+    "Office Based"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.914Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.914Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efda"
+  },
+  "name": "Part Time",
+  "slug": "part-time-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [],
+  "features": [
+    "Flexible Hours",
+    "Student Friendly",
+    "Weekend Only",
+    "Evening Shift"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.914Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.914Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efdb"
+  },
+  "name": "Customer Service",
+  "slug": "customer-service-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.915Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.915Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efdc"
+  },
+  "name": "Domestic Staff",
+  "slug": "domestic-staff-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.916Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.916Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efdd"
+  },
+  "name": "Marketing",
+  "slug": "marketing-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 8,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.916Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.916Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efde"
+  },
+  "name": "Medical",
+  "slug": "medical-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 9,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.917Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.917Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efdf"
+  },
+  "name": "Delivery Riders",
+  "slug": "delivery-riders-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 10,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.917Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.917Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efe0"
+  },
+  "name": "Education",
+  "slug": "education-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 11,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.918Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.918Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efe1"
+  },
+  "name": "Accounting & Finance",
+  "slug": "accounting-finance-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 12,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.918Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.918Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efe2"
+  },
+  "name": "IT & Networking",
+  "slug": "it-networking-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 13,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.919Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.919Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efe3"
+  },
+  "name": "Graphic Design",
+  "slug": "graphic-design-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 14,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.919Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.919Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efe4"
+  },
+  "name": "Hotels & Tourism",
+  "slug": "hotels-tourism-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 15,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.920Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.920Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efe5"
+  },
+  "name": "Engineering",
+  "slug": "engineering-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 16,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.920Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.920Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efe6"
+  },
+  "name": "Clerical & Administration",
+  "slug": "clerical-admin-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 17,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.921Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.921Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efe7"
+  },
+  "name": "Manufacturing",
+  "slug": "manufacturing-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 18,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.921Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.921Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efe8"
+  },
+  "name": "Content Writing",
+  "slug": "content-writing-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 19,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.921Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.921Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efe9"
+  },
+  "name": "Security",
+  "slug": "security-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 20,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.922Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.922Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efea"
+  },
+  "name": "Real Estate",
+  "slug": "real-estate-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 21,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.922Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.922Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efeb"
+  },
+  "name": "Human Resources",
+  "slug": "human-resources-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 22,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.923Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.923Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efec"
+  },
+  "name": "Advertising & PR",
+  "slug": "advertising-pr-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 23,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.923Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.923Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efed"
+  },
+  "name": "Internships",
+  "slug": "internships",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 24,
+  "attributes": [],
+  "features": [
+    "Paid",
+    "Unpaid",
+    "Certificate Provided",
+    "Remote",
+    "On-Site"
+  ],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.923Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.923Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "69ceac637bc913bf0da6efee"
+  },
+  "name": "Architecture & Interior Design",
+  "slug": "architecture-interior-design-jobs",
+  "parentId": {
+    "$oid": "69ceac637bc913bf0da6efd5"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 25,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-04-02T17:50:27.924Z"
+  },
+  "updatedAt": {
+    "$date": "2026-04-02T17:50:27.924Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a988989d77e7d39db07cc8a"
+  },
+  "name": "Gardening",
+  "slug": "gardening",
+  "icon": "gardening.png",
+  "hasBrands": false,
+  "parentId": null,
+  "level": 1,
+  "isActive": true,
+  "sortOrder": 15,
+  "attributes": [
+    {
+      "name": "Condition",
+      "key": "condition_detail",
+      "type": "select",
+      "options": [
+        "New",
+        "Like New",
+        "Used",
+        "Needs Repair"
+      ],
+      "required": false,
+      "allowOther": false
+    }
+  ],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-09-02T20:39:37.123Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T20:39:37.123Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a988989d77e7d39db07cc8b"
+  },
+  "name": "Plants & Trees",
+  "slug": "plants-trees",
+  "icon": "",
+  "hasBrands": false,
+  "parentId": {
+    "$oid": "6a988989d77e7d39db07cc8a"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 1,
+  "attributes": [
+    {
+      "name": "Plant Type",
+      "key": "plant_type",
+      "type": "select",
+      "options": [
+        "Indoor",
+        "Outdoor",
+        "Flowering",
+        "Fruit",
+        "Succulent & Cactus",
+        "Herb",
+        "Bonsai",
+        "Climber",
+        "Shrub",
+        "Tree",
+        "Other"
+      ],
+      "required": true,
+      "allowOther": false
+    },
+    {
+      "name": "Height",
+      "key": "plant_height",
+      "type": "number",
+      "unit": "in",
+      "required": false,
+      "options": [],
+      "allowOther": false
+    },
+    {
+      "name": "Sunlight",
+      "key": "sunlight",
+      "type": "select",
+      "options": [
+        "Full Sun",
+        "Partial Sun",
+        "Shade",
+        "Indoor Light"
+      ],
+      "required": false,
+      "allowOther": false
+    },
+    {
+      "name": "Color",
+      "key": "color",
+      "type": "text",
+      "required": false,
+      "options": [],
+      "allowOther": false
+    }
+  ],
+  "features": [
+    "Potted",
+    "With Soil",
+    "Organic",
+    "Air Purifying",
+    "Low Maintenance",
+    "Pet Friendly",
+    "Flowering"
+  ],
+  "createdAt": {
+    "$date": "2026-09-02T20:39:37.137Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T20:39:37.137Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a988989d77e7d39db07cc8c"
+  },
+  "name": "Seeds & Bulbs",
+  "slug": "seeds-bulbs",
+  "icon": "",
+  "hasBrands": false,
+  "parentId": {
+    "$oid": "6a988989d77e7d39db07cc8a"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 2,
+  "attributes": [
+    {
+      "name": "Seed Type",
+      "key": "seed_type",
+      "type": "select",
+      "options": [
+        "Vegetable",
+        "Fruit",
+        "Flower",
+        "Herb",
+        "Grass/Lawn",
+        "Tree",
+        "Bulb",
+        "Mixed"
+      ],
+      "required": true,
+      "allowOther": false
+    },
+    {
+      "name": "Quantity",
+      "key": "quantity",
+      "type": "text",
+      "required": false,
+      "options": [],
+      "allowOther": false
+    }
+  ],
+  "features": [
+    "Organic",
+    "Non-GMO",
+    "Hybrid",
+    "Sealed Pack",
+    "Imported",
+    "High Germination"
+  ],
+  "createdAt": {
+    "$date": "2026-09-02T20:39:37.140Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T20:39:37.140Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a988989d77e7d39db07cc8d"
+  },
+  "name": "Garden Tools",
+  "slug": "garden-tools",
+  "icon": "",
+  "hasBrands": false,
+  "parentId": {
+    "$oid": "6a988989d77e7d39db07cc8a"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 3,
+  "attributes": [
+    {
+      "name": "Tool Type",
+      "key": "tool_type",
+      "type": "select",
+      "options": [
+        "Shovel & Spade",
+        "Rake",
+        "Pruner & Shears",
+        "Trowel",
+        "Hoe",
+        "Watering Can",
+        "Wheelbarrow",
+        "Lawn Mower",
+        "Hedge Trimmer",
+        "Leaf Blower",
+        "Tool Set",
+        "Other"
+      ],
+      "required": true,
+      "allowOther": false
+    },
+    {
+      "name": "Power Source",
+      "key": "power_source",
+      "type": "select",
+      "options": [
+        "Manual",
+        "Electric",
+        "Battery",
+        "Petrol"
+      ],
+      "required": false,
+      "allowOther": false
+    },
+    {
+      "name": "Brand",
+      "key": "brand",
+      "type": "text",
+      "required": false,
+      "options": [],
+      "allowOther": false
+    }
+  ],
+  "features": [
+    "Branded",
+    "Imported",
+    "Rust Proof",
+    "Ergonomic Handle",
+    "Cordless",
+    "With Warranty"
+  ],
+  "createdAt": {
+    "$date": "2026-09-02T20:39:37.144Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T20:39:37.144Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a988989d77e7d39db07cc8e"
+  },
+  "name": "Pots & Planters",
+  "slug": "pots-planters",
+  "icon": "",
+  "hasBrands": false,
+  "parentId": {
+    "$oid": "6a988989d77e7d39db07cc8a"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 4,
+  "attributes": [
+    {
+      "name": "Material",
+      "key": "pot_material",
+      "type": "select",
+      "options": [
+        "Plastic",
+        "Clay/Terracotta",
+        "Ceramic",
+        "Cement",
+        "Fiberglass",
+        "Metal",
+        "Wood",
+        "Hanging"
+      ],
+      "required": false,
+      "allowOther": false
+    },
+    {
+      "name": "Size",
+      "key": "pot_size",
+      "type": "select",
+      "options": [
+        "Small",
+        "Medium",
+        "Large",
+        "Extra Large"
+      ],
+      "required": false,
+      "allowOther": false
+    }
+  ],
+  "features": [
+    "With Drainage",
+    "With Saucer",
+    "Self Watering",
+    "Set",
+    "Decorative",
+    "Frost Resistant"
+  ],
+  "createdAt": {
+    "$date": "2026-09-02T20:39:37.146Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T20:39:37.146Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a988989d77e7d39db07cc8f"
+  },
+  "name": "Soil & Fertilizers",
+  "slug": "soil-fertilizers",
+  "icon": "",
+  "hasBrands": false,
+  "parentId": {
+    "$oid": "6a988989d77e7d39db07cc8a"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 5,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "soil_type",
+      "type": "select",
+      "options": [
+        "Potting Mix",
+        "Compost",
+        "Organic Fertilizer",
+        "Chemical Fertilizer",
+        "Vermicompost",
+        "Peat Moss",
+        "Cocopeat",
+        "Manure",
+        "Perlite"
+      ],
+      "required": true,
+      "allowOther": false
+    },
+    {
+      "name": "Weight",
+      "key": "weight",
+      "type": "number",
+      "unit": "kg",
+      "required": false,
+      "options": [],
+      "allowOther": false
+    }
+  ],
+  "features": [
+    "Organic",
+    "Chemical Free",
+    "Slow Release",
+    "Sealed Pack",
+    "All Purpose",
+    "Bulk Available"
+  ],
+  "createdAt": {
+    "$date": "2026-09-02T20:39:37.151Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T20:39:37.151Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a988989d77e7d39db07cc90"
+  },
+  "name": "Irrigation & Watering",
+  "slug": "irrigation-watering",
+  "icon": "",
+  "hasBrands": false,
+  "parentId": {
+    "$oid": "6a988989d77e7d39db07cc8a"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 6,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "irrigation_type",
+      "type": "select",
+      "options": [
+        "Drip System",
+        "Sprinkler",
+        "Garden Hose",
+        "Watering Can",
+        "Nozzle",
+        "Timer",
+        "Water Pump",
+        "Other"
+      ],
+      "required": false,
+      "allowOther": false
+    }
+  ],
+  "features": [
+    "Automatic",
+    "Adjustable",
+    "Weather Resistant",
+    "Complete Kit",
+    "Water Saving"
+  ],
+  "createdAt": {
+    "$date": "2026-09-02T20:39:37.154Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T20:39:37.154Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a988989d77e7d39db07cc91"
+  },
+  "name": "Pest & Weed Control",
+  "slug": "pest-weed-control",
+  "icon": "",
+  "hasBrands": false,
+  "parentId": {
+    "$oid": "6a988989d77e7d39db07cc8a"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 7,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "control_type",
+      "type": "select",
+      "options": [
+        "Insecticide",
+        "Fungicide",
+        "Herbicide",
+        "Organic Spray",
+        "Trap",
+        "Net",
+        "Repellent"
+      ],
+      "required": false,
+      "allowOther": false
+    }
+  ],
+  "features": [
+    "Organic",
+    "Pet Safe",
+    "Ready to Use",
+    "Concentrate",
+    "Odorless"
+  ],
+  "createdAt": {
+    "$date": "2026-09-02T20:39:37.157Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T20:39:37.157Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a988989d77e7d39db07cc92"
+  },
+  "name": "Outdoor & Garden Decor",
+  "slug": "garden-decor",
+  "icon": "",
+  "hasBrands": false,
+  "parentId": {
+    "$oid": "6a988989d77e7d39db07cc8a"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 8,
+  "attributes": [
+    {
+      "name": "Type",
+      "key": "decor_type",
+      "type": "select",
+      "options": [
+        "Garden Statue",
+        "Fountain",
+        "Solar Light",
+        "Wind Chime",
+        "Bird Feeder",
+        "Artificial Grass",
+        "Garden Arch",
+        "Stepping Stone",
+        "Other"
+      ],
+      "required": false,
+      "allowOther": false
+    }
+  ],
+  "features": [
+    "Weather Resistant",
+    "Solar Powered",
+    "Handmade",
+    "Set",
+    "LED",
+    "Rust Proof"
+  ],
+  "createdAt": {
+    "$date": "2026-09-02T20:39:37.160Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T20:39:37.160Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a988989d77e7d39db07cc93"
+  },
+  "name": "Greenhouses & Sheds",
+  "slug": "greenhouses-sheds",
+  "icon": "",
+  "hasBrands": false,
+  "parentId": {
+    "$oid": "6a988989d77e7d39db07cc8a"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 9,
+  "attributes": [],
+  "features": [
+    "Foldable",
+    "UV Protected",
+    "Walk-In",
+    "With Shelves",
+    "Weatherproof"
+  ],
+  "createdAt": {
+    "$date": "2026-09-02T20:39:37.165Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T20:39:37.165Z"
+  }
+},
+{
+  "_id": {
+    "$oid": "6a988989d77e7d39db07cc94"
+  },
+  "name": "Other Gardening",
+  "slug": "other-gardening",
+  "icon": "",
+  "hasBrands": false,
+  "parentId": {
+    "$oid": "6a988989d77e7d39db07cc8a"
+  },
+  "level": 2,
+  "isActive": true,
+  "sortOrder": 10,
+  "attributes": [],
+  "features": [],
+  "createdAt": {
+    "$date": "2026-09-02T20:39:37.170Z"
+  },
+  "updatedAt": {
+    "$date": "2026-09-02T20:39:37.170Z"
+  }
+}]
