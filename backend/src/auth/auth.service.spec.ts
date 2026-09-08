@@ -50,56 +50,79 @@ describe('AuthService', () => {
   };
 
   const mockEmailService = {
-    sendVerificationEmail: jest.fn().mockResolvedValue(undefined),
-    sendReminderEmail: jest.fn().mockResolvedValue(undefined),
-    sendPasswordResetEmail: jest.fn().mockResolvedValue(undefined),
-    sendPasswordChangedEmail: jest.fn().mockResolvedValue(undefined),
-    sendEmailChangeVerification: jest.fn().mockResolvedValue(undefined),
-    sendEmailChangeNotification: jest.fn().mockResolvedValue(undefined),
-    sendPhoneChangeNotification: jest.fn().mockResolvedValue(undefined),
-    sendOtpEmail: jest.fn().mockResolvedValue(undefined),
-    sendWelcomeEmail: jest.fn().mockResolvedValue(undefined),
-    sendMfaEnabledEmail: jest.fn().mockResolvedValue(undefined),
-    sendMfaDisabledEmail: jest.fn().mockResolvedValue(undefined),
-    sendAccountLockedEmail: jest.fn().mockResolvedValue(undefined),
-    sendNewDeviceLoginEmail: jest.fn().mockResolvedValue(undefined),
+    sendVerificationEmail: jest.fn(),
+    sendReminderEmail: jest.fn(),
+    sendPasswordResetEmail: jest.fn(),
+    sendPasswordChangedEmail: jest.fn(),
+    sendEmailChangeVerification: jest.fn(),
+    sendEmailChangeNotification: jest.fn(),
+    sendPhoneChangeNotification: jest.fn(),
+    sendOtpEmail: jest.fn(),
+    sendWelcomeEmail: jest.fn(),
+    sendMfaEnabledEmail: jest.fn(),
+    sendMfaDisabledEmail: jest.fn(),
+    sendAccountLockedEmail: jest.fn(),
+    sendNewDeviceLoginEmail: jest.fn(),
   };
 
   const mockSmsService = {
-    sendOtp: jest.fn().mockResolvedValue(undefined),
-    sendReminderSms: jest.fn().mockResolvedValue(undefined),
+    sendOtp: jest.fn(),
+    sendReminderSms: jest.fn(),
   };
 
   const mockJwtService = {
-    sign: jest.fn().mockReturnValue('mock-token'),
+    sign: jest.fn(),
     verify: jest.fn(),
     decode: jest.fn(),
   };
 
   const mockConfigService = {
-    get: jest.fn((key: string) => {
+    get: jest.fn(),
+  };
+
+  const mockRedis = {
+    get: jest.fn(),
+    set: jest.fn(),
+    del: jest.fn(),
+    scan: jest.fn(),
+    sadd: jest.fn(),
+    srem: jest.fn(),
+    smembers: jest.fn(),
+    expire: jest.fn(),
+  };
+
+  const applyMockDefaults = () => {
+    for (const fn of Object.values(mockEmailService)) {
+      fn.mockResolvedValue(undefined);
+    }
+    for (const fn of Object.values(mockSmsService)) {
+      fn.mockResolvedValue(undefined);
+    }
+
+    mockJwtService.sign.mockReturnValue('mock-token');
+
+    mockConfigService.get.mockImplementation((key: string) => {
       const config: Record<string, string> = {
         'jwt.secret': 'test-secret',
         'jwt.accessExpiration': '15m',
         'jwt.refreshExpiration': '7d',
       };
       return config[key];
-    }),
-  };
+    });
 
-  const mockRedis = {
-    get: jest.fn().mockResolvedValue(null),
-    set: jest.fn().mockResolvedValue('OK'),
-    del: jest.fn().mockResolvedValue(1),
-    scan: jest.fn().mockResolvedValue(['0', []]),
-    sadd: jest.fn().mockResolvedValue(1),
-    srem: jest.fn().mockResolvedValue(1),
-    smembers: jest.fn().mockResolvedValue([]),
-    expire: jest.fn().mockResolvedValue(1),
+    mockRedis.get.mockResolvedValue(null);
+    mockRedis.set.mockResolvedValue('OK');
+    mockRedis.del.mockResolvedValue(1);
+    mockRedis.scan.mockResolvedValue(['0', []]);
+    mockRedis.sadd.mockResolvedValue(1);
+    mockRedis.srem.mockResolvedValue(1);
+    mockRedis.smembers.mockResolvedValue([]);
+    mockRedis.expire.mockResolvedValue(1);
   };
 
   beforeEach(async () => {
-    jest.clearAllMocks();
+    jest.resetAllMocks();
+    applyMockDefaults();
 
     const module: TestingModule = await Test.createTestingModule({
       providers: [

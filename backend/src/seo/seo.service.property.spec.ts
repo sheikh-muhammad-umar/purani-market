@@ -78,9 +78,8 @@ describe('SeoService - Property 1: Meta title follows page-type template', () =>
           (title, currency, amount) => {
             const result = buildListingTitle(title, currency, amount);
 
-            // The title must contain exactly 2 separators: " - " and " | "
-            const dashSeparator = result.indexOf(' - ');
             const pipeSeparator = result.lastIndexOf(' | ');
+            const dashSeparator = result.lastIndexOf(' - ', pipeSeparator);
 
             expect(dashSeparator).toBeGreaterThan(0);
             expect(pipeSeparator).toBeGreaterThan(dashSeparator);

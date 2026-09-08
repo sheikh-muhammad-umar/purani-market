@@ -7,6 +7,50 @@ describe('PrerenderService', () => {
   let service: PrerenderService;
   let mockRedis: Record<string, jest.Mock>;
 
+  const originalFetch = global.fetch;
+
+  /**
+   * Builds a `fetch` mock together with a promise that settles the moment the
+   * mock is called.
+   *
+   * The stale-while-revalidate refresh is deliberately fire-and-forget, so a
+   * test cannot await it directly. Sleeping for a fixed 50ms and then asserting
+   * is a guess about scheduling that gets worse the busier the machine is;
+   * waiting for the call itself is exact and finishes as soon as it happens.
+   */
+  const fetchMockAwaitingFirstCall = (html: string) => {
+    let markCalled: () => void;
+    const firstCall = new Promise<void>((resolve) => {
+      markCalled = resolve;
+    });
+
+    const mock = jest.fn().mockImplementation(() => {
+      markCalled();
+      return Promise.resolve({
+        ok: true,
+        text: jest.fn().mockResolvedValue(html),
+      });
+    });
+
+    // Bounded only so a genuine failure reports "never fired" instead of
+    // sitting until Jest's own timeout with no explanation.
+    const called = Promise.race([
+      firstCall,
+      new Promise<never>((_, reject) =>
+        setTimeout(
+          () => reject(new Error('background refresh never called fetch')),
+          2000,
+        ).unref(),
+      ),
+    ]);
+
+    return { mock, called };
+  };
+
+  afterEach(() => {
+    global.fetch = originalFetch;
+  });
+
   beforeEach(async () => {
     mockRedis = {
       setex: jest.fn().mockResolvedValue('OK'),
@@ -156,10 +200,8 @@ describe('PrerenderService', () => {
       mockRedis.get.mockResolvedValue(staleHtml);
       mockRedis.ttl.mockResolvedValue(100); // Below 10% of 3600 (360)
 
-      global.fetch = jest.fn().mockResolvedValue({
-        ok: true,
-        text: jest.fn().mockResolvedValue('<html>Fresh</html>'),
-      });
+      const { mock, called } = fetchMockAwaitingFirstCall('<html>Fresh</html>');
+      global.fetch = mock;
 
       const result = await service.getWithStaleWhileRevalidate('/');
 
@@ -167,7 +209,7 @@ describe('PrerenderService', () => {
       expect(result).toBe(staleHtml);
 
       // Wait for the background refresh to fire
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await called;
 
       // Background refresh should have been triggered
       expect(global.fetch).toHaveBeenCalled();
@@ -178,16 +220,14 @@ describe('PrerenderService', () => {
       mockRedis.get.mockResolvedValue(staleHtml);
       mockRedis.ttl.mockResolvedValue(1000); // Below 10% of 86400 (8640)
 
-      global.fetch = jest.fn().mockResolvedValue({
-        ok: true,
-        text: jest.fn().mockResolvedValue('<html>Fresh</html>'),
-      });
+      const { mock, called } = fetchMockAwaitingFirstCall('<html>Fresh</html>');
+      global.fetch = mock;
 
       const result = await service.getWithStaleWhileRevalidate('/pages/about');
 
       expect(result).toBe(staleHtml);
 
-      await new Promise((resolve) => setTimeout(resolve, 50));
+      await called;
       expect(global.fetch).toHaveBeenCalled();
     });
 
