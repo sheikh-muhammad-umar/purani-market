@@ -269,3 +269,34 @@ ProductListingSchema.index({ vehicleBrandId: 1, modelId: 1 });
 ProductListingSchema.index({ purchaseId: 1 });
 ProductListingSchema.index({ status: 1, expiresAt: 1 });
 ProductListingSchema.index({ status: 1, deactivatedAt: 1 });
+
+/**
+ * Sort-by-price support.
+ *
+ * Search sorts by `{ isFeatured: -1, 'price.amount': ±1 }` over
+ * `{ status: 'active' }`. No index covered that combination, so the query used
+ * `status_1` and then sorted in memory: measured on 50k listings it examined all
+ * 40,035 matching documents to return a 20-document page (2001:1) at 45ms,
+ * against 2ms for the equivalent indexed sort by newest -- and an in-memory sort
+ * is capped at 32MB, so it fails outright once the matched set grows enough.
+ *
+ * Two indexes rather than one because a compound index only serves a sort it can
+ * walk in order or in exact reverse. Reversing { isFeatured: -1, price: 1 } gives
+ * { isFeatured: 1, price: -1 }, which is not the descending variant the API
+ * offers, so each direction needs its own.
+ */
+ProductListingSchema.index({ status: 1, isFeatured: -1, 'price.amount': 1 });
+ProductListingSchema.index({ status: 1, isFeatured: -1, 'price.amount': -1 });
+
+/**
+ * Seller listings filtered by status, used by the seller profile and the seller
+ * SEO builder. `sellerId` alone left the status check to a document fetch:
+ * measured 12,527 documents examined to return 9,969.
+ */
+ProductListingSchema.index({ sellerId: 1, status: 1 });
+
+// Deliberately NOT indexed: `condition`, `featuredUntil` and `price.amount` as a
+// standalone range. explain() on a 50k collection showed each already resolving
+// through `status_1` while examining 20-52 documents in under 1ms, so an index
+// would add write cost and memory for no measured read benefit. Revisit if the
+// catalogue grows by another order of magnitude.
