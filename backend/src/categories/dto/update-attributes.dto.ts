@@ -40,6 +40,10 @@ export class CategoryAttributeDto {
   @IsOptional()
   @IsNumber()
   rangeMax?: number;
+
+  @IsOptional()
+  @IsBoolean()
+  allowOther?: boolean;
 }
 
 export class UpdateAttributesDto {
