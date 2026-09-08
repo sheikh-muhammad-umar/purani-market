@@ -1,0 +1,7 @@
+# Server output captured during a run: hundreds of MB per session, and only
+# meaningful while that run is being read.
+logs/
+*.pid
+
+# Harness dependencies (autocannon)
+node_modules/

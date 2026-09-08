@@ -1,0 +1,1532 @@
+{
+  "profile": "baseline",
+  "tag": "volume",
+  "startedAt": "2026-09-04T22:41:43.880Z",
+  "baseUrl": "http://127.0.0.1:3100",
+  "backendPid": 94797,
+  "ids": {
+    "LISTING_ID": "69f3c0d3f4b4de5179fb456e",
+    "SELLER_ID": "69c6f2471c01acea72b7c32c",
+    "CAT_L3": "69ceac637bc913bf0da6ef1f",
+    "CAT_BUSY": "69ceac637bc913bf0da6ef75",
+    "CAT_L1": "69ceac637bc913bf0da6ef1c",
+    "SHORT_ID": "69fb98c1ad173d39c3abe02d",
+    "PROVINCE_ID": "69d6b2c5da8b30bb9bcdb613",
+    "CITY_ID": "69d6b2c5da8b30bb9bcdb618"
+  },
+  "stages": {
+    "categoryTree": {
+      "scenario": {
+        "name": "GET /api/categories (cached tree)",
+        "path": "/api/categories"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 5,
+          "p90": 13,
+          "p97_5": 35,
+          "p99": 45,
+          "avg": 7.45,
+          "max": 81,
+          "stddev": 8.32
+        },
+        "throughput": {
+          "reqPerSecAvg": 125.4,
+          "reqPerSecStddev": 28.46,
+          "totalRequests": 1254,
+          "bytesPerSecAvg": 10025984,
+          "totalBytes": 100257300
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 1254,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 42.5,
+              "max": 59.8,
+              "min": 12.4
+            },
+            "rssMB": {
+              "avg": 215.8,
+              "max": 229.7,
+              "start": 174.4,
+              "end": 221
+            },
+            "samples": 19
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 20.3,
+                "max": 58.2,
+                "min": 1.1
+              },
+              "memMB": {
+                "avg": 540.2,
+                "max": 646.8,
+                "min": 486.9
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 3.4,
+                "max": 9,
+                "min": 0.5
+              },
+              "memMB": {
+                "avg": 1415.2,
+                "max": 1415.2,
+                "min": 1415.2
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 3.5,
+                "max": 4.7,
+                "min": 2
+              },
+              "memMB": {
+                "avg": 12.2,
+                "max": 12.5,
+                "min": 11.9
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-redis-1": {
+              "rxMB": 0.95,
+              "txMB": 95.37
+            }
+          }
+        }
+      }
+    },
+    "inheritedAttributes": {
+      "scenario": {
+        "name": "GET /api/categories/:id/inherited-attributes (N+1 chain)",
+        "path": "/api/categories/69ceac637bc913bf0da6ef1f/inherited-attributes"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 56,
+          "p90": 115,
+          "p97_5": 148,
+          "p99": 298,
+          "avg": 63.95,
+          "max": 329,
+          "stddev": 44.13
+        },
+        "throughput": {
+          "reqPerSecAvg": 15.4,
+          "reqPerSecStddev": 4.08,
+          "totalRequests": 154,
+          "bytesPerSecAvg": 22795.2,
+          "totalBytes": 227920
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 154,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 9.7,
+              "max": 15.9,
+              "min": 3
+            },
+            "rssMB": {
+              "avg": 124.2,
+              "max": 158.2,
+              "start": 158.2,
+              "end": 98.5
+            },
+            "samples": 20
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 79.7,
+                "max": 199.3,
+                "min": 18.8
+              },
+              "memMB": {
+                "avg": 539.5,
+                "max": 645.8,
+                "min": 486.3
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 5.2,
+                "max": 10.2,
+                "min": 1.6
+              },
+              "memMB": {
+                "avg": 1415.2,
+                "max": 1415.2,
+                "min": 1415.2
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 2.2,
+                "max": 4.3,
+                "min": 1.1
+              },
+              "memMB": {
+                "avg": 11.8,
+                "max": 11.8,
+                "min": 11.8
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-redis-1": {
+              "rxMB": 0,
+              "txMB": 0
+            }
+          }
+        }
+      }
+    },
+    "searchPlain": {
+      "scenario": {
+        "name": "GET /api/search (no filters)",
+        "path": "/api/search?page=1&limit=20"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 16,
+          "p90": 33,
+          "p97_5": 50,
+          "p99": 59,
+          "avg": 19.69,
+          "max": 92,
+          "stddev": 10.59
+        },
+        "throughput": {
+          "reqPerSecAvg": 49.5,
+          "reqPerSecStddev": 14.4,
+          "totalRequests": 495,
+          "bytesPerSecAvg": 1313715.2,
+          "totalBytes": 13137134
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 495,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 18.3,
+              "max": 41.8,
+              "min": 7.7
+            },
+            "rssMB": {
+              "avg": 210.5,
+              "max": 263.8,
+              "start": 158.9,
+              "end": 252.3
+            },
+            "samples": 19
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 5.3,
+                "max": 5.8,
+                "min": 4.6
+              },
+              "memMB": {
+                "avg": 486.4,
+                "max": 486.4,
+                "min": 486.4
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 72.6,
+                "max": 79.5,
+                "min": 60.4
+              },
+              "memMB": {
+                "avg": 1416.5,
+                "max": 1417.2,
+                "min": 1415.2
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 1.1,
+                "max": 2.4,
+                "min": 0.4
+              },
+              "memMB": {
+                "avg": 12,
+                "max": 12.1,
+                "min": 11.8
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 0.95,
+              "txMB": 9.54
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 0,
+              "txMB": 19.07
+            },
+            "personal-redis-1": {
+              "rxMB": 0,
+              "txMB": 0
+            }
+          }
+        }
+      }
+    },
+    "searchWithCategory": {
+      "scenario": {
+        "name": "GET /api/search?category=busy (facets + N+1)",
+        "path": "/api/search?category=69ceac637bc913bf0da6ef75&page=1&limit=20"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 6,
+          "p90": 16,
+          "p97_5": 31,
+          "p99": 37,
+          "avg": 8.13,
+          "max": 56,
+          "stddev": 6.85
+        },
+        "throughput": {
+          "reqPerSecAvg": 115.5,
+          "reqPerSecStddev": 56.36,
+          "totalRequests": 1155,
+          "bytesPerSecAvg": 3076019.2,
+          "totalBytes": 30750720
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 1155,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 38.6,
+              "max": 71.9,
+              "min": 11.3
+            },
+            "rssMB": {
+              "avg": 224,
+              "max": 279.2,
+              "start": 182.7,
+              "end": 279.2
+            },
+            "samples": 19
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 29.8,
+                "max": 51,
+                "min": 18.3
+              },
+              "memMB": {
+                "avg": 539.2,
+                "max": 644.5,
+                "min": 486.4
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 69.2,
+                "max": 95.3,
+                "min": 27.3
+              },
+              "memMB": {
+                "avg": 1428.5,
+                "max": 1428.5,
+                "min": 1428.5
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 0.6,
+                "max": 0.7,
+                "min": 0.5
+              },
+              "memMB": {
+                "avg": 11.9,
+                "max": 12.1,
+                "min": 11.8
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 1.91,
+              "txMB": 28.61
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 1.91,
+              "txMB": 28.61
+            },
+            "personal-redis-1": {
+              "rxMB": 0,
+              "txMB": 0
+            }
+          }
+        }
+      }
+    },
+    "searchEmptyCategory": {
+      "scenario": {
+        "name": "GET /api/search?category=empty (regex fallback)",
+        "path": "/api/search?category=69ceac637bc913bf0da6ef1f&page=1&limit=20"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 3,
+          "p90": 9,
+          "p97_5": 18,
+          "p99": 23,
+          "avg": 4.24,
+          "max": 47,
+          "stddev": 4.36
+        },
+        "throughput": {
+          "reqPerSecAvg": 210.4,
+          "reqPerSecStddev": 101.95,
+          "totalRequests": 2104,
+          "bytesPerSecAvg": 319612.8,
+          "totalBytes": 3195976
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 2104,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 55.1,
+              "max": 87.8,
+              "min": 12.2
+            },
+            "rssMB": {
+              "avg": 261.1,
+              "max": 316.3,
+              "start": 147.3,
+              "end": 232.2
+            },
+            "samples": 19
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 50.9,
+                "max": 89.5,
+                "min": 26.1
+              },
+              "memMB": {
+                "avg": 486.7,
+                "max": 486.9,
+                "min": 486.4
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 21.4,
+                "max": 32.7,
+                "min": 6.3
+              },
+              "memMB": {
+                "avg": 1437.7,
+                "max": 1437.7,
+                "min": 1437.7
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 0.4,
+                "max": 0.5,
+                "min": 0.4
+              },
+              "memMB": {
+                "avg": 11.9,
+                "max": 12.1,
+                "min": 11.8
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 4.77,
+              "txMB": 0
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 2.86,
+              "txMB": 0
+            },
+            "personal-redis-1": {
+              "rxMB": 0,
+              "txMB": 0
+            }
+          }
+        }
+      }
+    },
+    "searchText": {
+      "scenario": {
+        "name": "GET /api/search?q=... (text query)",
+        "path": "/api/search?q=phone&page=1&limit=20"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 7,
+          "p90": 17,
+          "p97_5": 29,
+          "p99": 33,
+          "avg": 9.3,
+          "max": 60,
+          "stddev": 6.35
+        },
+        "throughput": {
+          "reqPerSecAvg": 102,
+          "reqPerSecStddev": 36.58,
+          "totalRequests": 1020,
+          "bytesPerSecAvg": 2998118.4,
+          "totalBytes": 29980164
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 1020,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 27.7,
+              "max": 38,
+              "min": 9.8
+            },
+            "rssMB": {
+              "avg": 236.3,
+              "max": 292.4,
+              "start": 278.4,
+              "end": 231.4
+            },
+            "samples": 19
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 23.4,
+                "max": 52.4,
+                "min": 8.8
+              },
+              "memMB": {
+                "avg": 486.6,
+                "max": 486.8,
+                "min": 486.5
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 44.3,
+                "max": 73.8,
+                "min": 23.2
+              },
+              "memMB": {
+                "avg": 1432.6,
+                "max": 1434.6,
+                "min": 1428.5
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 2.4,
+                "max": 4.2,
+                "min": 1.1
+              },
+              "memMB": {
+                "avg": 11.8,
+                "max": 11.8,
+                "min": 11.8
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 0.95,
+              "txMB": 28.61
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 1.91,
+              "txMB": 28.61
+            },
+            "personal-redis-1": {
+              "rxMB": 0.95,
+              "txMB": 0
+            }
+          }
+        }
+      }
+    },
+    "searchPriceSort": {
+      "scenario": {
+        "name": "GET /api/search sort=price_asc (unindexed sort)",
+        "path": "/api/search?sort=price_asc&page=1&limit=20"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 6,
+          "p90": 15,
+          "p97_5": 24,
+          "p99": 30,
+          "avg": 8.26,
+          "max": 80,
+          "stddev": 5.93
+        },
+        "throughput": {
+          "reqPerSecAvg": 113.8,
+          "reqPerSecStddev": 43.48,
+          "totalRequests": 1138,
+          "bytesPerSecAvg": 3143424,
+          "totalBytes": 31435856
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 1138,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 29,
+              "max": 36.3,
+              "min": 5.8
+            },
+            "rssMB": {
+              "avg": 224.8,
+              "max": 247.8,
+              "start": 170.5,
+              "end": 243.9
+            },
+            "samples": 19
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 16.5,
+                "max": 34,
+                "min": 4.5
+              },
+              "memMB": {
+                "avg": 539.5,
+                "max": 645.4,
+                "min": 486.4
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 38.1,
+                "max": 39.4,
+                "min": 36.3
+              },
+              "memMB": {
+                "avg": 1434.6,
+                "max": 1434.6,
+                "min": 1434.6
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 1.2,
+                "max": 2.6,
+                "min": 0.4
+              },
+              "memMB": {
+                "avg": 11.8,
+                "max": 11.8,
+                "min": 11.8
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 1.91,
+              "txMB": 28.61
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 1.91,
+              "txMB": 28.61
+            },
+            "personal-redis-1": {
+              "rxMB": 0,
+              "txMB": 0
+            }
+          }
+        }
+      }
+    },
+    "listings": {
+      "scenario": {
+        "name": "GET /api/listings (feed + count)",
+        "path": "/api/listings?page=1&limit=20"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 43,
+          "p90": 69,
+          "p97_5": 82,
+          "p99": 91,
+          "avg": 49.53,
+          "max": 116,
+          "stddev": 13.38
+        },
+        "throughput": {
+          "reqPerSecAvg": 20,
+          "reqPerSecStddev": 3.83,
+          "totalRequests": 200,
+          "bytesPerSecAvg": 528985.6,
+          "totalBytes": 5289400
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 200,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 11.7,
+              "max": 22.2,
+              "min": 4.7
+            },
+            "rssMB": {
+              "avg": 210.7,
+              "max": 231.9,
+              "start": 208.3,
+              "end": 215.2
+            },
+            "samples": 20
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 113.5,
+                "max": 154.7,
+                "min": 91.8
+              },
+              "memMB": {
+                "avg": 486.7,
+                "max": 486.8,
+                "min": 486.6
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 14.5,
+                "max": 42.6,
+                "min": 0.3
+              },
+              "memMB": {
+                "avg": 1430.9,
+                "max": 1431.6,
+                "min": 1430.5
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 0.4,
+                "max": 0.5,
+                "min": 0.3
+              },
+              "memMB": {
+                "avg": 12,
+                "max": 12.1,
+                "min": 11.8
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 0,
+              "txMB": 9.54
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-redis-1": {
+              "rxMB": 0,
+              "txMB": 0
+            }
+          }
+        }
+      }
+    },
+    "listingsDeepPage": {
+      "scenario": {
+        "name": "GET /api/listings deep page (skip cost)",
+        "path": "/api/listings?page=50&limit=20"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 42,
+          "p90": 72,
+          "p97_5": 91,
+          "p99": 119,
+          "avg": 49.55,
+          "max": 143,
+          "stddev": 15.7
+        },
+        "throughput": {
+          "reqPerSecAvg": 19.9,
+          "reqPerSecStddev": 4.51,
+          "totalRequests": 199,
+          "bytesPerSecAvg": 527846.4,
+          "totalBytes": 5278077
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 199,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 12.5,
+              "max": 16,
+              "min": 4.3
+            },
+            "rssMB": {
+              "avg": 207.6,
+              "max": 230,
+              "start": 163.3,
+              "end": 224.8
+            },
+            "samples": 19
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 76.3,
+                "max": 100.2,
+                "min": 32.9
+              },
+              "memMB": {
+                "avg": 486.5,
+                "max": 486.7,
+                "min": 486.4
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 0.6,
+                "max": 1.1,
+                "min": 0.3
+              },
+              "memMB": {
+                "avg": 1430.5,
+                "max": 1430.5,
+                "min": 1430.5
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 0.8,
+                "max": 1.6,
+                "min": 0.4
+              },
+              "memMB": {
+                "avg": 11.9,
+                "max": 12.1,
+                "min": 11.8
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-redis-1": {
+              "rxMB": 0,
+              "txMB": 0
+            }
+          }
+        }
+      }
+    },
+    "shortsFeed": {
+      "scenario": {
+        "name": "GET /api/shorts/feed (6 round trips)",
+        "path": "/api/shorts/feed?limit=10"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 5,
+          "p90": 11,
+          "p97_5": 32,
+          "p99": 41,
+          "avg": 7.1,
+          "max": 62,
+          "stddev": 7.17
+        },
+        "throughput": {
+          "reqPerSecAvg": 131.7,
+          "reqPerSecStddev": 62.61,
+          "totalRequests": 1317,
+          "bytesPerSecAvg": 1511756.8,
+          "totalBytes": 15116526
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 1317,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 47.7,
+              "max": 86,
+              "min": 15.7
+            },
+            "rssMB": {
+              "avg": 256.7,
+              "max": 315.4,
+              "start": 227.8,
+              "end": 232.1
+            },
+            "samples": 19
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 28.2,
+                "max": 30.4,
+                "min": 25.8
+              },
+              "memMB": {
+                "avg": 486.7,
+                "max": 486.9,
+                "min": 486.4
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 5.7,
+                "max": 15.8,
+                "min": 0.6
+              },
+              "memMB": {
+                "avg": 1430.5,
+                "max": 1430.5,
+                "min": 1430.5
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 1,
+                "max": 1.9,
+                "min": 0.4
+              },
+              "memMB": {
+                "avg": 11.9,
+                "max": 11.9,
+                "min": 11.8
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 4.77,
+              "txMB": 28.61
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-redis-1": {
+              "rxMB": 0,
+              "txMB": 0
+            }
+          }
+        }
+      }
+    },
+    "seoHome": {
+      "scenario": {
+        "name": "GET /api/seo/home (cached)",
+        "path": "/api/seo/home"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 0,
+          "p90": 0,
+          "p97_5": 3,
+          "p99": 4,
+          "avg": 0.21,
+          "max": 18,
+          "stddev": 0.95
+        },
+        "throughput": {
+          "reqPerSecAvg": 1448.2,
+          "reqPerSecStddev": 721.97,
+          "totalRequests": 14480,
+          "bytesPerSecAvg": 3897856,
+          "totalBytes": 38980160
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 14480,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 49.3,
+              "max": 85,
+              "min": 14
+            },
+            "rssMB": {
+              "avg": 293.2,
+              "max": 373.8,
+              "start": 239.1,
+              "end": 373.8
+            },
+            "samples": 19
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 1.2,
+                "max": 1.5,
+                "min": 1
+              },
+              "memMB": {
+                "avg": 486.5,
+                "max": 486.6,
+                "min": 486.4
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 0.5,
+                "max": 0.9,
+                "min": 0.3
+              },
+              "memMB": {
+                "avg": 1430.5,
+                "max": 1430.5,
+                "min": 1430.5
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 6.9,
+                "max": 9.8,
+                "min": 4
+              },
+              "memMB": {
+                "avg": 11.9,
+                "max": 12.1,
+                "min": 11.8
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-redis-1": {
+              "rxMB": 1.91,
+              "txMB": 19.07
+            }
+          }
+        }
+      }
+    },
+    "seoListing": {
+      "scenario": {
+        "name": "GET /api/seo/listing/:id (cached)",
+        "path": "/api/seo/listing/69f3c0d3f4b4de5179fb456e"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 0,
+          "p90": 1,
+          "p97_5": 3,
+          "p99": 6,
+          "avg": 0.3,
+          "max": 34,
+          "stddev": 1.33
+        },
+        "throughput": {
+          "reqPerSecAvg": 1263.6,
+          "reqPerSecStddev": 743.76,
+          "totalRequests": 12636,
+          "bytesPerSecAvg": 3929574.4,
+          "totalBytes": 39297960
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 12636,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 43.5,
+              "max": 77.8,
+              "min": 19.1
+            },
+            "rssMB": {
+              "avg": 276.6,
+              "max": 361.9,
+              "start": 238,
+              "end": 220.9
+            },
+            "samples": 20
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 2.3,
+                "max": 2.7,
+                "min": 1.8
+              },
+              "memMB": {
+                "avg": 486.5,
+                "max": 486.6,
+                "min": 486.4
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 3.4,
+                "max": 7.5,
+                "min": 0.4
+              },
+              "memMB": {
+                "avg": 1430.5,
+                "max": 1430.5,
+                "min": 1430.5
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 6.3,
+                "max": 8,
+                "min": 4
+              },
+              "memMB": {
+                "avg": 12,
+                "max": 12.1,
+                "min": 11.9
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-redis-1": {
+              "rxMB": 1.91,
+              "txMB": 19.07
+            }
+          }
+        }
+      }
+    },
+    "adServe": {
+      "scenario": {
+        "name": "GET /api/ads/serve (lineage walk)",
+        "path": "/api/ads/serve?placement=search_top"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 3,
+          "p90": 9,
+          "p97_5": 19,
+          "p99": 29,
+          "avg": 4.45,
+          "max": 97,
+          "stddev": 5.62
+        },
+        "throughput": {
+          "reqPerSecAvg": 202.8,
+          "reqPerSecStddev": 105.95,
+          "totalRequests": 2028,
+          "bytesPerSecAvg": 398681.6,
+          "totalBytes": 3987048
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 2028,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 36.7,
+              "max": 52,
+              "min": 18.1
+            },
+            "rssMB": {
+              "avg": 241.7,
+              "max": 303.1,
+              "start": 262.3,
+              "end": 235.4
+            },
+            "samples": 20
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 45.5,
+                "max": 75.3,
+                "min": 24.8
+              },
+              "memMB": {
+                "avg": 486.5,
+                "max": 486.7,
+                "min": 486.4
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 2.9,
+                "max": 6.7,
+                "min": 0.8
+              },
+              "memMB": {
+                "avg": 1430.5,
+                "max": 1430.5,
+                "min": 1430.5
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 1.1,
+                "max": 2.2,
+                "min": 0.4
+              },
+              "memMB": {
+                "avg": 12,
+                "max": 12.4,
+                "min": 11.8
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 2.86,
+              "txMB": 0
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-redis-1": {
+              "rxMB": 0,
+              "txMB": 0
+            }
+          }
+        }
+      }
+    },
+    "locationProvinces": {
+      "scenario": {
+        "name": "GET /api/location/provinces",
+        "path": "/api/location/provinces"
+      },
+      "result": {
+        "connections": 1,
+        "duration": 10,
+        "overallRate": null,
+        "latencyMs": {
+          "p50": 2,
+          "p90": 8,
+          "p97_5": 17,
+          "p99": 32,
+          "avg": 3.98,
+          "max": 70,
+          "stddev": 5.56
+        },
+        "throughput": {
+          "reqPerSecAvg": 223.7,
+          "reqPerSecStddev": 111.02,
+          "totalRequests": 2237,
+          "bytesPerSecAvg": 526828.81,
+          "totalBytes": 5268135
+        },
+        "errors": {
+          "non2xx": 0,
+          "statusCodes": {
+            "2xx": 2237,
+            "3xx": 0,
+            "4xx": 0,
+            "5xx": 0
+          },
+          "socketErrors": 0,
+          "timeouts": 0,
+          "resets": 0,
+          "errorRatePct": 0
+        },
+        "resources": {
+          "backendProcess": {
+            "cpuPctOneCore": {
+              "avg": 31.7,
+              "max": 48.2,
+              "min": 10.7
+            },
+            "rssMB": {
+              "avg": 231.1,
+              "max": 270.6,
+              "start": 222.7,
+              "end": 253.5
+            },
+            "samples": 20
+          },
+          "containers": {
+            "personal-mongodb-1": {
+              "cpuPct": {
+                "avg": 53.9,
+                "max": 105.2,
+                "min": 23.9
+              },
+              "memMB": {
+                "avg": 486.6,
+                "max": 487.1,
+                "min": 486.4
+              }
+            },
+            "personal-elasticsearch-1": {
+              "cpuPct": {
+                "avg": 0.9,
+                "max": 1.5,
+                "min": 0.5
+              },
+              "memMB": {
+                "avg": 1430.5,
+                "max": 1430.5,
+                "min": 1430.5
+              }
+            },
+            "personal-redis-1": {
+              "cpuPct": {
+                "avg": 1.2,
+                "max": 1.7,
+                "min": 0.4
+              },
+              "memMB": {
+                "avg": 11.9,
+                "max": 12.1,
+                "min": 11.8
+              }
+            }
+          },
+          "containerNetIO": {
+            "personal-mongodb-1": {
+              "rxMB": 1.91,
+              "txMB": 0
+            },
+            "personal-elasticsearch-1": {
+              "rxMB": 0,
+              "txMB": 0
+            },
+            "personal-redis-1": {
+              "rxMB": 0,
+              "txMB": 0
+            }
+          }
+        }
+      }
+    }
+  },
+  "finishedAt": "2026-09-04T22:44:59.415Z"
+}

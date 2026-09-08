@@ -1,0 +1,202 @@
+{
+  "at": "2026-09-05T19:27:54.509Z",
+  "conn": 50,
+  "dur": 12,
+  "repeats": 3,
+  "raw": {
+    "listings            (fix 3: covered count)": [
+      {
+        "rps": 412.75,
+        "p50": 121,
+        "p99": 231,
+        "bytesPerSec": 10923349.34,
+        "non2xx": 0
+      },
+      {
+        "rps": 368.09,
+        "p50": 135,
+        "p99": 227,
+        "bytesPerSec": 9740288,
+        "non2xx": 0
+      },
+      {
+        "rps": 362.42,
+        "p50": 135,
+        "p99": 240,
+        "bytesPerSec": 9591296,
+        "non2xx": 0
+      }
+    ],
+    "searchPriceSort     (fix 4: indexed sort) ": [
+      {
+        "rps": 1005.92,
+        "p50": 48,
+        "p99": 73,
+        "bytesPerSec": 27807744,
+        "non2xx": 0
+      },
+      {
+        "rps": 292.5,
+        "p50": 65,
+        "p99": 1278,
+        "bytesPerSec": 8084373.34,
+        "non2xx": 0
+      },
+      {
+        "rps": 964.92,
+        "p50": 48,
+        "p99": 109,
+        "bytesPerSec": 26670421.34,
+        "non2xx": 0
+      }
+    ],
+    "search              (mixed)               ": [
+      {
+        "rps": 690.84,
+        "p50": 71,
+        "p99": 137,
+        "bytesPerSec": 18341888,
+        "non2xx": 0
+      },
+      {
+        "rps": 295,
+        "p50": 134,
+        "p99": 453,
+        "bytesPerSec": 7832064,
+        "non2xx": 0
+      },
+      {
+        "rps": 675.75,
+        "p50": 71,
+        "p99": 146,
+        "bytesPerSec": 17941162.67,
+        "non2xx": 0
+      }
+    ],
+    "seoHome             compressed            ": [
+      {
+        "rps": 8225.67,
+        "p50": 5,
+        "p99": 10,
+        "bytesPerSec": 22279509.34,
+        "non2xx": 0
+      },
+      {
+        "rps": 1841.84,
+        "p50": 16,
+        "p99": 335,
+        "bytesPerSec": 4988608,
+        "non2xx": 0
+      },
+      {
+        "rps": 7907.84,
+        "p50": 5,
+        "p99": 12,
+        "bytesPerSec": 21420714.67,
+        "non2xx": 0
+      }
+    ],
+    "seoHome             BYPASS compression    ": [
+      {
+        "rps": 2620.09,
+        "p50": 5,
+        "p99": 239,
+        "bytesPerSec": 7052236.67,
+        "non2xx": 0
+      },
+      {
+        "rps": 6037.67,
+        "p50": 6,
+        "p99": 33,
+        "bytesPerSec": 16251221.34,
+        "non2xx": 0
+      },
+      {
+        "rps": 4232.67,
+        "p50": 5,
+        "p99": 94,
+        "bytesPerSec": 11392853.34,
+        "non2xx": 0
+      }
+    ],
+    "categoryTree  78KB  compressed            ": [
+      {
+        "rps": 1314.84,
+        "p50": 34,
+        "p99": 97,
+        "bytesPerSec": 105141589.34,
+        "non2xx": 0
+      },
+      {
+        "rps": 1052.25,
+        "p50": 33,
+        "p99": 199,
+        "bytesPerSec": 84146176,
+        "non2xx": 0
+      },
+      {
+        "rps": 14.75,
+        "p50": 491,
+        "p99": 4780,
+        "bytesPerSec": 1179434.67,
+        "non2xx": 0
+      }
+    ],
+    "categoryTree  78KB  BYPASS compression    ": [
+      {
+        "rps": 1334.09,
+        "p50": 34,
+        "p99": 94,
+        "bytesPerSec": 106654378.67,
+        "non2xx": 0
+      },
+      {
+        "rps": 1115.17,
+        "p50": 33,
+        "p99": 148,
+        "bytesPerSec": 89156266.67,
+        "non2xx": 0
+      },
+      {
+        "rps": 1200.09,
+        "p50": 34,
+        "p99": 140,
+        "bytesPerSec": 95943338.67,
+        "non2xx": 0
+      }
+    ],
+    "locationProvinces   never compressed      ": [
+      {
+        "rps": 2638,
+        "p50": 17,
+        "p99": 53,
+        "bytesPerSec": 6256298.67,
+        "non2xx": 0
+      },
+      {
+        "rps": 173,
+        "p50": 17,
+        "p99": 1607,
+        "bytesPerSec": 410335.34,
+        "non2xx": 0
+      },
+      {
+        "rps": 3229,
+        "p50": 14,
+        "p99": 27,
+        "bytesPerSec": 7658154.67,
+        "non2xx": 0
+      }
+    ]
+  },
+  "medians": {
+    "listings            (fix 3: covered count)": 368,
+    "searchPriceSort     (fix 4: indexed sort)": 965,
+    "search              (mixed)": 676,
+    "seoHome             compressed": 7908,
+    "seoHome             BYPASS compression": 4233,
+    "categoryTree  78KB  compressed": 1052,
+    "categoryTree  78KB  BYPASS compression": 1200,
+    "locationProvinces   never compressed": 2638
+  }
+}

@@ -1,0 +1,558 @@
+{
+  "startedAt": "2026-09-04T22:24:43.900Z",
+  "requests": 300,
+  "concurrency": 4,
+  "scenarios": {
+    "categoryTree": {
+      "path": "/api/categories",
+      "name": "GET /api/categories (cached tree)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 0,
+          "commands": 11,
+          "opsPerRequest": 0.04,
+          "queriesPerRequest": 0,
+          "commandsPerRequest": 0.04,
+          "bytesInMB": 0,
+          "bytesOutMB": 0.08,
+          "bytesOutPerRequestKB": 0.27,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 0,
+          "queriesPerRequest": 0,
+          "queryTimeMs": 0,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 302,
+          "commandsPerRequest": 1.01,
+          "netInMB": 0.01,
+          "netOutMB": 22.46,
+          "hits": 300,
+          "misses": 0,
+          "commandCalls": {
+            "get": 300,
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 78560,
+        "okCount": 300
+      }
+    },
+    "inheritedAttributes": {
+      "path": "/api/categories/69ceac637bc913bf0da6ef1f/inherited-attributes",
+      "name": "GET /api/categories/:id/inherited-attributes (N+1 chain)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 1800,
+          "commands": 11,
+          "opsPerRequest": 6.04,
+          "queriesPerRequest": 6,
+          "commandsPerRequest": 0.04,
+          "bytesInMB": 0.53,
+          "bytesOutMB": 0.85,
+          "bytesOutPerRequestKB": 2.89,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 0,
+          "queriesPerRequest": 0,
+          "queryTimeMs": 0,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 2,
+          "commandsPerRequest": 0.01,
+          "netInMB": 0,
+          "netOutMB": 0,
+          "hits": 0,
+          "misses": 0,
+          "commandCalls": {
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 96,
+        "okCount": 300
+      }
+    },
+    "searchPlain": {
+      "path": "/api/search?page=1&limit=20",
+      "name": "GET /api/search (no filters)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 300,
+          "commands": 24,
+          "opsPerRequest": 1.08,
+          "queriesPerRequest": 1,
+          "commandsPerRequest": 0.08,
+          "bytesInMB": 0.18,
+          "bytesOutMB": 11.09,
+          "bytesOutPerRequestKB": 37.87,
+          "connCurrent": 135,
+          "connTotalCreated": 10
+        },
+        "es": {
+          "queries": 300,
+          "queriesPerRequest": 1,
+          "queryTimeMs": 38,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 2,
+          "commandsPerRequest": 0.01,
+          "netInMB": 0,
+          "netOutMB": 0,
+          "hits": 0,
+          "misses": 0,
+          "commandCalls": {
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 37837,
+        "okCount": 300
+      }
+    },
+    "searchWithCategory": {
+      "path": "/api/search?category=69ceac637bc913bf0da6ef1d&page=1&limit=20",
+      "name": "GET /api/search?category=busy (facets + N+1)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 902,
+          "commands": 14,
+          "opsPerRequest": 3.05,
+          "queriesPerRequest": 3.01,
+          "commandsPerRequest": 0.05,
+          "bytesInMB": 0.35,
+          "bytesOutMB": 11.27,
+          "bytesOutPerRequestKB": 38.47,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 600,
+          "queriesPerRequest": 2,
+          "queryTimeMs": 67,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 2,
+          "commandsPerRequest": 0.01,
+          "netInMB": 0,
+          "netOutMB": 0,
+          "hits": 0,
+          "misses": 0,
+          "commandCalls": {
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 36840,
+        "okCount": 300
+      }
+    },
+    "searchEmptyCategory": {
+      "path": "/api/search?category=69ceac637bc913bf0da6ef1f&page=1&limit=20",
+      "name": "GET /api/search?category=empty (regex fallback)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 1200,
+          "commands": 313,
+          "opsPerRequest": 5.04,
+          "queriesPerRequest": 4,
+          "commandsPerRequest": 1.04,
+          "bytesInMB": 0.51,
+          "bytesOutMB": 0.6,
+          "bytesOutPerRequestKB": 2.05,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 300,
+          "queriesPerRequest": 1,
+          "queryTimeMs": 20,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 2,
+          "commandsPerRequest": 0.01,
+          "netInMB": 0,
+          "netOutMB": 0,
+          "hits": 0,
+          "misses": 0,
+          "commandCalls": {
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 134,
+        "okCount": 300
+      }
+    },
+    "searchText": {
+      "path": "/api/search?q=phone&page=1&limit=20",
+      "name": "GET /api/search?q=... (text query)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 300,
+          "commands": 12,
+          "opsPerRequest": 1.04,
+          "queriesPerRequest": 1,
+          "commandsPerRequest": 0.04,
+          "bytesInMB": 0.14,
+          "bytesOutMB": 6.59,
+          "bytesOutPerRequestKB": 22.48,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 300,
+          "queriesPerRequest": 1,
+          "queryTimeMs": 156,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 602,
+          "commandsPerRequest": 2.01,
+          "netInMB": 0.03,
+          "netOutMB": 0.01,
+          "hits": 300,
+          "misses": 0,
+          "commandCalls": {
+            "zincrby": 300,
+            "ttl": 300,
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 22129,
+        "okCount": 300
+      }
+    },
+    "searchPriceSort": {
+      "path": "/api/search?sort=price_asc&page=1&limit=20",
+      "name": "GET /api/search sort=price_asc (unindexed sort)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 300,
+          "commands": 11,
+          "opsPerRequest": 1.04,
+          "queriesPerRequest": 1,
+          "commandsPerRequest": 0.04,
+          "bytesInMB": 0.18,
+          "bytesOutMB": 11.08,
+          "bytesOutPerRequestKB": 37.84,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 300,
+          "queriesPerRequest": 1,
+          "queryTimeMs": 28,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 2,
+          "commandsPerRequest": 0.01,
+          "netInMB": 0,
+          "netOutMB": 0,
+          "hits": 0,
+          "misses": 0,
+          "commandCalls": {
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 37840,
+        "okCount": 300
+      }
+    },
+    "listings": {
+      "path": "/api/listings?page=1&limit=20",
+      "name": "GET /api/listings (feed + count)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 300,
+          "commands": 313,
+          "opsPerRequest": 2.04,
+          "queriesPerRequest": 1,
+          "commandsPerRequest": 1.04,
+          "bytesInMB": 0.27,
+          "bytesOutMB": 11.19,
+          "bytesOutPerRequestKB": 38.2,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 0,
+          "queriesPerRequest": 0,
+          "queryTimeMs": 0,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 2,
+          "commandsPerRequest": 0.01,
+          "netInMB": 0,
+          "netOutMB": 0,
+          "hits": 0,
+          "misses": 0,
+          "commandCalls": {
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 39520,
+        "okCount": 300
+      }
+    },
+    "listingsDeepPage": {
+      "path": "/api/listings?page=50&limit=20",
+      "name": "GET /api/listings deep page (skip cost)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 300,
+          "commands": 313,
+          "opsPerRequest": 2.04,
+          "queriesPerRequest": 1,
+          "commandsPerRequest": 1.04,
+          "bytesInMB": 0.27,
+          "bytesOutMB": 0.23,
+          "bytesOutPerRequestKB": 0.77,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 0,
+          "queriesPerRequest": 0,
+          "queryTimeMs": 0,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 2,
+          "commandsPerRequest": 0.01,
+          "netInMB": 0,
+          "netOutMB": 0,
+          "hits": 0,
+          "misses": 0,
+          "commandCalls": {
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 123,
+        "okCount": 300
+      }
+    },
+    "shortsFeed": {
+      "path": "/api/shorts/feed?limit=10",
+      "name": "GET /api/shorts/feed (6 round trips)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 1200,
+          "commands": 612,
+          "opsPerRequest": 6.04,
+          "queriesPerRequest": 4,
+          "commandsPerRequest": 2.04,
+          "bytesInMB": 0.67,
+          "bytesOutMB": 4.83,
+          "bytesOutPerRequestKB": 16.49,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 0,
+          "queriesPerRequest": 0,
+          "queryTimeMs": 0,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 2,
+          "commandsPerRequest": 0.01,
+          "netInMB": 0,
+          "netOutMB": 0,
+          "hits": 0,
+          "misses": 0,
+          "commandCalls": {
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 10089,
+        "okCount": 300
+      }
+    },
+    "seoHome": {
+      "path": "/api/seo/home",
+      "name": "GET /api/seo/home (cached)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 0,
+          "commands": 11,
+          "opsPerRequest": 0.04,
+          "queriesPerRequest": 0,
+          "commandsPerRequest": 0.04,
+          "bytesInMB": 0,
+          "bytesOutMB": 0.08,
+          "bytesOutPerRequestKB": 0.27,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 0,
+          "queriesPerRequest": 0,
+          "queryTimeMs": 0,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 302,
+          "commandsPerRequest": 1.01,
+          "netInMB": 0.01,
+          "netOutMB": 0.36,
+          "hits": 300,
+          "misses": 0,
+          "commandCalls": {
+            "get": 300,
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 1305,
+        "okCount": 300
+      }
+    },
+    "seoListing": {
+      "path": "/api/seo/listing/69f3c0d3f4b4de5179fb456e",
+      "name": "GET /api/seo/listing/:id (cached)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 0,
+          "commands": 11,
+          "opsPerRequest": 0.04,
+          "queriesPerRequest": 0,
+          "commandsPerRequest": 0.04,
+          "bytesInMB": 0,
+          "bytesOutMB": 0.08,
+          "bytesOutPerRequestKB": 0.27,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 0,
+          "queriesPerRequest": 0,
+          "queryTimeMs": 0,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 302,
+          "commandsPerRequest": 1.01,
+          "netInMB": 0.02,
+          "netOutMB": 0.48,
+          "hits": 300,
+          "misses": 0,
+          "commandCalls": {
+            "get": 300,
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 1723,
+        "okCount": 300
+      }
+    },
+    "adServe": {
+      "path": "/api/ads/serve?placement=search_top",
+      "name": "GET /api/ads/serve (lineage walk)",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 900,
+          "commands": 12,
+          "opsPerRequest": 3.04,
+          "queriesPerRequest": 3,
+          "commandsPerRequest": 0.04,
+          "bytesInMB": 0.34,
+          "bytesOutMB": 0.62,
+          "bytesOutPerRequestKB": 2.12,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 0,
+          "queriesPerRequest": 0,
+          "queryTimeMs": 0,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 2,
+          "commandsPerRequest": 0.01,
+          "netInMB": 0,
+          "netOutMB": 0,
+          "hits": 0,
+          "misses": 0,
+          "commandCalls": {
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 580,
+        "okCount": 300
+      }
+    },
+    "locationProvinces": {
+      "path": "/api/location/provinces",
+      "name": "GET /api/location/provinces",
+      "metrics": {
+        "requests": 300,
+        "mongo": {
+          "queries": 300,
+          "commands": 311,
+          "opsPerRequest": 2.04,
+          "queriesPerRequest": 1,
+          "commandsPerRequest": 1.04,
+          "bytesInMB": 0.18,
+          "bytesOutMB": 0.42,
+          "bytesOutPerRequestKB": 1.44,
+          "connCurrent": 135,
+          "connTotalCreated": 5
+        },
+        "es": {
+          "queries": 0,
+          "queriesPerRequest": 0,
+          "queryTimeMs": 0,
+          "transportTxMB": 0,
+          "httpOpened": 1
+        },
+        "redis": {
+          "commands": 2,
+          "commandsPerRequest": 0.01,
+          "netInMB": 0,
+          "netOutMB": 0,
+          "hits": 0,
+          "misses": 0,
+          "commandCalls": {
+            "info": 2
+          }
+        },
+        "responseBytesPerRequest": 969,
+        "okCount": 300
+      }
+    }
+  }
+}

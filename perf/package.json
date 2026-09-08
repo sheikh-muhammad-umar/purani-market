@@ -1,0 +1,10 @@
+{
+  "name": "perf-suite",
+  "private": true,
+  "version": "1.0.0",
+  "description": "Local performance test harness (not part of the app build)",
+  "type": "commonjs",
+  "dependencies": {
+    "autocannon": "^8.0.0"
+  }
+}
